@@ -1,0 +1,8 @@
+---
+idrac_user: "root"
+idrac_pwd: "calvin"
+share_ipv4: "100.96.20.115"
+share_name: "\\\\100.96.20.115\\Share\\"
+share_pwd: "ajaya_123"
+share_user: "Administrator@AJUDOM"
+share_mnt: "/mnt/Ajaya"

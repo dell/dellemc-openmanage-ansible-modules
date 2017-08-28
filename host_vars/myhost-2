@@ -1,0 +1,13 @@
+---
+user_name:  "anupam"
+user_pwd:   "password"
+user_priv:  "Operator"
+user_state: "present"
+power_state: "PowerOn"
+snmp_agent_enable: "enabled"
+snmp_protocol: "all"
+snmp_agent_community: "public"
+snmp_discovery_port: "161"
+snmp_trap_port: "162"
+snmp_trap_format: "SNMPv2"
+snmp_state: "present"
