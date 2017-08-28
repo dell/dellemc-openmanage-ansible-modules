@@ -136,7 +136,7 @@ def setup_idrac_snmp_alert (idrac, module):
     # TODO: Check if the SNMP Trap configuration parameters already exists
     (exists, enabled) = _snmp_alert_destination_exists (idrac, module)
 
-    if module.params["state"] = "present":
+    if module.params["state"] == "present":
         if module.check_mode or exists:
             msg['changed'] = False
         elif not exists:
@@ -153,7 +153,7 @@ def setup_idrac_snmp_alert (idrac, module):
             msg['msg'] = idrac.config_mgr.remove_trap_destination(
                                         module.params['snmp_alert_dest'])
 
-    if msg['msg']['Status'] = "Failed":
+    if msg['msg']['Status'] == "Failed":
         msg['changed'] = False
         msg['failed'] = True
 
