@@ -78,7 +78,6 @@ author: "anupam.aloke@dell.com"
 import sys
 import os
 import json
-sys.path.append("/home/anupam/workspace/ansible_idrac_py2.7/omsdk")
 from ansible.module_utils.basic import AnsibleModule
 
 try:
@@ -144,7 +143,7 @@ def setup_idrac_snmp_alert (idrac, module):
             msg['msg'] = idrac.config_mgr.add_trap_destination(
                                         module.params['snmp_alert_dest'],
                                         module.params['snmpv3_user'])
-        elif not enabled:
+        elif exists and not enabled:
             msg['msg'] = idrac.config_mgr.enable_trap_destination(
                                         module.params['snmp_alert_dest'])
     else:
@@ -184,9 +183,9 @@ def main():
 
                 # SNMP Alert Configuration Options
                 snmp_alert_dest = dict (required = False, default = None),
-                snmp_alert_state = dict (required = False,
-                                         choice = ['enabled', 'disabled'],
-                                         default = None),
+                snmp_alert_dest_state = dict (required = False,
+                                              choice = ['enabled', 'disabled'],
+                                              default = None),
                 snmpv3_user = dict (required = False, default = None),
                 state = dict (required = False, choice = ['present', 'absent'])
                 ),
