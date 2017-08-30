@@ -110,3 +110,40 @@
        state:                "{{snmp_alert_state}}"
     tags:
        - snmpalert
+
+  - name: Configure CSIOR
+    dellemc_idrac_csior:
+       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd:  "{{idrac_pwd}}"
+       share_name: "{{share_name}}"
+       share_user: "{{share_user}}"
+       share_pwd:  "{{share_pwd}}"
+       share_mnt:  "{{share_mnt}}"
+       state:      "{{csior_state}}"
+    tags:
+       - csior
+
+  - name: Configure TLS
+    dellemc_idrac_tls:
+       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd:  "{{idrac_pwd}}"
+       share_name: "{{share_name}}"
+       share_user: "{{share_user}}"
+       share_pwd:  "{{share_pwd}}"
+       share_mnt:  "{{share_mnt}}"
+       tls_protocol: "{{tls_protocol}}"
+       ssl_bits: "{{ssl_bits}}"
+    tags:
+       - tls
+
+  - name: Get LC Job Stattus
+    dellemc_idrac_lc_job_status:
+       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd:  "{{idrac_pwd}}"
+       job_id: "{{job_id}}"
+    tags:
+       - jobs
+
