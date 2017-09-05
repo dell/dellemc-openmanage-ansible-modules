@@ -1,21 +1,21 @@
 ---
 - hosts: myhosts
   connection: local
-  name: Ansible-iDRAC Modules
+  name: Dell-EMC-Ansible-iDRAC Modules
   gather_facts: False
 
   tasks:
   - name: Get System Inventory
     dellemc_idrac_inventory:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
-       idrac_pwd: "{{idrac_pwd}}"
+       idrac_pwd:  "{{idrac_pwd}}"
     tags:
        - inventory
 
   - name: Export Server Configuration Profile (SCP)
     dellemc_idrac_export_scp:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
        share_ipv4: "{{share_ipv4}}"
@@ -27,7 +27,7 @@
 
   - name: Setup iDRAC Users 
     dellemc_idrac_user:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
        user_name:  "{{user_name}}"
@@ -39,7 +39,7 @@
 
   - name: Get Lifecycle Controller Status
     dellemc_idrac_lcstatus:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
     tags:
@@ -47,7 +47,7 @@
 
   - name: Export Lifecycle Controller Log
     dellemc_idrac_export_lclog:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
        share_name: "{{share_name}}"
@@ -58,7 +58,7 @@
 
   - name: Export TSR
     dellemc_idrac_export_tsr:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
        share_ipv4: "{{share_ipv4}}"
@@ -70,7 +70,7 @@
 
   - name: Change Power State
     dellemc_idrac_power:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
        state:      "{{power_state}}"
@@ -79,7 +79,7 @@
 
   - name: Configure SNMP
     dellemc_idrac_snmp:
-       idrac_ipv4:           "{{idrac_ipv4}}"
+       idrac_ip:             "{{idrac_ip}}"
        idrac_user:           "{{idrac_user}}"
        idrac_pwd:            "{{idrac_pwd}}"
        share_name:           "{{share_name}}"
@@ -97,7 +97,7 @@
 
   - name: Configure SNMP Alert 
     dellemc_idrac_snmp_alert:
-       idrac_ipv4:           "{{idrac_ipv4}}"
+       idrac_ip:             "{{idrac_ip}}"
        idrac_user:           "{{idrac_user}}"
        idrac_pwd:            "{{idrac_pwd}}"
        share_name:           "{{share_name}}"
@@ -113,7 +113,7 @@
 
   - name: Configure CSIOR
     dellemc_idrac_csior:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
        share_name: "{{share_name}}"
@@ -126,24 +126,24 @@
 
   - name: Configure TLS
     dellemc_idrac_tls:
-       idrac_ipv4: "{{idrac_ipv4}}"
-       idrac_user: "{{idrac_user}}"
-       idrac_pwd:  "{{idrac_pwd}}"
-       share_name: "{{share_name}}"
-       share_user: "{{share_user}}"
-       share_pwd:  "{{share_pwd}}"
-       share_mnt:  "{{share_mnt}}"
+       idrac_ip:     "{{idrac_ip}}"
+       idrac_user:   "{{idrac_user}}"
+       idrac_pwd:    "{{idrac_pwd}}"
+       share_name:   "{{share_name}}"
+       share_user:   "{{share_user}}"
+       share_pwd:    "{{share_pwd}}"
+       share_mnt:    "{{share_mnt}}"
        tls_protocol: "{{tls_protocol}}"
-       ssl_bits: "{{ssl_bits}}"
+       ssl_bits:     "{{ssl_bits}}"
     tags:
        - tls
 
   - name: Get LC Job Stattus
     dellemc_idrac_lc_job_status:
-       idrac_ipv4: "{{idrac_ipv4}}"
+       idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
-       job_id: "{{job_id}}"
+       job_id:     "{{job_id}}"
     tags:
        - jobs
 
