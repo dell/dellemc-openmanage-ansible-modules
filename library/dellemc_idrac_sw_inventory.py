@@ -25,10 +25,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = """
 ---
-module: dellemc_idrac_lc_job_status
-short_description: Returns the status of a Lifecycle Controller Job
+module: dellemc_idrac_sw_inventory
+short_description: Get Firmware Inventory
 version_added: "2.3"
-description: Returns the status of a Lifecycle Controller job given a JOB ID
+description: Get Firmware Inventory
 options:
     idrac_ip:
         required: False
@@ -46,41 +46,38 @@ options:
         required: False
         description: iDRAC port
         default: None
-    job_id:
-        required: True
-        description: JOB ID in the format "JID_1234556789012"
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
 """
 
-EXAMPLES = """
----
-"""
-
-RETURNS = """
----
-"""
-
 from ansible.module_utils.basic import AnsibleModule
 
-# Delete the Job from the LC Job Queue
-def delete_lc_job (idrac, module):
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
+
+# get_sw_inventory
+# idrac: iDRAC handle
+# module: Ansible module
+#
+def get_sw_inventory (idrac, module):
 
     msg = {}
-    msg['failed'] = False
     msg['changed'] = False
+    msg['failed'] = False
+    err = False
 
-    if not module.check_mode:
-        msg['msg'] = idrac.job_mgr.delete_job(module.params['job_id'])
+    try:
+        msg['msg'] = idrac.update_mgr.get_swidentity()
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
+        msg['failed'] = True
 
-        if msg['msg']['Status'] is not "Success":
-            msg['failed'] = True
-        else:
-            msg['changed'] = True
-
-    return msg
-
+    return msg, err
 
 # Main
 def main():
@@ -93,27 +90,29 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = True, type = 'str'),
-                idrac_user = dict (required = False, default = 'root', type = 'str'),
-                idrac_pwd  = dict (required = False, default = 'calvin',
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
+                idrac_user = dict (required = False, default = None, type = 'str'),
+                idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None),
 
-                # JOB ID
-                job_id = dict (required = True, type = 'str')
                 ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg = delete_lc_job(idrac, module)
+    (msg, err) = get_sw_inventory(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
+    if err:
+        module.fail_json(**msg)
     module.exit_json(**msg)
+
 
 if __name__ == '__main__':
     main()

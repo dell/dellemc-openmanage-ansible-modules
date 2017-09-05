@@ -31,16 +31,22 @@ version_added: "2.3"
 description:
     - Configure the Power Cycle options on a Dell EMC PowerEdge Server
 options:
-    idrac_ipv4:
-        required: True
-        description: iDRAC IPv4 Address
+    idrac_ip:
+        required: False
+        description: iDRAC IP Address
+        default: None
     idrac_user:
+        required: False
         description: iDRAC user name
-        default: root
+        default: None
     idrac_pwd:
+        required: False
         description: iDRAC user password
+        default: None
     idrac_port:
+        required: False
         description: iDRAC port
+        default: None
     state:
         description:
             - if C(PowerOn), will Power On the server
@@ -70,18 +76,12 @@ RETURNS = """
 ---
 """
 
-import sys
-import os
-import json
-from ansible.module_utils.basic import AnsibleModule
-
-
 # Change Power State
 # idrac: iDRAC Handle
 # module: Ansible module
 #
 # supports check mode
-def change_power_state (idrac, module):
+def changePowerState (idrac, module):
 
     from omsdk.sdkcenum import TypeHelper
     msg = {}
@@ -148,7 +148,7 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ipv4 = dict (required = True, type = 'str'),
+                idrac_ip   = dict (required = False, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None, type = 'str'),
                 idrac_port = dict (required = False, default = None),
@@ -163,15 +163,14 @@ def main():
                                        "GracefulPowerOff"],
                                    type = 'str')
                 ),
-
-                supports_check_mode = True)
+            supports_check_mode = True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
     # Setup Power Cycle State
-    msg = change_power_state (idrac, module)
+    msg = changePowerState (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

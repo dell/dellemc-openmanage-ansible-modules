@@ -48,7 +48,7 @@ class iDRACConnection():
         ansible_module_params = self.module.params
 
         idrac = ansible_module_params.get('idrac')
-        idrac_ipv4 = ansible_module_params.get('idrac_ipv4')
+        idrac_ip = ansible_module_params.get('idrac_ip')
         idrac_user = ansible_module_params.get('idrac_user')
         idrac_pwd = ansible_module_params.get('idrac_pwd')
         idrac_port = ansible_module_params.get('idrac_port')
@@ -65,15 +65,15 @@ class iDRACConnection():
             self.module.fail_json(**results)
 
         # Connect to iDRAC
-        if idrac_ipv4 == '' or idrac_user == '' or idrac_pwd == '':
+        if idrac_ip == '' or idrac_user == '' or idrac_pwd == '':
             results['msg'] = "hostname, username and password required for this name"
             self.module.fail_json(**results)
         else:
             creds = UserCredentials(idrac_user, idrac_pwd)
-            idrac = sd.find_driver(idrac_ipv4, creds)
+            idrac = sd.find_driver(idrac_ip, creds)
 
             if idrac is None:
-                results['msg'] = "Could not find device driver for iDRAC with IP Address: " + idrac_ipv4 + " User: " + idrac_user + " Pwd: " + idrac_pwd
+                results['msg'] = "Could not find device driver for iDRAC with IP Address: " + idrac_ip + " User: " + idrac_user + " Pwd: " + idrac_pwd
                 self.module.fail_json(**results)
 
         self.handle = idrac

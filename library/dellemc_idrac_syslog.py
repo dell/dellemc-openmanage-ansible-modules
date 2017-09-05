@@ -25,16 +25,16 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = """
 ---
-module: dellemc_idrac_tls
-short_description: Configure TLS protocol options and SSL Encryption Bits
+module: dellemc_idrac_syslog
+short_description: Configure remote system logging
 version_added: "2.3"
 description:
-    - Configure Transport Layer Security (TLS) protocol options
-    - Configure Secure Socket Layer (SSL) Encryption Bits options
+    - Configure remote system logging settings to remotely write RAC log and
+      System Event Log (SEL) to an external server
 options:
     idrac_ip:
         required: False
-        description: iDRAC IP Address
+        description: iDRAC IPv4 Address
         default: None
     idrac_user:
         required: False
@@ -48,47 +48,30 @@ options:
         required: False
         description: iDRAC port
         default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user 
-    tls_protocol:
+    server1_syslog:
         required: False
+        description: IP Address of the Remote Syslog Server 1
+        default: None
+    server2_syslog:
+        required: False
+        description: IP Address of the Remote Syslog Server 2
+        default: None
+    server3_syslog:
+        required: False
+        description: IP Address of the Remote Syslog Server 3
+        default: None
+    port_syslog:
+        required: False
+        description: Port number of remote server
+        default: '514'
+    state:
         description:
-        - if C(TLS_1_0), will set the TLS protocol option to TLS 1.0 and higher
-        - if C(TLS_1_1), will set the TLS protocol option to TLS 1.1 and higher
-        - if C(TLS_2_0), will set the TLS protocol option to TLS 2.0 and higher
-        choices: ['TLS_1_0', 'TLS_1_1', 'TLS_2_0']
-        default: "TLS_1_1"
-    ssl_bits:
-        required: False
-        description: 
-        - if C(S128), will set the SSL Encryption Bits to 128-Bit or higher
-        - if C(S168), will set the SSL Encryption Bits to 168-Bit or higher
-        - if C(S256), will set the SSL Encryption Bits to 256-Bit or higher
-        - if C(Auto), will set the SSL Encryption Bits to Auto-Negotiate
-        choices: ['S128', 'S168', 'S256', 'Auto']
-        default: "S128"
+        - if C(present), will enable the remote syslog option and add the
+          remote servers
+        - if C(absent), will disable the remote syslog option
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
-
-EXAMPLES = """
----
-"""
-
-RETURNS = """
----
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -111,18 +94,16 @@ def _setup_idrac_nw_share (idrac, module):
                           isFolder=True)
 
     myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
+                                    module.params['share_pwd']))
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-
-# setup_idrac_csior
-def setup_idrac_tls (idrac, module):
+# setup_idrac_syslog
+def setup_idrac_syslog (idrac, module):
 
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
-    err = False
 
     try:
         # Check first whether local mount point for network share is setup
@@ -132,21 +113,29 @@ def setup_idrac_tls (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # TODO: Check if TLS settings already exists
+        # TODO: Check if Syslog settings exists
         exists = False
 
-        if module.check_mode or exists:
-            msg['changed'] = not exists
-        else:
-            msg['msg'] = idrac.config_mgr.configure_tls(
-                                         module.params['tls_protocol'],
-                                         module.params['ssl_bits'])
-
-            if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
-                msg['changed'] = True
+        if module.params["state"] == "present":
+            if module.check_mode or exists:
+                msg['changed'] = not exists
             else:
-                msg['changed'] = False
-                msg['failed'] = True
+                msg['msg'] = idrac.config_mgr.enable_syslog (
+                                             module.params["port_syslog"],
+                                             0,
+                                             module.params["server1_syslog"],
+                                             module.params["server2_syslog"],
+                                             module.params["server3_syslog"])
+        else:
+            if module.check_mode or not exists:
+                msg['changed'] = exists
+            else:
+                msg['msg'] = idrac.config_mgr.disable_syslog()
+
+        if "Status" in msg['msg'] and msg['msg']["Status"] is "Success":
+            msg['changed'] = True
+        else:
+            msg['failed'] = True
 
     except Exception as e:
         err = True
@@ -154,6 +143,7 @@ def setup_idrac_tls (idrac, module):
         msg['failed'] = True
 
     return msg, err
+
 
 # Main
 def main():
@@ -178,13 +168,14 @@ def main():
                 share_pwd  = dict (required = True, default = None),
                 share_mnt  = dict (required = True, default = None),
 
-                tls_protocol = dict (required = False,
-                                     choices = ['TLS_1_0', 'TLS_1_1', 'TLS_2_0'],
-                                     default = 'TLS_1_1'),
-                ssl_bits = dict (required = False,
-                                 choices = ['S128', 'S168', 'S256', 'Auto'],
-                                 default = 'S128')
-
+                # Remote Syslog parameters
+                server1_syslog = dict (required = False, default = None, type = 'str'),
+                server2_syslog = dict (required = False, default = None, type = 'str'),
+                server3_syslog = dict (required = False, default = None, type = 'str'),
+                port_syslog = dict (required = False, default = 514, type = 'int'),
+                state = dict (required = False,
+                              choices = ['present', 'absent'],
+                              default = 'present')
                 ),
             supports_check_mode = True)
 
@@ -192,7 +183,7 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg, err = setup_idrac_tls (idrac, module)
+    (msg, err) = setup_idrac_syslog (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
@@ -200,6 +191,7 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
+
 
 if __name__ == '__main__':
     main()

@@ -25,12 +25,13 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = """
 ---
-module: dellemc_idrac_tls
-short_description: Configure TLS protocol options and SSL Encryption Bits
+module: dellemc_idrac_nic_vlan
+short_description: Configure iDRAC Network VLAN settings
 version_added: "2.3"
-description:
-    - Configure Transport Layer Security (TLS) protocol options
-    - Configure Secure Socket Layer (SSL) Encryption Bits options
+description: Configure following iDRAC Network VLAN settings:
+    - Enable VLAN : Enable/disable VLAN
+    - VLAN ID (must be a value from 1 to 4094)
+    - VLAN Priority (must be a value from 0 to 7)
 options:
     idrac_ip:
         required: False
@@ -50,7 +51,7 @@ options:
         default: None
     share_name:
         required: True
-        description: Network file share
+        description: CIFS or NFS Network share 
     share_user:
         required: True
         description: Network share user in the format user@domain
@@ -60,35 +61,25 @@ options:
     share_mnt:
         required: True
         description: Local mount path of the network file share with
-        read-write permission for ansible user 
-    tls_protocol:
+        read-write permission for ansible user
+    vlan_id:
+        required: False
+        description: VLAN ID
+        default: 1
+    vlan_priority:
+        required: False
+        description: VLAN priority
+        default: 0
+    state:
         required: False
         description:
-        - if C(TLS_1_0), will set the TLS protocol option to TLS 1.0 and higher
-        - if C(TLS_1_1), will set the TLS protocol option to TLS 1.1 and higher
-        - if C(TLS_2_0), will set the TLS protocol option to TLS 2.0 and higher
-        choices: ['TLS_1_0', 'TLS_1_1', 'TLS_2_0']
-        default: "TLS_1_1"
-    ssl_bits:
-        required: False
-        description: 
-        - if C(S128), will set the SSL Encryption Bits to 128-Bit or higher
-        - if C(S168), will set the SSL Encryption Bits to 168-Bit or higher
-        - if C(S256), will set the SSL Encryption Bits to 256-Bit or higher
-        - if C(Auto), will set the SSL Encryption Bits to Auto-Negotiate
-        choices: ['S128', 'S168', 'S256', 'Auto']
-        default: "S128"
+        - if C(enable), will enable the VLAN settings and add/change VLAN ID and
+          VLAN priority
+        - if C(disable), will disable the VLAN settings
+        default: 'disable'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
-
-EXAMPLES = """
----
-"""
-
-RETURNS = """
----
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -111,13 +102,15 @@ def _setup_idrac_nw_share (idrac, module):
                           isFolder=True)
 
     myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
+                                    module.params['share_pwd']))
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-
-# setup_idrac_csior
-def setup_idrac_tls (idrac, module):
+# setup_idrac_nic_vlan
+# idrac: iDRAC handle
+# module: Ansible module
+#
+def setup_idrac_nic_vlan (idrac, module):
 
     msg = {}
     msg['changed'] = False
@@ -130,23 +123,34 @@ def setup_idrac_tls (idrac, module):
             if not  _setup_idrac_nw_share (idrac, module):
                 msg['msg'] = "Failed to setup local mount point for network share"
                 msg['failed'] = True
-                return msg
+                return msg, err
 
-        # TODO: Check if TLS settings already exists
-        exists = False
+        # TODO: Check whether VLAN settings exists or not
+        enabled = False
 
-        if module.check_mode or exists:
-            msg['changed'] = not exists
-        else:
-            msg['msg'] = idrac.config_mgr.configure_tls(
-                                         module.params['tls_protocol'],
-                                         module.params['ssl_bits'])
-
-            if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
-                msg['changed'] = True
+        if module.params["state"] == "enable":
+            if module.check_mode or enabled: 
+                msg['changed'] = not enabled 
             else:
-                msg['changed'] = False
-                msg['failed'] = True
+                msg['msg'] = idrac.config_mgr.enable_idracnic_vlan(
+                                             module.params["vlan_id"],
+                                             module.params["vlan_priority"])
+
+                if msg['msg']["Status"] is not "Success":
+                    msg['failed'] = True
+                else:
+                    msg['changed'] = True
+
+        else:
+            if module.check_mode or not enabled:
+                msg['changed'] = enabled
+            else:
+                msg['msg'] = idrac.config_mgr.disable_idracnic_vlan()
+
+                if msg['msg']["Status"] is not "Success":
+                    msg['failed'] = True
+                else:
+                    msg['changed'] = True
 
     except Exception as e:
         err = True
@@ -154,6 +158,7 @@ def setup_idrac_tls (idrac, module):
         msg['failed'] = True
 
     return msg, err
+
 
 # Main
 def main():
@@ -166,11 +171,11 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
+                idrac_ip   = dict (required = True, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+                idrac_port = dict (required = False, default = None),
 
                 # Network File Share
                 share_name = dict (required = True, default = None),
@@ -178,13 +183,11 @@ def main():
                 share_pwd  = dict (required = True, default = None),
                 share_mnt  = dict (required = True, default = None),
 
-                tls_protocol = dict (required = False,
-                                     choices = ['TLS_1_0', 'TLS_1_1', 'TLS_2_0'],
-                                     default = 'TLS_1_1'),
-                ssl_bits = dict (required = False,
-                                 choices = ['S128', 'S168', 'S256', 'Auto'],
-                                 default = 'S128')
-
+                # iDRAC Network VLAN Settings
+                vlan_id = dict (required = False, default = 1, type = 'int'),
+                vlan_priority = dict (required = False, default = 0, type = 'int'),
+                state = dict (required = False, choices = ['enable', 'disable'],
+                              default = 'enable')
                 ),
             supports_check_mode = True)
 
@@ -192,7 +195,7 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg, err = setup_idrac_tls (idrac, module)
+    (msg, err) = setup_idrac_nic_vlan (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
@@ -200,6 +203,7 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
+
 
 if __name__ == '__main__':
     main()

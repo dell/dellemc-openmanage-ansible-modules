@@ -30,19 +30,25 @@ short_description: Returns the status of a Lifecycle Controller Job
 version_added: "2.3"
 description: Returns the status of a Lifecycle Controller job given a JOB ID
 options:
-    idrac_ipv4:
-        required: True
-        description: iDRAC IPv4 Address
+    idrac_ip:
+        required: False
+        description: iDRAC IP Address
+        default: None
     idrac_user:
+        required: False
         description: iDRAC user name
-        default: root
+        default: None
     idrac_pwd:
+        required: False
         description: iDRAC user password
+        default: None
     idrac_port:
+        required: False
         description: iDRAC port
+        default: None
     job_id:
         required: True
-        description: JOB ID in the format "JID_12345"
+        description: JOB ID in the format "JID_123456789012"
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -64,13 +70,20 @@ def get_lc_job_status (idrac, module):
     msg = {}
     msg['failed'] = False
     msg['changed'] = False
+    err = False
 
-    msg['msg'] = idrac.job_mgr.get_job_status(module.params['job_id'])
+    try:
+        msg['msg'] = idrac.job_mgr.get_job_status(module.params['job_id'])
 
-    if msg['msg']['Status'] is not "Success":
+        if "Status" in msg['msg'] and msg['msg']['Status'] is not "Success":
+            msg['failed'] = True
+
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
-    return msg
+    return msg, err
 
 # Main
 def main():
@@ -83,9 +96,9 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ipv4 = dict (required = True, type = 'str'),
-                idrac_user = dict (required = False, default = 'root', type = 'str'),
-                idrac_pwd  = dict (required = False, default = 'calvin',
+                idrac_ip   = dict (required = True, type = 'str'),
+                idrac_user = dict (required = False, default = None, type = 'str'),
+                idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None),
 
@@ -103,6 +116,8 @@ def main():
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
+    if err:
+        module.fail_json(**msg)
     module.exit_json(**msg)
 
 if __name__ == '__main__':

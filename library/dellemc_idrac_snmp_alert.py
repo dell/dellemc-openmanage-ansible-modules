@@ -31,21 +31,28 @@ version_added: "2.3"
 description:
     - Configures SNMP Alert destination settings on iDRAC
 options:
-    idrac_ipv4:
-        required: True
-        description: iDRAC IPv4 Address
+    idrac_ip:
+        required: False
+        description: iDRAC IP Address
+        default: None
     idrac_user:
+        required: False
         description: iDRAC user name
-        default: root
+        default: None
     idrac_pwd:
+        required: False
         description: iDRAC user password
+        default: None
     idrac_port:
+        required: False
         description: iDRAC port
+        default: None
     share_name:
         required: True
+        description: Network file share
     share_user:
         required: True
-        description: Network share user in the format user@domain
+        description: Network share user in the format "user@domain"
     share_pwd:
         required: True
         description: Network share user password
@@ -75,9 +82,6 @@ author: "anupam.aloke@dell.com"
 
 """
 
-import sys
-import os
-import json
 from ansible.module_utils.basic import AnsibleModule
 
 try:
@@ -122,42 +126,56 @@ def _snmp_alert_destination_exists (idrac, module):
 def setup_idrac_snmp_alert (idrac, module):
 
     msg = {}
-    msg['msg'] = ''
     msg['changed'] = False
     msg['failed'] = False
+    err = False
 
-    # Check first whether local mount point for network share is setup
-    if idrac.config_mgr.liason_share is None:
-        if not  _setup_idrac_nw_share (idrac, module):
-            msg['msg'] = "Failed to setup local mount point for network share"
-            msg['failed'] = True
-            return msg
+    try:
 
-    # TODO: Check if the SNMP Trap configuration parameters already exists
-    (exists, enabled) = _snmp_alert_destination_exists (idrac, module)
+        # Check first whether local mount point for network share is setup
+        if idrac.config_mgr.liason_share is None:
+            if not  _setup_idrac_nw_share (idrac, module):
+                msg['msg'] = "Failed to setup local mount point for network share"
+                msg['failed'] = True
+                return msg
 
-    if module.params["state"] == "present":
-        if module.check_mode or exists:
-            msg['changed'] = False
-        elif not exists:
-            msg['msg'] = idrac.config_mgr.add_trap_destination(
+        # TODO: Check if the SNMP Trap configuration parameters already exists
+        (exists, enabled) = _snmp_alert_destination_exists (idrac, module)
+
+        if module.params["state"] == "present":
+            if module.check_mode: 
+                if exists:
+                    msg['changed'] = not enabled
+                else:
+                    msg['changed'] = not exists
+            else:
+                if exists and not enabled:
+                    msg['msg'] = idrac.config_mgr.enable_trap_destination(
+                                        module.params['snmp_alert_dest'])
+
+                elif not exists:
+                    msg['msg'] = idrac.config_mgr.add_trap_destination(
                                         module.params['snmp_alert_dest'],
                                         module.params['snmpv3_user'])
-        elif exists and not enabled:
-            msg['msg'] = idrac.config_mgr.enable_trap_destination(
-                                        module.params['snmp_alert_dest'])
-    else:
-        if module.check_mode or not exists:
-            msg['changed'] = False
         else:
-            msg['msg'] = idrac.config_mgr.remove_trap_destination(
+            if module.check_mode or not exists:
+                msg['changed'] = exists
+            else:
+                msg['msg'] = idrac.config_mgr.remove_trap_destination(
                                         module.params['snmp_alert_dest'])
 
-    if msg['msg']['Status'] == "Failed":
-        msg['changed'] = False
+        if "Status" in msg['msg']:
+            if msg['msg']['Status'] is "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
+
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
-    return msg
+    return msg, err
 
 # Main
 def main():
@@ -170,24 +188,27 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ipv4 = dict (required = True, type = 'str'),
-                idrac_user = dict (required = False, default = 'root', type = 'str'),
-                idrac_pwd  = dict (required = False, default = None, type = 'str'),
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
+                idrac_user = dict (required = False, default = None, type = 'str'),
+                idrac_pwd  = dict (required = False, default = None,
+                                   type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None),
 
                 # Network File Share
                 share_name = dict (required = True, default = None),
                 share_user = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None),
+                share_pwd  = dict (required = True, default = None, no_log = True),
                 share_mnt  = dict (required = True, default = None),
 
                 # SNMP Alert Configuration Options
                 snmp_alert_dest = dict (required = False, default = None),
                 snmp_alert_dest_state = dict (required = False,
-                                              choice = ['enabled', 'disabled'],
-                                              default = None),
+                                         choice = ['enabled', 'disabled'],
+                                         default = None),
                 snmpv3_user = dict (required = False, default = None),
-                state = dict (required = False, choice = ['present', 'absent'])
+                state = dict (required = False,
+                              choice = ['present', 'absent'],
+                              default = 'present')
                 ),
 
             supports_check_mode = True)
@@ -196,11 +217,13 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg = setup_idrac_snmp_alert(idrac, module)
+    msg, err = setup_idrac_snmp_alert(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
+    if err:
+        module.fail_json(**msg)
     module.exit_json(**msg)
 
 if __name__ == '__main__':

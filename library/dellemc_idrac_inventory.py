@@ -32,14 +32,15 @@ version_added: "2.3"
 description:
     - Returns the Dell EMC PowerEdge Server system inventory
 options:
-    idrac_ip4:
+    idrac_ip:
         required: True
-        description: iDRAC IPv4 Address
+        description: iDRAC IP Address
     idrac_user:
         description: iDRAC user name
         default: root
     idrac_pwd:
         description: iDRAC user password
+        default: calvin
     idrac_port:
         description: iDRAC port
 requirements: ['omsdk']
@@ -56,24 +57,26 @@ RETURNS = """
 ---
 """
 
-import sys
-import os
-import json
 from ansible.module_utils.basic import AnsibleModule
-
 
 # Get System Inventory
 def get_system_inventory(idrac):
 
     msg = {} 
-    msg['SystemInventory'] = {}
     msg['changed'] = False
     msg['failed'] = False
+    err = False
 
-    idrac.get_entityjson()
-    msg['SystemInventory'] = idrac.get_json_device()
+    try:
+        idrac.get_entityjson()
+        msg['msg'] = idrac.get_json_device()
 
-    return msg
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
+        msg['failed'] = True
+
+    return msg, err
 
 # Main
 
@@ -88,10 +91,11 @@ def main():
                     idrac = dict(required=False, type='dict'),
 
                     # iDRAC credentials
-                    idrac_ipv4 = dict(required=True, type='str'),
-                    idrac_user = dict(required=False, default='root',  type='str'),
-                    idrac_pwd = dict(required=False, type='str'),
-                    idrac_port = dict(required=False, default=None)
+                    idrac_ip   = dict(required = False, default = None, type='str'),
+                    idrac_user = dict(required = False, default = None, type='str'),
+                    idrac_pwd  = dict(required = False, default = None,
+                                      type='str', no_log = True),
+                    idrac_port = dict(required = False, default = None)
                 ),
                 supports_check_mode = True)
 
@@ -100,12 +104,14 @@ def main():
     idrac = idrac_conn.connect()
 
     # Get System Inventory
-    msg = get_system_inventory(idrac)
+    msg, err = get_system_inventory(idrac)
     
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
-    module.exit_json(ansible_facts = {idrac.ipaddr: {'SystemInventory': msg['SystemInventory']}})
+    if err:
+        module.fail_json(**msg)
+    module.exit_json(ansible_facts = {idrac.ipaddr: {'SystemInventory': msg['msg']}})
 
 if __name__ == '__main__':
     main()

@@ -25,10 +25,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = """
 ---
-module: dellemc_idrac_lc_job_status
-short_description: Returns the status of a Lifecycle Controller Job
+module: dellemc_idrac_delete_lc_job_queue
+short_description: Deletes the Lifecycle Controller Job Queue
 version_added: "2.3"
-description: Returns the status of a Lifecycle Controller job given a JOB ID
+description: Deletes the Lifecycle Controller Job Queue
 options:
     idrac_ip:
         required: False
@@ -46,9 +46,6 @@ options:
         required: False
         description: iDRAC port
         default: None
-    job_id:
-        required: True
-        description: JOB ID in the format "JID_1234556789012"
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -62,17 +59,18 @@ RETURNS = """
 ---
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
-# Delete the Job from the LC Job Queue
-def delete_lc_job (idrac, module):
+# Delete LC Job Queue
+def delete_lc_job_queue (idrac, module):
 
     msg = {}
     msg['failed'] = False
     msg['changed'] = False
 
     if not module.check_mode:
-        msg['msg'] = idrac.job_mgr.delete_job(module.params['job_id'])
+
+        # TODO: Check the Job Queue to make sure there are no pending jobs
+
+        msg['msg'] = idrac.job_mgr.delete_all_jobs()
 
         if msg['msg']['Status'] is not "Success":
             msg['failed'] = True
@@ -80,7 +78,6 @@ def delete_lc_job (idrac, module):
             msg['changed'] = True
 
     return msg
-
 
 # Main
 def main():
@@ -99,9 +96,8 @@ def main():
                                    type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None),
 
-                # JOB ID
-                job_id = dict (required = True, type = 'str')
                 ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC

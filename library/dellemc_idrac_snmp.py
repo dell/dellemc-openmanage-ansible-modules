@@ -31,16 +31,22 @@ version_added: "2.3"
 description:
     - Configures SNMP settings on iDRAC
 options:
-    idrac_ipv4:
-        required: True
-        description: iDRAC IPv4 Address
+    idrac_ip:
+        required: False
+        description: iDRAC IP Address
+        default: None
     idrac_user:
+        required: False
         description: iDRAC user name
-        default: root
+        default: None
     idrac_pwd:
+        required: False
         description: iDRAC user password
+        default: None
     idrac_port:
+        required: False
         description: iDRAC port
+        default: None
     share_name:
         required: True
         description: CIFS or NFS Network share 
@@ -95,9 +101,6 @@ RETURNS = """
 ---
 """
 
-import sys
-import os
-import json
 from ansible.module_utils.basic import AnsibleModule
 
 try:
@@ -105,7 +108,7 @@ try:
 except NameError:
     FileNotFoundError = IOError
 
-# Setup iDRAC Network Share Local Mount point
+# Setup iDRAC Network File Share
 # idrac: iDRAC handle
 # module: Ansible module
 #
@@ -131,34 +134,53 @@ def _setup_idrac_nw_share (idrac, module):
 def setup_idrac_snmp (idrac, module):
 
     msg = {}
-    msg['msg'] = ''
     msg['changed'] = False
     msg['failed'] = False
+    err = False
 
-    # TODO : Check if the SNMP configuration parameters already exists
-    exists = False
+    try:
+        # Check first whether local mount point for network share is setup
+        if idrac.config_mgr.liason_share is None:
+             if not  _setup_idrac_nw_share (idrac, module):
+                 msg['msg'] = "Failed to setup local mount point for network share"
+                 msg['failed'] = True
+                 return msg
 
-    if module.params["state"] == "present":
-        if module.check_mode or exists:
-            msg['changed'] = False
-        else:
-            msg['msg'] = idrac.config_mgr.enable_snmp(
+        # TODO : Check if the SNMP configuration parameters already exists
+        exists = False
+
+        if module.params["state"] == "present":
+            if module.check_mode or exists:
+                msg['changed'] = not exists
+            else:
+                msg['msg'] = idrac.config_mgr.enable_snmp(
                                          module.params['snmp_discovery_port'],
                                          module.params['snmp_trap_port'],
                                          module.params['snmp_trap_format'])
-    else:
-        if module.check_mode or not exists:
-            msg['changed'] = False
-        else:
-            msg['msg'] = idrac.config_mgr.disable_snmp()
 
-    if msg['msg']['Status'] == "Failed":
-        msg['changed'] = False
+                if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
+                    msg['changed'] = True
+                else:
+                    msg['failed'] = True
+        else:
+            if module.check_mode or not exists:
+                msg['changed'] = exists
+            else:
+                msg['msg'] = idrac.config_mgr.disable_snmp()
+
+                if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
+                    msg['changed'] = True
+                else:
+                    msg['failed'] = True
+
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
-    return msg
+    return msg, err
 
-
+# Main
 def main():
     from ansible.module_utils.dellemc_idrac import iDRACConnection
 
@@ -169,9 +191,10 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ipv4 = dict (required = True, type = 'str'),
+                idrac_ip = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None, type = 'str'),
+                idrac_pwd  = dict (required = False, default = None,
+                                   type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None),
 
                 # Network File Share
@@ -207,24 +230,14 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg = {}
-
     # Configure SNMP 
-    try:
-        if _setup_idrac_nw_share (idrac, module):
-            msg = setup_idrac_snmp (idrac, module)
-        else:
-            msg['failed'] = True
-            msg['changed'] = False
-            msg['msg'] = "No local mount point setup for the Network File Share"
-    except Exception as e:
-        msg['msg'] = "setup error: %s" % str(e)
-        msg['changed'] = False
-        msg['failed'] = True
+    msg, err = setup_idrac_snmp (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
+    if err:
+        module.fail_json(**msg)
     module.exit_json(**msg)
 
 if __name__ == '__main__':

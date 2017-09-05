@@ -31,21 +31,30 @@ version_added: "2.3"
 description:
     - Export Server Configuration Profile 
 options:
-    idrac_ipv4:
-        required: True
-        description: iDRAC IPv4 Address
+    idrac_ip:
+        required: False
+        description: iDRAC IP Address
+        default: None
     idrac_user:
+        required: False
         description: iDRAC user name
-        default: root
+        default: None
     idrac_pwd:
+        required: False
         description: iDRAC user password
+        default: None
     idrac_port:
+        required: False
         description: iDRAC port
+        default: None
     share_name:
+        required: True
         description: CIFS or NFS Network share 
     share_user:
+        required: True
         description: Network share user in the format user@domain
     share_pwd:
+        required: True
         description: Network share user password
 
 requirements: ['omsdk']
@@ -60,75 +69,42 @@ RETURNS = """
 ---
 """
 
-import sys
-import os
-import json
 from ansible.module_utils.basic import AnsibleModule
 
 try:
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials,ProtocolCredentialsFactory
     HAS_OMSDK = True
-
 except ImportError:
     HAS_OMSDK = False
-
-
-# Validate Network File Share parameters
-def __validateShareInfo (share_info):
-    msg = {}
-    msg['failed'] = False
-    msg['msg'] = "SUCCESS: validated the network file share parameters"
-
-    if share_info['share_user'] == '':
-        msg['failed'] = True
-        msg['msg'] = "Share User must be defined!"
-
-    if share_info['share_pwd'] == '':
-        msg['failed'] = True
-        msg['msg'] = "Share Pwd must be defined!"
-
-    if share_info['share_name'] == '':
-        msg['failed'] = True
-        msg['msg'] = "Share Name must be defined!"
-
-    return msg
 
 
 # Export Server Configuration Profile (SCP)
 def export_server_config_profile(idrac, module):
 
     msg = {}
-    msg['ServerConfigProfile'] = {}
-    msg['msg'] = ''
     msg['changed'] = False
     msg['failed'] = False
+    err = False
 
-    share_info = {
-        'share_name' : module.params['share_name'],
-        'share_pwd'  : module.params['share_pwd'],
-        'share_user' : module.params['share_user']
-    }
+    try:
+        scp_file_name = idrac.ipaddr + "_%Y%M%d_scp.xml"
+        share_path = module.params['share_name'] + scp_file_name
 
-    share_path = ''
-    scp_file_name = idrac.ipaddr + "_%Y%M%d_scp.xml"
+        myshare = FileOnShare(share_path)
+        myshare.addcreds(UserCredentials(module.params['share_user'],
+                                         module.params['share_pwd']))
+        msg['msg'] = idrac.config_mgr.scp_export(myshare)
 
-    msg = __validateShareInfo (share_info)
+        if "Status" in msg['msg'] and msg['msg']['Status'] is not "Success":
+            msg['failed'] = True
 
-    if msg['failed']:
-        return msg
-
-    share_path = share_info['share_name'] + scp_file_name
-
-    myshare = FileOnShare(share_path)
-    myshare.addcreds(UserCredentials(share_info['share_user'],
-                                     share_info['share_pwd']))
-    msg['ServerConfigProfile'] = idrac.config_mgr.scp_export(myshare)
-
-    if msg['ServerConfigProfile']['Status'] == 'Failed':
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
-    return msg
+    return msg, err
 
 # Main
 def main():
@@ -139,18 +115,20 @@ def main():
                  argument_spec = dict (
 
                      # iDRAC Handle
-                     idrac      = dict(required=False, type='dict'),
+                     idrac      = dict (required = False, type = 'dict'),
 
                      # iDRAC credentials
-                     idrac_ipv4 = dict(required=True,  type='str'),
-                     idrac_user = dict(required=False, default=None, type='str'),
-                     idrac_pwd  = dict(required=False, type='str'),
-                     idrac_port = dict(required=False, default=None),
+                     idrac_ip   = dict (required = False, default = None, type='str'),
+                     idrac_user = dict (required = False, default = None, type='str'),
+                     idrac_pwd  = dict (required = False, default = None,
+                                        type='str', no_log = True),
+                     idrac_port = dict (required = False, default = None, type = 'int'),
 
                      # Network File Share
-                     share_name = dict(required=True, default=None),
-                     share_pwd  = dict(required=True, default=None),
-                     share_user = dict(required=True, default=None),
+                     share_name = dict (required = True, default = None),
+                     share_pwd  = dict (required = True, default = None,
+                                        no_log = True),
+                     share_user = dict (required = True, default = None),
                   ),
 
                   supports_check_mode = True)
@@ -160,12 +138,14 @@ def main():
     idrac = idrac_conn.connect()
 
     # Export Server Configuration Profile
-    msg = export_server_config_profile(idrac, module)
+    msg, err = export_server_config_profile(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
-    module.exit_json(ansible_facts = {idrac.ipaddr: {'ServerConfigProfile': msg['ServerConfigProfile']}})
+    if err:
+        module.fail_json(**msg)
+    module.exit_json(**msg)
 
 
 if __name__ == '__main__':

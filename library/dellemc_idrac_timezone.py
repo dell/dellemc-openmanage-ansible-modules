@@ -25,17 +25,15 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = """
 ---
-module: dellemc_idrac_tls
-short_description: Configure TLS protocol options and SSL Encryption Bits
+module: dellemc_idrac_timezone
+short_description: Configure Time Zone
 version_added: "2.3"
 description:
-    - Configure Transport Layer Security (TLS) protocol options
-    - Configure Secure Socket Layer (SSL) Encryption Bits options
+    - Configure time zone 
 options:
     idrac_ip:
-        required: False
+        required: True
         description: iDRAC IP Address
-        default: None
     idrac_user:
         required: False
         description: iDRAC user name
@@ -48,47 +46,13 @@ options:
         required: False
         description: iDRAC port
         default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user 
-    tls_protocol:
+    timezone:
         required: False
-        description:
-        - if C(TLS_1_0), will set the TLS protocol option to TLS 1.0 and higher
-        - if C(TLS_1_1), will set the TLS protocol option to TLS 1.1 and higher
-        - if C(TLS_2_0), will set the TLS protocol option to TLS 2.0 and higher
-        choices: ['TLS_1_0', 'TLS_1_1', 'TLS_2_0']
-        default: "TLS_1_1"
-    ssl_bits:
-        required: False
-        description: 
-        - if C(S128), will set the SSL Encryption Bits to 128-Bit or higher
-        - if C(S168), will set the SSL Encryption Bits to 168-Bit or higher
-        - if C(S256), will set the SSL Encryption Bits to 256-Bit or higher
-        - if C(Auto), will set the SSL Encryption Bits to Auto-Negotiate
-        choices: ['S128', 'S168', 'S256', 'Auto']
-        default: "S128"
+        description: time zone e.g. "Asia/Kolkata"
+        default: None
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
-
-EXAMPLES = """
----
-"""
-
-RETURNS = """
----
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -111,18 +75,16 @@ def _setup_idrac_nw_share (idrac, module):
                           isFolder=True)
 
     myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
+                                    module.params['share_pwd']))
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-
-# setup_idrac_csior
-def setup_idrac_tls (idrac, module):
+# setup_idrac_ntp
+def setup_idrac_timezone (idrac, module):
 
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
-    err = False
 
     try:
         # Check first whether local mount point for network share is setup
@@ -132,21 +94,20 @@ def setup_idrac_tls (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # TODO: Check if TLS settings already exists
+        # TODO: Check if the timezone settings exists
         exists = False
 
         if module.check_mode or exists:
             msg['changed'] = not exists
         else:
-            msg['msg'] = idrac.config_mgr.configure_tls(
-                                         module.params['tls_protocol'],
-                                         module.params['ssl_bits'])
+            if module.params["timezone"] is not None:
+                msg['msg'] = idrac.config_mgr.configure_time_zone(
+                                                  module.params["timezone"])
 
-            if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
-                msg['changed'] = True
-            else:
-                msg['changed'] = False
-                msg['failed'] = True
+                if "Status" in msg['msg'] and msg['msg']["Status"] is "Success":
+                    msg['changed'] = True
+                else:
+                    msg['failed'] = True
 
     except Exception as e:
         err = True
@@ -154,6 +115,7 @@ def setup_idrac_tls (idrac, module):
         msg['failed'] = True
 
     return msg, err
+
 
 # Main
 def main():
@@ -170,7 +132,7 @@ def main():
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+                idrac_port = dict (required = False, default = None),
 
                 # Network File Share
                 share_name = dict (required = True, default = None),
@@ -178,13 +140,8 @@ def main():
                 share_pwd  = dict (required = True, default = None),
                 share_mnt  = dict (required = True, default = None),
 
-                tls_protocol = dict (required = False,
-                                     choices = ['TLS_1_0', 'TLS_1_1', 'TLS_2_0'],
-                                     default = 'TLS_1_1'),
-                ssl_bits = dict (required = False,
-                                 choices = ['S128', 'S168', 'S256', 'Auto'],
-                                 default = 'S128')
-
+                # Time Zone
+                timezone = dict (required = False, default = None, type = 'str'),
                 ),
             supports_check_mode = True)
 
@@ -192,7 +149,7 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg, err = setup_idrac_tls (idrac, module)
+    (msg, err) = setup_idrac_timezone (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
@@ -200,6 +157,7 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
+
 
 if __name__ == '__main__':
     main()

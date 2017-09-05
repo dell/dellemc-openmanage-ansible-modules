@@ -25,12 +25,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = """
 ---
-module: dellemc_idrac_tls
-short_description: Configure TLS protocol options and SSL Encryption Bits
+module: dellemc_idrac_nic_ipv4
+short_description: Configure iDRAC Network IPv4 Settings
 version_added: "2.3"
-description:
-    - Configure Transport Layer Security (TLS) protocol options
-    - Configure Secure Socket Layer (SSL) Encryption Bits options
+description: Configure iDRAC Network IPv4 Settings
 options:
     idrac_ip:
         required: False
@@ -50,7 +48,7 @@ options:
         default: None
     share_name:
         required: True
-        description: Network file share
+        description: CIFS or NFS Network share 
     share_user:
         required: True
         description: Network share user in the format user@domain
@@ -60,35 +58,55 @@ options:
     share_mnt:
         required: True
         description: Local mount path of the network file share with
-        read-write permission for ansible user 
-    tls_protocol:
+        read-write permission for ansible user
+    enable_ipv4:
+        required: False
+        description: Enable or disable the iDRAC IPv4 stack
+        default: True
+    dhcp_enable:
+        required: False
+        description: Enable or disable DHCP for assigning iDRAC IPv4 address
+        default: False
+    static_ipv4:
         required: False
         description:
-        - if C(TLS_1_0), will set the TLS protocol option to TLS 1.0 and higher
-        - if C(TLS_1_1), will set the TLS protocol option to TLS 1.1 and higher
-        - if C(TLS_2_0), will set the TLS protocol option to TLS 2.0 and higher
-        choices: ['TLS_1_0', 'TLS_1_1', 'TLS_2_0']
-        default: "TLS_1_1"
-    ssl_bits:
+        - iDRAC NIC static IPv4 address
+        - Required if I(dhcp_enable=False)
+        default: None
+    static_ipv4_gw:
         required: False
-        description: 
-        - if C(S128), will set the SSL Encryption Bits to 128-Bit or higher
-        - if C(S168), will set the SSL Encryption Bits to 168-Bit or higher
-        - if C(S256), will set the SSL Encryption Bits to 256-Bit or higher
-        - if C(Auto), will set the SSL Encryption Bits to Auto-Negotiate
-        choices: ['S128', 'S168', 'S256', 'Auto']
-        default: "S128"
+        description:
+        - Static IPv4 gateway address for iDRAC NIC
+        - Required if I(dhcp_enable=False)
+        default: None
+    static_netmask:
+        required: False
+        description:
+        - Static IPv4 subnet mask for iDRAC NIC
+        - Required if I(dhcp_enable=False)
+        default: None
+    dns_from_dhcp:
+        required: False
+        description:
+        - if C(True), will enable the use of DHCP server for obtaining the
+          primary and secondary DNS servers addresses
+        - if C(False), will disable the use of DHCP server for obtaining the
+          primary and secondary DNS servers addresses
+    preferred_dns:
+        required: False
+        description:
+        - Preferred DNS Server static IPv4 Address
+        - Required if I(dns_from_dhcp=False)
+        default: None
+    alternate_dns:
+        required: False
+        description:
+        - Alternate DNS Server static IPv4 Address
+        - Required if I(dns_from_dhcp=False)
+        default: None
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
-
-EXAMPLES = """
----
-"""
-
-RETURNS = """
----
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -111,13 +129,15 @@ def _setup_idrac_nw_share (idrac, module):
                           isFolder=True)
 
     myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
+                                    module.params['share_pwd']))
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-
-# setup_idrac_csior
-def setup_idrac_tls (idrac, module):
+# setup_idrac_nic_ipv4
+# idrac: iDRAC handle
+# module: Ansible module
+#
+def setup_idrac_nic_ipv4 (idrac, module):
 
     msg = {}
     msg['changed'] = False
@@ -130,22 +150,31 @@ def setup_idrac_tls (idrac, module):
             if not  _setup_idrac_nw_share (idrac, module):
                 msg['msg'] = "Failed to setup local mount point for network share"
                 msg['failed'] = True
-                return msg
+                return msg, err
 
-        # TODO: Check if TLS settings already exists
+        # TODO: Check whether the IPv4 settings exists
         exists = False
 
         if module.check_mode or exists:
             msg['changed'] = not exists
         else:
-            msg['msg'] = idrac.config_mgr.configure_tls(
-                                         module.params['tls_protocol'],
-                                         module.params['ssl_bits'])
+            msg['msg'] = idrac.config_mgr.configure_idrac_ipv4(
+                                             module.params["enable_ipv4"],
+                                             module.params["dhcp_enable"])
 
-            if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
+            if "Status" in msg['msg'] and msg['msg']["Status"] is "Success":
+                if not module.params["dhcp_enable"]:
+                    msg['msg'] = idrac.config_mgr.configure_idrac_ipv4static(
+                                             module.params["static_ipv4"],
+                                             module.params["static_netmask"],
+                                             module.params["static_ipv4_gw"],
+                                             [module.params["preferred_dns"],
+                                              module.params["alternate_dns"]],
+                                             module.params["dns_from_dhcp"])
+
+            if "Status" in msg['msg'] and msg['msg']["Status"] is "Success":
                 msg['changed'] = True
             else:
-                msg['changed'] = False
                 msg['failed'] = True
 
     except Exception as e:
@@ -154,6 +183,7 @@ def setup_idrac_tls (idrac, module):
         msg['failed'] = True
 
     return msg, err
+
 
 # Main
 def main():
@@ -166,11 +196,11 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
+                idrac_ip   = dict (required = False, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+                idrac_port = dict (required = False, default = None),
 
                 # Network File Share
                 share_name = dict (required = True, default = None),
@@ -178,21 +208,29 @@ def main():
                 share_pwd  = dict (required = True, default = None),
                 share_mnt  = dict (required = True, default = None),
 
-                tls_protocol = dict (required = False,
-                                     choices = ['TLS_1_0', 'TLS_1_1', 'TLS_2_0'],
-                                     default = 'TLS_1_1'),
-                ssl_bits = dict (required = False,
-                                 choices = ['S128', 'S168', 'S256', 'Auto'],
-                                 default = 'S128')
+                # iDRAC Network IPv4 Settings
+                enable_ipv4 = dict (required = False, default = True, type = 'bool'),
+                dhcp_enable = dict (required = False, default = True, type = 'bool'),
+                static_ipv4 = dict (required = False, default = None, type = 'str'),
+                static_ipv4_gw = dict (required = False, default = None, type = 'str'),
+                static_netmask = dict (required = False, default = None, type = 'str'),
+                dns_from_dhcp = dict (required = False, default = False, type = 'bool'),
+                preferred_dns = dict (required = False, default = None, type = 'str'),
+                alternate_dns = dict (required = False, default = None, type = 'str')
 
                 ),
+            required_if = [
+                ["dhcp_enable", False, ["static_ipv4", "static_ipv4_gw", "static_netmask"]],
+                ["dns_from_dhcp", False, ["preferred_dns", "alternate_dns"]]
+            ],
+
             supports_check_mode = True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg, err = setup_idrac_tls (idrac, module)
+    (msg, err) = setup_idrac_nic_ipv4 (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
@@ -200,6 +238,7 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
+
 
 if __name__ == '__main__':
     main()

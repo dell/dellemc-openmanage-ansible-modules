@@ -31,7 +31,7 @@ version_added: "2.3"
 description:
     - Enable or Disable Collect System Inventory on Restart (CSIOR)
 options:
-    idrac_ipv4:
+    idrac_ip:
         required: True
         description: iDRAC IPv4 Address
     idrac_user:
@@ -131,7 +131,7 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ipv4 = dict (required = True, type = 'str'),
+                idrac_ip   = dict (required = True, type = 'str'),
                 idrac_user = dict (required = False, default = 'root', type = 'str'),
                 idrac_pwd  = dict (required = False, default = None, type = 'str'),
                 idrac_port = dict (required = False, default = None),
@@ -142,7 +142,7 @@ def main():
                 share_pwd  = dict (required = True, default = None),
                 share_mnt  = dict (required = True, default = None),
 
-                state = dict (required = False, choices = ['present', 'absent'])
+                state = dict (required = False, choices = ['enable', 'disable'])
                 ),
             supports_check_mode = True)
 

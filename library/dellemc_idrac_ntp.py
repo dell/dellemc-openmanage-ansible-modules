@@ -25,12 +25,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = """
 ---
-module: dellemc_idrac_tls
-short_description: Configure TLS protocol options and SSL Encryption Bits
+module: dellemc_idrac_ntp
+short_description: Configure NTP settings
 version_added: "2.3"
 description:
-    - Configure Transport Layer Security (TLS) protocol options
-    - Configure Secure Socket Layer (SSL) Encryption Bits options
+    - Configure Network Time Protocol settings on iDRAC for synchronizing the 
+      iDRAC time using NTP instead of BIOS or host system times
 options:
     idrac_ip:
         required: False
@@ -48,47 +48,27 @@ options:
         required: False
         description: iDRAC port
         default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user 
-    tls_protocol:
+    ntp_server1:
+        required: False
+        description: IP Address of the NTP Server 1
+        default: None
+    ntp_server2:
+        required: False
+        description: IP Address of the NTP Server 2
+        default: None
+    ntp_server3:
+        required: False
+        description: IP Address of the NTP Server 3
+        default: None
+    state:
         required: False
         description:
-        - if C(TLS_1_0), will set the TLS protocol option to TLS 1.0 and higher
-        - if C(TLS_1_1), will set the TLS protocol option to TLS 1.1 and higher
-        - if C(TLS_2_0), will set the TLS protocol option to TLS 2.0 and higher
-        choices: ['TLS_1_0', 'TLS_1_1', 'TLS_2_0']
-        default: "TLS_1_1"
-    ssl_bits:
-        required: False
-        description: 
-        - if C(S128), will set the SSL Encryption Bits to 128-Bit or higher
-        - if C(S168), will set the SSL Encryption Bits to 168-Bit or higher
-        - if C(S256), will set the SSL Encryption Bits to 256-Bit or higher
-        - if C(Auto), will set the SSL Encryption Bits to Auto-Negotiate
-        choices: ['S128', 'S168', 'S256', 'Auto']
-        default: "S128"
+        - if C(present), will enable the NTP option and add the NTP servers
+        - if C(absent), will disable the NTP option
+        default: 'present'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
-
-EXAMPLES = """
----
-"""
-
-RETURNS = """
----
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -111,49 +91,48 @@ def _setup_idrac_nw_share (idrac, module):
                           isFolder=True)
 
     myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
+                                    module.params['share_pwd']))
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-
-# setup_idrac_csior
-def setup_idrac_tls (idrac, module):
+# setup_idrac_ntp
+def setup_idrac_ntp (idrac, module):
 
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
-    err = False
+
+    # Check first whether local mount point for network share is setup
+    if idrac.config_mgr.liason_share is None:
+        if not  _setup_idrac_nw_share (idrac, module):
+            msg['msg'] = "Failed to setup local mount point for network share"
+            msg['failed'] = True
+            return msg
+
+    if module.params["state"] == "present":
+        if module.check_mode:
+            msg['changed'] = False
+        else:
+            msg['msg'] = idrac.config_mgr.enable_ntp (
+                                             module.params["ntp_server1"],
+                                             module.params["ntp_server2"],
+                                             module.params["ntp_server3"])
+    else:
+        if module.check_mode:
+            msg['changed'] = False
+        else:
+            msg['msg'] = idrac.config_mgr.disable_ntp()
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
-
-        # TODO: Check if TLS settings already exists
-        exists = False
-
-        if module.check_mode or exists:
-            msg['changed'] = not exists
-        else:
-            msg['msg'] = idrac.config_mgr.configure_tls(
-                                         module.params['tls_protocol'],
-                                         module.params['ssl_bits'])
-
-            if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
-                msg['changed'] = True
-            else:
-                msg['changed'] = False
-                msg['failed'] = True
-
+        if msg['msg']["Status"] is not "Success":
+            msg['failed'] = False
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
     return msg, err
+
 
 # Main
 def main():
@@ -166,11 +145,11 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
+                idrac_ip   = dict (required = True, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+                idrac_port = dict (required = False, default = None),
 
                 # Network File Share
                 share_name = dict (required = True, default = None),
@@ -178,13 +157,13 @@ def main():
                 share_pwd  = dict (required = True, default = None),
                 share_mnt  = dict (required = True, default = None),
 
-                tls_protocol = dict (required = False,
-                                     choices = ['TLS_1_0', 'TLS_1_1', 'TLS_2_0'],
-                                     default = 'TLS_1_1'),
-                ssl_bits = dict (required = False,
-                                 choices = ['S128', 'S168', 'S256', 'Auto'],
-                                 default = 'S128')
-
+                # NTP parameters
+                ntp_server1 = dict (required = False, default = None, type = 'str'),
+                ntp_server2 = dict (required = False, default = None, type = 'str'),
+                ntp_server3 = dict (required = False, default = None, type = 'str'),
+                state = dict (required = False,
+                              choices = ['present', 'absent'],
+                              default = 'present')
                 ),
             supports_check_mode = True)
 
@@ -192,7 +171,7 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg, err = setup_idrac_tls (idrac, module)
+    (msg, err) = setup_idrac_ntp (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
@@ -200,6 +179,7 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
+
 
 if __name__ == '__main__':
     main()

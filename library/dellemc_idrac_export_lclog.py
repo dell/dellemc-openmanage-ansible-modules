@@ -31,21 +31,30 @@ version_added: "2.3"
 description:
     - Export Lifecycle Controller log file to a given network share
 options:
-    idrac_ipv4:
-        required: True
-        description: iDRAC IPv4 Address
+    idrac_ip:
+        required: False
+        description: iDRAC IP Address
+        default: None
     idrac_user:
+        required: False
         description: iDRAC user name
-        default: root
+        default: None
     idrac_pwd:
+        required: False
         description: iDRAC user password
+        default: None
     idrac_port:
+        required: False
         description: iDRAC port
+        default: None
     share_name:
+        required: True
         description: CIFS or NFS Network share 
     share_user:
+        required: True
         description: Network share user in the format user@domain
     share_pwd:
+        required: True
         description: Network share user password
 
 requirements: ['omsdk']
@@ -60,40 +69,39 @@ RETURNS = """
 ---
 """
 
-import sys
-import os
-import json
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    from omsdk.sdkfile import FileOnShare
-    HAS_OMSDK = True
-except ImportError:
-    HAS_OMSDK = False
-
 # Export Lifecycle Controller Logs
-def exportLifecycleControllerLogs (idrac, module):
+def export_lc_logs (idrac, module):
+
+    from omsdk.sdkcreds import UserCredentials
+    from omsdk.sdkfile import FileOnShare
 
     msg = {}
-    msg['ExportLCLog'] = {}
-    msg['msg'] = ''
     msg['changed'] = False
     msg['failed'] = False
+    err = False
 
-    lclog_file_name = idrac.ipaddr + "_%Y%M%d_LC_Log.log"
+    try:
+        lclog_file_name = idrac.ipaddr + "_%Y%M%d_LC_Log.log"
 
-    share_path = module.params['share_name'] + lclog_file_name
+        share_path = module.params['share_name'] + lclog_file_name
 
-    myshare = FileOnShare(share_path)
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-        module.params['share_pwd']))
+        myshare = FileOnShare(share_path)
+        myshare.addcreds(UserCredentials(module.params['share_user'],
+                                     module.params['share_pwd']))
 
-    msg['ExportLCLog'] = idrac.log_mgr.lclog_export(myshare)
+        msg['msg'] = idrac.log_mgr.lclog_export(myshare)
 
-    if not msg['ExportLCLog']['retval']:
+        if "Status" in msg['msg'] and msg['msg']['Status'] is not "Success":
+            msg['failed'] = True
+
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
-    return msg
+    return msg, err
 
 # Main()
 def main():
@@ -106,7 +114,7 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC credentials
-                idrac_ipv4 = dict (required = True, type = 'str'),
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None, type = 'str'),
                 idrac_port = dict (required = False, default = None),
@@ -124,11 +132,13 @@ def main():
     idrac = idrac_conn.connect()
 
     # Export LC Logs
-    msg = exportLifecycleControllerLogs(idrac, module)
+    msg, err = export_lc_logs(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
+    if err:
+        module.fail_json(**msg)
     module.exit_json(**msg)
 
 if __name__ == '__main__':
