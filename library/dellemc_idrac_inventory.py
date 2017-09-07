@@ -43,14 +43,18 @@ options:
         default: calvin
     idrac_port:
         description: iDRAC port
+
 requirements: ['omsdk']
-
 author: "anupam.aloke@dell.com"
-
 """
 
 EXAMPLES = """
 ---
+- name: Get System Inventory
+  dellemc_idrac_inventory:
+    idrac_ip: "192.168.1.1"
+    idrac_user: "root"
+    idrac_pwd: "calvin"
 """
 
 RETURNS = """
@@ -61,8 +65,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 # Get System Inventory
 def get_system_inventory(idrac):
-
-    msg = {} 
+    msg = {}
     msg['changed'] = False
     msg['failed'] = False
     err = False
@@ -70,7 +73,6 @@ def get_system_inventory(idrac):
     try:
         idrac.get_entityjson()
         msg['msg'] = idrac.get_json_device()
-
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
@@ -79,25 +81,24 @@ def get_system_inventory(idrac):
     return msg, err
 
 # Main
-
 def main():
 
     from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule(
-                argument_spec = dict(
+            argument_spec = dict(
 
-                    # iDRAC Handle
-                    idrac = dict(required=False, type='dict'),
+                # iDRAC Handle
+                idrac = dict(required=False, type='dict'),
 
-                    # iDRAC credentials
-                    idrac_ip   = dict(required = False, default = None, type='str'),
-                    idrac_user = dict(required = False, default = None, type='str'),
-                    idrac_pwd  = dict(required = False, default = None,
-                                      type='str', no_log = True),
-                    idrac_port = dict(required = False, default = None)
-                ),
-                supports_check_mode = True)
+                # iDRAC credentials
+                idrac_ip   = dict(required = False, default = None, type='str'),
+                idrac_user = dict(required = False, default = None, type='str'),
+                idrac_pwd  = dict(required = False, default = None,
+                                  type='str', no_log = True),
+                idrac_port = dict(required = False, default = None)
+            ),
+            supports_check_mode = True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection(module)
@@ -105,7 +106,7 @@ def main():
 
     # Get System Inventory
     msg, err = get_system_inventory(idrac)
-    
+
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 

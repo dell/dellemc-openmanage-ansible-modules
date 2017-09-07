@@ -29,7 +29,7 @@ module: dellemc_idrac_ntp
 short_description: Configure NTP settings
 version_added: "2.3"
 description:
-    - Configure Network Time Protocol settings on iDRAC for synchronizing the 
+    - Configure Network Time Protocol settings on iDRAC for synchronizing the
       iDRAC time using NTP instead of BIOS or host system times
 options:
     idrac_ip:
@@ -101,31 +101,40 @@ def setup_idrac_ntp (idrac, module):
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
+    err = False
 
     # Check first whether local mount point for network share is setup
-    if idrac.config_mgr.liason_share is None:
-        if not  _setup_idrac_nw_share (idrac, module):
-            msg['msg'] = "Failed to setup local mount point for network share"
-            msg['failed'] = True
-            return msg
-
-    if module.params["state"] == "present":
-        if module.check_mode:
-            msg['changed'] = False
-        else:
-            msg['msg'] = idrac.config_mgr.enable_ntp (
-                                             module.params["ntp_server1"],
-                                             module.params["ntp_server2"],
-                                             module.params["ntp_server3"])
-    else:
-        if module.check_mode:
-            msg['changed'] = False
-        else:
-            msg['msg'] = idrac.config_mgr.disable_ntp()
-
     try:
-        if msg['msg']["Status"] is not "Success":
-            msg['failed'] = False
+        if idrac.config_mgr.liason_share is None:
+            if not  _setup_idrac_nw_share (idrac, module):
+                msg['msg'] = "Failed to setup local mount point for network share"
+                msg['failed'] = True
+                return msg
+
+        # TODO: Check if NTP settings exists
+        exists = False
+
+        if module.params["state"] == "present":
+            if module.check_mode or exists:
+                msg['changed'] = not exists
+            else:
+                msg['msg'] = idrac.config_mgr.enable_ntp (
+                                                 module.params["ntp_server1"],
+                                                 module.params["ntp_server2"],
+                                                 module.params["ntp_server3"])
+        else:
+            if module.check_mode or not exists:
+                msg['changed'] = exists
+            else:
+                msg['msg'] = idrac.config_mgr.disable_ntp()
+
+        if "Status" in msg['msg']:
+            if msg['msg']["Status"] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
+
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
