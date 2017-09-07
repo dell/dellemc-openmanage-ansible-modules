@@ -71,12 +71,28 @@ requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
 """
 
-from ansible.module_utils.basic import AnsibleModule
+EXAMPLES = """
+---
+- name: Configure NTP
+    dellemc_idrac_ntp:
+       idrac_ip:    "192.168.1.1"
+       idrac_user:  "root"
+       idrac_pwd:   "calvin"
+       share_name:  "\\\\100.100.100.100\\share\\"
+       share_user:  "user1"
+       share_pwd:   "password"
+       share_mnt:   "/mnt/share"
+       ntp_server1: "10.20.30.40"
+       ntp_server2: "20.30.40.50"
+       ntp_server3: "30.40.50.60"
+       state:       "present"
+"""
 
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
+RETURNS = """
+---
+"""
+
+from ansible.module_utils.basic import AnsibleModule
 
 # Setup iDRAC Network File Share
 # idrac: iDRAC handle

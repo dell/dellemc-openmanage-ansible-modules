@@ -26,7 +26,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 DOCUMENTATION = """
 ---
 module: dellemc_idrac_snmp
-short_description: Configure SNMP settings on iDRAC 
+short_description: Configure SNMP settings on iDRAC
 version_added: "2.3"
 description:
     - Configures SNMP settings on iDRAC
@@ -49,7 +49,7 @@ options:
         default: None
     share_name:
         required: True
-        description: CIFS or NFS Network share 
+        description: CIFS or NFS Network share
     share_user:
         required: True
         description: Network share user in the format user@domain
@@ -61,24 +61,37 @@ options:
         description: Local mount path of the network file share with
         read-write permission for ansible user
     snmp_agent_enable:
+        required: False
         description: SNMP Agent status
+        - if C(enabled), will enable the SNMP Agent
+        - if C(disabled), will disable the SNMP Agent
         choices: ['enabled', 'disabled']
         default: 'enabled'
     snmp_protocol:
+        required: False
         description: SNMP protocol supported
+        - if C(all), will enable support for SNMPv1, v2 and v3 protocols
+        - if C(SNMPv3), will enable support for only SNMPv3 protocol
         choices: ['all', 'SNMPv3']
         default: 'all'
     snmp_agent_community:
+        required: False
         description: SNMP Agent community string
         default: 'public'
     snmp_discover_port:
+        required: False
         description: SNMP discovery port
-        default: '161'
+        default: 161
     snmp_trap_port:
+        required: False
         description: SNMP trap port
-        default: '162'
+        default: 162
     snmp_trap_format:
+        required: False
         description: SNMP trap format
+        - if C(SNMPv1), will configure iDRAC to use SNMPv1 for sending traps
+        - if C(SNMPv2), will configure iDRAC to use SNMPv2 for sending traps
+        - if C(SNMPv3), will configure iDRAC to use SNMPv3 for sending traps
         choices: ['SNMPv1', 'SNMPv2', 'SNMPv3']
         default: 'SNMPv1'
     state:
@@ -95,6 +108,21 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Configure SNMP
+    dellemc_idrac_snmp:
+       idrac_ip:             "192.168.1.1"
+       idrac_user:           "root"
+       idrac_pwd:            "calvin"
+       share_name:           "\\\\10.20.30.40\\share\\"
+       share_user:           "user1"
+       share_pwd:            "password"
+       share_mnt:            "/mnt/share"
+       snmp_agent_enable:    "enabled"
+       snmp_protocol:        "all"
+       snmp_agent_community: "public"
+       snmp_discovery_port:  161
+       snmp_trap_port:       162
+       state:                "present"
 """
 
 RETURNS = """
@@ -102,11 +130,6 @@ RETURNS = """
 """
 
 from ansible.module_utils.basic import AnsibleModule
-
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
 
 # Setup iDRAC Network File Share
 # idrac: iDRAC handle
@@ -136,6 +159,7 @@ def setup_idrac_snmp (idrac, module):
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
     err = False
 
     try:
@@ -154,24 +178,22 @@ def setup_idrac_snmp (idrac, module):
                 msg['changed'] = not exists
             else:
                 msg['msg'] = idrac.config_mgr.enable_snmp(
-                                         module.params['snmp_discovery_port'],
-                                         module.params['snmp_trap_port'],
-                                         module.params['snmp_trap_format'])
+                                        module.params['snmp_agent_community'],
+                                        module.params['snmp_discovery_port'],
+                                        module.params['snmp_trap_port'],
+                                        module.params['snmp_trap_format'])
 
-                if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
-                    msg['changed'] = True
-                else:
-                    msg['failed'] = True
         else:
             if module.check_mode or not exists:
                 msg['changed'] = exists
             else:
                 msg['msg'] = idrac.config_mgr.disable_snmp()
 
-                if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
-                    msg['changed'] = True
-                else:
-                    msg['failed'] = True
+        if "Status" in msg['msg']:
+            if msg['msg']['Status'] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
 
     except Exception as e:
         err = True
@@ -191,7 +213,7 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip = dict (required = False, default = None, type = 'str'),
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
@@ -205,32 +227,33 @@ def main():
 
                 # SNMP Configuration
                 snmp_agent_enable = dict (required = False,
-                                     choice = ['enabled', 'disabled'],
-                                     default = 'enabled',
-                                     type = 'str'),
+                                    choice = ['enabled', 'disabled'],
+                                    default = 'enabled',
+                                    type = 'str'),
                 snmp_protocol = dict (required = False,
-                                      choice = ['all', 'SNMPv3'],
-                                      default = 'all',
-                                      type = 'str'),
+                                    choice = ['all', 'SNMPv3'],
+                                    default = 'all',
+                                    type = 'str'),
                 snmp_agent_community = dict (required = False,
-                                             default = 'public', type = 'str'),
-                snmp_discovery_port = dict (required = False, default = '161'),
-                snmp_trap_port = dict (required = False, default = '162'),
+                                            default = 'public', type = 'str'),
+                snmp_discovery_port = dict (required = False,
+                                            default = 161, type = 'int'),
+                snmp_trap_port = dict (required = False, default = 162,
+                                        type = 'int'),
                 snmp_trap_format = dict (required = False,
-                                         choice = ['SNMPv1','SNMPv2','SNMPv3'],
-                                         default = 'SNMPv1',
-                                         type = 'str'),
+                                        choice = ['SNMPv1','SNMPv2','SNMPv3'],
+                                        default = 'SNMPv1',
+                                        type = 'str'),
 
                 state = dict (required = False, choice = ['present','absent'])
             ),
-
             supports_check_mode = True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    # Configure SNMP 
+    # Configure SNMP
     msg, err = setup_idrac_snmp (idrac, module)
 
     # Disconnect from iDRAC
