@@ -34,6 +34,7 @@ options:
     idrac_ip:
         required: False
         description: iDRAC IP Address
+        default: None
     idrac_user:
         required: False
         description: iDRAC user name
@@ -48,7 +49,7 @@ options:
         default: None
     share_name:
         required: True
-        description: CIFS or NFS Network share 
+        description: CIFS or NFS Network share
     share_user:
         required: True
         description: Network share user in the format user@domain
@@ -72,9 +73,11 @@ options:
         default: 'ReadOnly'
     state:
         description:
-        - if C(present), will perform create/add/enable operations
-        - if C(absent), will perform delete/remove/disable operations
-        choices: ['present', 'absent']
+        - if C(present), will create/add/modify an user
+        - if C(absent), will delete the user
+        - if C(enable), will enable the user
+        - if C(disable), will disable the user
+        choices: ['present', 'absent', 'enable','disable']
         default: 'present'
 
 requirements: ['omsdk']
@@ -83,6 +86,19 @@ author: anupam.aloke@dell.com
 
 EXAMPLES = """
 ---
+- name: Setup iDRAC Users
+    dellemc_idrac_user:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       share_name: "\\\\10.20.30.40\\share\\"
+       share_user: "user1"
+       share_pwd:  "password"
+       share_mnt:  "/mnt/share"
+       user_name:  "admin"
+       user_pwd:   "password"
+       user_priv:  "Administrator"
+       state:      "present"
 """
 
 RETURNS = """
@@ -90,11 +106,6 @@ RETURNS = """
 """
 
 from ansible.module_utils.basic import AnsibleModule
-
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
 
 # Setup iDRAC Network File Share
 # idrac: iDRAC handle
@@ -123,7 +134,12 @@ def setup_idrac_user (idrac, module):
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
     err = False
+
+    user_name = module.params['user_name']
+    user_pwd = module.params['user_pwd']
+    user_priv = idrac.user_mgr.eUserPrivilegeEnum.NoPrivilege
 
     if module.params['user_priv'] == "Administrator":
         user_priv = idrac.user_mgr.eUserPrivilegeEnum.Administrator
@@ -131,8 +147,6 @@ def setup_idrac_user (idrac, module):
         user_priv = idrac.user_mgr.eUserPrivilegeEnum.Operator
     elif module.params['user_priv'] == "ReadOnly":
         user_priv = idrac.user_mgr.eUserPrivilegeEnum.ReadOnly
-    else:
-        user_priv = idrac.user_mgr.eUserPrivilegeEnum.NoPrivilege
 
     try:
         # Check first whether local mount point for network share is setup
@@ -142,23 +156,65 @@ def setup_idrac_user (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # TODO: Check if username, pwd, and privilege parameters exists
-        exists = False
+        # Check if user exists
+        if user_name is not None:
+            exists, enabled = False, False
+            user_priv_change, user_pwd_change = False, False
+
+            user = idrac.user_mgr.get_user(user_name.lower())
+
+            if user is not None:
+                exists = True
+
+                if user['Enable'] == 'Enabled':
+                    enabled = True
+
+                if user['Privilege'] != user_priv:
+                    user_priv_change = True
+
+                if user_pwd is not None:
+                    user_pwd_change = True
 
         if module.params["state"] == "present":
-            if module.check_mode or exists:
-                msg['changed'] = not exists
+            if module.check_mode:
+                if exists:
+                    msg['changed'] = user_priv_change or user_pwd_change
             else:
-                if module.params['user_name'] is not None:
+                if not exists:
                     msg['msg'] = idrac.user_mgr.create_user(
-                                                module.params['user_name'],
-                                                module.params['user_pwd'],
-                                                user_priv)
-        else:
+                                                user_name, user_pwd, user_priv)
+                elif user_priv_change:
+                    msg['msg'] = idrac.user_mgr.change_privilege(
+                                                user_name, user_priv)
+                elif user_pwd_change:
+                    msg['msg'] = idrac.user_mgr.change_password(
+                                                user_name, "", user_pwd)
+
+        elif module.params["state"] == "enable":
+            if module.check_mode:
+                if exists:
+                    msg['changed'] = not enabled
+            else:
+                if exists and not enabled:
+                    msg['msg'] = idrac.user_mgr.enable_user(user_name)
+                elif not exists:
+                    msg['msg'] = "User: " + user_name + " does not exist"
+
+        elif module.params["state"] == "disable":
+            if module.check_mode:
+                if exists:
+                    msg['changed'] = enabled
+            else:
+                if exists and enabled:
+                    msg['msg'] = idrac.user_mgr.disable_user(user_name)
+                elif not exists:
+                    msg['msg'] = "User: " + user_name + " does not exist"
+
+        elif module.params["state"] == "absent":
             if module.check_mode or not exists:
                 msg['changed'] = exists
             else:
-                msg['msg'] = idrac.user_mgr.delete_user(module.params['user_name'])
+                msg['msg'] = idrac.user_mgr.delete_user(user_name)
 
         if "Status" in msg['msg']:
             if msg['msg']['Status'] is "Success":
@@ -210,9 +266,9 @@ def main():
                                    default = 'ReadOnly'),
 
                 # State
-                state      = dict (required = False,
-                                   choices = ['present', 'absent'],
-                                   default = 'present')
+                state = dict (required = False,
+                              choices = ['present', 'absent', 'enable', 'disable'],
+                              default = 'present')
                 ),
 
             supports_check_mode = True)
