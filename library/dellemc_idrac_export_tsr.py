@@ -49,7 +49,7 @@ options:
         default: None
     share_name:
         required: True
-        description: CIFS or NFS Network share 
+        description: CIFS or NFS Network share
     share_user:
         required: True
         description: Network share user in the format user@domain
@@ -64,6 +64,14 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Export TSR
+    dellemc_idrac_export_tsr:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       share_name: "\\\\10.20.30.40\\share\\"
+       share_user: "user1"
+       share_pwd:  "password"
 """
 
 RETURNS = """
@@ -72,16 +80,17 @@ RETURNS = """
 
 from ansible.module_utils.basic import AnsibleModule
 
-try:
+def export_tech_support_report(idrac, module):
+    """
+    Export Tech Support Report (TSR)
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
-    HAS_OMSDK = True
-except ImportError:
-    HAS_OMSDK = False
-
-
-# Export Tech Support Report (TSR)
-def export_tech_support_report(idrac, module):
 
     msg = {}
     msg['changed'] = False
@@ -89,12 +98,14 @@ def export_tech_support_report(idrac, module):
     err = False
 
     try:
-        tsr_file_name = idrac.ipaddr + "%Y%M%d_tsr.zip"
-        share_path = module.params['share_name'] + tsr_file_name
+        tsr_file_name = idrac.ipaddr + "_%Y%m%d_%H%M%S_tsr.zip"
 
-        myshare = FileOnShare(share_path)
+        myshare = FileOnShare(module.params['share_name'],
+                                mount_point = '',
+                                isFolder = True)
         myshare.addcreds(UserCredentials(module.params['share_user'],
                                          module.params['share_pwd']))
+        myshare.new_file(tsr_file_name)
 
         msg['msg'] = idrac.config_mgr.export_tsr_async(myshare)
 
@@ -110,12 +121,10 @@ def export_tech_support_report(idrac, module):
 
 # Main
 def main():
-
     from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
-
                 # iDRAC Handle
                 idrac = dict (required = False, type='dict'),
 
@@ -127,11 +136,10 @@ def main():
                 idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network file share
-                share_name = dict (required = False, default = None),
-                share_pwd  = dict (required = False, default = None, no_log = True),
-                share_user = dict (required = False, default = None)
+                share_name = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_user = dict (required = True, type = 'str')
             ),
-
             supports_check_mode = True)
 
     # Connect to iDRAC

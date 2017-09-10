@@ -28,7 +28,8 @@ DOCUMENTATION = """
 module: dellemc_idrac_delete_lc_job_queue
 short_description: Deletes the Lifecycle Controller Job Queue
 version_added: "2.3"
-description: Deletes the Lifecycle Controller Job Queue
+description:
+    - Deletes the Lifecycle Controller Job Queue
 options:
     idrac_ip:
         required: False
@@ -53,31 +54,44 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Delete LC Job
+    dellemc_idrac_delete_lc_job:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
 """
 
 RETURNS = """
 ---
 """
 
-# Delete LC Job Queue
 def delete_lc_job_queue (idrac, module):
+    """
+    Deletes the Lifecycle Controller JOB Queue
+
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['failed'] = False
     msg['changed'] = False
 
-    if not module.check_mode:
+    try:
+        if not module.check_mode:
+            # TODO: Check the Job Queue to make sure there are no pending jobs
+            msg['msg'] = idrac.job_mgr.delete_all_jobs()
 
-        # TODO: Check the Job Queue to make sure there are no pending jobs
+            if msg['msg']['Status'] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
+        msg['failed'] = True
 
-        msg['msg'] = idrac.job_mgr.delete_all_jobs()
-
-        if msg['msg']['Status'] is not "Success":
-            msg['failed'] = True
-        else:
-            msg['changed'] = True
-
-    return msg
+    return msg, err
 
 # Main
 def main():
@@ -85,30 +99,29 @@ def main():
 
     module = AnsibleModule (
             argument_spec = dict (
-
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = True, type = 'str'),
-                idrac_user = dict (required = False, default = 'root', type = 'str'),
-                idrac_pwd  = dict (required = False, default = 'calvin',
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
+                idrac_user = dict (required = False, default = None, type = 'str'),
+                idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None),
-
+                idrac_port = dict (required = False, default = None, type = 'int'),
                 ),
-
             supports_check_mode = True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg = delete_lc_job(idrac, module)
+    msg, err = delete_lc_job(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
+    if err:
+        module.fail_json(**msg)
     module.exit_json(**msg)
 
 if __name__ == '__main__':

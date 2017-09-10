@@ -63,7 +63,7 @@ options:
     port_syslog:
         required: False
         description: Port number of remote server
-        default: '514'
+        default: 514
     state:
         description:
         - if C(present), will enable the remote syslog option and add the
@@ -74,18 +74,37 @@ requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
 """
 
+EXAMPLES = """
+---
+- name: Configure Remote Syslog
+    dellemc_idrac_syslog:
+       idrac_ip:       "192.168.1.1"
+       idrac_user:     "root"
+       idrac_pwd:      "calvin"
+       share_name:     "\\\\192.168.10.10\\share"
+       share_user:     "user1"
+       share_pwd:      "password"
+       share_mnt:      "/mnt/share"
+       server1_syslog: "192.168.20.1"
+       server2_syslog: "192.168.20.2"
+       server3_syslog: "192.168.20.3"
+       state:          "present"
+"""
+
+RETURNS = """
+---
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
-
-# Setup iDRAC Network File Share
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def _setup_idrac_nw_share (idrac, module):
+    """
+    Setup local mount point for network file share
+
+    idrac -- iDRAC handle
+    module -- Ansible module
+    """
+
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
 
@@ -98,12 +117,19 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-# setup_idrac_syslog
 def setup_idrac_syslog (idrac, module):
+    """
+    Setup iDRAC remote syslog settings
+
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
+    err = False
 
     try:
         # Check first whether local mount point for network share is setup
@@ -121,21 +147,22 @@ def setup_idrac_syslog (idrac, module):
                 msg['changed'] = not exists
             else:
                 msg['msg'] = idrac.config_mgr.enable_syslog (
-                                             module.params["port_syslog"],
-                                             0,
-                                             module.params["server1_syslog"],
-                                             module.params["server2_syslog"],
-                                             module.params["server3_syslog"])
+                                            module.params["port_syslog"],
+                                            0,
+                                            module.params["server1_syslog"],
+                                            module.params["server2_syslog"],
+                                            module.params["server3_syslog"])
         else:
             if module.check_mode or not exists:
                 msg['changed'] = exists
             else:
                 msg['msg'] = idrac.config_mgr.disable_syslog()
 
-        if "Status" in msg['msg'] and msg['msg']["Status"] is "Success":
-            msg['changed'] = True
-        else:
-            msg['failed'] = True
+        if "Status" in msg['msg']:
+            if msg['msg']["Status"] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
 
     except Exception as e:
         err = True
@@ -143,7 +170,6 @@ def setup_idrac_syslog (idrac, module):
         msg['failed'] = True
 
     return msg, err
-
 
 # Main
 def main():
@@ -159,14 +185,14 @@ def main():
                 idrac_ip   = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
-                                   type = 'str', no_log = True),
+                                    type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network File Share
-                share_name = dict (required = True, default = None),
-                share_user = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None),
-                share_mnt  = dict (required = True, default = None),
+                share_name = dict (required = True, type = 'str'),
+                share_user = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_mnt  = dict (required = True, type = 'str'),
 
                 # Remote Syslog parameters
                 server1_syslog = dict (required = False, default = None, type = 'str'),

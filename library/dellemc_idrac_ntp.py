@@ -94,11 +94,15 @@ RETURNS = """
 
 from ansible.module_utils.basic import AnsibleModule
 
-# Setup iDRAC Network File Share
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def _setup_idrac_nw_share (idrac, module):
+    """
+    Setup local mount point for the network file share
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
 
@@ -111,8 +115,14 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-# setup_idrac_ntp
 def setup_idrac_ntp (idrac, module):
+    """
+    Setup iDRAC Network Time Protocol (NTP) settings
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
@@ -158,7 +168,6 @@ def setup_idrac_ntp (idrac, module):
 
     return msg, err
 
-
 # Main
 def main():
     from ansible.module_utils.dellemc_idrac import iDRACConnection
@@ -177,10 +186,10 @@ def main():
                 idrac_port = dict (required = False, default = None),
 
                 # Network File Share
-                share_name = dict (required = True, default = None),
-                share_user = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None),
-                share_mnt  = dict (required = True, default = None),
+                share_name = dict (required = True, type = 'str'),
+                share_user = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_mnt  = dict (required = True, type = 'str'),
 
                 # NTP parameters
                 ntp_server1 = dict (required = False, default = None, type = 'str'),
@@ -204,7 +213,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-
 
 if __name__ == '__main__':
     main()

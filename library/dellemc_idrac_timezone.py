@@ -29,11 +29,12 @@ module: dellemc_idrac_timezone
 short_description: Configure Time Zone
 version_added: "2.3"
 description:
-    - Configure time zone 
+    - Configure time zone
 options:
     idrac_ip:
-        required: True
+        required: False
         description: iDRAC IP Address
+        default: None
     idrac_user:
         required: False
         description: iDRAC user name
@@ -46,6 +47,19 @@ options:
         required: False
         description: iDRAC port
         default: None
+    share_name:
+        required: True
+        description: CIFS or NFS Network share
+    share_user:
+        required: True
+        description: Network share user in the format user@domain
+    share_pwd:
+        required: True
+        description: Network share user password
+    share_mnt:
+        required: True
+        description: Local mount path of the network file share with
+        read-write permission for ansible user
     timezone:
         required: False
         description: time zone e.g. "Asia/Kolkata"
@@ -55,18 +69,31 @@ requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
 """
 
+EXAMPLES = """
+---
+- name: Configure TimeZone
+    dellemc_idrac_timezone:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       share_name: "\\\\10.20.30.40\\share\\"
+       share_user: "user1"
+       share_pwd:  "password"
+       share_mnt:  "/mnt/share"
+       timezone:   "Asia/Kolkata"
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
-
-# Setup iDRAC Network File Share
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def _setup_idrac_nw_share (idrac, module):
+    """
+    Setup local mount point for network file share
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
 
@@ -79,12 +106,20 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-# setup_idrac_ntp
 def setup_idrac_timezone (idrac, module):
+    """
+    Setup iDRAC Time Zone
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
+    err = False
 
     try:
         # Check first whether local mount point for network share is setup
@@ -102,12 +137,13 @@ def setup_idrac_timezone (idrac, module):
         else:
             if module.params["timezone"] is not None:
                 msg['msg'] = idrac.config_mgr.configure_time_zone(
-                                                  module.params["timezone"])
+                                module.params["timezone"])
 
-                if "Status" in msg['msg'] and msg['msg']["Status"] is "Success":
-                    msg['changed'] = True
-                else:
-                    msg['failed'] = True
+        if 'Status' in msg['msg']:
+            if msg['msg']['Status'] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
 
     except Exception as e:
         err = True
@@ -116,14 +152,12 @@ def setup_idrac_timezone (idrac, module):
 
     return msg, err
 
-
 # Main
 def main():
     from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
-
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
@@ -132,13 +166,13 @@ def main():
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None),
+                idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network File Share
-                share_name = dict (required = True, default = None),
-                share_user = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None),
-                share_mnt  = dict (required = True, default = None),
+                share_name = dict (required = True, type = 'str'),
+                share_user = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_mnt  = dict (required = True, type = 'str'),
 
                 # Time Zone
                 timezone = dict (required = False, default = None, type = 'str'),
@@ -157,7 +191,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-
 
 if __name__ == '__main__':
     main()

@@ -46,32 +46,57 @@ options:
         required: False
         description: iDRAC port
         default: None
+    choice:
+        required: False
+        description:
+            - if C(all), returns both installed and available SW inventory
+            - if C(installed), returns installed SW inventory
+        default: 'installed'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
 """
 
+EXAMPLES = """
+---
+- name: Get SW Inventory
+    dellemc_idrac_sw_inventory:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       choice:     "installed"
+"""
+
+RETURNS = """
+---
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
-
-
-# get_sw_inventory
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def get_sw_inventory (idrac, module):
+    """
+    Get Firmware Inventory
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
     err = False
 
     try:
-        msg['msg'] = idrac.update_mgr.get_swidentity()
+        if module.params['choice'] == "all":
+           msg['msg'] = idrac.update_mgr.get_swidentity()
+        elif module.params['choice'] == "installed":
+           msg['msg'] = idrac.update_mgr.InstalledFirmware
+
+        if 'Status' in msg['msg'] and msg['msg']['Status'] is not "Success":
+            msg['failed'] = True
+
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
@@ -85,7 +110,6 @@ def main():
 
     module = AnsibleModule (
             argument_spec = dict (
-
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
@@ -94,8 +118,10 @@ def main():
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None),
-
+                idrac_port = dict (required = False, default = None, type = 'int'),
+                choice = dict (required = False,
+                                choices = ['all', 'installed'],
+                                default = 'installed')
                 ),
 
             supports_check_mode = True)
@@ -112,7 +138,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-
 
 if __name__ == '__main__':
     main()

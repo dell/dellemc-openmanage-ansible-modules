@@ -25,10 +25,11 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = """
 ---
-module: dellemc_idrac_lc_job_status
-short_description: Returns the status of a Lifecycle Controller Job
+module: dellemc_idrac_delete_lc_job
+short_description: Deletes a Lifecycle Controller Job given a JOB ID
 version_added: "2.3"
-description: Returns the status of a Lifecycle Controller job given a JOB ID
+description:
+    - Deletes a Lifecycle Controller job given a JOB ID
 options:
     idrac_ip:
         required: False
@@ -56,6 +57,12 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Delete LC Job
+    dellemc_idrac_delete_lc_job:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       job_id:     "JID_1234556789012"
 """
 
 RETURNS = """
@@ -64,23 +71,47 @@ RETURNS = """
 
 from ansible.module_utils.basic import AnsibleModule
 
-# Delete the Job from the LC Job Queue
 def delete_lc_job (idrac, module):
+    """
+    Deletes a Lifecycle Controller Job
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['failed'] = False
     msg['changed'] = False
+    err = False
 
-    if not module.check_mode:
-        msg['msg'] = idrac.job_mgr.delete_job(module.params['job_id'])
+    try:
+        exists = False
 
-        if msg['msg']['Status'] is not "Success":
-            msg['failed'] = True
+        job = idrac.job_mgr.get_job_details(module.params['job_id'])
+
+        if 'Status' in job and job['Status'] == "Success":
+            exists = True
+
+        if module.check_mode:
+            msg['changed'] = not exists
+        elif exists:
+            msg['msg'] = idrac.job_mgr.delete_job(module.params['job_id'])
+
+            if 'Status' in msg['msg'] and msg['msg']['Status'] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
         else:
-            msg['changed'] = True
+            msg['msg'] = "Invalid Job ID: " + module.params['job_id']
+            msg['failed'] = True
 
-    return msg
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
+        msg[failed] = True
 
+    return msg, err
 
 # Main
 def main():
@@ -88,16 +119,15 @@ def main():
 
     module = AnsibleModule (
             argument_spec = dict (
-
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = True, type = 'str'),
-                idrac_user = dict (required = False, default = 'root', type = 'str'),
-                idrac_pwd  = dict (required = False, default = 'calvin',
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
+                idrac_user = dict (required = False, default = None, type = 'str'),
+                idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None),
+                idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # JOB ID
                 job_id = dict (required = True, type = 'str')
@@ -108,11 +138,13 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg = delete_lc_job(idrac, module)
+    (msg, err) = delete_lc_job(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
+    if err:
+        module.fail_json(**msg)
     module.exit_json(**msg)
 
 if __name__ == '__main__':

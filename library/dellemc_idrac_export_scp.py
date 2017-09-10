@@ -29,7 +29,7 @@ module: dellemc_idrac_export_scp
 short_description: Export Server Configuration Profile (SCP) to network share
 version_added: "2.3"
 description:
-    - Export Server Configuration Profile 
+    - Export Server Configuration Profile
 options:
     idrac_ip:
         required: False
@@ -49,7 +49,7 @@ options:
         default: None
     share_name:
         required: True
-        description: CIFS or NFS Network share 
+        description: CIFS or NFS Network share
     share_user:
         required: True
         description: Network share user in the format user@domain
@@ -63,6 +63,14 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Export Server Configuration Profile (SCP)
+    dellemc_idrac_export_scp:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       share_name: "\\\\10.20.30.40\\share\\"
+       share_pwd:  "password"
+       share_user: "user1"
 """
 
 RETURNS = """
@@ -71,16 +79,17 @@ RETURNS = """
 
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials,ProtocolCredentialsFactory
-    HAS_OMSDK = True
-except ImportError:
-    HAS_OMSDK = False
-
-
-# Export Server Configuration Profile (SCP)
 def export_server_config_profile(idrac, module):
+    """
+    Export Server Configuration Profile to a network share
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
+    from omsdk.sdkfile import FileOnShare
+    from omsdk.sdkcreds import UserCredentials
 
     msg = {}
     msg['changed'] = False
@@ -88,15 +97,18 @@ def export_server_config_profile(idrac, module):
     err = False
 
     try:
-        scp_file_name = idrac.ipaddr + "_%Y%M%d_scp.xml"
-        share_path = module.params['share_name'] + scp_file_name
+        scp_file_name = idrac.ipaddr + "_%Y%m%d_%H%M%S_scp.xml"
 
-        myshare = FileOnShare(share_path)
+        myshare = FileOnShare(module.params['share_name'],
+                                mount_point = '',
+                                isFolder = True)
         myshare.addcreds(UserCredentials(module.params['share_user'],
                                          module.params['share_pwd']))
+        myshare.new_file(scp_file_name)
+
         msg['msg'] = idrac.config_mgr.scp_export(myshare)
 
-        if "Status" in msg['msg'] and msg['msg']['Status'] is not "Success":
+        if 'Status' in msg['msg'] and msg['msg']['Status'] is not "Success":
             msg['failed'] = True
 
     except Exception as e:
@@ -112,26 +124,24 @@ def main():
     from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
-                 argument_spec = dict (
+            argument_spec = dict (
+                # iDRAC Handle
+                idrac      = dict (required = False, type = 'dict'),
 
-                     # iDRAC Handle
-                     idrac      = dict (required = False, type = 'dict'),
+                # iDRAC credentials
+                idrac_ip   = dict (required = False, default = None, type='str'),
+                idrac_user = dict (required = False, default = None, type='str'),
+                idrac_pwd  = dict (required = False, default = None,
+                                    type='str', no_log = True),
+                idrac_port = dict (required = False, default = None, type = 'int'),
 
-                     # iDRAC credentials
-                     idrac_ip   = dict (required = False, default = None, type='str'),
-                     idrac_user = dict (required = False, default = None, type='str'),
-                     idrac_pwd  = dict (required = False, default = None,
-                                        type='str', no_log = True),
-                     idrac_port = dict (required = False, default = None, type = 'int'),
+                # Network File Share
+                share_name = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_user = dict (required = True, type = 'str'),
+                ),
 
-                     # Network File Share
-                     share_name = dict (required = True, default = None),
-                     share_pwd  = dict (required = True, default = None,
-                                        no_log = True),
-                     share_user = dict (required = True, default = None),
-                  ),
-
-                  supports_check_mode = True)
+            supports_check_mode = True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection (module)

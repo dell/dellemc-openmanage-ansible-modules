@@ -48,7 +48,7 @@ options:
         default: None
     share_name:
         required: True
-        description: CIFS or NFS Network share 
+        description: CIFS or NFS Network share
     share_user:
         required: True
         description: Network share user in the format user@domain
@@ -109,18 +109,36 @@ requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
 """
 
+EXAMPLES = """
+---
+- name: Configure NIC IPv4
+    dellemc_idrac_nic_ipv4:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       share_name: "\\\\10.20.30.40\\share\\"
+       share_user: "user1"
+       share_pwd:  "password"
+       share_mnt:  "/mnt/share"
+       enable_ipv4: True
+       dhcp_enable: False
+"""
+
+RETURNS = """
+---
+"""
+
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
-
-# Setup iDRAC Network File Share
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def _setup_idrac_nw_share (idrac, module):
+    """
+    Setup local mount point for Network file share
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
 
@@ -133,15 +151,19 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-# setup_idrac_nic_ipv4
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def setup_idrac_nic_ipv4 (idrac, module):
+    """
+    Setup iDRAC IPv4 configuration settings
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
     err = False
 
     try:
@@ -172,10 +194,11 @@ def setup_idrac_nic_ipv4 (idrac, module):
                                               module.params["alternate_dns"]],
                                              module.params["dns_from_dhcp"])
 
-            if "Status" in msg['msg'] and msg['msg']["Status"] is "Success":
-                msg['changed'] = True
-            else:
-                msg['failed'] = True
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                else:
+                    msg['failed'] = True
 
     except Exception as e:
         err = True
@@ -184,29 +207,27 @@ def setup_idrac_nic_ipv4 (idrac, module):
 
     return msg, err
 
-
 # Main
 def main():
     from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
-
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = False, type = 'str'),
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None),
+                idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network File Share
-                share_name = dict (required = True, default = None),
-                share_user = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None),
-                share_mnt  = dict (required = True, default = None),
+                share_name = dict (required = True, type = 'str'),
+                share_user = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_mnt  = dict (required = True, type = 'str'),
 
                 # iDRAC Network IPv4 Settings
                 enable_ipv4 = dict (required = False, default = True, type = 'bool'),

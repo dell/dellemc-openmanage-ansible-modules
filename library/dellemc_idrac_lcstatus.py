@@ -55,6 +55,11 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Get Lifecycle Controller Status
+    dellemc_idrac_lcstatus:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
 """
 
 RETURNS = """
@@ -65,6 +70,13 @@ from ansible.module_utils.basic import AnsibleModule
 
 # Get Lifecycle Controller status
 def get_lc_status (idrac, module):
+    """
+    Get Lifecycle Controller status
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
@@ -85,9 +97,7 @@ def get_lc_status (idrac, module):
     return msg, err
 
 # Main
-
 def main():
-
     from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (

@@ -56,6 +56,12 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Get LC Job Stattus
+    dellemc_idrac_lc_job_status:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       job_id:     "JID_1234556789012"
 """
 
 RETURNS = """
@@ -64,8 +70,14 @@ RETURNS = """
 
 from ansible.module_utils.basic import AnsibleModule
 
-# Get LC Job Status
 def get_lc_job_status (idrac, module):
+    """
+    Get status of a Lifecycle Controller Job given a JOB ID
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['failed'] = False
@@ -96,11 +108,11 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = True, type = 'str'),
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None),
+                idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # JOB ID
                 job_id = dict (required = True, type = 'str')
@@ -111,7 +123,7 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg = get_lc_job_status(idrac, module)
+    msg, err = get_lc_job_status(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

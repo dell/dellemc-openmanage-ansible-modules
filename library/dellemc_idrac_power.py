@@ -1,6 +1,5 @@
 #! /usr/bin/python
 # _*_ coding: utf-8 _*_
-
 #
 # Copyright (c) 2017 Dell Inc.
 #
@@ -65,29 +64,37 @@ options:
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-
 """
 
 EXAMPLES = """
 ---
+- name: Change Power State
+    dellemc_idrac_power:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       state:      "PowerOn"
 """
 
 RETURNS = """
 ---
 """
 
-# Change Power State
-# idrac: iDRAC Handle
-# module: Ansible module
-#
-# supports check mode
-def changePowerState (idrac, module):
+def change_power_state (idrac, module):
+    """
+    Change Power State of PowerEdge Server
+
+    Keywork arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     from omsdk.sdkcenum import TypeHelper
     msg = {}
-    msg['RequestPowerStateChange'] = {}
+    msg['msg'] = {}
     msg['changed'] = False
     msg['failed'] = False
+    err = False
 
     if module.params['state'] == "PowerOn":
         power_state = idrac.ePowerStateEnum.PowerOn
@@ -104,38 +111,36 @@ def changePowerState (idrac, module):
 
     current_power_state = idrac.PowerState
     is_power_on = (int(current_power_state) ==
-                      TypeHelper.resolve(idrac.ePowerStateEnum.PowerOn))
+                    TypeHelper.resolve(idrac.ePowerStateEnum.PowerOn))
 
-    if module.params['state'] == "PowerOn":
-        if module.check_mode or is_power_on:
-            msg['changed'] = False
-        else:
-            msg['ChangePowerState'] = idrac.config_mgr.change_power(power_state)
-
-            if msg['ChangePowerState']['Status'] == "Error":
-                msg['failed'] = True
+    try:
+        if module.params['state'] == "PowerOn":
+            if module.check_mode or is_power_on:
+                msg['changed'] = not is_power_on
             else:
-                msg['changed'] = True
-
-    elif module.params['state'] == "PowerOff":
-        if module.check_mode or not is_power_on:
-            msg['changed'] = False
-        else:
-            msg['ChangePowerState'] = idrac.config_mgr.change_power(power_state)
-
-            if msg['ChangePowerState']['Status'] == "Error":
-                msg['failed'] = True
+                msg['msg'] = idrac.config_mgr.change_power(power_state)
+        elif module.params['state'] == "PowerOff":
+            if module.check_mode or not is_power_on:
+                msg['changed'] = is_power_on
             else:
-                msg['changed'] = True
-    else:
-        if module.check_mode:
-            msg['changed'] = True
+                msg['msg'] = idrac.config_mgr.change_power(power_state)
         else:
-            msg['ChangePowerState'] = idrac.config_mgr.change_power(power_state)
-            msg['changed'] = True
+            if module.check_mode:
+                msg['changed'] = True
+            else:
+                msg['msg'] = idrac.config_mgr.change_power(power_state)
 
-    return msg
+        if 'Status' in msg['msg']:
+            if ms['msg']['Status'] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
+        msg['failed'] = True
 
+    return msg, err
 
 # Main()
 def main():
@@ -143,25 +148,25 @@ def main():
 
     module = AnsibleModule (
             argument_spec = dict (
-
                 # iDRAC Handle
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = False, type = 'str'),
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None, type = 'str'),
-                idrac_port = dict (required = False, default = None),
+                idrac_pwd  = dict (required = False, default = None,
+                                    type = 'str', no_log = True),
+                idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Power Cycle State
-                state      = dict (required = False,
-                                   choice = ["PowerOn",
+                state      = dict (required = True,
+                                    choice = ["PowerOn",
                                        "SoftPowerCycle",
                                        "SoftPowerOff",
                                        "HardReset",
                                        "DiagnosticInterrupt",
                                        "GracefulPowerOff"],
-                                   type = 'str')
+                                    type = 'str')
                 ),
             supports_check_mode = True)
 
@@ -170,11 +175,13 @@ def main():
     idrac = idrac_conn.connect()
 
     # Setup Power Cycle State
-    msg = changePowerState (idrac, module)
+    (msg, err) = change_power_state (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
+    if err:
+        module.fail_json(**msg)
     module.exit_json(**msg)
 
 if __name__ == '__main__':

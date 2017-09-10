@@ -103,7 +103,6 @@ options:
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-
 """
 
 EXAMPLES = """
@@ -131,11 +130,14 @@ RETURNS = """
 
 from ansible.module_utils.basic import AnsibleModule
 
-# Setup iDRAC Network File Share
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def _setup_idrac_nw_share (idrac, module):
+    """
+    Setup local mount point for Network file share
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
@@ -149,12 +151,14 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-# iDRAC SNMP Configuration
-# idrac: iDRAC handle
-# module: Ansible module
-#
-# Supports check_mode
 def setup_idrac_snmp (idrac, module):
+    """
+    Setup iDRAC SNMP Configuration parameters
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
@@ -217,13 +221,13 @@ def main():
                 idrac_user = dict (required = False, default = None, type = 'str'),
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None),
+                idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network File Share
-                share_name = dict (required = True, default = None),
-                share_user = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None),
-                share_mnt  = dict (required = True, default = None),
+                share_name = dict (required = True, type = 'str'),
+                share_user = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_mnt  = dict (required = True, type = 'str'),
 
                 # SNMP Configuration
                 snmp_agent_enable = dict (required = False,

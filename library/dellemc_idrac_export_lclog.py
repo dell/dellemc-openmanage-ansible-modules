@@ -29,7 +29,7 @@ module: dellemc_idrac_export_lclog
 short_description: Export Lifecycle Controller log file to a network share
 version_added: "2.3"
 description:
-    - Export Lifecycle Controller log file to a given network share
+    - Export Lifecycle Controller log file to a given network s/hare
 options:
     idrac_ip:
         required: False
@@ -49,7 +49,7 @@ options:
         default: None
     share_name:
         required: True
-        description: CIFS or NFS Network share 
+        description: CIFS or NFS Network share
     share_user:
         required: True
         description: Network share user in the format user@domain
@@ -63,6 +63,14 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Export Lifecycle Controller Log
+    dellemc_idrac_export_lclog:
+       idrac_ip:   "192.168.1.1"
+       idrac_user: "root"
+       idrac_pwd:  "calvin"
+       share_name: "\\\\10.20.30.40\\share\\"
+       share_user: "user1"
+       share_pwd:  "password"
 """
 
 RETURNS = """
@@ -73,6 +81,13 @@ from ansible.module_utils.basic import AnsibleModule
 
 # Export Lifecycle Controller Logs
 def export_lc_logs (idrac, module):
+    """
+    Export Lifecycle Controller Log to the given file share
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     from omsdk.sdkcreds import UserCredentials
     from omsdk.sdkfile import FileOnShare
@@ -105,7 +120,6 @@ def export_lc_logs (idrac, module):
 
 # Main()
 def main():
-
     from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
@@ -116,13 +130,14 @@ def main():
                 # iDRAC credentials
                 idrac_ip   = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None, type = 'str'),
-                idrac_port = dict (required = False, default = None),
+                idrac_pwd  = dict (required = False, default = None,
+                                    type = 'str', no_log = True),
+                idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network File Share
-                share_name = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None),
-                share_user = dict (required = True, default = None)
+                share_name = dict (required = True, type = 'str'),
+                share_user = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True)
             ),
 
             supports_check_mode = True)

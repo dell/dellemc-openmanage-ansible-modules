@@ -60,7 +60,7 @@ options:
     share_mnt:
         required: True
         description: Local mount path of the network file share with
-        read-write permission for ansible user 
+        read-write permission for ansible user
     tls_protocol:
         required: False
         description:
@@ -71,7 +71,7 @@ options:
         default: "TLS_1_1"
     ssl_bits:
         required: False
-        description: 
+        description:
         - if C(S128), will set the SSL Encryption Bits to 128-Bit or higher
         - if C(S168), will set the SSL Encryption Bits to 168-Bit or higher
         - if C(S256), will set the SSL Encryption Bits to 256-Bit or higher
@@ -85,6 +85,17 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
+- name: Configure TLS
+    dellemc_idrac_tls:
+       idrac_ip:     "192.168.1.1"
+       idrac_user:   "root"
+       idrac_pwd:    "calvin"
+       share_name:   "\\\\10.20.30.40\\share\\"
+       share_user:   "user1"
+       share_pwd:    "password"
+       share_mnt:    "/mnt/share"
+       tls_protocol: "TLS_1_1"
+       ssl_bits:     "S128"
 """
 
 RETURNS = """
@@ -93,16 +104,15 @@ RETURNS = """
 
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
-
-# Setup iDRAC Network File Share
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def _setup_idrac_nw_share (idrac, module):
+    """
+    Setup local mount point for Network file share
+
+    Keyword arguments:
+    iDRAC  -- iDRAC handle
+    module -- Ansible module
+    """
+
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
 
@@ -115,9 +125,14 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-
-# setup_idrac_csior
 def setup_idrac_tls (idrac, module):
+    """
+    Setup iDRAC TLS settings
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
@@ -145,7 +160,6 @@ def setup_idrac_tls (idrac, module):
             if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
                 msg['changed'] = True
             else:
-                msg['changed'] = False
                 msg['failed'] = True
 
     except Exception as e:
@@ -161,7 +175,6 @@ def main():
 
     module = AnsibleModule (
             argument_spec = dict (
-
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
@@ -173,10 +186,10 @@ def main():
                 idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network File Share
-                share_name = dict (required = True, default = None),
-                share_user = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None),
-                share_mnt  = dict (required = True, default = None),
+                share_name = dict (required = True, type = 'str'),
+                share_user = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_mnt  = dict (required = True, type = 'str'),
 
                 tls_protocol = dict (required = False,
                                      choices = ['TLS_1_0', 'TLS_1_1', 'TLS_2_0'],
