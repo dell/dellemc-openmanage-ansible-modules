@@ -72,7 +72,7 @@ author: "anupam.aloke@dell.com"
 EXAMPLES = """
 ---
 - name: Boot to Network ISO
-    dellemc_idrac_import_scp:
+    dellemc_idrac_boot_to_nw_iso:
        idrac_ip:   "192.168.1.1"
        idrac_user: "root"
        idrac_pwd:  "calvin"
