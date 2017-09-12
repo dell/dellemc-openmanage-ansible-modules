@@ -23,7 +23,8 @@
 
 try:
     from omsdk.sdkinfra import sdkinfra
-    from omsdk.sdkcreds import UserCredentials,ProtocolCredentialsFactory
+    from omsdk.sdkcreds import UserCredentials
+    from omsdk.sdkfile import FileOnShare
 
     HAS_OMSDK = True
 
@@ -66,14 +67,14 @@ class iDRACConnection():
 
         # Connect to iDRAC
         if idrac_ip == '' or idrac_user == '' or idrac_pwd == '':
-            results['msg'] = "hostname, username and password required for this name"
+            results['msg'] = "hostname, username and password required"
             self.module.fail_json(**results)
         else:
             creds = UserCredentials(idrac_user, idrac_pwd)
-            idrac = sd.find_driver(idrac_ip, creds)
+            idrac = sd.get_driver(sd.driver_enum.iDRAC, idrac_ip, creds)
 
             if idrac is None:
-                results['msg'] = "Could not find device driver for iDRAC with IP Address: " + idrac_ip + " User: " + idrac_user + " Pwd: " + idrac_pwd
+                results['msg'] = "Could not find device driver for iDRAC with IP Address: " + idrac_ip
                 self.module.fail_json(**results)
 
         self.handle = idrac
@@ -91,3 +92,5 @@ class iDRACConnection():
             return True
 
         return True
+
+
