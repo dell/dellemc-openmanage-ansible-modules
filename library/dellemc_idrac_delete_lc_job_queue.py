@@ -54,8 +54,8 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = """
 ---
-- name: Delete LC Job
-    dellemc_idrac_delete_lc_job:
+- name: Delete LC Job Queue
+    dellemc_idrac_delete_lc_job_queue:
        idrac_ip:   "192.168.1.1"
        idrac_user: "root"
        idrac_pwd:  "calvin"
@@ -64,6 +64,9 @@ EXAMPLES = """
 RETURNS = """
 ---
 """
+
+from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.basic import AnsibleModule
 
 def delete_lc_job_queue (idrac, module):
     """
@@ -86,6 +89,7 @@ def delete_lc_job_queue (idrac, module):
                 msg['changed'] = True
             else:
                 msg['failed'] = True
+    
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
@@ -95,10 +99,10 @@ def delete_lc_job_queue (idrac, module):
 
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
+
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
@@ -109,13 +113,14 @@ def main():
                                    type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None, type = 'int'),
                 ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg, err = delete_lc_job(idrac, module)
+    msg, err = delete_lc_job_queue(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

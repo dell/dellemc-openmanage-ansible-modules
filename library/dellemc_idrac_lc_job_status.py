@@ -68,6 +68,7 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 def get_lc_job_status (idrac, module):
@@ -99,7 +100,6 @@ def get_lc_job_status (idrac, module):
 
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
@@ -117,6 +117,7 @@ def main():
                 # JOB ID
                 job_id = dict (required = True, type = 'str')
                 ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC

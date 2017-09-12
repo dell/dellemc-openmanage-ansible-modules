@@ -62,9 +62,11 @@ options:
         in I(share_name) with read-write permission for ansible user
     state:
         required: False
+        choices: ['enable', 'disable']
         description:
         - if C(enable), will enable the CSIOR
         - if C(disable), will disable the CSIOR
+        default: 'enable'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -89,15 +91,17 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
-# Setup iDRAC Network File Share
-# idrac: iDRAC handle
-# module: Ansible module
-#
 def _setup_idrac_nw_share (idrac, module):
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
+    """
+    Setup local mount point for Network file share
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     myshare = FileOnShare(module.params['share_name'],
                           module.params['share_mnt'],
@@ -108,8 +112,14 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-# setup_idrac_csior
 def setup_idrac_csior (idrac, module):
+    """
+    Setup iDRAC Collect System Inventory on Restart (CSIOR)
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
 
     msg = {}
     msg['changed'] = False
@@ -157,8 +167,6 @@ def setup_idrac_csior (idrac, module):
 # Main
 def main():
 
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
-
     module = AnsibleModule (
             argument_spec = dict (
 
@@ -166,18 +174,20 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = False, type = 'str'),
+                idrac_ip   = dict (required = False, default = None, type = 'str'),
                 idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None, type = 'str'),
+                idrac_pwd  = dict (required = False, default = None,
+                                    type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network File Share
-                share_name = dict (required = True, default = None),
-                share_user = dict (required = True, default = None),
-                share_pwd  = dict (required = True, default = None, no_log = True),
-                share_mnt  = dict (required = True, default = None),
+                share_name = dict (required = True, type = 'str'),
+                share_user = dict (required = True, type = 'str'),
+                share_pwd  = dict (required = True, type = 'str', no_log = True),
+                share_mnt  = dict (required = True, type = 'str'),
 
-                state = dict (required = False, choices = ['enable', 'disable'])
+                state = dict (required = False, choices = ['enable', 'disable'],
+                                default = 'enable')
                 ),
             supports_check_mode = True)
 

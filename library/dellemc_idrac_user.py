@@ -107,7 +107,9 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
+
 
 def _setup_idrac_nw_share (idrac, module):
     """
@@ -116,9 +118,6 @@ def _setup_idrac_nw_share (idrac, module):
     idrac -- iDRAC handle
     module -- Ansible module
     """
-
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
 
     myshare = FileOnShare(module.params['share_name'],
                           module.params['share_mnt'],
@@ -137,6 +136,9 @@ def setup_idrac_user (idrac, module):
     module -- Ansible module
     """
 
+    from omdrivers.enums.iDRAC.iDRACEnums import UserPrivilegeEnum
+    from omsdk.sdkcenum import TypeHelper
+
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -145,16 +147,17 @@ def setup_idrac_user (idrac, module):
 
     user_name = module.params['user_name']
     user_pwd = module.params['user_pwd']
-    user_priv = str(idrac.user_mgr.eUserPrivilegeEnum.NoPrivilege)
+    user_priv = TypeHelper.resolve(UserPrivilegeEnum.NoPrivilege)
 
     if module.params['user_priv'] == "Administrator":
-        user_priv = idrac.user_mgr.eUserPrivilegeEnum.Administrator
+        user_priv = TypeHelper.resolve(UserPrivilegeEnum.Administrator)
     elif module.params['user_priv'] == "Operator":
-        user_priv = idrac.user_mgr.eUserPrivilegeEnum.Operator
+        user_priv = TypeHelper.resolve(UserPrivilegeEnum.Operator)
     elif module.params['user_priv'] == "ReadOnly":
-        user_priv = idrac.user_mgr.eUserPrivilegeEnum.ReadOnly
+        user_priv = TypeHelper.resolve(UserPrivilegeEnum.ReadOnly)
 
-    try:
+    if True:
+    #try:
         # Check first whether local mount point for network share is setup
         if idrac.config_mgr.liason_share is None:
             if not  _setup_idrac_nw_share (idrac, module):
@@ -195,11 +198,13 @@ def setup_idrac_user (idrac, module):
 
                     if user_priv_change:
                         msg['msg'] = idrac.user_mgr.change_privilege(
-                                        user_name, user_priv)
+                                                        user_name, user_priv)
 
                     if user_pwd_change:
                         msg['msg'] = idrac.user_mgr.change_password(
-                                        user_name, "", user_pwd)
+                                                        user_name, 
+                                                        old_password="",
+                                                        new_password=user_pwd)
 
         elif module.params["state"] == "enable":
             if module.check_mode:
@@ -236,17 +241,15 @@ def setup_idrac_user (idrac, module):
         # Add the user list to the return msg as well
         msg['users'] = idrac.user_mgr.Users
 
-    except Exception as e:
-        err = False
-        msg['msg'] = "Error: %s" % str(e)
-        msg['failed'] = True
+    # except Exception as e:
+    #     err = False
+    #     msg['msg'] = "Error: %s" % str(e)
+    #     msg['failed'] = True
 
     return msg, err
 
 # Main
 def main():
-
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (

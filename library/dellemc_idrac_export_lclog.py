@@ -77,9 +77,9 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
-# Export Lifecycle Controller Logs
 def export_lc_logs (idrac, module):
     """
     Export Lifecycle Controller Log to the given file share
@@ -89,22 +89,21 @@ def export_lc_logs (idrac, module):
     module -- Ansible module
     """
 
-    from omsdk.sdkcreds import UserCredentials
-    from omsdk.sdkfile import FileOnShare
-
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
     err = False
 
     try:
-        lclog_file_name = idrac.ipaddr + "_%Y%M%d_LC_Log.log"
+        lclog_file_name = idrac.ipaddr + "_%Y%m%d_%H%M%S_LC_Log.log"
+        lclog_file_path = module.params['share_name'] + lclog_file_name
 
-        share_path = module.params['share_name'] + lclog_file_name
-
-        myshare = FileOnShare(share_path)
+        myshare = FileOnShare(lclog_file_path,
+                                mount_point = '',
+                                isFolder = False)
         myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
+                                        module.params['share_pwd']))
+        #myshare.new_file(lclog_file_name)
 
         msg['msg'] = idrac.log_mgr.lclog_export(myshare)
 
@@ -120,10 +119,10 @@ def export_lc_logs (idrac, module):
 
 # Main()
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
+
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 

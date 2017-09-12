@@ -66,9 +66,9 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
-# Get Lifecycle Controller status
 def get_lc_status (idrac, module):
     """
     Get Lifecycle Controller status
@@ -96,12 +96,13 @@ def get_lc_status (idrac, module):
 
     return msg, err
 
+
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
+
                 # iDRAC Handle
                 idrac = dict(required = False, type = 'dict'),
 

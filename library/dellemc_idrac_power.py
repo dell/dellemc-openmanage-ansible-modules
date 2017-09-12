@@ -80,6 +80,9 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.basic import AnsibleModule
+
 def change_power_state (idrac, module):
     """
     Change Power State of PowerEdge Server
@@ -90,6 +93,8 @@ def change_power_state (idrac, module):
     """
 
     from omsdk.sdkcenum import TypeHelper
+    from omdrivers.enums.iDRAC.iDRACEnums import PowerStateEnum
+
     msg = {}
     msg['msg'] = {}
     msg['changed'] = False
@@ -97,21 +102,21 @@ def change_power_state (idrac, module):
     err = False
 
     if module.params['state'] == "PowerOn":
-        power_state = idrac.ePowerStateEnum.PowerOn
+        power_state = PowerStateEnum.PowerOn
     elif module.params['state'] == "SoftPowerCycle":
-        power_state = idrac.ePowerStateEnum.SoftPowerCycle
+        power_state = PowerStateEnum.SoftPowerCycle
     elif module.params['state'] == "SoftPowerOff":
-        power_state = idrac.ePowerStateEnum.SoftPowerOff
+        power_state = PowerStateEnum.SoftPowerOff
     elif module.params['state'] == "HardReset":
-        power_state = idrac.ePowerStateEnum.HardReset
+        power_state = PowerStateEnum.HardReset
     elif module.params['state'] == "DiagnosticInterrupt":
-        power_state = idrac.ePowerStateEnum.DiagnosticInterrupt
+        power_state = PowerStateEnum.DiagnosticInterrupt
     elif module.params['state'] == "GracefulPowerOff":
-        power_state = idrac.ePowerStateEnum.GracefulPowerOff
+        power_state = PowerStateEnum.GracefulPowerOff
 
     current_power_state = idrac.PowerState
     is_power_on = (int(current_power_state) ==
-                    TypeHelper.resolve(idrac.ePowerStateEnum.PowerOn))
+                    TypeHelper.resolve(PowerStateEnum.PowerOn))
 
     try:
         if module.params['state'] == "PowerOn":
@@ -131,10 +136,11 @@ def change_power_state (idrac, module):
                 msg['msg'] = idrac.config_mgr.change_power(power_state)
 
         if 'Status' in msg['msg']:
-            if ms['msg']['Status'] == "Success":
+            if msg['msg']['Status'] == "Success":
                 msg['changed'] = True
             else:
                 msg['failed'] = True
+    
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
@@ -144,10 +150,10 @@ def change_power_state (idrac, module):
 
 # Main()
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
+
                 # iDRAC Handle
                 idrac = dict (required = False, type = 'dict'),
 
@@ -168,6 +174,7 @@ def main():
                                        "GracefulPowerOff"],
                                     type = 'str')
                 ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC

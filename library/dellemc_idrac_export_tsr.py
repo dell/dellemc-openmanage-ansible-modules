@@ -78,6 +78,7 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 def export_tech_support_report(idrac, module):
@@ -88,9 +89,6 @@ def export_tech_support_report(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
 
     msg = {}
     msg['changed'] = False
@@ -121,10 +119,10 @@ def export_tech_support_report(idrac, module):
 
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
+
                 # iDRAC Handle
                 idrac = dict (required = False, type='dict'),
 
@@ -140,6 +138,7 @@ def main():
                 share_pwd  = dict (required = True, type = 'str', no_log = True),
                 share_user = dict (required = True, type = 'str')
             ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC

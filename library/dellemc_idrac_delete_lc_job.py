@@ -69,6 +69,7 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 def delete_lc_job (idrac, module):
@@ -115,10 +116,10 @@ def delete_lc_job (idrac, module):
 
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
+
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
@@ -132,6 +133,7 @@ def main():
                 # JOB ID
                 job_id = dict (required = True, type = 'str')
                 ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC

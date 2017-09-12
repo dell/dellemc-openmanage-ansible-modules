@@ -104,6 +104,7 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 def _setup_idrac_nw_share (idrac, module):
@@ -114,9 +115,6 @@ def _setup_idrac_nw_share (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
 
     myshare = FileOnShare(module.params['share_name'],
                           module.params['share_mnt'],
@@ -136,7 +134,7 @@ def import_server_config_profile (idrac, module):
     module -- Ansible module
     """
     
-    from omdrivers.lifecycle.iDRAC.iDRACConfig import SCPTargetEnum, ExportFormatEnum
+    from omdrivers.enums.iDRAC.iDRACEnums import SCPTargetEnum, ExportFormatEnum
 
     msg = {}
     msg['changed'] = False
@@ -194,8 +192,6 @@ def import_server_config_profile (idrac, module):
 
 # Main
 def main():
-
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (

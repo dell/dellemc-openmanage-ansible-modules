@@ -92,6 +92,7 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 def _setup_idrac_nw_share (idrac, module):
@@ -102,9 +103,6 @@ def _setup_idrac_nw_share (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
 
     myshare = FileOnShare(module.params['share_name'],
                           module.params['share_mnt'],
@@ -170,7 +168,6 @@ def setup_idrac_ntp (idrac, module):
 
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
@@ -196,9 +193,10 @@ def main():
                 ntp_server2 = dict (required = False, default = None, type = 'str'),
                 ntp_server3 = dict (required = False, default = None, type = 'str'),
                 state = dict (required = False,
-                              choices = ['present', 'absent'],
-                              default = 'present')
+                            choices = ['present', 'absent'],
+                            default = 'present')
                 ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC

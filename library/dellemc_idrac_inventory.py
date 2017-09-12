@@ -61,6 +61,7 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 # Get System Inventory
@@ -83,8 +84,6 @@ def get_system_inventory(idrac):
 # Main
 def main():
 
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
-
     module = AnsibleModule(
             argument_spec = dict(
 
@@ -98,6 +97,7 @@ def main():
                                   type='str', no_log = True),
                 idrac_port = dict(required = False, default = None)
             ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC

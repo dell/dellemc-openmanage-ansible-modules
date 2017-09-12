@@ -87,13 +87,7 @@ RETURNS = """
 ---
 """
 
-try:
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
-    HAS_OMSDK = True
-except ImportError:
-    HAS_OMSDK = False
-
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 def _setup_idrac_nw_share (idrac, module):
@@ -104,9 +98,6 @@ def _setup_idrac_nw_share (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-
-    if not HAS_OMSDK:
-        return None
 
     myshare = FileOnShare(module.params['share_name'],
                           module.params['share_mnt'],
@@ -168,8 +159,6 @@ def boot_to_network_iso (idrac, module):
 
 # Main
 def main():
-
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (

@@ -100,6 +100,7 @@ RETURNS = """
 ---
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 def _setup_idrac_nw_share (idrac, module):
@@ -110,9 +111,6 @@ def _setup_idrac_nw_share (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
 
     myshare = FileOnShare(module.params['share_name'],
                           module.params['share_mnt'],
@@ -178,10 +176,10 @@ def setup_idrac_nic_vlan (idrac, module):
 
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (
+
                 # iDRAC handle
                 idrac = dict (required = False, type = 'dict'),
 
@@ -204,6 +202,7 @@ def main():
                 state = dict (required = False, choices = ['enable', 'disable'],
                               default = 'enable')
                 ),
+
             supports_check_mode = True)
 
     # Connect to iDRAC

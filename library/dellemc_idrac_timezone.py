@@ -94,9 +94,6 @@ def _setup_idrac_nw_share (idrac, module):
     module -- Ansible module
     """
 
-    from omsdk.sdkfile import FileOnShare
-    from omsdk.sdkcreds import UserCredentials
-
     myshare = FileOnShare(module.params['share_name'],
                           module.params['share_mnt'],
                           isFolder=True)
