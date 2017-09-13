@@ -159,7 +159,7 @@ def import_server_config_profile (idrac, module):
                                 isFolder = True)
             myshare.addcreds(UserCredentials(module.params['share_user'],
                                             module.params['share_pwd']))
-            myshare.new_file(module.params['scp_file'])
+            scp_file_path = myshare.new_file(module.params['scp_file'])
 
             scp_components = SCPTargetEnum.ALL
 
@@ -172,7 +172,7 @@ def import_server_config_profile (idrac, module):
             elif module.params['scp_components'] == 'RAID':
                 scp_components = SCPTargetEnum.RAID
 
-            msg['msg'] = idrac.config_mgr.scp_import(myshare, 
+            msg['msg'] = idrac.config_mgr.scp_import(scp_file_path, 
                                             scp_components,
                                             ExportFormatEnum.XML,
                                             module.params['reboot'])
