@@ -95,16 +95,16 @@ def export_server_config_profile(idrac, module):
     err = False
 
     try:
-        scp_file_name = idrac.ipaddr + "_%Y%m%d_%H%M%S_scp.xml"
+        scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.xml"
 
         myshare = FileOnShare(module.params['share_name'],
                                 mount_point = '',
                                 isFolder = True)
         myshare.addcreds(UserCredentials(module.params['share_user'],
                                          module.params['share_pwd']))
-        myshare.new_file(scp_file_name)
+        scp_file_name = myshare.new_file(scp_file_name_format)
 
-        msg['msg'] = idrac.config_mgr.scp_export(myshare)
+        msg['msg'] = idrac.config_mgr.scp_export(scp_file_name)
 
         if 'Status' in msg['msg'] and msg['msg']['Status'] is not "Success":
             msg['failed'] = True

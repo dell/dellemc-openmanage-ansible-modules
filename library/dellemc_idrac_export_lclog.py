@@ -95,17 +95,16 @@ def export_lc_logs (idrac, module):
     err = False
 
     try:
-        lclog_file_name = idrac.ipaddr + "_%Y%m%d_%H%M%S_LC_Log.log"
-        lclog_file_path = module.params['share_name'] + lclog_file_name
+        lclog_file_name_format = "%ip_%Y%m%d_%H%M%S_LC_Log.log"
 
-        myshare = FileOnShare(lclog_file_path,
+        myshare = FileOnShare(module.params['share_name'],
                                 mount_point = '',
-                                isFolder = False)
+                                isFolder = True)
         myshare.addcreds(UserCredentials(module.params['share_user'],
                                         module.params['share_pwd']))
-        #myshare.new_file(lclog_file_name)
+        lc_log_file = myshare.new_file(lclog_file_name_format)
 
-        msg['msg'] = idrac.log_mgr.lclog_export(myshare)
+        msg['msg'] = idrac.log_mgr.lclog_export(lc_log_file)
 
         if "Status" in msg['msg'] and msg['msg']['Status'] is not "Success":
             msg['failed'] = True
