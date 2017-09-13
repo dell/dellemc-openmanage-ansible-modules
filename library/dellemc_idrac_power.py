@@ -115,8 +115,7 @@ def change_power_state (idrac, module):
         power_state = PowerStateEnum.GracefulPowerOff
 
     current_power_state = idrac.PowerState
-    is_power_on = (int(current_power_state) ==
-                    TypeHelper.resolve(PowerStateEnum.PowerOn))
+    is_power_on = (current_power_state == PowerStateEnum.PowerOn)
 
     try:
         if module.params['state'] == "PowerOn":

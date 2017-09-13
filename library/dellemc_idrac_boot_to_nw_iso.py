@@ -140,9 +140,9 @@ def boot_to_network_iso (idrac, module):
                                 isFolder = True)
             myshare.addcreds(UserCredentials(module.params['share_user'],
                                             module.params['share_pwd']))
-            myshare.new_file(module.params['iso_image'])
+            iso_file_name = myshare.new_file(module.params['iso_image'])
 
-            msg['msg'] = idrac.config_mgr.boot_to_network_iso(myshare) 
+            msg['msg'] = idrac.config_mgr.boot_to_network_iso(iso_file_name) 
 
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":
