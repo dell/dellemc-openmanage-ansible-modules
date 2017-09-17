@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Ansible 
+group_vars/*
+host_vars/*
+inventory
+*.retry

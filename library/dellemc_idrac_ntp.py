@@ -48,17 +48,9 @@ options:
         required: False
         description: iDRAC port
         default: None
-    ntp_server1:
+    ntp_servers:
         required: False
-        description: IP Address of the NTP Server 1
-        default: None
-    ntp_server2:
-        required: False
-        description: IP Address of the NTP Server 2
-        default: None
-    ntp_server3:
-        required: False
-        description: IP Address of the NTP Server 3
+        description: List of IP Addresses of the NTP Servers
         default: None
     state:
         required: False
@@ -113,6 +105,25 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
+
+def _ntp_exists (idrac, module):
+    """
+    Check whether NTP configuration settings already exists on iDRAC
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
+    if not idrac.config_mgr.NTPEnabled:
+        return False
+
+    elif 'ntp_servers' in module.params:
+        if set(idrac.config_mgr.NTPServers) != set(module.params['ntp_servers']):
+            return False
+
+    return True
+
 def setup_idrac_ntp (idrac, module):
     """
     Setup iDRAC Network Time Protocol (NTP) settings
@@ -136,17 +147,24 @@ def setup_idrac_ntp (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # TODO: Check if NTP settings exists
-        exists = False
+        # Check if NTP settings exists
+        exists = _ntp_exists(idrac, module)
 
         if module.params["state"] == "present":
             if module.check_mode or exists:
                 msg['changed'] = not exists
             else:
+                ntp_servers = []
+
+                if 'ntp_servers' in module.params:
+                    ntp_servers = module.params['ntp_servers']
+                
+                ntp_servers.extend(["","",""])
+
                 msg['msg'] = idrac.config_mgr.enable_ntp (
-                                                 module.params["ntp_server1"],
-                                                 module.params["ntp_server2"],
-                                                 module.params["ntp_server3"])
+                                                ntp_servers[0],
+                                                ntp_servers[1],
+                                                ntp_servers[2])
         else:
             if module.check_mode or not exists:
                 msg['changed'] = exists
@@ -189,12 +207,10 @@ def main():
                 share_mnt  = dict (required = True, type = 'str'),
 
                 # NTP parameters
-                ntp_server1 = dict (required = False, default = None, type = 'str'),
-                ntp_server2 = dict (required = False, default = None, type = 'str'),
-                ntp_server3 = dict (required = False, default = None, type = 'str'),
+                ntp_servers = dict (required = False, default = None, type = 'list'),
                 state = dict (required = False,
-                            choices = ['present', 'absent'],
-                            default = 'present')
+                              choices = ['present', 'absent'],
+                              default = 'present')
                 ),
 
             supports_check_mode = True)

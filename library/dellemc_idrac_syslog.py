@@ -48,22 +48,14 @@ options:
         required: False
         description: iDRAC port
         default: None
-    server1_syslog:
+    Servers:
         required: False
-        description: IP Address of the Remote Syslog Server 1
+        description: List of IP Addresses of the Remote Syslog Servers
         default: None
-    server2_syslog:
-        required: False
-        description: IP Address of the Remote Syslog Server 2
-        default: None
-    server3_syslog:
-        required: False
-        description: IP Address of the Remote Syslog Server 3
-        default: None
-    port_syslog:
+    SyslogPort:
         required: False
         description: Port number of remote server
-        default: 514
+        default: '514'
     state:
         description:
         - if C(present), will enable the remote syslog option and add the
@@ -85,9 +77,8 @@ EXAMPLES = """
        share_user:     "user1"
        share_pwd:      "password"
        share_mnt:      "/mnt/share"
-       server1_syslog: "192.168.20.1"
-       server2_syslog: "192.168.20.2"
-       server3_syslog: "192.168.20.3"
+       syslog_servers: ["192.168.20.1", ""192.168.20.2", ""192.168.20.3"]
+       Syslog_port:    "514"
        state:          "present"
 """
 
@@ -115,6 +106,29 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
+def _syslog_exists (idrac, module):
+    """
+    Check whether syslog settings already exists on iDRAC
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
+    old_syslog_config = idrac.config_mgr.SyslogConfig
+
+    if old_syslog_config['SyslogEnable'] != 'Enabled':
+        return False
+
+    elif old_syslog_config['SyslogPort'] != module.params['syslog_port']:
+        return False
+
+    elif 'syslog_servers' in module.params:
+        if set(old_syslog_config['Servers']) != set(module.params['syslog_servers']):
+            return False
+
+    return True
+
 def setup_idrac_syslog (idrac, module):
     """
     Setup iDRAC remote syslog settings
@@ -128,6 +142,7 @@ def setup_idrac_syslog (idrac, module):
     msg['failed'] = False
     msg['msg'] = {}
     err = False
+    MAX_SYSLOG_SRV = 3
 
     try:
         # Check first whether local mount point for network share is setup
@@ -137,19 +152,26 @@ def setup_idrac_syslog (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # TODO: Check if Syslog settings exists
-        exists = False
+        # Check if Syslog configuration settings already exists
+        exists = _syslog_exists(idrac, module)
 
         if module.params["state"] == "present":
             if module.check_mode or exists:
                 msg['changed'] = not exists
             else:
+                syslog_servers = []
+
+                if 'syslog_servers' in module.params:
+                    syslog_servers = module.params['syslog_servers']
+                
+                syslog_servers.extend(["","",""])
+                
                 msg['msg'] = idrac.config_mgr.enable_syslog (
-                                            module.params["port_syslog"],
+                                            module.params["syslog_port"],
                                             0,
-                                            module.params["server1_syslog"],
-                                            module.params["server2_syslog"],
-                                            module.params["server3_syslog"])
+                                            syslog_servers[0],
+                                            syslog_servers[1],
+                                            syslog_servers[2])
         else:
             if module.check_mode or not exists:
                 msg['changed'] = exists
@@ -192,10 +214,8 @@ def main():
                 share_mnt  = dict (required = True, type = 'str'),
 
                 # Remote Syslog parameters
-                server1_syslog = dict (required = False, default = None, type = 'str'),
-                server2_syslog = dict (required = False, default = None, type = 'str'),
-                server3_syslog = dict (required = False, default = None, type = 'str'),
-                port_syslog = dict (required = False, default = 514, type = 'int'),
+                syslog_servers = dict (required = False, default = None, type = 'list'),
+                syslog_port = dict (required = False, default = '514', type = 'str'),
                 state = dict (required = False,
                               choices = ['present', 'absent'],
                               default = 'present')

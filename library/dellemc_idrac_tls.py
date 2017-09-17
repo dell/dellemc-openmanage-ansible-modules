@@ -132,6 +132,8 @@ def setup_idrac_tls (idrac, module):
     module -- Ansible module
     """
 
+    from omdrivers.enums.iDRAC.iDRACEnums import TLSOptions, SSLBits
+
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -145,15 +147,33 @@ def setup_idrac_tls (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # TODO: Check if TLS settings already exists
+        # Check if TLS Protocol and SSL Encryption Bits settings already exists
         exists = False
+        tls_protocol = TLSOptions.TLS_1_1
+        ssl_bits = SSLBits.S128
+
+        if module.params['tls_protocol'] == 'TLS 1.0 and Higher':
+            tls_protocol = TLSOptions.TLS_1_0
+        elif module.params['tls_protocol'] == 'TLS 1.2 Only':
+            tls_protocol = TLSOptions.TLS_1_2
+
+        if module.params['ssl_bits'] == 'Auto-Negotiate':
+            ssl_bits = SSLBits.Auto
+        elif module.params['ssl_bits'] == '168-Bit or higher':
+            ssl_bits = SSLBits.S168
+        elif module.params['ssl_bits'] == '256-Bit or higher':
+            ssl_bits  = SSLBits.S256
+
+        curr_tls_protocol = idrac.config_mgr.TLSProtocol
+        curr_ssl_bits = idrac.config_mgr.SSLEncryptionBits
+
+        if curr_tls_protocol == tls_protocol and curr_ssl_bits == ssl_bits:
+            exists = True
 
         if module.check_mode or exists:
             msg['changed'] = not exists
         else:
-            msg['msg'] = idrac.config_mgr.configure_tls(
-                                         module.params['tls_protocol'],
-                                         module.params['ssl_bits'])
+            msg['msg'] = idrac.config_mgr.configure_tls(tls_protocol, ssl_bits)
 
             if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
                 msg['changed'] = True
@@ -190,11 +210,16 @@ def main():
                 share_mnt  = dict (required = True, type = 'str'),
 
                 tls_protocol = dict (required = False,
-                                     choices = ['TLS_1_0', 'TLS_1_1', 'TLS_2_0'],
-                                     default = 'TLS_1_1'),
+                                     choices = ['TLS 1.0 and Higher',
+                                                'TLS 1.1 and Higher',
+                                                'TLS 1.2 Only'],
+                                     default = 'TLS 1.0 and Higher'),
                 ssl_bits = dict (required = False,
-                                 choices = ['S128', 'S168', 'S256', 'Auto'],
-                                 default = 'S128')
+                                 choices = ['Auto-Negotiate',
+                                            '128-Bit or higher',
+                                            '168-Bit or higher',
+                                            '256-Bit or higher'],
+                                 default = '128-Bit or higher')
 
                 ),
             supports_check_mode = True)

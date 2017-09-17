@@ -105,9 +105,9 @@ def export_tech_support_report(idrac, module):
                                          module.params['share_pwd']))
         tsr_file_name = myshare.new_file(tsr_file_name_format)
 
-        msg['msg'] = idrac.config_mgr.export_tsr_async(tsr_file_name)
+        msg['msg'] = idrac.config_mgr.export_tsr(tsr_file_name)
 
-        if "Status" in msg['msg'] and msg['msg']['Status'] is not "Success":
+        if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
 
     except Exception as e:

@@ -60,7 +60,7 @@ options:
         required: True
         description: Local mount path of the network file share with
         read-write permission for ansible user
-    snmp_agent_enable:
+    snmp_enable:
         required: False
         description: SNMP Agent status
         - if C(enabled), will enable the SNMP Agent
@@ -74,18 +74,18 @@ options:
         - if C(SNMPv3), will enable support for only SNMPv3 protocol
         choices: ['all', 'SNMPv3']
         default: 'all'
-    snmp_agent_community:
+    snmp_community:
         required: False
         description: SNMP Agent community string
         default: 'public'
     snmp_discover_port:
         required: False
         description: SNMP discovery port
-        default: 161
+        default: '161'
     snmp_trap_port:
         required: False
         description: SNMP trap port
-        default: 162
+        default: '162'
     snmp_trap_format:
         required: False
         description: SNMP trap format
@@ -118,9 +118,9 @@ EXAMPLES = """
        share_mnt:            "/mnt/share"
        snmp_agent_enable:    "enabled"
        snmp_protocol:        "all"
-       snmp_agent_community: "public"
-       snmp_discovery_port:  161
-       snmp_trap_port:       162
+       snmp_community:       "public"
+       snmp_discovery_port:  "161"
+       snmp_trap_port:       "162"
        state:                "present"
 """
 
@@ -149,6 +149,34 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
+
+def _snmp_exists (idrac, module):
+    """
+    Check whether SNMP Configuration settings already exists on iDRAC
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
+    old_snmp_config = idrac.config_mgr.SNMPConfiguration
+
+    if old_snmp_config['SNMPEnabled'] != 'Enabled':
+        return False
+    elif old_snmp_config['SNMPCommunity'] != module.params['snmp_community']:
+        return False
+    elif old_snmp_config['SNMPPort'] != module.params['snmp_discovery_port']:
+        return False
+    elif old_snmp_config['SNMPTrapFormat'] != module.params['snmp_trap_format']:
+        return False
+    elif old_snmp_config['SNMPTrapPort'] != module.params['snmp_trap_port']:
+        return False
+    elif old_snmp_config['SNMPVersions'] != module.params['snmp_protocol']:
+        return False
+
+    return True
+
+
 def setup_idrac_snmp (idrac, module):
     """
     Setup iDRAC SNMP Configuration parameters
@@ -172,18 +200,19 @@ def setup_idrac_snmp (idrac, module):
                  msg['failed'] = True
                  return msg
 
-        # TODO : Check if the SNMP configuration parameters already exists
-        exists = False
+        # Check if the SNMP configuration parameters already exists
+        exists = _snmp_exists(idrac, module)
 
         if module.params["state"] == "present":
             if module.check_mode or exists:
                 msg['changed'] = not exists
             else:
                 msg['msg'] = idrac.config_mgr.enable_snmp(
-                                        module.params['snmp_agent_community'],
+                                        module.params['snmp_community'],
                                         module.params['snmp_discovery_port'],
                                         module.params['snmp_trap_port'],
-                                        module.params['snmp_trap_format'])
+                                        module.params['snmp_trap_format'],
+                                        module.params['snmp_protocol'])
 
         else:
             if module.check_mode or not exists:
@@ -227,26 +256,28 @@ def main():
                 share_mnt  = dict (required = True, type = 'str'),
 
                 # SNMP Configuration
-                snmp_agent_enable = dict (required = False,
+                snmp_enable = dict (required = False,
                                     choice = ['enabled', 'disabled'],
                                     default = 'enabled',
                                     type = 'str'),
                 snmp_protocol = dict (required = False,
-                                    choice = ['all', 'SNMPv3'],
-                                    default = 'all',
-                                    type = 'str'),
-                snmp_agent_community = dict (required = False,
-                                            default = 'public', type = 'str'),
+                                      choice = ['all', 'SNMPv3'],
+                                      default = 'all',
+                                      type = 'str'),
+                snmp_community = dict (required = False,
+                                       default = 'public', type = 'str'),
                 snmp_discovery_port = dict (required = False,
-                                            default = 161, type = 'int'),
-                snmp_trap_port = dict (required = False, default = 162,
-                                        type = 'int'),
+                                            default = '161', type = 'str'),
+                snmp_trap_port = dict (required = False, default = '162',
+                                       type = 'str'),
                 snmp_trap_format = dict (required = False,
-                                        choice = ['SNMPv1','SNMPv2','SNMPv3'],
-                                        default = 'SNMPv1',
-                                        type = 'str'),
+                                         choice = ['SNMPv1','SNMPv2','SNMPv3'],
+                                         default = 'SNMPv1',
+                                         type = 'str'),
 
-                state = dict (required = False, choice = ['present','absent'])
+                state = dict (required = False,
+                              choice = ['present','absent'],
+                              default = 'present')
             ),
 
             supports_check_mode = True)

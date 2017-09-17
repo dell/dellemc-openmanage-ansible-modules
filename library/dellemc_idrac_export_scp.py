@@ -98,8 +98,7 @@ def export_server_config_profile(idrac, module):
         scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.xml"
 
         myshare = FileOnShare(module.params['share_name'],
-                                mount_point = '',
-                                isFolder = True)
+                            isFolder = True)
         myshare.addcreds(UserCredentials(module.params['share_user'],
                                          module.params['share_pwd']))
         scp_file_name = myshare.new_file(scp_file_name_format)

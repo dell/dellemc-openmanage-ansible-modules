@@ -83,6 +83,7 @@ EXAMPLES = """
        timezone:   "Asia/Kolkata"
 """
 
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
 def _setup_idrac_nw_share (idrac, module):
@@ -126,13 +127,16 @@ def setup_idrac_timezone (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # TODO: Check if the timezone settings exists
+        # Check if the timezone settings exists
         exists = False
+        old_timezone = idrac.config_mgr.TimeZone
+        if old_timezone == module.params['timezone']:
+            exists = True
 
         if module.check_mode or exists:
             msg['changed'] = not exists
         else:
-            if module.params["timezone"] is not None:
+            if module.params["timezone"]:
                 msg['msg'] = idrac.config_mgr.configure_time_zone(
                                 module.params["timezone"])
 
@@ -151,7 +155,6 @@ def setup_idrac_timezone (idrac, module):
 
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
 
     module = AnsibleModule (
             argument_spec = dict (

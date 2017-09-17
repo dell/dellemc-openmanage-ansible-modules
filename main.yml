@@ -18,7 +18,6 @@
        idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
-       share_ipv4: "{{share_ipv4}}"
        share_name: "{{share_name}}"
        share_pwd:  "{{share_pwd}}"
        share_user: "{{share_user}}"
@@ -61,7 +60,6 @@
        idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
-       share_ipv4: "{{share_ipv4}}"
        share_name: "{{share_name}}"
        share_user: "{{share_user}}"
        share_pwd:  "{{share_pwd}}"
@@ -146,4 +144,45 @@
        job_id:     "{{job_id}}"
     tags:
        - jobs
+
+  - name: Configure Syslog
+    dellemc_idrac_syslog:
+       idrac_ip:  "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd: "{{idrac_pwd}}"
+       share_name: "{{share_name}}"
+       share_user: "{{share_user}}"
+       share_pwd: "{{share_pwd}}"
+       share_mnt: "{{share_mnt}}"
+       Servers: []
+       state: "present"
+    tags:
+       - syslog
+
+  - name: Configure TimeZone
+    dellemc_idrac_timezone:
+       idrac_ip:  "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd: "{{idrac_pwd}}"
+       share_name: "{{share_name}}"
+       share_user: "{{share_user}}"
+       share_pwd: "{{share_pwd}}"
+       share_mnt: "{{share_mnt}}"
+       timezone:  "Asia/Kolkata"
+    tags:
+       - timezone
+
+  - name: Configure NTP
+    dellemc_idrac_ntp:
+       idrac_ip:  "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd: "{{idrac_pwd}}"
+       share_name: "{{share_name}}"
+       share_user: "{{share_user}}"
+       share_pwd: "{{share_pwd}}"
+       share_mnt: "{{share_mnt}}"
+       ntp_servers: "{{ntp_servers}}"
+       state: "present"
+    tags:
+       - ntp
 

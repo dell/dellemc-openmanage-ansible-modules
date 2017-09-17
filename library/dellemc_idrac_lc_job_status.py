@@ -88,7 +88,7 @@ def get_lc_job_status (idrac, module):
     try:
         msg['msg'] = idrac.job_mgr.get_job_status(module.params['job_id'])
 
-        if "Status" in msg['msg'] and msg['msg']['Status'] is not "Success":
+        if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
 
     except Exception as e:

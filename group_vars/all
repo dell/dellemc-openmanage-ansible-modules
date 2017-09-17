@@ -1,8 +1,0 @@
----
-idrac_user: "root"
-idrac_pwd: "calvin"
-share_ipv4: "10.20.30.40"
-share_name: "\\\\20.30.40.50\\Share\\"
-share_pwd: "password"
-share_user: "user@domain"
-share_mnt: "/mnt/share"
