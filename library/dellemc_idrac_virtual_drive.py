@@ -223,7 +223,7 @@ def virtual_drive (idrac, module):
 
         else:
             if module.check_mode or not exists:
-                msg['changed'] == exists
+                msg['changed'] = exists
             else:
                 msg['msg'] = idrac.config_mgr.delete_virtual_drive(
                                             module.params['virtual_drive_name'])
