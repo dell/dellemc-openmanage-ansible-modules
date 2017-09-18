@@ -56,6 +56,16 @@ options:
     share_pwd:
         required: True
         description: Network share user password
+    scp_components:
+        required: False
+        description:
+            - if C(ALL), will export all components configurations in SCP file
+            - if C(IDRAC), will export iDRAC comfiguration in SCP file
+            - if C(BIOS), will export BIOS configuration in SCP file
+            - if C(NIC), will export NIC configuration in SCP file
+            - if C(RAID), will export RAID configuration in SCP file
+        choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
+        default: 'ALL'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -89,6 +99,8 @@ def export_server_config_profile(idrac, module):
     module -- Ansible module
     """
 
+    from omdrivers.enums.iDRAC.iDRACEnums import SCPTargetEnum, ExportFormatEnum, ExportMethodEnum
+
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -103,9 +115,24 @@ def export_server_config_profile(idrac, module):
                                          module.params['share_pwd']))
         scp_file_name = myshare.new_file(scp_file_name_format)
 
-        msg['msg'] = idrac.config_mgr.scp_export(scp_file_name)
+        scp_components = SCPTargetEnum.ALL
 
-        if 'Status' in msg['msg'] and msg['msg']['Status'] is not "Success":
+        if module.params['scp_components'] == 'IDRAC':
+            scp_components = SCPTargetEnum.iDRAC
+        elif module.params['scp_components'] == 'BIOS':
+            scp_components = SCPTargetEnum.BIOS
+        elif module.params['scp_components'] == 'NIC':
+            scp_components = SCPTargetEnum.NIC
+        elif module.params['scp_components'] == 'RAID':
+            scp_components = SCPTargetEnum.RAID
+
+        msg['msg'] = idrac.config_mgr.scp_export(scp_file_name,
+                                            components = scp_components,
+                                            format_file=ExportFormatEnum.XML,
+                                            method = ExportMethodEnum.Default,
+                                            job_wait = True)
+
+        if 'Status' in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
 
     except Exception as e:
@@ -135,6 +162,10 @@ def main():
                 share_name = dict (required = True, type = 'str'),
                 share_pwd  = dict (required = True, type = 'str', no_log = True),
                 share_user = dict (required = True, type = 'str'),
+
+                scp_components = dict (required = False,
+                                    choices = ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
+                                    default = 'ALL')
                 ),
 
             supports_check_mode = True)

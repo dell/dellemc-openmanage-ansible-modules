@@ -70,10 +70,10 @@ options:
     snmp_protocol:
         required: False
         description: SNMP protocol supported
-        - if C(all), will enable support for SNMPv1, v2 and v3 protocols
+        - if C(All), will enable support for SNMPv1, v2 and v3 protocols
         - if C(SNMPv3), will enable support for only SNMPv3 protocol
-        choices: ['all', 'SNMPv3']
-        default: 'all'
+        choices: ['All', 'SNMPv3']
+        default: 'All'
     snmp_community:
         required: False
         description: SNMP Agent community string
@@ -163,15 +163,15 @@ def _snmp_exists (idrac, module):
 
     if old_snmp_config['SNMPEnabled'] != 'Enabled':
         return False
-    elif old_snmp_config['SNMPCommunity'] != module.params['snmp_community']:
+    elif old_snmp_config['SNMPCommunity'].lower() != module.params['snmp_community'].lower():
         return False
     elif old_snmp_config['SNMPPort'] != module.params['snmp_discovery_port']:
         return False
-    elif old_snmp_config['SNMPTrapFormat'] != module.params['snmp_trap_format']:
+    elif old_snmp_config['SNMPTrapFormat'].lower() != module.params['snmp_trap_format'].lower():
         return False
     elif old_snmp_config['SNMPTrapPort'] != module.params['snmp_trap_port']:
         return False
-    elif old_snmp_config['SNMPVersions'] != module.params['snmp_protocol']:
+    elif old_snmp_config['SNMPVersions'].lower() != module.params['snmp_protocol'].lower():
         return False
 
     return True
@@ -261,8 +261,8 @@ def main():
                                     default = 'enabled',
                                     type = 'str'),
                 snmp_protocol = dict (required = False,
-                                      choice = ['all', 'SNMPv3'],
-                                      default = 'all',
+                                      choice = ['All', 'SNMPv3'],
+                                      default = 'All',
                                       type = 'str'),
                 snmp_community = dict (required = False,
                                        default = 'public', type = 'str'),
