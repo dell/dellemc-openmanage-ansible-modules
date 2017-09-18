@@ -21,6 +21,7 @@
        share_name: "{{share_name}}"
        share_pwd:  "{{share_pwd}}"
        share_user: "{{share_user}}"
+       scp_components: "ALL"
     tags:
        - exportscp
 
@@ -185,4 +186,20 @@
        state: "present"
     tags:
        - ntp
+
+  - name: Configure Virtual Drives
+    dellemc_idrac_virtual_drive:
+       idrac_ip:  "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd: "{{idrac_pwd}}"
+       share_name: "{{share_name}}"
+       share_user: "{{share_user}}"
+       share_pwd: "{{share_pwd}}"
+       share_mnt: "{{share_mnt}}"
+       virtual_drive_name: "vd0"
+       span_depth: 1
+       span_length: 1
+       state: "present"
+    tags:
+       - vd
 

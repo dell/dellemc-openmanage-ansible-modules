@@ -106,7 +106,8 @@ def export_server_config_profile(idrac, module):
     msg['failed'] = False
     err = False
 
-    try:
+    if True:
+    # try:
         scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.xml"
 
         myshare = FileOnShare(module.params['share_name'],
@@ -135,10 +136,10 @@ def export_server_config_profile(idrac, module):
         if 'Status' in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
 
-    except Exception as e:
-        err = True
-        msg['msg'] = "Error: %s" % str(e)
-        msg['failed'] = True
+    # except Exception as e:
+    #     err = True
+    #     msg['msg'] = "Error: %s" % str(e)
+    #     msg['failed'] = True
 
     return msg, err
 

@@ -119,7 +119,7 @@ EXAMPLES = """
        snmp_agent_enable:    "enabled"
        snmp_protocol:        "all"
        snmp_community:       "public"
-       snmp_discovery_port:  "161"
+       snmp_port:            "161"
        snmp_trap_port:       "162"
        state:                "present"
 """
@@ -165,7 +165,7 @@ def _snmp_exists (idrac, module):
         return False
     elif old_snmp_config['SNMPCommunity'].lower() != module.params['snmp_community'].lower():
         return False
-    elif old_snmp_config['SNMPPort'] != module.params['snmp_discovery_port']:
+    elif old_snmp_config['SNMPPort'] != module.params['snmp_port']:
         return False
     elif old_snmp_config['SNMPTrapFormat'].lower() != module.params['snmp_trap_format'].lower():
         return False
@@ -209,7 +209,7 @@ def setup_idrac_snmp (idrac, module):
             else:
                 msg['msg'] = idrac.config_mgr.enable_snmp(
                                         module.params['snmp_community'],
-                                        module.params['snmp_discovery_port'],
+                                        module.params['snmp_port'],
                                         module.params['snmp_trap_port'],
                                         module.params['snmp_trap_format'],
                                         module.params['snmp_protocol'])
@@ -266,8 +266,8 @@ def main():
                                       type = 'str'),
                 snmp_community = dict (required = False,
                                        default = 'public', type = 'str'),
-                snmp_discovery_port = dict (required = False,
-                                            default = '161', type = 'str'),
+                snmp_port = dict (required = False,
+                                  default = '161', type = 'str'),
                 snmp_trap_port = dict (required = False, default = '162',
                                        type = 'str'),
                 snmp_trap_format = dict (required = False,
