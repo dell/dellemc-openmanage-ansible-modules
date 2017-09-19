@@ -29,7 +29,7 @@ module: dellemc_idrac_export_scp
 short_description: Export Server Configuration Profile (SCP) to network share
 version_added: "2.3"
 description:
-    - Export Server Configuration Profile
+    - Export Server Configuration Profile to a given network share (CIFS, NFS)
 options:
     idrac_ip:
         required: False
@@ -78,7 +78,7 @@ EXAMPLES = """
        idrac_ip:   "192.168.1.1"
        idrac_user: "root"
        idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share\\"
+       share_name: "\\10.20.30.40\share"
        share_pwd:  "password"
        share_user: "user1"
 """

@@ -87,10 +87,8 @@ options:
     stripe_size:
         required: False
         description: Stripe size of the virtual disk
-        choices: ["Default", "512B", "1KB", "2KB", "4KB", "8KB", "16KB",
-                  "32KB", "64KB", "128KB", "256KB","512KB", "1MB", "2MB",
-                  "4MB", "8MB", "16MB"]
-        default: "Default"
+        choices: ["64KB", "128KB", "256KB","512KB", "1MB"]
+        default: "64KB"
     span_depth:
         required: False
         description: Number of spans in the virtual disk
@@ -282,10 +280,8 @@ def main():
                                           default = "Default",
                                           type = 'str'),
                 stripe_size = dict (requird = False,
-                                    choices = ["Default", "512B", "1KB", "2KB", "4KB", "8KB", "16KB",
-                                               "32KB", "64KB", "128KB", "256KB","512KB", "1MB", "2MB",
-                                               "4MB", "8MB", "16MB"],
-                                    default = "Default",
+                                    choices = ["64KB", "128KB", "256KB","512KB", "1MB"],
+                                    default = "64KB",
                                     type = 'str'),
                 span_length = dict (required = False, default = 1, type = 'int'),
                 span_depth = dict (required = False, default = 1, type = 'int'),
