@@ -213,7 +213,7 @@ def virtual_drive (idrac, module):
                 
             else:
 
-                msg['msg'] = idrac.config_mgr.create_virtual_drive(
+                msg['msg'] = idrac.config_mgr.create_virtual_disk(
                                             module.params['virtual_drive_name'],
                                             module.params['span_depth'],
                                             module.params['span_length'],
@@ -223,7 +223,7 @@ def virtual_drive (idrac, module):
             if module.check_mode or not exists:
                 msg['changed'] = exists
             else:
-                msg['msg'] = idrac.config_mgr.delete_virtual_drive(
+                msg['msg'] = idrac.config_mgr.delete_virtual_disk(
                                             module.params['virtual_drive_name'])
 
         if "Status" in msg['msg']:
