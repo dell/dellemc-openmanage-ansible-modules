@@ -90,13 +90,11 @@ options:
         choices: ["64KB", "128KB", "256KB","512KB", "1MB"]
         default: "64KB"
     span_depth:
-        required: False
+        required: True
         description: Number of spans in the virtual disk
-        default: 1
     span_length:
-        required: False
+        required: True
         description: Number of physical disks per span on a virtual disk
-        default: 1
     state:
         required: False
         description:
@@ -289,15 +287,13 @@ def main():
                                     choices = ["64KB", "128KB", "256KB","512KB", "1MB"],
                                     default = "64KB",
                                     type = 'str'),
-                span_length = dict (required = False, default = 1, type = 'int'),
-                span_depth = dict (required = False, default = 1, type = 'int'),
+                span_length = dict (required = True, type = 'int'),
+                span_depth = dict (required = True, type = 'int'),
                 state = dict (required = False, 
                               choices = ['present', 'absent'],
                               default = 'present')
                 ),
-            required_if = [
-                ["state", "present", ["span_depth", "span_length"]]
-            ],
+
             supports_check_mode = True)
 
     # Connect to iDRAC
