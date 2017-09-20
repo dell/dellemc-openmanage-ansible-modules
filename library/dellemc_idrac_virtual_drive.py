@@ -67,8 +67,8 @@ options:
     raid_type:
         required: False
         description: RAID type
-        choices: ['RAID_0', 'RAID_1', 'RAID_5', 'RAID_6', 'RAID_10', 'RAID_50', 'RAID_60']
-        default: 'RAID_0'
+        choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
+        default: 'RAID 0'
     read_cache_policy:
         required: False
         description: Read Cache polic of the virtual disk
@@ -116,7 +116,7 @@ EXAMPLES = """
        idrac_ip:   "192.168.1.1"
        idrac_user: "root"
        idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share\\"
+       share_name: "\\10.20.30.40\share"
        share_user: "user1"
        share_pwd:  "password"
        share_mnt:  "/mnt/share"
@@ -131,7 +131,7 @@ EXAMPLES = """
        idrac_ip:   "192.168.1.1"
        idrac_user: "root"
        idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share\\"
+       share_name: "\\10.20.30.40\share"
        share_user: "user1"
        share_pwd:  "password"
        share_mnt:  "/mnt/share"
@@ -189,6 +189,9 @@ def virtual_drive (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
+
+    from omsdk.sdkcenum import TypeHelper
+    from omdrivers.enums.iDRAC.iDRACEnums import RAIDLevelsEnum
     
     msg = {}
     msg['changed'] = False
@@ -212,12 +215,14 @@ def virtual_drive (idrac, module):
                 msg['changed'] = not exists
                 
             else:
+                raid_type = TypeHelper.convert_to_enum(module.params['raid_type'],
+                                                       RAIDLevelsEnum)
 
                 msg['msg'] = idrac.config_mgr.create_virtual_disk(
                                             module.params['virtual_drive_name'],
                                             module.params['span_depth'],
                                             module.params['span_length'],
-                                            module.params['raid_type']) 
+                                            raid_type) 
 
         else:
             if module.check_mode or not exists:
@@ -264,8 +269,9 @@ def main():
                 # Virtual drive parameters
                 virtual_drive_name  = dict (required = True, type = 'str'),
                 raid_type = dict (required = False,
-                                  choices = ['RAID_0', 'RAID_1', 'RAID_5', 'RAID_6', 'RAID_10', 'RAID_50','RAID_60'],
-                                  default = 'RAID_0',
+                                  choices = ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6',
+                                             'RAID 10', 'RAID 50','RAID 60'],
+                                  default = 'RAID 0',
                                   type = 'str'),
                 read_cache_policy = dict (requird = False,
                                           choices = ["NoReadAhead", "ReadAhead", "Adaptive"],
