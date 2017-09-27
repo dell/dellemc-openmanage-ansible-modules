@@ -24,7 +24,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_inventory
 short_description: Returns the PowerEdge Server system inventory
@@ -32,34 +32,42 @@ version_added: "2.3"
 description:
     - Returns the Dell EMC PowerEdge Server system inventory
 options:
-    idrac_ip:
-        required: True
-        description: iDRAC IP Address
-    idrac_user:
-        description: iDRAC user name
-        default: root
-    idrac_pwd:
-        description: iDRAC user password
-        default: calvin
-    idrac_port:
-        description: iDRAC port
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description: iDRAC port
+    default: None
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
+EXAMPLES = '''
 ---
 - name: Get System Inventory
   dellemc_idrac_inventory:
-    idrac_ip: "192.168.1.1"
+    idrac_ip:   "192.168.1.1"
     idrac_user: "root"
-    idrac_pwd: "calvin"
-"""
+    idrac_pwd:  "calvin"
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

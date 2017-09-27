@@ -23,50 +23,54 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_syslog
 short_description: Configure remote system logging
 version_added: "2.3"
 description:
-    - Configure remote system logging settings to remotely write RAC log and
-      System Event Log (SEL) to an external server
+    - Configure remote system logging settings to remotely write RAC log and System Event Log (SEL) to an external server
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IPv4 Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    Servers:
-        required: False
-        description: List of IP Addresses of the Remote Syslog Servers
-        default: None
-    SyslogPort:
-        required: False
-        description: Port number of remote server
-        default: '514'
-    state:
-        description:
-        - if C(present), will enable the remote syslog option and add the
-          remote servers
-        - if C(absent), will disable the remote syslog option
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  syslog_servers:
+    required: False
+    description:
+      - List of IP Addresses of the Remote Syslog Servers
+    default: None
+  syslog_port:
+    required: False
+    description:
+      - Port number of remote server
+    default: '514'
+  state:
+    description:
+      - if C(present), will enable the remote syslog option and add the remote servers
+      - if C(absent), will disable the remote syslog option
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
+EXAMPLES = '''
 ---
 - name: Configure Remote Syslog
     dellemc_idrac_syslog:
@@ -78,13 +82,13 @@ EXAMPLES = """
        share_pwd:      "password"
        share_mnt:      "/mnt/share"
        syslog_servers: ["192.168.20.1", ""192.168.20.2", ""192.168.20.3"]
-       Syslog_port:    "514"
+       syslog_port:    "514"
        state:          "present"
-"""
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

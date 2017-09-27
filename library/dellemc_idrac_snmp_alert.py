@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_snmp_alert
 short_description: Configure SNMP Alert destination settings on iDRAC
@@ -31,74 +31,81 @@ version_added: "2.3"
 description:
     - Configures SNMP Alert destination settings on iDRAC
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format "user@domain"
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user
-    snmp_alert_dest:
-        required: True
-        description: SNMP Alert destination IPv4 address
-    snmpv3_user_name:
-        required: False
-        description: SNMPv3 user name for the SNMP alert destination
-        default: None
-    state:
-        description:
-        - if C(present), will create/add a SNMP alert destination
-        - if C(absent), will delete/remove a SNMP alert destination
-        - if C(enable), will enable a SNMP alert destination
-        - if C(disable), will disable a SNMP alert destination
-        choices: ['present', 'absent', 'enable', 'disable']
-        default: 'present'
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - Network file share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format "user@domain"
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share with read-write permission for ansible user
+  snmp_alert_dest:
+    required: True
+    description:
+      - SNMP Alert destination IPv4 address
+  snmpv3_user_name:
+    required: False
+    description:
+      - SNMPv3 user name for the SNMP alert destination
+    default: None
+  state:
+    description:
+      - if C(present), will create/add a SNMP alert destination
+      - if C(absent), will delete/remove a SNMP alert destination
+      - if C(enable), will enable a SNMP alert destination
+      - if C(disable), will disable a SNMP alert destination
+    choices: ['present', 'absent', 'enable', 'disable']
+    default: 'present'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
 - name: Configure SNMP Alert Destination
     dellemc_idrac_snmp_alert:
-       idrac_ip:        "192.168.1.1"
-       idrac_user:      "root"
-       idrac_pwd:       "calvin"
-       share_name:      "\\\\10.20.30.40\\share\\"
-       share_user:      "user1"
-       share_pwd:       "password"
-       share_mnt:       "/mnt/share"
-       snmp_alert_dest: "192.168.2.1"
-       state:           "present"
+      idrac_ip:        "192.168.1.1"
+      idrac_user:      "root"
+      idrac_pwd:       "calvin"
+      share_name:      "\\\\10.20.30.40\\share\\"
+      share_user:      "user1"
+      share_pwd:       "password"
+      share_mnt:       "/mnt/share"
+      snmp_alert_dest: "192.168.2.1"
+      state:           "present"
 
-"""
+'''
 
-RETURNS = """
----
-"""
+RETURN = '''
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

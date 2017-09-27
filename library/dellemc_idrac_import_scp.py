@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_import_scp
 short_description: Import SCP from a network share
@@ -31,78 +31,91 @@ version_added: "2.3"
 description:
     - Import a given Server Configuration Profile (SCP) file from a network share
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share specified
-        in I(share_name) with read-write permission for ansible user
-    scp_file:
-        required: True
-        description: Server Configuration Profile file name 
-        default: None
-    scp_components:
-        required: False
-        description:
-            - if C(ALL), will import all components configurations from SCP file
-            - if C(IDRAC), will import iDRAC comfiguration from SCP file
-            - if C(BIOS), will import BIOS configuration from SCP file
-            - if C(NIC), will import NIC configuration from SCP file
-            - if C(RAID), will import RAID configuration from SCP file
-        choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
-        default: 'ALL'
-    reboot:
-        required: False
-        description: Reboot after importing the SCP
-        type: 'bool'
-        default: False 
+  idrac_ip:
+    required: False
+    description: iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description: iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description: iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description: iDRAC port
+    default: None
+  share_name:
+    required: True
+    description: Network file share
+  share_user:
+    required: True
+    description: Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description: Network share user password
+  share_mnt:
+    required: True
+    description: Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user
+  scp_file:
+    required: True
+    description: Server Configuration Profile file name 
+    default: None
+  scp_components:
+    required: False
+    description:
+      - if C(ALL), will import all components configurations from SCP file
+      - if C(IDRAC), will import iDRAC comfiguration from SCP file
+      - if C(BIOS), will import BIOS configuration from SCP file
+      - if C(NIC), will import NIC configuration from SCP file
+      - if C(RAID), will import RAID configuration from SCP file
+    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
+    default: 'ALL'
+  reboot:
+    required: False
+    description: Reboot after importing the SCP
+    type: 'bool'
+    default: False 
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
+# Import Server Configuration Profile from a CIFS Network Share
 - name: Import Server Configuration Profile
     dellemc_idrac_import_scp:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share\\"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       scp_file:   "scp_file.xml"
-       scp_components: "ALL"
-       reboot:      False
-"""
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      scp_file:   "scp_file.xml"
+      scp_components: "ALL"
+      reboot:      False
 
-RETURNS = """
+# Import Server Configuration Profile from a NFS Network Share
+- name: Import Server Configuration Profile
+    dellemc_idrac_import_scp:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "192.168.10.10:/share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      scp_file:   "scp_file.xml"
+      scp_components: "ALL"
+      reboot:      False
+'''
+
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_boot_to_nw_iso
 short_description: Boot to a network ISO image
@@ -31,61 +31,67 @@ version_added: "2.3"
 description:
     - Boot to a network ISO image. Reboot appears to be immediate
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share specified
-        in I(share_name) with read-write permission for ansible user
-    iso_image:
-        required: True
-        description: Path to ISO image relative to the I(share_name)
-        default: None
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - Network file share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user
+  iso_image:
+    required: True
+    description:
+      - Path to ISO image relative to the I(share_name)
+    default: None
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
 - name: Boot to Network ISO
     dellemc_idrac_boot_to_nw_iso:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share\\"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       iso_image:  "uninterrupted_os_installation_image.iso"
-"""
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      iso_image:  "uninterrupted_os_installation_image.iso"
+'''
 
-RETURNS = """
----
-"""
+RETURN = '''
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

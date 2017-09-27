@@ -23,110 +23,107 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_nic_ipv4
 short_description: Configure iDRAC Network IPv4 Settings
 version_added: "2.3"
-description: Configure iDRAC Network IPv4 Settings
+description:
+    - Configure iDRAC Network IPv4 Settings
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: CIFS or NFS Network share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user
-    enable_ipv4:
-        required: False
-        description: Enable or disable the iDRAC IPv4 stack
-        default: True
-    dhcp_enable:
-        required: False
-        description: Enable or disable DHCP for assigning iDRAC IPv4 address
-        default: False
-    static_ipv4:
-        required: False
-        description:
-        - iDRAC NIC static IPv4 address
-        - Required if I(dhcp_enable=False)
-        default: None
-    static_ipv4_gw:
-        required: False
-        description:
-        - Static IPv4 gateway address for iDRAC NIC
-        - Required if I(dhcp_enable=False)
-        default: None
-    static_netmask:
-        required: False
-        description:
-        - Static IPv4 subnet mask for iDRAC NIC
-        - Required if I(dhcp_enable=False)
-        default: None
-    dns_from_dhcp:
-        required: False
-        description:
-        - if C(True), will enable the use of DHCP server for obtaining the
-          primary and secondary DNS servers addresses
-        - if C(False), will disable the use of DHCP server for obtaining the
-          primary and secondary DNS servers addresses
-    preferred_dns:
-        required: False
-        description:
-        - Preferred DNS Server static IPv4 Address
-        - Required if I(dns_from_dhcp=False)
-        default: None
-    alternate_dns:
-        required: False
-        description:
-        - Alternate DNS Server static IPv4 Address
-        - Required if I(dns_from_dhcp=False)
-        default: None
+  idrac_ip:
+    required: False
+    description: iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description: iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description: iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description: iDRAC port
+    default: None
+  share_name:
+    required: True
+    description: CIFS or NFS Network share
+  share_user:
+    required: True
+    description: Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description: Network share user password
+  share_mnt:
+    required: True
+    description: Local mount path of the network file share with read-write permission for ansible user
+  enable_ipv4:
+    required: False
+    description: Enable or disable the iDRAC IPv4 stack
+    default: True
+  dhcp_enable:
+    required: False
+    description: Enable or disable DHCP for assigning iDRAC IPv4 address
+    default: False
+  static_ipv4:
+    required: False
+    description:
+      - iDRAC NIC static IPv4 address
+      - Required if I(dhcp_enable=False)
+    default: None
+  static_ipv4_gw:
+    required: False
+    description:
+      - Static IPv4 gateway address for iDRAC NIC
+      - Required if I(dhcp_enable=False)
+    default: None
+  static_netmask:
+    required: False
+    description:
+      - Static IPv4 subnet mask for iDRAC NIC
+      - Required if I(dhcp_enable=False)
+    default: None
+  dns_from_dhcp:
+    required: False
+    description:
+      - if C(True), will enable the use of DHCP server for obtaining the primary and secondary DNS servers addresses
+      - if C(False), will disable the use of DHCP server for obtaining the primary and secondary DNS servers addresses
+  preferred_dns:
+    required: False
+    description:
+      - Preferred DNS Server static IPv4 Address
+      - Required if I(dns_from_dhcp=False)
+    default: None
+  alternate_dns:
+    required: False
+    description:
+      - Alternate DNS Server static IPv4 Address
+      - Required if I(dns_from_dhcp=False)
+    default: None
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
 - name: Configure NIC IPv4
     dellemc_idrac_nic_ipv4:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share\\"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       enable_ipv4: True
-       dhcp_enable: False
-"""
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\10.20.30.40\\share\\"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      enable_ipv4: True
+      dhcp_enable: False
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

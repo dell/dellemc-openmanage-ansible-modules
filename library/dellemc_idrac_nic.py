@@ -23,112 +23,109 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_nic
 short_description: Configure iDRAC Network settings
 version_added: "2.3"
-description: Configure following iDRAC Network settings:
-    - Enable NIC: Enable/disable NIC
-    - NIC Selection: Select one of the following modes to configure NIC as
-      the primary mode in shared interface:
-      - Dedicated
-      - LOM1
-      - LOM2
-      - LOM3
-      - LOM4
-    - Failover Network: configure failover network if NIC selection fails
-    - Auto Dedicated NIC: configure dedicated NIC as network port. This requires
-      iDRAC Dedicated NIC license
-    - Auto Negotiation: Set it to "On" or "Off" to let iDRAC automatically
-      set the duplex mode and network speed or manually configure the options
-    - Network Speed: configure the network speed manually if auto negotiation
-      is not "On"
-    - Duplex Mode: configure the full or half-duplex mode
-    - NIC MTU: Configure the Maximum Transmission Unit (MTU) value
+description:
+    - Configure iDRAC Network settings
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: CIFS or NFS Network share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user
-    nic_selection:
-        required: False
-        description: NIC Selection mode
-        choices: ['Dedicated','LOM1','LOM2','LOM3','LOM4']
-        default: "Dedicated"
-    nic_failover:
-        required: False
-        description: Failover network if NIC selection fails
-        choices: ["None", "LOM1", "LOM2", "LOM3", "LOM4", "All"]
-        default: "None"
-    nic_autoneg:
-        required: False
-        description:
-        - if C(True), will enable auto negotiation
-        - if C(False), will disable auto negotiation
-        default: False
-    nic_speed:
-        required: False
-        description: Network Speed
-        choices: ["10", "100", "1000"]
-        default: "1000"
-    nic_duplex:
-        required: False
-        description:
-        - if C(Full), will enable the Full-Duplex mode
-        - if C(Half), will enable the Half-Duplex mode
-        choices: ["Full", "Half"]
-        default: "Full"
-    nic_autodedicated:
-        required: False
-        description:
-        - if C(True), will enable the auto-dedicated NIC option
-        - if C(False), will disable the auto-dedicated NIC option
-        default: False
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - CIFS or NFS Network share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share with read-write permission for ansible user
+  nic_selection:
+    required: False
+    description:
+      - NIC Selection mode
+    choices: ['Dedicated','LOM1','LOM2','LOM3','LOM4']
+    default: "Dedicated"
+  nic_failover:
+    required: False
+    description:
+      - Failover network if NIC selection fails
+    choices: ["None", "LOM1", "LOM2", "LOM3", "LOM4", "All"]
+    default: "None"
+  nic_autoneg:
+    required: False
+    description:
+      - if C(True), will enable auto negotiation
+      - if C(False), will disable auto negotiation
+    default: False
+  nic_speed:
+    required: False
+    description:
+      - Network Speed
+    choices: ["10", "100", "1000"]
+    default: "1000"
+  nic_duplex:
+    required: False
+    description:
+      - if C(Full), will enable the Full-Duplex mode
+      - if C(Half), will enable the Half-Duplex mode
+    choices: ["Full", "Half"]
+    default: "Full"
+  nic_autodedicated:
+    required: False
+    description:
+      - if C(True), will enable the auto-dedicated NIC option
+      - if C(False), will disable the auto-dedicated NIC option
+    default: False
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
+# Configure NIC Selection using a CIFS Network share
 - name: Configure NIC Selection
     dellemc_idrac_nic:
-       idrac_ip:      "192.168.1.1"
-       idrac_user:    "root"
-       idrac_pwd:     "calvin"
-       share_name:    "\\\\10.20.30.40\\share\\"
-       share_user:    "user1"
-       share_pwd:     "password"
-       share_mnt:     "/mnt/share"
-       nic_selection: "Dedicated"
-       state:         "enable"
-"""
+      idrac_ip:      "192.168.1.1"
+      idrac_user:    "root"
+      idrac_pwd:     "calvin"
+      share_name:    "\\\\192.168.10.10\\share"
+      share_user:    "user1"
+      share_pwd:     "password"
+      share_mnt:     "/mnt/share"
+      nic_selection: "Dedicated"
+      state:         "enable"
+'''
+
+RETURN = '''
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_virtual_drive
 short_description: Create or delete virtual drives
@@ -31,115 +31,128 @@ version_added: "2.3"
 description:
     - Create or delete virtual drives
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share specified
-        in I(share_name) with read-write permission for ansible user
-    virtual_drive_name:
-        required: True
-        description: Name of the Virtual Drive
-        default: None
-    raid_type:
-        required: False
-        description: RAID type
-        choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
-        default: 'RAID 0'
-    read_cache_policy:
-        required: False
-        description: Read Cache polic of the virtual disk
-        choices: ["NoReadAhead", "ReadAhead", "Adaptive"]
-        default: "NoReadAhead"
-    write_cache_policy:
-        required: False
-        description: Write cache policy of the virtual disk
-        choices: ["WriteThrough", "WriteBack", "WriteBackForce"]
-        default: "WriteThrough"
-    disk_cache_policy:
-        required: False
-        description: Physical Disk caching policy of all members of a Virtual Disk
-        choices: ["Default", "Enabled", "Disabled"]
-        default: "Default"
-    stripe_size:
-        required: False
-        description: Stripe size of the virtual disk
-        choices: ["64KB", "128KB", "256KB","512KB", "1MB"]
-        default: "64KB"
-    span_depth:
-        required: True
-        description: Number of spans in the virtual disk
-    span_length:
-        required: True
-        description: Number of physical disks per span on a virtual disk
-    state:
-        required: False
-        description:
-            - if C(present), will perform create/add operations
-            - if C(absent), will perform delete/remove operations
-        choices: ['present', 'absent']
-        default: 'present'
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - Network file share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user
+  virtual_drive_name:
+    required: True
+    description:
+      - Name of the Virtual Drive
+    default: None
+  raid_type:
+    required: False
+    description:
+      - RAID type
+    choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
+    default: 'RAID 0'
+  read_cache_policy:
+    required: False
+    description:
+      - Read Cache polic of the virtual disk
+    choices: ["NoReadAhead", "ReadAhead", "Adaptive"]
+    default: "NoReadAhead"
+  write_cache_policy:
+    required: False
+    description:
+      - Write cache policy of the virtual disk
+    choices: ["WriteThrough", "WriteBack", "WriteBackForce"]
+    default: "WriteThrough"
+  disk_cache_policy:
+    required: False
+    description:
+      - Physical Disk caching policy of all members of a Virtual Disk
+    choices: ["Default", "Enabled", "Disabled"]
+    default: "Default"
+  stripe_size:
+    required: False
+    description:
+      - Stripe size of the virtual disk
+    choices: ["64KB", "128KB", "256KB","512KB", "1MB"]
+    default: "64KB"
+  span_depth:
+    required: False
+    description:
+      - Number of spans in the virtual disk. Required if I(status = 'present')
+  span_length:
+    required: False
+    description:
+      - Number of physical disks per span on a virtual disk. Required if I(status = 'absent')
+  state:
+    required: False
+    description:
+      - if C(present), will perform create/add operations
+      - if C(absent), will perform delete/remove operations
+    choices: ['present', 'absent']
+    default: 'present'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
 - name: Create Virtual Drive
     dellemc_idrac_virtual_drive:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\10.20.30.40\share"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       virtual_drive_name:  "Virtual Drive 0"
-       raid_type:   "RAID_1"
-       span_depth:  1
-       span_length: 2
-       state:       "present"
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\10.20.30.40\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      virtual_drive_name:  "Virtual Drive 0"
+      raid_type:   "RAID_1"
+      span_depth:  1
+      span_length: 2
+      state:       "present"
 
 - name: Delete Virtual Drive
     dellemc_idrac_boot_to_nw_iso:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\10.20.30.40\share"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       virtual_drive_name:  "Virtual Drive 0"
-       state:       "absent"
-"""
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\10.20.30.40\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      virtual_drive_name:  "Virtual Drive 0"
+      state:       "absent"
+'''
 
-RETURNS = """
----
-"""
+RETURN = '''
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

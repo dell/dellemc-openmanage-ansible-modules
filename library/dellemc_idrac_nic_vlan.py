@@ -23,82 +23,87 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_nic_vlan
 short_description: Configure iDRAC Network VLAN settings
 version_added: "2.3"
-description: Configure following iDRAC Network VLAN settings:
-    - Enable VLAN : Enable/disable VLAN
-    - VLAN ID (must be a value from 1 to 4094)
-    - VLAN Priority (must be a value from 0 to 7)
+description:
+    - Configure iDRAC Network VLAN settings.
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: CIFS or NFS Network share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user
-    vlan_id:
-        required: False
-        description: VLAN ID
-        default: 1
-    vlan_priority:
-        required: False
-        description: VLAN priority
-        default: 0
-    state:
-        required: False
-        description:
-        - if C(enable), will enable the VLAN settings and add/change VLAN ID and
-          VLAN priority
-        - if C(disable), will disable the VLAN settings
-        default: 'disable'
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - CIFS or NFS Network share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share with read-write permission for ansible user
+  vlan_id:
+    required: False
+    description:
+      - VLAN ID
+    default: 1
+  vlan_priority:
+    required: False
+    description:
+      - VLAN priority
+    default: 0
+  state:
+    required: False
+    description:
+      - if C(enable), will enable the VLAN settings and add/change VLAN ID and VLAN priority
+      - if C(disable), will disable the VLAN settings
+    default: 'disable'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
 - name: Configure NIC VLAN
     dellemc_idrac_nic_vlan:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       state:      "enable"
-"""
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      state:      "enable"
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

@@ -23,77 +23,83 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_firmware_update
 short_description: Firmware update from a repository
 version_added: "2.3"
 description:
-    - Update the Firmware by connecting to a network repository that contains a catalog
-      of available updates
-    - Network share should contain a valid repository of Update Packages (DUPs) and a
-      catalog file describing the DUPs
+    - Update the Firmware by connecting to a network repository that contains a catalog of available updates
+    - Network share should contain a valid repository of Update Packages (DUPs) and a catalog file describing the DUPs
     - All applicable updates contained in the repository is applied to the system
     - This feature is only available with iDRAC Enterprise License
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: Network file share containing the Update Packages (DUPs)
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    catalog_file_name:
-        required: False
-        description: Catalog file name relative to the I(share_name)
-        default: 'Catalog.xml'
-    apply_updates:
-        required: False
-        description: 
-           - if C(True), Install Updates
-           - if C(False), do not Install Updates
-        default: True
-    reboot:
-        required: False
-        description:
-           - if C(True), reboot after applying the update
-           - if C(False), do not reboot after applying the update
-        default: False
-    job_wait:
-        required: False
-        description: Wait for update JOB
-        default: True
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - Network file share containing the Update Packages (DUPs)
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  catalog_file_name:
+    required: False
+    description:
+      - Catalog file name relative to the I(share_name)
+    default: 'Catalog.xml'
+  apply_updates:
+    required: False
+    description: 
+      - if C(True), Install Updates
+      - if C(False), do not Install Updates
+    default: True
+  reboot:
+    required: False
+    description:
+      - if C(True), reboot after applying the update
+      - if C(False), do not reboot after applying the update
+    default: False
+  job_wait:
+    required: False
+    description: Wait for update JOB
+    default: True
     
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
+EXAMPLES = '''
 ---
 - name: Update firmware from repository on a Network Share
     dellemc_idrac_virtual_drive:
        idrac_ip:   "192.168.1.1"
        idrac_user: "root"
        idrac_pwd:  "calvin"
-       share_name: "\\10.20.30.40\share\"
+       share_name: "\\\\192.168.10.10\\share"
        share_user: "user1"
        share_pwd:  "password"
        catalog_file_name:  "Catalog.xml"
@@ -101,11 +107,11 @@ EXAMPLES = """
        reboot:     False
        job_wait:   True
 
-"""
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
@@ -141,7 +147,6 @@ def update_fw_from_nw_share (idrac, module):
                                                     module.params['apply_update'],
                                                     module.params['reboot'],
                                                     module.params['job_wait']) 
-
 
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":

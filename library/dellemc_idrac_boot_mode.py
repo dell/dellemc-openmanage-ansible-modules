@@ -1,6 +1,5 @@
 #! /usr/bin/python
 # _*_ coding: utf-8 _*_
-
 #
 # Copyright (c) 2017 Dell Inc.
 #
@@ -23,7 +22,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_boot_mode
 short_description: Configure Boot Mode
@@ -31,64 +30,70 @@ version_added: "2.3"
 description:
     - Configure Boot Mode
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share specified
-        in I(share_name) with read-write permission for ansible user
-    boot_mode:
-        required: False
-        choices: ['Bios', 'Uefi']
-        description:
-        - if C(Bios), will set the boot mode to BIOS
-        - if C(Uefi), will set the boot mode to UEFI
-        default: 'Bios'
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - Network file share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user
+  boot_mode:
+    required: False
+    choices: ['Bios', 'Uefi']
+    description:
+      - if C(Bios), will set the boot mode to BIOS
+      - if C(Uefi), will set the boot mode to UEFI
+    default: 'Bios'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
 - name: Configure Boot Mode
-    dellemc_idrac_csior:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share\\"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       boot_mode:  "Uefi"
-"""
+    dellemc_idrac_boot_mode:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      boot_mode:  "Uefi"
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

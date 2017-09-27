@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_tls
 short_description: Configure TLS protocol options and SSL Encryption Bits
@@ -32,75 +32,80 @@ description:
     - Configure Transport Layer Security (TLS) protocol options
     - Configure Secure Socket Layer (SSL) Encryption Bits options
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user
-    tls_protocol:
-        required: False
-        description:
-        - if C(TLS_1_0), will set the TLS protocol option to TLS 1.0 and higher
-        - if C(TLS_1_1), will set the TLS protocol option to TLS 1.1 and higher
-        - if C(TLS_2_0), will set the TLS protocol option to TLS 2.0 and higher
-        choices: ['TLS_1_0', 'TLS_1_1', 'TLS_2_0']
-        default: "TLS_1_1"
-    ssl_bits:
-        required: False
-        description:
-        - if C(S128), will set the SSL Encryption Bits to 128-Bit or higher
-        - if C(S168), will set the SSL Encryption Bits to 168-Bit or higher
-        - if C(S256), will set the SSL Encryption Bits to 256-Bit or higher
-        - if C(Auto), will set the SSL Encryption Bits to Auto-Negotiate
-        choices: ['S128', 'S168', 'S256', 'Auto']
-        default: "S128"
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - Network file share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share with read-write permission for ansible user
+  tls_protocol:
+    required: False
+    description:
+      - if C(TLS 1.0 and Higher), will set the TLS protocol to TLS 1.0 and higher
+      - if C(TLS 1.1 and Higher), will set the TLS protocol to TLS 1.1 and higher
+      - if C(TLS 1.2 Only), will set the TLS protocol option to TLS 1.2 Only
+    choices: ['TLS 1.0 and Higher', 'TLS 1.1 and Higher', 'TLS 1.2 Only']
+    default: 'TLS 1.1 and Higher'
+  ssl_bits:
+    required: False
+    description:
+      - if C(128-Bit or higher), will set the SSL Encryption Bits to 128-Bit or higher
+      - if C(168-Bit or higher), will set the SSL Encryption Bits to 168-Bit or higher
+      - if C(256-Bit or higher), will set the SSL Encryption Bits to 256-Bit or higher
+      - if C(Auto-Negotiate), will set the SSL Encryption Bits to Auto-Negotiate
+    choices: ['Auto-Negotiate', '128-Bit or higher', '168-Bit or higher', '256-Bit or higher']
+    default: "128-Bit or higher"
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
 - name: Configure TLS
     dellemc_idrac_tls:
-       idrac_ip:     "192.168.1.1"
-       idrac_user:   "root"
-       idrac_pwd:    "calvin"
-       share_name:   "\\\\10.20.30.40\\share\\"
-       share_user:   "user1"
-       share_pwd:    "password"
-       share_mnt:    "/mnt/share"
-       tls_protocol: "TLS_1_1"
-       ssl_bits:     "S128"
-"""
+      idrac_ip:     "192.168.1.1"
+      idrac_user:   "root"
+      idrac_pwd:    "calvin"
+      share_name:   "\\\\10.20.30.40\\share\\"
+      share_user:   "user1"
+      share_pwd:    "password"
+      share_mnt:    "/mnt/share"
+      tls_protocol: "TLS 1.0 and Higher"
+      ssl_bits:     "128-Bit or higher"
+'''
 
-RETURNS = """
----
-"""
+RETURN = '''
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
@@ -213,7 +218,7 @@ def main():
                                      choices = ['TLS 1.0 and Higher',
                                                 'TLS 1.1 and Higher',
                                                 'TLS 1.2 Only'],
-                                     default = 'TLS 1.0 and Higher'),
+                                     default = 'TLS 1.1 and Higher'),
                 ssl_bits = dict (required = False,
                                  choices = ['Auto-Negotiate',
                                             '128-Bit or higher',

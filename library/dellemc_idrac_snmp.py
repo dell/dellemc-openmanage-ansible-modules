@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_snmp
 short_description: Configure SNMP settings on iDRAC
@@ -31,102 +31,112 @@ version_added: "2.3"
 description:
     - Configures SNMP settings on iDRAC
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: CIFS or NFS Network share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user
-    snmp_enable:
-        required: False
-        description: SNMP Agent status
-        - if C(enabled), will enable the SNMP Agent
-        - if C(disabled), will disable the SNMP Agent
-        choices: ['enabled', 'disabled']
-        default: 'enabled'
-    snmp_protocol:
-        required: False
-        description: SNMP protocol supported
-        - if C(All), will enable support for SNMPv1, v2 and v3 protocols
-        - if C(SNMPv3), will enable support for only SNMPv3 protocol
-        choices: ['All', 'SNMPv3']
-        default: 'All'
-    snmp_community:
-        required: False
-        description: SNMP Agent community string
-        default: 'public'
-    snmp_discover_port:
-        required: False
-        description: SNMP discovery port
-        default: '161'
-    snmp_trap_port:
-        required: False
-        description: SNMP trap port
-        default: '162'
-    snmp_trap_format:
-        required: False
-        description: SNMP trap format
-        - if C(SNMPv1), will configure iDRAC to use SNMPv1 for sending traps
-        - if C(SNMPv2), will configure iDRAC to use SNMPv2 for sending traps
-        - if C(SNMPv3), will configure iDRAC to use SNMPv3 for sending traps
-        choices: ['SNMPv1', 'SNMPv2', 'SNMPv3']
-        default: 'SNMPv1'
-    state:
-        description:
-        - if C(present), will perform create/add/enable operations
-        - if C(absent), will perform delete/remove/disable operations
-        choices: ['present', 'absent']
-        default: 'present'
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - CIFS or NFS Network share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+     - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share with read-write permission for ansible user
+  snmp_enable:
+    required: False
+    description: SNMP Agent status
+      - if C(enabled), will enable the SNMP Agent
+      - if C(disabled), will disable the SNMP Agent
+    choices: ['enabled', 'disabled']
+    default: 'enabled'
+  snmp_protocol:
+    required: False
+    description: SNMP protocol supported
+      - if C(All), will enable support for SNMPv1, v2 and v3 protocols
+      - if C(SNMPv3), will enable support for only SNMPv3 protocol
+    choices: ['All', 'SNMPv3']
+    default: 'All'
+  snmp_community:
+    required: False
+    description:
+      - SNMP Agent community string
+    default: 'public'
+  snmp_discover_port:
+    required: False
+    description:
+      - SNMP discovery port
+    default: '161'
+  snmp_trap_port:
+    required: False
+    description:
+      - SNMP trap port
+    default: '162'
+  snmp_trap_format:
+    required: False
+    description: SNMP trap format
+      - if C(SNMPv1), will configure iDRAC to use SNMPv1 for sending traps
+      - if C(SNMPv2), will configure iDRAC to use SNMPv2 for sending traps
+      - if C(SNMPv3), will configure iDRAC to use SNMPv3 for sending traps
+    choices: ['SNMPv1', 'SNMPv2', 'SNMPv3']
+    default: 'SNMPv1'
+  state:
+    required: False
+    description:
+      - if C(present), will perform create/add/enable operations
+      - if C(absent), will perform delete/remove/disable operations
+    choices: ['present', 'absent']
+    default: 'present'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
 - name: Configure SNMP
     dellemc_idrac_snmp:
-       idrac_ip:             "192.168.1.1"
-       idrac_user:           "root"
-       idrac_pwd:            "calvin"
-       share_name:           "\\\\10.20.30.40\\share\\"
-       share_user:           "user1"
-       share_pwd:            "password"
-       share_mnt:            "/mnt/share"
-       snmp_agent_enable:    "enabled"
-       snmp_protocol:        "all"
-       snmp_community:       "public"
-       snmp_port:            "161"
-       snmp_trap_port:       "162"
-       state:                "present"
-"""
+      idrac_ip:             "192.168.1.1"
+      idrac_user:           "root"
+      idrac_pwd:            "calvin"
+      share_name:           "\\\\192.168.10.10\\share"
+      share_user:           "user1"
+      share_pwd:            "password"
+      share_mnt:            "/mnt/share"
+      snmp_agent_enable:    "enabled"
+      snmp_protocol:        "all"
+      snmp_community:       "public"
+      snmp_port:            "161"
+      snmp_trap_port:       "162"
+      state:                "present"
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

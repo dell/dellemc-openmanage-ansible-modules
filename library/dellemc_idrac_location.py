@@ -23,94 +23,166 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
-module: dellemc_idrac_tls
+module: dellemc_idrac_location
 short_description: Configure System location fields
 version_added: "2.3"
 description:
     - Configure System location fields
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: Network file share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description: Local mount path of the network file share with
-        read-write permission for ansible user
-    data_center_name:
-        required: False
-        description:
-            - Name of the Data Center where this system is located
-        default: None
-    aisle_name:
-        required: False
-        description:
-            - Name of the Aisle in Data Center
-        default: None
-    rack_name:
-        required: False
-        description:
-            - Rack Name
-        default: None
-    rack_slot:
-        required: False
-        description:
-            - Rack slot number
-        default: None
-    room_name:
-        required: False
-        description:
-            - Name of the Room in Data Center
-        default: None
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - Network file share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share with read-write permission for ansible user
+  data_center_name:
+    required: False
+    description:
+      - Name of the Data Center where this system is located
+    default: None
+  aisle_name:
+    required: False
+    description:
+      - Name of the Aisle in Data Center
+    default: None
+  rack_name:
+    required: False
+    description:
+      - Rack Name
+    default: None
+  rack_slot:
+    required: False
+    description:
+      - Rack slot number
+    default: None
+  room_name:
+    required: False
+    description:
+      - Name of the Room in Data Center
+    default: None
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
+# Configure System Location
 - name: Configure System Location
     dellemc_idrac_location:
-       idrac_ip:     "192.168.1.1"
-       idrac_user:   "root"
-       idrac_pwd:    "calvin"
-       share_name:   "\\\\10.20.30.40\\share\\"
-       share_user:   "user1"
-       share_pwd:    "password"
-       share_mnt:    "/mnt/share"
-       data_center_name: "Data Center 1"
-       aisle_name:   "Aisle 1"
-       rack_name:    "Rack 1"
-       rack_slot:    "Slot 1"
-       room_name:    "Room 1"
-"""
+      idrac_ip:     "192.168.1.1"
+      idrac_user:   "root"
+      idrac_pwd:    "calvin"
+      share_name:   "\\\\10.20.30.40\\share\\"
+      share_user:   "user1"
+      share_pwd:    "password"
+      share_mnt:    "/mnt/share"
+      data_center_name: "Data Center 1"
+      aisle_name:   "Aisle 1"
+      rack_name:    "Rack 1"
+      rack_slot:    "Slot 1"
+      room_name:    "Room 1"
+'''
 
-RETURNS = """
----
-"""
+RETURN = '''
+ElapsedTimeSinceCompletion:
+  type: str
+  description: Time elapsed since completion of the JOB
+  returned: always
+  sample: "0"
+InstanceID:
+  type: str
+  description: 
+  returned: always
+  sample: "JID_064113236770"
+JobStartTime:
+  type: str
+  description: Start time of the lifecycle controller JOB
+  returned: always
+  sample: "NA"
+JobStatus:
+  type: str
+  description:
+  returned: always
+  sample: "Completed"
+JobUntilTime:
+  type: str
+  description: Until time of the job
+  returned: always
+  sample: "NA"
+Message:
+  type: str
+  description: The message text that is displayed to the user or logged as a result of the event
+  returned: always
+  sample: "Successfully imported and applied system configuration XML file"
+MessageArguments:
+  type: str
+  description: Message arguments for the lifecycle job
+  returned: always
+  sample: "NA"
+MessageID:
+  type: str
+  description: Unique alphanumeric identifier of the event 
+  returned: always
+  sample: "SYS053"
+Name:
+  type: str
+  description: 
+  returned: always
+  sample: "Import Configurtion"
+PercentComplete:
+  type: str
+  description: Percent completion of the JOB
+  returned: always
+  sample: "100"
+Status:
+  type: str
+  description: Status
+  returned: always
+  sample: "Success"
+file:
+  type: str
+  description: Server configuration profile (SCP) file path 
+  returned: always
+  sample: "\\\\192.168.10.10\\Share\\scpO3ZxL1.xml1"
+retval:
+  type: bool
+  description: Return value
+  returned: always
+  sample: true
+
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

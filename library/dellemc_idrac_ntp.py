@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_ntp
 short_description: Configure NTP settings
@@ -32,38 +32,43 @@ description:
     - Configure Network Time Protocol settings on iDRAC for synchronizing the
       iDRAC time using NTP instead of BIOS or host system times
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    ntp_servers:
-        required: False
-        description: List of IP Addresses of the NTP Servers
-        default: None
-    state:
-        required: False
-        description:
-        - if C(present), will enable the NTP option and add the NTP servers
-        - if C(absent), will disable the NTP option
-        default: 'present'
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  ntp_servers:
+    required: False
+    description:
+      - List of IP Addresses of the NTP Servers
+    default: None
+  state:
+    required: False
+    description:
+      - if C(present), will enable the NTP option and add the NTP servers
+      - if C(absent), will disable the NTP option
+    default: 'present'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
+EXAMPLES = '''
 ---
 - name: Configure NTP
     dellemc_idrac_ntp:
@@ -78,11 +83,11 @@ EXAMPLES = """
        ntp_server2: "20.30.40.50"
        ntp_server3: "30.40.50.60"
        state:       "present"
-"""
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

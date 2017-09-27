@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_export_scp
 short_description: Export Server Configuration Profile (SCP) to network share
@@ -31,61 +31,79 @@ version_added: "2.3"
 description:
     - Export Server Configuration Profile to a given network share (CIFS, NFS)
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: CIFS or NFS Network share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    scp_components:
-        required: False
-        description:
-            - if C(ALL), will export all components configurations in SCP file
-            - if C(IDRAC), will export iDRAC comfiguration in SCP file
-            - if C(BIOS), will export BIOS configuration in SCP file
-            - if C(NIC), will export NIC configuration in SCP file
-            - if C(RAID), will export RAID configuration in SCP file
-        choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
-        default: 'ALL'
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_name:
+    required: True
+    description:
+      - CIFS or NFS Network share
+  share_user:
+    required: True
+    description:
+      - Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description:
+      - Network share user password
+  scp_components:
+    required: False
+    description:
+      - if C(ALL), will export all components configurations in SCP file
+      - if C(IDRAC), will export iDRAC configuration in SCP file
+      - if C(BIOS), will export BIOS configuration in SCP file
+      - if C(NIC), will export NIC configuration in SCP file
+      - if C(RAID), will export RAID configuration in SCP file
+    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
+    default: 'ALL'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
+# Export SCP to a CIFS network share
 - name: Export Server Configuration Profile (SCP)
     dellemc_idrac_export_scp:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\10.20.30.40\share"
-       share_pwd:  "password"
-       share_user: "user1"
-"""
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_pwd:  "password"
+      share_user: "user1"
 
-RETURNS = """
+# Export SCP to a NFS network shre
+- name: Export Server Configuration Profile (SCP)
+    dellemc_idrac_export_scp:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "10.20.30.40:/share"
+      share_pwd:  "password"
+      share_user: "user1"
+
+'''
+
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
@@ -99,6 +117,7 @@ def export_server_config_profile(idrac, module):
     module -- Ansible module
     """
 
+    from omsdk.sdkcenum import TypeHelper
     from omdrivers.enums.iDRAC.iDRACEnums import SCPTargetEnum, ExportFormatEnum, ExportMethodEnum
 
     msg = {}
@@ -106,9 +125,8 @@ def export_server_config_profile(idrac, module):
     msg['failed'] = False
     err = False
 
-    if True:
-    # try:
-        scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.xml"
+    try:
+        scp_file_name_format = "%ip_%Y%m%d_%H%M%S_" + module.params['scp_components'] + "_SCP.xml"
 
         myshare = FileOnShare(module.params['share_name'],
                             isFolder = True)
@@ -116,16 +134,8 @@ def export_server_config_profile(idrac, module):
                                          module.params['share_pwd']))
         scp_file_name = myshare.new_file(scp_file_name_format)
 
-        scp_components = SCPTargetEnum.ALL
-
-        if module.params['scp_components'] == 'IDRAC':
-            scp_components = SCPTargetEnum.iDRAC
-        elif module.params['scp_components'] == 'BIOS':
-            scp_components = SCPTargetEnum.BIOS
-        elif module.params['scp_components'] == 'NIC':
-            scp_components = SCPTargetEnum.NIC
-        elif module.params['scp_components'] == 'RAID':
-            scp_components = SCPTargetEnum.RAID
+        scp_components = TypeHelper.convert_to_enum(module.params['scp_components'],
+                                                    SCPTargetEnum)
 
         msg['msg'] = idrac.config_mgr.scp_export(scp_file_name,
                                             components = scp_components,
@@ -136,10 +146,10 @@ def export_server_config_profile(idrac, module):
         if 'Status' in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
 
-    # except Exception as e:
-    #     err = True
-    #     msg['msg'] = "Error: %s" % str(e)
-    #     msg['failed'] = True
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
+        msg['failed'] = True
 
     return msg, err
 

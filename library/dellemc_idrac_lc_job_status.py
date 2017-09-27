@@ -23,50 +23,55 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_lc_job_status
-short_description: Returns the status of a Lifecycle Controller Job
+short_description: Get the status of a Lifecycle Controller Job
 version_added: "2.3"
-description: Returns the status of a Lifecycle Controller job given a JOB ID
+description: Get the status of a Lifecycle Controller job given a JOB ID
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    job_id:
-        required: True
-        description: JOB ID in the format "JID_123456789012"
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  job_id:
+    required: True
+    description:
+      - JOB ID in the format JID_123456789012
+    default: None
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
----
+EXAMPLES = '''
+# LC Job Status example
 - name: Get LC Job Stattus
     dellemc_idrac_lc_job_status:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       job_id:     "JID_1234556789012"
-"""
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      job_id:     "JID_1234556789012"
+'''
 
-RETURNS = """
----
-"""
+RETURN = '''
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule

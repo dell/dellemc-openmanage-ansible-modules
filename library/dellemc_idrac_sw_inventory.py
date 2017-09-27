@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_sw_inventory
 short_description: Get Firmware Inventory
@@ -31,48 +31,50 @@ version_added: "2.3"
 description: 
     - Get Firmware Inventory
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_mnt:
-        required: False
-        description: 
-            - Local mount path of the Network share (CIFS, NFS) where the inventory file
-              is going to be saved
-            - Required if I(serialize = True)
-        default: None
-    choice:
-        required: False
-        description:
-            - if C(all), get both installed and available (if any) SW inventory
-            - if C(installed), get installed SW inventory
-        default: 'installed'
-    serialize:
-        required: False
-        description:
-            - Serialize the installed inventory and store it in I(share_mnt)
-            - Creates '_inventory' and '_master' folders relative to I(share_mnt) and saves the
-              installed firmware inventory in '_inventory' 
-        default: False
+  idrac_ip:
+    required: False
+    description:
+      - iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description:
+      - iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description:
+      - iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description:
+      - iDRAC port
+    default: None
+  share_mnt:
+    required: False
+    description: 
+      - Local mount path of the Network share (CIFS, NFS) where the inventory file is going to be saved
+      - Required if I(serialize = True)
+    default: None
+  choice:
+    required: False
+    description:
+      - if C(all), get both installed and available (if any) firmware inventory
+      - if C(installed), get installed firmware inventory
+    default: 'installed'
+  serialize:
+    required: False
+    description:
+      - if C(True), create '_inventory' and '_master' folders relative to I(share_mnt) and save the installed firmware inventory in a file in the '_inventory' directory
+      - if C(True), then I(share_mnt) must be provided 
+    default: False
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
-"""
+'''
 
-EXAMPLES = """
+EXAMPLES = '''
 ---
 - name: Get SW Inventory
     dellemc_idrac_sw_inventory:
@@ -82,47 +84,47 @@ EXAMPLES = """
        share_mnt:  "/mnt/NFS/"
        choice:     "installed"
        serialize:  True
-"""
+'''
 
-RETURNS = """
+RETURN = '''
 ---
 Firmware:
-    type: list
-    description: Components and their Firmware versions. List of dictionaries, one dict per Firmware
-    returned: always
-    sample: [
-            {
-                "BuildNumber": "40", 
-                "Classifications": "10", 
-                "ComponentID": "25227", 
-                "ComponentType": "FRMW", 
-                "DeviceID": null, 
-                "ElementName": "Integrated Dell Remote Access Controller", 
-                "FQDD": "iDRAC.Embedded.1-1", 
-                "IdentityInfoType": "OrgID:ComponentType:ComponentID", 
-                "IdentityInfoValue": "DCIM:firmware:25227", 
-                "InstallationDate": "2017-06-03T23:05:47Z", 
-                "InstanceID": "DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo", 
-                "IsEntity": "true",
-                "Key": "DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo", 
-                "MajorVersion": "2", 
-                "MinorVersion": "41", 
-                "RevisionNumber": "40", 
-                "RevisionString": null, 
-                "Status": "Installed", 
-                "SubDeviceID": null, 
-                "SubVendorID": null, 
-                "Updateable": "true", 
-                "VendorID": null, 
-                "VersionString": "2.41.40.40", 
-                "impactsTPMmeasurements": "false" 
-            }
-        ]
-"""
+  type: list
+  description: 
+    - Components and their Firmware versions. List of dictionaries, one dict per Firmware
+  returned: always
+  sample: "Firmware": [
+              {
+                  "BuildNumber": "40", 
+                  "Classifications": "10", 
+                  "ComponentID": "25227", 
+                  "ComponentType": "FRMW", 
+                  "DeviceID": null, 
+                  "ElementName": "Integrated Dell Remote Access Controller", 
+                  "FQDD": "iDRAC.Embedded.1-1", 
+                  "IdentityInfoType": "OrgID:ComponentType:ComponentID", 
+                  "IdentityInfoValue": "DCIM:firmware:25227", 
+                  "InstallationDate": "2017-06-03T23:05:47Z", 
+                  "InstanceID": "DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo", 
+                  "IsEntity": "true",
+                  "Key": "DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo", 
+                  "MajorVersion": "2", 
+                  "MinorVersion": "41", 
+                  "RevisionNumber": "40", 
+                  "RevisionString": null, 
+                  "Status": "Installed", 
+                  "SubDeviceID": null, 
+                  "SubVendorID": null, 
+                  "Updateable": "true", 
+                  "VendorID": null, 
+                  "VersionString": "2.41.40.40", 
+                  "impactsTPMmeasurements": "false" 
+              }
+              ...
+          ]
+'''
 
 from ansible.module_utils.dellemc_idrac import *
-from omsdk.catalog.sdkupdatemgr import UpdateManager
-from omdrivers.helpers.iDRAC.UpdateHelper import UpdateHelper
 from ansible.module_utils.basic import AnsibleModule
 
 def sw_inventory (idrac, module):
@@ -156,12 +158,12 @@ def sw_inventory (idrac, module):
 
             if fw_inv_path.IsValid:
                 UpdateManager.configure(fw_inv_path)
-                retVal = UpdateHelper.save_firmware_inventory(idrac)
+                msg['msg'] = UpdateHelper.save_firmware_inventory(idrac)
 
-                if "Status" in retVal and retVal['Status'] != "Success":
-                        msg['failed'] = True
+                if "Status" in msg['msg'] and msg['Status'] != "Success":
+                    msg['failed'] = True
             else: 
-                msg['msg'] = "Error: Network share is not writable"
+                msg['msg'] = "Error: Network share is not valid"
                 msg['failed'] = True
 
     except Exception as e:

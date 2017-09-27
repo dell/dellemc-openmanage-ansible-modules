@@ -23,7 +23,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 ---
 module: dellemc_idrac_user
 short_description: Configures an iDRAC local User
@@ -31,81 +31,80 @@ version_added: "2.3"
 description:
     - Configures an iDRAC local user
 options:
-    idrac_ip:
-        required: False
-        description: iDRAC IP Address
-        default: None
-    idrac_user:
-        required: False
-        description: iDRAC user name
-        default: None
-    idrac_pwd:
-        required: False
-        description: iDRAC user password
-        default: None
-    idrac_port:
-        required: False
-        description: iDRAC port
-        default: None
-    share_name:
-        required: True
-        description: CIFS or NFS Network share
-    share_user:
-        required: True
-        description: Network share user in the format user@domain
-    share_pwd:
-        required: True
-        description: Network share user password
-    share_mnt:
-        required: True
-        description:
-        - Local mount path of the network file share with read-write
-          permission for ansible user
-    user_name:
-        required: True
-        description: User name to be configured
-    user_pwd:
-        required: False
-        description: User password
-        default: None
-    user_priv:
-        required: False
-        description: User privileges
-        choices: ['Administrator', 'Operator', 'ReadOnly', 'NoPrivilege']
-        default: 'NoPrivilege'
-    state:
-        description:
-        - if C(present), will create/add/modify an user
-        - if C(absent), will delete the user
-        - if C(enable), will enable the user
-        - if C(disable), will disable the user
-        choices: ['present', 'absent', 'enable','disable']
-        default: 'present'
+  idrac_ip:
+    required: False
+    description: iDRAC IP Address
+    default: None
+  idrac_user:
+    required: False
+    description: iDRAC user name
+    default: None
+  idrac_pwd:
+    required: False
+    description: iDRAC user password
+    default: None
+  idrac_port:
+    required: False
+    description: iDRAC port
+    default: None
+  share_name:
+    required: True
+    description: CIFS or NFS Network share
+  share_user:
+    required: True
+    description: Network share user in the format user@domain
+  share_pwd:
+    required: True
+    description: Network share user password
+  share_mnt:
+    required: True
+    description:
+      - Local mount path of the network file share with read-write permission for ansible user
+  user_name:
+    required: True
+    description: User name to be configured
+  user_pwd:
+    required: False
+    description: User password
+    default: None
+  user_priv:
+    required: False
+    description: User privileges
+    choices: ['Administrator', 'Operator', 'ReadOnly', 'NoPrivilege']
+    default: 'NoPrivilege'
+  state:
+    description:
+      - if C(present), will create/add/modify an user
+      - if C(absent), will delete the user
+      - if C(enable), will enable the user
+      - if C(disable), will disable the user
+    choices: ['present', 'absent', 'enable','disable']
+    default: 'present'
 
 requirements: ['omsdk']
 author: anupam.aloke@dell.com
-"""
+'''
 
-EXAMPLES = """
+EXAMPLES = '''
 ---
 - name: Setup iDRAC Users
     dellemc_idrac_user:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\\\10.20.30.40\\share\\"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       user_name:  "admin"
-       user_pwd:   "password"
-       user_priv:  "Administrator"
-       state:      "present"
-"""
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\10.20.30.40\\share\\"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      user_name:  "admin"
+      user_pwd:   "password"
+      user_priv:  "Administrator"
+      state:      "present"
+'''
 
-RETURNS = """
+RETURN = '''
 ---
-"""
+'''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
