@@ -21,7 +21,7 @@
        share_name: "{{share_name}}"
        share_pwd:  "{{share_pwd}}"
        share_user: "{{share_user}}"
-       scp_components: "ALL"
+       scp_components: "RAID"
     tags:
        - exportscp
 
@@ -138,13 +138,34 @@
        - tls
 
   - name: Get LC Job Stattus
-    dellemc_idrac_lc_job_status:
+    dellemc_idrac_lc_job:
        idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
        idrac_pwd:  "{{idrac_pwd}}"
        job_id:     "{{job_id}}"
+       state:      "present"
     tags:
        - jobs
+
+  - name: Delete the LC Job
+    dellemc_idrac_lc_job:
+       idrac_ip:   "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd:  "{{idrac_pwd}}"
+       job_id:     "{{job_id}}"
+       state:      "absent"
+    tags:
+       - jobs
+
+  - name: Delete LC Job Queue
+    dellemc_idrac_lc_job:
+       idrac_ip:   "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd:  "{{idrac_pwd}}"
+       job_id:     "JID_CLEARALL"
+       state:      "absent"
+    tags:
+       - jobq
 
   - name: Configure Syslog
     dellemc_idrac_syslog:
@@ -203,3 +224,37 @@
     tags:
        - vd
 
+  - name: Firmware Update using a Repository from Network Share
+    dellemc_idrac_firmware_update:
+       idrac_ip:  "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd: "{{idrac_pwd}}"
+       share_name: "{{share_name}}"
+       share_user: "{{share_user}}"
+       share_pwd: "{{share_pwd}}"
+    tags:
+       - fwupdate
+
+  - name: Configure System Location
+    dellemc_idrac_location:
+       idrac_ip:  "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd: "{{idrac_pwd}}"
+       share_name: "{{share_name}}"
+       share_user: "{{share_user}}"
+       share_pwd: "{{share_pwd}}"
+       share_mnt: "{{share_mnt}}"
+       data_center_name: "BLR-5 LAB-2"
+    tags:
+       - location
+
+  - name: Get FW Inventory
+    dellemc_idrac_sw_inventory:
+       idrac_ip:  "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_pwd: "{{idrac_pwd}}"
+       share_mnt: "{{share_mnt}}/Test"
+       choice: "installed"
+       serialize: False
+    tags:
+       - swinventory

@@ -25,11 +25,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = '''
 ---
-module: dellemc_idrac_delete_lc_job
-short_description: Deletes a Lifecycle Controller Job given a JOB ID
+module: dellemc_idrac_lc_job_status
+short_description: Get the status of a Lifecycle Controller Job
 version_added: "2.3"
-description:
-    - Deletes a Lifecycle Controller job given a JOB ID
+description: Get the status of a Lifecycle Controller job given a JOB ID
 options:
   idrac_ip:
     required: False
@@ -44,7 +43,7 @@ options:
   idrac_pwd:
     required: False
     description:
-     - iDRAC user password
+      - iDRAC user password
     default: None
   idrac_port:
     required: False
@@ -53,32 +52,87 @@ options:
     default: None
   job_id:
     required: True
-    description: JOB ID in the format "JID_1234556789012"
+    description:
+      - JOB ID in the format JID_123456789012
+      - if C(JID_CLEARALL), then all jobs will be cleared from the LC job queue
+    default: None
+  state:
+    required: False
+    description:
+      - if C(present) then return the status of the associated job having the job id provided in I(job_id)
+      - if C(absent), then delete the associated job having the job id provided in I(job_id) from LC job queue
+    default: 'present'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
 '''
 
 EXAMPLES = '''
----
-- name: Delete LC Job
-    dellemc_idrac_delete_lc_job:
+# Get Job Status for a valid JOB ID
+- name: Get LC Job Stattus
+    dellemc_idrac_lc_job:
       idrac_ip:   "192.168.1.1"
       idrac_user: "root"
       idrac_pwd:  "calvin"
       job_id:     "JID_1234556789012"
+      state:      "present"
+
+# Delete the JOB from the LC Job Queue
+- name: Delete the LC Job
+    dellemc_idrac_lc_job:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      job_id:     "JID_1234556789012"
+      state:      "absent"
+
+# Clear the LC Job queue
+- name: Clear the LC Job queue
+    dellemc_idrac_lc_job:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      job_id:     "JID_CLEARALL"
+      state:      "absent"
+
 '''
 
 RETURN = '''
----
 '''
 
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
+def lc_job_status (idrac, module):
+    """
+    Get status of a Lifecycle Controller Job given a JOB ID
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
+    msg = {}
+    msg['failed'] = False
+    msg['changed'] = False
+    err = False
+
+    try:
+        msg['msg'] = idrac.job_mgr.get_job_status(module.params['job_id'])
+
+        if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
+            msg['failed'] = True
+
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
+        msg['failed'] = True
+
+    return msg, err
+
 def delete_lc_job (idrac, module):
     """
-    Deletes a Lifecycle Controller Job
+    Delete a Job from the LC Job queue give an Job ID
 
     Keyword arguments:
     idrac  -- iDRAC handle
@@ -99,7 +153,7 @@ def delete_lc_job (idrac, module):
             exists = True
 
         if module.check_mode:
-            msg['changed'] = not exists
+            msg['changed'] = exists
         elif exists:
             msg['msg'] = idrac.job_mgr.delete_job(module.params['job_id'])
 
@@ -110,11 +164,49 @@ def delete_lc_job (idrac, module):
         else:
             msg['msg'] = "Invalid Job ID: " + module.params['job_id']
             msg['failed'] = True
-
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg[failed] = True
+
+    return msg, err
+
+def delete_lc_job_queue (idrac, module):
+    """
+    Deletes LC Job Queue
+
+    Keyword arguments:
+    idrac  -- iDRAC handler
+    module -- Ansible module
+    """
+
+    msg = {}
+    msg['failed'] = False
+    msg['changed'] = False
+
+    try:
+        # TODO: Check the Job Queue to make sure there are no pending jobs
+        exists = False
+
+        job = idrac.job_mgr.get_job_details('JID_CLEARALL')
+
+        if 'Status' in job and job['Status'] == "Success":
+            exists = True
+
+        if module.check_mode or exists:
+            msg['changed'] = not exists
+        else:
+            msg['msg'] = idrac.job_mgr.delete_all_jobs()
+
+            if 'Status' in msg['msg'] and msg['msg']['Status'] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
+
+    except Exception as e:
+        err = True
+        msg['msg'] = "Error: %s" % str(e)
+        msg['failed'] = True
 
     return msg, err
 
@@ -133,9 +225,13 @@ def main():
                 idrac_pwd  = dict (required = False, default = None,
                                    type = 'str', no_log = True),
                 idrac_port = dict (required = False, default = None, type = 'int'),
-
                 # JOB ID
-                job_id = dict (required = True, type = 'str')
+                job_id = dict (required = True, type = 'str'),
+
+                # state
+                state = dict (required = False,
+                              choices = ['present', 'absent'],
+                              default = 'present')
                 ),
 
             supports_check_mode = True)
@@ -144,7 +240,16 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    (msg, err) = delete_lc_job(idrac, module)
+    msg = {}
+    err = False
+
+    if module.params['state'] == "present":
+        msg, err = lc_job_status(idrac, module)
+    elif module.params['state'] == "absent":
+        if module.params['job_id'] == 'JID_CLEARALL':
+            msg, err = delete_lc_job_queue(idrac)
+        else:
+            msg, err = delete_lc_job(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

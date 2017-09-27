@@ -31,9 +31,8 @@ except:
 
 ansible_path = ansible.__path__[0]
 module_utils_path = ansible_path + '/module_utils/'
-extras_path = ansible_path + '/modules/extras'
-server_path = extras_path + '/server'
-dellemc_idrac_path = server_path + '/dellemc'
+remote_management__path = ansible_path + '/modules/remote_management'
+dellemc_idrac_path = remote_management__path + '/dellemc_idrac'
 
 
 def touch(fname, times=None):
@@ -55,11 +54,10 @@ def copy_files(src, dest):
             print(src_file, "===>", dst_file)
             shutil.copy(src_file, dst_file)
 
-# Create the directory for the main module under extras/server/dellemc repo
+# Create the directory for the main module under remote_management/dellemc_idrac repo
 if not os.path.isdir(dellemc_idrac_path):
     os.makedirs(dellemc_idrac_path)
 
-touch(server_path + '/__init__.py')
 touch(dellemc_idrac_path + '/__init__.py')
 
 # Copy files from library folder to dellemc_idrac_path
