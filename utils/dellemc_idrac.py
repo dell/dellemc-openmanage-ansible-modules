@@ -37,7 +37,7 @@ class iDRACConnection():
     def __init__(self, module):
         if HAS_OMSDK is False:
             results = {}
-            results['msg']="Dell EMC OMSDK library is required for this module"
+            results['msg']="Dell EMC OpenManage Python SDK is required for this module"
             module.fail_json(**results)
 
         self.module = module

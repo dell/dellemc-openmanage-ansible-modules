@@ -25,12 +25,11 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = '''
 ---
-module: dellemc_idrac_tls
-short_description: Configure TLS protocol options and SSL Encryption Bits
+module: dellemc_idrac_web_server
+short_description: Configure iDRAC Web Server service interface settings
 version_added: "2.3"
 description:
-    - Configure Transport Layer Security (TLS) protocol options
-    - Configure Secure Socket Layer (SSL) Encryption Bits options
+    - Configure iDRAC Web Server Service interface settings such as minimum supprted levels of Transport Layer Security (TLS) protocol and levels of Secure Socket Layer (SSL) Encryption
 options:
   idrac_ip:
     required: False
@@ -91,17 +90,29 @@ author: "anupam.aloke@dell.com"
 '''
 
 EXAMPLES = '''
-- name: Configure TLS
-    dellemc_idrac_tls:
+- name: Configure Web Server TLS and SSL settings (using CIFS network share)
+    dellemc_idrac_web_server:
       idrac_ip:     "192.168.1.1"
       idrac_user:   "root"
       idrac_pwd:    "calvin"
-      share_name:   "\\\\10.20.30.40\\share\\"
+      share_name:   "\\\\192.168.10.10\\share"
       share_user:   "user1"
       share_pwd:    "password"
       share_mnt:    "/mnt/share"
-      tls_protocol: "TLS 1.0 and Higher"
-      ssl_bits:     "128-Bit or higher"
+      tls_protocol: "TLS 1.2 Only"
+      ssl_bits:     "256-Bit or higher"
+
+- name: Configure Web Server TLS and SSL settings (using NFS network share)
+    dellemc_idrac_web_server:
+      idrac_ip:     "192.168.1.1"
+      idrac_user:   "root"
+      idrac_pwd:    "calvin"
+      share_name:   "192.168.10.10:/share"
+      share_user:   "user1"
+      share_pwd:    "password"
+      share_mnt:    "/mnt/share"
+      tls_protocol: "TLS 1.2 Only"
+      ssl_bits:     "256-Bit or higher"
 '''
 
 RETURN = '''
@@ -152,23 +163,10 @@ def setup_idrac_tls (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # Check if TLS Protocol and SSL Encryption Bits settings already exists
+        # Check if TLS and SSL settings already exists
         exists = False
-        tls_protocol = TLSOptions.TLS_1_1
-        ssl_bits = SSLBits.S128
-
-        if module.params['tls_protocol'] == 'TLS 1.0 and Higher':
-            tls_protocol = TLSOptions.TLS_1_0
-        elif module.params['tls_protocol'] == 'TLS 1.2 Only':
-            tls_protocol = TLSOptions.TLS_1_2
-
-        if module.params['ssl_bits'] == 'Auto-Negotiate':
-            ssl_bits = SSLBits.Auto
-        elif module.params['ssl_bits'] == '168-Bit or higher':
-            ssl_bits = SSLBits.S168
-        elif module.params['ssl_bits'] == '256-Bit or higher':
-            ssl_bits  = SSLBits.S256
-
+        tls_protocol = TypeHelper.convert_to_enum(module.params['tls_protocol'], TLSOptions)
+        ssl_bits = TypeHelper.convert_to_enum(module.params['ssl_bits'], SSLBits)
         curr_tls_protocol = idrac.config_mgr.TLSProtocol
         curr_ssl_bits = idrac.config_mgr.SSLEncryptionBits
 
@@ -212,7 +210,7 @@ def main():
                 share_name = dict (required = True, type = 'str'),
                 share_user = dict (required = True, type = 'str'),
                 share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'str'),
+                share_mnt  = dict (required = True, type = 'path'),
 
                 tls_protocol = dict (required = False,
                                      choices = ['TLS 1.0 and Higher',
