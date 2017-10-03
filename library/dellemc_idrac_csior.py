@@ -67,22 +67,32 @@ options:
       - if C(disable), will disable the CSIOR
     default: 'enable'
 
-requirements: ['omsdk']
+requirements: ['Dell EMC OpenManage Python SDK']
 author: "anupam.aloke@dell.com"
 '''
 
 EXAMPLES = '''
-- name: Configure CSIOR
+- name: Enable CSIOR
     dellemc_idrac_csior:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_name: "\\\\192.168.10.10\\share"
-       share_user: "user1"
-       share_pwd:  "password"
-       share_mnt:  "/mnt/share"
-       state:      "enable"
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      state:      "enable"
 
+- name: Disable CSIOR
+    dellemc_idrac_csior:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      state:      "disable"
 '''
 
 RETURN = '''
@@ -132,27 +142,22 @@ def setup_idrac_csior (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        #Check whether CSIOR is enabled or not
-        enabled = False
-        if idrac.config_mgr.CSIOR == idrac.eConfigStateEnum.Enabled:
-            enabled = True
-
         if module.params["state"] == "enable":
-            if module.check_mode or enabled:
-                msg['changed'] = not enabled
-            else:
-                msg['msg'] = idrac.config_mgr.enable_csior()
+            idrac.config_mgr._sysconfig.LifecycleController.LCAttributes.CollectSystemInventoryOnRestart_LCAttributes = 'Enabled'
         else:
-            if module.check_mode or not enabled:
-                msg['changed'] = enabled
-            else:
-                msg['msg'] = idrac.config_mgr.disable_csior()
+            idrac.config_mgr._sysconfig.LifecycleController.LCAttributes.CollectSystemInventoryOnRestart_LCAttributes = 'Disabled'
 
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] is "Success":
-                msg['changed'] = True
-            else:
+        msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
+
+        if module.check_mode:
+            # Since it is running in check mode, reject the changes
+            idrac.config_mgr._sysconfig.reject()
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot = False)
+
+            if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
                 msg['failed'] = True
+                msg['changed'] = False
 
     except Exception as e:
         err = True
@@ -181,10 +186,10 @@ def main():
                 share_name = dict (required = True, type = 'str'),
                 share_user = dict (required = True, type = 'str'),
                 share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'str'),
+                share_mnt  = dict (required = True, type = 'path'),
 
                 state = dict (required = False, choices = ['enable', 'disable'],
-                                default = 'enable')
+                              default = 'enable')
                 ),
             supports_check_mode = True)
 

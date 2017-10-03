@@ -67,6 +67,24 @@ options:
     required: True
     description:
       - Local mount path of the network file share with read-write permission for ansible user
+  timeout:
+    required: False
+    description:
+      - Time (in seconds) that a connection is allowed to remain idle
+      - Changes to the timeout settings do not affect the current session
+      - If you change the timeout value, you must log out and log in again for the new settings to take effect
+      - Timeout range is 60 to 10800 seconds
+    default: 1800
+  http_port:
+    required: False
+    description:
+      - HTTP port
+    default: 80
+  https_port:
+    required: False
+    description:
+      - HTTPS port
+    default: 443
   tls_protocol:
     required: False
     description:
@@ -84,6 +102,13 @@ options:
       - if C(Auto-Negotiate), will set the SSL Encryption Bits to Auto-Negotiate
     choices: ['Auto-Negotiate', '128-Bit or higher', '168-Bit or higher', '256-Bit or higher']
     default: "128-Bit or higher"
+  state:
+    required: False
+    description:
+      - if C(present), will enable the Web Server and configure the Web Server parameters
+      - if C(absent), will disable the Web Server. Please note that you will not be able to use the iDRAC Web Interface if you disable the Web server.
+    choices: ['present', 'absent']
+    default: 'present'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -121,6 +146,15 @@ RETURN = '''
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
+try:
+    from omsdk.sdkcenum import TypeHelper
+    from omdrivers.enums.iDRAC.iDRAC import TLSProtocol_WebServerTypes
+    from omdrivers.enums.iDRAC.iDRAC import SSLEncryptionBitLength_WebServerTypes
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
+
+
 def _setup_idrac_nw_share (idrac, module):
     """
     Setup local mount point for Network file share
@@ -139,16 +173,17 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-def setup_idrac_tls (idrac, module):
+def setup_idrac_webserver (idrac, module):
     """
-    Setup iDRAC TLS settings
+    Setup iDRAC Webserver services
 
     Keyword arguments:
     idrac  -- iDRAC handle
     module -- Ansible module
     """
 
-    from omdrivers.enums.iDRAC.iDRACEnums import TLSOptions, SSLBits
+    if not HAS_OMSDK:
+        module.fail_json(msg="OpenManage Python SDK is required for this module")
 
     msg = {}
     msg['changed'] = False
@@ -163,25 +198,32 @@ def setup_idrac_tls (idrac, module):
                 msg['failed'] = True
                 return msg
 
-        # Check if TLS and SSL settings already exists
-        exists = False
-        tls_protocol = TypeHelper.convert_to_enum(module.params['tls_protocol'], TLSOptions)
-        ssl_bits = TypeHelper.convert_to_enum(module.params['ssl_bits'], SSLBits)
-        curr_tls_protocol = idrac.config_mgr.TLSProtocol
-        curr_ssl_bits = idrac.config_mgr.SSLEncryptionBits
+        tls_protocol = TypeHelper.convert_to_enum(module.params['tls_protocol'],
+                                                  TLSProtocol_WebServerTypes)
+        ssl_bits = TypeHelper.convert_to_enum(module.params['ssl_bits'],
+                                         SSLEncryptionBitLength_WebServerTypes)
 
-        if curr_tls_protocol == tls_protocol and curr_ssl_bits == ssl_bits:
-            exists = True
-
-        if module.check_mode or exists:
-            msg['changed'] = not exists
+        if module.params['state'] == 'present':
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.Enable_WebServer = 'Enabled'
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.Timeout_WebServer = module.params['timeout']
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.HttpPort_WebServer = module.params['http_port']
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.HttpsPort_WebServer = module.params['https_port']
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.TLSProtocol_WebServer = tls_protocol
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.SSLEncryptionBitLength_WebServer = ssl_bits
         else:
-            msg['msg'] = idrac.config_mgr.configure_tls(tls_protocol, ssl_bits)
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.Enable_WebServer = 'Disabled'
 
-            if "Status" in msg['msg'] and msg['msg']['Status'] is "Success":
-                msg['changed'] = True
-            else:
+        msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
+
+        if module.check_mode: 
+            # Since it is running in check mode, reject the changes
+            idrac.config_mgr._sysconfig.reject()
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot = False)
+
+            if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
                 msg['failed'] = True
+                msg['changed'] = False
 
     except Exception as e:
         err = True
@@ -212,6 +254,10 @@ def main():
                 share_pwd  = dict (required = True, type = 'str', no_log = True),
                 share_mnt  = dict (required = True, type = 'path'),
 
+                # Web Server
+                timeout = dict (required = False, default = 1800, type = 'int'),
+                http_port = dict (required = False, default = 80, type = 'int'),
+                https_port = dict (required = False, default = 443, type = 'int'),
                 tls_protocol = dict (required = False,
                                      choices = ['TLS 1.0 and Higher',
                                                 'TLS 1.1 and Higher',
@@ -222,7 +268,10 @@ def main():
                                             '128-Bit or higher',
                                             '168-Bit or higher',
                                             '256-Bit or higher'],
-                                 default = '128-Bit or higher')
+                                 default = '128-Bit or higher'),
+                state = dict (required = False,
+                              choices = ['present', 'absent'],
+                              default = 'present')
 
                 ),
             supports_check_mode = True)
@@ -231,7 +280,7 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
-    msg, err = setup_idrac_tls (idrac, module)
+    msg, err = setup_idrac_webserver (idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

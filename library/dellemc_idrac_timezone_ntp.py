@@ -165,11 +165,12 @@ def _setup_ntp(idrac, module):
     """
 
     if module.params['state'] == 'present':
+        idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTPEnable_NTPConfigGroup = 'Enabled'
+
         if module.params['ntp_servers']:
             ntp_servers = [server for server in module.params['ntp_servers'] if server]
             ntp_servers.extend(["", "", ""])
 
-            idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTPEnable_NTPConfigGroup = 'Enabled'
             if ntp_servers[0]:
                 idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTP1_NTPConfigGroup = ntp_servers[0]
 
@@ -211,10 +212,13 @@ def setup_idrac_timezone_ntp(idrac, module):
 
         msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
-        if not module.check_mode:
-            msg['msg'] = idrac.config_mgr.apply_changes()
+        if module.check_mode:
+            # since it is running in check mode, reject the changes
+            idrac.config_mgr._sysconfig.reject()
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot = False)
 
-            if 'Status' in msg and msg['Status'] != "Success":
+            if 'Status' in msg['msg'] and msg['msg']['Status'] != "Success":
                 msg['failed'] = True
                 msg['changed'] = False
 

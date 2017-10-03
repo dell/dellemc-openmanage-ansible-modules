@@ -35,7 +35,7 @@ except ImportError:
 class iDRACConnection():
 
     def __init__(self, module):
-        if HAS_OMSDK is False:
+        if not HAS_OMSDK:
             results = {}
             results['msg']="Dell EMC OpenManage Python SDK is required for this module"
             module.fail_json(**results)
