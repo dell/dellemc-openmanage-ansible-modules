@@ -1,12 +1,16 @@
-# Dell EMC OpenManage Ansible Modules for iDRAC
+# Dell EMC OpenManage Ansible Modules for iDRAC (BETA Release)
+
+## 1. Introduction
+Dell EMC OpenManage Ansible Modules provide customers the ability to automate the Out-of-Band configuration management, deployment and updates for Dell EMC PowerEdge Servers using Ansible by leeveragin the management automation built into the iDRAC with Lifecycle Controller. iDRAC provides both REST APIs based on DMTF RedFish industry standard and WS-Management (WS-MAN) for management automation of PowerEdge Servers.
+
+*The BETA release of the OpenManage Ansible modules currently supoprts only the iDRAC WS-Management APIs for management automation. RedFish REST APIs support will be coming in Version 1.0.*
+---
+### 2. Requirements
+* python >= '2.7'
+* [Dell EMC OpenManage Python SDK](https://github.com/vaideesg/omsdk)
 
 ---
-### Requirements
-* python >= '2.6'
-* Dell EMC OpenManage Python SDK
-
----
-### Modules
+### 3. Modules
 
   * [dellemc_idrac_boot_to_nw_iso - boot to a network iso image](#dellemc_idrac_boot_to_nw_iso)
   * [dellemc_idrac_timezone - configure time zone](#dellemc_idrac_timezone)
@@ -18,7 +22,7 @@
   * [dellemc_idrac_import_scp - import scp from a network share](#dellemc_idrac_import_scp)
   * [dellemc_idrac_delete_lc_job_queue - deletes the lifecycle controller job queue](#dellemc_idrac_delete_lc_job_queue)
   * [dellemc_idrac_nic - configure idrac network settings](#dellemc_idrac_nic)
-  * [dellemc_idrac_tls - configure tls protocol options and ssl encryption bits](#dellemc_idrac_tls)
+  * [dellemc_idrac_web_server - configure iDRAC Web Server service](#dellemc_idrac_web_server)
   * [dellemc_idrac_export_scp - export server configuration profile (scp) to network share](#dellemc_idrac_export_scp)
   * [dellemc_idrac_delete_lc_job - deletes a lifecycle controller job given a job id](#dellemc_idrac_delete_lc_job)
   * [dellemc_idrac_syslog - configure remote system logging](#dellemc_idrac_syslog)
@@ -557,16 +561,17 @@ Configure iDRAC Network settings
 ---
 
 
-## dellemc_idrac_tls
-Configure TLS protocol options and SSL Encryption Bits
+## dellemc_idrac_web_server
+Configure Web Server service parameters such as TLS protocol options and SSL Encryption Bits
 
   * Synopsis
   * Options
   * Examples
 
 #### Synopsis
- Configure Transport Layer Security (TLS) protocol options
- Configure Secure Socket Layer (SSL) Encryption Bits options
+ Configure Web Server service:
+   * Configure Transport Layer Security (TLS) protocol options
+   * Configure Secure Socket Layer (SSL) Encryption Bits options
 
 #### Options
 
