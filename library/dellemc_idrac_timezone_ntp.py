@@ -141,22 +141,6 @@ def _setup_idrac_nw_share (idrac, module):
 
     return idrac.config_mgr.set_liason_share(myshare)
 
-def _timezone_exists (idrac, module):
-    """
-    Check whether a given timezone is already configured
-
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    if module.params['timezone']:
-        if module.params['timezone'] == idrac.config_mgr.TimeZone:
-            return True
-        else:
-            return False
-
-    return True
 
 def _setup_timezone(idrac, module):
     """
@@ -167,44 +151,9 @@ def _setup_timezone(idrac, module):
     module -- Ansible module
     """
 
-    changed = False
-    failed = False
-    msg = {}
+    if module.params['timezone']:
+        idrac.config_mgr.TimeZone.set_value(module.params["timezone"])
 
-    # Check if the timezone settings exists
-    exists = _timezone_exists(idrac, module)
-
-    if module.check_mode or exists:
-        changed = not exists
-    else:
-        msg = idrac.config_mgr.configure_time_zone(module.params["timezone"])
-
-        if 'Status' in msg and msg['Status'] == "Success":
-            changed = True
-        else:
-            failed = True
-
-    return changed, failed, msg
-
-
-def _ntp_exists(idrac, module):
-    """
-    Check whether NTP configuration settings already exists on iDRAC
-
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    if not idrac.config_mgr.NTPEnabled:
-        return False
-    elif module.params['ntp_servers']:
-        # filter out the empty addresses
-        ntp_servers = [server for server in module.params['ntp_servers'] if server]
-        if set(idrac.config_mgr.NTPServers) != set(ntp_servers):
-            return False
-
-    return True
 
 def _setup_ntp(idrac, module):
     """
@@ -215,39 +164,23 @@ def _setup_ntp(idrac, module):
     module -- Ansible module
     """
 
-    msg = {}
-    changed = False
-    failed = False
-
-    # Check whether NTP settings already exist
-    exists = _ntp_exists(idrac, module)
-
     if module.params['state'] == 'present':
-        if module.check_mode or exists:
-            changed = not exists
-        else:
-            ntp_servers = []
+        if module.params['ntp_servers']:
+            ntp_servers = [server for server in module.params['ntp_servers'] if server]
+            ntp_servers.extend(["", "", ""])
 
-            if module.params['ntp_servers']:
-                ntp_servers = module.params['ntp_servers']
-                ntp_servers.extend(["", "", ""])
+            idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTPEnable_NTPConfigGroup = 'Enabled'
+            if ntp_servers[0]:
+                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTP1_NTPConfigGroup = ntp_servers[0]
 
-                msg = idrac.config_mgr.enable_ntp(server1=ntp_servers[0],
-                                                  server2=ntp_servers[1],
-                                                  server3=ntp_servers[2])
+            if ntp_servers[1]:
+                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTP2_NTPConfigGroup = ntp_servers[1]
+
+            if ntp_servers[2]:
+                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTP3_NTPConfigGroup = ntp_servers[2]
+
     elif module.params['state'] == 'absent':
-        if module.check_mode or not exists:
-            changed = exists
-        else:
-            msg = idrac.config_mgr.disable_ntp()
-
-    if 'Status' in msg:
-        if msg['Status'] == "Success":
-            changed = True
-        else:
-            failed = True
-
-    return changed, failed, msg
+        idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTPEnable_NTPConfigGroup = 'Disabled'
 
 
 def setup_idrac_timezone_ntp(idrac, module):
@@ -264,8 +197,6 @@ def setup_idrac_timezone_ntp(idrac, module):
     msg['failed'] = False
     msg['msg'] = {}
     err = False
-    changed = {"timezone" : False, "ntp" : False}
-    failed = {"timezone" : False, "ntp" : False}
 
     try:
         # Check first whether local mount point for network share is setup
@@ -275,21 +206,17 @@ def setup_idrac_timezone_ntp(idrac, module):
                 msg['failed'] = True
                 return msg
 
+        _setup_timezone(idrac, module)
+        _setup_ntp(idrac, module)
 
-        changed['timezone'], failed['timezone'], msg['msg'] = _setup_timezone(idrac, module)
+        msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
-        if not failed['timezone']:
-            changed['ntp'], failed['ntp'], msg['msg'] = _setup_ntp(idrac, module)
+        if not module.check_mode:
+            msg['msg'] = idrac.config_mgr.apply_changes()
 
-        for key,value in changed.iteritems():
-            if value:
-                msg['changed'] = True
-                break
-
-        for key, value in failed.iteritems():
-            if value:
+            if 'Status' in msg and msg['Status'] != "Success":
                 msg['failed'] = True
-                break
+                msg['changed'] = False
 
     except Exception as e:
         err = True
