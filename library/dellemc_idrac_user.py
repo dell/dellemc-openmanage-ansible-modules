@@ -70,7 +70,7 @@ options:
   user_priv:
     required: False
     description: User privileges
-    choices: ['Administrator', 'Operator', 'ReadOnly', 'NoPrivilege']
+    choices: ['Administrator', 'Operator', 'ReadOnly', 'NoAccess']
     default: 'NoPrivilege'
   state:
     description:
@@ -87,19 +87,57 @@ author: anupam.aloke@dell.com
 
 EXAMPLES = '''
 ---
-- name: Setup iDRAC Users
+- name: Add a new iDRAC User
     dellemc_idrac_user:
       idrac_ip:   "192.168.1.1"
       idrac_user: "root"
       idrac_pwd:  "calvin"
-      share_name: "\\\\10.20.30.40\\share\\"
+      share_name: "\\\\192.168.10.10\\share"
       share_user: "user1"
       share_pwd:  "password"
       share_mnt:  "/mnt/share"
-      user_name:  "admin"
+      user_name:  "newuser"
       user_pwd:   "password"
       user_priv:  "Administrator"
       state:      "present"
+
+- name: Change password for the "newuser"
+    dellemc_idrac_user:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      user_name:  "newuser"
+      user_pwd:   "newpassword"
+      state:      "present"
+
+- name: Change privilege for the "newuser"
+    dellemc_idrac_user:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      user_name:  "newuser"
+      user_priv:  "Operator"
+      state:      "present"
+
+- name: Delete "newuser"
+    dellemc_idrac_user:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      user_name:  "newuser"
+      state:      "absent"
 '''
 
 RETURN = '''
@@ -109,6 +147,11 @@ RETURN = '''
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
+try:
+    from omdrivers.enums.iDRAC.iDRAC import Enable_UsersTypes, Privilege_UsersTypes
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 def _setup_idrac_nw_share (idrac, module):
     """
@@ -135,8 +178,8 @@ def setup_idrac_user (idrac, module):
     module -- Ansible module
     """
 
-    from omdrivers.enums.iDRAC.iDRACEnums import UserPrivilegeEnum
-    from omsdk.sdkcenum import TypeHelper
+    if not HAS_OMSDK:
+        module.fail_json(msg="OpenManage Python SDK is required for this module")
 
     msg = {}
     msg['changed'] = False
@@ -146,17 +189,17 @@ def setup_idrac_user (idrac, module):
 
     user_name = module.params['user_name']
     user_pwd = module.params['user_pwd']
-    user_priv = TypeHelper.resolve(UserPrivilegeEnum.NoPrivilege)
+    user_priv = None
 
-    if module.params['user_priv'] == "Administrator":
-        user_priv = TypeHelper.resolve(UserPrivilegeEnum.Administrator)
-    elif module.params['user_priv'] == "Operator":
-        user_priv = TypeHelper.resolve(UserPrivilegeEnum.Operator)
-    elif module.params['user_priv'] == "ReadOnly":
-        user_priv = TypeHelper.resolve(UserPrivilegeEnum.ReadOnly)
+    if module.params['user_priv']:
+        if module.params['user_priv'] == "Administrator":
+            user_priv = Privilege_UsersTypes.Administrator
+        elif module.params['user_priv'] == "Operator":
+            user_priv = Privilege_UsersTypes.Operator
+        elif module.params['user_priv'] == "ReadOnly":
+            user_priv = Privilege_UsersTypes.ReadOnly
 
-    if True:
-    #try:
+    try:
         # Check first whether local mount point for network share is setup
         if idrac.config_mgr.liason_share is None:
             if not  _setup_idrac_nw_share (idrac, module):
@@ -165,85 +208,77 @@ def setup_idrac_user (idrac, module):
                 return msg
 
         # Check if user exists
-        exists, enabled = False, False
-        user_priv_change, user_pwd_change = False, False
+        user = None
 
-        if user_name is not None:
-            user = idrac.user_mgr.get_user(user_name.lower())
+        if user_name:
+            user = idrac.config_mgr._sysconfig.iDRAC.Users.find_first(UserName_Users=user_name)
 
-            if user is not None:
-                exists = True
-
-                if user['Enable'] == 'Enabled':
-                    enabled = True
-
-                if user['Privilege'] != str(user_priv):
-                    user_priv_change = True
-
-                if user_pwd is not None:
-                    user_pwd_change = True
+        else:
+            msg['msg'] = "Invalid user name provided"
+            msg['failed'] = True
+            return msg
 
         if module.params["state"] == "present":
-            if module.check_mode:
-                if exists:
-                    msg['changed'] = not enabled | user_priv_change | user_pwd_change
+            if not user:
+                # Set the iDRAC user privilege to NoAccess if not provided
+                if user_priv is None:
+                    user_priv = Privilege_UsersTypes.NoAccess
+
+                idrac.user_mgr.Users.new(
+                                   UserName_Users = user_name.lower(),
+                                   Password_Users = user_pwd,
+                                   Privilege_Users = user_priv,
+                                   Enable_Users = Enable_UsersTypes.Enabled)
             else:
-                if not exists:
-                    msg['msg'] = idrac.user_mgr.create_user(
-                                    user_name, user_pwd, user_priv)
-                else:
-                    if not enabled:
-                        msg['msg'] = idrac.user_mgr.enable_user(user_name)
+                if user.Enable_Users.get_value() != Enable_UsersTypes.Enabled:
+                    user.Enable_Users.set_value(Enable_UsersTypes.Enabled)
 
-                    if user_priv_change:
-                        msg['msg'] = idrac.user_mgr.change_privilege(
-                                                        user_name, user_priv)
+                if user_priv:
+                    user.Privilege_Users.set_value(user_priv)
 
-                    if user_pwd_change:
-                        msg['msg'] = idrac.user_mgr.change_password(
-                                                        user_name, 
-                                                        old_password="",
-                                                        new_password=user_pwd)
+                if user_pwd is not None:
+                    user.Password_Users.set_value(user_pwd)
 
         elif module.params["state"] == "enable":
-            if module.check_mode:
-                if exists:
-                    msg['changed'] = not enabled
+            if user:
+                user.Enable_Users.set_value(Enable_UsersTypes.Enabled)
             else:
-                if exists and not enabled:
-                    msg['msg'] = idrac.user_mgr.enable_user(user_name)
-                elif not exists:
-                    msg['msg'] = "User: " + user_name + " does not exist"
+                msg['msg'] = "User: " + user_name + " does not exist"
+                msg['failed'] = True
+                return msg
 
         elif module.params["state"] == "disable":
-            if module.check_mode:
-                if exists:
-                    msg['changed'] = enabled
+            if user:
+                user.Enable_Users.set_value(Enable_UsersTypes.Disabled)
             else:
-                if exists and enabled:
-                    msg['msg'] = idrac.user_mgr.disable_user(user_name)
-                elif not exists:
-                    msg['msg'] = "User: " + user_name + " does not exist"
+                msg['msg'] = "User: " + user_name + " does not exist"
+                msg['failed'] = True
+                return msg
 
         elif module.params["state"] == "absent":
-            if module.check_mode or not exists:
-                msg['changed'] = exists
+            if user:
+                idrac.config_mgr._sysconfig.iDRAC.Users.remove(UserName_Users = user_name)
             else:
-                msg['msg'] = idrac.user_mgr.delete_user(user_name)
-
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] is "Success":
-                msg['changed'] = True
-            else:
+                msg['msg'] = "User: " + user_name + " does not exist"
                 msg['failed'] = True
+                return msg
 
-        # Add the user list to the return msg as well
-        msg['users'] = idrac.user_mgr.Users
+        msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
-    # except Exception as e:
-    #     err = False
-    #     msg['msg'] = "Error: %s" % str(e)
-    #     msg['failed'] = True
+        if module.check_mode:
+            # Since it is running in check mode, reject the changes
+            idrac.config_mgr._sysconfig.reject()
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes()
+
+            if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
+                msg['failed'] = True
+                msg['changed'] = False
+
+    except Exception as e:
+        err = False
+        msg['msg'] = "Error: %s" % str(e)
+        msg['failed'] = True
 
     return msg, err
 
@@ -256,26 +291,23 @@ def main():
                 idrac      = dict (required = False, type='dict'),
 
                 # iDRAC credentials
-                idrac_ip   = dict (required = False, default = None, type='str'),
-                idrac_user = dict (required = False, default = None, type='str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                   type='str', no_log = True),
+                idrac_ip   = dict (required = True, default = None, type='str'),
+                idrac_user = dict (required = True, default = None, type='str'),
+                idrac_pwd  = dict (required = True, default = None, type='str', no_log = True),
                 idrac_port = dict (required = False, default = None, type = 'int'),
 
                 # Network File Share
                 share_name = dict (required = True, type = 'str'),
                 share_user = dict (required = True, type = 'str'),
                 share_pwd  = dict (required = True, type = 'str'),
-                share_mnt  = dict (required = True, type = 'str'),
+                share_mnt  = dict (required = True, type = 'path'),
 
                 # Local user credentials
                 user_name  = dict (required = True, type='str'),
-                user_pwd   = dict (required = False, default = None,
-                                   type='str', no_log = True),
+                user_pwd   = dict (required = False, default = None, type='str', no_log = True),
                 user_priv  = dict (required = False,
-                                   choices = ['Administrator', 'Operator',
-                                              'ReadOnly', 'NoPrivilege'],
-                                   default = 'NoPrivilege'),
+                                   choices = ['Administrator', 'Operator', 'ReadOnly', 'NoAccess'],
+                                   default = None),
 
                 # State
                 state = dict (required = False,
