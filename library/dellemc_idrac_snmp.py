@@ -141,6 +141,13 @@ RETURN = '''
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
+try:
+    from omsdk.sdkcenum import TypeHelper
+    from omdrivers.enums.iDRAC.iDRAC import SNMPProtocol_SNMPTypes, AgentEnable_SNMPTypes, TrapFormat_SNMPTypes
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
+
 def _setup_idrac_nw_share (idrac, module):
     """
     Setup local mount point for Network file share
@@ -160,33 +167,6 @@ def _setup_idrac_nw_share (idrac, module):
     return idrac.config_mgr.set_liason_share(myshare)
 
 
-def _snmp_exists (idrac, module):
-    """
-    Check whether SNMP Configuration settings already exists on iDRAC
-
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    old_snmp_config = idrac.config_mgr.SNMPConfiguration
-
-    if old_snmp_config['SNMPEnabled'] != 'Enabled':
-        return False
-    elif old_snmp_config['SNMPCommunity'].lower() != module.params['snmp_community'].lower():
-        return False
-    elif old_snmp_config['SNMPPort'] != module.params['snmp_port']:
-        return False
-    elif old_snmp_config['SNMPTrapFormat'].lower() != module.params['snmp_trap_format'].lower():
-        return False
-    elif old_snmp_config['SNMPTrapPort'] != module.params['snmp_trap_port']:
-        return False
-    elif old_snmp_config['SNMPVersions'].lower() != module.params['snmp_protocol'].lower():
-        return False
-
-    return True
-
-
 def setup_idrac_snmp (idrac, module):
     """
     Setup iDRAC SNMP Configuration parameters
@@ -195,6 +175,9 @@ def setup_idrac_snmp (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="OpenManage Python SDK is required for this module")
 
     msg = {}
     msg['changed'] = False
@@ -210,31 +193,37 @@ def setup_idrac_snmp (idrac, module):
                  msg['failed'] = True
                  return msg
 
-        # Check if the SNMP configuration parameters already exists
-        exists = _snmp_exists(idrac, module)
-
         if module.params["state"] == "present":
-            if module.check_mode or exists:
-                msg['changed'] = not exists
-            else:
-                msg['msg'] = idrac.config_mgr.enable_snmp(
-                                        module.params['snmp_community'],
-                                        module.params['snmp_port'],
-                                        module.params['snmp_trap_port'],
-                                        module.params['snmp_trap_format'],
-                                        module.params['snmp_protocol'])
+            idrac.config_mgr.SNMPConfiguration.AgentEnable_SNMP = \
+                    AgentEnable_SNMPTypes.Enabled
+            idrac.config_mgr.SNMPConfiguration.AgentCommunity_SNMP = \
+                    module.params['snmp_community'].lower()
+            idrac.config_mgr.SNMPConfiguration.AlertPort_SNMP = \
+                    module.params['snmp_trap_port']
+            idrac.config_mgr.SNMPConfiguration.DiscoveryPort_SNMP = \
+                    module.params['snmp_port']
+            idrac.config_mgr.SNMPConfiguration.SNMPProtocol_SNMP = \
+                    TypeHelper.convert_to_enum(module.params['snmp_protocol'],
+                                               SNMPProtocol_SNMPTypes)
+            idrac.config_mgr.SNMPConfiguration.TrapFormat_SNMP = \
+                    TypeHelper.convert_to_enum(module.params['snmp_trap_format'],
+                                               TrapFormat_SNMPTypes)
 
         else:
-            if module.check_mode or not exists:
-                msg['changed'] = exists
-            else:
-                msg['msg'] = idrac.config_mgr.disable_snmp()
+            idrac.config_mgr.SNMPConfiguration.AgentEnable_SNMP = \
+                    AgentEnable_SNMPTypes.Disabled
 
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-            else:
+        msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
+
+        if module.check_mode:
+            # since it is running in check mode, reject the changes
+            idrac.config_mgr._sysconfig.reject()
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes()
+
+            if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
                 msg['failed'] = True
+                msg['changed'] = False
 
     except Exception as e:
         err = True
@@ -253,17 +242,16 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                   type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+                idrac_ip   = dict (required = True, type = 'str'),
+                idrac_user = dict (required = True, type = 'str'),
+                idrac_pwd  = dict (required = True, type = 'str', no_log = True),
+                idrac_port = dict (required = False, default = 443, type = 'int'),
 
                 # Network File Share
                 share_name = dict (required = True, type = 'str'),
                 share_user = dict (required = True, type = 'str'),
                 share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'str'),
+                share_mnt  = dict (required = True, type = 'path'),
 
                 # SNMP Configuration
                 snmp_enable = dict (required = False,

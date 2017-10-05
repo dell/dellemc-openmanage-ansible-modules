@@ -291,10 +291,10 @@ def main():
                 idrac      = dict (required = False, type='dict'),
 
                 # iDRAC credentials
-                idrac_ip   = dict (required = True, default = None, type='str'),
-                idrac_user = dict (required = True, default = None, type='str'),
-                idrac_pwd  = dict (required = True, default = None, type='str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+                idrac_ip   = dict (required = True, type='str'),
+                idrac_user = dict (required = True, type='str'),
+                idrac_pwd  = dict (required = True, type='str', no_log = True),
+                idrac_port = dict (required = False, default = 443, type = 'int'),
 
                 # Network File Share
                 share_name = dict (required = True, type = 'str'),
