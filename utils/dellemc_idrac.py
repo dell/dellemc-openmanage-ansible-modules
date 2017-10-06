@@ -93,4 +93,24 @@ class iDRACConnection():
 
         return True
 
+    def setup_nw_share_mount(self):
+        results = {}
+        try:
+            share_name = self.module.params.get('share_name')
+            share_user = self.module.params.get('share_user')
+            share_pwd  = self.module.params.get('share_pwd')
+            share_mnt  = self.module.params.get('share_mnt')
 
+            if share_name and share_user and share_pwd and share_mnt:
+                nw_share = FileOnShare(remote = share_name,
+                                       mount_point = share_mnt,
+                                       isFolder = True,
+                                       creds = UserCredentials(share_user, share_pwd))
+
+                if nw_share:
+                    return self.handle.config_mgr.set_liason_share(nw_share)
+        except Exception as e:
+            results['msg'] = "Error: %s" % str(e)
+            self.module.fail_json(**results)
+
+        return False

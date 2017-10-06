@@ -32,25 +32,22 @@ description:
     - Configure remote system logging settings to remotely write RAC log and System Event Log (SEL) to an external server
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
   syslog_servers:
     required: False
     description:
@@ -59,12 +56,14 @@ options:
   syslog_port:
     required: False
     description:
-      - Port number of remote server
-    default: '514'
+      - Port number of remote servers
+    default: 514
   state:
     description:
-      - if C(present), will enable the remote syslog option and add the remote servers
+      - if C(present), will enable the remote syslog option and add the remote servers if any
       - if C(absent), will disable the remote syslog option
+    choices: ['present', 'absent']
+    default: 'absent'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -82,58 +81,36 @@ EXAMPLES = '''
        share_pwd:      "password"
        share_mnt:      "/mnt/share"
        syslog_servers: ["192.168.20.1", ""192.168.20.2", ""192.168.20.3"]
-       syslog_port:    "514"
+       syslog_port:    514
        state:          "present"
+
+- name: Disable Remote Syslog
+    dellemc_idrac_syslog:
+      idrac_ip:       "192.168.1.1"
+      idrac_user:     "root"
+      idrac_pwd:      "calvin"
+      share_name:     "\\\\192.168.10.10\\share"
+      share_user:     "user1"
+      share_pwd:      "password"
+      share_mnt:      "/mnt/share"
+      state:          "absent"
+
 '''
 
 RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkcenum import TypeHelper
+    from omdrivers.enums.iDRAC.iDRAC import SysLogEnable_SysLogTypes
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for network file share
-
-    idrac -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                    module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-def _syslog_exists (idrac, module):
-    """
-    Check whether syslog settings already exists on iDRAC
-
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    old_syslog_config = idrac.config_mgr.SyslogConfig
-
-    if old_syslog_config['SyslogEnable'] != 'Enabled':
-        return False
-
-    elif old_syslog_config['SyslogPort'] != module.params['syslog_port']:
-        return False
-
-    elif 'syslog_servers' in module.params:
-        if set(old_syslog_config['Servers']) != set(module.params['syslog_servers']):
-            return False
-
-    return True
-
-def setup_idrac_syslog (idrac, module):
+def setup_idrac_syslog(idrac, module):
     """
     Setup iDRAC remote syslog settings
 
@@ -146,47 +123,36 @@ def setup_idrac_syslog (idrac, module):
     msg['failed'] = False
     msg['msg'] = {}
     err = False
-    MAX_SYSLOG_SRV = 3
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
-
-        # Check if Syslog configuration settings already exists
-        exists = _syslog_exists(idrac, module)
-
         if module.params["state"] == "present":
-            if module.check_mode or exists:
-                msg['changed'] = not exists
-            else:
-                syslog_servers = []
+            idrac.config_mgr._sysconfig.iDRAC.SysLog.SysLogEnable_SysLog = \
+                TypeHelper.convert_to_enum('Enabled', SysLogEnable_SysLogTypes)
+            idrac.config_mgr._sysconfig.iDRAC.SysLog.Port_SysLog = \
+                module.params['syslog_port']
 
-                if 'syslog_servers' in module.params:
-                    syslog_servers = module.params['syslog_servers']
-                
-                syslog_servers.extend(["","",""])
-                
-                msg['msg'] = idrac.config_mgr.enable_syslog (
-                                            module.params["syslog_port"],
-                                            0,
-                                            syslog_servers[0],
-                                            syslog_servers[1],
-                                            syslog_servers[2])
+            if module.params['syslog_servers']:
+                servers = [server for server in module.params['syslog_servers'] if server]
+                if servers:
+                    servers.extend(["", "", ""])
+                    idrac.config_mgr._sysconfig.iDRAC.SysLog.Server1_SysLog = servers[0]
+                    idrac.config_mgr._sysconfig.iDRAC.SysLog.Server2_SysLog = servers[1]
+                    idrac.config_mgr._sysconfig.iDRAC.SysLog.Server3_SysLog = servers[2]
         else:
-            if module.check_mode or not exists:
-                msg['changed'] = exists
-            else:
-                msg['msg'] = idrac.config_mgr.disable_syslog()
+            idrac.config_mgr._sysconfig.iDRAC.SysLog.SysLogEnable_SysLog = \
+                TypeHelper.convert_to_enum('Disabled', SysLogEnable_SysLogTypes)
 
-        if "Status" in msg['msg']:
-            if msg['msg']["Status"] == "Success":
-                msg['changed'] = True
-            else:
+        msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
+
+        if module.check_mode:
+            # since it is running in check mode, reject the changes
+            idrac.config_mgr._sysconfig.reject()
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes()
+
+            if "Status" in msg['msg'] and msg['msg']["Status"] != "Success":
                 msg['failed'] = True
+                msg['changed'] = False
 
     except Exception as e:
         err = True
@@ -198,39 +164,44 @@ def setup_idrac_syslog (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'str'),
+            # Remote Syslog parameters
+            syslog_servers=dict(required=False, default=None, type='list'),
+            syslog_port=dict(required=False, default=514, type='int'),
+            state=dict(required=False, choices=['present', 'absent'],
+                       default='absent')
+            ),
+        supports_check_mode=True)
 
-                # Remote Syslog parameters
-                syslog_servers = dict (required = False, default = None, type = 'list'),
-                syslog_port = dict (required = False, default = '514', type = 'str'),
-                state = dict (required = False,
-                              choices = ['present', 'absent'],
-                              default = 'present')
-                ),
-            supports_check_mode = True)
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    (msg, err) = setup_idrac_syslog (idrac, module)
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
+    # Setup Syslog
+    (msg, err) = setup_idrac_syslog(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

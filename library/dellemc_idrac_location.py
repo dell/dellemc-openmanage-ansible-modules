@@ -187,50 +187,8 @@ retval:
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for Network file share
 
-    Keyword arguments:
-    iDRAC  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-def _location_exists (idrac, module):
-    """
-    Check whether location exists
-
-    Keyword arguments:
-    idrac  -- iDRAC module
-    module -- Ansible modules
-    """
-
-    curr_location = idrac.config_mgr.Location
-
-    if curr_location['DataCenter'] != module.params['data_center_name']:
-        return False
-    elif curr_location['Aisle'] != module.params['aisle_name']:
-        return False
-    elif curr_location['Rack'] != module.params['rack_name']:
-        return False
-    elif curr_location['RackSlot'] != module.params['rack_slot']:
-        return False
-    elif curr_location['Room'] != module.params['room_name']:
-        return False
-
-    return True
-
-
-def setup_idrac_location (idrac, module):
+def setup_idrac_location(idrac, module):
     """
     Setup iDRAC System Location
 
@@ -245,31 +203,28 @@ def setup_idrac_location (idrac, module):
     err = False
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
+        idrac.config_mgr._sysconfig.System.ServerTopology.\
+            DataCenterName_ServerTopology = module.params['data_center_name']
+        idrac.config_mgr._sysconfig.System.ServerTopology.\
+            AisleName_ServerTopology = module.params['aisle_name']
+        idrac.config_mgr._sysconfig.System.ServerTopology.\
+            RackName_ServerTopology = module.params['rack_name']
+        idrac.config_mgr._sysconfig.System.ServerTopology.\
+            RackSlot_ServerTopology = module.params['rack_slot']
+        idrac.config_mgr._sysconfig.System.ServerTopology.\
+            RoomName_ServerTopology = module.params['room_name']
 
-        # Check if TLS Protocol and SSL Encryption Bits settings already exists
-        exists = _location_exists (idrac, module)
+        msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
-        if module.check_mode or exists:
-            msg['changed'] = not exists
+        if module.check_mode:
+            # since it is running in check mode, reject the changes
+            idrac.config_mgr._sysconfig.reject()
         else:
-            msg['msg'] = idrac.config_mgr.configure_location(
-                                            module.params['data_center_name'],
-                                            module.params['aisle_name'],
-                                            module.params['rack_name'],
-                                            module.params['rack_slot'],
-                                            module.params['room_name'])
+            msg['msg'] = idrac.config_mgr.apply_changes()
 
-            if "Status" in msg['msg']:
-                if msg['msg']['Status'] == "Success":
-                    msg['changed'] = True
-                else:
-                    msg['failed'] = True
+            if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
+                msg['failed'] = True
+                msg['changed'] = False
 
     except Exception as e:
         err = True
@@ -288,17 +243,16 @@ def main():
                 idrac = dict (required = False, type = 'dict'),
 
                 # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                   type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+                idrac_ip   = dict (required = True, type = 'str'),
+                idrac_user = dict (required = True, type = 'str'),
+                idrac_pwd  = dict (required = True, type = 'str', no_log = True),
+                idrac_port = dict (required = False, default = 443, type = 'int'),
 
                 # Network File Share
                 share_name = dict (required = True, type = 'str'),
                 share_user = dict (required = True, type = 'str'),
                 share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'str'),
+                share_mnt  = dict (required = True, type = 'path'),
 
                 data_center_name = dict (required = False, default = None, type = 'str'),
                 aisle_name = dict (required = False, default = None, type = 'str'),
@@ -313,6 +267,11 @@ def main():
     idrac_conn = iDRACConnection (module)
     idrac = idrac_conn.connect()
 
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
+    # Setup system topology
     msg, err = setup_idrac_location (idrac, module)
 
     # Disconnect from iDRAC
