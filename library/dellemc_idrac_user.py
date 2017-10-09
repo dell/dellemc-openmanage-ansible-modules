@@ -144,42 +144,25 @@ RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 try:
+    from omsdk.sdkcenum import TypeHelper
     from omdrivers.enums.iDRAC.iDRAC import Enable_UsersTypes, Privilege_UsersTypes
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for network file share
 
-    idrac -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-def setup_idrac_user (idrac, module):
+def setup_idrac_user(idrac, module):
     """
     Setup iDRAC local user
 
+    Keyword arguments:
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-
-    if not HAS_OMSDK:
-        module.fail_json(msg="OpenManage Python SDK is required for this module")
 
     msg = {}
     msg['changed'] = False
@@ -200,23 +183,8 @@ def setup_idrac_user (idrac, module):
             user_priv = Privilege_UsersTypes.ReadOnly
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
-
         # Check if user exists
-        user = None
-
-        if user_name:
-            user = idrac.config_mgr._sysconfig.iDRAC.Users.find_first(UserName_Users=user_name)
-
-        else:
-            msg['msg'] = "Invalid user name provided"
-            msg['failed'] = True
-            return msg
+        user = idrac.config_mgr._sysconfig.iDRAC.Users.find_first(UserName_Users=user_name)
 
         if module.params["state"] == "present":
             if not user:
@@ -225,10 +193,10 @@ def setup_idrac_user (idrac, module):
                     user_priv = Privilege_UsersTypes.NoAccess
 
                 idrac.user_mgr.Users.new(
-                                   UserName_Users = user_name.lower(),
-                                   Password_Users = user_pwd,
-                                   Privilege_Users = user_priv,
-                                   Enable_Users = Enable_UsersTypes.Enabled)
+                                   UserName_Users=user_name.lower(),
+                                   Password_Users=user_pwd,
+                                   Privilege_Users=user_priv,
+                                   Enable_Users=Enable_UsersTypes.Enabled)
             else:
                 if user.Enable_Users.get_value() != Enable_UsersTypes.Enabled:
                     user.Enable_Users.set_value(Enable_UsersTypes.Enabled)
@@ -285,44 +253,50 @@ def setup_idrac_user (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
-                # iDRAC handle
-                idrac      = dict (required = False, type='dict'),
+    module = AnsibleModule(
+        argument_spec=dict(
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC credentials
-                idrac_ip   = dict (required = True, type='str'),
-                idrac_user = dict (required = True, type='str'),
-                idrac_pwd  = dict (required = True, type='str', no_log = True),
-                idrac_port = dict (required = False, default = 443, type = 'int'),
+            # iDRAC credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str'),
-                share_mnt  = dict (required = True, type = 'path'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                # Local user credentials
-                user_name  = dict (required = True, type='str'),
-                user_pwd   = dict (required = False, default = None, type='str', no_log = True),
-                user_priv  = dict (required = False,
-                                   choices = ['Administrator', 'Operator', 'ReadOnly', 'NoAccess'],
-                                   default = None),
+            # Local user credentials
+            user_name=dict(required=True, type='str'),
+            user_pwd=dict(required=False, default=None, type='str', no_log=True),
+            user_priv=dict(required=False,
+                           choices=['Administrator', 'Operator', 'ReadOnly', 'NoAccess'],
+                           default=None),
 
-                # State
-                state = dict (required = False,
-                              choices = ['present', 'absent', 'enable', 'disable'],
-                              default = 'present')
-                ),
+            # State
+            state=dict(required=False,
+                       choices=['present', 'absent', 'enable', 'disable'],
+                       default='present')
+        ),
+        supports_check_mode=True)
 
-            supports_check_mode = True)
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
     # Setup User
-    msg, err = setup_idrac_user (idrac, module)
+    msg, err = setup_idrac_user(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

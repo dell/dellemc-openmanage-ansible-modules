@@ -132,7 +132,7 @@ def setup_idrac_syslog(idrac, module):
                 module.params['syslog_port']
 
             if module.params['syslog_servers']:
-                servers = [server for server in module.params['syslog_servers'] if server]
+                servers = [server for server in module.params['syslog_servers'] if server.strip()]
                 if servers:
                     servers.extend(["", "", ""])
                     idrac.config_mgr._sysconfig.iDRAC.SysLog.Server1_SysLog = servers[0]
@@ -166,6 +166,7 @@ def main():
 
     module = AnsibleModule(
         argument_spec=dict(
+
             # iDRAC handle
             idrac=dict(required=False, type='dict'),
 

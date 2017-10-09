@@ -117,28 +117,18 @@ RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkcreds import UserCredentials
+    from omsdk.sdkfile import FileOnShare
+    from omdrivers.enums.iDRAC.iDRACEnums import ExportFormatEnum, SCPTargetEnum
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for Network file share
 
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-def import_server_config_profile (idrac, module):
+def import_server_config_profile(idrac, module):
     """
     Import Server Configuration Profile from a network share
 
@@ -146,8 +136,6 @@ def import_server_config_profile (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    
-    from omdrivers.enums.iDRAC.iDRACEnums import SCPTargetEnum, ExportFormatEnum
 
     msg = {}
     msg['changed'] = False
@@ -156,22 +144,14 @@ def import_server_config_profile (idrac, module):
     err = False
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
-
         if module.check_mode:
             msg['changed'] = True
-            
         else:
-            myshare = FileOnShare(module.params['share_name'],
-                                module.params['share_mnt'],
-                                isFolder = True)
+            myshare = FileOnShare(remote=module.params['share_name'],
+                                  mount_point=module.params['share_mnt'],
+                                  isFolder=True)
             myshare.addcreds(UserCredentials(module.params['share_user'],
-                                            module.params['share_pwd']))
+                                             module.params['share_pwd']))
             scp_file_path = myshare.new_file(module.params['scp_file'])
 
             scp_components = SCPTargetEnum.ALL
@@ -185,10 +165,11 @@ def import_server_config_profile (idrac, module):
             elif module.params['scp_components'] == 'RAID':
                 scp_components = SCPTargetEnum.RAID
 
-            msg['msg'] = idrac.config_mgr.scp_import(scp_file_path, 
-                                            scp_components,
-                                            ExportFormatEnum.XML,
-                                            module.params['reboot'])
+            msg['msg'] = idrac.config_mgr.scp_import(scp_share_path=scp_file_path,
+                                                     components=scp_components,
+                                                     format_file=ExportFormatEnum.XML,
+                                                     reboot=module.params['reboot'],
+                                                     job_wait=module.params['job_wait'])
 
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":
@@ -206,39 +187,42 @@ def import_server_config_profile (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'str'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                scp_file   = dict (required = True, type = 'str'),
-                scp_components = dict (required = False,
-                                    choices = ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
-                                    default = 'ALL'),
-                reboot     = dict (required = False, type = 'bool', default = False)
-                ),
+            scp_file=dict(required=True, type='str'),
+            scp_components=dict(required=False,
+                                choices=['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
+                                default='ALL'),
+            reboot=dict(required=False, default=False, type='bool'),
+            job_wait=dict(required=False, default=True, type='bool')
+        ),
 
-            supports_check_mode = True)
+        supports_check_mode=True)
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    msg, err = import_server_config_profile (idrac, module)
+    msg, err = import_server_config_profile(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

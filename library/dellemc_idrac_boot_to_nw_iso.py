@@ -71,7 +71,11 @@ options:
     required: True
     description:
       - Path to ISO image relative to the I(share_name)
-    default: None
+  job_wait:
+    required: False
+    descrption:
+      - if C(True), will wait for the OS Deployment job to be completed
+      - if C(False), will return immediately with a JOB ID after creating and queuing the OS deployment job
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -93,28 +97,17 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkfile import FileOnShare
+    from omsdk.sdkcreds import UserCredentials
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for Network file share
 
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-def boot_to_network_iso (idrac, module):
+def boot_to_network_iso(idrac, module):
     """
     Boot to a network ISO image
 
@@ -122,7 +115,7 @@ def boot_to_network_iso (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    
+
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -130,25 +123,18 @@ def boot_to_network_iso (idrac, module):
     err = False
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
-
         if module.check_mode:
             msg['changed'] = True
-            
         else:
-            myshare = FileOnShare(module.params['share_name'],
-                                module.params['share_mnt'],
-                                isFolder = True)
-            myshare.addcreds(UserCredentials(module.params['share_user'],
-                                            module.params['share_pwd']))
-            iso_file_name = myshare.new_file(module.params['iso_image'])
+            myshare = FileOnShare(remote=module.params['share_name'],
+                                  mount_point=module.params['share_mnt'],
+                                  isFolder=True,
+                                  creds=UserCredentials(module.params['share_user'],
+                                                        module.params['share_pwd']))
+            iso_image = myshare.new_file(module.params['iso_image'])
 
-            msg['msg'] = idrac.config_mgr.boot_to_network_iso(iso_file_name) 
+            msg['msg'] = idrac.config_mgr.boot_to_network_iso(iso_image,
+                                                              module.params['job_wait'])
 
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":
@@ -166,36 +152,44 @@ def boot_to_network_iso (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'str'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                # ISO Image relative to Network File Share
-                iso_image  = dict (required = True, type = 'str')
-                ),
+            # ISO Image relative to Network File Share
+            iso_image=dict(required=True, type='str'),
 
-            supports_check_mode = True)
+            # Job wait
+            job_wait=dict(required=False, default=True, type='bool')
+        ),
+        supports_check_mode=True)
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    msg, err = boot_to_network_iso (idrac, module)
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
+    msg, err = boot_to_network_iso(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

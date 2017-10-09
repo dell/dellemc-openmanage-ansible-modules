@@ -25,11 +25,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = '''
 ---
-module: dellemc_idrac_location
-short_description: Configure System location fields
+module: dellemc_idrac_system
+short_description: Configure System attributes
 version_added: "2.3"
 description:
-    - Configure System location fields
+    - Configure following System attributes:
+      - System Topology
 options:
   idrac_ip:
     required: False
@@ -67,52 +68,40 @@ options:
     required: True
     description:
       - Local mount path of the network file share with read-write permission for ansible user
-  data_center_name:
+  system_topology:
     required: False
     description:
-      - Name of the Data Center where this system is located
+      - Dictionary of all the topology variables for the system:
+          "data_center_name" (Data Center Name)
+          "aisle_name" (Aisle Name)
+          "rack_name" (Rack Name)
+          "rack_slot" (Rack Slot)
+          "slot_name" (Slot Name)
+          "room_name" (Room Name)
     default: None
-  aisle_name:
-    required: False
-    description:
-      - Name of the Aisle in Data Center
-    default: None
-  rack_name:
-    required: False
-    description:
-      - Rack Name
-    default: None
-  rack_slot:
-    required: False
-    description:
-      - Rack slot number
-    default: None
-  room_name:
-    required: False
-    description:
-      - Name of the Room in Data Center
-    default: None
+    type: 'dict'
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
 '''
 
 EXAMPLES = '''
-# Configure System Location
-- name: Configure System Location
+# Configure System Topology
+- name: Configure System Topology such as DC name, Rack name, Slot name etc.
     dellemc_idrac_location:
       idrac_ip:     "192.168.1.1"
       idrac_user:   "root"
       idrac_pwd:    "calvin"
-      share_name:   "\\\\10.20.30.40\\share\\"
+      share_name:   "\\\\192.168.10.10\\share\\"
       share_user:   "user1"
       share_pwd:    "password"
       share_mnt:    "/mnt/share"
-      data_center_name: "Data Center 1"
-      aisle_name:   "Aisle 1"
-      rack_name:    "Rack 1"
-      rack_slot:    "Slot 1"
-      room_name:    "Room 1"
+      system_topology:
+        data_center_name: "Data Center 1"
+        aisle_name:   "Aisle 1"
+        rack_name:    "Rack 1"
+        rack_slot:    "Slot 1"
+        room_name:    "Room 1"
 '''
 
 RETURN = '''
@@ -184,13 +173,35 @@ retval:
 
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+import traceback
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 
-def setup_idrac_location(idrac, module):
+def setup_idrac_server_topology(idrac, module):
     """
     Setup iDRAC System Location
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
+    idrac.config_mgr._sysconfig.System.ServerTopology.\
+        DataCenterName_ServerTopology = module.params['server_topology'].get('data_center_name')
+    idrac.config_mgr._sysconfig.System.ServerTopology.\
+        AisleName_ServerTopology = module.params['server_topology'].get('aisle_name')
+    idrac.config_mgr._sysconfig.System.ServerTopology.\
+        RackName_ServerTopology = module.params['server_topology'].get('rack_name')
+    idrac.config_mgr._sysconfig.System.ServerTopology.\
+        RackSlot_ServerTopology = module.params['server_topology'].get('rack_slot')
+    idrac.config_mgr._sysconfig.System.ServerTopology.\
+        RoomName_ServerTopology = module.params['server_topology'].get('rack_name')
+
+
+def setup_idrac_system_attr(idrac, module):
+    """
+    Setup iDRAC system attributes
 
     Keyword arguments:
     idrac  -- iDRAC handle
@@ -200,19 +211,12 @@ def setup_idrac_location(idrac, module):
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
-    err = False
+    msg['msg'] = {}
+    error = False
 
     try:
-        idrac.config_mgr._sysconfig.System.ServerTopology.\
-            DataCenterName_ServerTopology = module.params['data_center_name']
-        idrac.config_mgr._sysconfig.System.ServerTopology.\
-            AisleName_ServerTopology = module.params['aisle_name']
-        idrac.config_mgr._sysconfig.System.ServerTopology.\
-            RackName_ServerTopology = module.params['rack_name']
-        idrac.config_mgr._sysconfig.System.ServerTopology.\
-            RackSlot_ServerTopology = module.params['rack_slot']
-        idrac.config_mgr._sysconfig.System.ServerTopology.\
-            RoomName_ServerTopology = module.params['room_name']
+        if module.params.get('server_topology'):
+            setup_idrac_server_topology(idrac, module)
 
         msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
@@ -226,58 +230,59 @@ def setup_idrac_location(idrac, module):
                 msg['failed'] = True
                 msg['changed'] = False
 
-    except Exception as e:
-        err = True
-        msg['msg'] = "Error: %s" % str(e)
+    except Exception as err:
+        error = True
+        msg['msg'] = "Error: %s" % str(err)
+        msg['exception'] = traceback.format_exc()
         msg['failed'] = True
 
-    return msg, err
+    return msg, error
 
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = True, type = 'str'),
-                idrac_user = dict (required = True, type = 'str'),
-                idrac_pwd  = dict (required = True, type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = 443, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'path'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                data_center_name = dict (required = False, default = None, type = 'str'),
-                aisle_name = dict (required = False, default = None, type = 'str'),
-                rack_name = dict (required = False, default = None, type = 'str'),
-                rack_slot = dict (required = False, default = None, type = 'str'),
-                room_name = dict (required = False, default = None, type = 'str')
-                ),
-
-            supports_check_mode = True)
+            server_topology=dict(required=False, default=None, type='dict'),
+            data_center_name=dict(required=False, default=None, type='str'),
+            aisle_name=dict(required=False, default=None, type='str'),
+            rack_name=dict(required=False, default=None, type='str'),
+            rack_slot=dict(required=False, default=None, type='str'),
+            room_name=dict(required=False, default=None, type='str')
+        ),
+        supports_check_mode=True)
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
     # Setup network share as local mount
     if not idrac_conn.setup_nw_share_mount():
         module.fail_json(msg="Failed to setup network share local mount point")
 
-    # Setup system topology
-    msg, err = setup_idrac_location (idrac, module)
+    # Setup iDRAC system attributes
+    msg, error = setup_idrac_system_attr(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
 
-    if err:
+    if error:
         module.fail_json(**msg)
     module.exit_json(**msg)
 

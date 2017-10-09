@@ -80,12 +80,12 @@ options:
   reboot:
     required: False
     description:
-      - if C(True), reboot after applying the update
-      - if C(False), do not reboot after applying the update
+      - if C(True), reboot for applying the updates
+      - if C(False), do not reboot for applying the update
     default: False
   job_wait:
     required: False
-    description: Wait for update JOB
+    description: Wait for update JOB to get completed
     default: True
     
 requirements: ['omsdk']
@@ -113,11 +113,17 @@ RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkcreds import UserCredentials
+    from omsdk.sdkfile import FileOnShare
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 
-def update_fw_from_nw_share (idrac, module):
+def update_fw_from_nw_share(idrac, module):
     """
     Update firmware from a network share
 
@@ -125,7 +131,7 @@ def update_fw_from_nw_share (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    
+
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -136,17 +142,16 @@ def update_fw_from_nw_share (idrac, module):
         if module.check_mode:
             msg['changed'] = True
         else:
-            upd_share = FileOnShare(remote = module.params['share_name'],
-                                    isFolder = True)
+            upd_share = FileOnShare(remote=module.params['share_name'],
+                                    isFolder=True)
             upd_share.addcreds(UserCredentials(module.params['share_user'],
                                                module.params['share_pwd']))
-            upd_share_file_path = upd_share.new_file(
-                                        module.params['catalog_file_name'])
+            upd_share_file_path = upd_share.new_file(module.params['catalog_file_name'])
 
             msg['msg'] = idrac.update_mgr.update_from_repo(upd_share_file_path,
-                                                    module.params['apply_update'],
-                                                    module.params['reboot'],
-                                                    module.params['job_wait']) 
+                                                           module.params['apply_update'],
+                                                           module.params['reboot'],
+                                                           module.params['job_wait'])
 
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":
@@ -164,40 +169,40 @@ def update_fw_from_nw_share (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
 
-                # Firmware update parameters
-                catalog_file_name = dict (required = False, 
-                                          default = 'Catalog.xml', type = 'str'),
-                apply_update = dict (required = False,
-                                     default = True, type = 'bool'),
-                reboot = dict (required = False, default = False, type = 'bool'),
-                job_wait = dict (required = False, default = True, type = 'bool')
-                ),
+            # Firmware update parameters
+            catalog_file_name=dict(required=False, default='Catalog.xml', type='str'),
+            apply_update=dict(required=False, default=True, type='bool'),
+            reboot=dict(required=False, default=False, type='bool'),
+            job_wait=dict(required=False, default=True, type='bool')
+        ),
 
-            supports_check_mode = True)
+        supports_check_mode=True)
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    msg, err = update_fw_from_nw_share (idrac, module)
+    msg, err = update_fw_from_nw_share(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

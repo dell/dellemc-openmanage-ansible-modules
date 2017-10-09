@@ -100,10 +100,10 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
-def lc_job_status (idrac, module):
+def lc_job_status(idrac, module):
     """
     Get status of a Lifecycle Controller Job given a JOB ID
 
@@ -130,7 +130,7 @@ def lc_job_status (idrac, module):
 
     return msg, err
 
-def delete_lc_job (idrac, module):
+def delete_lc_job(idrac, module):
     """
     Delete a Job from the LC Job queue give an Job ID
 
@@ -157,21 +157,22 @@ def delete_lc_job (idrac, module):
         elif exists:
             msg['msg'] = idrac.job_mgr.delete_job(module.params['job_id'])
 
-            if 'Status' in msg['msg'] and msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-            else:
-                msg['failed'] = True
+            if 'Status' in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                else:
+                    msg['failed'] = True
         else:
             msg['msg'] = "Invalid Job ID: " + module.params['job_id']
             msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
-        msg[failed] = True
+        msg['failed'] = True
 
     return msg, err
 
-def delete_lc_job_queue (idrac, module):
+def delete_lc_job_queue(idrac, module):
     """
     Deletes LC Job Queue
 
@@ -213,31 +214,30 @@ def delete_lc_job_queue (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                   type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
-                # JOB ID
-                job_id = dict (required = True, type = 'str'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # state
-                state = dict (required = False,
-                              choices = ['present', 'absent'],
-                              default = 'present')
-                ),
+            # JOB ID
+            job_id=dict(required=True, type='str'),
 
-            supports_check_mode = True)
+            # state
+            state=dict(required=False, choices=['present', 'absent'],
+                       default='present')
+        ),
+
+        supports_check_mode=True)
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
     msg = {}
@@ -247,7 +247,7 @@ def main():
         msg, err = lc_job_status(idrac, module)
     elif module.params['state'] == "absent":
         if module.params['job_id'] == 'JID_CLEARALL':
-            msg, err = delete_lc_job_queue(idrac)
+            msg, err = delete_lc_job_queue(idrac, module)
         else:
             msg, err = delete_lc_job(idrac, module)
 

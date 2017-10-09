@@ -127,7 +127,7 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkcenum import TypeHelper
@@ -142,26 +142,7 @@ try:
 except ImportError:
     HAS_OMSDK = False
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for Network file share
-
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                    module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-
-def _setup_nic (idrac, module):
+def _setup_nic(idrac, module):
     """
     Setup iDRAC NIC attributes
 
@@ -211,10 +192,10 @@ def _setup_nic (idrac, module):
     idrac.config_mgr._sysconfig.iDRAC.NIC.DNSRegister_NIC = \
         TypeHelper.convert_to_enum(module.params['dns_register'],
                                    DNSRegister_NICTypes)
-    if module.params['dns_idrac_name']: 
+    if module.params['dns_idrac_name']:
         idrac.config_mgr._sysconfig.iDRAC.NIC.DNSRacName = module.params['dns_idrac_name']
 
-    # Enable Auto-Config can 
+    # Enable Auto-Config
     if module.params['nic_auto_config'] != 'Disabled':
         if module.params['ipv4_enable'] != 'Enabled' or \
            module.params['ipv4_dhcp_enable'] != 'Enabled':
@@ -230,7 +211,7 @@ def _setup_nic (idrac, module):
     idrac.config_mgr._sysconfig.iDRAC.NIC.VLanID_NIC = module.params['vlan_id']
     idrac.config_mgr._sysconfig.iDRAC.NIC.VLanPriority_NIC = module.params['vlan_priority']
 
-def _setup_nic_static (idrac, module):
+def _setup_nic_static(idrac, module):
     """
     Setup iDRAC NIC Static attributes
 
@@ -247,7 +228,7 @@ def _setup_nic_static (idrac, module):
         idrac.config_mgr._sysconfig.iDRAC.NICStatic.DNSDomainName_NICStatic = \
                 module.params['dns_domain_name']
 
-def _setup_ipv4 (idrac, module):
+def _setup_ipv4(idrac, module):
     """
     Setup IPv4 parameters
 
@@ -263,7 +244,7 @@ def _setup_ipv4 (idrac, module):
             TypeHelper.convert_to_enum(module.params['ipv4_dhcp_enable'],
                                        DHCPEnable_IPv4Types)
 
-def _setup_ipv4_static (idrac, module):
+def _setup_ipv4_static(idrac, module):
     """
     Setup IPv4 Static parameters
 
@@ -315,13 +296,6 @@ def setup_idrac_nic (idrac, module):
     err = False
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
-
         _setup_nic(idrac, module)
         _setup_nic_static(idrac, module)
 
@@ -351,90 +325,90 @@ def setup_idrac_nic (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+    module = AnsibleModule(
+        argument_spec=dict(
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = True, type = 'str'),
-                idrac_user = dict (required = True, type = 'str'),
-                idrac_pwd  = dict (required = True, type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = 443, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'path'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                # iDRAC Network Settings
-                nic_enable = dict (required = False,
-                                   choices = ['Enabled', 'Disabled'],
-                                   default = 'Enabled', type = 'str'),
-                nic_selection = dict (required = False,
-                                      choices = ['Dedicated', 'LOM1', 'LOM2', 'LOM3', 'LOM4'],
-                                      default = 'Dedicated', type = 'str'),
-                nic_failover = dict (required = False,
-                                     choices = ['ALL', 'LOM1', 'LOM2', 'LOM3', 'LOM4', 'None'],
-                                     default = 'None'),
-                nic_autoneg = dict (required = False,
-                                    choices = ['Enabled', 'Disabled'],
-                                    default = 'Enabled', type = 'str'),
-                nic_speed = dict (required = False,
-                                  choices = ['10', '100', '1000'],
-                                  default = 1000, type = 'str'),
-                nic_duplex = dict (required = False, choices = ['Full', 'Half'],
-                                   default = 'Full', type = 'str'),
-                nic_mtu = dict (required = False, default = 1500, type = 'int'),
+            # iDRAC Network Settings
+            nic_enable=dict(required=False, choices=['Enabled', 'Disabled'],
+                            default='Enabled', type='str'),
+            nic_selection=dict(required=False,
+                               choices=['Dedicated', 'LOM1', 'LOM2', 'LOM3', 'LOM4'],
+                               default='Dedicated', type='str'),
+            nic_failover=dict(required=False,
+                              choices=['ALL', 'LOM1', 'LOM2', 'LOM3', 'LOM4', 'None'],
+                              default='None'),
+            nic_autoneg=dict(required=False, choices=['Enabled', 'Disabled'],
+                             default='Enabled', type='str'),
+            nic_speed=dict(required=False, choices=['10', '100', '1000'],
+                           default=1000, type='str'),
+            nic_duplex=dict(required=False, choices=['Full', 'Half'],
+                            default='Full', type='str'),
+            nic_mtu=dict(required=False, default=1500, type='int'),
 
-                # Network Common Settings
-                dns_register = dict (required = False,
-                                     choices = ['Enabled', 'Disabled'],
-                                     default = 'Disabled', type = 'str'),
-                dns_idrac_name = dict (required = False, default = None, type = 'str'),
-                dns_domain_from_dhcp = dict (required = False,
-                                             choices = ['Disabled', 'Enabled'],
-                                             default = 'Disabled', type = 'str'),
-                dns_domain_name = dict (required = False, default = None, type = 'str'),
+            # Network Common Settings
+            dns_register=dict(required=False, choices=['Enabled', 'Disabled'],
+                              default='Disabled', type='str'),
+            dns_idrac_name=dict(required=False, default=None, type='str'),
+            dns_domain_from_dhcp=dict(required=False,
+                                      choices=['Disabled', 'Enabled'],
+                                      default='Disabled', type='str'),
+            dns_domain_name=dict(required=False, default=None, type='str'),
 
-                # Auto-Config Settings
-                nic_auto_config = dict (required = False,
-                                        choices = ['Disabled', 'Enable Once', 'Enable Once After Reset'],
-                                        default = 'Disabled', type = 'str'),
+            # Auto-Config Settings
+            nic_auto_config=dict(required=False,
+                                 choices=['Disabled', 'Enable Once', 'Enable Once After Reset'],
+                                 default='Disabled', type='str'),
 
+            # IPv4 Settings
+            ipv4_enable=dict(required=False, choices=['Enabled', 'Disabled'],
+                             default='Enabled', type='str'),
+            ipv4_dhcp_enable=dict(required=False, choices=['Enabled', 'Disabled'],
+                                  default='Disabled', type='str'),
+            ipv4_static=dict(required=False, default=None, type='str'),
+            ipv4_static_gw=dict(required=False, default=None, type='str'),
+            ipv4_static_mask=dict(required=False, default=None, type='str'),
+            ipv4_dns_from_dhcp=dict(required=False,
+                                    choices=['Enabled', 'Disabled'],
+                                    default='Disabled', type='str'),
+            ipv4_preferred_dns=dict(required=False, default=None, type='str'),
+            ipv4_alternate_dns=dict(required=False, default=None, type='str'),
 
-                # IPv4 Settings
-                ipv4_enable = dict (required = False,
-                                    choices = ['Enabled', 'Disabled'],
-                                    default = 'Enabled', type ='str'),
-                ipv4_dhcp_enable = dict (required = False,
-                                         choices = ['Enabled', 'Disabled'],
-                                         default = 'Disabled', type = 'str'),
-                ipv4_static = dict (required = False, default = None, type = 'str'),
-                ipv4_static_gw = dict (required = False, default = None, type = 'str'),
-                ipv4_static_mask = dict (required = False, default = None, type = 'str'),
-                ipv4_dns_from_dhcp = dict (required = False,
-                                           choices = ['Enabled', 'Disabled'],
-                                           default = 'Disabled', type = 'str'),
-                ipv4_preferred_dns = dict (required = False, default = None, type = 'str'),
-                ipv4_alternate_dns = dict (required = False, default = None, type = 'str'),
+            # VLAN Settings
+            vlan_enable=dict(required=False, choices=['Enabled', 'Disabled'],
+                             default='Disabled', type='str'),
+            vlan_id=dict(required=False, default=None, type='int'),
+            vlan_priority=dict(required=False, default=None, type='int'),
+        ),
 
-                # VLAN Settings
-                vlan_enable = dict (required = False,
-                                    choices = ['Enabled', 'Disabled'],
-                                    default = 'Disabled', type = 'str'),
-                vlan_id = dict (required = False, default = None, type = 'int'),
-                vlan_priority = dict (required = False, default = None, type = 'int'),
-                ),
+        supports_check_mode=True)
 
-            supports_check_mode = True)
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    (msg, err) = setup_idrac_nic (idrac, module)
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
+    # Setup iDRAC NIC
+    (msg, err) = setup_idrac_nic(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

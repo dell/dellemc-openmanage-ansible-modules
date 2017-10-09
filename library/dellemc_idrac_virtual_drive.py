@@ -75,7 +75,14 @@ options:
   raid_type:
     required: False
     description:
-      - RAID type
+      - Select the RAID Level for the new virtual drives.
+      - RAID Levels can be one of the following:
+        RAID 0: Striping without parity
+        RAID 1: Mirrorign without parity
+        RAID 5: Striping with distributed parity
+        RAID 50: Combines multiple RAID 5 sets with striping
+        RAID 6: Striping with dual parity
+        RAID 60: Combines multiple RAID 6 sets with striping
     choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
     default: 'RAID 0'
   read_cache_policy:
@@ -128,22 +135,22 @@ EXAMPLES = '''
       idrac_ip:   "192.168.1.1"
       idrac_user: "root"
       idrac_pwd:  "calvin"
-      share_name: "\\10.20.30.40\share"
+      share_name: "\\\\192.168.10.10\\share"
       share_user: "user1"
       share_pwd:  "password"
       share_mnt:  "/mnt/share"
       virtual_drive_name:  "Virtual Drive 0"
-      raid_type:   "RAID_1"
+      raid_type:   "RAID 1"
       span_depth:  1
       span_length: 2
       state:       "present"
 
 - name: Delete Virtual Drive
-    dellemc_idrac_boot_to_nw_iso:
+    dellemc_idrac_virtual_drive:
       idrac_ip:   "192.168.1.1"
       idrac_user: "root"
       idrac_pwd:  "calvin"
-      share_name: "\\10.20.30.40\share"
+      share_name: "\\\\192.168.10.10\\share"
       share_user: "user1"
       share_pwd:  "password"
       share_mnt:  "/mnt/share"
@@ -154,28 +161,20 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkcenum import TypeHelper
+    from omdrivers.lifecycle.iDRAC.RaidHelper import RaidHelper
+    from omdrivers.enums.iDRAC.RAID import (
+        DiskCachePolicyTypes, RAIDTypesTypes, RAIDdefaultReadPolicyTypes,
+        RAIDdefaultWritePolicyTypes, StripeSizeTypes
+    )
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for Network file share
-
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-def _virtual_drive_exists (idrac, module):
+def _virtual_drive_exists(idrac, module):
     """
     check whether a virtual drive exists
 
@@ -183,8 +182,7 @@ def _virtual_drive_exists (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    vd = idrac.config_mgr.get_virtual_disk(
-                        module.params['virtual_drive_name'])
+    vd = idrac.config_mgr.get_virtual_disk(module.params['vd_name'])
 
     if vd:
         return True, vd
@@ -192,7 +190,7 @@ def _virtual_drive_exists (idrac, module):
     return False, None
 
 
-def virtual_drive (idrac, module):
+def virtual_drive(idrac, module):
     """
     Create or delete a virtual drive
 
@@ -201,9 +199,6 @@ def virtual_drive (idrac, module):
     module -- Ansible module
     """
 
-    from omsdk.sdkcenum import TypeHelper
-    from omdrivers.enums.iDRAC.iDRACEnums import RAIDLevelsEnum
-    
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -211,12 +206,16 @@ def virtual_drive (idrac, module):
     err = False
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
+        raid_type = TypeHelper.convert_to_enum(module.params['raid_type'],
+                                               RAIDTypesTypes)
+        read_policy = TypeHelper.convert_to_enum(module.params['read_policy'],
+                                                 RAIDdefaultReadPolicyTypes)
+        write_policy = TypeHelper.convert_to_enum(module.params['write_policy'],
+                                                  RAIDdefaultWritePolicyTypes)
+        disk_policy = TypeHelper.convert_to_enum(module.params['disk_policy'],
+                                                 DiskCachePolicyTypes)
+        pd_filter = "disk.MediaType == " + module.params['media_type'] + \
+                    " and disk.BusProtocol == " + module.params['bus_protocol']
 
         # Check whether VD exists
         exists, vd = _virtual_drive_exists(idrac, module)
@@ -224,23 +223,27 @@ def virtual_drive (idrac, module):
         if module.params['state'] == 'present':
             if module.check_mode or exists:
                 msg['changed'] = not exists
-                
             else:
-                raid_type = TypeHelper.convert_to_enum(module.params['raid_type'],
-                                                       RAIDLevelsEnum)
-
-                msg['msg'] = idrac.config_mgr.create_virtual_disk(
-                                            module.params['virtual_drive_name'],
-                                            module.params['span_depth'],
-                                            module.params['span_length'],
-                                            raid_type) 
+                msg['msg'] = idrac.config_mgr.RaidHelper.new_virtual_disk(
+                    Name=module.params['vd_name'],
+                    Size=module.params['vd_size'],
+                    RAIDTypes=raid_type,
+                    RAIDdefaultReadPolicy=read_policy,
+                    RAIDdefaultWritePolicy=write_policy,
+                    DiskCachePolicy=disk_policy,
+                    SpanLength=module.params['span_length'],
+                    SpanDepth=module.params['span_depth'],
+                    StripeSize=module.params['stripe_size'],
+                    NumberDedicatedHotSpare=module.params['dedicated_hot_spare'],
+                    NumberGlobalHotSpare=module.params['global_hot_spare'],
+                    PhysicalDiskFilter=pd_filter)
 
         else:
             if module.check_mode or not exists:
                 msg['changed'] = exists
             else:
-                msg['msg'] = idrac.config_mgr.delete_virtual_disk(
-                                            module.params['virtual_drive_name'])
+                msg['msg'] = idrac.config_mgr.RAIDHelper.delete_virtual_disk(
+                    Name=module.params['vd_name'])
 
         if "Status" in msg['msg']:
             if msg['msg']['Status'] == "Success":
@@ -258,62 +261,72 @@ def virtual_drive (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'str'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                # Virtual drive parameters
-                virtual_drive_name  = dict (required = True, type = 'str'),
-                raid_type = dict (required = False,
-                                  choices = ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6',
-                                             'RAID 10', 'RAID 50','RAID 60'],
-                                  default = 'RAID 0',
-                                  type = 'str'),
-                read_cache_policy = dict (requird = False,
-                                          choices = ["NoReadAhead", "ReadAhead", "Adaptive"],
-                                          default = "NoReadAhead",
-                                          type = 'str'),
-                write_cache_policy = dict (requird = False,
-                                          choices = ["WriteThrough", "WriteBack", "WriteBackForce"],
-                                          default = "WriteThrough",
-                                          type = 'str'),
-                disk_cache_policy = dict (requird = False,
-                                          choices = ["Default", "Enabled", "Disabled"],
-                                          default = "Default",
-                                          type = 'str'),
-                stripe_size = dict (requird = False,
-                                    choices = ["64KB", "128KB", "256KB","512KB", "1MB"],
-                                    default = "64KB",
-                                    type = 'str'),
-                span_length = dict (required = True, type = 'int'),
-                span_depth = dict (required = True, type = 'int'),
-                state = dict (required = False, 
-                              choices = ['present', 'absent'],
-                              default = 'present')
-                ),
+            # Virtual drive parameters
+            vd_name=dict(required=True, type='str'),
+            vd_size=dict(required=False, type='int'),
+            media_type=dict(required=False, choices=['HDD', 'SSD'],
+                            default='HDD', type='str'),
+            bus_protocol=dict(required=False, choices=['SAS', 'SATA'],
+                              default='SAS', type='str'),
+            raid_type=dict(required=False,
+                           choices=['RAID 0', 'RAID 1', 'RAID 10', 'RAID 5',
+                                    'RAID 50', 'RAID 6', 'RAID 60'],
+                           type='str'),
+            read_policy=dict(requird=False,
+                             choices=["NoReadAhead", "ReadAhead", "AdaptiveReadAhead"],
+                             default="NoReadAhead", type='str'),
+            write_policy=dict(requird=False,
+                              choices=["WriteThrough", "WriteBack", "WriteBackForce"],
+                              default="WriteThrough", type='str'),
+            disk_policy=dict(requird=False,
+                             choices=["Default", "Enabled", "Disabled"],
+                             default="Default", type='str'),
+            stripe_size=dict(requird=False,
+                             choices=[65536, 131072, 262144, 524288, 1048576],
+                             default=65536, type='int'),
+            span_length=dict(required=False, type='int'),
+            span_depth=dict(required=False, type='int'),
+            dedicated_hot_spare=dict(required=False, default=0, type='int'),
+            global_hot_spare=dict(required=False, default=0, type='int'),
+            state=dict(required=False, choices=['present', 'absent'],
+                       default='present')
+        ),
+        required_if=[
+            ["state", "present", ["vd_size", "raid_type", "span_length", "span_depth"]]
+        ],
 
-            supports_check_mode = True)
+        supports_check_mode=True)
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    msg, err = virtual_drive (idrac, module)
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
+    msg, err = virtual_drive(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

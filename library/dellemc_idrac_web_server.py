@@ -143,37 +143,21 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 try:
     from omsdk.sdkcenum import TypeHelper
-    from omdrivers.enums.iDRAC.iDRAC import TLSProtocol_WebServerTypes
-    from omdrivers.enums.iDRAC.iDRAC import SSLEncryptionBitLength_WebServerTypes
+    from omdrivers.enums.iDRAC.iDRAC import (
+        Enable_WebServerTypes, SSLEncryptionBitLength_WebServerTypes,
+        TLSProtocol_WebServerTypes
+    )
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
 
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for Network file share
-
-    Keyword arguments:
-    iDRAC  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-def setup_idrac_webserver (idrac, module):
+def setup_idrac_webserver(idrac, module):
     """
     Setup iDRAC Webserver services
 
@@ -182,44 +166,42 @@ def setup_idrac_webserver (idrac, module):
     module -- Ansible module
     """
 
-    if not HAS_OMSDK:
-        module.fail_json(msg="OpenManage Python SDK is required for this module")
-
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
     err = False
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
-
         tls_protocol = TypeHelper.convert_to_enum(module.params['tls_protocol'],
                                                   TLSProtocol_WebServerTypes)
         ssl_bits = TypeHelper.convert_to_enum(module.params['ssl_bits'],
-                                         SSLEncryptionBitLength_WebServerTypes)
+                                              SSLEncryptionBitLength_WebServerTypes)
 
         if module.params['state'] == 'present':
-            idrac.config_mgr._sysconfig.iDRAC.WebServer.Enable_WebServer = 'Enabled'
-            idrac.config_mgr._sysconfig.iDRAC.WebServer.Timeout_WebServer = module.params['timeout']
-            idrac.config_mgr._sysconfig.iDRAC.WebServer.HttpPort_WebServer = module.params['http_port']
-            idrac.config_mgr._sysconfig.iDRAC.WebServer.HttpsPort_WebServer = module.params['https_port']
-            idrac.config_mgr._sysconfig.iDRAC.WebServer.TLSProtocol_WebServer = tls_protocol
-            idrac.config_mgr._sysconfig.iDRAC.WebServer.SSLEncryptionBitLength_WebServer = ssl_bits
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.\
+                    Enable_WebServer = Enable_WebServerTypes.Enabled
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.\
+                    Timeout_WebServer = module.params['timeout']
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.\
+                    HttpPort_WebServer = module.params['http_port']
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.\
+                    HttpsPort_WebServer = module.params['https_port']
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.\
+                    TLSProtocol_WebServer = tls_protocol
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.\
+                    SSLEncryptionBitLength_WebServer = ssl_bits
         else:
-            idrac.config_mgr._sysconfig.iDRAC.WebServer.Enable_WebServer = 'Disabled'
+            idrac.config_mgr._sysconfig.iDRAC.WebServer.\
+                    Enable_WebServer = Enable_WebServerTypes.Disabled
 
         msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
-        if module.check_mode: 
+        if module.check_mode:
             # Since it is running in check mode, reject the changes
             idrac.config_mgr._sysconfig.reject()
         else:
-            msg['msg'] = idrac.config_mgr.apply_changes(reboot = False)
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
 
             if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
                 msg['failed'] = True
@@ -235,52 +217,52 @@ def setup_idrac_webserver (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                   type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'path'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                # Web Server
-                timeout = dict (required = False, default = 1800, type = 'int'),
-                http_port = dict (required = False, default = 80, type = 'int'),
-                https_port = dict (required = False, default = 443, type = 'int'),
-                tls_protocol = dict (required = False,
-                                     choices = ['TLS 1.0 and Higher',
-                                                'TLS 1.1 and Higher',
-                                                'TLS 1.2 Only'],
-                                     default = 'TLS 1.1 and Higher'),
-                ssl_bits = dict (required = False,
-                                 choices = ['Auto-Negotiate',
-                                            '128-Bit or higher',
-                                            '168-Bit or higher',
-                                            '256-Bit or higher'],
-                                 default = '128-Bit or higher'),
-                state = dict (required = False,
-                              choices = ['present', 'absent'],
-                              default = 'present')
+            # Web Server Service paramaters
+            timeout=dict(required=False, default=1800, type='int'),
+            http_port=dict(required=False, default=80, type='int'),
+            https_port=dict(required=False, default=443, type='int'),
+            tls_protocol=dict(required=False,
+                              choices=['TLS 1.0 and Higher', 'TLS 1.1 and Higher', 'TLS 1.2 Only'],
+                              default='TLS 1.1 and Higher'),
+            ssl_bits=dict(required=False,
+                          choices=['Auto-Negotiate', '128-Bit or higher',
+                                   '168-Bit or higher', '256-Bit or higher'],
+                          default='128-Bit or higher'),
+            state=dict(required=False, choices=['present', 'absent'], default='present')
+        ),
+        supports_check_mode=True)
 
-                ),
-            supports_check_mode = True)
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    msg, err = setup_idrac_webserver (idrac, module)
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
+    # Setup web server parameters
+    msg, err = setup_idrac_webserver(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

@@ -120,26 +120,8 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
-
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for network file share
-
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                    module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
 
 
 def _setup_timezone(idrac, module):
@@ -168,17 +150,21 @@ def _setup_ntp(idrac, module):
         idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTPEnable_NTPConfigGroup = 'Enabled'
 
         if module.params['ntp_servers']:
-            ntp_servers = [server for server in module.params['ntp_servers'] if server]
+            ntp_servers = [server for server in module.params['ntp_servers'] \
+                           if server.strip()]
             ntp_servers.extend(["", "", ""])
 
             if ntp_servers[0]:
-                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTP1_NTPConfigGroup = ntp_servers[0]
+                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.\
+                    NTP1_NTPConfigGroup = ntp_servers[0]
 
             if ntp_servers[1]:
-                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTP2_NTPConfigGroup = ntp_servers[1]
+                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.\
+                    NTP2_NTPConfigGroup = ntp_servers[1]
 
             if ntp_servers[2]:
-                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTP3_NTPConfigGroup = ntp_servers[2]
+                idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.\
+                    NTP3_NTPConfigGroup = ntp_servers[2]
 
     elif module.params['state'] == 'absent':
         idrac.config_mgr._sysconfig.iDRAC.NTPConfigGroup.NTPEnable_NTPConfigGroup = 'Disabled'
@@ -200,13 +186,6 @@ def setup_idrac_timezone_ntp(idrac, module):
     err = False
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-            if not  _setup_idrac_nw_share (idrac, module):
-                msg['msg'] = "Failed to setup local mount point for network share"
-                msg['failed'] = True
-                return msg
-
         _setup_timezone(idrac, module)
         _setup_ntp(idrac, module)
 
@@ -216,7 +195,7 @@ def setup_idrac_timezone_ntp(idrac, module):
             # since it is running in check mode, reject the changes
             idrac.config_mgr._sysconfig.reject()
         else:
-            msg['msg'] = idrac.config_mgr.apply_changes(reboot = False)
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
 
             if 'Status' in msg['msg'] and msg['msg']['Status'] != "Success":
                 msg['failed'] = True
@@ -232,40 +211,44 @@ def setup_idrac_timezone_ntp(idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+    module = AnsibleModule(
+        argument_spec=dict(
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                   type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'path'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                # Time Zone
-                timezone = dict (required = False, default = None, type = 'str'),
-                # NTP parameters
-                ntp_servers = dict (required = False, default = None, type = 'list'),
-                state = dict (required = False,
-                              choices = ['present', 'absent'],
-                              default = 'present')
+            # Time Zone
+            timezone=dict(required=False, default=None, type='str'),
 
-                ),
-            supports_check_mode = True)
+            # NTP parameters
+            ntp_servers=dict(required=False, default=None, type='list'),
+
+            state=dict(required=False, choices=['present', 'absent'], default='present')
+        ),
+
+        supports_check_mode=True)
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    (msg, err) = setup_idrac_timezone_ntp (idrac, module)
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
+    # Setup TZ and NTP
+    (msg, err) = setup_idrac_timezone_ntp(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

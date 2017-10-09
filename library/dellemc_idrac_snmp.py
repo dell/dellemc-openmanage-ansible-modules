@@ -138,36 +138,20 @@ RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 try:
     from omsdk.sdkcenum import TypeHelper
-    from omdrivers.enums.iDRAC.iDRAC import SNMPProtocol_SNMPTypes, AgentEnable_SNMPTypes, TrapFormat_SNMPTypes
+    from omdrivers.enums.iDRAC.iDRAC import (
+        AgentEnable_SNMPTypes, SNMPProtocol_SNMPTypes, TrapFormat_SNMPTypes
+    )
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
 
-def _setup_idrac_nw_share (idrac, module):
-    """
-    Setup local mount point for Network file share
 
-    Keyword arguments:
-    idrac  -- iDRAC handle
-    module -- Ansible module
-    """
-
-    myshare = FileOnShare(module.params['share_name'],
-                          module.params['share_mnt'],
-                          isFolder=True)
-
-    myshare.addcreds(UserCredentials(module.params['share_user'],
-                                     module.params['share_pwd']))
-
-    return idrac.config_mgr.set_liason_share(myshare)
-
-
-def setup_idrac_snmp (idrac, module):
+def setup_idrac_snmp(idrac, module):
     """
     Setup iDRAC SNMP Configuration parameters
 
@@ -176,9 +160,6 @@ def setup_idrac_snmp (idrac, module):
     module -- Ansible module
     """
 
-    if not HAS_OMSDK:
-        module.fail_json(msg="OpenManage Python SDK is required for this module")
-
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -186,13 +167,6 @@ def setup_idrac_snmp (idrac, module):
     err = False
 
     try:
-        # Check first whether local mount point for network share is setup
-        if idrac.config_mgr.liason_share is None:
-             if not  _setup_idrac_nw_share (idrac, module):
-                 msg['msg'] = "Failed to setup local mount point for network share"
-                 msg['failed'] = True
-                 return msg
-
         if module.params["state"] == "present":
             idrac.config_mgr.SNMPConfiguration.AgentEnable_SNMP = \
                     AgentEnable_SNMPTypes.Enabled
@@ -235,57 +209,55 @@ def setup_idrac_snmp (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC Handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC Handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = True, type = 'str'),
-                idrac_user = dict (required = True, type = 'str'),
-                idrac_pwd  = dict (required = True, type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = 443, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_mnt  = dict (required = True, type = 'path'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_mnt=dict(required=True, type='path'),
 
-                # SNMP Configuration
-                snmp_enable = dict (required = False,
-                                    choice = ['enabled', 'disabled'],
-                                    default = 'enabled',
-                                    type = 'str'),
-                snmp_protocol = dict (required = False,
-                                      choice = ['All', 'SNMPv3'],
-                                      default = 'All',
-                                      type = 'str'),
-                snmp_community = dict (required = False,
-                                       default = 'public', type = 'str'),
-                snmp_port = dict (required = False,
-                                  default = '161', type = 'str'),
-                snmp_trap_port = dict (required = False, default = '162',
-                                       type = 'str'),
-                snmp_trap_format = dict (required = False,
-                                         choice = ['SNMPv1','SNMPv2','SNMPv3'],
-                                         default = 'SNMPv1',
-                                         type = 'str'),
+            # SNMP Configuration
+            snmp_enable=dict(required=False, choice=['Enabled', 'Disabled'],
+                             default='Enabled', type='str'),
+            snmp_protocol=dict(required=False, choice=['All', 'SNMPv3'],
+                               default='All', type='str'),
+            snmp_community=dict(required=False, default='public', type='str'),
+            snmp_port=dict(required=False, default=161, type='int'),
+            snmp_trap_port=dict(required=False, default=162, type='int'),
+            snmp_trap_format=dict(required=False,
+                                  choice=['SNMPv1', 'SNMPv2', 'SNMPv3'],
+                                  default='SNMPv1', type='str'),
 
-                state = dict (required = False,
-                              choice = ['present','absent'],
-                              default = 'present')
-            ),
+            state=dict(required=False, choice=['present', 'absent'],
+                       default='present')
+        ),
 
-            supports_check_mode = True)
+        supports_check_mode=True)
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
     # Configure SNMP
-    msg, err = setup_idrac_snmp (idrac, module)
+    (msg, err) = setup_idrac_snmp(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

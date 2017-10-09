@@ -25,11 +25,8 @@ try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
     from omsdk.sdkfile import FileOnShare
-
     HAS_OMSDK = True
-
 except ImportError:
-
     HAS_OMSDK = False
 
 class iDRACConnection():
@@ -102,10 +99,10 @@ class iDRACConnection():
             share_mnt  = self.module.params.get('share_mnt')
 
             if share_name and share_user and share_pwd and share_mnt:
-                nw_share = FileOnShare(remote = share_name,
-                                       mount_point = share_mnt,
-                                       isFolder = True,
-                                       creds = UserCredentials(share_user, share_pwd))
+                nw_share = FileOnShare(remote=share_name,
+                                       mount_point=share_mnt,
+                                       isFolder=True,
+                                       creds=UserCredentials(share_user, share_pwd))
 
                 if nw_share:
                     return self.handle.config_mgr.set_liason_share(nw_share)

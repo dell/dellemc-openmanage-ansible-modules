@@ -27,30 +27,28 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 DOCUMENTATION = '''
 ---
 module: dellemc_idrac_inventory
-short_description: Returns the PowerEdge Server system inventory
+short_description: Returns the PowerEdge Server hardware inventory
 version_added: "2.3"
 description:
-    - Returns the Dell EMC PowerEdge Server system inventory
+    - Returns the Dell EMC PowerEdge Server hardware inventory
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
   idrac_port:
     required: False
-    description: iDRAC port
-    default: None
+    description:
+      - iDRAC port
+    default: 443
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -69,7 +67,7 @@ RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 # Get System Inventory
@@ -93,20 +91,19 @@ def get_system_inventory(idrac):
 def main():
 
     module = AnsibleModule(
-            argument_spec = dict(
+        argument_spec=dict(
 
-                # iDRAC Handle
-                idrac = dict(required=False, type='dict'),
+            # iDRAC Handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC credentials
-                idrac_ip   = dict(required = False, default = None, type='str'),
-                idrac_user = dict(required = False, default = None, type='str'),
-                idrac_pwd  = dict(required = False, default = None,
-                                  type='str', no_log = True),
-                idrac_port = dict(required = False, default = None)
-            ),
+            # iDRAC credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=False, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int')
+        ),
 
-            supports_check_mode = True)
+        supports_check_mode=True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection(module)

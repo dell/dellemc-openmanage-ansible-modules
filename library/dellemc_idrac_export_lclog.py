@@ -84,10 +84,16 @@ RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkcreds import UserCredentials
+    from omsdk.sdkfile import FileOnShare
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
-def export_lc_logs (idrac, module):
+def export_lc_logs(idrac, module):
     """
     Export Lifecycle Controller Log to the given file share
 
@@ -104,16 +110,15 @@ def export_lc_logs (idrac, module):
     try:
         lclog_file_name_format = "%ip_%Y%m%d_%H%M%S_LC_Log.log"
 
-        myshare = FileOnShare(module.params['share_name'],
-                                mount_point = '',
-                                isFolder = True)
-        myshare.addcreds(UserCredentials(module.params['share_user'],
-                                        module.params['share_pwd']))
+        myshare = FileOnShare(remote=module.params['share_name'],
+                              isFolder=True,
+                              creds=UserCredentials(module.params['share_user'],
+                                                    module.params['share_pwd']))
         lc_log_file = myshare.new_file(lclog_file_name_format)
 
         msg['msg'] = idrac.log_mgr.lclog_export(lc_log_file)
 
-        if "Status" in msg['msg'] and msg['msg']['Status'] is not "Success":
+        if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
 
     except Exception as e:
@@ -126,29 +131,30 @@ def export_lc_logs (idrac, module):
 # Main()
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=False, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_user = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True)
-            ),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True)
+        ),
+        supports_check_mode=True)
 
-            supports_check_mode = True)
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
     # Export LC Logs

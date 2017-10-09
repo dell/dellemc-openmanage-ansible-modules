@@ -70,10 +70,10 @@ RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
-def get_lc_status (idrac, module):
+def get_lc_status(idrac, module):
     """
     Get Lifecycle Controller status
 
@@ -104,21 +104,20 @@ def get_lc_status (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC Handle
-                idrac = dict(required = False, type = 'dict'),
+            # iDRAC Handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC credentials
-                idrac_ip   = dict (required = False, default = None, type='str'),
-                idrac_user = dict (required = False, default = None, type='str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                   type='str', no_log = True),
-                idrac_port = dict (required = False, default = None, type='int')
-                ),
+            # iDRAC credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int')
+        ),
 
-            supports_check_mode = True)
+        supports_check_mode=True)
 
     # Connect to iDRAC
     idrac_conn = iDRACConnection (module)

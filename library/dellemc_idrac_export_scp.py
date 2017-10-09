@@ -32,25 +32,21 @@ description:
     - Export Server Configuration Profile to a given network share (CIFS, NFS)
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
   idrac_port:
-    required: False
+    required: True
     description:
       - iDRAC port
-    default: None
   share_name:
     required: True
     description:
@@ -73,6 +69,13 @@ options:
       - if C(RAID), will export RAID configuration in SCP file
     choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
     default: 'ALL'
+  job_wait:
+    required: False
+    description:
+      - if C(True), will wait for the SCP export job to finish and return the job completion status
+      - if C(False), will return immediately with a JOB ID after queueing the SCP export jon in LC job queue
+    type: 'bool'
+    default: True
 
 requirements: ['omsdk']
 author: "anupam.aloke@dell.com"
@@ -105,8 +108,18 @@ RETURN = '''
 ---
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkcreds import UserCredentials
+    from omsdk.sdkfile import FileOnShare
+    from omsdk.sdkcenum import TypeHelper
+    from omdrivers.enums.iDRAC.iDRACEnums import (
+        ExportFormatEnum, ExportMethodEnum, SCPTargetEnum
+    )
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
 def export_server_config_profile(idrac, module):
     """
@@ -117,19 +130,17 @@ def export_server_config_profile(idrac, module):
     module -- Ansible module
     """
 
-    from omsdk.sdkcenum import TypeHelper
-    from omdrivers.enums.iDRAC.iDRACEnums import SCPTargetEnum, ExportFormatEnum, ExportMethodEnum
-
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
     err = False
 
     try:
-        scp_file_name_format = "%ip_%Y%m%d_%H%M%S_" + module.params['scp_components'] + "_SCP.xml"
+        scp_file_name_format = "%ip_%Y%m%d_%H%M%S_" + \
+            module.params['scp_components'] + "_SCP.xml"
 
-        myshare = FileOnShare(module.params['share_name'],
-                            isFolder = True)
+        myshare = FileOnShare(remote=module.params['share_name'],
+                              isFolder=True)
         myshare.addcreds(UserCredentials(module.params['share_user'],
                                          module.params['share_pwd']))
         scp_file_name = myshare.new_file(scp_file_name_format)
@@ -137,11 +148,11 @@ def export_server_config_profile(idrac, module):
         scp_components = TypeHelper.convert_to_enum(module.params['scp_components'],
                                                     SCPTargetEnum)
 
-        msg['msg'] = idrac.config_mgr.scp_export(scp_file_name,
-                                            components = scp_components,
-                                            format_file=ExportFormatEnum.XML,
-                                            method = ExportMethodEnum.Default,
-                                            job_wait = True)
+        msg['msg'] = idrac.config_mgr.scp_export(scp_share_path=scp_file_name,
+                                                 components=scp_components,
+                                                 format_file=ExportFormatEnum.XML,
+                                                 method=ExportMethodEnum.Default,
+                                                 job_wait=module.params['job_wait'])
 
         if 'Status' in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
@@ -156,33 +167,36 @@ def export_server_config_profile(idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC Handle
-                idrac      = dict (required = False, type = 'dict'),
+            # iDRAC Handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC credentials
-                idrac_ip   = dict (required = False, default = None, type='str'),
-                idrac_user = dict (required = False, default = None, type='str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                    type='str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Network File Share
-                share_name = dict (required = True, type = 'str'),
-                share_pwd  = dict (required = True, type = 'str', no_log = True),
-                share_user = dict (required = True, type = 'str'),
+            # Network File Share
+            share_name=dict(required=True, type='str'),
+            share_pwd=dict(required=True, type='str', no_log=True),
+            share_user=dict(required=True, type='str'),
 
-                scp_components = dict (required = False,
-                                    choices = ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
-                                    default = 'ALL')
-                ),
+            scp_components=dict(required=False,
+                                choices=['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
+                                default='ALL', type='str'),
+            job_wait=dict(required=False, default=True, type='bool')
+        ),
 
-            supports_check_mode = True)
+        supports_check_mode=True)
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
     # Export Server Configuration Profile

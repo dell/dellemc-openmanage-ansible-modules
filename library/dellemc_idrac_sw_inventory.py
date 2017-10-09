@@ -32,29 +32,26 @@ description:
     - Get Firmware Inventory
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
   share_mnt:
     required: False
     description: 
-      - Local mount path of the Network share (CIFS, NFS) where the inventory file is going to be saved
+      - Locally mounted absolute path of the Network share (CIFS, NFS) where the inventory file is going to be saved. You can also provide a local folder if you want to save the firmware inventory on local file system
       - Required if I(serialize = True)
     default: None
   choice:
@@ -76,14 +73,14 @@ author: "anupam.aloke@dell.com"
 
 EXAMPLES = '''
 ---
-- name: Get SW Inventory
+- name: Get Installed Firmware Inventory
     dellemc_idrac_sw_inventory:
-       idrac_ip:   "192.168.1.1"
-       idrac_user: "root"
-       idrac_pwd:  "calvin"
-       share_mnt:  "/mnt/NFS/"
-       choice:     "installed"
-       serialize:  True
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_mnt:  "/mnt/NFS/"
+      choice:     "installed"
+      serialize:  True
 '''
 
 RETURN = '''
@@ -124,10 +121,17 @@ Firmware:
           ]
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkfile import LocalFile
+    from omsdk.catalog.sdkupdatemgr import UpdateManager
+    from omdrivers.helpers.iDRAC.UpdateHelper import UpdateHelper
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
-def sw_inventory (idrac, module):
+def sw_inventory(idrac, module):
     """
     Get Firmware Inventory
 
@@ -135,11 +139,7 @@ def sw_inventory (idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    
-    from omsdk.sdkfile import LocalFile
-    from omsdk.catalog.sdkupdatemgr import UpdateManager
-    from omdrivers.helpers.iDRAC.UpdateHelper import UpdateHelper
-    
+
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -148,13 +148,13 @@ def sw_inventory (idrac, module):
 
     try:
         if module.params['choice'] == "all":
-           msg['msg'] = idrac.update_mgr.get_swidentity()
+            msg['msg'] = idrac.update_mgr.get_swidentity()
         elif module.params['choice'] == "installed":
-           msg['msg'] = idrac.update_mgr.InstalledFirmware
+            msg['msg'] = idrac.update_mgr.InstalledFirmware
 
         if module.params['serialize']:
-            fw_inv_path = LocalFile(module.params['share_mnt'],
-                                    isFolder = True)
+            fw_inv_path = LocalFile(local=module.params['share_mnt'],
+                                    isFolder=True)
 
             if fw_inv_path.IsValid:
                 UpdateManager.configure(fw_inv_path)
@@ -162,7 +162,7 @@ def sw_inventory (idrac, module):
 
                 if "Status" in msg['msg'] and msg['Status'] != "Success":
                     msg['failed'] = True
-            else: 
+            else:
                 msg['msg'] = "Error: Network share is not valid"
                 msg['failed'] = True
 
@@ -176,30 +176,33 @@ def sw_inventory (idrac, module):
 # Main
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                   type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
-                share_mnt = dict (required = False, default = None, type = 'path'),
-                choice = dict (required = False,
-                               choices = ['all', 'installed'],
-                               default = 'installed'),
-                serialize = dict (required = False, default = False, type = 'bool')
-                ),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
+            share_mnt=dict(required=False, default=None, type='path'),
+            choice=dict(required=False, choices=['all', 'installed'],
+                        default='installed'),
+            serialize=dict(required=False, default=False, type='bool')
+        ),
 
-            required_if = [["serialize", True, ["share_mnt"]]],
-            supports_check_mode = True)
+        required_if=[
+            ["serialize", True, ["share_mnt"]]
+        ],
+        supports_check_mode=True)
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
     (msg, err) = sw_inventory(idrac, module)

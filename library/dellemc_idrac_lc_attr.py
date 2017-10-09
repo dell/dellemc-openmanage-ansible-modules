@@ -25,90 +25,103 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = '''
 ---
-module: dellemc_idrac_export_tsr
-short_description: Export TSR logs to a network share
+module: dellemc_idrac_lc_attr
+short_description: Configure iDRAC Lifecycle Controller attributes
 version_added: "2.3"
 description:
-    - Export TSR logs to a given network share
+    - Configure following iDRAC Lifecycle Controller attributes:
+        CollectSystemInventoryOnRestart (CSIOR)
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
   share_name:
     required: True
-    description:
-      - CIFS or NFS Network share
+    description: Network file share
   share_user:
     required: True
-    description:
-      - Network share user in the format user@domain
+    description: Network share user in the format user@domain
   share_pwd:
     required: True
+    description: Network share user password
+  share_mnt:
+    required: True
+    description: Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user
+  csior:
+    required: False
+    choices: ['Enabled', 'Disabled']
     description:
-      - Network share user password
+      - if C(Enabled), will enable the CSIOR
+      - if C(Disabled), will disable the CSIOR
+    default: 'Enabled'
+  reboot:
+    required: False
+    description:
+      - if C(True), will restart the system after applying the changes
+      - if C(False), will not restart the system after applying the changes
 
-requirements: ['omsdk']
+requirements: ['Dell EMC OpenManage Python SDK']
 author: "anupam.aloke@dell.com"
-
 '''
 
 EXAMPLES = '''
----
-# Export TSR to a CIFS Network Share
-- name: Export TSR to a CIFS network share
-    dellemc_idrac_export_tsr:
+- name: Enable CSIOR
+    dellemc_idrac_lc_attr:
       idrac_ip:   "192.168.1.1"
       idrac_user: "root"
       idrac_pwd:  "calvin"
       share_name: "\\\\192.168.10.10\\share"
       share_user: "user1"
       share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      csior:      "Enabled"
+      reboot:     True
 
-# Export TSR to a NFS Network Share
-- name: Export TSR to a NFS network share
-    dellemc_idrac_export_tsr:
+- name: Disable CSIOR
+    dellemc_idrac_lc_attr:
       idrac_ip:   "192.168.1.1"
       idrac_user: "root"
       idrac_pwd:  "calvin"
-      share_name: "192.168.10.10:/share"
+      share_name: "\\\\192.168.10.10\\share"
       share_user: "user1"
       share_pwd:  "password"
-
+      share_mnt:  "/mnt/share"
+      csior:      "Disabled"
+      reboot:     True
 '''
 
 RETURN = '''
----
 '''
 
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
-    from omsdk.sdkcreds import UserCredentials
-    from omsdk.sdkfile import FileOnShare
+    from omsdk.sdkcenum import TypeHelper
+    from omdrivers.enums.iDRAC.iDRAC import (
+        CollectSystemInventoryOnRestart_LCAttributesTypes
+    )
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
 
-def export_tech_support_report(idrac, module):
+
+def setup_idrac_lc_attr(idrac, module):
     """
-    Export Tech Support Report (TSR)
+    Setup iDRAC Lifecycle attributes
 
     Keyword arguments:
     idrac  -- iDRAC handle
@@ -118,21 +131,26 @@ def export_tech_support_report(idrac, module):
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
+    msg['msg'] = {}
     err = False
 
     try:
-        tsr_file_name_format = "%ip_%Y%m%d_%H%M%S_tsr.zip"
+        idrac.config_mgr._sysconfig.LifecycleController.LCAttributes.\
+            CollectSystemInventoryOnRestart_LCAttributes = \
+                TypeHelper.convert_to_enum(module.params['csior'],
+                                           CollectSystemInventoryOnRestart_LCAttributesTypes)
 
-        myshare = FileOnShare(remote=module.params['share_name'],
-                              isFolder=True)
-        myshare.addcreds(UserCredentials(module.params['share_user'],
-                                         module.params['share_pwd']))
-        tsr_file_name = myshare.new_file(tsr_file_name_format)
+        msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
-        msg['msg'] = idrac.config_mgr.export_tsr(tsr_file_name)
+        if module.check_mode:
+            # Since it is running in check mode, reject the changes
+            idrac.config_mgr._sysconfig.reject()
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot=module.params['reboot'])
 
-        if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
-            msg['failed'] = True
+            if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
+                msg['failed'] = True
+                msg['changed'] = False
 
     except Exception as e:
         err = True
@@ -147,7 +165,7 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC Handle
+            # iDRAC handle
             idrac=dict(required=False, type='dict'),
 
             # iDRAC Credentials
@@ -156,12 +174,18 @@ def main():
             idrac_pwd=dict(required=True, type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
-            # Network file share
+            # Network File Share
             share_name=dict(required=True, type='str'),
+            share_user=dict(required=True, type='str'),
             share_pwd=dict(required=True, type='str', no_log=True),
-            share_user=dict(required=True, type='str')
-        ),
+            share_mnt=dict(required=True, type='path'),
 
+            # Collect System Inventory on Restart (CSIOR)
+            csior=dict(required=False, choices=['Enabled', 'Disabled'],
+                       default='Enabled', type='str'),
+
+            reboot=dict(required=False, default=False, type='bool')
+        ),
         supports_check_mode=True)
 
     if not HAS_OMSDK:
@@ -171,8 +195,11 @@ def main():
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    # Export Tech Support Report (TSR)
-    msg, err = export_tech_support_report(idrac, module)
+    # Setup network share as local mount
+    if not idrac_conn.setup_nw_share_mount():
+        module.fail_json(msg="Failed to setup network share local mount point")
+
+    msg, err = setup_idrac_lc_attr(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

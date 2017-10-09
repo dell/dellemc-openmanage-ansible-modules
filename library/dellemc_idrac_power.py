@@ -77,12 +77,31 @@ EXAMPLES = '''
 
 RETURN = '''
 ---
+    "msg": {
+        "Data": {
+            "RequestPowerStateChange_OUTPUT": {
+                                    "ReturnValue": "0"
+            }
+        }, 
+        "Message": "none", 
+        "Return": "Success", 
+        "Status": "Success", 
+        "retval": true
+    }
+
 '''
 
-from ansible.module_utils.dellemc_idrac import *
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+try:
+    from omsdk.sdkcenum import TypeHelper
+    from omdrivers.enums.iDRAC.iDRACEnums import PowerStateEnum
+    HAS_OMSDK = True
+except ImportError:
+    HAS_OMSDK = False
 
-def change_power_state (idrac, module):
+
+def change_power_state(idrac, module):
     """
     Change Power State of PowerEdge Server
 
@@ -91,15 +110,13 @@ def change_power_state (idrac, module):
     module -- Ansible module
     """
 
-    from omsdk.sdkcenum import TypeHelper
-    from omdrivers.enums.iDRAC.iDRACEnums import PowerStateEnum
-
     msg = {}
     msg['msg'] = {}
     msg['changed'] = False
     msg['failed'] = False
     err = False
 
+    power_state = None
     if module.params['state'] == "PowerOn":
         power_state = PowerStateEnum.PowerOn
     elif module.params['state'] == "SoftPowerCycle":
@@ -138,7 +155,7 @@ def change_power_state (idrac, module):
                 msg['changed'] = True
             else:
                 msg['failed'] = True
-    
+
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
@@ -149,38 +166,36 @@ def change_power_state (idrac, module):
 # Main()
 def main():
 
-    module = AnsibleModule (
-            argument_spec = dict (
+    module = AnsibleModule(
+        argument_spec=dict(
 
-                # iDRAC Handle
-                idrac = dict (required = False, type = 'dict'),
+            # iDRAC Handle
+            idrac=dict(required=False, type='dict'),
 
-                # iDRAC Credentials
-                idrac_ip   = dict (required = False, default = None, type = 'str'),
-                idrac_user = dict (required = False, default = None, type = 'str'),
-                idrac_pwd  = dict (required = False, default = None,
-                                    type = 'str', no_log = True),
-                idrac_port = dict (required = False, default = None, type = 'int'),
+            # iDRAC Credentials
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=False, type='str', no_log=True),
+            idrac_port=dict(required=False, default=443, type='int'),
 
-                # Power Cycle State
-                state      = dict (required = True,
-                                    choice = ["PowerOn",
-                                       "SoftPowerCycle",
-                                       "SoftPowerOff",
-                                       "HardReset",
-                                       "DiagnosticInterrupt",
-                                       "GracefulPowerOff"],
-                                    type = 'str')
-                ),
+            # Power Cycle State
+            state=dict(required=True,
+                       choice=["PowerOn", "SoftPowerCycle", "SoftPowerOff",
+                               "HardReset", "DiagnosticInterrupt", "GracefulPowerOff"],
+                       type='str')
+            ),
 
-            supports_check_mode = True)
+        supports_check_mode=True)
+
+    if not HAS_OMSDK:
+        module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
     # Connect to iDRAC
-    idrac_conn = iDRACConnection (module)
+    idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
     # Setup Power Cycle State
-    (msg, err) = change_power_state (idrac, module)
+    (msg, err) = change_power_state(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
