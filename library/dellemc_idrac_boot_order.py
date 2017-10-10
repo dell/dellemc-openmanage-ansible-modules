@@ -177,7 +177,108 @@ except ImportError:
     HAS_OMSDK = False
 
 
-def setup_bios_boot_settings(idrac, module):
+def _filter_sequence(new_seq_list, old_seq_str):
+
+    old_seq_list = []
+    new_seq = []
+    new_seq_str = ''
+
+    if old_seq_str:
+        old_seq_list = map(str.strip, [item for item in old_seq_str.split(',') if item])
+        new_seq = [item for item in new_seq_list if item in old_seq_list]
+        new_seq.extend([item for item in old_seq_list if item not in new_seq])
+
+    if new_seq:
+        new_seq_str = ", ".join([item for item in new_seq if item.strip()])
+
+    return new_seq_str
+
+
+def _setup_boot_mode(idrac, module):
+    """
+    Setup boot mode - reboot is imminent if you change the boot mode
+
+    Keyword arguments:
+    idrac  -- idrac, module
+    module -- Ansible module
+    """
+
+    if module.params['boot_mode']:
+        idrac.config_mgr._sysconfig.BIOS.BootMode = TypeHelper.convert_to_enum(
+            module.params['boot_mode'], BootModeTypes)
+
+
+def _setup_hdd_seq(idrac, module):
+
+    if module.params['hdd_seq']:
+        hdd_seq = _filter_sequence(module.params['hdd_seq'],
+                                   idrac.config_mgr._sysconfig.BIOS.HddSeq.get_value())
+
+        if hdd_seq:
+            idrac.config_mgr._sysconfig.BIOS.HddSeq = hdd_seq
+
+    if module.params['one_time_hdd_seq']:
+        one_time_hdd_seq = _filter_sequence(module.params['one_time_hdd_seq'],
+                                            idrac.config_mgr._sysconfig.BIOS.OneTimeHddSeq)
+
+        if one_time_hdd_seq:
+            idrac.config_mgr._sysconfig.BIOS.OneTimeHddSeq = one_time_hdd_seq
+
+
+def _setup_bios_boot_settings(idrac, module):
+
+    if module.params['bios_boot_seq']:
+        bios_boot_seq = _filter_sequence(module.params['bios_boot_seq'],
+                                         idrac.config_mgr._sysconfig.BIOS.BiosBootSeq.get_value())
+
+        if bios_boot_seq:
+            idrac.config_mgr._sysconfig.BIOS.BiosBootSeq = bios_boot_seq
+
+    if module.params['one_time_bios_boot_seq']:
+        one_time_boot_seq = _filter_sequence(
+            module.params['one_time_bios_boot_seq'],
+            idrac.config_mgr._sysconfig.BIOS.OneTimeBiosBootSeq.get_value())
+
+        if one_time_boot_seq:
+            idrac.config_mgr._sysconfig.BIOS.OneTimeBiosBootSeq = one_time_boot_seq
+
+
+def _setup_uefi_boot_settings(idrac, module):
+
+    if module.params['uefi_boot_seq']:
+        uefi_boot_seq = _filter_sequence(module.params['uefi_boot_seq'],
+                                         idrac.config_mgr._sysconfig.BIOS.UefiBootSeq.get_value())
+
+        if uefi_boot_seq:
+            idrac.config_mgr._sysconfig.BIOS.UefiBootSeq = uefi_boot_seq
+
+    if module.params['one_time_uefi_boot_seq']:
+        one_time_uefi_boot_seq = _filter_sequence(
+            module.params['one_time_uefi_boot_seq'],
+            idrac.config_mgr._sysconfig.BIOS.OneTimeUefiBootSeq.get_value())
+
+        if one_time_uefi_boot_seq:
+            idrac.config_mgr._sysconfig.BIOS.OneTimeUefiBootSeq = one_time_uefi_boot_seq
+
+
+def _setup_idrac_boot_settings(idrac, module):
+
+    # First boot device
+    first_boot_device = module.params['first_boot_device']
+    if first_boot_device:
+        idrac.config_mgr._sysconfig.iDRAC.ServerBoot.FirstBootDevice_ServerBoot = \
+            TypeHelper.convert_to_enum(first_boot_device,
+                                       FirstBootDevice_ServerBootTypes)
+
+    # Boot Once
+    boot_once = TypeHelper.convert_to_enum(module.params['boot_once'],
+                                           BootOnce_ServerBootTypes)
+    if first_boot_device and first_boot_device in ['BIOS', 'F10', 'F11', 'UEFIDevicePath']:
+        boot_once = TypeHelper.convert_to_enum('Enabled', BootOnce_ServerBootTypes)
+    idrac.config_mgr._sysconfig.iDRAC.ServerBoot.BootOnce_ServerBoot = boot_once
+
+
+def setup_boot_settings(idrac, module):
     """
     Configure Boot Order parameters on PowerEdge Servers
 
@@ -193,61 +294,30 @@ def setup_bios_boot_settings(idrac, module):
     error = False
 
     try:
-        current_boot_mode = idrac.config_mgr._sysconfig.BIOS.BootMode
+        curr_boot_mode = idrac.config_mgr._sysconfig.BIOS.BootMode
 
         # Boot Mode - reboot imminent
-        if module.params['boot_mode']:
-            idrac.config_mgr._sysconfig.BIOS.BootMode = \
-                TypeHelper.convert_to_enum(module.params['boot_mode'],
-                                           BootModeTypes)
+        _setup_boot_mode(idrac, module)
 
         # Boot Seq retry
-        idrac.config_mgr._sysconfig.BIOS.BootSeqRetry = \
-            TypeHelper.convert_to_enum(module.params['boot_seq_retry'],
-                                       BootSeqRetryTypes)
+        if module.params['boot_seq_retry']:
+            idrac.config_mgr._sysconfig.BIOS.BootSeqRetry = \
+                TypeHelper.convert_to_enum(module.params['boot_seq_retry'],
+                                           BootSeqRetryTypes)
 
-        # BIOS Boot Sequence - reboot imminent
-        if module.params['bios_boot_seq']:
-            bios_boot_seq = ", ".join([item for item in \
-                module.params['bios_boot_seq'] if item.strip()])
+        # Setup HDD Sequence
+        _setup_hdd_seq(idrac, module)
 
-            if bios_boot_seq:
-                idrac.config_mgr._sysconfig.BIOS.BiosBootSeq = bios_boot_seq
+        # Setup BIOS Boot Settings
+        if curr_boot_mode == BootModeTypes.Bios:
+            _setup_bios_boot_settings(idrac, module)
 
-        # One Time BIOS Boot Sequence - reboot imminent
-        if module.params['one_time_bios_boot_seq']:
-            one_time_bios_boot_seq = ", ".join([item for item in \
-                module.params['one_time_bios_boot_seq'] if item.strip()])
+        # Setup Uefi Boot Settings
+        if curr_boot_mode == BootModeTypes.Uefi:
+            _setup_uefi_boot_settings(idrac, module)
 
-            if one_time_bios_boot_seq:
-                idrac.config_mgr._sysconfig.BIOS.OneTimeBiosBootSeq = one_time_bios_boot_seq
-
-        # Uefi Boot Sequence - reboot imminent
-        if module.params['uefi_boot_seq']:
-            uefi_boot_seq = ", ".join([item for item in \
-                module.params['uefi_boot_seq'] if item.strip()])
-
-            if uefi_boot_seq:
-                idrac.config_mgr._sysconfig.BIOS.UefiBootSeq = uefi_boot_seq
-
-        # One Time Uefi Boot Sequence - reboot imminent
-        if module.params['one_time_uefi_boot_seq']:
-            one_time_uefi_boot_seq = ", ".join([item for item in \
-                module.params['one_time_uefi_boot_seq'] if item.strip()])
-            if one_time_uefi_boot_seq:
-                idrac.config_mgr._sysconfig.BIOS.OneTimeUefiBootSeq = one_time_uefi_boot_seq
-
-        # First boot device
-        idrac.config_mgr._sysconfig.iDRAC.ServerBoot.FirstBootDevice_ServerBoot = \
-            TypeHelper.convert_to_enum(module.params['first_boot_device'],
-                                       FirstBootDevice_ServerBootTypes)
-
-        # Boot Once
-        boot_once = TypeHelper.convert_to_enum(module.params['boot_once'],
-                                               BootOnce_ServerBootTypes)
-        if module.params['first_boot_device'] in ['BIOS', 'F10', 'F11', 'UEFIDevicePath']:
-            boot_once = TypeHelper.convert_to_enum('Enabled', BootOnce_ServerBootTypes)
-        idrac.config_mgr._sysconfig.iDRAC.ServerBoot.BootOnce_ServerBoot = boot_once
+        # Setup iDRAC Boot configuration parameters
+        _setup_idrac_boot_settings(idrac, module)
 
         msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
@@ -293,22 +363,21 @@ def main():
             boot_mode=dict(required=False, choices=['Bios', 'Uefi'],
                            default=None, type='str'),
             boot_seq_retry=dict(required=False, choices=['Enabled', 'Disabled'],
-                                default='Enabled', type='str'),
+                                default=None, type='str'),
             bios_boot_seq=dict(required=False, default=[], type='list'),
             one_time_bios_boot_seq=dict(required=False, default=[], type='list'),
             uefi_boot_seq=dict(required=False, default=[], type='list'),
             one_time_uefi_boot_seq=dict(required=False, default=[], type='list'),
+            hdd_seq=dict(required=False, default=[], type='list'),
+            one_time_hdd_seq=dict(required=False, default=[], type='list'),
             first_boot_device=dict(required=False,
                                    choices=['BIOS', 'CD-DVD', 'F10', 'F11',
                                             'FDD', 'HDD', 'Normal', 'PXE', 'SD',
                                             'UEFIDevicePath', 'VCD-DVD', 'vFDD'],
                                    default='Normal', type='str'),
             boot_once=dict(required=False, choices=['Enabled', 'Disabled'],
-                           default='Disabled', type='str')
+                           default='Enabled', type='str')
         ),
-        mutually_exclusive=[
-            ["bios_boot_seq", "uefi_boot_seq"]
-        ],
         supports_check_mode=True)
 
     if not HAS_OMSDK:
@@ -323,7 +392,7 @@ def main():
         module.fail_json(msg="Failed to setup network share local mount point")
 
     # Setup BIOS
-    msg, err = setup_bios_boot_settings(idrac, module)
+    msg, err = setup_boot_settings(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
