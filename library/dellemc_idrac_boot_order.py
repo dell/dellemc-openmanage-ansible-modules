@@ -24,12 +24,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = '''
 ---
-module: dellemc_idrac_boot_mode
-short_description: Configure Boot Mode
+module: dellemc_idrac_boot_order
+short_description: Configure BIOS Boot Settings
 version_added: "2.3"
 description:
     - Configure Bios/Uefi Boot Settings
-    - Changing the boot mode, Bios/Uefi boot sequence will restart the server
+    - Changing the boot mode, Bios/Uefi boot sequence will reboot the system
 options:
   idrac_ip:
     required: True
@@ -84,10 +84,20 @@ options:
       - List of boot devices' FQDDs in the sequential order for BIOS Boot Sequence. Please make sure that the boot mode is set to C(Bios) before setting the BIOS boot sequence.
       - Changing the BIOS Boot Sequence will restart the server
     default: []
+  one_time_bios_boot_seq:
+    required: False
+    description:
+      - List of boot devices' FQDDs in the sequential order for the One-Time Boot only
+    default: []
   uefi_boot_seq:
     required: False
     description:
       - List of boot devices' FQDDs in the sequential order for Uefi Boot Sequence. Please make sure that the boot mode is set to C(Uefi) before setting the Uefi boot sequence
+    default: []
+  one_time_uefi_boot_seq:
+    required: False
+    description:
+      - List of boot devices's FQDDs in the sequential order for One-Time Boot only
     default: []
   first_boot_device:
     required: False
@@ -111,6 +121,7 @@ author: "anupam.aloke@dell.com"
 '''
 
 EXAMPLES = '''
+# Configure UEFI Boot Sequence
 - name: Change Boot Mode to UEFI
     dellemc_idrac_boot_order:
       idrac_ip:   "192.168.1.1"
@@ -131,6 +142,7 @@ EXAMPLES = '''
       share_user: "user1"
       share_pwd:  "password"
       share_mnt:  "/mnt/share"
+      boot_mode:  "Uefi"
       uefi_boot_seq:  ["Optical.SATAEmbedded.E-1", "NIC.Integrated.1-1-1", "NIC.Integrated.1-2-1", "NIC.Integrated.1-3-1", "NIC.Integrated.1-4-1", "HardDisk.List.1-1"]
 
 - name: Configure First Boot device to PXE
@@ -151,6 +163,7 @@ RETURN = '''
 ---
 '''
 
+import traceback
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
@@ -164,7 +177,7 @@ except ImportError:
     HAS_OMSDK = False
 
 
-def setup_boot_order(idrac, module):
+def setup_bios_boot_settings(idrac, module):
     """
     Configure Boot Order parameters on PowerEdge Servers
 
@@ -177,13 +190,16 @@ def setup_boot_order(idrac, module):
     msg['changed'] = False
     msg['failed'] = False
     msg['msg'] = {}
-    err = False
+    error = False
 
     try:
+        current_boot_mode = idrac.config_mgr._sysconfig.BIOS.BootMode
+
         # Boot Mode - reboot imminent
-        idrac.config_mgr._sysconfig.BIOS.BootMode = \
-            TypeHelper.convert_to_enum(module.params['boot_mode'],
-                                       BootModeTypes)
+        if module.params['boot_mode']:
+            idrac.config_mgr._sysconfig.BIOS.BootMode = \
+                TypeHelper.convert_to_enum(module.params['boot_mode'],
+                                           BootModeTypes)
 
         # Boot Seq retry
         idrac.config_mgr._sysconfig.BIOS.BootSeqRetry = \
@@ -193,18 +209,33 @@ def setup_boot_order(idrac, module):
         # BIOS Boot Sequence - reboot imminent
         if module.params['bios_boot_seq']:
             bios_boot_seq = ", ".join([item for item in \
-                                module.params['bios_boot_seq'] if item.strip()])
+                module.params['bios_boot_seq'] if item.strip()])
 
             if bios_boot_seq:
                 idrac.config_mgr._sysconfig.BIOS.BiosBootSeq = bios_boot_seq
 
+        # One Time BIOS Boot Sequence - reboot imminent
+        if module.params['one_time_bios_boot_seq']:
+            one_time_bios_boot_seq = ", ".join([item for item in \
+                module.params['one_time_bios_boot_seq'] if item.strip()])
+
+            if one_time_bios_boot_seq:
+                idrac.config_mgr._sysconfig.BIOS.OneTimeBiosBootSeq = one_time_bios_boot_seq
+
         # Uefi Boot Sequence - reboot imminent
         if module.params['uefi_boot_seq']:
             uefi_boot_seq = ", ".join([item for item in \
-                                module.params['uefi_boot_seq'] if item.strip()])
+                module.params['uefi_boot_seq'] if item.strip()])
 
             if uefi_boot_seq:
                 idrac.config_mgr._sysconfig.BIOS.UefiBootSeq = uefi_boot_seq
+
+        # One Time Uefi Boot Sequence - reboot imminent
+        if module.params['one_time_uefi_boot_seq']:
+            one_time_uefi_boot_seq = ", ".join([item for item in \
+                module.params['one_time_uefi_boot_seq'] if item.strip()])
+            if one_time_uefi_boot_seq:
+                idrac.config_mgr._sysconfig.BIOS.OneTimeUefiBootSeq = one_time_uefi_boot_seq
 
         # First boot device
         idrac.config_mgr._sysconfig.iDRAC.ServerBoot.FirstBootDevice_ServerBoot = \
@@ -230,12 +261,13 @@ def setup_boot_order(idrac, module):
                 msg['failed'] = True
                 msg['changed'] = False
 
-    except Exception as e:
-        err = True
-        msg['msg'] = "Error: %s" % str(e)
+    except Exception as err:
+        error = True
+        msg['msg'] = "Error: %s" % str(err)
+        msg['exception'] = traceback.format_exc()
         msg['failed'] = True
 
-    return msg, err
+    return msg, error
 
 # Main
 def main():
@@ -258,17 +290,25 @@ def main():
             share_pwd=dict(required=True, type='str', no_log=True),
             share_mnt=dict(required=True, type='path'),
 
-            boot_mode=dict(required=False, choices=['Bios', 'Uefi'], default='Bios'),
-            boot_seq_retry=dict(required=False, choices=['Enabled', 'Disabled'], default='Enabled'),
+            boot_mode=dict(required=False, choices=['Bios', 'Uefi'],
+                           default=None, type='str'),
+            boot_seq_retry=dict(required=False, choices=['Enabled', 'Disabled'],
+                                default='Enabled', type='str'),
             bios_boot_seq=dict(required=False, default=[], type='list'),
+            one_time_bios_boot_seq=dict(required=False, default=[], type='list'),
             uefi_boot_seq=dict(required=False, default=[], type='list'),
+            one_time_uefi_boot_seq=dict(required=False, default=[], type='list'),
             first_boot_device=dict(required=False,
                                    choices=['BIOS', 'CD-DVD', 'F10', 'F11',
                                             'FDD', 'HDD', 'Normal', 'PXE', 'SD',
                                             'UEFIDevicePath', 'VCD-DVD', 'vFDD'],
                                    default='Normal', type='str'),
-            boot_once=dict(required=False, default='Disabled', type='str')
+            boot_once=dict(required=False, choices=['Enabled', 'Disabled'],
+                           default='Disabled', type='str')
         ),
+        mutually_exclusive=[
+            ["bios_boot_seq", "uefi_boot_seq"]
+        ],
         supports_check_mode=True)
 
     if not HAS_OMSDK:
@@ -283,7 +323,7 @@ def main():
         module.fail_json(msg="Failed to setup network share local mount point")
 
     # Setup BIOS
-    msg, err = setup_boot_order(idrac, module)
+    msg, err = setup_bios_boot_settings(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()
