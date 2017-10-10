@@ -184,6 +184,7 @@ def delete_lc_job_queue(idrac, module):
     msg = {}
     msg['failed'] = False
     msg['changed'] = False
+    err = False
 
     try:
         # TODO: Check the Job Queue to make sure there are no pending jobs
