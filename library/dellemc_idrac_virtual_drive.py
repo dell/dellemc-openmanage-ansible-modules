@@ -67,12 +67,16 @@ options:
     required: True
     description:
       - Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user
-  virtual_drive_name:
+  vd_name:
     required: True
     description:
       - Name of the Virtual Drive
     default: None
-  raid_type:
+  vd_size:
+    required: False
+    description:
+      - Size (in bytes) of the Virtual Drive
+  raid_level:
     required: False
     description:
       - Select the RAID Level for the new virtual drives.
@@ -116,7 +120,7 @@ options:
   span_length:
     required: False
     description:
-      - Number of physical disks per span on a virtual disk. Required if I(status = 'absent')
+      - Number of physical disks per span on a virtual disk. Required if I(status = 'present')
   state:
     required: False
     description:
@@ -182,12 +186,12 @@ def _virtual_drive_exists(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    vd = idrac.config_mgr.get_virtual_disk(module.params['vd_name'])
+    vd = idrac.config_mgr.RaidHelper.find_virtual_disk(Name=module.params['vd_name'])
 
     if vd:
-        return True, vd
+        return True
 
-    return False, None
+    return False
 
 
 def virtual_drive(idrac, module):
@@ -206,19 +210,28 @@ def virtual_drive(idrac, module):
     err = False
 
     try:
-        raid_type = TypeHelper.convert_to_enum(module.params['raid_type'],
-                                               RAIDTypesTypes)
+        raid_level = TypeHelper.convert_to_enum(module.params['raid_level'],
+                                                RAIDTypesTypes)
         read_policy = TypeHelper.convert_to_enum(module.params['read_policy'],
                                                  RAIDdefaultReadPolicyTypes)
         write_policy = TypeHelper.convert_to_enum(module.params['write_policy'],
                                                   RAIDdefaultWritePolicyTypes)
         disk_policy = TypeHelper.convert_to_enum(module.params['disk_policy'],
                                                  DiskCachePolicyTypes)
-        pd_filter = "disk.MediaType == " + module.params['media_type'] + \
-                    " and disk.BusProtocol == " + module.params['bus_protocol']
+
+        pd_filter = "(disk.parent.parent is Controller and disk.parent.parent.FQDD._value == \"" + module.params['controller_fqdd'] + "\")" + \
+        " and disk.MediaType == \"" + module.params['media_type'] + "\"" + \
+        " and disk.BusProtocol == \"" + module.params['bus_protocol'] + "\""
+
+        if module.params['pd_slots']:
+            pd_slots = ""
+            for i in module['pd_slots']:
+                pd_slots = "\"" + i + "\", "
+            pd_slots_list = "[" + pd_slots[0:-1] + "]"
+            pd_filter += " and disk.Slot in " + pd_slots_list
 
         # Check whether VD exists
-        exists, vd = _virtual_drive_exists(idrac, module)
+        exists = _virtual_drive_exists(idrac, module)
 
         if module.params['state'] == 'present':
             if module.check_mode or exists:
@@ -227,7 +240,7 @@ def virtual_drive(idrac, module):
                 msg['msg'] = idrac.config_mgr.RaidHelper.new_virtual_disk(
                     Name=module.params['vd_name'],
                     Size=module.params['vd_size'],
-                    RAIDTypes=raid_type,
+                    RAIDTypes=raid_level,
                     RAIDdefaultReadPolicy=read_policy,
                     RAIDdefaultWritePolicy=write_policy,
                     DiskCachePolicy=disk_policy,
@@ -281,18 +294,19 @@ def main():
 
             # Virtual drive parameters
             vd_name=dict(required=True, type='str'),
-            vd_size=dict(required=False, type='int'),
+            vd_size=dict(required=False, default=None, type='int'),
+            controller_fqdd=dict(required=True, type='str'),
             media_type=dict(required=False, choices=['HDD', 'SSD'],
                             default='HDD', type='str'),
             bus_protocol=dict(required=False, choices=['SAS', 'SATA'],
-                              default='SAS', type='str'),
-            raid_type=dict(required=False,
-                           choices=['RAID 0', 'RAID 1', 'RAID 10', 'RAID 5',
+                              default='SATA', type='str'),
+            raid_level=dict(required=False,
+                            choices=['RAID 0', 'RAID 1', 'RAID 10', 'RAID 5',
                                     'RAID 50', 'RAID 6', 'RAID 60'],
-                           type='str'),
+                            type='str'),
             read_policy=dict(requird=False,
-                             choices=["NoReadAhead", "ReadAhead", "AdaptiveReadAhead"],
-                             default="NoReadAhead", type='str'),
+                             choices=["NoReadAhead", "ReadAhead", "AdaptiveReadAhead", "Adaptive"],
+                             default="Adaptive", type='str'),
             write_policy=dict(requird=False,
                               choices=["WriteThrough", "WriteBack", "WriteBackForce"],
                               default="WriteThrough", type='str'),
