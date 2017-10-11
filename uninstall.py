@@ -32,12 +32,11 @@ except:
 
 ansible_path = ansible.__path__[0]
 module_utils_path = ansible_path + '/module_utils/'
-extras_path = ansible_path + '/modules/extras'
-server_path = extras_path + '/server'
-dellemc_idrac_path = server_path + '/dellemc'
+remote_management_path = ansible_path + '/modules/remote_management'
+dellemc_idrac_path = remote_management_path + '/dellemc_idrac'
 
-if os.path.isdir(server_path):
-    shutil.rmtree(server_path)
+if os.path.isdir(dellemc_idrac_path):
+    shutil.rmtree(dellemc_idrac_path)
 
 if os.path.isfile(module_utils_path + 'dellemc_idrac.py'):
     os.remove(module_utils_path + 'dellemc_idrac.py')
