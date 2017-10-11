@@ -64,6 +64,20 @@ options:
       - if C(RAID), will export RAID configuration in SCP file
     choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
     default: 'ALL'
+  export_format:
+    required: False
+    description:
+      - if C(XML), will export the SCP in XML format
+      - if C(JSON), will export the SCP in JSON format
+    choices: ['XML', 'JSON']
+    default: 'XML'
+  export_method:
+    required: False
+    description:
+      - if C(Default), will export the SCP using default method
+      - if C(Clone), will export the SCP using clone method
+    choices: ['Default', 'Clone']
+    default: 'Default'
   job_wait:
     required: False
     description:
@@ -87,7 +101,7 @@ EXAMPLES = '''
       share_user: "user1"
       share_pwd:  "password"
 
-# Export SCP to a NFS network shre
+# Export SCP to a NFS network share
 - name: Export Server Configuration Profile (SCP)
     dellemc_idrac_export_scp:
       idrac_ip:   "192.168.1.1"
@@ -143,10 +157,18 @@ def export_server_config_profile(idrac, module):
         scp_components = TypeHelper.convert_to_enum(module.params['scp_components'],
                                                     SCPTargetEnum)
 
+        export_format = ExportFormatEnum.XML
+        if module.params['export_format'] == 'JSON':
+            export_format = ExportFormatEnum.JSON
+
+        export_method = ExportMethodEnum.Default
+        if module.params['export_method'] == 'Clone':
+            export_method = ExportMethodEnum.Clone
+
         msg['msg'] = idrac.config_mgr.scp_export(scp_share_path=scp_file_name,
                                                  components=scp_components,
-                                                 format_file=ExportFormatEnum.XML,
-                                                 method=ExportMethodEnum.Default,
+                                                 format_file=export_format,
+                                                 method=export_method,
                                                  job_wait=module.params['job_wait'])
 
         if 'Status' in msg['msg'] and msg['msg']['Status'] != "Success":
@@ -182,6 +204,10 @@ def main():
             scp_components=dict(required=False,
                                 choices=['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
                                 default='ALL', type='str'),
+            export_format=dict(required=False, choices=['XML', 'JSON'],
+                               default='XML'),
+            export_method=dict(required=False, choices=['Default', 'Clone'],
+                               default='Default'),
             job_wait=dict(required=False, default=True, type='bool')
         ),
 
