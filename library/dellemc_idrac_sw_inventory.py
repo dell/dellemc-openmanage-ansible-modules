@@ -121,6 +121,7 @@ Firmware:
           ]
 '''
 
+import traceback
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
@@ -144,7 +145,7 @@ def sw_inventory(idrac, module):
     msg['changed'] = False
     msg['failed'] = False
     msg['msg'] = {}
-    err = False
+    error = False
 
     try:
         if module.params['choice'] == "all":
@@ -160,18 +161,19 @@ def sw_inventory(idrac, module):
                 UpdateManager.configure(fw_inv_path)
                 msg['msg'] = UpdateHelper.save_firmware_inventory(idrac)
 
-                if "Status" in msg['msg'] and msg['Status'] != "Success":
+                if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
                     msg['failed'] = True
             else:
                 msg['msg'] = "Error: Network share is not valid"
                 msg['failed'] = True
 
-    except Exception as e:
-        err = True
-        msg['msg'] = "Error: %s" % str(e)
+    except Exception as err:
+        error = True
+        msg['msg'] = "Error: %s" % str(err)
+        msg['exception'] = traceback.format_exc()
         msg['failed'] = True
 
-    return msg, err
+    return msg, error
 
 # Main
 def main():
