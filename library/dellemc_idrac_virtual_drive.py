@@ -324,7 +324,7 @@ def main():
                        default='present')
         ),
         required_if=[
-            ["state", "present", ["vd_size", "raid_type", "span_length", "span_depth"]]
+            ["state", "present", ["raid_level", "span_length", "span_depth"]]
         ],
 
         supports_check_mode=True)
