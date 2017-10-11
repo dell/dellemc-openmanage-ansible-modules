@@ -2,22 +2,9 @@
 # _*_ coding: utf-8 _*_
 
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -36,43 +23,53 @@ options:
     required: True
     description:
       - iDRAC IP Address
+    type: 'str'
   idrac_user:
     required: True
     description:
       - iDRAC user name
+    type: 'str'
   idrac_pwd:
     required: True
     description:
       - iDRAC user password
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
     default: 443
+    type: 'int'
   share_name:
     required: True
-    description: Network file share
+    description: Network file share (either CIFS or NFS)
+    type: 'str'
   share_user:
     required: True
-    description: Network share user in the format user@domain
+    description: Network share user in the format 'user@domain' if user is part of a domain else 'user'
   share_pwd:
     required: True
     description: Network share user password
+    type: 'str'
   share_mnt:
     required: True
     description: Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user
+    type: 'path'
   csior:
     required: False
     choices: ['Enabled', 'Disabled']
     description:
       - if C(Enabled), will enable the CSIOR
       - if C(Disabled), will disable the CSIOR
+      - I(reboot) should be set to C(True) to apply any changes
     default: 'Enabled'
   reboot:
     required: False
     description:
       - if C(True), will restart the system after applying the changes
       - if C(False), will not restart the system after applying the changes
+    default: False
+    type: 'bool'
 
 requirements: ['Dell EMC OpenManage Python SDK']
 author: "anupam.aloke@dell.com"

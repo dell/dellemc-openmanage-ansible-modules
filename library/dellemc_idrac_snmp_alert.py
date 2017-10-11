@@ -2,22 +2,9 @@
 # _*_ coding: utf-8 _*_
 
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -32,57 +19,56 @@ description:
     - Configures SNMP Alert destination settings on iDRAC
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
+    type: 'str'
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
+    type: 'str'
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
+    type: 'int'
   share_name:
     required: True
     description:
-      - Network file share
+      - Network file share (either CIFS or NFS)
+    type: 'str'
   share_user:
     required: True
     description:
-      - Network share user in the format "user@domain"
+      - Network share user in the format "user@domain" if user is part of a domain else 'user'
+    type: 'str'
   share_pwd:
     required: True
     description:
       - Network share user password
+    type: 'str'
   share_mnt:
     required: True
     description:
       - Local mount path of the network file share with read-write permission for ansible user
+    type:'path'
   snmp_alert_dest:
     required: True
     description:
-      - SNMP Alert destination IPv4 address
-  snmpv3_user_name:
-    required: False
-    description:
-      - SNMPv3 user name for the SNMP alert destination
-    default: None
+      - List of hashes of SNMP Alert destination
+    type: 'list'
   state:
     description:
-      - if C(present), will create/add a SNMP alert destination
+      - if C(present), will create/add/enable SNMP alert destination
       - if C(absent), will delete/remove a SNMP alert destination
-      - if C(enable), will enable a SNMP alert destination
-      - if C(disable), will disable a SNMP alert destination
-    choices: ['present', 'absent', 'enable', 'disable']
+    choices: ['present', 'absent']
     default: 'present'
 
 requirements: ['omsdk']
@@ -95,12 +81,13 @@ EXAMPLES = '''
       idrac_ip:        "192.168.1.1"
       idrac_user:      "root"
       idrac_pwd:       "calvin"
-      share_name:      "\\\\10.20.30.40\\share\\"
+      share_name:      "\\\\192.168.10.10\\share\\"
       share_user:      "user1"
       share_pwd:       "password"
       share_mnt:       "/mnt/share"
       snmp_alert_dest:
-        - {"dest_address": "192.168.2.1", "state":"Enabled"
+        - {"dest_address": "192.168.2.1", "state":"Enabled"}
+        - {"dest_address": "192.168.2.2", "state":"Enabled"}
       state:           "present"
 
 '''

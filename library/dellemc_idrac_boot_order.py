@@ -1,22 +1,9 @@
 #! /usr/bin/python
 # _*_ coding: utf-8 _*_
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -35,70 +22,82 @@ options:
     required: True
     description:
       - iDRAC IP Address
+    type: 'str'
   idrac_user:
     required: True
     description:
       - iDRAC user name
+    type: 'str'
   idrac_pwd:
     required: True
     description:
       - iDRAC user password
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
     default: 443
+    type: 'int'
   share_name:
     required: True
     description:
       - Network file share (CIFS, NFS)
+    type: 'str'
   share_user:
     required: True
     description:
-      - Network share user in the format "user@domain" if domain is present else "user"
+      - Network share user in the format "user@domain" if user is part of a domain else "user"
+    type: 'str'
   share_pwd:
     required: True
     description:
       - Network share user password
+    type: 'str'
   share_mnt:
     required: True
     description:
       - Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user
+    type: 'path'
   boot_mode:
     required: False
     choices: ['Bios', 'Uefi']
     description:
       - if C(Bios), will set the boot mode to BIOS
       - if C(Uefi), will set the boot mode to UEFI
-    default: 'Bios'
+    default: None
   boot_seq_retry:
     required: False
     choices: ['Enabled', 'Disabled']
     description:
       - if C(Enabled), and the system fails to boot, the system will re-attempt the boot sequence after 30 seconds
       - if C(Disabled), will disable the Boot Sequence retry feature
-    default: 'Enabled'
+    default: None
   bios_boot_seq:
     required: False
     description:
       - List of boot devices' FQDDs in the sequential order for BIOS Boot Sequence. Please make sure that the boot mode is set to C(Bios) before setting the BIOS boot sequence.
       - Changing the BIOS Boot Sequence will restart the server
     default: []
+    type: 'list'
   one_time_bios_boot_seq:
     required: False
     description:
       - List of boot devices' FQDDs in the sequential order for the One-Time Boot only
     default: []
+    type: 'list'
   uefi_boot_seq:
     required: False
     description:
       - List of boot devices' FQDDs in the sequential order for Uefi Boot Sequence. Please make sure that the boot mode is set to C(Uefi) before setting the Uefi boot sequence
     default: []
+    type: 'list'
   one_time_uefi_boot_seq:
     required: False
     description:
       - List of boot devices's FQDDs in the sequential order for One-Time Boot only
     default: []
+    type: 'list'
   first_boot_device:
     required: False
     description:

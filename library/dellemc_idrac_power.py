@@ -1,22 +1,9 @@
 #! /usr/bin/python
 # _*_ coding: utf-8 _*_
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -31,25 +18,26 @@ description:
     - Configure the Power Cycle options on a Dell EMC PowerEdge Server
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
+    type: 'str'
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
+    type: 'str'
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
+    type: 'int'
   state:
     description:
       - if C(PowerOn), will Power On the server
@@ -175,7 +163,7 @@ def main():
             # iDRAC Credentials
             idrac_ip=dict(required=True, type='str'),
             idrac_user=dict(required=True, type='str'),
-            idrac_pwd=dict(required=False, type='str', no_log=True),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
             # Power Cycle State

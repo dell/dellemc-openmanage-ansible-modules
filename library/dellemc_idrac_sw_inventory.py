@@ -35,25 +35,30 @@ options:
     required: True
     description:
       - iDRAC IP Address
+    type: 'str'
   idrac_user:
     required: True
     description:
       - iDRAC user name
+    type: 'str'
   idrac_pwd:
     required: True
     description:
       - iDRAC user password
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
     default: 443
+    type: 'int'
   share_mnt:
     required: False
     description: 
       - Locally mounted absolute path of the Network share (CIFS, NFS) where the inventory file is going to be saved. You can also provide a local folder if you want to save the firmware inventory on local file system
       - Required if I(serialize = True)
     default: None
+    type: 'path'
   choice:
     required: False
     description:
@@ -63,7 +68,7 @@ options:
   serialize:
     required: False
     description:
-      - if C(True), create '_inventory' and '_master' folders relative to I(share_mnt) and save the installed firmware inventory in a file in the '_inventory' directory
+      - if C(True), create '_inventory' and '_master' folders relative to I(share_mnt) and save the installed firmware inventory in a file named 'config.xml' in the '_inventory' directory
       - if C(True), then I(share_mnt) must be provided 
     default: False
 
@@ -80,7 +85,6 @@ EXAMPLES = '''
       idrac_pwd:  "calvin"
       share_mnt:  "/mnt/NFS/"
       choice:     "installed"
-      serialize:  True
 '''
 
 RETURN = '''

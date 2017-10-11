@@ -2,22 +2,9 @@
 # _*_ coding: utf-8 _*_
 
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -26,69 +13,79 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 DOCUMENTATION = '''
 ---
 module: dellemc_idrac_firmware_update
-short_description: Firmware update from a repository
+short_description: Firmware update from a repository on a network share (CIFS, NFS)
 version_added: "2.3"
 description:
-    - Update the Firmware by connecting to a network repository that contains a catalog of available updates
+    - Update the Firmware by connecting to a network repository (either CIFS or NFS) that contains a catalog of available updates
     - Network share should contain a valid repository of Update Packages (DUPs) and a catalog file describing the DUPs
     - All applicable updates contained in the repository is applied to the system
     - This feature is only available with iDRAC Enterprise License
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
+    type: 'str'
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
+    type: 'str'
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
+    type: 'int'
   share_name:
     required: True
     description:
-      - Network file share containing the Update Packages (DUPs)
+      - Network file share (either CIFS or NFS) containing the Catalog file and Update Packages (DUPs)
+    type: 'str'
   share_user:
     required: True
     description:
-      - Network share user in the format user@domain
+      - Network share user in the format 'user@domain' if user is part of a domain else 'user'
+    type: 'str'
   share_pwd:
     required: True
     description:
       - Network share user password
+    type: 'str'
   catalog_file_name:
     required: False
     description:
       - Catalog file name relative to the I(share_name)
     default: 'Catalog.xml'
+    type: 'str'
   apply_updates:
     required: False
     description: 
       - if C(True), Install Updates
       - if C(False), do not Install Updates
     default: True
+    type: 'bool'
   reboot:
     required: False
     description:
       - if C(True), reboot for applying the updates
       - if C(False), do not reboot for applying the update
     default: False
+    type: 'bool'
   job_wait:
     required: False
-    description: Wait for update JOB to get completed
+    description:
+      - if C(True), will wait for update JOB to get completed
+      - if C(False), return immediately after creating the update job in job queue
     default: True
+    type: 'bool'
     
-requirements: ['omsdk']
+requirements: ['Dell EMC OpenManage Python SDK']
 author: "anupam.aloke@dell.com"
 '''
 

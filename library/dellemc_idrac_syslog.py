@@ -2,22 +2,9 @@
 # _*_ coding: utf-8 _*_
 
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -35,32 +22,38 @@ options:
     required: True
     description:
       - iDRAC IP Address
+    type: 'str'
   idrac_user:
     required: True
     description:
       - iDRAC user name
+    type: 'str'
   idrac_pwd:
     required: True
     description:
       - iDRAC user password
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
     default: 443
+    type: 'int'
   syslog_servers:
     required: False
     description:
       - List of IP Addresses of the Remote Syslog Servers
     default: None
+    type: 'list'
   syslog_port:
     required: False
     description:
       - Port number of remote servers
     default: 514
+    type: 'int'
   state:
     description:
-      - if C(present), will enable the remote syslog option and add the remote servers if any
+      - if C(present), will enable the remote syslog option and add the remote servers in I(syslog_servers)
       - if C(absent), will disable the remote syslog option
     choices: ['present', 'absent']
     default: 'absent'

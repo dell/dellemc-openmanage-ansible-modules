@@ -2,22 +2,9 @@
 # _*_ coding: utf-8 _*_
 
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -32,48 +19,53 @@ description:
     - Configures SNMP settings on iDRAC
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
+    type: 'str'
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
+    type: 'str'
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
+    type: 'int'
   share_name:
     required: True
     description:
       - CIFS or NFS Network share
+    type: 'str'
   share_user:
     required: True
     description:
-      - Network share user in the format user@domain
+      - Network share user in the format 'user@domain' if user is part of a domain else 'user'
+    type: 'str'
   share_pwd:
     required: True
     description:
-     - Network share user password
+      - Network share user password
+    type: 'str'
   share_mnt:
     required: True
     description:
       - Local mount path of the network file share with read-write permission for ansible user
+    type: 'str'
   snmp_enable:
     required: False
     description: SNMP Agent status
       - if C(enabled), will enable the SNMP Agent
       - if C(disabled), will disable the SNMP Agent
-    choices: ['enabled', 'disabled']
-    default: 'enabled'
+    choices: ['Enabled', 'Disabled']
+    default: 'Enabled'
   snmp_protocol:
     required: False
     description: SNMP protocol supported
@@ -86,16 +78,19 @@ options:
     description:
       - SNMP Agent community string
     default: 'public'
+    type: 'str'
   snmp_discover_port:
     required: False
     description:
       - SNMP discovery port
     default: '161'
+    type: 'str'
   snmp_trap_port:
     required: False
     description:
       - SNMP trap port
     default: '162'
+    type: 'str'
   snmp_trap_format:
     required: False
     description: SNMP trap format

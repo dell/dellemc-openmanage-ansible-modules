@@ -2,22 +2,9 @@
 # _*_ coding: utf-8 _*_
 
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -25,45 +12,50 @@ ANSIBLE_METADATA = {'metadata_version': '1.0',
 
 DOCUMENTATION = '''
 ---
-module: dellemc_idrac_lc_job_status
-short_description: Get the status of a Lifecycle Controller Job
+module: dellemc_idrac_lc_job
+short_description: Get the status of a Lifecycle Controller Job, delete a LC Job
 version_added: "2.3"
-description: Get the status of a Lifecycle Controller job given a JOB ID
+description:
+  - Get the status of a Lifecycle Controller job given a JOB ID
+  - Delete a LC Job from the Job queue given a JOB ID
+  - Delete LC Job Queue
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
+    type: 'str'
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
+    type: 'str'
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
+    type: 'int'
   job_id:
     required: True
     description:
       - JOB ID in the format JID_123456789012
       - if C(JID_CLEARALL), then all jobs will be cleared from the LC job queue
-    default: None
+    type: 'str'
   state:
     required: False
     description:
-      - if C(present) then return the status of the associated job having the job id provided in I(job_id)
+      - if C(present), returns the status of the associated job having the job id provided in I(job_id)
+      - if C(present) and I(job_id) == C(JID_CLEARALL), then delete the job queue
       - if C(absent), then delete the associated job having the job id provided in I(job_id) from LC job queue
     default: 'present'
 
-requirements: ['omsdk']
+requirements: ['Dell EMC OpenManage Python SDK']
 author: "anupam.aloke@dell.com"
 '''
 
@@ -93,7 +85,7 @@ EXAMPLES = '''
       idrac_user: "root"
       idrac_pwd:  "calvin"
       job_id:     "JID_CLEARALL"
-      state:      "absent"
+      state:      "present"
 
 '''
 
@@ -245,12 +237,12 @@ def main():
     err = False
 
     if module.params['state'] == "present":
-        msg, err = lc_job_status(idrac, module)
-    elif module.params['state'] == "absent":
-        if module.params['job_id'] == 'JID_CLEARALL':
-            msg, err = delete_lc_job_queue(idrac, module)
+        if module.params['job_id'] != 'JID_CLEARALL':
+            msg, err = lc_job_status(idrac, module)
         else:
-            msg, err = delete_lc_job(idrac, module)
+            msg, err = delete_lc_job_queue(idrac, module)
+    elif module.params['state'] == "absent":
+        msg, err = delete_lc_job(idrac, module)
 
     # Disconnect from iDRAC
     idrac_conn.disconnect()

@@ -70,8 +70,14 @@ RETURN = '''
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
-# Get System Inventory
 def get_system_inventory(idrac):
+    """
+    Returns the hardware inventory
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    """
+
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -99,7 +105,7 @@ def main():
             # iDRAC credentials
             idrac_ip=dict(required=True, type='str'),
             idrac_user=dict(required=True, type='str'),
-            idrac_pwd=dict(required=False, type='str', no_log=True),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int')
         ),
 
@@ -118,6 +124,7 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(ansible_facts = {idrac.ipaddr: {'SystemInventory': msg['msg']}})
+
 
 if __name__ == '__main__':
     main()

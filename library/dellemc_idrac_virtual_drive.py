@@ -2,22 +2,9 @@
 # _*_ coding: utf-8 _*_
 
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Copyright © 2017 Dell Inc. or its subsidiaries. All rights reserved.
+# Dell, EMC, and other trademarks are trademarks of Dell Inc. or its
+# subsidiaries. Other trademarks may be trademarks of their respective owners.
 
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
@@ -76,17 +63,26 @@ options:
     required: False
     description:
       - Size (in bytes) of the Virtual Drive
+  controller_fqdd:
+    required: True
+    description:
+      - Fully Qualified Device Descriptor (FQDD) of the storage controller
+  pd_slots:
+    required: False
+    description:
+      - List of slots for physical disk that are be used for the VD
+    default: []
   raid_level:
     required: False
     description:
       - Select the RAID Level for the new virtual drives.
       - RAID Levels can be one of the following:
-        RAID 0: Striping without parity
-        RAID 1: Mirrorign without parity
-        RAID 5: Striping with distributed parity
-        RAID 50: Combines multiple RAID 5 sets with striping
-        RAID 6: Striping with dual parity
-        RAID 60: Combines multiple RAID 6 sets with striping
+          RAID 0: Striping without parity
+          RAID 1: Mirrorign without parity
+          RAID 5: Striping with distributed parity
+          RAID 50: Combines multiple RAID 5 sets with striping
+          RAID 6: Striping with dual parity
+          RAID 60: Combines multiple RAID 6 sets with striping
     choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
     default: 'RAID 0'
   read_cache_policy:
@@ -296,6 +292,7 @@ def main():
             vd_name=dict(required=True, type='str'),
             vd_size=dict(required=False, default=None, type='int'),
             controller_fqdd=dict(required=True, type='str'),
+            pd_slots=dict(required=False, default=[], type='list')
             media_type=dict(required=False, choices=['HDD', 'SSD'],
                             default='HDD', type='str'),
             bus_protocol=dict(required=False, choices=['SAS', 'SATA'],
@@ -303,7 +300,7 @@ def main():
             raid_level=dict(required=False,
                             choices=['RAID 0', 'RAID 1', 'RAID 10', 'RAID 5',
                                     'RAID 50', 'RAID 6', 'RAID 60'],
-                            type='str'),
+                            default=None, type='str'),
             read_policy=dict(requird=False,
                              choices=["NoReadAhead", "ReadAhead", "AdaptiveReadAhead", "Adaptive"],
                              default="Adaptive", type='str'),

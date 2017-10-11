@@ -50,7 +50,7 @@ options:
     required: False
     description:
       - iDRAC port
-    default: None
+    default: 443
   share_name:
     required: True
     description:
@@ -78,12 +78,12 @@ options:
   http_port:
     required: False
     description:
-      - HTTP port
+      - iDRAC Web Server HTTP port
     default: 80
   https_port:
     required: False
     description:
-      - HTTPS port
+      - iDRAC Web Server HTTPS port
     default: 443
   tls_protocol:
     required: False
@@ -170,7 +170,7 @@ def setup_idrac_webserver(idrac, module):
     msg['changed'] = False
     msg['failed'] = False
     msg['msg'] = {}
-    err = False
+    error = False
 
     try:
         tls_protocol = TypeHelper.convert_to_enum(module.params['tls_protocol'],
@@ -207,12 +207,12 @@ def setup_idrac_webserver(idrac, module):
                 msg['failed'] = True
                 msg['changed'] = False
 
-    except Exception as e:
-        err = True
-        msg['msg'] = "Error: %s" % str(e)
+    except Exception as err:
+        error = True
+        msg['msg'] = "Error: %s" % str(err)
         msg['failed'] = True
 
-    return msg, err
+    return msg, error
 
 # Main
 def main():
