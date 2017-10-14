@@ -60,12 +60,33 @@ OpenManage Ansible modules can be broadly categorized under the following sectio
 
   * [dellemc_idrac_power - Configure the Power Control options on a PowerEdge Server](./dellemc_idrac_power.md)
 
+#### 3.1.2 Lifecycle Controller (LC) and Server Status
+
+  * [dellemc_idrac_lcstatus - Returns the lifecycle controller and server status](./dellemc_idrac_lcstatus.md)
+
+#### 3.1.3 Hardware Inventory
+
+#### 3.1.4 Firmware Inventory
+
 ### 3.2 iDRAC Configuration
+#### 3.2.1 User Administration
+#### 3.2.2 iDRAC Network Settings
+#### 3.2.3 SNMP and SNMP Alerts
+#### 3.2.4 Server Configuration Profile (SCP)
+#### 3.2.5 Timezone and NTP
+#### 3.2.6 iDRAC Web Server
+#### 3.2.7 Remote Syslog
 ### 3.3 BIOS Configuration
+#### 3.3.1 Boot Order
 ### 3.4 Storage Configuration
+#### 3.4.1 Virtual Drives
 ### 3.5 OS Deployment
+#### 3.5.1 Boot to Network ISO
 ### 3.6 Firmware Update
+#### 3.6.1 Update Firmware from a Network Share
 ### 3.7 Monitor 
+#### 3.7.1 Lifecycle Controller Logs
+#### 3.7.2 Tech Support Report (TSR)
 
   * [dellemc_idrac_boot_to_nw_iso - boot to a network iso image](#dellemc_idrac_boot_to_nw_iso)
   * [dellemc_idrac_import_scp - import scp from a network share](#dellemc_idrac_import_scp)
