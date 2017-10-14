@@ -3,7 +3,7 @@
 ## 1. Introduction
 Dell EMC OpenManage Ansible Modules provide customers the ability to automate the Out-of-Band configuration management, deployment and updates for Dell EMC PowerEdge Servers using Ansible by leeveragin the management automation built into the iDRAC with Lifecycle Controller. iDRAC provides both REST APIs based on DMTF RedFish industry standard and WS-Management (WS-MAN) for management automation of PowerEdge Servers.
 
-With OpenManage Ansible modules, you can:
+With OpenManage Ansible modules, you can do:
 * Server administration
 * Configure iDRAC's settings such as:
   * iDRAC Network Settings
@@ -22,11 +22,11 @@ With OpenManage Ansible modules, you can:
 |---------|-|-------------------------------|-------------------------------------------------|
 | Protocol Support | | <ul><li>WS-Management</li></ul> | <ul><li>RedFish</li></ul> |
 | Server Administration | Power and Thermal | <ul><li>Power Control</li></ul>|<ul><li>Power Configuration - such as power cap policy, power supply options etc.</li></ul>|
-| | iDRAC Reset| Yes|Yes|
-|iDRAC Configuration| User and Password Management | <ul><li>Local user and password management<ul><li>User creation</li><li>Change Password<li><li>Change User Privileges</li><li><Remove User</li></ul></li></ul> | <ul><li>Active Directory (AD) support</li><li>LDAP Support</li></ul> |
+| | iDRAC Reset| <ul><li>Yes</li></ul> | <ul><li>Yes</li></ul> |
+|iDRAC Configuration| User and Password Management | <ul><li>Local user and password management<ul><li>Create User</li><li>Change Password</li><li>Change User Privileges</li><li><Remove an user</li></ul></li></ul> | <ul><li>Active Directory (AD) support</li><li>LDAP Support</li></ul> |
 | | iDRAC Network Configuration | <ul><li>NIC Selection</li><li>Zero-Touch Auto-Config settings</li><li>IPv4 Address settings:<ul><li>Enable/Disable IPv4</li><li>Static IPv4 Address settings (IPv4 address, gateway and netmask)</li><li>Enable/Disable DNS from DHCP</li><li>Preferred/Alternate DNS Server</li></ul></li><li>VLAN Configuration</li></ul> | <ul><li>Same as in BETA release</li></ul> |
 | | SNMP and SNMP Alert Configuration| <ul><li>SNMP Agent configuration</li><li>SNMP Alert Destination Configuration<ul><li>Add, Modify and Delete an alert destination</li></ul></li></ul> | <ul><li>Alert and Alerts filter</li><li>Alerts and Remote System Log configuration</li><li>Alert Recurrence configuration</li><li>RedFish Event settings</li></ul> |
-| | Server Configuration Profile (SCP) | <ul><li>Export SCP to remote network share (CIFS, NFS)</li><li>Import SCP from a remote network share (CIFS, NFS)</li></ul> | <ul><li>Export SCP to Local, HTTP/HTTPS</li><i>Import SCP from Local, HTTP/HTTPS</li></ul> |
+| | Server Configuration Profile (SCP) | <ul><li>Export SCP to remote network share (CIFS, NFS)</li><li>Import SCP from a remote network share (CIFS, NFS)</li></ul> | <ul><li>Export SCP to Local, HTTP/HTTPS</li><li>Import SCP from Local, HTTP/HTTPS</li></ul> |
 | | iDRAC Services | <ul><li>iDRAC Web Server configuration<ul><li>Enable/Disable Web server</li><li>TLS protocol version</li><li>SSL Encryption Bits</li><li>HTTP/HTTPS port</li><li>Time out period</li></ul></li></ul> | <ul><li>SSH settings</li><li>Telnet settings</li><li>Remote RACADM Services</li><li>VNC Server</li></ul> |
 | | Lifecycle Controller (LC) attributes | <ul><li>Enable/Disable CSIOR (Collect System Inventory on Restart)</li></ul> | <ul><li>Same as in BETA</li></ul>|
 | BIOS Configuration | Boot Order Settings | <ul><li>Change Boot Mode (Bios, Uefi)</li><li>Change Bios/Uefi Boot Sequence</li><li>One-Time Bios/Uefi Boot Configuration settings</li></ul> | |
