@@ -162,25 +162,21 @@ def setup_idrac_snmp(idrac, module):
     err = False
 
     try:
-        if module.params["state"] == "present":
-            idrac.config_mgr.SNMPConfiguration.AgentEnable_SNMP = \
-                    AgentEnable_SNMPTypes.Enabled
-            idrac.config_mgr.SNMPConfiguration.AgentCommunity_SNMP = \
-                    module.params['snmp_community'].lower()
-            idrac.config_mgr.SNMPConfiguration.AlertPort_SNMP = \
-                    module.params['snmp_trap_port']
-            idrac.config_mgr.SNMPConfiguration.DiscoveryPort_SNMP = \
-                    module.params['snmp_port']
-            idrac.config_mgr.SNMPConfiguration.SNMPProtocol_SNMP = \
-                    TypeHelper.convert_to_enum(module.params['snmp_protocol'],
-                                               SNMPProtocol_SNMPTypes)
-            idrac.config_mgr.SNMPConfiguration.TrapFormat_SNMP = \
-                    TypeHelper.convert_to_enum(module.params['snmp_trap_format'],
-                                               TrapFormat_SNMPTypes)
-
-        else:
-            idrac.config_mgr.SNMPConfiguration.AgentEnable_SNMP = \
-                    AgentEnable_SNMPTypes.Disabled
+        idrac.config_mgr.SNMPConfiguration.AgentEnable_SNMP = \
+                TypeHelper.convert_to_enum(module.params['snmp_enable'],
+                                           AgentEnable_SNMPTypes)
+        idrac.config_mgr.SNMPConfiguration.AgentCommunity_SNMP = \
+                module.params['snmp_community'].lower()
+        idrac.config_mgr.SNMPConfiguration.AlertPort_SNMP = \
+                module.params['snmp_trap_port']
+        idrac.config_mgr.SNMPConfiguration.DiscoveryPort_SNMP = \
+                module.params['snmp_port']
+        idrac.config_mgr.SNMPConfiguration.SNMPProtocol_SNMP = \
+                TypeHelper.convert_to_enum(module.params['snmp_protocol'],
+                                           SNMPProtocol_SNMPTypes)
+        idrac.config_mgr.SNMPConfiguration.TrapFormat_SNMP = \
+                TypeHelper.convert_to_enum(module.params['snmp_trap_format'],
+                                           TrapFormat_SNMPTypes)
 
         msg['changed'] = idrac.config_mgr._sysconfig.is_changed()
 
@@ -233,9 +229,6 @@ def main():
             snmp_trap_format=dict(required=False,
                                   choice=['SNMPv1', 'SNMPv2', 'SNMPv3'],
                                   default='SNMPv1', type='str'),
-
-            state=dict(required=False, choice=['present', 'absent'],
-                       default='present')
         ),
 
         supports_check_mode=True)
