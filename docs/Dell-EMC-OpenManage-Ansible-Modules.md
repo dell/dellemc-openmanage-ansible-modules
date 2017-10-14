@@ -1,23 +1,34 @@
-# Dell EMC OpenManage Ansible Modules for iDRAC
+# Dell EMC OpenManage Ansible Modules for iDRAC (BETA)
 
 ## 1. Introduction
 Dell EMC OpenManage Ansible Modules provide customers the ability to automate the Out-of-Band configuration management, deployment and updates for Dell EMC PowerEdge Servers using Ansible by leeveragin the management automation built into the iDRAC with Lifecycle Controller. iDRAC provides both REST APIs based on DMTF RedFish industry standard and WS-Management (WS-MAN) for management automation of PowerEdge Servers.
 
 With OpenManage Ansible modules, you can do:
-* Server administration
-* Configure iDRAC's settings such as:
-  * iDRAC Network Settings
-  * SNMP and SNMP Alert Settings
-  * Timezone and NTP Settings
-  * System settings such as server topology
-  * LC attributes such as CSIOR etc.
-* Perform User administration
-* BIOS and Boot Order configuration
-* RAID Configuration
-* OS Deployment
-* Firmware Updates
+  * Server administration
+  * Configure iDRAC's settings such as:
+    * iDRAC Network Settings
+    * SNMP and SNMP Alert Settings
+    * Timezone and NTP Settings
+    * System settings such as server topology
+    * LC attributes such as CSIOR etc.
+  * Perform User administration
+  * BIOS and Boot Order configuration
+  * RAID Configuration
+  * OS Deployment
+  * Firmware Updates
 
-### 1.1 What is included in this BETA release?
+### 1.1 How OpenManage Ansible Modules work?
+OpenManage Ansible modules extensively uses the Server Configuration Profile (SCP) for most of the configuration management, deployment and update of PowerEdge Servers. Lifecycle Controller 2 version 1.4 and later adds support for SCP. A SCP contains all BIOS, iDRAC, Lifecycle Controller, Network amd Storage settings of a PowerEdge server and can be applied to multiple servers, enabling rapid, reliable and reproducible configuration.
+
+A SCP operation can be performed using any of the following methods:
+  * Export/Import to/from a remote network share via CIFS, NFS
+  * Export/Import to/from a remote network share via HTTP, HTTPS (iDRAC firmware 3.00.00.00 and above)
+  * Export/Import to/from via local file streaming (iDRAC firmware 3.00.00.00 and above)
+
+This BETA release of OpenManage Ansible Module supports only the first option listed above for SCP operations i.e. export/import from/to a remote network share via CIFS or NFS. Future releases will support all the options for SCP operations.
+
+---
+### 1.2 What is included in this BETA release?
 |Use Cases| | Included in this BETA release |
 |---------|-|-------------------------------|
 | Protocol Support | | <ul><li>WS-Management</li></ul> |
@@ -37,14 +48,66 @@ With OpenManage Ansible modules, you can do:
 
 ---
 ## 2. Requirements
-* python >= '2.7'
-* [Dell EMC OpenManage Python SDK](https://github.com/vaideesg/omsdk)
+  * python >= '2.7'
+  * [Dell EMC OpenManage Python SDK](https://github.com/vaideesg/omsdk)
 
 ---
 ## 3. Modules
-Following is the list of OpenManage Ansible Modules:
+OpenManage Ansible modules can be broadly categorized under the following sections. Each section describes the modules that are currently implemented including examples.
 
-### 3.1 
+### 3.1 Server Administration
+#### 3.1.1 Power Control
+
+  * [dellemc_idrac_power - Configure the Power Control options on a PowerEdge Server](#dellemc_idrac_power)
+
+##### dellemc_idrac_power
+Configure the Power Control options on a PowerEdge Server
+
+  * Synopsis
+  * Options
+  * Examples
+
+###### Synopsis
+Configure the Power Cycle options on a Dell EMC PowerEdge Server
+
+###### Options
+
+| Parameter     | required    | default  | choices    | comments |
+| ------------- |-------------| ---------|----------- |--------- |
+| idrac_ip   |  yes  |  | |  iDRAC IP Address |
+| idrac_user |  yes  |  | |  iDRAC user name  |
+| idrac_pwd  |  yes  |  | |  iDRAC user password  |
+| idrac_port |  no  | 443 | |  iDRAC port number  |
+| state  |   yes  |  | <ul> <li>PowerOn</li>  <li>SoftPowerCycle</li>  <li>SoftPowerOff</li>  <li>HardReset</li>  <li>DiagnosticInterrupt</li>  <li>GracefulPowerOff</li> </ul> |  <ul><li>if C(PowerOn), will Power On the server</li><li>if C(SoftPowerCycle), will close the running applications and Reboot the Server</li><li>if C(SoftPowerOff), will close the running applications and Power Off the server</li><li>if C(HardReset), will Reboot the Server immediately</li><li>if C(DiagnosticInterrupt), will reboot the Server for troubleshooting</li><li>if C(GracefulPowerOff), will close the running applications and Power Off the server</li></ul>  |
+ 
+###### Examples
+
+```
+# Power On
+- name: Power On the Server
+    dellemc_idrac_power:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      state:      "PowerOn"
+
+# Graceful shutdown
+- name: graceful shutdown
+    dellemc_idrac_power:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      state:      "GracefulPowerOff"
+
+```
+
+
+### 3.2 iDRAC Configuration
+### 3.3 BIOS Configuration
+### 3.4 Storage Configuration
+### 3.5 OS Deployment
+### 3.6 Firmware Update
+### 3.7 Monitor 
 
   * [dellemc_idrac_boot_to_nw_iso - boot to a network iso image](#dellemc_idrac_boot_to_nw_iso)
   * [dellemc_idrac_import_scp - import scp from a network share](#dellemc_idrac_import_scp)
@@ -56,7 +119,6 @@ Following is the list of OpenManage Ansible Modules:
   * [dellemc_idrac_export_tsr - export tsr logs to a network share](#dellemc_idrac_export_tsr)
   * [dellemc_idrac_firmware_update - Update firmware from a network share (cifs, nfs)](#dellemc_idrac_firmware_update)
   * [dellemc_idrac_export_lclog - export lifecycle controller log file to a network share](#dellemc_idrac_export_lclog)
-  * [dellemc_idrac_power - configure the power cycle options on poweredge server](#dellemc_idrac_power)
   * [dellemc_idrac_lc_job - get the status of a lifecycle controller job, delete a lc job](#dellemc_idrac_lc_job)
   * [dellemc_idrac_user - configures an idrac local user](#dellemc_idrac_user)
   * [dellemc_idrac_sw_inventory - get firmware inventory](#dellemc_idrac_sw_inventory)
@@ -261,46 +323,6 @@ Configure BIOS Boot Settings
 
 
 ---
-
-
-## dellemc_idrac_login
-Login to iDRAC
-
-  * Synopsis
-  * Options
-  * Examples
-
-#### Synopsis
- Login to iDRAC
-
-#### Options
-
-| Parameter     | required    | default  | choices    | comments |
-| ------------- |-------------| ---------|----------- |--------- |
-| idrac_user  |   yes  |    | |  i  D  R  A  C     u  s  e  r     n  a  m  e  |
-| idrac_pwd  |   yes  |    | |  i  D  R  A  C     u  s  e  r     p  a  s  s  w  o  r  d  |
-| idrac_ip  |   yes  |    | |  i  D  R  A  C     I  P     A  d  d  r  e  s  s  |
-| idrac_port  |   no  |    | |  i  D  R  A  C     p  o  r  t  |
-
-
- 
-#### Examples
-
-```
-- name: Login to iDRAC
-    dellemc_idrac_login:
-      idrac_ip:   "192.168.1.1"
-      idrac_user: "root"
-      idrac_pwd:  "calvin"
-    register: idrac
-
-
-```
-
-
-
----
-
 
 ## dellemc_idrac_nic
 Configure iDRAC Network settings
@@ -786,49 +808,7 @@ Export Lifecycle Controller log file to a network share
 ```
 
 
-
 ---
-
-
-## dellemc_idrac_power
-Configure the Power Cycle options on PowerEdge Server
-
-  * Synopsis
-  * Options
-  * Examples
-
-#### Synopsis
- Configure the Power Cycle options on a Dell EMC PowerEdge Server
-
-#### Options
-
-| Parameter     | required    | default  | choices    | comments |
-| ------------- |-------------| ---------|----------- |--------- |
-| idrac_port  |   no  |  443  | |  iDRAC port  |
-| idrac_pwd  |   yes  |  | |  iDRAC user password  |
-| idrac_user  |   yes  |  | |  iDRAC user name  |
-| state  |   yes  |  | <ul> <li>PowerOn</li>  <li>SoftPowerCycle</li>  <li>SoftPowerOff</li>  <li>HardReset</li>  <li>DiagnosticInterrupt</li>  <li>GracefulPowerOff</li> </ul> |  if C(PowerOn), will Power On the server  if C(SoftPowerCycle), will close the running applications and Reboot the Server  if C(SoftPowerOff), will close the running applications and Power Off the server  if C(HardReset), will Reboot the Server immediately  if C(DiagnosticInterrupt), will reboot the Server for troubleshooting  if C(GracefulPowerOff), will close the running applications and Power Off the server  |
-| idrac_ip  |   yes  |  | |  iDRAC IP Address  |
-
-
- 
-#### Examples
-
-```
----
-- name: Power On the Server
-    dellemc_idrac_power:
-      idrac_ip:   "192.168.1.1"
-      idrac_user: "root"
-      idrac_pwd:  "calvin"
-      state:      "PowerOn"
-
-```
-
-
-
----
-
 
 ## dellemc_idrac_lc_job
 Get the status of a Lifecycle Controller Job, delete a LC Job
