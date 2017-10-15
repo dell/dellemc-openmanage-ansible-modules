@@ -6,8 +6,8 @@ Configure BIOS Boot Settings
   * [Examples](#Examples)
 
 ## <a name="Synopsis"></a>Synopsis
- Configure Bios/Uefi Boot Settings
- Changing the boot mode, Bios/Uefi boot sequence will reboot the system
+  * Configure Bios/Uefi Boot Settings
+  * Changing the boot mode, Bios/Uefi boot sequence will reboot the system
 
 ## <a name="Options"></a>Options
 
