@@ -23,7 +23,7 @@ Configures an iDRAC local User
 | user_name  |   yes  |  | |  User name to be configured  |
 | user_pwd  |   no  |    | |  User password  |
 | user_priv |  no  |  | <ul><li>Administrator</li><li>Operator</li><li>ReadOnly</li></ul> | User privileges |
-| state  |   |  present  | <ul> <li>present</li>  <li>absent</li>  <li>enable</li>  <li>disable</li> </ul> |  <ul<li>if C(present), will create/add/modify an user</li><li>if C(absent), will delete the user</li><li>if C(enable), will enable the user</li><li>if C(disable), will disable the user</li></ul>  |
+| state  |   |  present  | <ul> <li>present</li>  <li>absent</li>  <li>enable</li>  <li>disable</li> </ul> |  <ul><li>if C(present), will create/add/modify an user</li><li>if C(absent), will delete the user</li><li>if C(enable), will enable the user</li><li>if C(disable), will disable the user</li></ul>  |
  
 ## <a name="Examples"></a>Examples
 
