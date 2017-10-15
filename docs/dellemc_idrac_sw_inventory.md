@@ -4,7 +4,7 @@ Get Firmware Inventory
   * [Synopsis](#Synopsis)
   * [Options](#Options)
   * [Examples](#Examples)
-  * [Return Values](#Return Values)
+  * [Return Values](#Return-Values)
 
 ## Synopsis
  Get Firmware Inventory
