@@ -23,7 +23,6 @@ Export TSR logs to a network share
 ## <a name="Examples"></a>Examples
 
 ```
----
 # Export TSR to a CIFS Network Share
 - name: Export TSR to a CIFS network share
     dellemc_idrac_export_tsr:
