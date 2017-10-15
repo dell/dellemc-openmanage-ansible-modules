@@ -6,10 +6,10 @@ Get Firmware Inventory
   * [Examples](#Examples)
   * [Return Values](#Return-Values)
 
-## Synopsis
+## <a name="Synopsis"></a>Synopsis
  Get Firmware Inventory
 
-## Options
+## <a name="Options"></a>Options
 
 | Parameter     | required    | default  | choices    | comments |
 | ------------- |-------------| ---------|----------- |--------- |
@@ -17,11 +17,11 @@ Get Firmware Inventory
 | idrac_user  |   yes  |  | |  iDRAC user name  |
 | idrac_pwd  |   yes  |  | |  iDRAC user password  |
 | idrac_port  |   no  |  443  | |  iDRAC port  |
-| choice  |   no  |  installed  | |  if C(all), get both installed and available (if any) firmware inventory  if C(installed), get installed firmware inventory  |
-| serialize  |   no  |  False  | |  if C(True), create '_inventory' and '_master' folders relative to I(share_mnt) and save the installed firmware inventory in a file named 'config.xml' in the '_inventory' directory  if C(True), then I(share_mnt) must be provided  |
-| share_mnt  |   no  |    | |  Locally mounted absolute path of the Network share (CIFS, NFS) where the inventory file is going to be saved. You can also provide a local folder if you want to save the firmware inventory on local file system  Required if I(serialize = True)  |
+| choice  |   no  |  installed  | |  <ul><li>if C(all), get both installed and available (if any) firmware inventory</li><li>if C(installed), get installed firmware inventory</li></ul>  |
+| serialize  |   no  |  False  | |  <ul><li>if C(True), create '_inventory' and '_master' folders relative to I(share_mnt) and save the installed firmware inventory in a file named 'config.xml' in the '_inventory' directory</li><li>if C(True), then I(share_mnt) must be provided</li></ul>  |
+| share_mnt  |   no  |    | |  <ul><li>Locally mounted absolute path of the Network share (CIFS, NFS) where the inventory file is going to be saved. You can also provide a local folder if you want to save the firmware inventory on local file system</li><li>Required if I(serialize = True)</li></ul>  |
 
-## Examples
+## <a name="Examples"></a>Examples
 
 ```
 # Get Available as well as Installed Firmware Inventory
@@ -50,7 +50,7 @@ Get Firmware Inventory
       choice:     "installed"
       serialize:  True
 ```
-## Return Values
+## <a name="Return-Values"></a>Return Values
 
 Common return values are documented here [Return Values](http://docs.ansible.com/ansible/latest/common_return_values.html), the following are the fields unique to this module:
 
