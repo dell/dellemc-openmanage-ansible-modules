@@ -345,7 +345,7 @@ def main():
             nic_autoneg=dict(required=False, choices=['Enabled', 'Disabled'],
                              default='Enabled', type='str'),
             nic_speed=dict(required=False, choices=['10', '100', '1000'],
-                           default=1000, type='str'),
+                           default='1000', type='str'),
             nic_duplex=dict(required=False, choices=['Full', 'Half'],
                             default='Full', type='str'),
             nic_mtu=dict(required=False, default=1500, type='int'),

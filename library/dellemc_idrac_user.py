@@ -31,41 +31,57 @@ description:
     - Configures an iDRAC local user
 options:
   idrac_ip:
-    required: False
-    description: iDRAC IP Address
-    default: None
+    required: True
+    description:
+      - iDRAC IP Address
+    type: 'str'
   idrac_user:
-    required: False
-    description: iDRAC user name
-    default: None
+    required: True
+    description:
+      - iDRAC user name
+    type: 'str'
   idrac_pwd:
-    required: False
-    description: iDRAC user password
-    default: None
+    required: True
+    description:
+      - iDRAC user password
+    type: 'str'
   idrac_port:
     required: False
-    description: iDRAC port
-    default: None
+    description:
+      - iDRAC port
+    default: 443
+    type: 'int'
   share_name:
     required: True
-    description: CIFS or NFS Network share
+    description:
+      - CIFS or NFS Network share
+    type: 'str'
   share_user:
     required: True
-    description: Network share user in the format 'user@domain' if user is part of domain else 'user'
+    description:
+      - Network share user in the format 'user@domain' if user is part of domain, else 'user'
+    type: 'str'
   share_pwd:
     required: True
-    description: Network share user password
+    description:
+      - Network share user password
+    type: 'str'
   share_mnt:
     required: True
     description:
       - Local mount path of the network file share with read-write permission for ansible user
+    type: 'str'
   user_name:
     required: True
-    description: User name to be configured
+    description:
+      - User name to be configured
+    type: 'str'
   user_pwd:
     required: False
-    description: User password
+    description:
+      - User password
     default: None
+    type: 'str'
   user_priv:
     required: False
     description: User privileges
