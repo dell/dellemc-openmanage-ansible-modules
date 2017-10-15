@@ -12,10 +12,10 @@ Configures an iDRAC local User
 
 | Parameter     | required    | default  | choices    | comments |
 | ------------- |-------------| ---------|----------- |--------- |
-| idrac_ip  |   no  |    | |  iDRAC IP Address  |
-| idrac_user  |   no  |    | |  iDRAC user name  |
-| idrac_pwd  |   no  |    | |  iDRAC user password  |
-| idrac_port  |   no  |    | |  iDRAC port  |
+| idrac_ip  |   yes  |    | |  iDRAC IP Address  |
+| idrac_user  |   yes  |    | |  iDRAC user name  |
+| idrac_pwd  |   yes  |    | |  iDRAC user password  |
+| idrac_port  |   no  | 443 | |  iDRAC port  |
 | share_name  |   yes  |  | |  CIFS or NFS Network share  |
 | share_user  |   yes  |  | |  Network share user in the format 'user@domain' if user is part of domain, else 'user'  |
 | share_pwd  |   yes  |  | |  Network share user password  |
@@ -42,7 +42,9 @@ Configures an iDRAC local User
       user_pwd:   "password"
       user_priv:  "Administrator"
       state:      "present"
+```
 
+```
 - name: Change password for the "newuser"
     dellemc_idrac_user:
       idrac_ip:   "192.168.1.1"
@@ -55,7 +57,9 @@ Configures an iDRAC local User
       user_name:  "newuser"
       user_pwd:   "newpassword"
       state:      "present"
+```
 
+```
 - name: Change privilege for the "newuser"
     dellemc_idrac_user:
       idrac_ip:   "192.168.1.1"
@@ -68,7 +72,9 @@ Configures an iDRAC local User
       user_name:  "newuser"
       user_priv:  "Operator"
       state:      "present"
+```
 
+```
 - name: Delete "newuser"
     dellemc_idrac_user:
       idrac_ip:   "192.168.1.1"
