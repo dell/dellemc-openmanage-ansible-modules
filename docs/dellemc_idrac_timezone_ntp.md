@@ -1,14 +1,14 @@
 # dellemc_idrac_timezone_ntp
 Configure Time Zone and NTP settings
 
-  * Synopsis
-  * Options
-  * Examples
+  * [Synopsis](#Synopsis)
+  * [Options](#Options)
+  * [Examples](#Examples)
 
-## Synopsis
+## <a name="Synopsis"></a>Synopsis
  Configure Time Zone and NTP settings
 
-## Options
+## <a name="Options"></a>Options
 
 | Parameter     | required    | default  | choices    | comments |
 | ------------- |-------------| ---------|----------- |--------- |
@@ -22,9 +22,9 @@ Configure Time Zone and NTP settings
 | share_mnt  |   yes  |  | |  Local mount path of the network file share with read-write permission for ansible user  |
 | timezone  |   no  |    | |  time zone e.g. "Asia/Kolkata"  |
 | ntp_servers  |   no  |    | |  List of IP Addresses of the NTP Servers  |
-| state  |   no  |  present  | |  if C(present), will enable the NTP option and add the NTP servers  if C(absent), will disable the NTP option  |
+| state  |   no  |  present  | |  <ul><li>if C(present), will enable the NTP option and add the NTP servers</li><li>if C(absent), will disable the NTP option</li></ul>  |
 
-## Examples
+## <a name="Examples"></a>Examples
 
 ```
 # Set Timezone, Enable NTP and add NTP Servers
@@ -40,7 +40,9 @@ Configure Time Zone and NTP settings
       timezone:   "Asia/Kolkata"
       ntp_servers: ["10.10.10.10", "10.10.10.11"]
       state:      "present"
+```
 
+```
 # Disable NTP
 - name: Configure TimeZone and NTP
     dellemc_idrac_timezone_ntp:
@@ -52,7 +54,6 @@ Configure Time Zone and NTP settings
       share_pwd:  "password"
       share_mnt:  "/mnt/share"
       state:      "absent"
-
 ```
 
 ---

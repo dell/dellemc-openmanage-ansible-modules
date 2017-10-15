@@ -1,14 +1,14 @@
 # dellemc_idrac_lcstatus
 Returns the Lifecycle Controller status
 
-  * Synopsis
-  * Options
-  * Examples
+  * [Synopsis](#Synopsis)
+  * [Options](#Options)
+  * [Examples](#Examples)
 
-## Synopsis
+## <a name="Synopsis"></a>Synopsis
  Returns the Lifecycle Controller Status on a Dell EMC PowerEdge Server
 
-## Options
+## <a name="Options"></a>Options
 
 | Parameter     | required    | default  | choices    | comments |
 | ------------- |-------------| ---------|----------- |--------- |
@@ -17,16 +17,14 @@ Returns the Lifecycle Controller status
 | idrac_pwd  |   yes  |  | |  iDRAC user password  |
 | idrac_port  |   no  |  443  | |  iDRAC port  |
 
-## Examples
+## <a name="Examples"></a>Examples
 
 ```
----
 - name: Get Lifecycle Controller Status
     dellemc_idrac_lcstatus:
       idrac_ip:   "192.168.1.1"
       idrac_user: "root"
       idrac_pwd:  "calvin"
-
 ```
 
 ---

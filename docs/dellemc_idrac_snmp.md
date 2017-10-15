@@ -1,14 +1,14 @@
 # dellemc_idrac_snmp
 Configure SNMP settings on iDRAC
 
-  * Synopsis
-  * Options
-  * Examples
+  * [Synopsis](#Synopsis)
+  * [Options](#Options)
+  * [Examples](#Examples)
 
-## Synopsis
+## <a name="Synopsis"></a>Synopsis
  Configures SNMP settings on iDRAC
 
-## Options
+## <a name="Options"></a>Options
 
 | Parameter     | required    | default  | choices    | comments |
 | ------------- |-------------| ---------|----------- |--------- |
@@ -27,7 +27,7 @@ Configure SNMP settings on iDRAC
 | snmp_trap_port  |   no  |  162  | |  SNMP trap port  |
 | snmp_trap_format  |   no  |  SNMPv1  | <ul> <li>SNMPv1</li>  <li>SNMPv2</li>  <li>SNMPv3</li> </ul> | <ul><li>if C(SNMPv1), will configure iDRAC to use SNMPv1 for sending traps</li><li>if C(SNMPv2), will configure iDRAC to use SNMPv2 for sending traps</li><li>if C(SNMPv3), will configure iDRAC to use SNMPv3 for sending traps</li></ul> |
 
-## Examples
+## <a name="Examples"></a>Examples
 
 ```
 # Enable SNMP Agent and configure SNMP parameters
@@ -45,7 +45,9 @@ Configure SNMP settings on iDRAC
       snmp_community:       "public"
       snmp_port:            "161"
       snmp_trap_port:       "162"
+```
 
+```
 # Disable SNMP Agent
 - name: Configure SNMP
     dellemc_idrac_snmp:

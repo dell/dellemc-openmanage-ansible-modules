@@ -1,14 +1,14 @@
-## dellemc_idrac_inventory
+# dellemc_idrac_inventory
 Returns the PowerEdge Server hardware inventory
 
-  * Synopsis
-  * Options
-  * Examples
+  * [Synopsis](#Synopsis)
+  * [Options](#Options)
+  * [Examples](#Examples)
 
-## Synopsis
+## <a name="Synopsis"></a>Synopsis
  Returns the Dell EMC PowerEdge Server hardware inventory
 
-## Options
+## <a name="Options"></a>Options
 
 | Parameter     | required    | default  | choices    | comments |
 | ------------- |-------------| ---------|----------- |--------- |
@@ -17,17 +17,14 @@ Returns the PowerEdge Server hardware inventory
 | idrac_pwd  |   yes  |  | |  iDRAC user password  |
 | idrac_port  |   no  |  443  | |  iDRAC port  |
 
-## Examples
-
+## <a name="Examples"></a>Examples
 
 ```
----
 - name: Get System Inventory
   dellemc_idrac_inventory:
     idrac_ip:   "192.168.1.1"
     idrac_user: "root"
     idrac_pwd:  "calvin"
-
 ```
 
 ---

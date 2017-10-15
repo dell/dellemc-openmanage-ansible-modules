@@ -1,14 +1,14 @@
 # dellemc_idrac_boot_to_nw_iso
 Boot to a network ISO image
 
-  * Synopsis
-  * Options
-  * Examples
+  * [Synopsis](#Synopsis)
+  * [Options](#Options)
+  * [Examples](#Examples)
 
-## Synopsis
+## <a name="Synopsis"></a>Synopsis
  Boot to a network ISO image. Reboot appears to be immediate
 
-## Options
+## <a name="Options"></a>Options
 
 | Parameter     | required    | default  | choices    | comments |
 | ------------- |-------------| ---------|----------- |--------- |
@@ -21,11 +21,9 @@ Boot to a network ISO image
 | share_pwd  |   yes  |  | |  Network share user password  |
 | share_mnt  |   yes  |  | |  Local mount path of the network file share specified in I(share_name) with read-write permission for ansible user  |
 | iso_image  |   yes  |  | |  Path to ISO image relative to the I(share_name)  |
-| job_wait  |   no  |  True  | |  |
+| job_wait  |   no  |  True  | <ul><li>True</li><li>False</li></ul> | <ul><li>if C(True), will wait for the OS deployment job to finish and then return the status</li><li>if C(False), will return immediately with the JOB ID of the OS deployment job |
 
- 
-## Examples
-
+## <a name="Examples"></a>Examples
 
 ```
 - name: Boot to Network ISO
