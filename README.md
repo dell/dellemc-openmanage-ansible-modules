@@ -12,7 +12,7 @@ Dell EMC PowerEdge Servers with:
 
 # Documentation
 
-Please refer to the [OpenManage Ansible Modules Documentation](doc/Dell-EMC-OpenManage-Ansible-Modules.md)
+Please refer to the [OpenManage Ansible Modules Documentation](docs/Dell-EMC-OpenManage-Ansible-Modules.md)
 
 # Installation
 
