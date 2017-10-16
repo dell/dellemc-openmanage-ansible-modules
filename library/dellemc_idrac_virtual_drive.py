@@ -140,6 +140,7 @@ EXAMPLES = '''
       share_pwd:  "password"
       share_mnt:  "/mnt/share"
       virtual_drive_name:  "Virtual Drive 0"
+      controller_fqdd: "RAID-Integrated.1-1"
       raid_type:   "RAID 1"
       span_depth:  1
       span_length: 2
@@ -292,7 +293,7 @@ def main():
             vd_name=dict(required=True, type='str'),
             vd_size=dict(required=False, default=None, type='int'),
             controller_fqdd=dict(required=True, type='str'),
-            pd_slots=dict(required=False, default=[], type='list')
+            pd_slots=dict(required=False, default=[], type='list'),
             media_type=dict(required=False, choices=['HDD', 'SSD'],
                             default='HDD', type='str'),
             bus_protocol=dict(required=False, choices=['SAS', 'SATA'],
