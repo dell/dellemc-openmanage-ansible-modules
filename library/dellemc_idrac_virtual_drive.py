@@ -166,7 +166,7 @@ from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkcenum import TypeHelper
-    from omdrivers.lifecycle.iDRAC.RaidHelper import RaidHelper
+    from omdrivers.lifecycle.iDRAC.RAIDHelper import RAIDHelper
     from omdrivers.enums.iDRAC.RAID import (
         DiskCachePolicyTypes, RAIDTypesTypes, RAIDdefaultReadPolicyTypes,
         RAIDdefaultWritePolicyTypes, StripeSizeTypes
