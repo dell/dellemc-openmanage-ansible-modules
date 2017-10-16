@@ -162,6 +162,7 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
+import traceback
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
@@ -222,7 +223,7 @@ def virtual_drive(idrac, module):
 
         if module.params['pd_slots']:
             pd_slots = ""
-            for i in module['pd_slots']:
+            for i in module.params['pd_slots']:
                 pd_slots = "\"" + i + "\", "
             pd_slots_list = "[" + pd_slots[0:-1] + "]"
             pd_filter += " and disk.Slot in " + pd_slots_list
@@ -264,6 +265,7 @@ def virtual_drive(idrac, module):
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
+        msg['exception'] = traceback.format_exc()
         msg['failed'] = True
 
     return msg, err
