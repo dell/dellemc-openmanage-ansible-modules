@@ -294,7 +294,7 @@ def virtual_drive(idrac, module):
             if module.check_mode or not exists:
                 msg['changed'] = exists
             else:
-                msg['msg'] = idrac.config_mgr.RAIDHelper.delete_virtual_disk(
+                msg['msg'] = idrac.config_mgr.RaidHelper.delete_virtual_disk(
                     Name=module.params['vd_name'])
 
         if "Status" in msg['msg']:
