@@ -257,7 +257,7 @@ def virtual_drive(idrac, module):
         elif pd_slots:
             slots = ""
             for i in pd_slots:
-                slots = "\"" + str(i) + "\", "
+                slots += "\"" + str(i) + "\","
             slots_list = "[" + slots[0:-1] + "]"
             pd_filter += " and disk.Slot in " + slots_list
             span_length = len(pd_slots)
