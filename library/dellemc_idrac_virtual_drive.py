@@ -82,24 +82,27 @@ options:
     required: True
     description:
       - Fully Qualified Device Descriptor (FQDD) of the storage controller
+    type: 'str'
   pd_slots:
     required: False
     description:
       - List of slots for physical disk that are be used for the VD
     default: []
+    type: 'list'
   raid_level:
     required: False
     description:
       - Select the RAID Level for the new virtual drives.
       - RAID Levels can be one of the following:
           RAID 0: Striping without parity
-          RAID 1: Mirrorign without parity
+          RAID 1: Mirroring without parity
           RAID 5: Striping with distributed parity
           RAID 50: Combines multiple RAID 5 sets with striping
           RAID 6: Striping with dual parity
           RAID 60: Combines multiple RAID 6 sets with striping
     choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
     default: 'RAID 0'
+    type: 'str'
   read_cache_policy:
     required: False
     description:
@@ -118,20 +121,29 @@ options:
       - Physical Disk caching policy of all members of a Virtual Disk
     choices: ["Default", "Enabled", "Disabled"]
     default: "Default"
+    type: 'str'
   stripe_size:
     required: False
     description:
-      - Stripe size of the virtual disk
-    choices: ["64KB", "128KB", "256KB","512KB", "1MB"]
-    default: "64KB"
+      - Stripe size (in bytes) of the virtual disk
+    choices: [65535, 131072, 262144, 524288, 1048576]
+    default:65535 
+    type: 'int'
   span_depth:
     required: False
     description:
-      - Number of spans in the virtual disk. Required if I(status = 'present')
+      - Number of spans in the virtual disk.
+      - If not specified, default is single span which is used for RAID 0, 1, 5 and 6. RAID 10, 50 and 60 require a span depth of at least 2.
+    default: 1
+    type: 'int'
   span_length:
     required: False
     description:
-      - Number of physical disks per span on a virtual disk. Required if I(status = 'present')
+      - Number of physical disks per span on a virtual disk.
+      - Minimum requirements for given RAID Level must be met.
+      - Either one of I(pd_slots) and I(span_length) must be specified for creating a virtual disk
+    default: None
+    type: 'int'
   state:
     required: False
     description:
@@ -147,16 +159,16 @@ author: "anupam.aloke@dell.com"
 EXAMPLES = '''
 - name: Create Virtual Drive
     dellemc_idrac_virtual_drive:
-      idrac_ip:   "192.168.1.1"
-      idrac_user: "root"
-      idrac_pwd:  "calvin"
-      share_name: "\\\\192.168.10.10\\share"
-      share_user: "user1"
-      share_pwd:  "password"
-      share_mnt:  "/mnt/share"
-      virtual_drive_name:  "Virtual Drive 0"
-      controller_fqdd: "RAID-Integrated.1-1"
-      raid_type:   "RAID 1"
+      idrac_ip:    "192.168.1.1"
+      idrac_user:  "root"
+      idrac_pwd:   "calvin"
+      share_name:  "\\\\192.168.10.10\\share"
+      share_user:  "user1"
+      share_pwd:   "password"
+      share_mnt:   "/mnt/share"
+      vd_name:     "VD_0"
+      controller_fqdd: "RAID.Integrated.1-1"
+      raid_type:   "RAID 5"
       span_depth:  1
       span_length: 2
       state:       "present"
@@ -223,6 +235,9 @@ def virtual_drive(idrac, module):
     err = False
 
     try:
+        span_length = module.params.get('span_length')
+        span_depth = module.params.get('span_depth')
+        pd_slots = module.params.get('pd_slots')
         raid_level = TypeHelper.convert_to_enum(module.params['raid_level'],
                                                 RAIDTypesTypes)
         read_policy = TypeHelper.convert_to_enum(module.params['read_policy'],
@@ -236,12 +251,23 @@ def virtual_drive(idrac, module):
         " and disk.MediaType == \"" + module.params['media_type'] + "\"" + \
         " and disk.BusProtocol == \"" + module.params['bus_protocol'] + "\""
 
-        if module.params['pd_slots']:
-            pd_slots = ""
-            for i in module.params['pd_slots']:
-                pd_slots = "\"" + i + "\", "
-            pd_slots_list = "[" + pd_slots[0:-1] + "]"
-            pd_filter += " and disk.Slot in " + pd_slots_list
+        # Either one of Span Length and Physical Disks Slots must be defined
+        if not (span_length or pd_slots):
+            module.fail_json(msg="Either one of span_length and pd_slots must be defined for VD creation")
+        elif pd_slots:
+            slots = ""
+            for i in pd_slots:
+                slots = "\"" + str(i) + "\", "
+            slots_list = "[" + slots[0:-1] + "]"
+            pd_filter += " and disk.Slot in " + slots_list
+            span_length = len(pd_slots)
+
+        # Span depth must be at least 1 which is used for RAID 0, 1, 5 and 6
+        span_depth = 1 if (span_depth < 1) else span_depth
+
+        # Span depth must be at least 2 for RAID levels 10, 50 and 60
+        if raid_level in [RAIDTypesTypes.RAID_10, RAIDTypesTypes.RAID_50, RAIDTypesTypes.RAID_60]:
+            span_depth = 2 if (span_depth < 2) else span_depth
 
         # Check whether VD exists
         exists = _virtual_drive_exists(idrac, module)
@@ -257,8 +283,8 @@ def virtual_drive(idrac, module):
                     RAIDdefaultReadPolicy=read_policy,
                     RAIDdefaultWritePolicy=write_policy,
                     DiskCachePolicy=disk_policy,
-                    SpanLength=module.params['span_length'],
-                    SpanDepth=module.params['span_depth'],
+                    SpanLength=span_length,
+                    SpanDepth=span_depth,
                     StripeSize=module.params['stripe_size'],
                     NumberDedicatedHotSpare=module.params['dedicated_hot_spare'],
                     NumberGlobalHotSpare=module.params['global_hot_spare'],
@@ -332,14 +358,17 @@ def main():
                              choices=[65536, 131072, 262144, 524288, 1048576],
                              default=65536, type='int'),
             span_length=dict(required=False, type='int'),
-            span_depth=dict(required=False, type='int'),
+            span_depth=dict(required=False, default=1, type='int'),
             dedicated_hot_spare=dict(required=False, default=0, type='int'),
             global_hot_spare=dict(required=False, default=0, type='int'),
             state=dict(required=False, choices=['present', 'absent'],
                        default='present')
         ),
         required_if=[
-            ["state", "present", ["raid_level", "span_length", "span_depth"]]
+            ["state", "present", ["raid_level"]]
+        ],
+        mutually_exclusive=[
+            ["pd_slots", "span_length"]
         ],
 
         supports_check_mode=True)
