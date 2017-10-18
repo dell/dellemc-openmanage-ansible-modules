@@ -133,6 +133,7 @@ EXAMPLES = '''
 RETURN = '''
 '''
 
+import traceback
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
@@ -181,16 +182,16 @@ def _setup_nic(idrac, module):
     # if NIC Selection is not 'Dedicated', then Auto-Negotiation is always ON
     if curr_nic_selection != Selection_NICTypes.Dedicated and \
             module.params['nic_selection'] != 'Dedicated':
-        idrac.config_mgr._sysconfig.IDRAC.NIC.Autoneg_NIC = Autoneg_NICTypes.Enabled
+        idrac.config_mgr._sysconfig.iDRAC.NIC.Autoneg_NIC = Autoneg_NICTypes.Enabled
     else:
         idrac.config_mgr._sysconfig.iDRAC.NIC.Autoneg_NIC = \
             TypeHelper.convert_to_enum(module.params['nic_autoneg'],
                                        Autoneg_NICTypes)
 
     # NIC Speed and Duplex mode can only be set when Auto-Negotiation is not ON
-    if curr_nic_autoneg != Autoneg_NICTypes.Enabled && \
+    if curr_nic_autoneg != Autoneg_NICTypes.Enabled and \
             module.params['nic_autoneg'] != 'Enabled':
-        if curr_nic_selection != Selection_NICTypes.Enabled && \
+        if curr_nic_selection != Selection_NICTypes.Enabled and \
                 module.params['nic_selection'] != 'Dedicated':
             idrac.config_mgr._sysconfig.iDRAC.NIC.Speed_NIC = Speed_NICTypes.T_100
         else:
@@ -332,6 +333,7 @@ def setup_idrac_nic (idrac, module):
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
+        msg['exception'] = traceback.format_exc()
         msg['failed'] = True
 
     return msg, err
