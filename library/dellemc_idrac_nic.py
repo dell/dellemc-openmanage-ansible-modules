@@ -157,6 +157,11 @@ def _setup_nic(idrac, module):
     module -- Ansible module
     """
 
+    # Get the current NIC settings
+    curr_nic_selection = idrac.config_mgr._sysconfig.iDRAC.NIC.Selection_NIC
+    curr_nic_failover = idrac.config_mgr._sysconfig.iDRAC.NIC.Failover_NIC
+    curr_nic_autoneg = idrac.config_mgr._sysconfig.iDRAC.NIC.Autoneg_NIC
+
     idrac.config_mgr._sysconfig.iDRAC.NIC.Enable_NIC = \
             TypeHelper.convert_to_enum(module.params['nic_enable'],
                                        Enable_NICTypes)
@@ -167,13 +172,15 @@ def _setup_nic(idrac, module):
     # NIC Selection mode and failover mode should not be same
     if module.params['nic_selection'] == module.params['nic_failover']:
         module.fail_json(msg="NIC Selection mode and Failover mode cannot be same")
-    elif module.params['nic_selection'] != 'Dedicated':
-        idrac.config_mgr._sysconfig.iDRAC.NIC.FailoverNIC = \
+    elif curr_nic_selection != Selection_NICTypes.Dedicated and \
+            module.params['nic_selection'] != 'Dedicated':
+        idrac.config_mgr._sysconfig.iDRAC.NIC.Failover_NIC = \
             TypeHelper.convert_to_enum(module.params['nic_failover'],
                                        Failover_NICTypes)
 
     # if NIC Selection is not 'Dedicated', then Auto-Negotiation is always ON
-    if module.params['nic_selection'] != 'Dedicated':
+    if curr_nic_selection != Selection_NICTypes.Dedicated and \
+            module.params['nic_selection'] != 'Dedicated':
         idrac.config_mgr._sysconfig.IDRAC.NIC.Autoneg_NIC = Autoneg_NICTypes.Enabled
     else:
         idrac.config_mgr._sysconfig.iDRAC.NIC.Autoneg_NIC = \
@@ -181,8 +188,10 @@ def _setup_nic(idrac, module):
                                        Autoneg_NICTypes)
 
     # NIC Speed and Duplex mode can only be set when Auto-Negotiation is not ON
-    if module.params['nic_autoneg'] != 'Enabled':
-        if module.params['nic_selection'] != 'Dedicated':
+    if curr_nic_autoneg != Autoneg_NICTypes.Enabled && \
+            module.params['nic_autoneg'] != 'Enabled':
+        if curr_nic_selection != Selection_NICTypes.Enabled && \
+                module.params['nic_selection'] != 'Dedicated':
             idrac.config_mgr._sysconfig.iDRAC.NIC.Speed_NIC = Speed_NICTypes.T_100
         else:
             idrac.config_mgr._sysconfig.iDRAC.NIC.Speed_NIC = \
