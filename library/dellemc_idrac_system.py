@@ -198,7 +198,7 @@ def setup_idrac_server_topology(idrac, module):
     idrac.config_mgr._sysconfig.System.ServerTopology.\
         RackSlot_ServerTopology = module.params['server_topology'].get('rack_slot')
     idrac.config_mgr._sysconfig.System.ServerTopology.\
-        RoomName_ServerTopology = module.params['server_topology'].get('rack_name')
+        RoomName_ServerTopology = module.params['server_topology'].get('room_name')
 
 
 def setup_idrac_system_attr(idrac, module):
