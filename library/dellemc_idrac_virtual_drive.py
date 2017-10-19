@@ -204,6 +204,16 @@ try:
 except ImportError:
     HAS_OMSDK = False
 
+MIN_SPAN_LENGTH = {
+    "RAID 0": 2,
+    "RAID 1": 2,
+    "RAID 5": 3,
+    "RAID 6": 4,
+    "RAID 10": 4,
+    "RAID 50": 6,
+    "RAID 60": 8
+}
+
 def _virtual_drive_exists(idrac, module):
     """
     check whether a virtual drive exists
@@ -253,9 +263,6 @@ def virtual_drive(idrac, module):
         pd_filter += ' or (disk.parent is Controller and disk.parent.FQDD._value == "{0}"))'.format(module.params['controller_fqdd'])
         pd_filter += ' and disk.MediaType == "{0}"'.format(module.params['media_type'])
         pd_filter += ' and disk.BusProtocol == "{0}"'.format(module.params['bus_protocol'])
-        pd_filter = "(disk.parent.parent is Controller and disk.parent.parent.FQDD._value == \"" + module.params['controller_fqdd'] + "\")" + \
-        " and disk.MediaType == \"" + module.params['media_type'] + "\"" + \
-        " and disk.BusProtocol == \"" + module.params['bus_protocol'] + "\""
 
         # Either one of Span Length and Physical Disks Slots must be defined
         if not (span_length or pd_slots):
@@ -269,6 +276,8 @@ def virtual_drive(idrac, module):
             span_length = len(pd_slots)
 
         # check span_length
+        if span_length < MIN_SPAN_LENGTH[TypeHelper.resolve(raid_level)]:
+            module.fail_json(msg="Invalid span length for RAID Level: "+ TypeHelper.resolve(raid_level))
 
         # Span depth must be at least 1 which is used for RAID 0, 1, 5 and 6
         span_depth = 1 if (span_depth < 1) else span_depth
@@ -287,7 +296,7 @@ def virtual_drive(idrac, module):
                 msg['msg'] = idrac.config_mgr.RaidHelper.new_virtual_disk(
                     Name=module.params['vd_name'],
                     Size=module.params['vd_size'],
-                    RAIDaction = RAIDactionTypes.Create,
+                    RAIDaction=RAIDactionTypes.Create,
                     RAIDTypes=raid_level,
                     RAIDdefaultReadPolicy=read_policy,
                     RAIDdefaultWritePolicy=write_policy,
@@ -352,7 +361,7 @@ def main():
                               default='SATA', type='str'),
             raid_level=dict(required=False,
                             choices=['RAID 0', 'RAID 1', 'RAID 10', 'RAID 5',
-                                    'RAID 50', 'RAID 6', 'RAID 60'],
+                                     'RAID 50', 'RAID 6', 'RAID 60'],
                             default=None, type='str'),
             read_policy=dict(requird=False,
                              choices=["NoReadAhead", "ReadAhead", "AdaptiveReadAhead", "Adaptive"],
