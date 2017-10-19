@@ -196,8 +196,9 @@ try:
     from omsdk.sdkcenum import TypeHelper
     from omdrivers.lifecycle.iDRAC.RAIDHelper import RAIDHelper
     from omdrivers.enums.iDRAC.RAID import (
-        DiskCachePolicyTypes, RAIDTypesTypes, RAIDdefaultReadPolicyTypes,
-        RAIDdefaultWritePolicyTypes, StripeSizeTypes
+        DiskCachePolicyTypes, RAIDactionTypes, RAIDTypesTypes,
+        RAIDdefaultReadPolicyTypes, RAIDdefaultWritePolicyTypes,
+        StripeSizeTypes
     )
     HAS_OMSDK = True
 except ImportError:
@@ -247,6 +248,11 @@ def virtual_drive(idrac, module):
         disk_policy = TypeHelper.convert_to_enum(module.params['disk_policy'],
                                                  DiskCachePolicyTypes)
 
+        # Physical Disk filter
+        pd_filter = '((disk.parent.parent is Controller and disk.parent.parent.FQDD._value == "{0}")'.format(module.params['controller_fqdd'])
+        pd_filter += ' or (disk.parent is Controller and disk.parent.FQDD._value == "{0}"))'.format(module.params['controller_fqdd'])
+        pd_filter += ' and disk.MediaType == "{0}"'.format(module.params['media_type'])
+        pd_filter += ' and disk.BusProtocol == "{0}"'.format(module.params['bus_protocol'])
         pd_filter = "(disk.parent.parent is Controller and disk.parent.parent.FQDD._value == \"" + module.params['controller_fqdd'] + "\")" + \
         " and disk.MediaType == \"" + module.params['media_type'] + "\"" + \
         " and disk.BusProtocol == \"" + module.params['bus_protocol'] + "\""
@@ -259,8 +265,10 @@ def virtual_drive(idrac, module):
             for i in pd_slots:
                 slots += "\"" + str(i) + "\","
             slots_list = "[" + slots[0:-1] + "]"
-            pd_filter += " and disk.Slot in " + slots_list
+            pd_filter += " and disk.Slot._value in " + slots_list
             span_length = len(pd_slots)
+
+        # check span_length
 
         # Span depth must be at least 1 which is used for RAID 0, 1, 5 and 6
         span_depth = 1 if (span_depth < 1) else span_depth
@@ -279,6 +287,7 @@ def virtual_drive(idrac, module):
                 msg['msg'] = idrac.config_mgr.RaidHelper.new_virtual_disk(
                     Name=module.params['vd_name'],
                     Size=module.params['vd_size'],
+                    RAIDaction = RAIDactionTypes.Create,
                     RAIDTypes=raid_level,
                     RAIDdefaultReadPolicy=read_policy,
                     RAIDdefaultWritePolicy=write_policy,
