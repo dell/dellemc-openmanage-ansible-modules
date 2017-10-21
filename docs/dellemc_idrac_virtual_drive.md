@@ -88,7 +88,7 @@ Create/delete virtual drives
 
 ```
 # Delete a virtual drive
-- name: Create VD
+- name: Delete VD
     dellemc_idrac_virtual_drive:
       idrac_ip:     "192.168.1.1"
       idrac_user:   "root"
