@@ -38,7 +38,11 @@ Create/delete virtual drives
 ```
 # Create a virtual drive with RAID 5 and a span length of 5 physical disks
 # if no slot numbers are provided, then virtual drive will be created using the
-# physical disks that are available
+# physical disks that are available. If no Virual Disk size is specified, then
+# the size of the virtual disks will be auto-determined based on the RAID level
+# For e.g., in the below example, if all the Physical Disks are of capacity of
+# 200GB and no vd_size is specified, then the Virtual Disk will be created with
+# space efficiency of (1-1/n = 1-1/5 = 80% of 1000GB = 800GB)
 - name: Create VD
     dellemc_idrac_virtual_drive:
       idrac_ip:     "192.168.1.1"
@@ -51,6 +55,8 @@ Create/delete virtual drives
       vd_name:      "Virtual_Drive_0"
       controller_fqdd: "RAID.Integrated.1-1"
       raid_level:   "RAID 5"
+      media_type:   "HDD"
+      bus_protocol: "SAS"
       stripe_size:  65535
       span_depth:   1
       span_length:  5
@@ -73,6 +79,8 @@ Create/delete virtual drives
       controller_fqdd: "RAID.Integrated.1-1"
       pd_slots:     [0, 1, 2, 3, 4, 5]
       raid_level:   "RAID 5"
+      media_type:   "HDD"
+      bus_protocol: "SAS"
       stripe_size:  65535
       span_depth:   1
       state:        "present"
