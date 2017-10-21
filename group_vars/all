@@ -1,8 +1,8 @@
 ---
 idrac_user: "root"
 idrac_pwd: "calvin"
-share_name: "\\\\100.96.20.115\\Share\\"
-share_pwd: "ajaya_123"
-share_user: "Administrator@AJUDOM"
-share_mnt: "/mnt/CIFS"
-ntp_servers: ["143.166.255.32"]
+share_name: '\\\\192.168.10.10\\share'
+share_user: "user1"
+share_pwd: "password"
+share_mnt: "/mnt/share"
+...
