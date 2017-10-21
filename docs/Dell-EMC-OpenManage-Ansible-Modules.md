@@ -63,93 +63,93 @@ OpenManage Ansible modules can be broadly categorized under the following sectio
 
 ## 3.1 Server Administration
 
-### 3.1.1 Power Control
+### Power Control
 
   * [dellemc_idrac_power - Configure the Power Control options on a PowerEdge Server](./dellemc_idrac_power.md)
 
-### 3.1.2 Lifecycle Controller (LC) and Server Status
+### Lifecycle Controller (LC) and Server Status
 
   * [dellemc_idrac_lcstatus - Returns the lifecycle controller and server status](./dellemc_idrac_lcstatus.md)
 
-### 3.1.3 Hardware Inventory
+### Hardware Inventory
 
   * [dellemc_idrac_inventory - Returns the PowerEdge Server's hardware inventory](./dellemc_idrac_inventory.md) 
 
-### 3.1.4 Firmware Inventory
+### Firmware Inventory
 
   * [dellemc_idrac_sw_inventory - Returns the PowerEdge Server's firmware inventory](./dellemc_idrac_sw_inventory.md)
 
 ## 3.2 iDRAC Configuration
 
-### 3.2.1 User Administration
+### User Administration
 
   * [dellemc_idrac_user - Configure an iDRAC Local User](./dellemc_idrac_user.md)
 
-### 3.2.2 iDRAC Network Settings
+### iDRAC Network Settings
 
   * [dellemc_idrac_nic - Configure iDRAC Network Settings](./dellemc_idrac_nic.md)
 
-### 3.2.3 SNMP and SNMP Alerts
+### SNMP and SNMP Alerts
 
   * [dellemc_idrac_snmp - Configure SNMP settings on iDRAC](./dellemc_idrac_snmp.md)
   * [dellemc_idrac_snmp_alert - Configure Alert destinations](./dellemc_idrac_snmp_alert.md)
 
-### 3.2.4 Server Configuration Profile (SCP)
+### Server Configuration Profile (SCP)
 
   * [dellemc_idrac_export_scp - Export Server Configuration Profile (SCP) to Network Share](./dellemc_idrac_export_scp.md)
   * [dellemc_idrac_import_scp - Import Server configuration Profile (SCP) from a Network Share](./dellemc_idrac_import_scp.md)
 
-### 3.2.5 Timezone and NTP
+### Timezone and NTP
 
   * [dellemc_idrac_timezone_ntp - Configure Time Zone and NTP](./dellemc_idrac_timezone_ntp.md)
 
-### 3.2.6 iDRAC Web Server
+### iDRAC Web Server
 
   * [dellemc_idrac_web_server - Configure iDRAC Web Server Service Interface](./dellemc_idrac_web_server.md)
 
-### 3.2.7 Remote Syslog
+### Remote Syslog
 
   * [dellemc_idrac_syslog - Configure Remote System Logging](./dellemc_idrac_syslog.md)
 
-### 3.2.8 Lifecycle Controller Job Management
+### Lifecycle Controller Job Management
 
   * [dellemc_idrac_lc_job - Lifecycle controller job management](./dellemc_idrac_lc_job.md)
 
-### 3.2.9 Lifecycle Controller Attributes
+### Lifecycle Controller Attributes
 
   * [dellemc_idrac_lc_attr - Configure iDRAC Lifecycle Controller attributes](./dellemc_idrac_lc_attr.md)
 
 ## 3.3 BIOS Configuration
 
-### 3.3.1 Boot Order
+### Boot Order
 
   * [dellemc_idrac_boot_order - Configure BIOS Boot Settings](./dellemc_idrac_boot_order.md)
 
 ## 3.4 Storage Configuration
 
-### 3.4.1 Virtual Drives
+### Virtual Drives
 
   * [dellemc_idrac_virtual_drive - Create and delete virtual drives](./dellemc_idrac_virtual_drive.md)
 
 ## 3.5 OS Deployment
 
-### 3.5.1 Boot to Network ISO
+### Boot to Network ISO
 
   * [dellemc_idrac_boot_to_nw_iso - Boot to a Network ISO image](./dellemc_idrac_boot_to_nw_iso.md)
 
 ## 3.6 Firmware Update
 
-### 3.6.1 Update Firmware from a Network Share
+### Update Firmware from a Network Share
 
   * [dellemc_idrac_firmware_update - Update firmware from a network share](./dellemc_idrac_firmware_update.md)
 
 ## 3.7 Monitor 
 
-### 3.7.1 Lifecycle Controller Logs
+### Lifecycle Controller Logs
 
   * [dellemc_idrac_export_lclog - Export Lifecycle Controller log file to a network share](./dellemc_idrac_export_lclog.md)
 
-### 3.7.2 Tech Support Report (TSR)
+### Tech Support Report (TSR)
 
   * [dellemc_idrac_export_tsr - Export TSR to a network share](./dellemc_idrac_export_tsr.md)
 
