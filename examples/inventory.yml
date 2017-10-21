@@ -1,0 +1,26 @@
+---
+- hosts: all
+  connection: local
+  name: Get HW and SW Inventory for Dell EMC PowerEdge Servers
+  gather_facts: False
+
+  tasks:
+  - name: Get hardware inventory
+    dellemc_idrac_inventory:
+      idrac_ip:   "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_pwd:  "{{idrac_pwd}}"
+    delegate_to: localhost
+    tags:
+      - hwinventory
+
+  - name: Get firmware inventory
+    dellemc_idrac_sw_inventory:
+      idrac_ip:   "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_pwd:  "{{idrac_pwd}}"
+      share_mnt:  "{{share_mnt}}"
+      serialize:  True
+    delegate_to: localhost
+    tags:
+      - swinventory

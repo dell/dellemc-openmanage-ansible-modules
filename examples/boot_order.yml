@@ -1,0 +1,34 @@
+---
+- hosts: all
+  connection: local
+  name: Configure boot order
+  gather_facts: False
+
+  tasks:
+    # Change Boot mode to Uefi - Reboot is imminent
+    - name: Set boot mode
+      dellemc_idrac_boot_order:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_pwd:  "{{idrac_pwd}}"
+        share_name: "{{share_name}}"
+        share_user: "{{share_user}}"
+        share_pwd:  "{{share_pwd}}"
+        share_mnt:  "{{share_mnt}}"
+        boot_mode:  "Uefi"
+
+    # In order to see what are the valid FQDDs that you can use in the Uefi Boot
+    # Sequence argument, please export the SCP first and search for UefiBootSeq
+    # attribute in the SCP
+    # Any changes in the boot sequence will result in imminent reboot
+
+    - name: Set Uefi Boot Sequence
+      dellemc_idrac_boot_order:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_pwd:  "{{idrac_pwd}}"
+        share_name: "{{share_name}}"
+        share_user: "{{share_user}}"
+        share_pwd:  "{{share_pwd}}"
+        share_mnt:  "{{share_mnt}}"
+        uefi_boot_seq: ["Optical.SATAEmbedded.E-1", "NIC.Integrated.1-1-1", "NIC.Integrated.1-2-1", "NIC.Integrated.1-3-1", "NIC.Integrated.1-4-1", "HardDisk.List.1-1"]

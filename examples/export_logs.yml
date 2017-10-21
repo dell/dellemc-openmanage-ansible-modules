@@ -1,0 +1,44 @@
+---
+- hosts: all
+  connection: local
+  name: Export Lifecycle Controller logs to remote network share
+  gather_facts: False
+
+  vars:
+    share_type:      "CIFS"
+    share_name_cifs: '\\192.168.20.20\Share'
+    share_user_cifs: "user"
+    share_pwd_cifs:  "password"
+    share_name_nfs:  '192.168.20.21:/nfsfileshare/'
+    share_user_nfs:  ""
+    share_pwd_nfs:   ""
+
+  tasks:
+  - name: set CIFS
+    set_fact:
+      share_name: "{{share_name_cifs}}"
+      share_user: "{{share_user_cifs}}"
+      share_pwd:  "{{share_pwd_cifs}}"
+    when:
+      share_type == "CIFS"
+    delegate_to: 127.0.0.1
+    run_once: True
+
+  - name: set NFS
+    set_fact:
+      share_name: "{{share_name_nfs}}"
+      share_user: "{{share_user_nfs}}"
+      share_pwd:  "{{share_pwd_nfs}}"
+    when:
+      share_type == "NFS"
+    delegate_to: 127.0.0.1
+    run_once: True
+
+  - name: Export LC logs
+    dellemc_idrac_export_lclog:
+      idrac_ip:   "{{idrac_ip}}"
+      idrac_user: "{{idrac_user}}"
+      idrac_pwd:  "{{idrac_pwd}}"
+      share_name: "{{share_name}}"
+      share_user: "{{share_user}}"
+      share_pwd:  "{{share_pwd}}"

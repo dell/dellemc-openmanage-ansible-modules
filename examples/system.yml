@@ -1,0 +1,24 @@
+---
+- hosts: all
+  name: Configure iDRAC Server Topology
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Configure iDRAC Server Topology
+      dellemc_idrac_system:
+        idrac_ip:  "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_pwd: "{{idrac_pwd}}"
+        share_name: "{{share_name}}"
+        share_user: "{{share_user}}"
+        share_pwd: "{{share_pwd}}"
+        share_mnt: "{{share_mnt}}"
+        server_topology:
+          data_center_name: "DELL5 FLR2 LAB1"
+          aisle_name: "Aisle 2"
+          rack_name: "Rack 1"
+          rack_slot: 3
+          room_name: "Room 1"
+      tags:
+        - topology

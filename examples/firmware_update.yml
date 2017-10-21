@@ -1,0 +1,11 @@
+---
+- hosts: myhosts
+  connection: local
+  name: Firmware Update
+  gather_facts: no
+
+  tasks:
+  - include_role:
+      name: firmware_update
+    vars:
+      dup_repo_path: "/mnt/CIFS"
