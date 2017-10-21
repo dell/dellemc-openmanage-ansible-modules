@@ -1,6 +1,7 @@
 # Dell EMC OpenManage Ansible Modules for iDRAC (BETA)
 
 ## 1. Introduction
+
 Dell EMC OpenManage Ansible Modules provide customers the ability to automate the Out-of-Band configuration management, deployment and updates for Dell EMC PowerEdge Servers using Ansible by leeveragin the management automation built into the iDRAC with Lifecycle Controller. iDRAC provides both REST APIs based on DMTF RedFish industry standard and WS-Management (WS-MAN) for management automation of PowerEdge Servers.
 
 With OpenManage Ansible modules, you can do:
@@ -18,6 +19,7 @@ With OpenManage Ansible modules, you can do:
   * Firmware Updates
 
 ### 1.1 How OpenManage Ansible Modules work?
+
 OpenManage Ansible modules extensively uses the Server Configuration Profile (SCP) for most of the configuration management, deployment and update of PowerEdge Servers. Lifecycle Controller 2 version 1.4 and later adds support for SCP. A SCP contains all BIOS, iDRAC, Lifecycle Controller, Network amd Storage settings of a PowerEdge server and can be applied to multiple servers, enabling rapid, reliable and reproducible configuration.
 
 A SCP operation can be performed using any of the following methods:
@@ -29,6 +31,7 @@ A SCP operation can be performed using any of the following methods:
 
 ---
 ### 1.2 What is included in this BETA release?
+
 |Use Cases| | Included in this BETA release |
 |---------|-|-------------------------------|
 | Protocol Support | | <ul><li>WS-Management</li></ul> |
@@ -48,14 +51,18 @@ A SCP operation can be performed using any of the following methods:
 
 ---
 ## 2. Requirements
-  * python >= '2.7'
+
+  * Ansible >= '2.3'
+  * Python >= '2.7.9'
   * [Dell EMC OpenManage Python SDK](https://github.com/vaideesg/omsdk)
 
 ---
 ## 3. Modules
+
 OpenManage Ansible modules can be broadly categorized under the following sections. Each section describes the modules that are currently implemented including examples.
 
 ## 3.1 Server Administration
+
 ### 3.1.1 Power Control
 
   * [dellemc_idrac_power - Configure the Power Control options on a PowerEdge Server](./dellemc_idrac_power.md)
@@ -73,6 +80,7 @@ OpenManage Ansible modules can be broadly categorized under the following sectio
   * [dellemc_idrac_sw_inventory - Returns the PowerEdge Server's firmware inventory](./dellemc_idrac_sw_inventory.md)
 
 ## 3.2 iDRAC Configuration
+
 ### 3.2.1 User Administration
 
   * [dellemc_idrac_user - Configure an iDRAC Local User](./dellemc_idrac_user.md)
@@ -112,26 +120,31 @@ OpenManage Ansible modules can be broadly categorized under the following sectio
   * [dellemc_idrac_lc_attr - Configure iDRAC Lifecycle Controller attributes](./dellemc_idrac_lc_attr.md)
 
 ## 3.3 BIOS Configuration
+
 ### 3.3.1 Boot Order
 
   * [dellemc_idrac_boot_order - Configure BIOS Boot Settings](./dellemc_idrac_boot_order.md)
 
 ## 3.4 Storage Configuration
+
 ### 3.4.1 Virtual Drives
 
   * [dellemc_idrac_virtual_drive - Create and delete virtual drives](./dellemc_idrac_virtual_drive.md)
 
 ## 3.5 OS Deployment
+
 ### 3.5.1 Boot to Network ISO
 
   * [dellemc_idrac_boot_to_nw_iso - Boot to a Network ISO image](./dellemc_idrac_boot_to_nw_iso.md)
 
 ## 3.6 Firmware Update
+
 ### 3.6.1 Update Firmware from a Network Share
 
   * [dellemc_idrac_firmware_update - Update firmware from a network share](./dellemc_idrac_firmware_update.md)
 
 ## 3.7 Monitor 
+
 ### 3.7.1 Lifecycle Controller Logs
 
   * [dellemc_idrac_export_lclog - Export Lifecycle Controller log file to a network share](./dellemc_idrac_export_lclog.md)
