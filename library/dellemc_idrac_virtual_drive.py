@@ -34,25 +34,25 @@ description:
     - Create or delete virtual drives
 options:
   idrac_ip:
-    required: False
+    required: True
     description:
       - iDRAC IP Address
-    default: None
+    type: 'str'
   idrac_user:
-    required: False
+    required: True
     description:
       - iDRAC user name
-    default: None
+    type: 'str'
   idrac_pwd:
-    required: False
+    required: True
     description:
       - iDRAC user password
-    default: None
+    type: 'str'
   idrac_port:
     required: False
     description:
       - iDRAC port
-    default: None
+    type: 'int'
   share_name:
     required: True
     description:
@@ -60,7 +60,7 @@ options:
   share_user:
     required: True
     description:
-      - Network share user in the format user@domain
+      - Network share user in the format 'user@domain' if user is part of a domain, else 'user'
   share_pwd:
     required: True
     description:
@@ -77,16 +77,16 @@ options:
   vd_size:
     required: False
     description:
-      - Size (in bytes) of the Virtual Drive
+      - Size (in bytes) of the Virtual Drive. For e.g. if you want to create a virtual drive of size 1TB, then set the vd_size to 1099511627776 (1 * 1024 * 1024 * 1024 * 1024 = 1099511627776 bytes). Please make sure that the 1TB of space is available on physical drives that are to be used for creating the VD.
   controller_fqdd:
     required: True
     description:
-      - Fully Qualified Device Descriptor (FQDD) of the storage controller
+      - Fully Qualified Device Descriptor (FQDD) of the storage controller, for e.g. 'RAID.Integrated-1.1'.
     type: 'str'
   pd_slots:
     required: False
     description:
-      - List of slots for physical disk that are be used for the VD
+      - List of slots for physical disk that are be used for the VD creation. For e.g. if you want to use Physical Disks in Slots 0, 1, 2 for creating a VD, then you need to set I(pd_slots) to [0, 1, 2]. Please note that I(pd_slots) and I(span_length) arguments are mutually exclusive.
     default: []
     type: 'list'
   raid_level:
@@ -106,7 +106,7 @@ options:
   read_cache_policy:
     required: False
     description:
-      - Read Cache polic of the virtual disk
+      - Read Cache policy of the virtual disk
     choices: ["NoReadAhead", "ReadAhead", "Adaptive"]
     default: "NoReadAhead"
   write_cache_policy:
@@ -126,6 +126,11 @@ options:
     required: False
     description:
       - Stripe size (in bytes) of the virtual disk
+          65535   - 65KB
+          131072  - 128KB
+          262144  - 256KB
+          524288  - 512KB
+          1048576 - 1MB
     choices: [65535, 131072, 262144, 524288, 1048576]
     default:65535 
     type: 'int'

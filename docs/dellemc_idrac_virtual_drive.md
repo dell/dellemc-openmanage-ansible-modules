@@ -22,7 +22,7 @@ Create/delete virtual drives
 | share_mnt  |   yes  |  | |  Local mount path of the network file share with read-write permission for ansible user  |
 | vd_name | yes |  |  | Name of the Virtual Drive |
 | vd_size | no  |  |  | Size (in bytes) of the Virtual Drive. For e.g. if you want to create a virtual drive of size 1TB, then set the ```vd_size``` to ```1099511627776 (1 * 1024 * 1024 * 1024 * 1024 = 1099511627776 bytes)```. Please make sure that the 1TB of space is available on physical drives that are to be used for creating the VD. |
-| controller_fqdd |  yes  | | | FQDD of the storage controller, for e.g. "RAID.Integrated-1.1" |
+| controller_fqdd |  yes  | | | FQDD of the storage controller, for e.g. "RAID.Integrated.1-1" |
 | pd_slots | no | [] |  | List of slot numbers of Physical Disks that are to be used for the VD creation. For e.g. if you want to use Physical Disks in Slots 0, 1, 2 for creating a VD, then you need to set ```pd_slots``` to ```[0, 1, 2]```. Please note that ```pd_slots``` and ```span_length``` arguments are mutually exclusive. |
 | raid_level | no | 'RAID 0' | <ul><li>'RAID 0'</li><li>'RAID 1'</li><li>'RAID 5'</li><li>'RAID 50'</li><li>'RAID 6'</li><li>'RAID 60'</li></ul> | <ul><li>Select the RAID level for the new virtual drives.</li><li>RAID Levels can be one of the following:<ul><li>'RAID 0': Striping without parity</li><li>'RAID 1': Mirroring without parity</li><li>'RAID 5': Striping with distributed parity</li><li>'RAID 50': Combines multiple RAID 5 sets with striping</li><li>'RAID 6': Striping with dual parity</li><li>'RAID 60': Combines multiple RAID 6 sets with striping</li></ul></li></ul> |
 | read_cache_policy | no | 'NoReadAhead' | <ul><li>'NoReadAhead'</li><li>'ReadAhead'</li><li>'Adaptive'</li></ul> | Read cache policy of the virtual disk |
@@ -57,7 +57,7 @@ Create/delete virtual drives
       raid_level:   "RAID 5"
       media_type:   "HDD"
       bus_protocol: "SAS"
-      stripe_size:  65535
+      stripe_size:  65536
       span_depth:   1
       span_length:  5
       state:        "present"
@@ -81,7 +81,7 @@ Create/delete virtual drives
       raid_level:   "RAID 5"
       media_type:   "HDD"
       bus_protocol: "SAS"
-      stripe_size:  65535
+      stripe_size:  65536
       span_depth:   1
       state:        "present"
 ```
