@@ -37,7 +37,7 @@ A SCP operation can be performed using any of the following methods:
 | Protocol Support | | <ul><li>WS-Management</li></ul> |
 | Server Administration | Power and Thermal | <ul><li>Power Control</li></ul>|
 | | iDRAC Reset| <ul><li>Yes</li></ul> |
-|iDRAC Configuration| User and Password Management | <ul><li>Local user and password management<ul><li>Create User</li><li>Change Password</li><li>Change User Privileges</li><li><Remove an user</li></ul></li></ul> |
+|iDRAC Configuration| User and Password Management | <ul><li>Local user and password management<ul><li>Create User</li><li>Change Password</li><li>Change User Privileges</li><li>Remove an user</li></ul></li></ul> |
 | | iDRAC Network Configuration | <ul><li>NIC Selection</li><li>Zero-Touch Auto-Config settings</li><li>IPv4 Address settings:<ul><li>Enable/Disable IPv4</li><li>Static IPv4 Address settings (IPv4 address, gateway and netmask)</li><li>Enable/Disable DNS from DHCP</li><li>Preferred/Alternate DNS Server</li></ul></li><li>VLAN Configuration</li></ul> |
 | | SNMP and SNMP Alert Configuration| <ul><li>SNMP Agent configuration</li><li>SNMP Alert Destination Configuration<ul><li>Add, Modify and Delete an alert destination</li></ul></li></ul> |
 | | Server Configuration Profile (SCP) | <ul><li>Export SCP to remote network share (CIFS, NFS)</li><li>Import SCP from a remote network share (CIFS, NFS)</li></ul> |
