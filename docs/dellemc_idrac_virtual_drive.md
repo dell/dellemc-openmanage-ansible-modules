@@ -37,7 +37,8 @@ Create/delete virtual drives
 
 ```
 # Create a virtual drive with RAID 5 and a span length of 5 physical disks
-# if no slot numbers are provided, then 
+# if no slot numbers are provided, then virtual drive will be created using the
+# physical disks that are available
 - name: Create VD
     dellemc_idrac_virtual_drive:
       idrac_ip:     "192.168.1.1"
@@ -48,20 +49,49 @@ Create/delete virtual drives
       share_pwd:    "password"
       share_mnt:    "/mnt/share"
       vd_name:      "Virtual_Drive_0"
-      controller_fqdd: "RAID-Integrated.1-1"
+      controller_fqdd: "RAID.Integrated.1-1"
       raid_level:   "RAID 5"
       stripe_size:  65535
-      span_depth:   0
+      span_depth:   1
       span_length:  5
       state:        "present"
 ```
 
 ```
-
+# Create a virtual drive with RAID 5 and physical disks having slot numbers
+# 0, 1, 2, 3, 4 and 5.
+- name: Create VD
+    dellemc_idrac_virtual_drive:
+      idrac_ip:     "192.168.1.1"
+      idrac_user:   "root"
+      idrac_pwd:    "calvin"
+      share_name:   "\\\\192.168.10.10\\share"
+      share_user:   "user1@domain"
+      share_pwd:    "password"
+      share_mnt:    "/mnt/share"
+      vd_name:      "Virtual_Drive_0"
+      controller_fqdd: "RAID.Integrated.1-1"
+      pd_slots:     [0, 1, 2, 3, 4, 5]
+      raid_level:   "RAID 5"
+      stripe_size:  65535
+      span_depth:   1
+      state:        "present"
 ```
 
 ```
-
+# Delete a virtual drive
+- name: Create VD
+    dellemc_idrac_virtual_drive:
+      idrac_ip:     "192.168.1.1"
+      idrac_user:   "root"
+      idrac_pwd:    "calvin"
+      share_name:   "\\\\192.168.10.10\\share"
+      share_user:   "user1@domain"
+      share_pwd:    "password"
+      share_mnt:    "/mnt/share"
+      vd_name:      "Virtual_Drive_0"
+      controller_fqdd: "RAID.Integrated.1-1"
+      state:        "absent"
 ```
 
 ---
