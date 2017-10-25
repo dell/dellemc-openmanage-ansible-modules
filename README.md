@@ -53,6 +53,8 @@ This project is licensed under GPL-3.0 License. Please see the [LICENSE](https:/
 
 ## Support
 Please note that OpenManage Ansible Modules is in **BETA** development stage and therefore **not ready for production**. However, if you want to report any issues or provide any feedback, then please send an email to OpenManageAnsibleEval@dell.com.
+
+We also have a **#openmanageansible** slack channel. You can get an invite by requesting one at http://community.codedellemc.com. 
  
 ## Authors
   * OpenManageAnsibleEval (OpenManageAnsibleEval@dell.com)
