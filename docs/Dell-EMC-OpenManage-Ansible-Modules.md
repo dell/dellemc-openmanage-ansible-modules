@@ -27,7 +27,47 @@ A SCP operation can be performed using any of the following methods:
   * Export/Import to/from a remote network share via HTTP, HTTPS (iDRAC firmware 3.00.00.00 and above)
   * Export/Import to/from via local file streaming (iDRAC firmware 3.00.00.00 and above)
 
-*NOTE*: This BETA release of OpenManage Ansible Module supports only the first option listed above for SCP operations i.e. export/import from/to a remote network share via CIFS or NFS. Future releases will support all the options for SCP operations.
+**NOTE**: This BETA release of OpenManage Ansible Module supports only the first option listed above for SCP operations i.e. export/import from/to a remote network share via CIFS or NFS. Future releases will support all the options for SCP operations.
+
+#### Setting up a local mount point for a remote network share
+
+Since OpenManage Ansible modules extensively uses SCP to automate and orchestrate configuration, deployment and update on PowerEdge servers, you must locally mount the remote network share (CIFS or NFS) on the ansible server where you will be executing the playbook or modules. Local mount point also should have read-write privileges in order for OpenManage Ansible modules to write a SCP file to remote network share that will be imported by iDRAC.
+
+You can use either of the following ways to setup a local mount point:
+
+  * Use the ```mount``` command to mount a remote network share
+
+    ```
+    # Mount a remote CIFS network share on the local ansible machine.
+    # In the below command, 192.168.10.10 is the IP address of the CIFS file
+    # server (you can provide a hostname as well), Share is the directory that
+    # is being shared, and /mnt/CIFS is the location to mount the file system
+    # on the local ansible machine
+    sudo mount -t cifs \\\\192.168.10.10\\Share -o username=user1,password=password,dir_mode=0777,file_mode=0666 /mnt/CIFS
+
+    # Mount a remote NFS network share on the local ansible machine.
+    # In the below command, 192.168.10.10 is the IP address of the NFS file
+    # server (you can provide a hostname as well), Share is the directory that
+    # is being exported, and /mnt/NFS is the location to mount the file system
+    # on the local ansible machine. Please note that NFS checks access
+    # permissions against user ids (UIDs). For granting the read-write
+    # privileges on the local mount point, the UID and GID of the user on your
+    # local ansible machine needs to match the UID and GID of the owner of the
+    # folder you are trying to access on the server. Other option for granting
+    # the rw privileges would be to use all_squash option.
+
+    sudo mount -t nfs 192.168.10.11:/Share /mnt/NFS -o rw,user,auto
+    ```
+
+  * Alternate and preferred way would be to use the ```/etc/fstab``` for mounting the remote network share. That way, you won’t have to mount the network share after a reboot and remember all the options.  General syntax for mounting the network share in ```/etc/fstab``` would be as follows:
+
+    ```
+    # Mounting a CIFS network share:
+    //192.168.10.10/Share /mnt/CIFS cifs username=user,password=pwd,domain=domain_name,dir_mode=0777,file_mode=0666,iocharset=utf8 0 0
+
+    # Mounting a NFS network share:
+    192.168.10.11:/Share /mnt/NFS nfs rw,user,auto 0 0
+    ```
 
 ---
 ### 1.2 What is included in this BETA release?
