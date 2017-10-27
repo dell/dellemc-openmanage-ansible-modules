@@ -149,7 +149,7 @@ def setup_idrac_snmp_alert(idrac, module):
             dest_address = alert_dest.get('dest_address')
 
             state = alert_dest.get('state')
-            if state and state == 'Enabled':
+            if state and state.lower() == 'enabled':
                 state = TypeHelper.convert_to_enum('Enabled',
                                                    State_SNMPAlertTypes)
             else:
@@ -166,18 +166,17 @@ def setup_idrac_snmp_alert(idrac, module):
                     if not alert:
                         idrac.config_mgr._sysconfig.iDRAC.SNMPAlert.new(
                             Destination_SNMPAlert=dest_address,
-                            State_SNMPAlert=TypeHelper.convert_to_enum(
-                                state, State_SNMPAlertTypes),
+                            State_SNMPAlert=state,
                             SNMPv3Username_SNMPAlert=snmpv3_user_name)
                     else:
                         if state:
-                            idrac.config_mgr._sysconfig.iDRAC.SNMPAlert.\
-                                State_SNMPAlert = state
+                            alert.State_SNMPAlert = state
+
                         if snmpv3_user_name:
-                            idrac.config_mgr._sysconfig.iDRAC.SNMPAlert.\
-                                SNMPv3Username_SNMPAlert = snmpv3_user_name
+                            alert.SNMPv3Username_SNMPAlert = snmpv3_user_name
                 else:
                     if alert:
+                        alert.State_SNMPAlert = State_SNMPAlertTypes.Disabled
                         idrac.config_mgr._sysconfig.iDRAC.SNMPAlert.remove(
                             Destination_SNMPAlert=dest_address)
                     else:
