@@ -27,7 +27,7 @@ A SCP operation can be performed using any of the following methods:
   * Export/Import to/from a remote network share via HTTP, HTTPS (iDRAC firmware 3.00.00.00 and above)
   * Export/Import to/from via local file streaming (iDRAC firmware 3.00.00.00 and above)
 
-**NOTE**: This BETA release of OpenManage Ansible Module supports only the first option listed above for SCP operations i.e. export/import to/from a remote network share via CIFS or NFS. Future releases will support all the options for SCP operations.
+:warning: **NOTE**: This BETA release of OpenManage Ansible Module supports only the first option listed above for SCP operations i.e. export/import to/from a remote network share via CIFS or NFS. Future releases will support all the options for SCP operations.
 
 #### Setting up a local mount point for a remote network share
 
