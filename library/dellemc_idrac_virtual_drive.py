@@ -81,7 +81,7 @@ options:
   controller_fqdd:
     required: True
     description:
-      - Fully Qualified Device Descriptor (FQDD) of the storage controller, for e.g. 'RAID.Integrated-1.1'.
+      - Fully Qualified Device Descriptor (FQDD) of the storage controller, for e.g. 'RAID.Integrated.1-1'.
     type: 'str'
   pd_slots:
     required: False
@@ -157,26 +157,61 @@ options:
     choices: ['present', 'absent']
     default: 'present'
 
-requirements: ['omsdk']
-author: "anupam.aloke@dell.com"
+requirements: ['Dell EMC OpenManage Python SDK']
+author: "OpenManageAnsibleEval@Dell.com"
 '''
 
 EXAMPLES = '''
-- name: Create Virtual Drive
+# Create a virtual drive with RAID 5 and a span length of 5 physical disks
+# if no slot numbers are provided, then virtual drive will be created using the
+# physical disks that are available. If no Virual Disk size is specified, then
+# the size of the virtual disks will be auto-determined based on the RAID level
+# For e.g., in the below example, if all the Physical Disks are of capacity of
+# 200GB and no vd_size is specified, then the Virtual Disk will be created with
+# space efficiency of (1-1/n = 1-1/5 = 80% of 1000GB = 800GB)
+
+- name: Create VD
     dellemc_idrac_virtual_drive:
-      idrac_ip:    "192.168.1.1"
-      idrac_user:  "root"
-      idrac_pwd:   "calvin"
-      share_name:  "\\\\192.168.10.10\\share"
-      share_user:  "user1"
-      share_pwd:   "password"
-      share_mnt:   "/mnt/share"
-      vd_name:     "VD_0"
+      idrac_ip:      "192.168.1.1"
+      idrac_user:    "root"
+      idrac_pwd:     "calvin"
+      share_name:    "\\\\192.168.10.10\\share"
+      share_user:    "user1"
+      share_pwd:     "password"
+      share_mnt:     "/mnt/share"
+      vd_name:       "Virtual_Drive_0"
       controller_fqdd: "RAID.Integrated.1-1"
-      raid_type:   "RAID 5"
-      span_depth:  1
-      span_length: 2
-      state:       "present"
+      raid_level:    "RAID 5"
+      media_type:    "HDD"
+      bus_protocol:  "SAS"
+      stripe_size:   65536
+      span_depth:    1
+      span_length:   5
+      state:         "present"
+
+# Create a virtual drive with RAID 5 and physical disks having slot numbers
+# 0, 1, 2, 3, 4 and 5.
+
+- name: Create VD
+    dellemc_idrac_virtual_drive:
+      idrac_ip:     "192.168.1.1"
+      idrac_user:   "root"
+      idrac_pwd:    "calvin"
+      share_name:   "\\\\192.168.10.10\\share"
+      share_user:   "user1@domain"
+      share_pwd:    "password"
+      share_mnt:    "/mnt/share"
+      vd_name:      "Virtual_Drive_0"
+      controller_fqdd: "RAID.Integrated.1-1"
+      pd_slots:     [0, 1, 2, 3, 4, 5]
+      raid_level:   "RAID 5"
+      media_type:   "HDD"
+      bus_protocol: "SAS"
+      stripe_size:  65536
+      span_depth:   1
+      state:        "present"
+
+# Delete a virtual drive
 
 - name: Delete Virtual Drive
     dellemc_idrac_virtual_drive:
@@ -187,7 +222,8 @@ EXAMPLES = '''
       share_user: "user1"
       share_pwd:  "password"
       share_mnt:  "/mnt/share"
-      virtual_drive_name:  "Virtual Drive 0"
+      virtual_drive_name:  "Virtual_Drive_0"
+      controller_fqdd: "RAID.Integrated.1-1"
       state:       "absent"
 '''
 
@@ -227,13 +263,94 @@ def _virtual_drive_exists(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    vd = idrac.config_mgr.RaidHelper.find_virtual_disk(Name=module.params['vd_name'])
+    vd = idrac.config_mgr.RaidHelper.find_virtual_disk(
+            Name=module.params['vd_name'])
 
     if vd:
         return True
 
     return False
 
+
+def _create_virtual_drive(idrac, module):
+    """
+    Create a virtual drive
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
+    msg = {}
+
+    span_length = module.params.get('span_length')
+    span_depth = module.params.get('span_depth')
+    pd_slots = module.params.get('pd_slots')
+    raid_level = TypeHelper.convert_to_enum(module.params['raid_level'],
+                                            RAIDTypesTypes)
+    read_policy = TypeHelper.convert_to_enum(module.params['read_policy'],
+                                             RAIDdefaultReadPolicyTypes)
+    disk_policy = TypeHelper.convert_to_enum(module.params['disk_policy'],
+                                             DiskCachePolicyTypes)
+
+    # Physical Disk filter
+    pd_filter = '((disk.parent.parent is Controller and disk.parent.parent.FQDD._value == "{0}")'.format(module.params['controller_fqdd'])
+    pd_filter += ' or (disk.parent is Controller and disk.parent.FQDD._value == "{0}"))'.format(module.params['controller_fqdd'])
+    pd_filter += ' and disk.MediaType == "{0}"'.format(module.params['media_type'])
+    pd_filter += ' and disk.BusProtocol == "{0}"'.format(module.params['bus_protocol'])
+
+    # Either one of Span Length and Physical Disks Slots must be defined
+    if not (span_length or pd_slots):
+        module.fail_json(msg="Either one of span_length and pd_slots must be defined for VD creation")
+    elif pd_slots:
+        slots = ""
+        for i in pd_slots:
+            slots += "\"" + str(i) + "\","
+        slots_list = "[" + slots[0:-1] + "]"
+        pd_filter += " and disk.Slot._value in " + slots_list
+        span_length = len(pd_slots)
+
+    # check span_length
+    if span_length < MIN_SPAN_LENGTH[TypeHelper.resolve(raid_level)]:
+        module.fail_json(msg="Invalid span length for RAID Level: "+ TypeHelper.resolve(raid_level))
+
+    # Span depth must be at least 1 which is used for RAID 0, 1, 5 and 6
+    span_depth = 1 if (span_depth < 1) else span_depth
+
+    # Span depth must be at least 2 for RAID levels 10, 50 and 60
+    if raid_level in [RAIDTypesTypes.RAID_10, RAIDTypesTypes.RAID_50, RAIDTypesTypes.RAID_60]:
+        span_depth = 2 if (span_depth < 2) else span_depth
+
+    msg = idrac.config_mgr.RaidHelper.new_virtual_disk(
+            Name=module.params['vd_name'],
+            Size=module.params['vd_size'],
+            RAIDaction=RAIDactionTypes.Create,
+            RAIDTypes=raid_level,
+            RAIDdefaultReadPolicy=read_policy,
+            RAIDdefaultWritePolicy=write_policy,
+            DiskCachePolicy=disk_policy,
+            SpanLength=span_length,
+            SpanDepth=span_depth,
+            StripeSize=module.params['stripe_size'],
+            NumberDedicatedHotSpare=module.params['dedicated_hot_spare'],
+            NumberGlobalHotSpare=module.params['global_hot_spare'],
+            PhysicalDiskFilter=pd_filter)
+
+    return msg
+
+def _delete_virtual_drive(idrac, module):
+    """
+    Delete virtual drive
+
+    Keyword arguments:
+    idrac  -- iDRAC handle
+    module -- Ansible module
+    """
+
+    msg = idrac.config_mgr.RaidHelper.delete_virtual_disk(
+            Name=module.params['vd_name'])
+
+    return msg
 
 def virtual_drive(idrac, module):
     """
@@ -251,46 +368,6 @@ def virtual_drive(idrac, module):
     err = False
 
     try:
-        span_length = module.params.get('span_length')
-        span_depth = module.params.get('span_depth')
-        pd_slots = module.params.get('pd_slots')
-        raid_level = TypeHelper.convert_to_enum(module.params['raid_level'],
-                                                RAIDTypesTypes)
-        read_policy = TypeHelper.convert_to_enum(module.params['read_policy'],
-                                                 RAIDdefaultReadPolicyTypes)
-        write_policy = TypeHelper.convert_to_enum(module.params['write_policy'],
-                                                  RAIDdefaultWritePolicyTypes)
-        disk_policy = TypeHelper.convert_to_enum(module.params['disk_policy'],
-                                                 DiskCachePolicyTypes)
-
-        # Physical Disk filter
-        pd_filter = '((disk.parent.parent is Controller and disk.parent.parent.FQDD._value == "{0}")'.format(module.params['controller_fqdd'])
-        pd_filter += ' or (disk.parent is Controller and disk.parent.FQDD._value == "{0}"))'.format(module.params['controller_fqdd'])
-        pd_filter += ' and disk.MediaType == "{0}"'.format(module.params['media_type'])
-        pd_filter += ' and disk.BusProtocol == "{0}"'.format(module.params['bus_protocol'])
-
-        # Either one of Span Length and Physical Disks Slots must be defined
-        if not (span_length or pd_slots):
-            module.fail_json(msg="Either one of span_length and pd_slots must be defined for VD creation")
-        elif pd_slots:
-            slots = ""
-            for i in pd_slots:
-                slots += "\"" + str(i) + "\","
-            slots_list = "[" + slots[0:-1] + "]"
-            pd_filter += " and disk.Slot._value in " + slots_list
-            span_length = len(pd_slots)
-
-        # check span_length
-        if span_length < MIN_SPAN_LENGTH[TypeHelper.resolve(raid_level)]:
-            module.fail_json(msg="Invalid span length for RAID Level: "+ TypeHelper.resolve(raid_level))
-
-        # Span depth must be at least 1 which is used for RAID 0, 1, 5 and 6
-        span_depth = 1 if (span_depth < 1) else span_depth
-
-        # Span depth must be at least 2 for RAID levels 10, 50 and 60
-        if raid_level in [RAIDTypesTypes.RAID_10, RAIDTypesTypes.RAID_50, RAIDTypesTypes.RAID_60]:
-            span_depth = 2 if (span_depth < 2) else span_depth
-
         # Check whether VD exists
         exists = _virtual_drive_exists(idrac, module)
 
@@ -298,27 +375,12 @@ def virtual_drive(idrac, module):
             if module.check_mode or exists:
                 msg['changed'] = not exists
             else:
-                msg['msg'] = idrac.config_mgr.RaidHelper.new_virtual_disk(
-                    Name=module.params['vd_name'],
-                    Size=module.params['vd_size'],
-                    RAIDaction=RAIDactionTypes.Create,
-                    RAIDTypes=raid_level,
-                    RAIDdefaultReadPolicy=read_policy,
-                    RAIDdefaultWritePolicy=write_policy,
-                    DiskCachePolicy=disk_policy,
-                    SpanLength=span_length,
-                    SpanDepth=span_depth,
-                    StripeSize=module.params['stripe_size'],
-                    NumberDedicatedHotSpare=module.params['dedicated_hot_spare'],
-                    NumberGlobalHotSpare=module.params['global_hot_spare'],
-                    PhysicalDiskFilter=pd_filter)
-
+                msg['msg'] = _create_virtual_drive(idrac, module)
         else:
             if module.check_mode or not exists:
                 msg['changed'] = exists
             else:
-                msg['msg'] = idrac.config_mgr.RaidHelper.delete_virtual_disk(
-                    Name=module.params['vd_name'])
+                msg['msg'] = _delete_virtual_drive(idrac, module)
 
         if "Status" in msg['msg']:
             if msg['msg']['Status'] == "Success":

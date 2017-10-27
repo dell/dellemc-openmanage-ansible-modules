@@ -176,7 +176,6 @@ def setup_idrac_snmp_alert(idrac, module):
                             alert.SNMPv3Username_SNMPAlert = snmpv3_user_name
                 else:
                     if alert:
-                        alert.State_SNMPAlert = State_SNMPAlertTypes.Disabled
                         idrac.config_mgr._sysconfig.iDRAC.SNMPAlert.remove(
                             Destination_SNMPAlert=dest_address)
                     else:
