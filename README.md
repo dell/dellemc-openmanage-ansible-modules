@@ -4,7 +4,7 @@ Dell EMC OpenManage Ansible Modules provide customers the ability to automate th
 
 ## Supported Platforms
 Dell EMC PowerEdge Servers with:
-  * iDRAC 7/8 with Firmware version 2.00.00.00 or above
+  * iDRAC 7/8 with Firmware version 2.40.40.40 or above
   * iDRAC 9 with Firmware version 3.00.00.00
 
 ## Prerequisites
