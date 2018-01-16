@@ -181,12 +181,19 @@ RETURN = '''
 import traceback
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.six import string_types
 try:
     from omsdk.sdkcenum import TypeHelper
-    from omdrivers.enums.iDRAC.BIOS import BootModeTypes, BootSeqRetryTypes
+    from omdrivers.enums.iDRAC.BIOS import (
+        BootModeTypes, BootSeqRetryTypes,
+        PxeDev1EnDisTypes, PxeDev1ProtocolTypes, PxeDev1VlanEnDisTypes,
+        PxeDev2EnDisTypes, PxeDev2ProtocolTypes, PxeDev2VlanEnDisTypes,
+        PxeDev3EnDisTypes, PxeDev3ProtocolTypes, PxeDev3VlanEnDisTypes,
+        PxeDev4EnDisTypes, PxeDev4ProtocolTypes, PxeDev4VlanEnDisTypes)
     from omdrivers.enums.iDRAC.iDRAC import (
         FirstBootDevice_ServerBootTypes, BootOnce_ServerBootTypes
     )
+
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
@@ -275,6 +282,154 @@ def _setup_uefi_boot_settings(idrac, module):
         if one_time_uefi_boot_seq:
             idrac.config_mgr._sysconfig.BIOS.OneTimeUefiBootSeq = one_time_uefi_boot_seq
 
+def _setup_bios_attributes(idrac, module):
+
+    bios_attributes = module.params.get('bios_attributes')
+
+    if bios_attributes:
+
+        # Uefi PxeDev1 Network Settings
+        curr_pxe_dev1 = idrac.config_mgr._sysconfig.BIOS.PxeDev1EnDis
+        pxe_dev1 = bios_attributes.get('PxeDev1EnDis')
+        if pxe_dev1: 
+            idrac.config_mgr._sysconfig.BIOS.PxeDev1EnDis = \
+                    TypeHelper.convert_to_enum(pxe_dev1, PxeDev1EnDisTypes)
+
+        # only if PxeDev1EnDis is set to 'Enabled' else the atributes
+        # will read-only in the SCP
+        if curr_pxe_dev1 == PxeDev1EnDisTypes.Enabled:
+            pxe_dev1_if = bios_attributes.get('PxeDev1Interface')
+            if pxe_dev1_if:
+                if not isinstance(pxe_dev1_if, string_types):
+                    module.fail_json(msg="\'PxeDev1Interface\' must be of type String or Unicode: {0}".format(str(pxe_dev)))
+
+                idrac.config_mgr._sysconfig.BIOS.PxeDev1Interface = pxe_dev1_if
+
+            pxe_dev1_protocol = bios_attributes.get('PxeDev1Protocol')
+            if pxe_dev1_protocol:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev1Protocol = \
+                    TypeHelper.convert_to_enum(pxe_dev1_protocol, PxeDev1ProtocolTypes)
+
+            pxe_dev1_vlan = bios_attributes.get('PxeDev1VlanEnDis')
+            if pxe_dev1_vlan:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev1VlanEnDis = \
+                    TypeHelper.convert_to_enum(pxe_dev1_vlan, PxeDev2VlanEnDisTypes)
+
+            pxe_dev1_vlan_id = bios_attributes.get('PxeDev1VlanId')
+            if pxe_dev1_vlan_id:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev1VlanId = pxe_dev1_vlan_id
+
+            pxe_dev1_vlan_pri = bios_attributes.get('PxeDev1VlanPriority')
+            if pxe_dev1_vlan_pri:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev1VlanPriority = pxe_dev1_vlan_pri
+
+        # Uefi PxeDev2 Network Settings
+        curr_pxe_dev2 = idrac.config_mgr._sysconfig.BIOS.PxeDev2EnDis
+        pxe_dev2 = bios_attributes.get('PxeDev2EnDis')
+        if pxe_dev2:
+            idrac.config_mgr._sysconfig.BIOS.PxeDev2EnDis = \
+                TypeHelper.convert_to_enum(pxe_dev2, PxeDev2EnDisTypes)
+
+        # only if PxeDev2EnDis is 'Enabled' else the attributes will be
+        # read-only in SCP
+        if curr_pxe_dev2 == PxeDev2EnDisTypes.Enabled:
+
+            pxe_dev2_if = bios_attributes.get('PxeDev2Interface')
+            if pxe_dev2_if:
+                if not isinstance(pxe_dev2_if, string_types):
+                    module.fail_json(msg="\'PxeDev2Interface\' must be of type String or Unicode: {0}".format(str(pxe_dev)))
+
+                idrac.config_mgr._sysconfig.BIOS.PxeDev2Interface = pxe_dev2_if
+
+            pxe_dev2_protocol = bios_attributes.get('PxeDev2Protocol')
+            if pxe_dev2_protocol:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev2Protocol = \
+                    TypeHelper.convert_to_enum(pxe_dev2_protocol, PxeDev2ProtocolTypes)
+
+            pxe_dev2_vlan = bios_attributes.get('PxeDev2VlanEnDis')
+            if pxe_dev2_vlan:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev2VlanEnDis = \
+                    TypeHelper.convert_to_enum(pxe_dev2_vlan, PxeDev2VlanEnDisTypes)
+
+            pxe_dev2_vlan_id = bios_attributes.get('PxeDev2VlanId')
+            if pxe_dev2_vlan_id:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev2VlanId = pxe_dev2_vlan_id
+
+            pxe_dev2_vlan_pri = bios_attributes.get('PxeDev2VlanPriority')
+            if pxe_dev2_vlan_pri:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev2VlanPriority = pxe_dev2_vlan_pri
+
+        # Uefi PxeDev3 Network Settings
+        curr_pxe_dev3 = idrac.config_mgr._sysconfig.BIOS.PxeDev3EnDis
+        pxe_dev3 = bios_attributes.get('PxeDev3EnDis')
+        if pxe_dev3:
+            idrac.config_mgr._sysconfig.BIOS.PxeDev3EnDis = \
+                TypeHelper.convert_to_enum(pxe_dev3, PxeDev3EnDisTypes)
+
+        # only if PxeDev3EnDis is 'Enabled' else the attributes will be
+        # read-only in SCP
+        if curr_pxe_dev3 == PxeDev3EnDisTypes.Enabled:
+
+            pxe_dev3_if = bios_attributes.get('PxeDev3Interface')
+            if pxe_dev3_if:
+                if not isinstance(pxe_dev2_if, string_types):
+                    module.fail_json(msg="\'PxeDev3Interface\' must be of type String or Unicode: {0}".format(str(pxe_dev)))
+
+                idrac.config_mgr._sysconfig.BIOS.PxeDev3Interface = pxe_dev3_if
+
+            pxe_dev3_protocol = bios_attributes.get('PxeDev3Protocol')
+            if pxe_dev3_protocol:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev3Protocol = \
+                    TypeHelper.convert_to_enum(pxe_dev3_protocol, PxeDev3ProtocolTypes)
+
+            pxe_dev3_vlan = bios_attributes.get('PxeDev3VlanEnDis')
+            if pxe_dev3_vlan:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev3VlanEnDis = \
+                    TypeHelper.convert_to_enum(pxe_dev3_vlan, PxeDev3VlanEnDisTypes)
+
+            pxe_dev3_vlan_id = bios_attributes.get('PxeDev3VlanId')
+            if pxe_dev3_vlan_id:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev3VlanId = pxe_dev3_vlan_id
+
+            pxe_dev3_vlan_pri = bios_attributes.get('PxeDev3VlanPriority')
+            if pxe_dev3_vlan_pri:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev3VlanPriority = pxe_dev3_vlan_pri
+
+        # Uefi PxeDev4 Network Settings
+        curr_pxe_dev4 = idrac.config_mgr._sysconfig.BIOS.PxeDev4EnDis
+        pxe_dev4 = bios_attributes.get('PxeDev4EnDis')
+        if pxe_dev4:
+            idrac.config_mgr._sysconfig.BIOS.PxeDev4EnDis = \
+                TypeHelper.convert_to_enum(pxe_dev4, PxeDev4EnDisTypes)
+
+        # only if PxeDev4EnDis is 'Enabled' else the attributes will be
+        # read-only in SCP
+        if curr_pxe_dev4 == PxeDev4EnDisTypes.Enabled:
+
+            pxe_dev4_if = bios_attributes.get('PxeDev4Interface')
+            if pxe_dev4_if:
+                if not isinstance(pxe_dev4_if, string_types):
+                    module.fail_json(msg="\'PxeDev4Interface\' must be of type String or Unicode: {0}".format(str(pxe_dev)))
+
+                idrac.config_mgr._sysconfig.BIOS.PxeDev4Interface = pxe_dev4_if
+
+            pxe_dev4_protocol = bios_attributes.get('PxeDev4Protocol')
+            if pxe_dev4_protocol:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev4Protocol = \
+                    TypeHelper.convert_to_enum(pxe_dev4_protocol, PxeDev4ProtocolTypes)
+
+            pxe_dev4_vlan = bios_attributes.get('PxeDev4VlanEnDis')
+            if pxe_dev4_vlan:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev4VlanEnDis = \
+                    TypeHelper.convert_to_enum(pxe_dev4_vlan, PxeDev4VlanEnDisTypes)
+
+            pxe_dev4_vlan_id = bios_attributes.get('PxeDev4VlanId')
+            if pxe_dev4_vlan_id:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev4VlanId = pxe_dev4_vlan_id
+
+            pxe_dev4_vlan_pri = bios_attributes.get('PxeDev4VlanPriority')
+            if pxe_dev4_vlan_pri:
+                idrac.config_mgr._sysconfig.BIOS.PxeDev4VlanPriority = pxe_dev4_vlan_pri
 
 def _setup_idrac_boot_settings(idrac, module):
 
@@ -331,6 +486,9 @@ def setup_boot_settings(idrac, module):
         if curr_boot_mode == BootModeTypes.Uefi:
             _setup_uefi_boot_settings(idrac, module)
 
+        # Setup BIOS Attributes
+        _setup_bios_attributes(idrac, module)
+
         # Setup iDRAC Boot configuration parameters
         _setup_idrac_boot_settings(idrac, module)
 
@@ -379,12 +537,21 @@ def main():
                            default=None, type='str'),
             boot_seq_retry=dict(required=False, choices=['Enabled', 'Disabled'],
                                 default=None, type='str'),
+
+            # Bios boot parameters
             bios_boot_seq=dict(required=False, default=[], type='list'),
             one_time_bios_boot_seq=dict(required=False, default=[], type='list'),
+
+            # Uefi boot parameters
             uefi_boot_seq=dict(required=False, default=[], type='list'),
             one_time_uefi_boot_seq=dict(required=False, default=[], type='list'),
+            # BIOS Attributes
+            bios_attributes=dict(required=False, default={}, type='dict'),
+
             hdd_seq=dict(required=False, default=[], type='list'),
             one_time_hdd_seq=dict(required=False, default=[], type='list'),
+
+            # iDRAC / LC boot parameters
             first_boot_device=dict(required=False,
                                    choices=['BIOS', 'CD-DVD', 'F10', 'F11',
                                             'FDD', 'HDD', 'Normal', 'PXE', 'SD',
