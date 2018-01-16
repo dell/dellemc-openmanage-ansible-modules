@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: myhosts
   connection: local
   name: Configure boot order
   gather_facts: False
@@ -16,11 +16,41 @@
         share_pwd:  "{{share_pwd}}"
         share_mnt:  "{{share_mnt}}"
         boot_mode:  "Uefi"
+      tags:
+        - bootmode
+
+    # Configure Uefi PXE Network Settings
+    # By default, PxeDev1EnDis is always Enabled and the interface is
+    # set to integrated NIC 
+    # Following example enables the PxeDev1 and PxeDev2 and sets the
+    # PxeDev1 and PxeDev2 interface to "NIC.ChassisSlot.4-1-1" and
+    # "NIC.ChassisSlot.4-1-1" respectively
+
+    - name: Set Uefi Pxe Network Settings
+      dellemc_idrac_boot_order:
+        idrac_ip: "{{idrac_ip}}"
+        idrac_user: "{{idrac_user}}"
+        idrac_pwd:  "{{idrac_pwd}}"
+        share_name: "{{share_name}}"
+        share_user: "{{share_user}}"
+        share_pwd:  "{{share_pwd}}"
+        share_mnt:  "{{share_mnt}}"
+        boot_mode:  "Uefi"
+        bios_attributes:
+          PxeDev1EnDis: "Enabled"
+          PxeDev1Interface: "NIC.ChassisSlot.4-1-1"
+          PxeDev2EnDis: "Enabled"
+          PxeDev2Interface: "NIC.ChassisSlot.4-2-1"
+      tags:
+        - pxe
+
 
     # In order to see what are the valid FQDDs that you can use in the Uefi Boot
     # Sequence argument, please export the SCP first and search for UefiBootSeq
     # attribute in the SCP
     # Any changes in the boot sequence will result in imminent reboot
+    # Following example will set the NIC.PxeDevice.2-1 as the first boot device
+    # in Uefi Boot Sequence followed by others 
 
     - name: Set Uefi Boot Sequence
       dellemc_idrac_boot_order:
@@ -31,4 +61,6 @@
         share_user: "{{share_user}}"
         share_pwd:  "{{share_pwd}}"
         share_mnt:  "{{share_mnt}}"
-        uefi_boot_seq: ["Optical.SATAEmbedded.E-1", "NIC.Integrated.1-1-1", "NIC.Integrated.1-2-1", "NIC.Integrated.1-3-1", "NIC.Integrated.1-4-1", "HardDisk.List.1-1"]
+        uefi_boot_seq: ["NIC.PxeDevice.2-1"]
+      tags:
+        - bootseq
