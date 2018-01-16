@@ -55,6 +55,8 @@ This project is licensed under GPL-3.0 License. Please see the [LICENSE](https:/
 Please note that OpenManage Ansible Modules is in **BETA** development stage and therefore **not ready for production**. However, if you want to report any issues or provide any feedback, then please send an email to OpenManageAnsibleEval@dell.com.
 
 We also have a **#openmanageansible** slack channel. You can get an invite by requesting one at http://community.codedellemc.com. 
+
+Dell TechCenter URL: http://en.community.dell.com/techcenter/systems-management/w/wiki/12422.dell-emc-openmanage-ansible-modules-beta
  
 ## Authors
   * OpenManageAnsibleEval (OpenManageAnsibleEval@dell.com)
