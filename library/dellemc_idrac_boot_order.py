@@ -114,6 +114,12 @@ options:
       - List of boot devices's FQDDs in the sequential order for One-Time Boot only
     default: []
     type: 'list'
+  bios_attributes:
+    required: False
+    description:
+      - Dictionary containing the key-value pairs of Bios attributes
+    default: {}
+    type: 'dict'
   first_boot_device:
     required: False
     description:
@@ -132,7 +138,7 @@ options:
     default: 'Enabled'
 
 requirements: ['omsdk']
-author: "anupam.aloke@dell.com"
+author: "OpenManageAnsibleEval@dell.com"
 '''
 
 EXAMPLES = '''
@@ -148,6 +154,22 @@ EXAMPLES = '''
       share_mnt:  "/mnt/share"
       boot_mode:  "Uefi"
 
+- name: Configure UEFI PXE Network Settings
+    dellemc_idrac_boot_order:
+      idrac_ip:   "192.168.1.1"
+      idrac_user: "root"
+      idrac_pwd:  "calvin"
+      share_name: "\\\\192.168.10.10\\share"
+      share_user: "user1"
+      share_pwd:  "password"
+      share_mnt:  "/mnt/share"
+      boot_mode:  "Uefi"
+      bios_attributes:
+        PxeDev1EnDis: "Enabled"
+        PxeDev1Interface: "NIC.ChassisSlot.4-1-1"
+        PxeDev2EnDis: "Enabled"
+        PxeDev2Interface: "NIC.ChassisSlot.4-2-1"
+
 - name: Configure UEFI Boot Sequence
     dellemc_idrac_boot_order:
       idrac_ip:   "192.168.1.1"
@@ -158,7 +180,7 @@ EXAMPLES = '''
       share_pwd:  "password"
       share_mnt:  "/mnt/share"
       boot_mode:  "Uefi"
-      uefi_boot_seq:  ["Optical.SATAEmbedded.E-1", "NIC.Integrated.1-1-1", "NIC.Integrated.1-2-1", "NIC.Integrated.1-3-1", "NIC.Integrated.1-4-1", "HardDisk.List.1-1"]
+      uefi_boot_seq:  ["NIC.PxeDevice.1-1", "NIC.PxeDevice.1-2"]
 
 - name: Configure First Boot device to PXE
     dellemc_idrac_bot_order:
