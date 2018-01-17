@@ -290,6 +290,8 @@ def _create_virtual_drive(idrac, module):
                                             RAIDTypesTypes)
     read_policy = TypeHelper.convert_to_enum(module.params['read_policy'],
                                              RAIDdefaultReadPolicyTypes)
+    write_policy = TypeHelper.convert_to_enum(module.params['write_policy'],
+                                              RAIDdefaultWritePolicyTypes)
     disk_policy = TypeHelper.convert_to_enum(module.params['disk_policy'],
                                              DiskCachePolicyTypes)
 
@@ -301,7 +303,7 @@ def _create_virtual_drive(idrac, module):
 
     # Either one of Span Length and Physical Disks Slots must be defined
     if not (span_length or pd_slots):
-        module.fail_json(msg="Either one of span_length and pd_slots must be defined for VD creation")
+        module.fail_json(msg="Either span_length or pd_slots must be defined for VD creation")
     elif pd_slots:
         slots = ""
         for i in pd_slots:
