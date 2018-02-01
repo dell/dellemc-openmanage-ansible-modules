@@ -10,7 +10,7 @@ Dell EMC PowerEdge Servers with:
 ## Prerequisites
   * Ansible >= 2.3
   * Python >= 2.7.9
-  * [Dell EMC OpenManage Python SDK](https://github.com/vaideesg/omsdk)
+  * [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ## Documentation
 
@@ -28,7 +28,7 @@ Sample playbooks and examples could be found under [examples](./examples) direct
   pip install ansible
   ```
 
-  * You will need the latest [Dell EMC OpenManage Python SDK](https://github.com/vaideesg/omsdk)
+  * You will need the latest [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
   ```
   pip install omsdk
   ```
