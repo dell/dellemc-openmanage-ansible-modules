@@ -1,0 +1,18 @@
+---
+- hosts: hosts
+  connection: local
+  name: Update Firmware Inventory
+  gather_facts: False
+
+  tasks:
+  - name: Update Firmware Inventory
+    dellemc_install_firmware:
+       idrac_ip:        "x.x.x.x"
+       idrac_user:      "user"
+       idrac_pwd:       "pwd"
+       share_name:      "x.x.x.x:/NFSShare"
+       share_user:      "share_user"
+       share_pwd:       "share_pwd"
+       share_mnt: "/mnt/mntpoint"
+       reboot:     False
+       job_wait:   True

@@ -1,0 +1,19 @@
+---
+- hosts: hosts
+  connection: local
+  name: Export Server Configuration Profile
+  gather_facts: False
+
+  tasks:
+  - name: Export Server Configuration Profile 
+    dellemc_export_server_config_profile:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       job_wait: "False"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "Share_pwd"
+       share_user: "Share_user"
+       scp_components: "NIC"
+       export_format: "JSON"
+       export_use: "Default"

@@ -1,0 +1,21 @@
+--- 
+- 
+  connection: local
+  gather_facts: false
+  hosts: hosts
+  name: Configure the iDRAC eventing attributes
+  tasks: 
+  - name: "Configure the iDRAC eventing attributes" 
+      dellemc_configure_idrac_eventing: 
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/NFSSahre"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       snmp_trap_state: "Enabled"
+       destination_number: "2"
+       snmp_v3_username: "None"
+       destination: "1.1.1.1"
+     

@@ -1,0 +1,306 @@
+---
+- hosts: myhosts
+  connection: local
+  name: DellEMC_OpenManage_Ansible_Modules_version_1.0.105
+  gather_facts: False
+
+  tasks:
+  - name: iDRAC create users
+    dellemc_configure_idrac_users:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       action: "create"
+       user_name: "test"
+       user_password: "dell_123"
+       privilege_users: 'Administrator'
+       ipmilanprivilege_users: 'Operator'
+       ipmiserialprivilege_users: 'Administrator'
+       enable_users: 'Enabled'
+       solenable_users: 'Enabled'
+       protocolenable_users: 'Enabled'
+       privacyprotocol_users: 'DES'
+       authenticationprotocol_users: 'MD5'
+
+    tags:
+       - idrac_create_user
+
+
+  - name: iDRAC modify users
+    dellemc_configure_idrac_users:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       action: "modify"
+       user_name: "test"
+       privilege_users: 'Administrator'
+       ipmilanprivilege_users: 'Operator'
+       ipmiserialprivilege_users: 'Administrator'
+       enable_users: 'Enabled'
+       solenable_users: 'Enabled'
+       protocolenable_users: 'Enabled'
+       privacyprotocol_users: 'DES'
+       authenticationprotocol_users: 'MD5'
+
+    tags:
+       - idrac_modify_user
+
+
+  - name: iDRAC delete user
+    dellemc_configure_idrac_users:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       action: "delete"
+       user_name: "test"
+
+    tags:
+       - idrac_delete_user
+
+
+  - name: Setup iDRAC Timezone
+    dellemc_configure_idrac_timezone:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       setup_idrac_timezone: "Singapore"
+       enable_ntp: "Disabled"
+       ntp_server_1: "100.100.25.1"
+       ntp_server_2: "100.100.26.2"
+       ntp_server_3: "100.100.27.3"
+
+    tags:
+       - idrac_timezone
+
+
+  - name: Setup iDRAC NTP
+    dellemc_configure_idrac_timezone:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       enable_ntp: "Enabled"
+
+    tags:
+       - idrac_ntp
+
+
+  - name: Setup iDRAC Webserver
+    dellemc_configure_idrac_services:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       ssl_encryption: "T_168_Bit_or_higher"
+       tls_protocol: "TLS_1_0_and_Higher"
+
+    tags:
+       - idrac_webserver
+
+
+  - name: Setup iDRAC SNMP
+    dellemc_configure_idrac_services:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/nfsfileshare"
+       snmp_enable: "Enabled"
+       snmp_protocol: "All"
+
+    tags:
+       - idrac_snmp
+
+
+  - name: Setup iDRAC SNMP Trap
+    dellemc_configure_idrac_eventing:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       snmp_trap_state: "Enabled"
+       destination_number: "2"
+       snmp_v3_username: "None"
+       destination: "1.1.1.1"
+
+    tags:
+       - idrac_snmptrap
+
+
+  - name: Setup iDRAC Email Alerts
+    dellemc_configure_idrac_eventing:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       email_alert_state: "Disabled"
+       address: "test@test.com"
+       alert_number: "1"
+       custom_message: "test"
+
+    tags:
+       - idrac_email_alerts
+
+
+  - name: Setup iDRAC Alerts
+    dellemc_configure_idrac_eventing:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       enable_alerts: "Disabled"
+
+    tags:
+       - idrac_alerts
+
+
+  - name: Setup iDRAC SMTP
+    dellemc_configure_idrac_eventing:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       smtp_ip_address: "0.0.0.0"
+       authentication: "Enabled"
+       username: "test"
+       password: "test"
+
+    tags:
+       - idrac_smtp
+
+
+  - name: Register iDRAC on DNS
+    dellemc_configure_idrac_network:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       register_idrac_on_dns: "Enabled"
+       dns_idrac_name: "idrac-3CZWCK2"
+       auto_config: "Enabled"
+       static_dns: "dell.com"
+
+    tags:
+       - idrac_dns
+
+
+  - name: Setup iDRAC VLAN
+    dellemc_configure_idrac_network:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       setup_idrac_nic_vlan: "Enabled"
+
+    tags:
+       - idrac_vlan
+
+
+  - name: Setup iDRAC NIC
+    dellemc_configure_idrac_network:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       enable_nic: "Enabled"
+       nic_selection: "Dedicated"
+       failover_network: "T_None"
+       auto_detect: "Disabled"
+       auto_negotiation: "Enabled"
+       network_speed: "T_1000"
+       duplex_mode: "Full"
+
+    tags:
+       - idrac_nic
+
+
+  - name: Setup iDRAC IPv4
+    dellemc_configure_idrac_network:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       enable_dhcp: "Enabled"
+       dns_from_dhcp: "Enabled"
+       enable_ipv4: "Enabled"
+
+    tags:
+       - idrac_ipv4
+
+
+  - name: Setup iDRAC Static IPv4
+    dellemc_configure_idrac_network:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       static_dns_from_dhcp: "Disabled"
+
+    tags:
+       - idrac_staticipv4
+
+
+  - name: Setup iDRAC LC Attributes
+    dellemc_idrac_lc_attributes:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       csior: "Enabled"
+
+    tags:
+       - idrac_csior

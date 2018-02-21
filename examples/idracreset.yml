@@ -1,0 +1,12 @@
+---
+- hosts: hosts
+  connection: local
+  name: iDRAC Reset
+  gather_facts: False
+
+  tasks:
+  - name: iDRAC Reset
+    dellemc_idrac_reset:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"

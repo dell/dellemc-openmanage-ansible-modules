@@ -1,18 +1,18 @@
 ---
 - hosts: hosts
   connection: local
-  name: Configure iDRAC syslog attributes
+  name: Configure System lockdown mode
   gather_facts: False
 
   tasks:
-  - name: Configure iDRAC syslog attributes
-    dellemc_setup_idrac_syslog:
+  - name: Configure System lockdown mode
+    dellemc_system_lockdown_mode:
        idrac_ip:   "x.x.x.x"
        idrac_user: "user"
        idrac_pwd:  "pwd"
        share_name: "x.x.x.x:/NFSShare"
        share_pwd: "share_pwd"
-       share_user: "share_name"
+       share_user: "share_user"
        share_mnt:  "/mnt/mntpoint"
-       syslog: "Disabled"
+       lockdown_mode: "Disabled"
 

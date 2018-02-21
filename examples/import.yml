@@ -1,0 +1,21 @@
+---
+- hosts: hosts
+  connection: local
+  name: Import Server Configuration Profile from a Share
+  gather_facts: False
+
+  tasks:
+  - name: Import Server Configuration Profile from a Share
+    dellemc_import_server_config_profile:
+       idrac_ip:        "x.x.x.x"
+       idrac_user:      "user"
+       idrac_pwd:       "pwd"
+       idrac_port:      "443"
+       share_name:      "x.x.x.x:/NFSShare"
+       share_user:      "share_user"
+       share_pwd:       "share_pwd"
+       scp_file:        "x.x.x.x_20180131_120541_scp.json"
+       scp_components:  "NIC"
+       shutdown_type:   "Graceful"
+       job_wait:        "False"
+    
