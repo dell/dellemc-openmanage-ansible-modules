@@ -25,7 +25,7 @@ Sample playbooks and examples could be found under [examples](./examples) direct
   * Ansible must be installed
 
   ```
-  pip install ansible
+  yum install ansible
   ```
 
   * You will need the latest [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
