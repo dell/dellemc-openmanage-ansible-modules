@@ -8,8 +8,8 @@ Dell EMC PowerEdge Servers with:
   * iDRAC 9 with Firmware version 3.00.00.00 and above
 
 ## Prerequisites
-  * Ansible >= 2.4
-  * Python >= 2.7.9
+  * Ansible >= 2.2
+  * Python >= 2.7
   * [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ## Documentation
