@@ -1,18 +1,18 @@
 ---
 - hosts: hosts
   connection: local
-  name: Configure iDRAC syslog attributes
+  name: Configure the iDRAC services attributes
   gather_facts: False
 
   tasks:
-  - name: Configure iDRAC syslog attributes
-    dellemc_setup_idrac_syslog:
+  - name: Configure the iDRAC services attributes
+    dellemc_configure_idrac_services:
        idrac_ip:   "x.x.x.x"
        idrac_user: "user"
        idrac_pwd:  "pwd"
        share_name: "x.x.x.x:/NFSShare"
        share_pwd: "share_pwd"
-       share_user: "share_name"
+       share_user: "share_user"
        share_mnt:  "/mnt/mntpoint"
-       syslog: "Disabled"
-
+       ssl_encryption: "T_168_Bit_or_higher"
+       tls_protocol: "TLS_1_0_and_Higher"

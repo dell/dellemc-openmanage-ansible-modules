@@ -1,0 +1,13 @@
+---
+- hosts: hosts
+  connection: local
+  name: Get LC job Status
+  gather_facts: False
+
+  tasks:
+  - name: Get LC job Status
+    dellemc_get_lc_job_status:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       job_id: "JID_123456789"

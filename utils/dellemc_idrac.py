@@ -1,40 +1,39 @@
-#! /usr/bin/python
+#!/usr/bin/python
 # _*_ coding: utf-8 _*_
 
 #
-# Copyright (c) 2017 Dell Inc.
-#
-# This file is part of Ansible
-#
-# Ansible is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Ansible is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Dell EMC OpenManage Ansible Modules
+# Version 1.0
+# Copyright (C) 2018 Dell Inc.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
+# Other trademarks may be trademarks of their respective owners.
 #
 
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import *
 
 try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
-    from omsdk.sdkfile import FileOnShare
+    from omsdk.sdkfile import FileOnShare, file_share_manager
+    from omsdk.sdkprotopref import ProtoPreference, ProtocolEnum
+    from omsdk.http.sdkwsmanbase import WsManOptions
+
     HAS_OMSDK = True
+
 except ImportError:
+
     HAS_OMSDK = False
 
-class iDRACConnection():
 
+class iDRACConnection():
     def __init__(self, module):
-        if not HAS_OMSDK:
+        if HAS_OMSDK is False:
             results = {}
-            results['msg']="Dell EMC OpenManage Python SDK is required for this module"
+            results['msg'] = "Dell EMC OMSDK library is required for this module"
             module.fail_json(**results)
 
         self.module = module
@@ -68,7 +67,9 @@ class iDRACConnection():
             self.module.fail_json(**results)
         else:
             creds = UserCredentials(idrac_user, idrac_pwd)
-            idrac = sd.get_driver(sd.driver_enum.iDRAC, idrac_ip, creds)
+            pOp = WsManOptions(port=idrac_port)
+
+            idrac = sd.get_driver(sd.driver_enum.iDRAC, idrac_ip, creds, pOptions=pOp)
 
             if idrac is None:
                 results['msg'] = "Could not find device driver for iDRAC with IP Address: " + idrac_ip
@@ -89,25 +90,3 @@ class iDRACConnection():
             return True
 
         return True
-
-    def setup_nw_share_mount(self):
-        results = {}
-        try:
-            share_name = self.module.params.get('share_name')
-            share_user = self.module.params.get('share_user')
-            share_pwd  = self.module.params.get('share_pwd')
-            share_mnt  = self.module.params.get('share_mnt')
-
-            if share_name and share_user and share_pwd and share_mnt:
-                nw_share = FileOnShare(remote=share_name,
-                                       mount_point=share_mnt,
-                                       isFolder=True,
-                                       creds=UserCredentials(share_user, share_pwd))
-
-                if nw_share:
-                    return self.handle.config_mgr.set_liason_share(nw_share)
-        except Exception as e:
-            results['msg'] = "Error: %s" % str(e)
-            self.module.fail_json(**results)
-
-        return False

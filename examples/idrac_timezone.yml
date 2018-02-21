@@ -1,0 +1,21 @@
+---
+- hosts: hosts
+  connection: local
+  name: Configure the iDRAC timezone attributes
+  gather_facts: False
+
+  tasks:
+  - name: Configure the iDRAC timezone attributes
+    dellemc_configure_idrac_timezone:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/NFSShare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       setup_idrac_timezone: "Singapore"
+       enable_ntp: "Disabled"
+       ntp_server_1: "100.100.25.1"
+       ntp_server_2: "100.100.26.2"
+       ntp_server_3: "100.100.27.3"

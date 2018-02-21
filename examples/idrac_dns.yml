@@ -1,0 +1,20 @@
+---
+- hosts: hosts
+  connection: local
+  name: Configure the iDRAC network attributes
+  gather_facts: False
+
+  tasks:
+  - name: Configure the iDRAC network attributes
+    dellemc_configure_idrac_network:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/NFSShare"
+       share_pwd: "share_pwd"
+       share_user: "share_user"
+       share_mnt:  "/mnt/mntpoint"
+       register_idrac_on_dns: "Enabled"
+       dns_idrac_name: "idrac-3CZWCK2"
+       auto_config: "Enabled"
+       static_dns: "dell.com"

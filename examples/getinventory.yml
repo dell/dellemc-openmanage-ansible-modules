@@ -1,0 +1,12 @@
+---
+- hosts: hosts
+  connection: local
+  name: Get system inventory
+  gather_facts: False
+
+  tasks:
+  - name: Get system inventory
+    dellemc_get_system_inventory:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
