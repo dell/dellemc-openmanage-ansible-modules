@@ -13,12 +13,13 @@ Dell EMC PowerEdge Servers with:
   * [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ## Documentation
-
 Please refer to the [OpenManage Ansible Modules Documentation](./docs) 
 
 ## Examples
-
 Sample playbooks and examples could be found under [examples](./examples) directory
+
+## Results
+Sample Results for the respective modules could be found under [samples](./samples) directory.
 
 ## Installation
 
@@ -51,10 +52,11 @@ python uninstall.py
 This project is licensed under GPL-3.0 License. Please see the [COPYING](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/COPYING.md) for more information
 
 ## Support
-If you want to report any issues or provide any feedback, then please send an email to OpenManageAnsibleEval@dell.com.
+  * Dell EMC OpenManage Ansible Modules are supported by Dell support.
+  * In addition, if you want to report any issue, then please report it by creating a new issue
+  * If you have any requirements that is not currently addressed, then please let us know by creating a new issue
+  * If you want to provide any feedback to the development team, then you can do so by sending an email to OpenManageAnsibleEval@Dell.com
+  * We also have a **#openmanageansibleval** slack channel which you can use for reporting any issue, new feature request or for general discussion with development team.
 
-We also have a **#openmanageansible** slack channel. You can get an invite by requesting one at http://community.codedellemc.com. 
-
- 
 ## Authors
   * OpenManageAnsibleEval (OpenManageAnsibleEval@dell.com)
