@@ -29,7 +29,7 @@ Sample Results for the respective modules could be found under [samples](./sampl
   yum install ansible
   ```
 
-  * You will need the [Dell EMC OpenManage Python SDK] version 1.0.213 (https://github.com/dell/omsdk)
+  * You will need the Dell EMC OpenManage Python SDK version 1.0.213 (https://github.com/dell/omsdk)
   ```
   pip install omsdk==1.0.213
   ```
