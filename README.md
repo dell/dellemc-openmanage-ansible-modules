@@ -55,6 +55,8 @@ This project is licensed under GPL-3.0 License. Please see the [COPYING](https:/
   * Dell EMC OpenManage Ansible Modules are supported by Dell support.
   * In addition, if you want to report any issue, then please report it by creating a new issue [here](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/issues)
   * If you have any requirements that is not currently addressed, then please let us know by creating a new issue [here](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/issues)
+  * This version of OpenManage Ansible Modules is in Development stage and therefore not ready for production.
+  * For most recent production ready version of OpenManage Ansible Modules, please use [1.0.0](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/tree/v1.0) 
   * If you want to provide any feedback to the development team, then you can do so by sending an email to **OpenManageAnsibleEval@Dell.com**
   * We also have a **#openmanageansibleval** slack channel which you can use for reporting any issue, new feature request or for general discussion with development team.
 
