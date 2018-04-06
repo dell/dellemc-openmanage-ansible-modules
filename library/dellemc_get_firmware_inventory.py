@@ -15,9 +15,9 @@ from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 from builtins import *
 import traceback
-from ansible.module_utils.dellemc_idrac import iDRACConnection
+from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
-import logging.config
+# import logging.config
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -82,14 +82,14 @@ try:
 except ImportError:
     HAS_OMSDK = False
 
-log_root = '/var/log'
-dell_emc_log_path = log_root + '/dellemc'
-dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-
-logging.config.fileConfig(dell_emc_log_file,
-                          defaults={'logfilename': dell_emc_log_path + '/dellemc_get_firmware_inventory.log'})
-# create logger
-logger = logging.getLogger('ansible')
+# log_root = '/var/log'
+# dell_emc_log_path = log_root + '/dellemc'
+# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
+#
+# logging.config.fileConfig(dell_emc_log_file,
+#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_get_firmware_inventory.log'})
+# # create logger
+# logger = logging.getLogger('ansible')
 
 
 def run_get_firmware_inventory(idrac, module):

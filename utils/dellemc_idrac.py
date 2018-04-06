@@ -14,6 +14,7 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 from builtins import *
+import logging
 
 try:
     from omsdk.sdkinfra import sdkinfra
@@ -21,13 +22,15 @@ try:
     from omsdk.sdkfile import FileOnShare, file_share_manager
     from omsdk.sdkprotopref import ProtoPreference, ProtocolEnum
     from omsdk.http.sdkwsmanbase import WsManOptions
-
+    from omsdk.omlogs.Logger import LogManager
     HAS_OMSDK = True
 
 except ImportError:
 
     HAS_OMSDK = False
 
+LogManager.setup_logging(logger_log_file='/tmp/ansible-omsdk/omsdk_log.log', logger_level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class iDRACConnection():
     def __init__(self, module):

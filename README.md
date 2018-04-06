@@ -28,9 +28,9 @@ Sample playbooks and examples could be found under [examples](./examples) direct
   yum install ansible
   ```
 
-  * You will need the latest [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
+  * You will need the [Dell EMC OpenManage Python SDK] version 1.0.213 (https://github.com/dell/omsdk)
   ```
-  pip install omsdk
+  pip install omsdk==1.0.213
   ```
 
   * Clone this repository and install the ansible modules. 

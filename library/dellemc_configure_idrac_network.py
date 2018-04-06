@@ -16,9 +16,9 @@ from __future__ import (absolute_import, division,
 from builtins import *
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
-from omsdk.sdkfile import FileOnShare
 from omdrivers.enums.iDRAC.iDRAC import *
-import logging.config
+# from omsdk.sdkfile import FileOnShare
+# import logging.config
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -219,14 +219,14 @@ RETURNS = """
     type: string
 """
 
-log_root = '/var/log'
-dell_emc_log_path = log_root + '/dellemc'
-dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-
-logging.config.fileConfig(dell_emc_log_file,
-                          defaults={'logfilename': dell_emc_log_path + '/dellemc_idrac_network_config.log'})
-# create logger
-logger = logging.getLogger('ansible')
+# log_root = '/var/log'
+# dell_emc_log_path = log_root + '/dellemc'
+# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
+#
+# logging.config.fileConfig(dell_emc_log_file,
+#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_idrac_network_config.log'})
+# # create logger
+# logger = logging.getLogger('ansible')
 
 
 def run_idrac_network_config(idrac, module):
@@ -248,13 +248,13 @@ def run_idrac_network_config(idrac, module):
 
         idrac.use_redfish = True
         logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
-        upd_share = FileOnShare(remote=module.params['share_name'],
-                                mount_point=module.params['share_mnt'],
-                                isFolder=True,
-                                creds=UserCredentials(
-                                    module.params['share_user'],
-                                    module.params['share_pwd'])
-                                )
+        upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
+                                                        mount_point=module.params['share_mnt'],
+                                                        isFolder=True,
+                                                        creds=UserCredentials(
+                                                            module.params['share_user'],
+                                                            module.params['share_pwd'])
+                                                        )
         logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
         logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
@@ -439,9 +439,9 @@ def main():
 
             # Export Destination
             share_name=dict(required=True, type='str'),
-            share_pwd=dict(required=True, type='str', no_log=True),
-            share_user=dict(required=True, type='str'),
-            share_mnt=dict(required=True, type='str'),
+            share_pwd=dict(required=False, type='str', no_log=True),
+            share_user=dict(required=False, type='str'),
+            share_mnt=dict(required=False, type='str'),
 
             # setup DNS
             register_idrac_on_dns=dict(required=False, choices=['Enabled', 'Disabled'],
