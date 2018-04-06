@@ -17,7 +17,7 @@ from builtins import *
 from ansible.module_utils.dellemc_idrac import *
 from ansible.module_utils.basic import AnsibleModule
 from omdrivers.enums.iDRAC.iDRACEnums import *
-import logging.config
+# import logging.config
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -78,14 +78,14 @@ RETURNS = """
 
 """
 
-log_root = '/var/log'
-dell_emc_log_path = log_root + '/dellemc'
-dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-
-logging.config.fileConfig(dell_emc_log_file,
-                          defaults={'logfilename': dell_emc_log_path + '/dellemc_change_power_state.log'})
-# create logger
-logger = logging.getLogger('ansible')
+# log_root = '/var/log'
+# dell_emc_log_path = log_root + '/dellemc'
+# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
+#
+# logging.config.fileConfig(dell_emc_log_file,
+#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_change_power_state.log'})
+# # create logger
+# logger = logging.getLogger('ansible')
 
 
 # Get Lifecycle Controller status

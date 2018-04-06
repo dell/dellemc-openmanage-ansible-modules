@@ -18,7 +18,7 @@ from ansible.module_utils.basic import AnsibleModule
 from omsdk.sdkfile import FileOnShare, file_share_manager
 from omsdk.sdkcreds import UserCredentials
 from omdrivers.enums.iDRAC.iDRACEnums import *
-import logging.config
+# import logging.config
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -125,13 +125,13 @@ RETURNS = """
 
 """
 
-log_root = '/var/log'
-dell_emc_log_path = log_root + '/dellemc'
-dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-
-logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_import_scp.log'})
-# create logger
-logger = logging.getLogger('ansible')
+# log_root = '/var/log'
+# dell_emc_log_path = log_root + '/dellemc'
+# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
+#
+# logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_import_scp.log'})
+# # create logger
+# logger = logging.getLogger('ansible')
 
 
 def run_import_server_config_profile(idrac, module):
