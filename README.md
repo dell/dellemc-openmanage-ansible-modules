@@ -29,9 +29,9 @@ Sample Results for the respective modules could be found under [samples](./sampl
   yum install ansible
   ```
 
-  * You will need the Dell EMC OpenManage Python SDK version 1.0.213 (https://github.com/dell/omsdk)
+  * You will need the latest Dell EMC OpenManage Python SDK (https://github.com/dell/omsdk)
   ```
-  pip install omsdk==1.0.213
+  pip install omsdk
   ```
 
   * Clone this repository and install the ansible modules. 
@@ -52,9 +52,8 @@ python uninstall.py
 This project is licensed under GPL-3.0 License. Please see the [COPYING](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/COPYING.md) for more information
 
 ## Support
-  * This version of OpenManage Ansible Modules is in Development stage and therefore not ready for production.
-  * For most recent production ready version of OpenManage Ansible Modules, please use [1.0.0](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/tree/v1.0) 
-  * If you want to report any issue, then please report it by creating a new issue [here](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/issues)
+  * Dell EMC OpenManage Ansible modules are supported by Dell Support.
+  * In addition, if you want to report any issue, then please report it by creating a new issue [here](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/issues)
   * If you have any requirements that is not currently addressed, then please let us know by creating a new issue [here](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/issues)
   * If you want to provide any feedback to the development team, then you can do so by sending an email to **OpenManageAnsibleEval@Dell.com**
   * We also have a **#openmanageansibleval** slack channel which you can use for reporting any issue, new feature request or for general discussion with development team.
