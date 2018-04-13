@@ -50,15 +50,15 @@ options:
         default: 443
     share_name:
         required: True
-        description: CIFS or NFS Network share 
+        description: Network share or a local path.
     share_user:
-        required: True
+        required: False
         description: Network share user in the format 'user@domain' if user is part of a domain else 'user'
     share_pwd:
-        required: True
+        required: False
         description: Network share user password
     share_mnt:
-        required: True
+        required: False
         description: Local mount path of the network share with read-write permission for ansible user
     enable_web_server:
         required: False
