@@ -11,54 +11,48 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: dellemc_install_firmware
-short_description: Firmware update from a repository on a network share (CIFS, NFS)
+short_description: Firmware update from a repository on a network share (CIFS, NFS).
 version_added: "2.3"
 description:
     - Update the Firmware by connecting to a network share (either CIFS or NFS) that contains a catalog of
-        available updates
-    - Network share should contain a valid repository of Update Packages (DUPs) and a catalog file describing the DUPs
-    - All applicable updates contained in the repository are applied to the system
-    - This feature is available only with iDRAC Enterprise License
+        available updates.
+    - Network share should contain a valid repository of Update Packages (DUPs) and a catalog file describing the DUPs.
+    - All applicable updates contained in the repository are applied to the system.
+    - This feature is available only with iDRAC Enterprise License.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
-        description: CIFS or NFS Network share
+        description: CIFS or NFS Network share.
     share_user:
         required: True
         description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: True
-        description: Network share user password
+        description: Network share user password.
     share_mnt:
         required: True
         description: Local mount path of the network share with read-write permission for ansible user.
@@ -69,53 +63,43 @@ options:
         choices: [True,  False]
     job_wait:
         required:  True
-        description: Whether to wait for job completion or not
+        description: Whether to wait for job completion or not.
         choices: [True,  False]
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Rajeev Arakkal (@rajeevarakkal)"
+"""
 
-'''
-
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: Update firmware from repository on a Network Share
   dellemc_install_firmware:
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_user: "xxxx"
        share_pwd:  "xxxxxxxx"
        share_mnt: "/mnt/share"
        reboot:     True
        job_wait:   True
-'''
+"""
 
-RETURN = '''
----
-- dest:
+RETURN = """
+dest:
     description: Updates firmware from a repository on a network share (CIFS, NFS).
     returned: success
     type: string
+"""
 
-'''
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_install_firmware.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
-
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkcreds import UserCredentials
     from omsdk.sdkfile import FileOnShare
-
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False

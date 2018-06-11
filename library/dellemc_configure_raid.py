@@ -11,15 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.BIOS import *
-from omdrivers.types.iDRAC.RAID import *
-# from omsdk.sdkfile import FileOnShare
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -35,19 +29,16 @@ description:
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
@@ -63,74 +54,73 @@ options:
         description: Local mount path of the network share with read-write permission for ansible user.
     vd_name: 
         required: False
-        description: Virtual disk name. 
-          - optional, if we will perform create operations
-          - mandatory, if we will perform remove operations
+        description: Virtual disk name.
+          - Optional, if we will perform create operations.
+          - Mandatory, if we will perform remove operations.
     span_depth:
         required: False
-        description: Span Depth
+        description: Span Depth.
         default: 1
     span_length:
         required: False
-        description: Span Length
+        description: Span Length.
         default: 2
     number_dedicated_hot_spare:
         required: False
-        description: Number of Dedicated Hot Spare
+        description: Number of Dedicated Hot Spare.
         default: 0
     number_global_hot_spare:
         required: False
-        description: Number of Global Hot Spare
+        description: Number of Global Hot Spare.
         default: 0  
     raid_level:
         required: False
-        description: Provide the the required RAID level
+        description: Provide the the required RAID level.
         choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
         default: "RAID 0"
     disk_cache_policy:
         required: False
-        description: Disk Cache Policy
+        description: Disk Cache Policy.
         choices: ["Default", "Enabled", "Disabled"]
         default: Default
     write_cache_policy:
         required: False
-        description: Write cache policy
+        description: Write cache policy.
         choices: ["WriteThrough", "WriteBack", "WriteBackForce"]
         default: WriteThrough
     read_cache_policy:
         required: False
-        description: Read cache policy
+        description: Read cache policy.
         choices: ["NoReadAhead", "ReadAhead", "Adaptive"]
         default: NoReadAhead
     stripe_size:
         required: False
-        description: Stripe size value to be provided in multiples of 64 * 1024
+        description: Stripe size value to be provided in multiples of 64 * 1024.
         default: 65536
     controller_fqdd:
         required:  True
         description: Fully Qualified Device Descriptor (FQDD) of the storage controller, for e.g. 'RAID.Integrated.1-1'.
     media_type:
         required:  False
-        description: Media type
+        description: Media type.
         choices: ['HDD', 'SSD']
         default: 'HDD'
     bus_protocol:
         required:  False
-        description: Bus protocol
+        description: Bus protocol.
         choices: ['SAS', 'SATA']
         default: 'SATA'
     state:
         required: True
         description:
-          - if present, will perform create operations
-          - if absent, will perform remove operations
+          - If C(present), will perform create operations.
+          - If C(absent), will perform remove operations.
         choices: ['present', 'absent']
-        default: None
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Rajeev Arakkal (@rajeevarakkal)"
 
 """
 
@@ -141,30 +131,28 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_pwd:  "xxxxxxxx"
        share_user: "xxxx"
        share_mnt: "/mnt/share"
        state: "xxxx"
-       controller_fqdd:"xxxxxxxx"
-       vd_name:  "xxxxxx"
+       controller_fqdd: "xxxxxxxx"
+       vd_name: "xxxxxx"
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Configures the Raid configuration attributes.
     returned: success
     type: string
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_raid_config.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.types.iDRAC.RAID import RAIDactionTypes
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_server_raid_config(idrac, module):

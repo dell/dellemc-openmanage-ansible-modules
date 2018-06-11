@@ -11,14 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.basic import AnsibleModule
-from omsdk.sdkfile import FileOnShare, file_share_manager
-from omsdk.sdkcreds import UserCredentials
-from omdrivers.enums.iDRAC.iDRACEnums import *
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -27,26 +22,23 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: dellemc_import_server_config_profile
-short_description: Import SCP from a network share or from a local file
+short_description: Import SCP from a network share or from a local file.
 version_added: "2.3"
 description:
     - Import a given Server Configuration Profile (SCP) file from a network share or from a local file.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
@@ -56,48 +48,47 @@ options:
         description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password.
     scp_file:
         required: True
-        description: Server Configuration Profile file name 
-        default: None
+        description: Server Configuration Profile file name.
     scp_components:
         required: False
         description:
-            - if ALL,    this module will import all components configurations from SCP file
-            - if IDRAC,  this module will import iDRAC configuration from SCP file
-            - if BIOS,   this module will import BIOS configuration from SCP file
-            - if NIC,    this module will import NIC configuration from SCP file
-            - if RAID,   this module will import RAID configuration from SCP file
+            - If C(ALL),    this module will import all components configurations from SCP file.
+            - If C(IDRAC),  this module will import iDRAC configuration from SCP file.
+            - If C(BIOS),   this module will import BIOS configuration from SCP file.
+            - If C(NIC),    this module will import NIC configuration from SCP file.
+            - If C(RAID),   this module will import RAID configuration from SCP file.
         choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
         default: 'ALL'
 
     shutdown_type:
         required: False
         description:
-            - if Graceful, it gracefully shuts down the server.
-            - if Forced,  it forcefully shuts down the server.
-            - if NoReboot, it does not reboot the server.
+            - If C(Graceful), it gracefully shuts down the server.
+            - If C(Forced),  it forcefully shuts down the server.
+            - If C(NoReboot), it does not reboot the server.
         choices: ['Graceful', 'Forced', 'NoReboot']
         default: 'Graceful'
 
     end_host_power_state:
         required: False
         description:
-            - if On, End host power state is on.
-            - if Off, End host power state is off.
+            - If C(On), End host power state is on.
+            - If C(Off), End host power state is off.
         choices: ['On' ,'Off']
         default: 'On'
 
     job_wait:
         required:  True
-        description: Whether to wait for job completion or not
+        description: Whether to wait for job completion or not.
         choices: [True,  False] 
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Rajeev Arakkal (@rajeevarakkal)"
 
 """
 
@@ -108,7 +99,7 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_user: "xxxx"
        share_pwd:  "xxxxxxxx"
        scp_file:   "scp_file.xml"
@@ -117,21 +108,19 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Imports SCP from a network share or from a local file.
     returned: success
     type: string
-
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_import_scp.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
+from omdrivers.enums.iDRAC.iDRACEnums import (SCPTargetEnum, EndHostPowerStateEnum,
+                                              ShutdownTypeEnum)
 
 
 def run_import_server_config_profile(idrac, module):
@@ -216,8 +205,6 @@ def run_import_server_config_profile(idrac, module):
 
 # Main
 def main():
-    from ansible.module_utils.dellemc_idrac import iDRACConnection
-
     module = AnsibleModule(
         argument_spec=dict(
 

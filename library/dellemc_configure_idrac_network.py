@@ -11,14 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.iDRAC import *
-# from omsdk.sdkfile import FileOnShare
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -34,38 +29,35 @@ description:
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'
+        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password.
     share_mnt:
         required: False
-        description: Local mount path of the network share with read-write permission for ansible user
+        description: Local mount path of the network share with read-write permission for ansible user.
     setup_idrac_nic_vlan:
         required: False
         description: Configuring the VLAN related setting for iDRAC.
     register_idrac_on_dns: 
         required: False
-        description: Registering Domain Name System for iDRAC
+        description: Registering Domain Name System for iDRAC.
         choices: [Enabled, Disabled]
     dns_idrac_name:
         required: False
@@ -76,7 +68,7 @@ options:
         choices: [Enabled, Disabled]
     static_dns:
         required: False
-        description: Static configuration for DNS
+        description: Static configuration for DNS.
     vlan_id:
         required: False
         description: Configuring the vlan id for iDRAC.
@@ -91,11 +83,11 @@ options:
         choices: [Enabled, Disabled]
     nic_selection:
         required: False
-        description: Selecting Network Interface Controller types for iDRAC
+        description: Selecting Network Interface Controller types for iDRAC.
         choices: [Dedicated, LOM1, LOM2, LOM3, LOM4]
     failover_network:
         required: False
-        description: Failover Network Interface Controller types for iDRAC
+        description: Failover Network Interface Controller types for iDRAC.
         choices: [ALL, LOM1, LOM2, LOM3, LOM4, T_None]
     auto_detect:
         required: False
@@ -103,7 +95,7 @@ options:
         choices: [Enabled, Disabled]
     auto_negotiation:
         required: False
-        description: Auto negotiation of Network Interface Controller for iDRAC
+        description: Auto negotiation of Network Interface Controller for iDRAC.
         choices: [Enabled, Disabled]
     network_speed:
         required: False
@@ -165,8 +157,8 @@ options:
         default: None
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
 
@@ -177,7 +169,7 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_pwd:  "xxxxxxxx"
        share_user: "xxxx"
        share_mnt: "/mnt/share"
@@ -212,21 +204,24 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Configures the iDRAC network attributes.
     returned: success
     type: string
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_idrac_network_config.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.enums.iDRAC.iDRAC import (DNSRegister_NICTypes, DNSDomainNameFromDHCP_NICTypes,
+                                         Enable_NICTypes, VLanEnable_NICTypes,
+                                         Selection_NICTypes, Failover_NICTypes,
+                                         AutoDetect_NICTypes, Autoneg_NICTypes,
+                                         Speed_NICTypes, Duplex_NICTypes, DHCPEnable_IPv4Types,
+                                         DNSFromDHCP_IPv4Types, Enable_IPv4Types,
+                                         DNSFromDHCP_IPv4StaticTypes)
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_idrac_network_config(idrac, module):

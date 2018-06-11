@@ -11,49 +11,42 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-import traceback
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: dellemc_get_firmware_inventory
-short_description: Get Firmware Inventory
+short_description: Get Firmware Inventory.
 version_added: "2.3"
-description: Get Firmware Inventory
+description: Get Firmware Inventory.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Rajeev Arakkal (@rajeevarakkal)"
 
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: Get Installed Firmware Inventory
   dellemc_get_firmware_inventory:
@@ -61,35 +54,27 @@ EXAMPLES = '''
       idrac_user: "xxxx"
       idrac_pwd:  "xxxxxxxx"
             
-'''
+"""
 
-RETURN = '''
----
+RETURN = """
 dest:
     description: Displays components and their firmware versions. Also, list of the firmware
         dictionaries (one dictionary per firmware).
     returned: success
-    type: string
-    
-'''
+    type: string  
+"""
 
+
+import traceback
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkfile import LocalFile
     from omsdk.catalog.sdkupdatemgr import UpdateManager
     from omdrivers.helpers.iDRAC.UpdateHelper import UpdateHelper
-
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
-
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_get_firmware_inventory.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
 
 
 def run_get_firmware_inventory(idrac, module):

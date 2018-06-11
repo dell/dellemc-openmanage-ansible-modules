@@ -11,12 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -25,26 +22,23 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: dellemc_export_server_config_profile
-short_description: Export Server Configuration Profile (SCP) to a network share or to a local file
+short_description: Export Server Configuration Profile (SCP) to a network share or to a local file.
 version_added: "2.3"
 description:
-    - Export Server Configuration Profile
+    - Export Server Configuration Profile.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
@@ -54,36 +48,36 @@ options:
         description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password.
     scp_components:
         required: False
-        description: Specify the hardware component(s) configuration to be exported
-            - if ALL, the module will export all components configurations in SCP file
-            - if IDRAC,  the module will export iDRAC configuration in SCP file
-            - if BIOS,  the module will export BIOS configuration in SCP file
-            - if NIC,  the module will export NIC configuration in SCP file
-            - if RAID,  the module will export RAID configuration in SCP file
+        description: Specify the hardware component(s) configuration to be exported.
+            - If C(ALL), the module will export all components configurations in SCP file.
+            - If C(IDRAC),  the module will export iDRAC configuration in SCP file.
+            - If C(BIOS),  the module will export BIOS configuration in SCP file.
+            - If C(NIC),  the module will export NIC configuration in SCP file.
+            - If C(RAID),  the module will export RAID configuration in SCP file.
         choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
         default: 'ALL'
     job_wait:
         required:  True
-        description: Whether to wait for job completion or not
+        description: Whether to wait for job completion or not.
         choices: [True,  False]
     export_format:
         required:  False
-        description: Specify the output file format
+        description: Specify the output file format.
         choices: ['JSON',  'XML']
         default: 'XML'
     export_use:
         required:  False
-        description: Specify the type of server configuration profile (SCP) to be exported
+        description: Specify the type of server configuration profile (SCP) to be exported.
         choices: ['Default',  'Clone', 'Replace']
         default: 'Default'
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Rajeev Arakkal (@rajeevarakkal)"
 
 """
 
@@ -94,7 +88,7 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_pwd:  "xxxxxxxx"
        share_user: "xxxx"
        job_wait: True
@@ -103,7 +97,6 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
 dest:
     description: Exports the server configuration profile to the provided network share or to the local path.
     returned: success    
@@ -111,13 +104,11 @@ dest:
     sample: /path/to/file.xml
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_export_scp.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_export_server_config_profile(idrac, module):

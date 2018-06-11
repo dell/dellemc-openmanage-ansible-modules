@@ -11,12 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -25,32 +22,29 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: dellemc_delete_lc_job_queue
-short_description: Delete the Lifecycle Controller Job Queue
+short_description: Delete the Lifecycle Controller Job Queue.
 version_added: "2.3"
 description:
-    - Delete the complete Lifecycle Controller Job Queue
+    - Delete the complete Lifecycle Controller Job Queue.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
 
@@ -65,22 +59,15 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Deletes a Lifecycle Controller Job Queue.
     returned: success
     type: string
-
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_delete_lc_job_queue.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
 
 
 def run_delete_lc_job_queue(idrac, module):

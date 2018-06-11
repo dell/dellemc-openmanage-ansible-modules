@@ -11,12 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -25,45 +22,42 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: dellemc_export_lc_logs
-short_description: Export Lifecycle Controller logs to a network share
+short_description: Export Lifecycle Controller logs to a network share.
 version_added: "2.3"
 description:
-    - Export Lifecycle Controller logs  to a given network share
+    - Export Lifecycle Controller logs  to a given network share.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
-        description: Network share path
+        description: Network share path.
     share_user:
         required: True
         description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: True
-        description: Network share user password
+        description: Network share user password.
     job_wait:
         required: True
-        description: Whether to wait for the running job completion or not
+        description: Whether to wait for the running job completion or not.
         choices: [True,  False]
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Rajeev Arakkal (@rajeevarakkal)"
 
 """
 
@@ -75,29 +69,25 @@ EXAMPLES = """
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
        idrac_port:  xxx
-       share_name: "\\\\xx.xx.xx.xx\\share\\"
+       share_name: "xx.xx.xx.xx:/share"
        share_user: "xxxx"
        share_pwd:  "xxxxxxxx"
        job_wait: True
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Exports the LC logs to the given network share.
     returned: success
     type: string
     sample: /path/to/file.txt
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_export_lc_logs.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_export_lc_logs(idrac, module):
@@ -123,11 +113,7 @@ def run_export_lc_logs(idrac, module):
                                                                             module.params['share_pwd']),
                                                       isFolder=True)
         logger.info(module.params['idrac_ip'] + ': FINISHED: Created a File Share Object')
-        # myshare = FileOnShare(module.params['share_name'],
-        #                       mount_point = '',
-        #                      isFolder = True)
-        # myshare.addcreds(UserCredentials(module.params['share_user'],
-        #                                module.params['share_pwd']))
+
         lc_log_file = myshare.new_file(lclog_file_name_format)
 
         job_wait = module.params['job_wait']

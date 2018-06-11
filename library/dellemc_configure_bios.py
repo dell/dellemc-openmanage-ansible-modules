@@ -11,15 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.BIOS import *
-from omdrivers.enums.iDRAC.iDRACEnums import BootModeEnum
-# from omsdk.sdkfile import FileOnShare
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -35,19 +29,16 @@ description:
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
@@ -57,22 +48,22 @@ options:
         description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
     boot_mode: 
         required: False
-        description: Configures the boot mode to BIOS or UEFI
-        choice: [Bios, Uefi]
+        description: Configures the boot mode to BIOS or UEFI.
+        choices: [Bios, Uefi]
     nvme_mode:
         required: False
-        description: Configures the NVME mode in the 14th Generation of PowerEdge Servers
+        description: Configures the NVME mode in the 14th Generation of PowerEdge Servers.
         choices: [NonRaid, Raid]
     secure_boot_mode:
         required: False
         description: Configures how the BIOS uses the Secure Boot Policy Objects in the 14th Generation
-            of PowerEdge Servers
+            of PowerEdge Servers.
         choices: [AuditMode, DeployedMode, SetupMode, UserMode]
     onetime_boot_mode:
         required: False
@@ -82,11 +73,11 @@ options:
     boot_sequence:
         required: False
         description: Boot devices FQDDs in the sequential order for BIOS or UEFI Boot Sequence. 
-            Ensure that ‘boot_mode’ option is provided to determine the appropriate boot sequence to be applied
+            Ensure that I(boot_mode) option is provided to determine the appropriate boot sequence to be applied.
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
 
@@ -97,7 +88,7 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_pwd:  "xxxxxxxx"
        share_user: "xxxx"
        share_mnt: "/mnt/share"
@@ -109,20 +100,20 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
 dest:
     description: Configures the BIOS configuration attributes.
     returned: success
     type: string
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_bios_config.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.enums.iDRAC.BIOS import (BootModeTypes, NvmeModeTypes, SecureBootModeTypes,
+                                        OneTimeBootModeTypes)
+from omdrivers.enums.iDRAC.iDRACEnums import BootModeEnum
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_server_bios_config(idrac, module):

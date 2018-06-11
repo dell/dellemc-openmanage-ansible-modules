@@ -11,14 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.iDRAC import *
-# from omsdk.sdkfile import FileOnShare
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -34,19 +29,16 @@ description:
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
@@ -56,21 +48,21 @@ options:
         description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
     destination_number:
         required: False
-        description: Destination number for SNMP Trap
+        description: Destination number for SNMP Trap.
         default: None
     destination:
         required: False
-        description: Destination for SNMP Trap
+        description: Destination for SNMP Trap.
         default: None
     snmp_v3_username:
         required: False
-        description: SNMP v3 username for SNMP Trap
+        description: SNMP v3 username for SNMP Trap.
         default: None
     snmp_trap_state:
         required: False
@@ -82,11 +74,11 @@ options:
         choices: [Enabled, Disabled]
     alert_number:
         required: False
-        description: Alert number for Email configuration
+        description: Alert number for Email configuration.
         default: None
     address:
         required: False
-        description: Email address for SNMP Trap
+        description: Email address for SNMP Trap.
     custom_message:
         required: False
         description: Custom message for SNMP Trap reference.
@@ -96,27 +88,27 @@ options:
         choices: [Enabled, Disabled]
     authentication:
         required: False
-        description: Simple Mail Transfer Protocol Authentication
+        description: Simple Mail Transfer Protocol Authentication.
         choices: [Enabled, Disabled]
     smtp_ip_address: 
         required: False
-        description: SMTP IP address for communication
+        description: SMTP IP address for communication.
     smtp_port:
         required: False
         description: SMTP Port number for access.
         default: None
     username:
         required: False
-        description: Username for SMTP authentication
+        description: Username for SMTP authentication.
         default: None
     password:
         required: False
-        description: Password for SMTP authentication
+        description: Password for SMTP authentication.
         default: None
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
 
@@ -127,7 +119,7 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_pwd:  "xxxxxxxx"
        share_user: "xxxx"
        share_mnt: "/mnt/share"
@@ -148,21 +140,20 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Configures the iDRAC eventing attributes.
     returned: success
     type: string
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_idrac_eventing_config.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.enums.iDRAC.iDRAC import (State_SNMPAlertTypes, Enable_EmailAlertTypes,
+                                         AlertEnable_IPMILanTypes,
+                                         SMTPAuthentication_RemoteHostsTypes)
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_idrac_eventing_config(idrac, module):
