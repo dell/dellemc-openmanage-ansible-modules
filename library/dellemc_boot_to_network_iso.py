@@ -11,92 +11,78 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: dellemc_boot_to_network_iso
-short_description: Boot to a network ISO image
+short_description: Boot to a network ISO image.
 version_added: "2.3"
 description: Boot to a network ISO image.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
-        description: CIFS or NFS Network share
+        description: CIFS or NFS Network share.
     share_user:
         required: True
         description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: True
-        description: Network share user password
+        description: Network share user password.
     iso_image:
         required: True
-        description: Network ISO name
+        description: Network ISO name.
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
+"""
 
-'''
-
-EXAMPLES = '''
+EXAMPLES = """
+---
 - name: Boot to Network ISO
   dellemc_boot_to_network_iso:
       idrac_ip:   "xx.xx.xx.xx"
       idrac_user: "xxxx"
       idrac_pwd:  "xxxxxxxx"
-      share_name: "\\\\xx.xx.xx.xx\\share"
+      share_name: "xx.xx.xx.xx:/share"
       share_user: "xxxx"
       share_pwd:  "xxxxxxxx"
       iso_image:  "uninterrupted_os_installation_image.iso"
-'''
+"""
 
-RETURN = '''
-- dest:
+RETURN = """
+dest:
     description: Boots to a network ISO image.
     returned: success
     type: string
+"""
 
-'''
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_boot_to_network_iso.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
-
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
-
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False

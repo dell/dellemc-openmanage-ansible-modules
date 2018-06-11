@@ -11,14 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.iDRAC import *
-# from omsdk.sdkfile import FileOnShare
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -34,43 +29,40 @@ description:
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'
+        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password.
     share_mnt:
         required: False
-        description: Local mount path of the network share with read-write permission for ansible user
+        description: Local mount path of the network share with read-write permission for ansible user.
     enable_web_server:
         required: False
-        description: Whether to Enable or Disable webserver configuration for iDRAC
+        description: Whether to Enable or Disable webserver configuration for iDRAC.
         choices: [Enabled, Disabled]
     ssl_encryption:
         required: False
-        description: Secure Socket Layer encryption for webserver
+        description: Secure Socket Layer encryption for webserver.
         choices: [Auto_Negotiate, T_128_Bit_or_higher, T_168_Bit_or_higher, T_256_Bit_or_higher]
     tls_protocol:
         required: False
-        description: Transport Layer Security for webserver
+        description: Transport Layer Security for webserver.
         choices: [TLS_1_0_and_Higher, TLS_1_1_and_Higher, TLS_1_2_Only]
     https_port:
         required: False
@@ -83,19 +75,19 @@ options:
         description: Timeout value.
     snmp_enable:
         required: False
-        description: Whether to Enable or Disable SNMP protocol for iDRAC
+        description: Whether to Enable or Disable SNMP protocol for iDRAC.
         choices: [Enabled, Disabled]
     snmp_protocol:
         required: False
-        description: Type of the SNMP protocol
+        description: Type of the SNMP protocol.
         choices: [All, SNMPv3]
     community_name:
         required: False
-        description: SNMP community name for iDRAC
+        description: SNMP community name for iDRAC.
         default: None
     alert_port:
         required: False
-        description: SNMP alert port for iDRAC
+        description: SNMP alert port for iDRAC.
         default: None
     discovery_port:
         required: False
@@ -103,12 +95,12 @@ options:
         default: 162
     trap_format:
         required: False
-        description: SNMP trap format for iDRAC
+        description: SNMP trap format for iDRAC.
         default: None
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
 
@@ -119,7 +111,7 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_pwd:  "xxxxxxxx"
        share_user: "xxxx"
        share_mnt: "/mnt/share"
@@ -138,21 +130,22 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Configures the iDRAC services attributes.
     returned: success
     type: string
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_idrac_services_config.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.enums.iDRAC.iDRAC import (Enable_WebServerTypes,
+                                         SSLEncryptionBitLength_WebServerTypes,
+                                         TLSProtocol_WebServerTypes,
+                                         AgentEnable_SNMPTypes,
+                                         SNMPProtocol_SNMPTypes)
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_idrac_services_config(idrac, module):

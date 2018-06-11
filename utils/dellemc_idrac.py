@@ -13,7 +13,6 @@
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
-from builtins import *
 import logging
 
 try:
@@ -29,7 +28,7 @@ except ImportError:
 
     HAS_OMSDK = False
 
-LogManager.setup_logging(logger_log_file='/tmp/ansible-omsdk/omsdk_log.log', logger_level=logging.DEBUG)
+LogManager.setup_logging()
 logger = logging.getLogger(__name__)
 
 class iDRACConnection():

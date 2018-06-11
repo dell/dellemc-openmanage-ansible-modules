@@ -11,12 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -25,35 +22,32 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: dellemc_delete_lc_job
-short_description: Delete a Lifecycle Controller Job
+short_description: Delete a Lifecycle Controller Job.
 version_added: "2.3"
 description:
-    - Delete a Lifecycle Controller job for a given a JOB ID
+    - Delete a Lifecycle Controller job for a given a JOB ID.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     job_id:
         required: True
-        description: JOB ID in the format "JID_XXXXXXXX"
+        description: JOB ID in the format "JID_XXXXXXXX".
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
     
 """
 
@@ -69,21 +63,15 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Deletes a Lifecycle Controller job for a given a JOB ID.
     returned: success
     type: string
-
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_delete_lc_job.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.basic import AnsibleModule
 
 
 def run_delete_lc_job(idrac, module):
@@ -106,7 +94,7 @@ def run_delete_lc_job(idrac, module):
         logger.info(module.params['idrac_ip'] + ': STARTING: Delete LC Job method: Invoking OMSDK Export SCP API')
         job = idrac.job_mgr.get_job_status(module.params['job_id'])
         logger.info(module.params['idrac_ip'] + ': FINISHED: Delete LC Job method: Invoking OMSDK Export SCP API')
-        if 'Status' in job and job['Status'] == "Success":
+        if 'Status' in job and (not job['Status'] == "Found Fault"):
             exists = True
 
         if module.check_mode:
