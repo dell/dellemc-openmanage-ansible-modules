@@ -31,7 +31,7 @@ Sample Results for the respective modules could be found under [samples](./sampl
 
   * Clone this repository and install the ansible modules. 
   ```
-  git clone https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC.git
+  git clone -b devel --single-branch https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC.git
   cd Dell-EMC-Ansible-Modules-for-iDRAC
   python install.py
   ```
