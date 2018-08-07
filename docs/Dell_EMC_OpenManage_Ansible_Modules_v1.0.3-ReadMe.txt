@@ -1,0 +1,170 @@
+﻿*******************************************************************************
+Dell EMC OpenManage Ansible Modules
+
+*******************************************************************************
+Version: 1.0.3
+
+*******************************************************************************
+Release Date: August 2018
+
+*******************************************************************************
+Previous Version: 1.0.2
+
+*******************************************************************************
+Importance
+----------
+
+OPTIONAL: Dell recommends the customer review specifics about the update to 
+determine if it applies to your system. The update contains changes that impact
+only certain configurations, or provides new features that may or may not 
+apply to your environment.
+
+*******************************************************************************
+Platform(s) Affected
+--------------------
+
+For the list of supported platforms, see the section "Support Matrix" in the 
+"Dell EMC OpenManage Ansible Modules version 1.0.3 Installation Guide".
+
+*******************************************************************************
+What is Supported
+-----------------
+
+For information on the hardware and software requirements, see 
+"Dell EMC OpenManage Ansible Modules version 1.0.3 Installation Guide".
+
+*******************************************************************************
+What’s New
+----------
+The key features in OpenManage Ansible Modules version 1.0.3 include:
+
+* dellemc_idrac_storage_volume is added in the list of modules.
+
+* Check_mode support for modules is enabled.
+
+* dellemc_configure_raid module is deprecated.
+
+For a complete list of supported features that you can leverage,
+see the “Dell EMC OpenManage Ansible Modules Version 1.0.3 User’s Guide”
+
+*******************************************************************************
+Known Issues
+------------
+
+* Issue 1(86360):
+  Description: Creating iDRAC users using "dellemc_configure_idrac_users"
+  module does not update the provided user properties for the created
+  user on 14G servers with firmware versions 3.18.18.18 and 3.21.21.21.
+  
+  Workaround: In case the user is not created with all the required user 
+  settings, change the user setting with action option modify in the 
+  "dellemc_configure_idrac_users" module.
+  
+* Issue 2(93817):
+  Description: "dellemc_delete_lc_job_queue" may fail to clear all the jobs
+  from iDRAC in case there are multiple jobs with same name and with 
+  different status present on iDRAC for server with iDRAC firmware 
+  version 2.50.50.50 and below.
+
+*******************************************************************************
+Limitations
+-----------
+* "GracefulShutdown" choice of "change_power" option for
+  "dellemc_change_power_state" module is supported only on iDRAC firmware
+   versions 3.18.18.18 and above.
+  
+* "ipmiserialprivilege_users" option of "dellemc_configure_idrac_users"
+   module is not supported for Modular servers.
+
+*  "dellemc_idrac_storage_volume" module does not support storage volume
+   configuration on BOSS and FD33xD controllers
+
+*  "delete" choice of "state" option for "dellemc_idrac_storage_volume"
+   module is not supported on PowerVault MDxxxx storage.
+  
+*******************************************************************************
+Installation Prerequisites
+--------------------------
+For installation Prerequisites see "Dell EMC OpenManage Ansible Modules 
+Version 1.0.3 Installation Guide".
+
+Software Requirements
+---------------------
+
+* For information on the hardware and software requirements, see 
+the Installation Guide.  
+
+Installation Procedure
+-------------------------
+
+For the installation instructions, see "Dell EMC OpenManage Ansible Modules 
+Version 1.0.3 Installation Guide".
+
+*******************************************************************************
+Accessing Documents from Dell Support Site
+------------------------------------------
+
+You can access the required documents in one of the following ways:
+
+Using the following links:
+==========================
+
+* For all Systems Management documents — dell.com/softwaresecuritymanuals
+* For Remote Enterprise Systems Management documents — dell.com/esmmanuals
+* For Enterprise Systems Management documents — dell.com/openmanagemanuals
+* For Client Systems Management documents — dell.com/clientsystemsmanagement
+* For Serviceability Tools documents — dell.com/serviceabilitytools
+* For OpenManage Connections Enterprise Systems Management documents — 
+  dell.com/OMConnectionsEnterpriseSystemsManagement
+* For OpenManage Connections Client Systems Management documents — 
+  dell.com/connectionsclientsystemsmanagement
+
+From the Dell Support site:
+===========================
+
+1. Go to www.dell.com/support/manuals.
+2. Under General support section, click Software & Security.
+3. In the Software & Security group box, click the required link from the 
+   following: 
+ 	* Serviceability Tools
+ 	* Enterprise Systems Management
+	* Client Systems Management
+	* Remote Enterprise Systems Management
+	* Connections Client Systems Management
+4. To view a document, click the required product version.
+
+Using search engines:
+=====================
+
+* Type the name and version of the document in the Search box.
+
+
+*******************************************************************************
+Contacting Dell
+---------------
+
+NOTE: If you do not have an active Internet connection, you can find contact 
+information on your purchase invoice, packing slip, bill, or Dell product 
+catalog.
+
+Dell provides several online and telephone-based support and service options.
+Availability varies by country and product, and some services may not be 
+available in your area. To contact Dell for sales, technical support, or 
+customer service issues:
+
+1. Visit www.dell.com/support.
+2. Select your support category.
+3. Verify your country or region in the Choose a Country/Region drop-down
+   menu at the top of page.
+4. Select the appropriate service or support link based on your need.
+
+
+Dell EMC OpenManage Ansible Modules
+Version 1.0.3
+Copyright (C) 2018   Dell Inc.
+
+GNU General Public License v3.0+ 
+(see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+All rights reserved. Dell, EMC, and other trademarks are trademarks of 
+Dell Inc. or its subsidiaries. Other trademarks may be trademarks of their
+respective owners

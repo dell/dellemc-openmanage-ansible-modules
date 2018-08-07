@@ -45,13 +45,15 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password.
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for Network Share.
     lockdown_mode:
         required:  True
         description: Whether to Enable or Disable system lockdown mode.
@@ -179,7 +181,7 @@ def main():
             lockdown_mode=dict(required=True, choices=['Enabled', 'Disabled'], default=None)
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     # Connect to iDRAC
     logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')

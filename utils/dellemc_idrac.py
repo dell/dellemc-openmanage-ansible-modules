@@ -92,3 +92,8 @@ class iDRACConnection():
             return True
 
         return True
+
+
+class Constants:
+
+    share_name = "/tmp/"

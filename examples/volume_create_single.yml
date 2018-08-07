@@ -1,0 +1,14 @@
+---
+- hosts: hosts
+  connection: local
+  name: iDRAC storage volume configuration.
+  gather_facts: False
+
+  tasks:
+  - name: Create single volume with default values.
+    dellemc_idrac_storage_volume:
+      idrac_ip:    "xx.xxx.xx.xx"
+      idrac_user:  "xxxx"
+      idrac_pwd:   "xxxxxxxx"
+      state: "create"
+      controller_fqdd: "RAID.Slot.1-1"
