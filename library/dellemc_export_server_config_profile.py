@@ -45,10 +45,11 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password.
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     scp_components:
         required: False
         description: Specify the hardware component(s) configuration to be exported.
@@ -214,7 +215,7 @@ def main():
 
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
     logger.info(module.params['idrac_ip'] + ': STARTING: Export Server Configuration Profile')
     # Connect to iDRAC
     logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')

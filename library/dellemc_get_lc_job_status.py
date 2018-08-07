@@ -120,7 +120,7 @@ def main():
             job_id=dict(required=True, type='str')
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     # Connect to iDRAC
     logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')

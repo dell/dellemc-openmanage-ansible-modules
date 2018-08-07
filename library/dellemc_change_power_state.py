@@ -73,6 +73,39 @@ dest:
 from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
 from ansible.module_utils.basic import AnsibleModule
 from omdrivers.enums.iDRAC.iDRACEnums import ComputerSystemResetTypesEnum
+from omsdk.sdkdevice import iDeviceDriver
+
+
+power_state_mapper = {
+    "On": ["On"],
+    "Off - Soft": ["ForceOff", "GracefulShutdown"],
+}
+
+
+def get_powerstate(idrac):
+    state = idrac._get_field_device(idrac.ComponentEnum.System, "PowerState")
+    return state
+
+
+def is_change_applicable_for_power_state(current_power_state, apply_power_state):
+    """when check_mode is enabled ,
+        checks if changes are applicable or not
+        :param current_power_state: Current power state
+        :type current_power_state: str
+        :param apply_power_state: Required power state
+        :type apply_power_state: str
+        :return: json message returned
+    """
+    apply_change_enum_list = ["GracefulRestart", "PushPowerButton", "Nmi"]
+    try:
+        if apply_power_state in apply_change_enum_list or \
+                apply_power_state not in power_state_mapper[current_power_state]:
+            msg = {'Status': 'Success', 'Message': 'Changes found to commit!', 'changes_applicable': True}
+        else:
+            msg = {'Status': 'Success', 'Message': 'No changes found to commit!', 'changes_applicable': False}
+    except Exception as err:
+        msg = {'Status': 'Failed', 'Message': 'Failed to execute the command!', 'changes_applicable': False}
+    return msg
 
 
 def run_change_power_state(idrac, module):
@@ -93,13 +126,19 @@ def run_change_power_state(idrac, module):
     try:
         idrac.use_redfish = True
         logger.info(module.params['idrac_ip'] + ': CALLING: Change power state OMSDK API')
-        msg['msg'] = idrac.config_mgr.change_power(ComputerSystemResetTypesEnum[module.params['change_power']])
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Change power state OMSDK API')
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-            else:
-                msg['failed'] = True
+        if module.check_mode:
+            pstate = get_powerstate(idrac)
+            msg['msg'] = is_change_applicable_for_power_state(pstate, module.params['change_power'])
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            logger.info(module.params['idrac_ip'] + ': FINISHED: Change power state OMSDK API')
+            msg['msg'] = idrac.config_mgr.change_power(ComputerSystemResetTypesEnum[module.params['change_power']])
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
@@ -107,7 +146,6 @@ def run_change_power_state(idrac, module):
         logger.error(module.params['idrac_ip'] + ': EXCEPTION: Change power state OMSDK API')
     logger.info(module.params['idrac_ip'] + ': FINISHED: Change power state Method')
     return msg, err
-
 
 # Main
 def main():

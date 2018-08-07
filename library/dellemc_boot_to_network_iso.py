@@ -43,11 +43,12 @@ options:
         required: True
         description: CIFS or NFS Network share.
     share_user:
-        required: True
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        required: False
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
-        required: True
-        description: Network share user password.
+        required: False
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     iso_image:
         required: True
         description: Network ISO name.
@@ -104,28 +105,25 @@ def run_boot_to_network_iso(idrac, module):
     err = False
 
     try:
-        if module.check_mode:
-            msg['changed'] = True
-        else:
-            logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
-            myshare = FileOnShare(remote=module.params['share_name'] + "/" + module.params['iso_image'],
-                                  isFolder=False,
-                                  creds=UserCredentials(
-                                      module.params['share_user'],
-                                      module.params['share_pwd'])
-                                  )
+        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
+        myshare = FileOnShare(remote=module.params['share_name'] + "/" + module.params['iso_image'],
+                              isFolder=False,
+                              creds=UserCredentials(
+                                  module.params['share_user'],
+                                  module.params['share_pwd'])
+                              )
 
-            logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
+        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-            msg['msg'] = idrac.config_mgr.boot_to_network_iso(myshare, "")
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Boot To Network iso Method:'
-                                                    ' Invoking OMSDK Operating System Deployment API')
+        msg['msg'] = idrac.config_mgr.boot_to_network_iso(myshare, "")
+        logger.info(module.params['idrac_ip'] + ': FINISHED: Boot To Network iso Method:'
+                                                ' Invoking OMSDK Operating System Deployment API')
 
-            if "Status" in msg['msg']:
-                if msg['msg']['Status'] == "Success":
-                    msg['changed'] = True
-                else:
-                    msg['failed'] = True
+        if "Status" in msg['msg']:
+            if msg['msg']['Status'] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
 
     except Exception as e:
         logger.error(module.params['idrac_ip'] + ': EXCEPTION: Boot To Network iso Method: ' + str(e))
@@ -153,14 +151,14 @@ def main():
 
             # Network File Share
             share_name=dict(required=True, type='str'),
-            share_user=dict(required=True, type='str'),
-            share_pwd=dict(required=True, type='str', no_log=True),
+            share_user=dict(required=False, type='str'),
+            share_pwd=dict(required=False, type='str', no_log=True),
 
             # ISO Image relative to Network File Share
             iso_image=dict(required=True, type='str'),
 
         ),
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     if not HAS_OMSDK:
         module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")

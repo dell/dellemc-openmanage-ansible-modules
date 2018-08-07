@@ -108,7 +108,7 @@ def main():
             idrac_pwd=dict(required=True, type='str', no_log=True),
             idrac_port=dict(required=False, default=443)
         ),
-        supports_check_mode=True)
+        supports_check_mode=False)
     logger.info(module.params['idrac_ip'] + ': STARTING: Get System Inventory')
     # Connect to iDRAC
     logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')

@@ -44,11 +44,12 @@ options:
         required: True
         description: Network share path.
     share_user:
-        required: True
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        required: False
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
-        required: True
-        description: Network share user password.
+        required: False
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     job_wait:
         required: True
         description: Whether to wait for the running job completion or not.
@@ -148,12 +149,12 @@ def main():
 
             # Network File Share
             share_name=dict(required=True, type='str'),
-            share_user=dict(required=True, type='str'),
-            share_pwd=dict(required=True, type='str', no_log=True),
+            share_user=dict(required=False, type='str'),
+            share_pwd=dict(required=False, type='str', no_log=True),
             job_wait=dict(required=True, type='bool')
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
     logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     # Connect to iDRAC
     idrac_conn = iDRACConnection(module)

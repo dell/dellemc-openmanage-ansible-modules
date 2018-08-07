@@ -16,7 +16,7 @@ from __future__ import (absolute_import, division, print_function)
 
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -24,6 +24,10 @@ DOCUMENTATION = """
 module: dellemc_configure_raid
 short_description: Configures the RAID configuration attributes.
 version_added: "2.3"
+deprecated:
+  removed_in: "2.4"
+  why: Replaced with M(dellemc_idrac_storage_volume).
+  alternative: Use M(dellemc_idrac_storage_volume) instead.
 description:
     - This module is responsible for configuring the RAID attributes.
 options:
@@ -45,10 +49,11 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password.
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
@@ -302,6 +307,9 @@ def main():
         ),
 
         supports_check_mode=True)
+    module.deprecate("The 'dellemc_configure_raid' module has been deprecated. "
+                     "Use 'dellemc_idrac_storage_volume' instead",
+                     version=2.4)
     logger.info(module.params['idrac_ip'] + ': STARTING: Export Server Configuration Profile')
     # Connect to iDRAC
     logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')

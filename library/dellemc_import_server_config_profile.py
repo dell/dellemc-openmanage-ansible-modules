@@ -45,10 +45,11 @@ options:
         description: Network share or a local path. 
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password.
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     scp_file:
         required: True
         description: Server Configuration Profile file name.
@@ -139,59 +140,54 @@ def run_import_server_config_profile(idrac, module):
     err = False
 
     try:
-        if module.check_mode:
-            msg['changed'] = True
+        logger.info(module.params['idrac_ip'] + ': CALLING: Create File share object OMSDK API')
+        myshare = file_share_manager.create_share_obj(
+            share_path=module.params['share_name'] + "/" + module.params['scp_file'],
+            creds=UserCredentials(module.params['share_user'],
+                                  module.params['share_pwd']), isFolder=False, )
+        logger.info(module.params['idrac_ip'] + ': FINISHED: Create File share object OMSDK API')
+        # myshare.new_file(module.params['scp_file'])
 
-        else:
+        scp_components = SCPTargetEnum.ALL
 
-            logger.info(module.params['idrac_ip'] + ': CALLING: Create File share object OMSDK API')
-            myshare = file_share_manager.create_share_obj(
-                share_path=module.params['share_name'] + "/" + module.params['scp_file'],
-                creds=UserCredentials(module.params['share_user'],
-                                      module.params['share_pwd']), isFolder=False, )
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Create File share object OMSDK API')
-            # myshare.new_file(module.params['scp_file'])
+        if module.params['scp_components'] == 'IDRAC':
+            scp_components = SCPTargetEnum.IDRAC
+        elif module.params['scp_components'] == 'BIOS':
+            scp_components = SCPTargetEnum.BIOS
+        elif module.params['scp_components'] == 'NIC':
+            scp_components = SCPTargetEnum.NIC
+        elif module.params['scp_components'] == 'RAID':
+            scp_components = SCPTargetEnum.RAID
+        job_wait = module.params['job_wait']
 
-            scp_components = SCPTargetEnum.ALL
+        end_host_power_state = EndHostPowerStateEnum.On
+        if module.params['end_host_power_state'] == 'Off':
+            end_host_power_state = EndHostPowerStateEnum.Off
 
-            if module.params['scp_components'] == 'IDRAC':
-                scp_components = SCPTargetEnum.IDRAC
-            elif module.params['scp_components'] == 'BIOS':
-                scp_components = SCPTargetEnum.BIOS
-            elif module.params['scp_components'] == 'NIC':
-                scp_components = SCPTargetEnum.NIC
-            elif module.params['scp_components'] == 'RAID':
-                scp_components = SCPTargetEnum.RAID
-            job_wait = module.params['job_wait']
+        shutdown_type = ShutdownTypeEnum.Graceful
+        if module.params['shutdown_type'] == 'Forced':
+            shutdown_type = ShutdownTypeEnum.Forced
+        elif module.params['shutdown_type'] == 'NoReboot':
+            shutdown_type = ShutdownTypeEnum.NoReboot
 
-            end_host_power_state = EndHostPowerStateEnum.On
-            if module.params['end_host_power_state'] == 'Off':
-                end_host_power_state = EndHostPowerStateEnum.Off
-
-            shutdown_type = ShutdownTypeEnum.Graceful
-            if module.params['shutdown_type'] == 'Forced':
-                shutdown_type = ShutdownTypeEnum.Forced
-            elif module.params['shutdown_type'] == 'NoReboot':
-                shutdown_type = ShutdownTypeEnum.NoReboot
-
-            logger.info(module.params['idrac_ip'] + ': STARTING: Importing Server Configuration Profile Method:'
-                                                    ' Invoking OMSDK Import SCP API')
-            idrac.use_redfish = True
-            msg['msg'] = idrac.config_mgr.scp_import(myshare,
-                                                     target=scp_components, shutdown_type=shutdown_type,
-                                                     end_host_power_state=end_host_power_state,
-                                                     job_wait=job_wait)
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Importing Server Configuration Profile Method:'
-                                                    ' Invoked OMSDK Import SCP API')
-            if "Status" in msg['msg']:
-                if msg['msg']['Status'] == "Success":
-                    if module.params['job_wait'] == True:
-                        msg['changed'] = True
-                        if "Message" in msg['msg']:
-                            if "No changes were applied" in msg['msg']['Message']:
-                                msg['changed'] = False
-                else:
-                    msg['failed'] = True
+        logger.info(module.params['idrac_ip'] + ': STARTING: Importing Server Configuration Profile Method:'
+                                                ' Invoking OMSDK Import SCP API')
+        idrac.use_redfish = True
+        msg['msg'] = idrac.config_mgr.scp_import(myshare,
+                                                 target=scp_components, shutdown_type=shutdown_type,
+                                                 end_host_power_state=end_host_power_state,
+                                                 job_wait=job_wait)
+        logger.info(module.params['idrac_ip'] + ': FINISHED: Importing Server Configuration Profile Method:'
+                                                ' Invoked OMSDK Import SCP API')
+        if "Status" in msg['msg']:
+            if msg['msg']['Status'] == "Success":
+                if module.params['job_wait'] == True:
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if "No changes were applied" in msg['msg']['Message']:
+                            msg['changed'] = False
+            else:
+                msg['failed'] = True
 
     except Exception as e:
         logger.error(
@@ -234,7 +230,7 @@ def main():
             job_wait=dict(required=True, type='bool')
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
     logger.info(module.params['idrac_ip'] + ': STARTING: Import Server Configuration Profile')
     # Connect to iDRAC
     logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')

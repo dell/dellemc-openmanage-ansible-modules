@@ -87,18 +87,31 @@ def run_delete_lc_job(idrac, module):
     msg['failed'] = False
     msg['changed'] = False
     err = False
+    check_mode_err = False
 
     try:
         # idrac.use_redfish = True
         exists = False
         logger.info(module.params['idrac_ip'] + ': STARTING: Delete LC Job method: Invoking OMSDK Export SCP API')
-        job = idrac.job_mgr.get_job_status(module.params['job_id'])
+        try:
+            job = idrac.job_mgr.get_job_status(module.params['job_id'])
+        except Exception as err:
+            check_mode_err = True
         logger.info(module.params['idrac_ip'] + ': FINISHED: Delete LC Job method: Invoking OMSDK Export SCP API')
         if 'Status' in job and (not job['Status'] == "Found Fault"):
             exists = True
 
         if module.check_mode:
-            msg['changed'] = not exists
+            if check_mode_err:
+                msg['msg'] = {'Status': 'Failed', 'Message': 'Failed to execute the command!',
+                              'changes_applicable': False}
+            else:
+                if exists:
+                    msg['msg'] = {'Status': 'Success', 'Message': 'Job found to delete!', 'changes_applicable': True}
+                else:
+                    msg['msg'] = {'Status': 'Success', 'Message': 'Job not found to delete!',
+                                  'changes_applicable': False}
+            msg["changed"] = exists
         elif exists:
             msg['msg'] = idrac.job_mgr.delete_job(module.params['job_id'])
 

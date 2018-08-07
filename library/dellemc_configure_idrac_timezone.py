@@ -45,13 +45,15 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password.
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for Network Share.
     setup_idrac_timezone:
         required: False
         description: Configuring the timezone for iDRAC.
@@ -173,18 +175,22 @@ def run_idrac_timezone_config(idrac, module):
             idrac.config_mgr.configure_ntp(
                 ntp_server_3=module.params['ntp_server_3']
             )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Setup iDRAC NTP Configuration')
 
-        msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
-
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-                if "Message" in msg['msg']:
-                    if msg['msg']['Message'] == "No changes found to commit!":
-                        msg['changed'] = False
-            else:
-                msg['failed'] = True
+        if module.check_mode:
+            msg['msg'] = idrac.config_mgr.is_change_applicable()
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            logger.info(module.params['idrac_ip'] + ': FINISHED: Setup iDRAC NTP Configuration')
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if msg['msg']['Message'] == "No changes found to commit!":
+                            msg['changed'] = False
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)

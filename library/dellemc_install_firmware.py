@@ -48,14 +48,16 @@ options:
         required: True
         description: CIFS or NFS Network share.
     share_user:
-        required: True
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        required: False
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
-        required: True
-        description: Network share user password.
+        required: False
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: True
         description: Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for Network Share.
     reboot:
         required: False
         description: Whether to reboots after applying the updates or not.
@@ -121,42 +123,38 @@ def run_update_fw_from_nw_share(idrac, module):
     err = False
 
     try:
-        if module.check_mode:
-            msg['changed'] = True
-        else:
+        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
+        upd_share = FileOnShare(remote=module.params['share_name'] + "/Catalog.xml",
+                                mount_point=module.params['share_mnt'],
+                                isFolder=False,
+                                creds=UserCredentials(
+                                    module.params['share_user'],
+                                    module.params['share_pwd'])
+                                )
+        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-            logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
-            upd_share = FileOnShare(remote=module.params['share_name'] + "/Catalog.xml",
-                                    mount_point=module.params['share_mnt'],
-                                    isFolder=False,
-                                    creds=UserCredentials(
-                                        module.params['share_user'],
-                                        module.params['share_pwd'])
-                                    )
-            logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
+        idrac.use_redfish = True
+        if '12' in idrac.ServerGeneration or '13' in idrac.ServerGeneration:
+            idrac.use_redfish = False
 
-            idrac.use_redfish = True
-            if '12' in idrac.ServerGeneration or '13' in idrac.ServerGeneration:
-                idrac.use_redfish = False
+        # upd_share_file_path = upd_share.new_file("Catalog.xml")
 
-            # upd_share_file_path = upd_share.new_file("Catalog.xml")
+        apply_update = True
+        logger.info(module.params['idrac_ip'] + ': STARTING: Update Firmware From Network Share Method:'
+                                                ' Invoking OMSDK Firmware update API')
+        msg['msg'] = idrac.update_mgr.update_from_repo(upd_share,
+                                                       apply_update,
+                                                       module.params['reboot'],
+                                                       module.params['job_wait'])
 
-            apply_update = True
-            logger.info(module.params['idrac_ip'] + ': STARTING: Update Firmware From Network Share Method:'
-                                                    ' Invoking OMSDK Firmware update API')
-            msg['msg'] = idrac.update_mgr.update_from_repo(upd_share,
-                                                           apply_update,
-                                                           module.params['reboot'],
-                                                           module.params['job_wait'])
-
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Update Firmware From Network Share Method:'
-                                                    ' Invoking OMSDK Firmware update API')
-            if "Status" in msg['msg']:
-                if msg['msg']['Status'] == "Success":
-                    if module.params['job_wait'] == True:
-                        msg['changed'] = True
-                else:
-                    msg['failed'] = True
+        logger.info(module.params['idrac_ip'] + ': FINISHED: Update Firmware From Network Share Method:'
+                                                ' Invoking OMSDK Firmware update API')
+        if "Status" in msg['msg']:
+            if msg['msg']['Status'] == "Success":
+                if module.params['job_wait'] == True:
+                    msg['changed'] = True
+            else:
+                msg['failed'] = True
 
     except Exception as e:
         logger.error(module.params['idrac_ip'] + ': EXCEPTION: Update Firmware From Network Share Method: ' + str(e))
@@ -184,8 +182,8 @@ def main():
 
             # Network File Share
             share_name=dict(required=True, type='str'),
-            share_user=dict(required=True, type='str'),
-            share_pwd=dict(required=True, type='str', no_log=True),
+            share_user=dict(required=False, type='str'),
+            share_pwd=dict(required=False, type='str', no_log=True),
             share_mnt=dict(required=True, type='str'),
 
             # Firmware update parameters
@@ -193,7 +191,7 @@ def main():
             job_wait=dict(required=False, default=True, type='bool')
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     if not HAS_OMSDK:
         module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")

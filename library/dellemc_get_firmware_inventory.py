@@ -129,7 +129,7 @@ def main():
             idrac_port=dict(required=False, default=443, type='int'),
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     if not HAS_OMSDK:
         module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")

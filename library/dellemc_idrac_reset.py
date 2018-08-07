@@ -6,7 +6,7 @@
 # Version 1.0
 # Copyright (C) 2018 Dell Inc.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ stripe_size(see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
 # Other trademarks may be trademarks of their respective owners.
 #
@@ -87,10 +87,13 @@ def run_idrac_reset(idrac, module):
     err = False
 
     try:
-        idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: idrac reset OMSDK API')
-        msg['msg']['idracreset'] = idrac.config_mgr.reset_idrac()
-        logger.info(module.params['idrac_ip'] + ': FINISHED: idrac reset OMSDK API')
+        if module.check_mode:
+            msg['msg'] = {'Status': 'Success', 'Message': 'Changes found to commit!', 'changes_applicable': True}
+        else:
+            idrac.use_redfish = True
+            logger.info(module.params['idrac_ip'] + ': CALLING: idrac reset OMSDK API')
+            msg['msg']['idracreset'] = idrac.config_mgr.reset_idrac()
+            logger.info(module.params['idrac_ip'] + ': FINISHED: idrac reset OMSDK API')
         if "Status" in msg['msg']:
             if msg['msg']['Status'] == "Success":
                 msg['changed'] = True

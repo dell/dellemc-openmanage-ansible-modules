@@ -120,7 +120,7 @@ def main():
             idrac_port=dict(required=False, default=443, type='int'),
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     # Connect to iDRAC
     logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')

@@ -45,13 +45,15 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password.
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for Network Share.
     action:
         required: False
         description: This value will decide whether to C(create) or C(delete) or C(modify) iDRAC user.
@@ -217,6 +219,15 @@ def run_idrac_users_config(idrac, module):
                 module.params['privacyprotocol_users']]
 
         if module.params['action'] == 'create':
+            if module.check_mode:
+                user = idrac.config_mgr._sysconfig.iDRAC.Users.find_first(
+                    UserName_Users=module.params['user_name'])
+                if user:
+                    msg['msg'] = {'Status': 'Success', 'Message': 'No changes found to commit', 'changes_applicable': False}
+                    msg['changed'] = msg['msg']['changes_applicable']
+                    return msg, err
+
+
             logger.info(module.params['idrac_ip'] + ': CALLING: create iDRAC user method')
             idrac.user_mgr.Users.new(
                 UserName_Users=module.params['user_name'],
@@ -270,16 +281,21 @@ def run_idrac_users_config(idrac, module):
             idrac.user_mgr.Users.remove(UserName_Users=module.params['user_name'])
             logger.info(module.params['idrac_ip'] + ': FINISHED: remove iDRAC user method')
 
-        msg['msg'] = idrac.config_mgr.apply_changes()
+        if module.check_mode:
+            msg['msg'] = idrac.config_mgr.is_change_applicable()
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes()
 
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-                if "Message" in msg['msg']:
-                    if msg['msg']['Message'] == "No changes found to commit!":
-                        msg['changed'] = False
-            else:
-                msg['failed'] = True
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if msg['msg']['Message'] == "No changes found to commit!":
+                            msg['changed'] = False
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)

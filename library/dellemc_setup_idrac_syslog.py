@@ -45,13 +45,15 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password.
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for Network Share.
     syslog:
         required:  True
         description: Whether to Enable or Disable iDRAC syslog.
@@ -135,23 +137,34 @@ def run_setup_idrac_syslog(idrac, module):
         logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
 
         logger.info(module.params['idrac_ip'] + ': CALLING: setup iDRAC syslog OMSDK API')
-        if module.params['syslog'] == 'Enabled':
-            # Enable Syslog
-            msg['msg'] = idrac.config_mgr.enable_syslog()
-        elif module.params['syslog'] == 'Disabled':
-            # Disable Syslog
-            msg['msg'] = idrac.config_mgr.disable_syslog()
+        if module.check_mode:
+            if module.params['syslog'] == 'Enabled':
+                # Enable Syslog
+                idrac.config_mgr.enable_syslog(apply_changes=False)
+            elif module.params['syslog'] == 'Disabled':
+                # Disable Syslog
+                idrac.config_mgr.disable_syslog(apply_changes=False)
+            msg['msg'] = idrac.config_mgr.is_change_applicable()
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            if module.params['syslog'] == 'Enabled':
+                # Enable Syslog
+                msg['msg'] = idrac.config_mgr.enable_syslog()
+            elif module.params['syslog'] == 'Disabled':
+                # Disable Syslog
+                msg['msg'] = idrac.config_mgr.disable_syslog()
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: setup iDRAC syslog OMSDK API')
+            logger.info(module.params['idrac_ip'] + ': FINISHED: setup iDRAC syslog OMSDK API')
 
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-                if "Message" in msg['msg']:
-                    if msg['msg']['Message'] == "No changes found to commit!":
-                        msg['changed'] = False
-            else:
-                msg['failed'] = True
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if msg['msg']['Message'] == "No changes found to commit!":
+                            msg['changed'] = False
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)

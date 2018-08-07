@@ -45,13 +45,15 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password.
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for Network Share.
     boot_mode: 
         required: False
         description: Configures the boot mode to BIOS or UEFI.
@@ -130,7 +132,6 @@ def run_server_bios_config(idrac, module):
     msg['failed'] = False
     err = False
     try:
-
         idrac.use_redfish = True
         logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
@@ -185,18 +186,22 @@ def run_server_bios_config(idrac, module):
                 boot_mode=BootModeEnum[module.params['boot_mode']],
                 boot_sequence=module.params['boot_sequence']
             )
+        if module.check_mode:
+            msg['msg'] = idrac.config_mgr.is_change_applicable()
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot=True)
 
-        msg['msg'] = idrac.config_mgr.apply_changes(reboot=True)
-
-        logger.info(module.params['idrac_ip'] + ': FINISHED: server bios config OMSDK API')
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-                if "Message" in msg['msg']:
-                    if msg['msg']['Message'] == "No changes found to commit!":
-                        msg['changed'] = False
-            else:
-                msg['failed'] = True
+            logger.info(module.params['idrac_ip'] + ': FINISHED: server bios config OMSDK API')
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if msg['msg']['Message'] == "No changes found to commit!":
+                            msg['changed'] = False
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
