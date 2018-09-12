@@ -11,5 +11,5 @@
       idrac_user:  "xxxx"
       idrac_pwd:   "xxxxxxxx"
       state: "delete"
-      vd_values:
-        - vd_name: "volume_1"
+      volumes:
+        - name: "volume_1"

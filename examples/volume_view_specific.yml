@@ -11,5 +11,5 @@
       idrac_user:  "xxxx"
       idrac_pwd:   "xxxxxxxx"
       state: "view"
-      controller_fqdd: "RAID.Slot.1-1"
-      vd_fqdd: "Disk.Virtual.0:RAID.Slot.1-1"
+      controller_id: "RAID.Slot.1-1"
+      vd_id: "Disk.Virtual.0:RAID.Slot.1-1"

@@ -12,8 +12,8 @@
         idrac_pwd:   "xxxxxxxx"
         raid_reset_config: "True"
         state: "create"
-        controller_fqdd: "RAID.Slot.1-1"
-        raid_level: "RAID 1"
+        controller_id: "RAID.Slot.1-1"
+        volume_type: "RAID 1"
         span_depth: 1
         span_length: 2
         number_dedicated_hot_spare: 1
@@ -21,19 +21,22 @@
         write_cache_policy: "WriteBackForce"
         read_cache_policy: "ReadAhead"
         stripe_size: 65536
-        size: 100
+        capacity: 100
         raid_init_operation: "Fast"
-        vd_values:
-          - vd_name: "volume_1"
-            pd_slots: [2,1]
-          - vd_name: "volume_2"
-            raid_level: "RAID 5"
+        volumes:
+          - name: "volume_1"
+            drives:
+                id: ["Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1",
+                "Disk.Bay.2:Enclosure.Internal.0-1:RAID.Slot.1-1"]
+          - name: "volume_2"
+            volume_type: "RAID 5"
             span_length: 3
             span_depth: 1 
-            pd_slots: [7,3,5]
+            drives:
+                location: [7,3,5]
             disk_cache_policy: "Disabled"
             write_cache_policy: "WriteBack"
             read_cache_policy: "NoReadAhead"
             stripe_size: 131072
-            size: "200"
+            capacity: "200"
             raid_init_operation: "None"
