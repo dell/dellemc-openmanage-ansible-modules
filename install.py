@@ -61,6 +61,7 @@ log_root = '/var/log'
 dell_emc_log_path = log_root + '/dellemc'
 dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
 dell_emc_json = remote_mgmt_dellemc_idrac + '/properties.json'
+dell_emc_depr = remote_mgmt_dellemc_idrac + '/dellemc_configure_raid.py'
 
 warning_message = "Dell EMC OpenManage Ansible Modules is already present. Do you want to upgrade? (y/n)  "
 
@@ -119,6 +120,10 @@ for f in glob.glob(os.path.join(remote_mgmt_dellemc_idrac, "*.txt")):
 # Removing properties.json file.
 if os.path.isfile(dell_emc_json):
     os.remove(dell_emc_json)
+
+# Removing deprecated raid module
+if os.path.isfile(dell_emc_depr):
+    os.remove(dell_emc_depr)
 
 def copy_files(src, dest):
     import shutil

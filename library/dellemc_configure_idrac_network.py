@@ -215,7 +215,7 @@ dest:
 
 from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
 from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.iDRAC import (DNSRegister_NICTypes, DNSDomainNameFromDHCP_NICTypes,
+from omdrivers.enums.iDRAC.iDRAC import (DNSRegister_NICTypes, DNSDomainFromDHCP_NICStaticTypes,
                                          Enable_NICTypes, VLanEnable_NICTypes,
                                          Selection_NICTypes, Failover_NICTypes,
                                          AutoDetect_NICTypes, Autoneg_NICTypes,
@@ -281,7 +281,7 @@ def run_idrac_network_config(idrac, module):
             )
         if module.params['auto_config'] != None:
             idrac.config_mgr.configure_dns(
-                auto_config=DNSDomainNameFromDHCP_NICTypes[module.params['auto_config']]
+                auto_config=DNSDomainFromDHCP_NICStaticTypes[module.params['auto_config']]
             )
         if module.params['static_dns'] != None:
             idrac.config_mgr.configure_dns(

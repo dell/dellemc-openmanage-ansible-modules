@@ -11,4 +11,4 @@
       idrac_user:  "xxxx"
       idrac_pwd:   "xxxxxxxx"
       state: "create"
-      controller_fqdd: "RAID.Slot.1-1"
+      controller_id: "RAID.Slot.1-1"
