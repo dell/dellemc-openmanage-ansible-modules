@@ -8,9 +8,12 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
   Added "attributes" and "boot_sources" options.
   Existing BIOS configuration options are marked for deprecation.
 
-  * option name modification and defect fixes for 
+  * Option name modification and defect fixes for 
   dellemc_idrac_storage_volume module.
-
+  
+  * Option "catalog_file_name" is added in dellemc_install_firmware module
+  to support custom catalogs.
+  
   
 # 1.0.3 (August 7, 2018)
 
