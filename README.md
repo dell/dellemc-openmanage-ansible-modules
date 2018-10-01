@@ -29,7 +29,7 @@ Sample Results for the respective modules could be found under [samples](./sampl
   yum install ansible
   ```
 
-  * Clone this repository and install the ansible modules. 
+  * Clone the latest development repository and install the ansible modules. 
   ```
   git clone -b devel --single-branch https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC.git
   cd Dell-EMC-Ansible-Modules-for-iDRAC
