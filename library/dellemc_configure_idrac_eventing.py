@@ -14,6 +14,7 @@
 
 from __future__ import (absolute_import, division, print_function)
 
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -45,7 +46,7 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -57,15 +58,12 @@ options:
     destination_number:
         required: False
         description: Destination number for SNMP Trap.
-        default: None
     destination:
         required: False
         description: Destination for SNMP Trap.
-        default: None
     snmp_v3_username:
         required: False
         description: SNMP v3 username for SNMP Trap.
-        default: None
     snmp_trap_state:
         required: False
         description: Whether to Enable or Disable SNMP alert.
@@ -77,7 +75,6 @@ options:
     alert_number:
         required: False
         description: Alert number for Email configuration.
-        default: None
     address:
         required: False
         description: Email address for SNMP Trap.
@@ -92,21 +89,18 @@ options:
         required: False
         description: Simple Mail Transfer Protocol Authentication.
         choices: [Enabled, Disabled]
-    smtp_ip_address: 
+    smtp_ip_address:
         required: False
         description: SMTP IP address for communication.
     smtp_port:
         required: False
         description: SMTP Port number for access.
-        default: None
     username:
         required: False
         description: Username for SMTP authentication.
-        default: None
     password:
         required: False
         description: Password for SMTP authentication.
-        default: None
 requirements:
     - "omsdk"
     - "python >= 2.7.5"
@@ -148,8 +142,7 @@ dest:
     type: string
 """
 
-
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omdrivers.enums.iDRAC.iDRAC import (State_SNMPAlertTypes, Enable_EmailAlertTypes,
                                          AlertEnable_IPMILanTypes,
@@ -166,7 +159,6 @@ def run_idrac_eventing_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: iDRAC eventing configuration method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -176,7 +168,6 @@ def run_idrac_eventing_config(idrac, module):
     try:
 
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
@@ -184,9 +175,7 @@ def run_idrac_eventing_config(idrac, module):
                                                             module.params['share_user'],
                                                             module.params['share_pwd'])
                                                         )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
         set_liason = idrac.config_mgr.set_liason_share(upd_share)
         if set_liason['Status'] == "Failed":
             try:
@@ -196,74 +185,60 @@ def run_idrac_eventing_config(idrac, module):
             err = True
             msg['msg'] = "{}".format(message)
             msg['failed'] = True
-            logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
             return msg, err
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
-
-        logger.info(module.params["idrac_ip"] + ': CALLING: Configure SNMP Trap Destination')
-
-        if module.params["destination_number"] != None:
-            if module.params["destination"] != None:
+        if module.params["destination_number"] is not None:
+            if module.params["destination"] is not None:
                 idrac.config_mgr.configure_snmp_trap_destination(
                     destination=module.params["destination"],
                     destination_number=module.params["destination_number"]
                 )
-            if module.params["snmp_v3_username"] != None:
+            if module.params["snmp_v3_username"] is not None:
                 idrac.config_mgr.configure_snmp_trap_destination(
                     snmp_v3_username=module.params["snmp_v3_username"],
                     destination_number=module.params["destination_number"]
                 )
-            if module.params["snmp_trap_state"] != None:
+            if module.params["snmp_trap_state"] is not None:
                 idrac.config_mgr.configure_snmp_trap_destination(
                     state=State_SNMPAlertTypes[module.params["snmp_trap_state"]],
                     destination_number=module.params["destination_number"]
                 )
 
-        logger.info(module.params["idrac_ip"] + ': FINISHED: Configure SNMP Trap Destination')
-
-        logger.info(module.params['idrac_ip'] + ': CALLING: Configure email alerts')
-        if module.params["alert_number"] != None:
-            if module.params["email_alert_state"] != None:
+        if module.params["alert_number"] is not None:
+            if module.params["email_alert_state"] is not None:
                 idrac.config_mgr.configure_email_alerts(
                     state=Enable_EmailAlertTypes[module.params["email_alert_state"]],
                     alert_number=module.params["alert_number"]
                 )
-            if module.params["address"] != None:
+            if module.params["address"] is not None:
                 idrac.config_mgr.configure_email_alerts(
                     address=module.params["address"],
                     alert_number=module.params["alert_number"]
                 )
-            if module.params["custom_message"] != None:
+            if module.params["custom_message"] is not None:
                 idrac.config_mgr.configure_email_alerts(
                     custom_message=module.params["custom_message"],
                     alert_number=module.params["alert_number"]
                 )
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Configure email alerts')
-
-        logger.info(module.params['idrac_ip'] + ': CALLING: Configure iDRAC Alerts')
-        if module.params["enable_alerts"] != None:
+        if module.params["enable_alerts"] is not None:
             idrac.config_mgr.configure_idrac_alerts(
                 enable_alerts=AlertEnable_IPMILanTypes[module.params["enable_alerts"]],
             )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Configure iDRAC Alerts')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Setup iDRAC SMTP authentication')
-
-        if module.params['authentication'] != None:
+        if module.params['authentication'] is not None:
             idrac.config_mgr.configure_smtp_server_settings(
                 authentication=SMTPAuthentication_RemoteHostsTypes[module.params['authentication']])
-        if module.params['smtp_ip_address'] != None:
+        if module.params['smtp_ip_address'] is not None:
             idrac.config_mgr.configure_smtp_server_settings(
                 smtp_ip_address=module.params['smtp_ip_address'])
-        if module.params['smtp_port'] != None:
+        if module.params['smtp_port'] is not None:
             idrac.config_mgr.configure_smtp_server_settings(
                 smtp_port=module.params['smtp_port'])
-        if module.params['username'] != None:
+        if module.params['username'] is not None:
             idrac.config_mgr.configure_smtp_server_settings(
                 username=module.params['username'])
-        if module.params['password'] != None:
+        if module.params['password'] is not None:
             idrac.config_mgr.configure_smtp_server_settings(
                 password=module.params['password'])
 
@@ -272,7 +247,6 @@ def run_idrac_eventing_config(idrac, module):
             if 'changes_applicable' in msg['msg']:
                 msg['changed'] = msg['msg']['changes_applicable']
         else:
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Setup iDRAC SMTP authentication')
             msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":
@@ -288,8 +262,6 @@ def run_idrac_eventing_config(idrac, module):
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: iDRAC eventing configuration method')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC eventing configuration method')
     return msg, err
 
 
@@ -298,14 +270,10 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
-                           type='str', no_log=True),
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
             # Export Destination
@@ -315,13 +283,13 @@ def main():
             share_mnt=dict(required=False, type='str'),
 
             # setup SNMP Trap Destination
-            destination_number=dict(required=False, default=None, type="int"),
-            destination=dict(required=False, default=None, type="str"),
-            snmp_v3_username=dict(required=False, default=None),
+            destination_number=dict(required=False, type="int"),
+            destination=dict(required=False, type="str"),
+            snmp_v3_username=dict(required=False, type="str"),
             snmp_trap_state=dict(required=False, choices=["Enabled", "Disabled"], default=None),
 
             # setup Email Alerts
-            alert_number=dict(required=False, default=None, type="int"),
+            alert_number=dict(required=False, type="int"),
             address=dict(required=False, default=None, type="str"),
             custom_message=dict(required=False, default=None, type="str"),
             email_alert_state=dict(required=False, choices=["Enabled", "Disabled"], default=None),
@@ -332,20 +300,17 @@ def main():
             # setup SMTP
             authentication=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
             smtp_ip_address=dict(required=False, default=None, type='str'),
-            smtp_port=dict(required=False, default=None, type='str'),
-            username=dict(required=False, default=None, type="str"),
-            password=dict(required=False, default=None, type="str", no_log=True),
+            smtp_port=dict(required=False, type='str'),
+            username=dict(required=False, type="str"),
+            password=dict(required=False, type="str", no_log=True),
 
         ),
 
         supports_check_mode=True)
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Server Configuration')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     # Export Server Configuration Profile
     msg, err = run_idrac_eventing_config(idrac, module)
 
@@ -355,7 +320,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Server Configuration')
 
 
 if __name__ == '__main__':

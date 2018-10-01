@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -66,7 +66,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -86,18 +86,13 @@ def run_delete_lc_job_queue(idrac, module):
     try:
         if not module.check_mode:
             # TODO: Check the Job Queue to make sure there are no pending jobs
-            logger.info(
-                module.params['idrac_ip'] + ': STARTING: Delete LC Job Queue method: Invoking OMSDK Export SCP API')
             msg['msg'] = idrac.job_mgr.delete_all_jobs()
-            logger.info(
-                module.params['idrac_ip'] + ': FINISHED: Delete LC Job Queue method: Invoking OMSDK Export SCP API')
             if msg['msg']['Status'] == "Success":
                 msg['changed'] = True
             else:
                 msg['failed'] = True
 
     except Exception as e:
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Delete LC Job Queue method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
@@ -110,9 +105,6 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC Credentials
             idrac_ip=dict(required=True, type='str'),
             idrac_user=dict(required=True, type='str'),
@@ -123,10 +115,8 @@ def main():
         supports_check_mode=False)
 
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful with target ')
     msg, err = run_delete_lc_job_queue(idrac, module)
 
     # Disconnect from iDRAC
@@ -135,7 +125,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Deleted lc Job queue ' + module.params['job_id'])
 
 
 if __name__ == '__main__':

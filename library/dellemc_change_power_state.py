@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -70,7 +70,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omdrivers.enums.iDRAC.iDRACEnums import ComputerSystemResetTypesEnum
 from omsdk.sdkdevice import iDeviceDriver
@@ -116,7 +116,6 @@ def run_change_power_state(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: Change power state method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -125,14 +124,12 @@ def run_change_power_state(idrac, module):
 
     try:
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: Change power state OMSDK API')
         if module.check_mode:
             pstate = get_powerstate(idrac)
             msg['msg'] = is_change_applicable_for_power_state(pstate, module.params['change_power'])
             if 'changes_applicable' in msg['msg']:
                 msg['changed'] = msg['msg']['changes_applicable']
         else:
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Change power state OMSDK API')
             msg['msg'] = idrac.config_mgr.change_power(ComputerSystemResetTypesEnum[module.params['change_power']])
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":
@@ -143,9 +140,8 @@ def run_change_power_state(idrac, module):
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Change power state OMSDK API')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Change power state Method')
     return msg, err
+
 
 # Main
 def main():
@@ -153,8 +149,6 @@ def main():
 
     module = AnsibleModule(
         argument_spec=dict(
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC credentials
             idrac_ip=dict(required=True, type='str'),
@@ -169,10 +163,8 @@ def main():
         supports_check_mode=True)
 
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection Success')
     # Get Lifecycle Controller status
     msg, err = run_change_power_state(idrac, module)
 

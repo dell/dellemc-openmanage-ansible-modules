@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -46,7 +46,7 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -60,6 +60,7 @@ options:
         description: Whether to Enable or Disable Collect System Inventory on Restart (CSIOR)
             property for all iDRAC/LC jobs.
         choices: [Enabled, Disabled]
+        default: Enabled
 requirements:
     - "omsdk"
     - "python >= 2.7.5"
@@ -89,7 +90,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omsdk.sdkfile import file_share_manager
 from omsdk.sdkcreds import UserCredentials
@@ -104,7 +105,6 @@ def run_setup_idrac_csior(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: setup iDRAC csior method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -114,7 +114,6 @@ def run_setup_idrac_csior(idrac, module):
     try:
 
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
@@ -122,9 +121,7 @@ def run_setup_idrac_csior(idrac, module):
                                                             module.params['share_user'],
                                                             module.params['share_pwd'])
                                                         )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
         set_liason = idrac.config_mgr.set_liason_share(upd_share)
         if set_liason['Status'] == "Failed":
             try:
@@ -134,12 +131,8 @@ def run_setup_idrac_csior(idrac, module):
             err = True
             msg['msg'] = "{}".format(message)
             msg['failed'] = True
-            logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
             return msg, err
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
-
-        logger.info(module.params['idrac_ip'] + ': CALLING: setup iDRAC csior OMSDK API')
         if module.params['csior'] == 'Enabled':
             # Enable csior
             idrac.config_mgr.enable_csior()
@@ -152,7 +145,6 @@ def run_setup_idrac_csior(idrac, module):
                 msg['changed'] = msg['msg']['changes_applicable']
         else:
             msg['msg'] = idrac.config_mgr.apply_changes(reboot=True)
-            logger.info(module.params['idrac_ip'] + ': FINISHED: setup iDRAC csior OMSDK API')
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":
                     msg['changed'] = True
@@ -165,8 +157,6 @@ def run_setup_idrac_csior(idrac, module):
         err = True
         # msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: setup iDRAC csior OMSDK API' + str(e))
-    logger.info(module.params['idrac_ip'] + ': FINISHED: setup iDRAC csior Method')
     return msg, err
 
 
@@ -174,8 +164,6 @@ def run_setup_idrac_csior(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC credentials
             idrac_ip=dict(required=True, type='str'),
@@ -194,10 +182,8 @@ def main():
         supports_check_mode=True)
 
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection Success')
     # Get Lifecycle Controller status
     msg, err = run_setup_idrac_csior(idrac, module)
 

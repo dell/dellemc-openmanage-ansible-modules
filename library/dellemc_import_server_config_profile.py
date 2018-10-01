@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -42,10 +42,10 @@ options:
         default: 443
     share_name:
         required: True
-        description: Network share or a local path. 
+        description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -84,7 +84,7 @@ options:
     job_wait:
         required:  True
         description: Whether to wait for job completion or not.
-        choices: [True,  False] 
+        type: bool
 
 requirements:
     - "omsdk"
@@ -116,7 +116,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omsdk.sdkfile import file_share_manager
 from omsdk.sdkcreds import UserCredentials
@@ -132,7 +132,6 @@ def run_import_server_config_profile(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: Importing Server Configuration Profile Method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -140,12 +139,10 @@ def run_import_server_config_profile(idrac, module):
     err = False
 
     try:
-        logger.info(module.params['idrac_ip'] + ': CALLING: Create File share object OMSDK API')
         myshare = file_share_manager.create_share_obj(
             share_path=module.params['share_name'] + "/" + module.params['scp_file'],
             creds=UserCredentials(module.params['share_user'],
                                   module.params['share_pwd']), isFolder=False, )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Create File share object OMSDK API')
         # myshare.new_file(module.params['scp_file'])
 
         scp_components = SCPTargetEnum.ALL
@@ -170,18 +167,14 @@ def run_import_server_config_profile(idrac, module):
         elif module.params['shutdown_type'] == 'NoReboot':
             shutdown_type = ShutdownTypeEnum.NoReboot
 
-        logger.info(module.params['idrac_ip'] + ': STARTING: Importing Server Configuration Profile Method:'
-                                                ' Invoking OMSDK Import SCP API')
         idrac.use_redfish = True
         msg['msg'] = idrac.config_mgr.scp_import(myshare,
                                                  target=scp_components, shutdown_type=shutdown_type,
                                                  end_host_power_state=end_host_power_state,
                                                  job_wait=job_wait)
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Importing Server Configuration Profile Method:'
-                                                ' Invoked OMSDK Import SCP API')
         if "Status" in msg['msg']:
             if msg['msg']['Status'] == "Success":
-                if module.params['job_wait'] == True:
+                if module.params['job_wait'] is True:
                     msg['changed'] = True
                     if "Message" in msg['msg']:
                         if "No changes were applied" in msg['msg']['Message']:
@@ -190,12 +183,9 @@ def run_import_server_config_profile(idrac, module):
                 msg['failed'] = True
 
     except Exception as e:
-        logger.error(
-            module.params['idrac_ip'] + ': EXCEPTION: Importing Server Configuration Profile Method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Imported Server Configuration Profile Method')
     return msg, err
 
 
@@ -203,9 +193,6 @@ def run_import_server_config_profile(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC Credentials
             idrac_ip=dict(required=True, type='str'),
@@ -231,12 +218,9 @@ def main():
         ),
 
         supports_check_mode=False)
-    logger.info(module.params['idrac_ip'] + ': STARTING: Import Server Configuration Profile')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     msg, err = run_import_server_config_profile(idrac, module)
 
     # Disconnect from iDRAC
@@ -245,7 +229,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Imported Server Configuration Profile')
 
 
 if __name__ == '__main__':

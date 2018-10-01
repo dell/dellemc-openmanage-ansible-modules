@@ -10,9 +10,9 @@
        idrac_ip:   "x.x.x.x"
        idrac_user: "user"
        idrac_pwd:  "pwd"
-       share_name: "x.x.x.x:/NFSShare"
+       share_name: "\\\\100.\\rajev"
        share_pwd: "share_pwd"
-       share_user: "share_user"
+       share_user: "americas\"
        share_mnt:  "/mnt/mntpoint"
        boot_mode: "Uefi"
 

@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -68,7 +68,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -80,7 +80,6 @@ def run_get_lc_job_status(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: Get LC JOB Status Method')
     msg = {}
     msg['failed'] = False
     msg['changed'] = False
@@ -88,16 +87,12 @@ def run_get_lc_job_status(idrac, module):
 
     try:
         # idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: Get LC JOB Status OMSDK API')
         msg['msg'] = idrac.job_mgr.get_job_status(module.params['job_id'])
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Get LC JOB Status OMSDK API')
 
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.info(module.params['idrac_ip'] + ': EXCEPTION: Get LC JOB Status OMSDK API')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Get LC JOB Status Method')
     return msg, err
 
 
@@ -106,13 +101,10 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC Credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True,
                            type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
@@ -123,10 +115,8 @@ def main():
         supports_check_mode=False)
 
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection Success')
     msg, err = run_get_lc_job_status(idrac, module)
 
     # Disconnect from iDRAC
@@ -135,7 +125,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Get Lifecycle JOB Status')
 
 
 if __name__ == '__main__':

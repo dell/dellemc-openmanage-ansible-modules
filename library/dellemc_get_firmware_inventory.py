@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -53,7 +53,6 @@ EXAMPLES = """
       idrac_ip:   "xx.xx.xx.xx"
       idrac_user: "xxxx"
       idrac_pwd:  "xxxxxxxx"
-            
 """
 
 RETURN = """
@@ -61,12 +60,12 @@ dest:
     description: Displays components and their firmware versions. Also, list of the firmware
         dictionaries (one dictionary per firmware).
     returned: success
-    type: string  
+    type: string
 """
 
 
 import traceback
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkfile import LocalFile
@@ -85,7 +84,6 @@ def run_get_firmware_inventory(idrac, module):
     module -- Ansible module
     """
 
-    logger.info(module.params['idrac_ip'] + ': STARTING: Get Firmware Inventory Method')
     msg = {}
     # msg['changed'] = False
     msg['failed'] = False
@@ -94,23 +92,17 @@ def run_get_firmware_inventory(idrac, module):
 
     try:
         # idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': STARTING: Get Firmware Inventory Method:'
-                                                ' Invoking OMSDK get Firmware inventory API')
         msg['msg'] = idrac.update_mgr.InstalledFirmware
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Get Firmware Inventory Method:'
-                                                ' Invoking OMSDK get Firmware inventory API')
         if "Status" in msg['msg']:
             if msg['msg']['Status'] != "Success":
                 msg['failed'] = True
 
     except Exception as err:
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Get Firmware Inventory Method: ' + str(err))
         error = True
         msg['msg'] = "Error: %s" % str(err)
         msg['exception'] = traceback.format_exc()
         msg['failed'] = True
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Get Firmware Inventory Method')
     return msg, error
 
 
@@ -118,9 +110,6 @@ def run_get_firmware_inventory(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC Credentials
             idrac_ip=dict(required=True, type='str'),
@@ -134,12 +123,9 @@ def main():
     if not HAS_OMSDK:
         module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
-    logger.info(module.params['idrac_ip'] + ': STARTING: Get Firmware Inventory')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
 
     # get software inventory
     msg, err = run_get_firmware_inventory(idrac, module)
@@ -151,7 +137,6 @@ def main():
         module.fail_json(**msg)
     module.exit_json(ansible_facts={idrac.ipaddr: {'Firmware Inventory': msg['msg']}})
     # module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Get Firmware Inventory')
 
 
 if __name__ == '__main__':

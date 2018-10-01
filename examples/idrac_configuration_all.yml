@@ -285,7 +285,7 @@
        share_pwd: "share_pwd"
        share_user: "share_user"
        share_mnt:  "/mnt/mntpoint"
-       static_dns_from_dhcp: "Disabled"
+       dns_from_dhcp: "Disabled"
 
     tags:
        - idrac_staticipv4

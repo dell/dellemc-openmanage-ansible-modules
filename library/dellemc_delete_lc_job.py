@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -48,7 +48,6 @@ requirements:
     - "omsdk"
     - "python >= 2.7.5"
 author: "Felix Stephen (@felixs88)"
-    
 """
 
 EXAMPLES = """
@@ -70,7 +69,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -92,12 +91,10 @@ def run_delete_lc_job(idrac, module):
     try:
         # idrac.use_redfish = True
         exists = False
-        logger.info(module.params['idrac_ip'] + ': STARTING: Delete LC Job method: Invoking OMSDK Export SCP API')
         try:
             job = idrac.job_mgr.get_job_status(module.params['job_id'])
         except Exception as err:
             check_mode_err = True
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Delete LC Job method: Invoking OMSDK Export SCP API')
         if 'Status' in job and (not job['Status'] == "Found Fault"):
             exists = True
 
@@ -124,7 +121,6 @@ def run_delete_lc_job(idrac, module):
             msg['failed'] = True
 
     except Exception as e:
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Delete LC Job method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
@@ -136,9 +132,6 @@ def run_delete_lc_job(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC Credentials
             idrac_ip=dict(required=True, type='str'),
@@ -154,10 +147,8 @@ def main():
 
     # Connect to iDRAC
 
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful with target ')
     (msg, err) = run_delete_lc_job(idrac, module)
 
     # Disconnect from iDRAC
@@ -166,7 +157,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Deleted lc Job ' + module.params['job_id'])
 
 
 if __name__ == '__main__':
