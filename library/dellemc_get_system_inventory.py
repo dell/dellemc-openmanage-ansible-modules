@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -65,13 +65,12 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 
 
 # Get System Inventory
 def run_get_system_inventory(idrac, module):
-    logger.info(module.params['idrac_ip'] + ': STARTING: Get System Inventory Method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -79,18 +78,12 @@ def run_get_system_inventory(idrac, module):
 
     try:
         # idrac.use_redfish = True
-        logger.info(
-            module.params['idrac_ip'] + ': STARTING: Get System Inventory Method: Invoking OMSDK system view API')
         idrac.get_entityjson()
         msg['msg'] = idrac.get_json_device()
-        logger.info(
-            module.params['idrac_ip'] + ': FINISHED: Get System Inventory Method: Invoking OMSDK system view API')
     except Exception as e:
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Get System Inventory Method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Get System Inventory Method')
     return msg, err
 
 
@@ -99,9 +92,6 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC credentials
             idrac_ip=dict(required=True, type='str'),
             idrac_user=dict(required=True, type='str'),
@@ -109,12 +99,9 @@ def main():
             idrac_port=dict(required=False, default=443)
         ),
         supports_check_mode=False)
-    logger.info(module.params['idrac_ip'] + ': STARTING: Get System Inventory')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     # Get System Inventory
     msg, err = run_get_system_inventory(idrac, module)
 
@@ -124,7 +111,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(ansible_facts={idrac.ipaddr: {'SystemInventory': msg['msg']}})
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Get System Inventory')
 
 
 if __name__ == '__main__':

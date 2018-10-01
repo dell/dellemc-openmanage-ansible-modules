@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['deprecated'],
@@ -49,7 +49,7 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -57,7 +57,7 @@ options:
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
-    vd_name: 
+    vd_name:
         required: False
         description: Virtual disk name.
           - Optional, if we will perform create operations.
@@ -77,7 +77,7 @@ options:
     number_global_hot_spare:
         required: False
         description: Number of Global Hot Spare.
-        default: 0  
+        default: 0
     raid_level:
         required: False
         description: Provide the the required RAID level.
@@ -153,7 +153,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omdrivers.types.iDRAC.RAID import RAIDactionTypes
 from omsdk.sdkfile import file_share_manager
@@ -168,7 +168,6 @@ def run_server_raid_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: Raid config method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -176,7 +175,6 @@ def run_server_raid_config(idrac, module):
     try:
 
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
@@ -184,9 +182,7 @@ def run_server_raid_config(idrac, module):
                                                             module.params['share_user'],
                                                             module.params['share_pwd'])
                                                         )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
         set_liason = idrac.config_mgr.set_liason_share(upd_share)
         if set_liason['Status'] == "Failed":
             try:
@@ -196,13 +192,10 @@ def run_server_raid_config(idrac, module):
             err = True
             msg['msg'] = "{}".format(message)
             msg['failed'] = True
-            logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
             return msg, err
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
 
         if module.params['state'] == "present":
             # Create VD
-            logger.info(module.params['idrac_ip'] + ': CALLING: Raid config : Create virtual disk  OMSDK API')
 
             # Physical Disk filter
             pd_filter = '((disk.parent.parent is Controller and disk.parent.parent.FQDD._value == "{0}")'.format(
@@ -226,22 +219,17 @@ def run_server_raid_config(idrac, module):
                 StripeSize=module.params['stripe_size'],
                 RAIDforeignConfig="Clear",
                 RAIDaction=RAIDactionTypes.Create,
-                PhysicalDiskFilter=pd_filter
-                )
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Raid config : Create virtual disk  OMSDK API')
+                PhysicalDiskFilter=pd_filter)
 
         if module.params['state'] == "absent":
             # Remove VD
-            logger.info(module.params['idrac_ip'] + ': CALLING: Raid config : Remove virtual disk  OMSDK API')
-            if module.params['vd_name'] == None:
+            if module.params['vd_name'] is None:
                 message = 'Virtual disk name is a required parameter for remove virtual disk operations.'
                 err = True
                 msg['msg'] = "{}".format(message)
                 msg['failed'] = True
-                logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
                 return msg, err
             msg['msg'] = idrac.config_mgr.RaidHelper.delete_virtual_disk(Name=module.params['vd_name'])
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Raid config : Remove virtual disk  OMSDK API')
         if "Status" in msg['msg']:
             if msg['msg']['Status'] == "Success":
                 msg['changed'] = True
@@ -254,8 +242,6 @@ def run_server_raid_config(idrac, module):
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Raid config OMSDK API')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Raid config Method')
     return msg, err
 
 
@@ -310,13 +296,10 @@ def main():
     module.deprecate("The 'dellemc_configure_raid' module has been deprecated. "
                      "Use 'dellemc_idrac_storage_volume' instead",
                      version=2.4)
-    logger.info(module.params['idrac_ip'] + ': STARTING: Export Server Configuration Profile')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     # Export Server Configuration Profile
     msg, err = run_server_raid_config(idrac, module)
 
@@ -326,7 +309,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Exported Server Configuration Profile')
 
 
 if __name__ == '__main__':

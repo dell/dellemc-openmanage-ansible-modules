@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -45,7 +45,7 @@ options:
         description: Network share path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -53,7 +53,7 @@ options:
     job_wait:
         required: True
         description: Whether to wait for the running job completion or not.
-        choices: [True,  False]
+        type: bool
 
 requirements:
     - "omsdk"
@@ -85,7 +85,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omsdk.sdkfile import file_share_manager
 from omsdk.sdkcreds import UserCredentials
@@ -99,7 +99,6 @@ def run_export_lc_logs(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: Export LC logs method: Invoking OMSDK Export LC Log API')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -108,23 +107,19 @@ def run_export_lc_logs(idrac, module):
     try:
         lclog_file_name_format = "%ip_%Y%m%d_%H%M%S_LC_Log.log"
 
-        logger.info(module.params['idrac_ip'] + ': STARTING: Creating a File Share Object')
         myshare = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                       creds=UserCredentials(module.params['share_user'],
                                                                             module.params['share_pwd']),
                                                       isFolder=True)
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Created a File Share Object')
 
         lc_log_file = myshare.new_file(lclog_file_name_format)
 
         job_wait = module.params['job_wait']
         msg['msg'] = idrac.log_mgr.lclog_export(lc_log_file, job_wait)
-        logger.info(module.params['idrac_ip'] + ': FINISHED:  Export LC logs method: Invoking OMSDK Export LC Log API')
         if "Status" in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
 
     except Exception as e:
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Export LC Logs Method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
@@ -137,13 +132,10 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True,
                            type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
@@ -155,11 +147,9 @@ def main():
         ),
 
         supports_check_mode=False)
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     # Connect to iDRAC
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful with target')
     # Export LC Logs
     msg, err = run_export_lc_logs(idrac, module)
 
@@ -169,7 +159,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Exported lc logs')
 
 
 if __name__ == '__main__':

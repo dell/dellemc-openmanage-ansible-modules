@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -45,7 +45,7 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -57,7 +57,8 @@ options:
     setup_idrac_nic_vlan:
         required: False
         description: Configuring the VLAN related setting for iDRAC.
-    register_idrac_on_dns: 
+        choices: [Enabled, Disabled]
+    register_idrac_on_dns:
         required: False
         description: Registering Domain Name System for iDRAC.
         choices: [Enabled, Disabled]
@@ -74,11 +75,9 @@ options:
     vlan_id:
         required: False
         description: Configuring the vlan id for iDRAC.
-        default: None
     vlan_priority:
         required: False
         description: Configuring the vlan priority for iDRAC.
-        default: None
     enable_nic:
         required: False
         description: Whether to Enable or Disable Network Interface Controller for iDRAC.
@@ -106,40 +105,22 @@ options:
     duplex_mode:
         required: False
         description: Transmission of data Network Interface Controller types for iDRAC.
-        choices: [Full, Half] 
+        choices: [Full, Half]
     nic_mtu:
         required: False
         description: NIC Maximum Transmission Unit.
-        default: None
     ip_address:
         required: False
         description: IP Address needs to be defined.
     enable_dhcp:
         required: False
         description: Whether to Enable or Disable DHCP Protocol for iDRAC.
-    dns_1:
-        required: False
-        description: Needs to specify Domain Name Server Configuration.
-    dns_2:
-        required: False
-        description: Needs to specify Domain Name Server configuration.
-    dns_from_dhcp:
-        required: False
-        description: Specifying Domain Name Server from Dynamic Host Configuration Protocol.
         choices: [Enabled, Disabled]
     enable_ipv4:
         required: False
         description: Whether to Enable or Disable IPv4 configuration.
         choices: [Enabled, Disabled]
-    gateway:
-        required: False
-        description: iDRAC network gateway address.
-        default: None
-    net_mask:
-        required: False
-        description: iDRAC network netmask details.
-        default: None
-    static_dns_from_dhcp:
+    dns_from_dhcp:
         required: False
         description: Specifying Domain Name Server from Dynamic Host Configuration Protocol.
         choices: [Enabled, Disabled]
@@ -152,11 +133,9 @@ options:
     static_gateway:
         required: False
         description: Interfacing the network with another protocol.
-        default: None
     static_net_mask:
         required: False
         description: Determine whether IP address belongs to host.
-        default: None
 requirements:
     - "omsdk"
     - "python >= 2.7.5"
@@ -192,15 +171,10 @@ EXAMPLES = """
        nic_mtu: 1500
        ip_address: "x.x.x.x"
        enable_dhcp: Enabled
-       dns_1: "x.x.x.x"
-       dns_2: "x.x.x.x"
-       dns_from_dhcp: Enabled
        enable_ipv4: Enabled
-       gateway: None
-       net_mask: None
        static_dns_1: "x.x.x.x"
        static_dns_2: "x.x.x.x"
-       static_dns_from_dhcp: Enabled
+       dns_from_dhcp: Enabled
        static_gateway: None
        static_net_mask: None
 """
@@ -213,7 +187,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omdrivers.enums.iDRAC.iDRAC import (DNSRegister_NICTypes, DNSDomainFromDHCP_NICStaticTypes,
                                          Enable_NICTypes, VLanEnable_NICTypes,
@@ -234,7 +208,6 @@ def run_idrac_network_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: iDRAC network configuration method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -244,7 +217,6 @@ def run_idrac_network_config(idrac, module):
     try:
 
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
@@ -252,9 +224,7 @@ def run_idrac_network_config(idrac, module):
                                                             module.params['share_user'],
                                                             module.params['share_pwd'])
                                                         )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
         set_liason = idrac.config_mgr.set_liason_share(upd_share)
         if set_liason['Status'] == "Failed":
             try:
@@ -264,135 +234,100 @@ def run_idrac_network_config(idrac, module):
             err = True
             msg['msg'] = "{}".format(message)
             msg['failed'] = True
-            logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
             return msg, err
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
-
-        logger.info(module.params['idrac_ip'] + ': CALLING: Register DNS on iDRAC')
-
-        if module.params['register_idrac_on_dns'] != None:
+        if module.params['register_idrac_on_dns'] is not None:
             idrac.config_mgr.configure_dns(
                 register_idrac_on_dns=DNSRegister_NICTypes[module.params['register_idrac_on_dns']]
             )
-        if module.params['dns_idrac_name'] != None:
+        if module.params['dns_idrac_name'] is not None:
             idrac.config_mgr.configure_dns(
                 dns_idrac_name=module.params['dns_idrac_name']
             )
-        if module.params['auto_config'] != None:
+        if module.params['auto_config'] is not None:
             idrac.config_mgr.configure_dns(
                 auto_config=DNSDomainFromDHCP_NICStaticTypes[module.params['auto_config']]
             )
-        if module.params['static_dns'] != None:
+        if module.params['static_dns'] is not None:
             idrac.config_mgr.configure_dns(
                 static_dns=module.params['static_dns']
             )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Register DNS on iDRAC')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: setup iDRAC vlan method')
-        if module.params['setup_idrac_nic_vlan'] != None:
+        if module.params['setup_idrac_nic_vlan'] is not None:
             idrac.config_mgr.configure_nic_vlan(
                 vlan_enable=VLanEnable_NICTypes[module.params['setup_idrac_nic_vlan']]
             )
-        if module.params['vlan_id'] != None:
+        if module.params['vlan_id'] is not None:
             idrac.config_mgr.configure_nic_vlan(
                 vlan_id=module.params['vlan_id']
             )
-        if module.params['vlan_priority'] != None:
+        if module.params['vlan_priority'] is not None:
             idrac.config_mgr.configure_nic_vlan(
                 vlan_priority=module.params['vlan_priority']
             )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: setup iDRAC vlan method')
 
-        logger.info(module.params["idrac_ip"] + ': CALLING: Setup NIC for iDRAC')
-        if module.params['enable_nic'] != None:
+        if module.params['enable_nic'] is not None:
             idrac.config_mgr.configure_network_settings(
                 enable_nic=Enable_NICTypes[module.params['enable_nic']]
             )
-        if module.params['nic_selection'] != None:
+        if module.params['nic_selection'] is not None:
             idrac.config_mgr.configure_network_settings(
                 nic_selection=Selection_NICTypes[module.params['nic_selection']]
             )
-        if module.params['failover_network'] != None:
+        if module.params['failover_network'] is not None:
             idrac.config_mgr.configure_network_settings(
                 failover_network=Failover_NICTypes[module.params['failover_network']]
             )
-        if module.params['auto_detect'] != None:
+        if module.params['auto_detect'] is not None:
             idrac.config_mgr.configure_network_settings(
                 auto_detect=AutoDetect_NICTypes[module.params['auto_detect']]
             )
-        if module.params['auto_negotiation'] != None:
+        if module.params['auto_negotiation'] is not None:
             idrac.config_mgr.configure_network_settings(
                 auto_negotiation=Autoneg_NICTypes[module.params['auto_negotiation']]
             )
-        if module.params['network_speed'] != None:
+        if module.params['network_speed'] is not None:
             idrac.config_mgr.configure_network_settings(
                 network_speed=Speed_NICTypes[module.params['network_speed']]
             )
-        if module.params['duplex_mode'] != None:
+        if module.params['duplex_mode'] is not None:
             idrac.config_mgr.configure_network_settings(
                 duplex_mode=Duplex_NICTypes[module.params['duplex_mode']]
             )
-        if module.params['nic_mtu'] != None:
+        if module.params['nic_mtu'] is not None:
             idrac.config_mgr.configure_network_settings(
                 nic_mtu=module.params['nic_mtu']
             )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Setup NIC for iDRAC')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Setup iDRAC IPv4 Configuration')
-
-        if module.params['enable_dhcp'] != None:
+        if module.params['enable_dhcp'] is not None:
             idrac.config_mgr.configure_ipv4(
                 enable_dhcp=DHCPEnable_IPv4Types[module.params["enable_dhcp"]]
             )
-        if module.params['ip_address'] != None:
+        if module.params['ip_address'] is not None:
             idrac.config_mgr.configure_ipv4(
                 ip_address=module.params["ip_address"]
             )
-        if module.params['dns_1'] != None:
-            idrac.config_mgr.configure_ipv4(
-                dns_1=module.params["dns_1"]
-            )
-        if module.params['dns_2'] != None:
-            idrac.config_mgr.configure_ipv4(
-                dns_2=module.params["dns_2"]
-            )
-        if module.params['dns_from_dhcp'] != None:
-            idrac.config_mgr.configure_ipv4(
-                dns_from_dhcp=DNSFromDHCP_IPv4Types[module.params["dns_from_dhcp"]]
-            )
-        if module.params['enable_ipv4'] != None:
+        if module.params['enable_ipv4'] is not None:
             idrac.config_mgr.configure_ipv4(
                 enable_ipv4=Enable_IPv4Types[module.params["enable_ipv4"]]
             )
-        if module.params['gateway'] != None:
-            idrac.config_mgr.configure_ipv4(
-                gateway=module.params["gateway"]
-            )
-        if module.params['net_mask'] != None:
-            idrac.config_mgr.configure_ipv4(
-                net_mask=module.params["net_mask"]
-            )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Setup iDRAC IPv4 configuration')
-
-        logger.info(module.params["idrac_ip"] + ': CALLING: Setup iDRAC IPv4 Static configuration')
-        if module.params['static_dns_from_dhcp'] != None:
+        if module.params['dns_from_dhcp'] is not None:
             idrac.config_mgr.configure_static_ipv4(
-                dns_from_dhcp=DNSFromDHCP_IPv4StaticTypes[module.params["static_dns_from_dhcp"]]
+                dns_from_dhcp=DNSFromDHCP_IPv4StaticTypes[module.params["dns_from_dhcp"]]
             )
-        if module.params['static_dns_1'] != None:
+        if module.params['static_dns_1'] is not None:
             idrac.config_mgr.configure_static_ipv4(
                 dns_1=module.params["static_dns_1"]
             )
-        if module.params['static_dns_2'] != None:
+        if module.params['static_dns_2'] is not None:
             idrac.config_mgr.configure_static_ipv4(
                 dns_2=module.params["static_dns_2"]
             )
-        if module.params['static_gateway'] != None:
+        if module.params['static_gateway'] is not None:
             idrac.config_mgr.configure_static_ipv4(
                 gateway=module.params["static_gateway"]
             )
-        if module.params['static_net_mask'] != None:
+        if module.params['static_net_mask'] is not None:
             idrac.config_mgr.configure_static_ipv4(
                 net_mask=module.params["static_net_mask"]
             )
@@ -402,7 +337,6 @@ def run_idrac_network_config(idrac, module):
             if 'changes_applicable' in msg['msg']:
                 msg['changed'] = msg['msg']['changes_applicable']
         else:
-            logger.info(module.params["idrac_ip"] + ':FINISHED: Setup iDRAC IPv4 Static configuration')
             msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
             if "Status" in msg['msg']:
                 if msg['msg']['Status'] == "Success":
@@ -418,8 +352,6 @@ def run_idrac_network_config(idrac, module):
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: iDRAC network configuration method')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC network configuration method')
     return msg, err
 
 
@@ -428,13 +360,10 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True,
                            type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
@@ -453,9 +382,9 @@ def main():
             static_dns=dict(required=False, default=None, type="str"),
 
             # set up idrac vlan
-            setup_idrac_nic_vlan=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
-            vlan_id=dict(required=False, default=None, type='int'),
-            vlan_priority=dict(required=False, default=None, type='int'),
+            setup_idrac_nic_vlan=dict(required=False, choices=['Enabled', 'Disabled']),
+            vlan_id=dict(required=False, type='int'),
+            vlan_priority=dict(required=False, type='int'),
 
             # set up NIC
             enable_nic=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
@@ -466,35 +395,27 @@ def main():
             auto_negotiation=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
             network_speed=dict(required=False, choices=['T_10', 'T_100', 'T_1000'], default=None),
             duplex_mode=dict(required=False, choices=['Full', 'Half'], default=None),
-            nic_mtu=dict(required=False, default=None, type='int'),
+            nic_mtu=dict(required=False, type='int'),
 
             # setup iDRAC IPV4
             ip_address=dict(required=False, default=None, type="str"),
             enable_dhcp=dict(required=False, choices=["Enabled", "Disabled"], default=None),
-            dns_1=dict(required=False, default=None, type="str"),
-            dns_2=dict(required=False, default=None, type="str"),
-            dns_from_dhcp=dict(required=False, choices=["Enabled", "Disabled"], default=None),
             enable_ipv4=dict(required=False, choices=["Enabled", "Disabled"], default=None),
-            gateway=dict(required=False, default=None, type="str"),
-            net_mask=dict(required=False, default=None, type="str"),
 
             # setup iDRAC Static IPv4
-            static_dns_from_dhcp=dict(required=False, choices=["Enabled", "Disabled"], default=None),
+            dns_from_dhcp=dict(required=False, choices=["Enabled", "Disabled"], default=None),
             static_dns_1=dict(required=False, default=None, type="str"),
             static_dns_2=dict(required=False, default=None, type="str"),
-            static_gateway=dict(required=False, default=None, type="str"),
-            static_net_mask=dict(required=False, default=None, type="str"),
+            static_gateway=dict(required=False, type="str"),
+            static_net_mask=dict(required=False, type="str"),
 
         ),
 
         supports_check_mode=True)
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Server Configuration')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     # Export Server Configuration Profile
     msg, err = run_idrac_network_config(idrac, module)
 
@@ -504,7 +425,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Server Configuration')
 
 
 if __name__ == '__main__':

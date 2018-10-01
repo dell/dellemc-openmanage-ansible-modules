@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -45,7 +45,7 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -87,7 +87,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omsdk.sdkfile import file_share_manager
 from omsdk.sdkcreds import UserCredentials
@@ -102,7 +102,6 @@ def run_system_lockdown_mode(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: system lockdown mode method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -112,7 +111,6 @@ def run_system_lockdown_mode(idrac, module):
     try:
 
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
@@ -120,9 +118,7 @@ def run_system_lockdown_mode(idrac, module):
                                                             module.params['share_user'],
                                                             module.params['share_pwd'])
                                                         )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
         set_liason = idrac.config_mgr.set_liason_share(upd_share)
         if set_liason['Status'] == "Failed":
             try:
@@ -132,19 +128,13 @@ def run_system_lockdown_mode(idrac, module):
             err = True
             msg['msg'] = "{}".format(message)
             msg['failed'] = True
-            logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
             return msg, err
-
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
-
-        logger.info(module.params['idrac_ip'] + ': CALLING: system lockdown Mode OMSDK API')
 
         if module.params['lockdown_mode'] == 'Enabled':
             msg['msg'] = idrac.config_mgr.enable_system_lockdown()
         elif module.params['lockdown_mode'] == 'Disabled':
             msg['msg'] = idrac.config_mgr.disable_system_lockdown()
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: system lockdown OMSDK API')
         if "Status" in msg['msg']:
             if msg['msg']['Status'] == "Success":
                 msg['changed'] = True
@@ -154,8 +144,6 @@ def run_system_lockdown_mode(idrac, module):
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: system lockdown Mode OMSDK API')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: system lockdown Mode Method')
     return msg, err
 
 
@@ -163,13 +151,11 @@ def run_system_lockdown_mode(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True,
                            type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
             # Share Details
@@ -178,16 +164,14 @@ def main():
             share_user=dict(required=False, type='str'),
             share_mnt=dict(required=False, type='str'),
 
-            lockdown_mode=dict(required=True, choices=['Enabled', 'Disabled'], default=None)
+            lockdown_mode=dict(required=True, choices=['Enabled', 'Disabled'])
         ),
 
         supports_check_mode=False)
 
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection Success')
     # Get Lifecycle Controller status
     msg, err = run_system_lockdown_mode(idrac, module)
 

@@ -75,3 +75,39 @@
 
     tags:
        - bootseq
+
+  - name: bios
+    dellemc_configure_bios:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "user"
+       share_mnt:  "/mnt/mntpoint"
+       attributes:
+            BootMode: "Bios"
+            BootSeqRetry: "Enabled"
+
+    tags:
+       - bios
+
+  - name: boot_sources
+    dellemc_configure_bios:
+       idrac_ip:   "x.x.x.x"
+       idrac_user: "user"
+       idrac_pwd:  "pwd"
+       share_name: "x.x.x.x:/nfsfileshare"
+       share_pwd: "share_pwd"
+       share_user: "user"
+       share_mnt:  "/mnt/mntpoint"
+       boot_sources:
+          - Name : "NIC.Integrated.1-1-1"
+            Enabled : true
+            Index : 1
+          - Name : "NIC.Integrated.1-2-1"
+            Enabled : true
+            Index : 0
+
+    tags:
+       - bootsources

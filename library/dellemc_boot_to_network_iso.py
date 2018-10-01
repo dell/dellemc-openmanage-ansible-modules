@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -44,7 +44,7 @@ options:
         description: CIFS or NFS Network share.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -79,7 +79,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkfile import FileOnShare
@@ -97,7 +97,6 @@ def run_boot_to_network_iso(idrac, module):
     module -- Ansible module
     """
 
-    logger.info(module.params['idrac_ip'] + ': STARTING: Boot To Network iso Method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -105,19 +104,13 @@ def run_boot_to_network_iso(idrac, module):
     err = False
 
     try:
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         myshare = FileOnShare(remote=module.params['share_name'] + "/" + module.params['iso_image'],
                               isFolder=False,
                               creds=UserCredentials(
                                   module.params['share_user'],
                                   module.params['share_pwd'])
                               )
-
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
-
         msg['msg'] = idrac.config_mgr.boot_to_network_iso(myshare, "")
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Boot To Network iso Method:'
-                                                ' Invoking OMSDK Operating System Deployment API')
 
         if "Status" in msg['msg']:
             if msg['msg']['Status'] == "Success":
@@ -126,12 +119,10 @@ def run_boot_to_network_iso(idrac, module):
                 msg['failed'] = True
 
     except Exception as e:
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Boot To Network iso Method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Boot To Network iso Method')
     return msg, err
 
 
@@ -139,10 +130,6 @@ def run_boot_to_network_iso(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC Credentials
             idrac_ip=dict(required=True, type='str'),
             idrac_user=dict(required=True, type='str'),
@@ -163,12 +150,9 @@ def main():
     if not HAS_OMSDK:
         module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
-    logger.info(module.params['idrac_ip'] + ': STARTING: Operating Syatem Deployment')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
 
     msg, err = run_boot_to_network_iso(idrac, module)
 
@@ -178,7 +162,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Operating Syatem Deployment')
 
 
 if __name__ == '__main__':

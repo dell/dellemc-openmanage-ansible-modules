@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # _*_ coding: utf-8 _*_
 
 #
@@ -12,10 +11,10 @@
 #
 
 from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-import logging
+                        print_function)
 import tempfile
 import os
+__metaclass__ = type
 
 try:
     from omsdk.sdkinfra import sdkinfra
@@ -23,15 +22,12 @@ try:
     from omsdk.sdkfile import FileOnShare, file_share_manager
     from omsdk.sdkprotopref import ProtoPreference, ProtocolEnum
     from omsdk.http.sdkwsmanbase import WsManOptions
-    from omsdk.omlogs.Logger import LogManager
     HAS_OMSDK = True
 
 except ImportError:
 
     HAS_OMSDK = False
 
-LogManager.setup_logging()
-logger = logging.getLogger(__name__)
 
 class iDRACConnection():
     def __init__(self, module):
@@ -98,6 +94,4 @@ class iDRACConnection():
 
 class Constants:
 
-    share_name = tempfile.gettempdir()+os.sep
-
-
+    share_name = tempfile.gettempdir() + os.sep

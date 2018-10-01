@@ -14,7 +14,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -52,7 +52,7 @@ options:
     number_dedicated_hot_spare:
         required: False
         description: Number of Dedicated Hot Spare.
-        default: 0 
+        default: 0
     volume_type:
         required: False
         description: Provide the the required RAID level.
@@ -79,13 +79,13 @@ options:
         default: 65536
     controller_id:
         required: False
-        description: Fully Qualified Device Descriptor (FQDD) of 
+        description: Fully Qualified Device Descriptor (FQDD) of
             the storage controller, for e.g. 'RAID.Integrated.1-1'.
             Controller FQDD is required for C(create) RAID configuration.
         default: None
     volume_id:
         required: False
-        description: Fully Qualified Device Descriptor (FQDD) of 
+        description: Fully Qualified Device Descriptor (FQDD) of
             the virtual disk, for e.g. 'Disk.virtual.0:RAID.Slot.1-1'.
             This option is used to get the virtual disk information.
         default: None
@@ -113,10 +113,10 @@ options:
             This is applicable for C(create) and C(delete) operations.
             - For C(create) operation, name and drives are applicable options,
                 other volume options can also be specified.
-                The drives is a required option for C(create) operation and accepts 
+                The drives is a required option for C(create) operation and accepts
                 either location (list of drive slot) or id (list of drive fqdd).
             - For C(delete) operation, only name option is applicable.
-            See the examples for more details. 
+            See the examples for more details.
     capacity:
         required: False
         description: Virtual disk size in GB.
@@ -134,7 +134,7 @@ options:
             operation to be performed on the virtual disk.
         choices: [None, Fast]
         default: None
-        
+
 
 requirements:
     - "omsdk"
@@ -446,7 +446,7 @@ def run_server_raid_config(idrac, module):
                 .format(module.params["controller_id"])
 
             vd_values = []
-            if module.params['vd_values'] != None:
+            if module.params['vd_values'] is not None:
                 for each in module.params['vd_values']:
                     mod_args = copy.deepcopy(module.params)
                     msg, err, each_vd = multiple_vd_config(mod_args=mod_args,
@@ -507,9 +507,6 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC credentials
             idrac_ip=dict(required=True, default=None, type='str'),
             idrac_user=dict(required=True, default=None, type='str'),
@@ -550,7 +547,7 @@ def main():
 
         supports_check_mode=True)
 
-    #update key
+    # update key
     module.params["vd_values"] = module.params.pop("volumes")
     module.params["vd_fqdd"] = module.params.pop("volume_id")
 

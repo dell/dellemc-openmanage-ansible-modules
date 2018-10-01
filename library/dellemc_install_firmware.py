@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -49,7 +49,7 @@ options:
         description: CIFS or NFS Network share.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -62,11 +62,17 @@ options:
         required: False
         description: Whether to reboots after applying the updates or not.
         default: False
-        choices: [True,  False]
+        type: bool
     job_wait:
         required:  True
         description: Whether to wait for job completion or not.
-        choices: [True,  False]
+        type: bool
+        default: True
+    catalog_file_name:
+        required: False
+        description: Catalog file name relative to the I(share_name).
+        type: str
+        default: 'Catalog.xml'
 
 requirements:
     - "omsdk"
@@ -87,6 +93,7 @@ EXAMPLES = """
        share_mnt: "/mnt/share"
        reboot:     True
        job_wait:   True
+       catalog_file_name:  "Catalog.xml"
 """
 
 RETURN = """
@@ -97,7 +104,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkcreds import UserCredentials
@@ -105,6 +112,17 @@ try:
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
+
+
+def _validate_catalog_file(params):
+    invalid, message = False, ""
+    if not params.get("catalog_file_name"):
+        invalid, message = True, "Invalid file name or invalid file extensions."
+    elif params.get("catalog_file_name"):
+        file_name = params.get("catalog_file_name").lower()
+        if not file_name.endswith("xml"):
+            invalid, message = True, "Invalid file name or invalid file extensions."
+    return invalid, message
 
 
 def run_update_fw_from_nw_share(idrac, module):
@@ -115,7 +133,6 @@ def run_update_fw_from_nw_share(idrac, module):
     module -- Ansible module
     """
 
-    logger.info(module.params['idrac_ip'] + ': STARTING: Update Firmware From Network Share Method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -123,15 +140,20 @@ def run_update_fw_from_nw_share(idrac, module):
     err = False
 
     try:
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
-        upd_share = FileOnShare(remote=module.params['share_name'] + "/Catalog.xml",
+        invalid, message = _validate_catalog_file(module.params)
+        if invalid:
+            err = True
+            msg['msg'] = message
+            msg['failed'] = True
+            return msg, err
+
+        upd_share = FileOnShare(remote=module.params['share_name'] + "/" + module.params['catalog_file_name'],
                                 mount_point=module.params['share_mnt'],
                                 isFolder=False,
                                 creds=UserCredentials(
                                     module.params['share_user'],
                                     module.params['share_pwd'])
                                 )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
         idrac.use_redfish = True
         if '12' in idrac.ServerGeneration or '13' in idrac.ServerGeneration:
@@ -140,29 +162,23 @@ def run_update_fw_from_nw_share(idrac, module):
         # upd_share_file_path = upd_share.new_file("Catalog.xml")
 
         apply_update = True
-        logger.info(module.params['idrac_ip'] + ': STARTING: Update Firmware From Network Share Method:'
-                                                ' Invoking OMSDK Firmware update API')
         msg['msg'] = idrac.update_mgr.update_from_repo(upd_share,
                                                        apply_update,
                                                        module.params['reboot'],
                                                        module.params['job_wait'])
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Update Firmware From Network Share Method:'
-                                                ' Invoking OMSDK Firmware update API')
         if "Status" in msg['msg']:
             if msg['msg']['Status'] == "Success":
-                if module.params['job_wait'] == True:
+                if module.params['job_wait'] is True:
                     msg['changed'] = True
             else:
                 msg['failed'] = True
 
     except Exception as e:
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Update Firmware From Network Share Method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Update Firmware From Network Share Method')
     return msg, err
 
 
@@ -170,9 +186,6 @@ def run_update_fw_from_nw_share(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC Credentials
             idrac_ip=dict(required=True, type='str'),
@@ -187,6 +200,7 @@ def main():
             share_mnt=dict(required=True, type='str'),
 
             # Firmware update parameters
+            catalog_file_name=dict(required=False, type='str', default='Catalog.xml'),
             reboot=dict(required=False, default=False, type='bool'),
             job_wait=dict(required=False, default=True, type='bool')
         ),
@@ -196,12 +210,9 @@ def main():
     if not HAS_OMSDK:
         module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
-    logger.info(module.params['idrac_ip'] + ': STARTING: Firmware Update')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
 
     msg, err = run_update_fw_from_nw_share(idrac, module)
 
@@ -211,7 +222,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Firmware Update')
 
 
 if __name__ == '__main__':

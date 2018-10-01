@@ -13,7 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -45,7 +45,7 @@ options:
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is 
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
@@ -63,7 +63,7 @@ options:
     job_wait:
         required:  True
         description: Whether to wait for job completion or not.
-        choices: [True,  False]
+        type: bool
     export_format:
         required:  False
         description: Specify the output file format.
@@ -100,13 +100,13 @@ EXAMPLES = """
 RETURNS = """
 dest:
     description: Exports the server configuration profile to the provided network share or to the local path.
-    returned: success    
+    returned: success
     type: string
     sample: /path/to/file.xml
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection, logger
+from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omsdk.sdkfile import file_share_manager
 from omsdk.sdkcreds import UserCredentials
@@ -120,7 +120,6 @@ def run_export_server_config_profile(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: Exporting Server Configuration Profile Method')
     from omdrivers.enums.iDRAC.iDRACEnums import SCPTargetEnum, ExportFormatEnum, ExportUseEnum
 
     msg = {}
@@ -136,12 +135,10 @@ def run_export_server_config_profile(idrac, module):
             export_format = ExportFormatEnum.XML
             scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.xml"
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Create File share object OMSDK API')
         myshare = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                       creds=UserCredentials(module.params['share_user'],
                                                                             module.params['share_pwd']),
                                                       isFolder=True, )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Create File share object OMSDK API')
 
         scp_file_name = myshare.new_file(scp_file_name_format)
 
@@ -164,26 +161,19 @@ def run_export_server_config_profile(idrac, module):
         elif module.params['export_use'].lower() == 'Replace'.lower():
             export_use = ExportUseEnum.Replace
 
-        logger.info(module.params['idrac_ip'] + ': STARTING: Exporting Server Configuration Profile Method:'
-                                                ' Invoking OMSDK Export SCP API')
         idrac.use_redfish = True
         msg['msg'] = idrac.config_mgr.scp_export(scp_file_name,
                                                  target=target,
                                                  export_format=export_format,
                                                  export_use=export_use,
                                                  job_wait=job_wait)
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Export Server Configuration Profile Method:'
-                                                ' Invoked OMSDK Export SCP API')
         if 'Status' in msg['msg'] and msg['msg']['Status'] != "Success":
             msg['failed'] = True
 
     except Exception as e:
-        logger.error(
-            module.params['idrac_ip'] + ': EXCEPTION: Exporting Server Configuration Profile Method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Exported Server Configuration Profile Method')
     return msg, err
 
 
@@ -191,9 +181,6 @@ def run_export_server_config_profile(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC credentials
             idrac_ip=dict(required=True, type='str'),
@@ -210,19 +197,17 @@ def main():
                                 choices=['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
                                 default='ALL'),
             job_wait=dict(required=True, type='bool'),
-            export_format=dict(required=False, type='str', default='XML'),
-            export_use=dict(required=False, type='str', default='Default')
-
+            export_format=dict(required=False, type='str',
+                               choices=['JSON', 'XML'], default='XML'),
+            export_use=dict(required=False, type='str',
+                            choices=['Default', 'Clone', 'Replace'], default='Default')
         ),
 
         supports_check_mode=False)
-    logger.info(module.params['idrac_ip'] + ': STARTING: Export Server Configuration Profile')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     # Export Server Configuration Profile
     msg, err = run_export_server_config_profile(idrac, module)
 
@@ -232,7 +217,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Exported Server Configuration Profile')
 
 
 if __name__ == '__main__':
