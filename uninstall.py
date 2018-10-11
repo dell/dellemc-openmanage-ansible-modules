@@ -22,7 +22,7 @@ try:
     dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
     logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_ansible_uninstall.log'})
 except Exception as e:
-    print('Dell EMC OpenManage Ansible Modules v1.0 is not installed.')
+    print('Unable to access the uninstallation logfile')
     sys.exit(1)
 
 # create logger
