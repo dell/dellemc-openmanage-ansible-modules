@@ -20,7 +20,7 @@ import sys
 import logging
 import logging.config
 
-log_root = '/var/log'
+log_root = '.'
 dell_emc_log_path = log_root + '/dellemc'
 
 # create log directory in the log root var/log
@@ -85,7 +85,6 @@ module_utils_path = ansible_path + '/module_utils/'
 extras_path = ansible_path + '/modules/extras'
 server_path = extras_path + '/dellemc'
 dellemc_idrac_path = server_path + '/server'
-log_root = '/var/log'
 dell_emc_log_path = log_root + '/dellemc'
 
 warning_message = "Dell EMC OpenManage Ansible Module 1.0 is already present. Do you want to overwrite? (y/n)  "

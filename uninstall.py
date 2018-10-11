@@ -17,7 +17,7 @@ import sys
 import logging.config
 import shutil
 try:
-    log_root = '/var/log'
+    log_root = '.'
     dell_emc_log_path = log_root + '/dellemc'
     dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
     logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_ansible_uninstall.log'})
