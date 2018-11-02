@@ -13,7 +13,7 @@ Dell EMC PowerEdge Servers with:
   * [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ## Documentation
-Please refer to the [OpenManage Ansible Modules Documentation](./guides)
+Please refer to the [OpenManage Ansible Modules Documentation](./guides) or OpenManage Ansible Modules User Guide [gitpages](https://dell.github.io/Dell-EMC-Ansible-Modules-for-iDRAC/)
 
 ## Examples
 Sample playbooks and examples could be found under [examples](./examples) directory
