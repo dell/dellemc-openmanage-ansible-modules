@@ -1,77 +1,76 @@
 ---
-- hosts: myhosts
+- hosts: hosts
   connection: local
-  name: DellEMC_OpenManage_Ansible_Modules_version_1.0.105
+  name: Configure Boot Mode Setting
   gather_facts: False
 
   tasks:
-  - name: bootmode_change
+
+  - name: Configure Bios Generic Attributes
     dellemc_configure_bios:
-       idrac_ip:   "x.x.x.x"
-       idrac_user: "root"
-       idrac_pwd:  "pwd"
-       share_name: "x.x.x.x:/nfsfileshare"
-       share_pwd: "share_pwd"
-       share_user: "share_user"
-       share_mnt:  "/mnt/mntpoint"
-       boot_mode: "Bios"
-
-    tags:
-       - bootmode
-
-  - name: nvme_configuration
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       attributes:
+         BootMode : "Bios"
+         OneTimeBootMode: "Enabled"
+         BootSeqRetry: "Enabled"
+         
+    tags: 
+        - bootconfig
+ 
+  - name: Configure PXE Generic Attributes
     dellemc_configure_bios:
-       idrac_ip:   "x.x.x.x"
-       idrac_user: "user"
-       idrac_pwd:  "pwd"
-       share_name: "x.x.x.x:/nfsfileshare"
-       share_pwd: "share_pwd"
-       share_user: "share_user"
-       share_mnt:  "/mnt/mntpoint"
-       nvme_mode: "Raid"
-
-    tags:
-       - nvme
-  
-  - name: onetime_boot_mode
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       attributes:
+         PxeDev1EnDis: "Enabled"
+         PxeDev1Protocol: "IPV4"
+         PxeDev1VlanEnDis: "Enabled"
+         PxeDev1VlanId: x
+         PxeDev1Interface: "NIC.Embedded.x-x-x"
+         PxeDev1VlanPriority: x
+ 
+    tags: 
+        - pxeconfig
+ 
+  - name: Configure Boot Sources
     dellemc_configure_bios:
-       idrac_ip:   "x.x.x.x"
-       idrac_user: "user"  
-       idrac_pwd:  "pwd"
-       share_name: "x.x.x.x:/nfsfileshare"
-       share_pwd: "share_pwd"
-       share_user: "share_user"
-       share_mnt:  "/mnt/mntpoint"
-       onetime_boot_mode: "OneTimeHddSeq"
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       boot_sources:
+         - Name : "NIC.Integrated.x-x-x"
+           Enabled : true
+           Index : 1
+         - Name : "NIC.Integrated.x-x-x"
+           Enabled : true
+           Index : 0
+           
+    tags: 
+        - boot_sources
 
-    tags:
-       - onetimeboot
-  
-  - name: secure_boot_mode
+  - name: Configure Boot Sources - Enabled
     dellemc_configure_bios:
-       idrac_ip:   "x.x.x.x"
-       idrac_user: "user"
-       idrac_pwd:  "pwd"
-       share_name: "x.x.x.x:/nfsfileshare"
-       share_pwd: "share_pwd"
-       share_user: "share_user"
-       share_mnt:  "/mnt/mntpoint"
-       secure_boot_mode: "AuditMode"
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       boot_sources:
+         - Name : "NIC.Integrated.x-x-x"
+           Enabled : true
 
-    tags:
-       - secureboot
+    tags: 
+        - boot_sources_enabled
 
-  - name: boot_sequence
+  - name: Configure Boot Sources - Index
     dellemc_configure_bios:
-       idrac_ip:   "x.x.x.x"
-       idrac_user: "user"
-       idrac_pwd:  "pwd"
-       share_name: "x.x.x.x:/nfsfileshare"
-       share_pwd: "share_pwd"
-       share_user: "user"
-       share_mnt:  "/mnt/mntpoint"
-       boot_mode: "Bios"
-       boot_sequence: "HardDisk.List.1-1"
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       boot_sources:
+         - Name : "NIC.Integrated.x-x-x"
+           Index : 1
 
-    tags:
-       - bootseq
+    tags: 
+        - boot_sources_index

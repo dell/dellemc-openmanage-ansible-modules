@@ -11,92 +11,80 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: dellemc_boot_to_network_iso
-short_description: Boot to a network ISO image
+short_description: Boot to a network ISO image.
 version_added: "2.3"
 description: Boot to a network ISO image.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
-        description: CIFS or NFS Network share
+        description: CIFS or NFS Network share.
     share_user:
-        required: True
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        required: False
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
-        required: True
-        description: Network share user password
+        required: False
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     iso_image:
         required: True
-        description: Network ISO name
+        description: Network ISO name.
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
+"""
 
-'''
-
-EXAMPLES = '''
+EXAMPLES = """
+---
 - name: Boot to Network ISO
   dellemc_boot_to_network_iso:
       idrac_ip:   "xx.xx.xx.xx"
       idrac_user: "xxxx"
       idrac_pwd:  "xxxxxxxx"
-      share_name: "\\\\xx.xx.xx.xx\\share"
+      share_name: "xx.xx.xx.xx:/share"
       share_user: "xxxx"
       share_pwd:  "xxxxxxxx"
       iso_image:  "uninterrupted_os_installation_image.iso"
-'''
+"""
 
-RETURN = '''
-- dest:
+RETURN = """
+dest:
     description: Boots to a network ISO image.
     returned: success
     type: string
+"""
 
-'''
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_boot_to_network_iso.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
-
+import os
+from ansible.module_utils.dellemc_idrac import iDRACConnection
+from ansible.module_utils.basic import AnsibleModule
 try:
     from omsdk.sdkfile import FileOnShare
     from omsdk.sdkcreds import UserCredentials
-
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
@@ -110,7 +98,6 @@ def run_boot_to_network_iso(idrac, module):
     module -- Ansible module
     """
 
-    logger.info(module.params['idrac_ip'] + ': STARTING: Boot To Network iso Method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -118,36 +105,28 @@ def run_boot_to_network_iso(idrac, module):
     err = False
 
     try:
-        if module.check_mode:
-            msg['changed'] = True
-        else:
-            logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
-            myshare = FileOnShare(remote=module.params['share_name'] + "/" + module.params['iso_image'],
-                                  isFolder=False,
-                                  creds=UserCredentials(
-                                      module.params['share_user'],
-                                      module.params['share_pwd'])
-                                  )
+        share_name = module.params['share_name']
+        if share_name is None:
+            share_name = ''
+        myshare = FileOnShare(remote="{}{}{}".format(share_name, os.sep, module.params['iso_image']),
+                              isFolder=False,
+                              creds=UserCredentials(
+                                  module.params['share_user'],
+                                  module.params['share_pwd'])
+                              )
+        msg['msg'] = idrac.config_mgr.boot_to_network_iso(myshare, "")
 
-            logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
-
-            msg['msg'] = idrac.config_mgr.boot_to_network_iso(myshare, "")
-            logger.info(module.params['idrac_ip'] + ': FINISHED: Boot To Network iso Method:'
-                                                    ' Invoking OMSDK Operating System Deployment API')
-
-            if "Status" in msg['msg']:
-                if msg['msg']['Status'] == "Success":
-                    msg['changed'] = True
-                else:
-                    msg['failed'] = True
+        if "Status" in msg['msg']:
+            if msg['msg']['Status'] == "Success":
+                msg['changed'] = True
+            else:
+                msg['failed'] = True
 
     except Exception as e:
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Boot To Network iso Method: ' + str(e))
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Boot To Network iso Method')
     return msg, err
 
 
@@ -155,10 +134,6 @@ def run_boot_to_network_iso(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC Credentials
             idrac_ip=dict(required=True, type='str'),
             idrac_user=dict(required=True, type='str'),
@@ -167,24 +142,21 @@ def main():
 
             # Network File Share
             share_name=dict(required=True, type='str'),
-            share_user=dict(required=True, type='str'),
-            share_pwd=dict(required=True, type='str', no_log=True),
+            share_user=dict(required=False, type='str'),
+            share_pwd=dict(required=False, type='str', no_log=True),
 
             # ISO Image relative to Network File Share
             iso_image=dict(required=True, type='str'),
 
         ),
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     if not HAS_OMSDK:
         module.fail_json(msg="Dell EMC OpenManage Python SDK required for this module")
 
-    logger.info(module.params['idrac_ip'] + ': STARTING: Operating Syatem Deployment')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
 
     msg, err = run_boot_to_network_iso(idrac, module)
 
@@ -194,7 +166,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Operating Syatem Deployment')
 
 
 if __name__ == '__main__':

@@ -11,14 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.iDRAC import *
-# from omsdk.sdkfile import FileOnShare
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -34,43 +29,42 @@ description:
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
-        description: Local mount path of the network share with read-write permission for ansible user
+        description: Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for Network Share.
     enable_web_server:
         required: False
-        description: Whether to Enable or Disable webserver configuration for iDRAC
+        description: Whether to Enable or Disable webserver configuration for iDRAC.
         choices: [Enabled, Disabled]
     ssl_encryption:
         required: False
-        description: Secure Socket Layer encryption for webserver
+        description: Secure Socket Layer encryption for webserver.
         choices: [Auto_Negotiate, T_128_Bit_or_higher, T_168_Bit_or_higher, T_256_Bit_or_higher]
     tls_protocol:
         required: False
-        description: Transport Layer Security for webserver
+        description: Transport Layer Security for webserver.
         choices: [TLS_1_0_and_Higher, TLS_1_1_and_Higher, TLS_1_2_Only]
     https_port:
         required: False
@@ -83,32 +77,29 @@ options:
         description: Timeout value.
     snmp_enable:
         required: False
-        description: Whether to Enable or Disable SNMP protocol for iDRAC
+        description: Whether to Enable or Disable SNMP protocol for iDRAC.
         choices: [Enabled, Disabled]
     snmp_protocol:
         required: False
-        description: Type of the SNMP protocol
+        description: Type of the SNMP protocol.
         choices: [All, SNMPv3]
     community_name:
         required: False
-        description: SNMP community name for iDRAC
-        default: None
+        description: SNMP community name for iDRAC.
     alert_port:
         required: False
-        description: SNMP alert port for iDRAC
-        default: None
+        description: SNMP alert port for iDRAC.
     discovery_port:
         required: False
         description: SNMP discovery port for iDRAC.
         default: 162
     trap_format:
         required: False
-        description: SNMP trap format for iDRAC
-        default: None
+        description: SNMP trap format for iDRAC.
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
 
@@ -119,7 +110,7 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_pwd:  "xxxxxxxx"
        share_user: "xxxx"
        share_mnt: "/mnt/share"
@@ -138,21 +129,22 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Configures the iDRAC services attributes.
     returned: success
     type: string
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_idrac_services_config.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.enums.iDRAC.iDRAC import (Enable_WebServerTypes,
+                                         SSLEncryptionBitLength_WebServerTypes,
+                                         TLSProtocol_WebServerTypes,
+                                         AgentEnable_SNMPTypes,
+                                         SNMPProtocol_SNMPTypes)
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_idrac_services_config(idrac, module):
@@ -163,7 +155,6 @@ def run_idrac_services_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: iDRAC services configuration method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -173,7 +164,6 @@ def run_idrac_services_config(idrac, module):
     try:
 
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
@@ -181,9 +171,7 @@ def run_idrac_services_config(idrac, module):
                                                             module.params['share_user'],
                                                             module.params['share_pwd'])
                                                         )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
         set_liason = idrac.config_mgr.set_liason_share(upd_share)
         if set_liason['Status'] == "Failed":
             try:
@@ -193,82 +181,76 @@ def run_idrac_services_config(idrac, module):
             err = True
             msg['msg'] = "{}".format(message)
             msg['failed'] = True
-            logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
             return msg, err
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
-
-        logger.info(module.params['idrac_ip'] + ': CALLING: Setup iDRAC Webserver Configuration')
-
-        if module.params['enable_web_server'] != None:
+        if module.params['enable_web_server'] is not None:
             idrac.config_mgr.configure_web_server(
                 enable_web_server=Enable_WebServerTypes[module.params['enable_web_server']]
             )
-        if module.params['http_port'] != None:
+        if module.params['http_port'] is not None:
             idrac.config_mgr.configure_web_server(
                 http_port=module.params['http_port']
             )
-        if module.params['https_port'] != None:
+        if module.params['https_port'] is not None:
             idrac.config_mgr.configure_web_server(
                 https_port=module.params['https_port']
             )
-        if module.params['timeout'] != None:
+        if module.params['timeout'] is not None:
             idrac.config_mgr.configure_web_server(
                 timeout=module.params['timeout']
             )
-        if module.params['ssl_encryption'] != None:
+        if module.params['ssl_encryption'] is not None:
             idrac.config_mgr.configure_web_server(
                 ssl_encryption=SSLEncryptionBitLength_WebServerTypes[module.params['ssl_encryption']]
             )
-        if module.params['tls_protocol'] != None:
+        if module.params['tls_protocol'] is not None:
             idrac.config_mgr.configure_web_server(
                 tls_protocol=TLSProtocol_WebServerTypes[module.params['tls_protocol']]
             )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Setup iDRAC Webserver Configuration')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Setup SNMP for iDRAC')
-        if module.params['snmp_enable'] != None:
+        if module.params['snmp_enable'] is not None:
             idrac.config_mgr.configure_snmp(
                 snmp_enable=AgentEnable_SNMPTypes[module.params['snmp_enable']]
             )
-        if module.params['community_name'] != None:
+        if module.params['community_name'] is not None:
             idrac.config_mgr.configure_snmp(
                 community_name=module.params['community_name']
             )
-        if module.params['snmp_protocol'] != None:
+        if module.params['snmp_protocol'] is not None:
             idrac.config_mgr.configure_snmp(
                 snmp_protocol=SNMPProtocol_SNMPTypes[module.params['snmp_protocol']]
             )
-        if module.params['alert_port'] != None:
+        if module.params['alert_port'] is not None:
             idrac.config_mgr.configure_snmp(
                 alert_port=module.params['alert_port']
             )
-        if module.params['discovery_port'] != None:
+        if module.params['discovery_port'] is not None:
             idrac.config_mgr.configure_snmp(
                 discovery_port=module.params['discovery_port']
             )
-        if module.params['trap_format'] != None:
+        if module.params['trap_format'] is not None:
             idrac.config_mgr.configure_snmp(
                 trap_format=module.params['trap_format']
             )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Setup SNMP for iDRAC')
 
-        msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
-
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-                if "Message" in msg['msg']:
-                    if msg['msg']['Message'] == "No changes found to commit!":
-                        msg['changed'] = False
-            else:
-                msg['failed'] = True
+        if module.check_mode:
+            msg['msg'] = idrac.config_mgr.is_change_applicable()
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if msg['msg']['Message'] == "No changes found to commit!":
+                            msg['changed'] = False
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: iDRAC services configuration method')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC services configuration method')
     return msg, err
 
 
@@ -277,13 +259,10 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True,
                            type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
@@ -306,22 +285,19 @@ def main():
 
             # set up SNMP
             snmp_enable=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
-            community_name=dict(required=False, type='str', default=None),
+            community_name=dict(required=False, type='str'),
             snmp_protocol=dict(required=False, choices=['All', 'SNMPv3'], default=None),
-            alert_port=dict(required=False, default=None),
-            discovery_port=dict(required=False, default=None, type="int"),
-            trap_format=dict(required=False, default=None),
+            alert_port=dict(required=False),
+            discovery_port=dict(required=False, type="int", default=162),
+            trap_format=dict(required=False, ),
 
         ),
 
         supports_check_mode=True)
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Server Configuration')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     # Export Server Configuration Profile
     msg, err = run_idrac_services_config(idrac, module)
 
@@ -331,7 +307,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Server Configuration')
 
 
 if __name__ == '__main__':

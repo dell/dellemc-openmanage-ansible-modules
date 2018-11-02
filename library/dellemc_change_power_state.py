@@ -11,13 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.iDRACEnums import *
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -26,36 +22,32 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: dellemc_change_power_state
-short_description: Server power control
+short_description: Server power control.
 version_added: "2.3"
 description:
-    - Server power control operations
+    - Server power control operations.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     change_power:
         required:  True
         description: Desired power state.
         choices: [ "On","ForceOff","GracefulRestart","GracefulShutdown","PushPowerButton","Nmi" ]
-        default: None
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
 
@@ -70,25 +62,52 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Configures the power control option on a Dell EMC PowerEdge server.
     returned: success
     type: string
 
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_change_power_state.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.enums.iDRAC.iDRACEnums import ComputerSystemResetTypesEnum
+from omsdk.sdkdevice import iDeviceDriver
 
 
-# Get Lifecycle Controller status
+power_state_mapper = {
+    "On": ["On"],
+    "Off - Soft": ["ForceOff", "GracefulShutdown"],
+}
+
+
+def get_powerstate(idrac):
+    state = idrac._get_field_device(idrac.ComponentEnum.System, "PowerState")
+    return state
+
+
+def is_change_applicable_for_power_state(current_power_state, apply_power_state):
+    """when check_mode is enabled ,
+        checks if changes are applicable or not
+        :param current_power_state: Current power state
+        :type current_power_state: str
+        :param apply_power_state: Required power state
+        :type apply_power_state: str
+        :return: json message returned
+    """
+    apply_change_enum_list = ["GracefulRestart", "PushPowerButton", "Nmi"]
+    try:
+        if apply_power_state in apply_change_enum_list or \
+                apply_power_state not in power_state_mapper[current_power_state]:
+            msg = {'Status': 'Success', 'Message': 'Changes found to commit!', 'changes_applicable': True}
+        else:
+            msg = {'Status': 'Success', 'Message': 'No changes found to commit!', 'changes_applicable': False}
+    except Exception as err:
+        msg = {'Status': 'Failed', 'Message': 'Failed to execute the command!', 'changes_applicable': False}
+    return msg
+
+
 def run_change_power_state(idrac, module):
     """
     Get Lifecycle Controller status
@@ -97,7 +116,6 @@ def run_change_power_state(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: Change power state method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -106,20 +124,22 @@ def run_change_power_state(idrac, module):
 
     try:
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: Change power state OMSDK API')
-        msg['msg'] = idrac.config_mgr.change_power(ComputerSystemResetTypesEnum[module.params['change_power']])
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Change power state OMSDK API')
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-            else:
-                msg['failed'] = True
+        if module.check_mode:
+            pstate = get_powerstate(idrac)
+            msg['msg'] = is_change_applicable_for_power_state(pstate, module.params['change_power'])
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            msg['msg'] = idrac.config_mgr.change_power(ComputerSystemResetTypesEnum[module.params['change_power']])
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: Change power state OMSDK API')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Change power state Method')
     return msg, err
 
 
@@ -129,8 +149,6 @@ def main():
 
     module = AnsibleModule(
         argument_spec=dict(
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC credentials
             idrac_ip=dict(required=True, type='str'),
@@ -145,10 +163,8 @@ def main():
         supports_check_mode=True)
 
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection Success')
     # Get Lifecycle Controller status
     msg, err = run_change_power_state(idrac, module)
 

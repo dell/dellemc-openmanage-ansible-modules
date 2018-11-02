@@ -11,14 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.iDRAC import *
-# from omsdk.sdkfile import FileOnShare
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -34,35 +29,34 @@ description:
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
         required: True
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for Network Share.
     action:
         required: False
-        description: This value will decide whether to create or delete or modify iDRAC user.
+        description: This value will decide whether to C(create) or C(delete) or C(modify) iDRAC user.
         choices: [create, delete, modify]
         default: create
     user_name:
@@ -73,44 +67,41 @@ options:
         description: Provide the password for the user to be created or modified.
     privilege_users:
         required: False
-        description: Privilege user access is configurable
+        description: Privilege user access is configurable.
         choices: [NoAccess, Readonly, Operator, Administrator]
     ipmilanprivilege_users:
         required: False
-        description: IPMI Lan Privilege user access is configurable
+        description: IPMI Lan Privilege user access is configurable.
         choices: [Administrator, No_Access, Operator, User]
     ipmiserialprivilege_users:
         required: False
-        description: IPMI Serial Privilege user access is configurable
+        description: IPMI Serial Privilege user access is configurable.
         choices: [Administrator, No_Access, Operator, User]
     enable_users:
         required: False
-        description: Enabling or Disabling the new iDRAC user
-        default: None
+        description: Enabling or Disabling the new iDRAC user.
         choices: [Enabled, Disabled]
     solenable_users:
         required: False
-        description: Enabling SOL for iDRAC user
-        default: None
+        description: Enabling SOL for iDRAC user.
         choices: [Enabled, Disabled]
     protocolenable_users:
         required: False
-        description: Enabling protocol for iDRAC user
-        default: None
+        description: Enabling protocol for iDRAC user.
         choices: [Enabled, Disabled]
     authenticationprotocol_users:
         required: False
-        description: Configuring authentication protocol for iDRAC user
+        description: Configuring authentication protocol for iDRAC user.
         choices: [T_None, SHA, MD5]
     privacyprotocol_users:
         required: False
-        description: Configuring privacy protocol for iDRAC user
+        description: Configuring privacy protocol for iDRAC user.
         choices: [T_None, DES, AES]
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
 
@@ -121,7 +112,7 @@ EXAMPLES = """
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
+       share_name: "xx.xx.xx.xx:/share"
        share_pwd:  "xxxxxxxx"
        share_user: "xxxx"
        share_mnt: "/mnt/share"
@@ -139,21 +130,22 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Configures the iDRAC users attributes.
     returned: success
     type: string
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file,
-#                           defaults={'logfilename': dell_emc_log_path + '/dellemc_idrac_users_config.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.enums.iDRAC.iDRAC import (Enable_UsersTypes, SolEnable_UsersTypes,
+                                         ProtocolEnable_UsersTypes, Privilege_UsersTypes,
+                                         IpmiLanPrivilege_UsersTypes,
+                                         IpmiSerialPrivilege_UsersTypes,
+                                         AuthenticationProtocol_UsersTypes, PrivacyProtocol_UsersTypes)
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_idrac_users_config(idrac, module):
@@ -163,7 +155,6 @@ def run_idrac_users_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: iDRAC users configuration method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
@@ -173,7 +164,6 @@ def run_idrac_users_config(idrac, module):
     try:
 
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
         upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
@@ -181,9 +171,7 @@ def run_idrac_users_config(idrac, module):
                                                             module.params['share_user'],
                                                             module.params['share_pwd'])
                                                         )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
         set_liason = idrac.config_mgr.set_liason_share(upd_share)
         if set_liason['Status'] == "Failed":
             try:
@@ -193,38 +181,43 @@ def run_idrac_users_config(idrac, module):
             err = True
             msg['msg'] = "{}".format(message)
             msg['failed'] = True
-            logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
             return msg, err
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
 
         enable_users = solenable_users = protocolenable_users = None
         privilege_users = ipmilanprivilege_users = ipmiserialprivilege_users = None
-        if module.params['enable_users'] != None:
+        if module.params['enable_users'] is not None:
             enable_users = Enable_UsersTypes[module.params['enable_users']]
-        if module.params['solenable_users'] != None:
+        if module.params['solenable_users'] is not None:
             solenable_users = SolEnable_UsersTypes[module.params['solenable_users']]
-        if module.params['protocolenable_users'] != None:
+        if module.params['protocolenable_users'] is not None:
             protocolenable_users = ProtocolEnable_UsersTypes[module.params['protocolenable_users']]
 
-        if module.params['privilege_users'] != None:
+        if module.params['privilege_users'] is not None:
             privilege_users = Privilege_UsersTypes[module.params['privilege_users']]
-        if module.params['ipmilanprivilege_users'] != None:
+        if module.params['ipmilanprivilege_users'] is not None:
             ipmilanprivilege_users = IpmiLanPrivilege_UsersTypes[
                 module.params['ipmilanprivilege_users']]
-        if module.params['ipmiserialprivilege_users'] != None:
+        if module.params['ipmiserialprivilege_users'] is not None:
             ipmiserialprivilege_users = IpmiSerialPrivilege_UsersTypes[
                 module.params['ipmiserialprivilege_users']]
 
         authenticationprotocol_users = privacyprotocol_users = None
-        if module.params['authenticationprotocol_users'] != None:
+        if module.params['authenticationprotocol_users'] is not None:
             authenticationprotocol_users = AuthenticationProtocol_UsersTypes[
                 module.params['authenticationprotocol_users']]
-        if module.params['privacyprotocol_users'] != None:
+        if module.params['privacyprotocol_users'] is not None:
             privacyprotocol_users = PrivacyProtocol_UsersTypes[
                 module.params['privacyprotocol_users']]
 
         if module.params['action'] == 'create':
-            logger.info(module.params['idrac_ip'] + ': CALLING: create iDRAC user method')
+            if module.check_mode:
+                user = idrac.config_mgr._sysconfig.iDRAC.Users.find_first(
+                    UserName_Users=module.params['user_name'])
+                if user:
+                    msg['msg'] = {'Status': 'Success', 'Message': 'No changes found to commit', 'changes_applicable': False}
+                    msg['changed'] = msg['msg']['changes_applicable']
+                    return msg, err
+
             idrac.user_mgr.Users.new(
                 UserName_Users=module.params['user_name'],
                 Password_Users=module.params['user_password'],
@@ -237,10 +230,8 @@ def run_idrac_users_config(idrac, module):
                 AuthenticationProtocol_Users=authenticationprotocol_users,
                 PrivacyProtocol_Users=privacyprotocol_users
             )
-            logger.info(module.params['idrac_ip'] + ': FINISHED: create iDRAC user method')
 
         if module.params['action'] == 'modify':
-            logger.info(module.params['idrac_ip'] + ': CALLING: modify iDRAC user method')
             user = idrac.config_mgr._sysconfig.iDRAC.Users.find_first(
                 UserName_Users=module.params['user_name']
             )
@@ -268,31 +259,30 @@ def run_idrac_users_config(idrac, module):
                 err = True
                 msg['msg'] = "{}".format(message)
                 msg['failed'] = True
-                logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
                 return msg, err
-            logger.info(module.params['idrac_ip'] + ': FINISHED: modify iDRAC user method')
 
         if module.params['action'] == 'delete':
-            logger.info(module.params['idrac_ip'] + ': CALLING: remove iDRAC user method')
             idrac.user_mgr.Users.remove(UserName_Users=module.params['user_name'])
-            logger.info(module.params['idrac_ip'] + ': FINISHED: remove iDRAC user method')
 
-        msg['msg'] = idrac.config_mgr.apply_changes()
+        if module.check_mode:
+            msg['msg'] = idrac.config_mgr.is_change_applicable()
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes()
 
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-                if "Message" in msg['msg']:
-                    if msg['msg']['Message'] == "No changes found to commit!":
-                        msg['changed'] = False
-            else:
-                msg['failed'] = True
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if msg['msg']['Message'] == "No changes found to commit!":
+                            msg['changed'] = False
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: iDRAC users configuration method')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC users configuration method')
     return msg, err
 
 
@@ -300,13 +290,11 @@ def run_idrac_users_config(idrac, module):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
 
             # iDRAC credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True,
                            type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
@@ -329,22 +317,19 @@ def main():
             ipmiserialprivilege_users=dict(required=False,
                                            choices=['Administrator', 'No_Access', 'Operator', 'User'],
                                            default=None),
-            enable_users=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
-            solenable_users=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
-            protocolenable_users=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
+            enable_users=dict(required=False, choices=['Enabled', 'Disabled']),
+            solenable_users=dict(required=False, choices=['Enabled', 'Disabled']),
+            protocolenable_users=dict(required=False, choices=['Enabled', 'Disabled']),
             authenticationprotocol_users=dict(required=False, choices=['T_None', 'SHA', 'MD5'], default=None),
             privacyprotocol_users=dict(required=False, choices=['T_None', 'DES', 'AES'], default=None),
 
         ),
 
         supports_check_mode=True)
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Server Configuration')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     # Export Server Configuration Profile
     msg, err = run_idrac_users_config(idrac, module)
 
@@ -354,7 +339,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Server Configuration')
 
 
 if __name__ == '__main__':

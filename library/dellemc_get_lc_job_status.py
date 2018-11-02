@@ -11,12 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -25,34 +22,31 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: dellemc_get_lc_job_status
-short_description: Get the status of a Lifecycle Controller Job
+short_description: Get the status of a Lifecycle Controller Job.
 version_added: "2.3"
 description: Get the status of a Lifecycle Controller job using its JOB ID.
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     job_id:
         required: True
-        description: JOB ID in the format "JID_123456789012"
+        description: JOB ID in the format "JID_123456789012".
 
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Rajeev Arakkal (@rajeevarakkal)"
 
 """
 
@@ -67,21 +61,15 @@ EXAMPLES = """
 """
 
 RETURNS = """
----
-- dest:
+dest:
     description: Displays the status of a Lifecycle Controller job.
     returned: success
     type: string
-
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_lcjobstatus.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection
+from ansible.module_utils.basic import AnsibleModule
 
 
 def run_get_lc_job_status(idrac, module):
@@ -92,7 +80,6 @@ def run_get_lc_job_status(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: Get LC JOB Status Method')
     msg = {}
     msg['failed'] = False
     msg['changed'] = False
@@ -100,16 +87,12 @@ def run_get_lc_job_status(idrac, module):
 
     try:
         # idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: Get LC JOB Status OMSDK API')
         msg['msg'] = idrac.job_mgr.get_job_status(module.params['job_id'])
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Get LC JOB Status OMSDK API')
 
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.info(module.params['idrac_ip'] + ': EXCEPTION: Get LC JOB Status OMSDK API')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Get LC JOB Status Method')
     return msg, err
 
 
@@ -118,13 +101,10 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC Credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True,
                            type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
@@ -132,13 +112,11 @@ def main():
             job_id=dict(required=True, type='str')
         ),
 
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection Success')
     msg, err = run_get_lc_job_status(idrac, module)
 
     # Disconnect from iDRAC
@@ -147,7 +125,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Get Lifecycle JOB Status')
 
 
 if __name__ == '__main__':

@@ -11,15 +11,9 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
-from builtins import *
-from ansible.module_utils.dellemc_idrac import *
-from ansible.module_utils.basic import AnsibleModule
-from omdrivers.enums.iDRAC.BIOS import *
-from omdrivers.enums.iDRAC.iDRACEnums import BootModeEnum
-# from omsdk.sdkfile import FileOnShare
-# import logging.config
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
@@ -35,94 +29,183 @@ description:
 options:
     idrac_ip:
         required: True
-        description: iDRAC IP Address
-        default: None
+        description: iDRAC IP Address.
     idrac_user:
         required: True
-        description: iDRAC username
-        default: None
+        description: iDRAC username.
     idrac_pwd:
         required: True
-        description: iDRAC user password
-        default: None
+        description: iDRAC user password.
     idrac_port:
         required: False
-        description: iDRAC port
+        description: iDRAC port.
         default: 443
     share_name:
-        required: True
+        required: False
         description: Network share or a local path.
     share_user:
         required: False
-        description: Network share user in the format 'user@domain' if user is part of a domain else 'user'.
+        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
+            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_pwd:
         required: False
-        description: Network share user password
+        description: Network share user password. This option is mandatory for CIFS Network Share.
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
-    boot_mode: 
+            This option is mandatory for Network Share.
+    boot_mode:
         required: False
-        description: Configures the boot mode to BIOS or UEFI
-        choice: [Bios, Uefi]
+        description:
+        - (deprecated)Configures the boot mode to BIOS or UEFI.
+        - This option has been deprecated, and will be removed in later version. Please use the I(attributes)
+            for BIOS attributes configuration instead.
+        - I(boot_mode) is mutually exclusive with I(boot_sources).
+        choices: [Bios, Uefi]
     nvme_mode:
         required: False
-        description: Configures the NVME mode in the 14th Generation of PowerEdge Servers
+        description:
+        - (deprecated)Configures the NVME mode in the 14th Generation of PowerEdge Servers.
+        - This option has been deprecated, and will be removed in later version. Please use the I(attributes)
+            for BIOS attributes configuration instead.
+        - I(nvme_mode) is mutually exclusive with I(boot_sources).
         choices: [NonRaid, Raid]
     secure_boot_mode:
         required: False
-        description: Configures how the BIOS uses the Secure Boot Policy Objects in the 14th Generation
-            of PowerEdge Servers
+        description:
+        - (deprecated)Configures how the BIOS uses the Secure Boot Policy Objects in the 14th Generation
+            of PowerEdge Servers.
+        - This option has been deprecated, and will be removed in later version. Please use the I(attributes)
+            for BIOS attributes configuration instead.
+        - I(secure_boot_mode) is mutually exclusive with I(boot_sources).
         choices: [AuditMode, DeployedMode, SetupMode, UserMode]
     onetime_boot_mode:
         required: False
-        description: Configures the one time boot mode setting.
+        description:
+        - (deprecated)Configures the one time boot mode setting.
+        - This option has been deprecated, and will be removed in later version. Please use the I(attributes)
+            for BIOS attributes configuration instead.
+        - I(onetime_boot_mode) is mutually exclusive with I(boot_sources).
         choices: [Disabled, OneTimeBootSeq, OneTimeCustomBootSeqStr, OneTimeCustomHddSeqStr,
             OneTimeCustomUefiBootSeqStr, OneTimeHddSeq, OneTimeUefiBootSeq]
     boot_sequence:
         required: False
-        description: Boot devices FQDDs in the sequential order for BIOS or UEFI Boot Sequence. 
-            Ensure that ‘boot_mode’ option is provided to determine the appropriate boot sequence to be applied
+        description:
+        - (deprecated)Boot devices FQDDs in the sequential order for BIOS or UEFI Boot Sequence.
+            Ensure that I(boot_mode) option is provided to determine the appropriate boot sequence to be applied.
+        - This option has been deprecated, and will be removed in later version. Please use the I(attributes) or
+            I(boot_sources) for Boot Sequence modification instead.
+        - I(boot_sequence) is mutually exclusive with I(boot_sources).
+    attributes:
+        required: False
+        description:
+        - Dictionary of bios attributes and value pair. Attributes should be
+            part of the Redfish Dell BIOS Attribute Registry. Redfish URI to view Bios attributes
+            U(https://I(idrac_ip)/redfish/v1/Systems/System.Embedded.1/Bios)
+        - If deprecated options are given and the same is repeated in I(attributes) then values in I(attributes) will
+            take precedence.
+        - I(attributes) is mutually exclusive with I(boot_sources).
+    boot_sources:
+        required: False
+        description:
+        - List of boot devices to set the boot sources settings. boot devices are dictionary.
+        - I(boot_sources) is mutually exclusive with I(attributes), I(boot_sequence),
+            I(onetime_boot_mode), I(secure_boot_mode), I(nvme_mode), I(boot_mode).
+
 requirements:
     - "omsdk"
-    - "python >= 2.7"
-author: "OpenManageAnsibleEval@dell.com"
+    - "python >= 2.7.5"
+author: "Felix Stephen (@felixs88)"
 
 """
+
 
 EXAMPLES = """
 ---
-- name: Configure the BIOS single attributes.
+- name: Configure Bios Generic Attributes
   dellemc_configure_bios:
-       idrac_ip:   "xx.xx.xx.xx"
-       idrac_user: "xxxx"
-       idrac_pwd:  "xxxxxxxx"
-       share_name: "\\\\xx.xx.xx.xx\\share"
-       share_pwd:  "xxxxxxxx"
-       share_user: "xxxx"
-       share_mnt: "/mnt/share"
-       boot_mode : "xxxxx"
-       nvme_mode: "xxxxx"
-       secure_boot_mode:  "xxxxxx"
-       onetime_boot_mode:  "xxxxxx"
-       boot_sequence: "NIC.PxeDevice.x-x, NIC.PxeDevice.x-x"
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    attributes:
+      BootMode : "Bios"
+      OneTimeBootMode: "Enabled"
+      BootSeqRetry: "Enabled"
+
+- name: Configure PXE Generic Attributes
+  dellemc_configure_bios:
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    attributes:
+      PxeDev1EnDis: "Enabled"
+      PxeDev1Protocol: "IPV4"
+      PxeDev1VlanEnDis: "Enabled"
+      PxeDev1VlanId: x
+      PxeDev1Interface: "NIC.Embedded.x-x-x"
+      PxeDev1VlanPriority: x
+
+- name: Configure Boot Sources
+  dellemc_configure_bios:
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    boot_sources:
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+        Index : 0
+
+- name: Configure Boot Sources
+  dellemc_configure_bios:
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    boot_sources:
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+        Index : 0
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+        Index : 1
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+        Index : 2
+
+- name: Configure Boot Sources - Enabled
+  dellemc_configure_bios:
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    boot_sources:
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+
+- name: Configure Boot Sources - Index
+  dellemc_configure_bios:
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    boot_sources:
+      - Name : "NIC.Integrated.x-x-x"
+        Index : 0
 """
 
+
 RETURNS = """
----
 dest:
     description: Configures the BIOS configuration attributes.
     returned: success
     type: string
 """
 
-# log_root = '/var/log'
-# dell_emc_log_path = log_root + '/dellemc'
-# dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-#
-# logging.config.fileConfig(dell_emc_log_file, defaults={'logfilename': dell_emc_log_path + '/dellemc_bios_config.log'})
-# # create logger
-# logger = logging.getLogger('ansible')
+
+from ansible.module_utils.dellemc_idrac import iDRACConnection, Constants
+from ansible.module_utils.basic import AnsibleModule
+from omdrivers.enums.iDRAC.BIOS import (BootModeTypes, NvmeModeTypes, SecureBootModeTypes,
+                                        OneTimeBootModeTypes)
+from omdrivers.enums.iDRAC.iDRACEnums import BootModeEnum
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_server_bios_config(idrac, module):
@@ -133,25 +216,55 @@ def run_server_bios_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    logger.info(module.params['idrac_ip'] + ': STARTING: server bios config method')
     msg = {}
     msg['changed'] = False
     msg['failed'] = False
     err = False
+    share_name = module.params.get('share_name')
+    share_path = share_name if share_name is not None else Constants.share_name
+    deprecation_warning_message = 'boot_mode, nvme_mode, secure_boot_mode, onetime_boot_mode and boot_sequence options ' \
+                                  'have been deprecated, and will be removed. ' \
+                                  'Please use the attributes option for Bios attributes configuration instead.'
     try:
-
         idrac.use_redfish = True
-        logger.info(module.params['idrac_ip'] + ': CALLING: File on share OMSDK API')
-        upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
+        upd_share = file_share_manager.create_share_obj(share_path=share_path,
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
                                                         creds=UserCredentials(
                                                             module.params['share_user'],
                                                             module.params['share_pwd'])
                                                         )
-        logger.info(module.params['idrac_ip'] + ': FINISHED: File on share OMSDK API')
+        if module.params['boot_sources']:
+            err, message = _validate_params(module.params['boot_sources'])
+            if err:
+                msg['changed'] = False
+                msg['failed'] = True
+                msg['msg'] = {}
+                msg['msg']['Message'] = message
+                msg['msg']['Status'] = "Failed"
+                return msg, err
+            if module.check_mode:
+                msg['msg'] = idrac.config_mgr.is_change_applicable()
+                if 'changes_applicable' in msg['msg']:
+                    msg['changed'] = msg['msg']['changes_applicable']
+                    return msg, err
+            msg['msg'] = idrac.config_mgr.configure_boot_sources(
+                input_boot_devices=module.params['boot_sources'])
 
-        logger.info(module.params['idrac_ip'] + ': CALLING: Set liasion share OMSDK API')
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if msg['msg']['Message'] == "No changes found to commit!":
+                            msg['changed'] = False
+                        elif msg['msg']['Message'] == "No changes found to apply.":
+                            msg['changed'] = False
+                else:
+                    msg['failed'] = True
+                    err = True
+                    msg['changed'] = False
+            return msg, err
+
         set_liason = idrac.config_mgr.set_liason_share(upd_share)
         if set_liason['Status'] == "Failed":
             try:
@@ -159,79 +272,155 @@ def run_server_bios_config(idrac, module):
             except (IndexError, KeyError):
                 message = set_liason['Message']
             err = True
-            msg['msg'] = "{}".format(message)
+            msg['msg'] = "Error: {}".format(message)
             msg['failed'] = True
-            logger.info(module.params['idrac_ip'] + ': FINISHED: {}'.format(message))
             return msg, err
+        if (module.params['boot_mode'] or module.params['nvme_mode']
+                or ['secure_boot_mode'] or module.params['onetime_boot_mode'] or module.params["boot_mode"]):
+            module.deprecate(deprecation_warning_message, version='2.9')
 
-        logger.info(module.params['idrac_ip'] + ': FINISHED: Set liasion share OMSDK API')
-
-        logger.info(module.params['idrac_ip'] + ': CALLING: server bios config OMSDK API')
-
-        if module.params['boot_mode']:
-            logger.info(module.params['idrac_ip'] + ': CALLING: server bios Boot mode OMSDK API')
+        if module.params['boot_mode'] and not (module.params['attributes']
+                                               and 'BootMode' in module.params['attributes']):
             idrac.config_mgr.configure_boot_mode(
                 boot_mode=BootModeTypes[module.params['boot_mode']])
 
-        if module.params['nvme_mode']:
-            logger.info(module.params['idrac_ip'] + ': CALLING: server bios nvme mode OMSDK API')
+        if module.params['nvme_mode'] and not (module.params['attributes']
+                                               and 'NvmeMode' in module.params['attributes']):
             idrac.config_mgr.configure_nvme_mode(
                 nvme_mode=NvmeModeTypes[module.params['nvme_mode']])
 
-        if module.params['secure_boot_mode']:
-            logger.info(module.params['idrac_ip'] + ': CALLING: server bios secure boot OMSDK API')
+        if module.params['secure_boot_mode'] and not (module.params['attributes']
+                                                      and 'SecureBootMode' in module.params['attributes']):
             idrac.config_mgr.configure_secure_boot_mode(
                 secure_boot_mode=SecureBootModeTypes[module.params['secure_boot_mode']])
 
-        if module.params['onetime_boot_mode']:
-            logger.info(module.params['idrac_ip'] + ': CALLING: server bios one time boot  mode OMSDK API')
+        if module.params['onetime_boot_mode'] and not (module.params['attributes']
+                                                       and 'OneTimeBootMode' in module.params['attributes']):
             idrac.config_mgr.configure_onetime_boot_mode(
                 onetime_boot_mode=OneTimeBootModeTypes[module.params['onetime_boot_mode']])
 
-        if module.params["boot_mode"] != None and module.params["boot_sequence"] != None:
-            logger.info(module.params["idrac_ip"] + ': CALLING: Boot sequence configuration OMSDK API')
+        if module.params["boot_mode"] is not None and module.params["boot_sequence"] is not None:
             idrac.config_mgr.configure_boot_sequence(
                 boot_mode=BootModeEnum[module.params['boot_mode']],
                 boot_sequence=module.params['boot_sequence']
             )
 
-        msg['msg'] = idrac.config_mgr.apply_changes(reboot=True)
-
-        logger.info(module.params['idrac_ip'] + ': FINISHED: server bios config OMSDK API')
-        if "Status" in msg['msg']:
-            if msg['msg']['Status'] == "Success":
-                msg['changed'] = True
-                if "Message" in msg['msg']:
-                    if msg['msg']['Message'] == "No changes found to commit!":
-                        msg['changed'] = False
-            else:
+        if module.params['attributes']:
+            msg['msg'] = idrac.config_mgr.configure_bios(
+                bios_attr_val=module.params['attributes'])
+            if msg['msg']['Status'] != 'Success':
+                err = True
                 msg['failed'] = True
+                return msg, err
+
+        if module.check_mode:
+            msg['msg'] = idrac.config_mgr.is_change_applicable()
+            if 'changes_applicable' in msg['msg']:
+                msg['changed'] = msg['msg']['changes_applicable']
+        else:
+            msg['msg'] = idrac.config_mgr.apply_changes(reboot=True)
+
+            if "Status" in msg['msg']:
+                if msg['msg']['Status'] == "Success":
+                    msg['changed'] = True
+                    if "Message" in msg['msg']:
+                        if msg['msg']['Message'] == "No changes found to commit!":
+                            msg['changed'] = False
+                        elif msg['msg']['Message'] == "No changes found to apply.":
+                            msg['changed'] = False
+                else:
+                    msg['failed'] = True
     except Exception as e:
         err = True
         msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
-        logger.error(module.params['idrac_ip'] + ': EXCEPTION: server bios config OMSDK API')
-    logger.info(module.params['idrac_ip'] + ': FINISHED: server bios config Method')
     return msg, err
+
+
+def _validate_params(params):
+    """
+    Validate list of dict params.
+    :param params: Ansible list of dict
+    :return: bool or error.
+    """
+    err, msg = False, ""
+    fields = [
+        {"name": "Name", "type": str, "required": True},
+        {"name": "Index", "type": int, "required": False, "min": 0},
+        {"name": "Enabled", "type": bool, "required": False}
+    ]
+    default = ['Name', 'Index', 'Enabled']
+    for attr in params:
+        if not isinstance(attr, dict):
+            err, msg = True, "{} must be of type: {}. {} ({}) provided.".format(
+                "attribute values", dict, attr, type(attr))
+            return err, msg
+        elif all(k in default for k in attr.keys()):
+            err, msg = check_params(attr, fields)
+            if err:
+                return err, msg
+        else:
+            err, msg = True, "attribute keys must be one of the {}.".format(default)
+            return err, msg
+    err, msg = _validate_name_index_duplication(params)
+    return err, msg
+
+
+def _validate_name_index_duplication(params):
+    """
+    Validate for duplicate names and indices.
+    :param params: Ansible list of dict
+    :return: bool or error.
+    """
+    err, msg = False, ""
+    for i in range(len(params) - 1):
+        for j in range(i + 1, len(params)):
+            if params[i]['Name'] == params[j]['Name']:
+                err, msg = True, "duplicate name  {}".format(params[i]['Name'])
+                return err, msg
+    return err, msg
+
+
+def check_params(each, fields):
+    """
+    Each dictionary parameters validation as per the rule defined in fields.
+    :param each: validating each dictionary
+    :param fields: list of dictionary which has the set of rules.
+    :return: tuple which has err and message
+    """
+    err, msg = False, ""
+    for f in fields:
+        if f['name'] not in each and f["required"] is False:
+            continue
+        if not f["name"] in each and f["required"] is True:
+            err, msg = True, "{} is required and must be of type: {}".format(f['name'],
+                                                                             f['type'])
+        elif not isinstance(each[f["name"]], f["type"]):
+            err, msg = True, "{} must be of type: {}. {} ({}) provided.".format(
+                f['name'], f['type'], each[f['name']], type(each[f['name']]))
+        elif f['name'] in each and isinstance(each[f['name']], int) and 'min' in f:
+            if each[f['name']] < f['min']:
+                err, msg = True, "{} must be greater than or equal to: {}".format(f['name'],
+                                                                                  f['min'])
+    return err, msg
 
 
 # Main
 def main():
+    mutual_exclusive_args = [['boot_sources', 'attributes'], ['boot_sources', 'secure_boot_mode'],
+                             ['boot_sources', 'boot_mode'], ['boot_sources', 'boot_sequence'],
+                             ['boot_sources', 'nvme_mode'], ['boot_sources', 'onetime_boot_mode']]
     module = AnsibleModule(
         argument_spec=dict(
 
-            # iDRAC Handle
-            idrac=dict(required=False, type='dict'),
-
             # iDRAC credentials
-            idrac_ip=dict(required=True, default=None, type='str'),
-            idrac_user=dict(required=True, default=None, type='str'),
-            idrac_pwd=dict(required=True, default=None,
-                           type='str', no_log=True),
+            idrac_ip=dict(required=True, type='str'),
+            idrac_user=dict(required=True, type='str'),
+            idrac_pwd=dict(required=True, type='str', no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
             # Export Destination
-            share_name=dict(required=True, type='str'),
+            share_name=dict(required=False, type='str'),
             share_pwd=dict(required=False, type='str', no_log=True),
             share_user=dict(required=False, type='str'),
             share_mnt=dict(required=False, type='str'),
@@ -247,16 +436,15 @@ def main():
 
             # Bios Boot Sequence
             boot_sequence=dict(required=False, type="str", default=None),
+            attributes=dict(required=False, type='dict'),
+            boot_sources=dict(required=False, type='list')
         ),
-
+        mutually_exclusive=mutual_exclusive_args,
         supports_check_mode=True)
-    logger.info(module.params['idrac_ip'] + ': STARTING: Export Server Configuration Profile')
     # Connect to iDRAC
-    logger.info(module.params['idrac_ip'] + ': CALLING: iDRAC Connection')
     idrac_conn = iDRACConnection(module)
     idrac = idrac_conn.connect()
 
-    logger.info(module.params['idrac_ip'] + ': FINISHED: iDRAC Connection is successful')
     # Export Server Configuration Profile
     msg, err = run_server_bios_config(idrac, module)
 
@@ -266,7 +454,6 @@ def main():
     if err:
         module.fail_json(**msg)
     module.exit_json(**msg)
-    logger.info(module.params['idrac_ip'] + ': FINISHED: Exported Server Configuration Profile')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,24 @@
+html,body {
+    background-color: #fff;
+}
+header,#navheader,#breadcrumbs,#leftbar,#topnav,#topicnav {
+    display: none;
+}
+#center,#scroller,.jspContainer,.jspPane {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    overflow: hidden !important;
+    height: auto !important;
+    width: auto !important;
+}
+#printall {
+    display: block;
+}
+@media print  {
+    figure img {
+        max-width: 100% !important;
+    }
+}
