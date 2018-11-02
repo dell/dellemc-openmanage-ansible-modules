@@ -145,13 +145,16 @@ author: "Rajeev Arakkal (@rajeevarakkal)"
 
 EXAMPLES = """
 ---
-- name: Create single volume with default values.
+- name: Create single volume.
   dellemc_idrac_storage_volume:
      idrac_ip:    "xx.xxx.xx.xx"
      idrac_user:  "xxxx"
      idrac_pwd:   "xxxxxxxx"
      state: "create"
      controller_id: "RAID.Slot.1-1"
+     volumes:
+       - drives:
+            location: [5]
 
 - name: Create multiple volume.
   dellemc_idrac_storage_volume:

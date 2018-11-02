@@ -104,6 +104,7 @@ dest:
 """
 
 
+import os
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
@@ -147,7 +148,10 @@ def run_update_fw_from_nw_share(idrac, module):
             msg['failed'] = True
             return msg, err
 
-        upd_share = FileOnShare(remote=module.params['share_name'] + "/" + module.params['catalog_file_name'],
+        share_name = module.params['share_name']
+        if share_name is None:
+            share_name = ''
+        upd_share = FileOnShare(remote="{}{}{}".format(share_name, os.sep, module.params['catalog_file_name']),
                                 mount_point=module.params['share_mnt'],
                                 isFolder=False,
                                 creds=UserCredentials(

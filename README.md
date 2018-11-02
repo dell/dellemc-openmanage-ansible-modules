@@ -4,16 +4,16 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 ## Supported Platforms
 Dell EMC PowerEdge Servers with:
-  * 12G and 13G PowerEdge Servers: iDRAC 7/8 with Firmware version 2.50.50.50 and 2.60.60.60
-  * 14G PowerEdge Servers: iDRAC 9 with Firmware version 3.18.18.18 and 3.21.21.21
+  * 12G and 13G PowerEdge Servers: iDRAC 7/8 with Firmware version 2.50.50.50 and above
+  * 14G PowerEdge Servers: iDRAC 9 with Firmware version 3.18.18.18 and above
 
 ## Prerequisites
   * Ansible >= 2.3
   * Python >= 2.7.5
-  * [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk/tree/devel)
+  * [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ## Documentation
-Please refer to the [OpenManage Ansible Modules Documentation](./docs) 
+Please refer to the [OpenManage Ansible Modules Documentation](./guides)
 
 ## Examples
 Sample playbooks and examples could be found under [examples](./examples) directory
@@ -31,7 +31,7 @@ Sample Results for the respective modules could be found under [samples](./sampl
 
   * Clone the latest development repository and install the ansible modules. 
   ```
-  git clone -b devel --single-branch https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC.git
+  git clone https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC.git
   cd Dell-EMC-Ansible-Modules-for-iDRAC
   python install.py
   ```
@@ -45,7 +45,7 @@ python uninstall.py
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. Please see the [COPYING](
-https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/devel/COPYING.md) for more information
+https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/COPYING.md) for more information
 
 ## Support
   * This devel branch corresponds to the release actively under development.

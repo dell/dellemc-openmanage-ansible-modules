@@ -1,0 +1,15 @@
+---
+- hosts: hosts
+  connection: local
+  name: Configure iDRAC syslog attributes
+  gather_facts: False
+
+  tasks:
+  - name: Configure iDRAC syslog attributes
+    dellemc_setup_idrac_syslog:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       share_name: "{{ playbook_dir }}"
+       syslog: "Disabled"
+

@@ -1,0 +1,15 @@
+---
+- hosts: hosts
+  connection: local
+  name: Update Firmware Inventory
+  gather_facts: False
+
+  tasks:
+  - name: Update Firmware Inventory
+    dellemc_install_firmware:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd: "{{ idrac_pwd }}"
+       share_name: "{{ playbook_dir }}"
+       reboot: False
+       job_wait: True

@@ -1,0 +1,32 @@
+---
+- hosts: hosts
+  connection: local
+  name: Export Server Configuration Profile to local folder
+  gather_facts: False
+
+  tasks:
+  - name: Export Server Configuration Profile to local folder 
+    dellemc_export_server_config_profile:
+       idrac_ip:        "{{ idrac_ip }}"
+       idrac_user:      "{{ idrac_user }}"
+       idrac_pwd:       "{{ idrac_pwd }}"
+       idrac_port:      "443"
+       share_name:      "{{ playbook_dir }}"
+       scp_components:  "BIOS"
+       job_wait:        "True"
+    tags:
+        - scp_components_bios
+        
+  - name: Export Server Configuration Profile 
+    dellemc_export_server_config_profile:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       job_wait: "False"
+       share_name: "{{ playbook_dir }}"
+       scp_components: "NIC"
+       export_format: "JSON"
+       export_use: "Default"
+    tags:
+        - scp_components_nic
+    

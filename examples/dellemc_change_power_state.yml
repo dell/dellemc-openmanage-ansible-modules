@@ -1,0 +1,16 @@
+---
+- hosts: hosts
+  connection: local
+  name: Configure Server Power Setting
+  gather_facts: False
+
+  tasks:
+  - name: Configure Server Power Setting
+    dellemc_change_power_state:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       change_power: "PushPowerButton"
+
+    tags:
+      - power_state

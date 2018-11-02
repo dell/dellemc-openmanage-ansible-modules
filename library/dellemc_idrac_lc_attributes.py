@@ -155,7 +155,7 @@ def run_setup_idrac_csior(idrac, module):
                     msg['failed'] = True
     except Exception as e:
         err = True
-        # msg['msg'] = "Error: %s" % str(e)
+        msg['msg'] = "Error: %s" % str(e)
         msg['failed'] = True
     return msg, err
 
