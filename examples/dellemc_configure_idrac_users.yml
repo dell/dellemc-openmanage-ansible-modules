@@ -1,0 +1,59 @@
+---
+- hosts: hosts
+  connection: local
+  name: Configure the iDRAC users attributes
+  gather_facts: False
+
+  tasks:
+  - name: Configure the create iDRAC users attributes
+    dellemc_configure_idrac_users:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       share_name: "{{ playbook_dir }}"
+       action: "create"
+       user_name: "user_name"
+       user_password: "user_pwd"
+       privilege_users: 'Administrator'
+       ipmilanprivilege_users: 'Operator'
+       ipmiserialprivilege_users: 'Administrator'
+       enable_users: 'Enabled'
+       solenable_users: 'Enabled'
+       protocolenable_users: 'Enabled'
+       privacyprotocol_users: 'DES'
+       authenticationprotocol_users: 'MD5'
+
+    tags:
+      - idrac_create_user
+
+  - name: Configure the modify iDRAC users attributes
+    dellemc_configure_idrac_users:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       share_name: "{{ playbook_dir }}"
+       action: "modify"
+       user_name: "user_name"
+       privilege_users: 'Administrator'
+       ipmilanprivilege_users: 'Operator'
+       ipmiserialprivilege_users: 'Administrator'
+       enable_users: 'Enabled'
+       solenable_users: 'Enabled'
+       protocolenable_users: 'Enabled'
+       privacyprotocol_users: 'DES'
+       authenticationprotocol_users: 'MD5'
+
+    tags:
+      - idrac_modify_user
+
+  - name: Configure the delete iDRAC users attributes
+    dellemc_configure_idrac_users:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_pwd:  "{{ idrac_pwd }}"
+       share_name: "{{ playbook_dir }}"
+       action: "delete"
+       user_name: "user_name"
+
+    tags:
+      - idrac_delete_user

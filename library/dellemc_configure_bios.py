@@ -41,7 +41,7 @@ options:
         description: iDRAC port.
         default: 443
     share_name:
-        required: True
+        required: False
         description: Network share or a local path.
     share_user:
         required: False
@@ -119,53 +119,77 @@ author: "Felix Stephen (@felixs88)"
 
 """
 
+
 EXAMPLES = """
 ---
-- name: Configure the BIOS single attributes.
+- name: Configure Bios Generic Attributes
   dellemc_configure_bios:
-       idrac_ip:   "xx.xx.xx.xx"
-       idrac_user: "xxxx"
-       idrac_pwd:  "xxxxxxxx"
-       share_name: "xx.xx.xx.xx:/share"
-       share_pwd:  "xxxxxxxx"
-       share_user: "xxxx"
-       share_mnt: "/mnt/share"
-       boot_mode : "xxxxx"
-       nvme_mode: "xxxxx"
-       secure_boot_mode:  "xxxxxx"
-       onetime_boot_mode:  "xxxxxx"
-       boot_sequence: "NIC.PxeDevice.x-x, NIC.PxeDevice.x-x"
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    attributes:
+      BootMode : "Bios"
+      OneTimeBootMode: "Enabled"
+      BootSeqRetry: "Enabled"
 
-- name: bios
+- name: Configure PXE Generic Attributes
   dellemc_configure_bios:
-       idrac_ip:   "x.x.x.x"
-       idrac_user: "xxxx"
-       idrac_pwd:  "xxxxxxxx"
-       share_name: "x.x.x.x:/share"
-       share_pwd: "xxxxxxxx"
-       share_user: "xxxx"
-       share_mnt:  "/mnt/share"
-       attributes:
-            BootMode : "Bios"
-            BootSeqRetry: "Enabled"
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    attributes:
+      PxeDev1EnDis: "Enabled"
+      PxeDev1Protocol: "IPV4"
+      PxeDev1VlanEnDis: "Enabled"
+      PxeDev1VlanId: x
+      PxeDev1Interface: "NIC.Embedded.x-x-x"
+      PxeDev1VlanPriority: x
 
-- name: boot_sources
+- name: Configure Boot Sources
   dellemc_configure_bios:
-       idrac_ip:   "x.x.x.x"
-       idrac_user: "xxxx"
-       idrac_pwd:  "xxxxxxxx"
-       share_name: "x.x.x.x:/share"
-       share_pwd: "xxxxxxxx"
-       share_user: "xxxx"
-       share_mnt:  "/mnt/share"
-       boot_sources:
-          - Name : "NIC.Integrated.1-1-1"
-            Enabled : true
-            Index : 1
-          - Name : "NIC.Integrated.1-2-1"
-            Enabled : true
-            Index : 0
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    boot_sources:
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+        Index : 0
+
+- name: Configure Boot Sources
+  dellemc_configure_bios:
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    boot_sources:
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+        Index : 0
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+        Index : 1
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+        Index : 2
+
+- name: Configure Boot Sources - Enabled
+  dellemc_configure_bios:
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    boot_sources:
+      - Name : "NIC.Integrated.x-x-x"
+        Enabled : true
+
+- name: Configure Boot Sources - Index
+  dellemc_configure_bios:
+    idrac_ip:   "xx.xx.xx.xx"
+    idrac_user: "xxxx"
+    idrac_pwd:  "xxxxxxxx"
+    boot_sources:
+      - Name : "NIC.Integrated.x-x-x"
+        Index : 0
 """
+
 
 RETURNS = """
 dest:
@@ -175,7 +199,7 @@ dest:
 """
 
 
-from ansible.module_utils.dellemc_idrac import iDRACConnection
+from ansible.module_utils.dellemc_idrac import iDRACConnection, Constants
 from ansible.module_utils.basic import AnsibleModule
 from omdrivers.enums.iDRAC.BIOS import (BootModeTypes, NvmeModeTypes, SecureBootModeTypes,
                                         OneTimeBootModeTypes)
@@ -196,12 +220,14 @@ def run_server_bios_config(idrac, module):
     msg['changed'] = False
     msg['failed'] = False
     err = False
+    share_name = module.params.get('share_name')
+    share_path = share_name if share_name is not None else Constants.share_name
     deprecation_warning_message = 'boot_mode, nvme_mode, secure_boot_mode, onetime_boot_mode and boot_sequence options ' \
                                   'have been deprecated, and will be removed. ' \
                                   'Please use the attributes option for Bios attributes configuration instead.'
     try:
         idrac.use_redfish = True
-        upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
+        upd_share = file_share_manager.create_share_obj(share_path=share_path,
                                                         mount_point=module.params['share_mnt'],
                                                         isFolder=True,
                                                         creds=UserCredentials(
@@ -246,7 +272,7 @@ def run_server_bios_config(idrac, module):
             except (IndexError, KeyError):
                 message = set_liason['Message']
             err = True
-            msg['msg'] = "{}".format(message)
+            msg['msg'] = "Error: {}".format(message)
             msg['failed'] = True
             return msg, err
         if (module.params['boot_mode'] or module.params['nvme_mode']
@@ -394,7 +420,7 @@ def main():
             idrac_port=dict(required=False, default=443, type='int'),
 
             # Export Destination
-            share_name=dict(required=True, type='str'),
+            share_name=dict(required=False, type='str'),
             share_pwd=dict(required=False, type='str', no_log=True),
             share_user=dict(required=False, type='str'),
             share_mnt=dict(required=False, type='str'),

@@ -79,6 +79,7 @@ dest:
 """
 
 
+import os
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
@@ -104,7 +105,10 @@ def run_boot_to_network_iso(idrac, module):
     err = False
 
     try:
-        myshare = FileOnShare(remote=module.params['share_name'] + "/" + module.params['iso_image'],
+        share_name = module.params['share_name']
+        if share_name is None:
+            share_name = ''
+        myshare = FileOnShare(remote="{}{}{}".format(share_name, os.sep, module.params['iso_image']),
                               isFolder=False,
                               creds=UserCredentials(
                                   module.params['share_user'],

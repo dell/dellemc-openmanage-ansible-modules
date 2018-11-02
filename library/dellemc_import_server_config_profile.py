@@ -116,6 +116,7 @@ dest:
 """
 
 
+import os
 from ansible.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from omsdk.sdkfile import file_share_manager
@@ -139,8 +140,16 @@ def run_import_server_config_profile(idrac, module):
     err = False
 
     try:
+        share_name = module.params['share_name']
+        if share_name is None:
+            message = "Share path is not valid : {}{}".format(os.sep,
+                                                              module.params['scp_file'])
+            err = True
+            msg['msg'] = "Error: {}".format(message)
+            msg['failed'] = True
+            return msg, err
         myshare = file_share_manager.create_share_obj(
-            share_path=module.params['share_name'] + "/" + module.params['scp_file'],
+            share_path="{}{}{}".format(share_name, os.sep, module.params['scp_file']),
             creds=UserCredentials(module.params['share_user'],
                                   module.params['share_pwd']), isFolder=False, )
         # myshare.new_file(module.params['scp_file'])

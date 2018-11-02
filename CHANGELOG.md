@@ -2,6 +2,15 @@
 
 Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers (12th generation of PowerEdge servers and later) by leveraging the management automation capabilities in-built into the integrated Dell Remote Access Controller (iDRAC).
 
+# 1.1 (November 14, 2018)
+
+  * New and updated playbook examples.
+
+  * Support RAID volume creation on BOSS Controller.
+
+  * "share_name" option made optional in dellemc_configure_bios module.
+
+
 # 1.0.4 (October 1, 2018)
 
   * dellemc_configure_bios module enhancement. 
