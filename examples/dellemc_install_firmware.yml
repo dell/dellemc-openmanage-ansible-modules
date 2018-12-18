@@ -1,15 +1,56 @@
 ---
 - hosts: hosts
-  connection: local
   name: Update Firmware Inventory
   gather_facts: False
 
   tasks:
-  - name: Update Firmware Inventory
+
+  # Update Firmware from a repository hosted on a CIFS share.
+  # '\\xx.xx.xx.xx\share' is locally mounted to '/mnt/cifs_share' in a
+  # read-write mode on the Ansible controller machine. 'share_mnt' argument
+  # is mandatory only for the 14G servers
+  - name: Update Firmware from a repository hosted on a CIFS share
     dellemc_install_firmware:
-       idrac_ip: "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_pwd: "{{ idrac_pwd }}"
-       share_name: "{{ playbook_dir }}"
-       reboot: False
-       job_wait: True
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_pwd: "{{ idrac_pwd }}"
+      share_name: "\\\\xx.xx.xx.xx\\share"
+      share_user: "xxxx"
+      share_pwd: "xxxxxx"
+      share_mnt: "/mnt/cifs_share"
+      catalog_file_name: "Catalog.xml"
+      apply_update: True
+      reboot: False
+      job_wait: True
+    delegate_to: localhost
+
+  # Update firmware from repository on a NFS Share. 'xx.xx.xx.xx:/share' is
+  # locally mounted to '/mnt/nfs_share' in a read-write mode on the Ansible
+  # controller machine. 'share_mnt' argument is mandatory only for 14G servers
+  - name: Update firmware from repository on a NFS Share
+    dellemc_install_firmware:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_pwd: "{{ idrac_pwd }}"
+      share_name: "xx.xx.xx.xx:/share"
+      share_mnt: "/mnt/nfs_share"
+      catalog_file_name: "Catalog.xml"
+      apply_update: True
+      reboot: False
+      job_wait: True
+    delegate_to: localhost
+
+  # Update firmware from repository on a HTTP Share.
+  # In this example, http://<ipaddress>/firmware contains the Catalog file and
+  # the DUPs 
+  - name: Update firmware from repository on a HTTP Share
+    dellemc_install_firmware:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_pwd: "{{ idrac_pwd }}"
+      share_name: "http://<ipaddress>/firmware"
+      catalog_file_name: "Catalog.xml"
+      apply_update: True
+      reboot: False
+      job_wait: True
+    delegate_to: localhost
