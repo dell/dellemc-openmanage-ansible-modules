@@ -1,0 +1,69 @@
+---
+- hosts: myhosts
+  connection: local
+  name: Dell OpenManage Ansible device inventory details.
+  gather_facts: False
+
+  tasks:
+  - name: Get all devices details.
+    dellemc_ome_device_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+    tags: 
+        - get_device_list
+  
+  - name: Get devices details by filtering.
+    dellemc_ome_device_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      fact_subset: "basic_inventory"
+      system_query_options:
+          filter: "Id eq 31474 or Id eq 25010"
+    tags: 
+        - get_device_list_with_filtering
+            
+  - name: Get Inventory details of specified devices.
+    dellemc_ome_device_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      fact_subset: "detailed_inventory"
+      system_query_options:
+          device_id:
+            - 25010
+            - 31474
+    tags: 
+        - get_detailed_inventory
+
+    
+  - name: Get Health Status of specified devices.
+    dellemc_ome_device_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      fact_subset: "subsystem_health"
+      system_query_options:
+          device_service_tag:
+            - KLBR840
+            - ST0004B
+    tags: 
+        - get_health_status
+        
+  - name: Get details of specified inventory type of specified devices.
+    dellemc_ome_device_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      fact_subset: "detailed_inventory"
+      system_query_options:
+          device_id:
+            - 25010
+          device_service_tag:
+            - KLBR840
+          inventory_type: "serverDeviceCards" 
+    tags: 
+        - get_inventory_type
+        
+ 

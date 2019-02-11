@@ -1,0 +1,195 @@
+﻿*******************************************************************************
+Dell EMC OpenManage Ansible Modules
+
+*******************************************************************************
+Version: 1.2
+
+*******************************************************************************
+Release Date: February 2019
+
+*******************************************************************************
+Previous Version: 1.1
+
+*******************************************************************************
+Importance
+----------
+
+OPTIONAL: Dell EMC recommends the customer review specifics about the update to
+determine if it applies to your system. The update contains changes that impact
+only certain configurations, or provides new features that may or may not 
+apply to your environment.
+
+*******************************************************************************
+Platform(s) Affected
+--------------------
+
+For the list of supported platforms, see the section "Support Matrix" in the 
+"Dell EMC OpenManage Ansible Modules version 1.2 Installation Guide".
+
+*******************************************************************************
+What is Supported
+-----------------
+
+For information on the hardware and software requirements, see 
+"Dell EMC OpenManage Ansible Modules version 1.2 Installation Guide".
+
+*******************************************************************************
+What’s New
+----------
+The key features in OpenManage Ansible Modules version 1.2 include:
+
+* Improved capabilities with support for OpenManage Enterprise (OME).
+
+* A new and rich OME module (dellemc_ome_device_facts) to retrieve the list
+  of all devices with the exhaustive inventory of each device discovered in
+  the OME.
+
+* The dellemc_install_firmware module is deprecated and all the functionality
+  are added to the new dellemc_idrac_firmware module.
+
+For a complete list of supported features that you can leverage,
+see the “Dell EMC OpenManage Ansible Modules Version 1.2 User’s Guide”.
+
+*******************************************************************************
+Fixes
+-----
+
+* Issue 1(86459):
+  Description: iDRAC Time zone configuration task exits with a message "Job
+  wait did not return for 7200 seconds" on 14G server if the iDRAC firmware
+  version is 3.00.00.00 or 3.11.11.11. The new Time zone values are actually
+  applied on the server.
+
+* Issue 2(83769):
+  Description: Export LC log, TSR log using Linux NFS share fails with an error
+  "Cannot access Network Share" for 12G, 13G and 14G servers if the iDRAC
+  firmware version is lesser than 3.15.15.15.
+
+* Issue 3(91679):
+  Description: Firmware update fails if the DUP repository is on Linux NFS
+  share for 14G server with iDRAC firmware version 3.00.00.00.
+
+*******************************************************************************
+Known Issues
+------------
+
+* Issue 1(86360):
+  Description: Creating iDRAC users using "dellemc_configure_idrac_users"
+  module does not update the provided user properties for the created
+  user on 14G servers with firmware versions 3.18.18.18 and 3.21.21.21.
+
+  Workaround: In case the user is not created with all the required user
+  settings, change the user setting with action option modify in the
+  "dellemc_configure_idrac_users" module.
+
+* Issue 2(93817):
+  Description: "dellemc_delete_lc_job_queue" may fail to clear all the jobs
+  from iDRAC in case there are multiple jobs with same name and with
+  different status present on iDRAC for server with iDRAC firmware
+  version 2.50.50.50 and below.
+
+*******************************************************************************
+Limitations
+-----------
+* "GracefulShutdown" choice of "change_power" option for
+  "dellemc_change_power_state" module is supported only on iDRAC firmware
+   versions 3.18.18.18 and above.
+
+* "ipmiserialprivilege_users" option of "dellemc_configure_idrac_users"
+   module is not supported for Modular servers.
+
+*  "secure_boot_mode" option of "dellemc_configure_bios" is supported only
+   on 14th generation of Dell EMC PowerEdge servers.
+
+*******************************************************************************
+Installation Prerequisites
+--------------------------
+For installation prerequisites, see "Dell EMC OpenManage Ansible Modules
+Version 1.2 Installation Guide".
+
+Software Requirements
+---------------------
+
+* For information on the hardware and software requirements, see
+"Dell EMC OpenManage Ansible Modules Version 1.2 Installation Guide".
+
+Installation Procedure
+-------------------------
+
+For the installation instructions, see "Dell EMC OpenManage Ansible Modules
+Version 1.2 Installation Guide".
+
+*******************************************************************************
+Accessing Documents from Dell Support Site
+------------------------------------------
+
+You can access the required documents in one of the following ways:
+
+Using the following links:
+==========================
+
+* For all Systems Management documents — dell.com/softwaresecuritymanuals
+* For Remote Enterprise Systems Management documents — dell.com/esmmanuals
+* For Enterprise Systems Management documents — dell.com/openmanagemanuals
+* For Client Systems Management documents — dell.com/clientsystemsmanagement
+* For Serviceability Tools documents — dell.com/serviceabilitytools
+* For OpenManage Connections Enterprise Systems Management documents —
+  dell.com/OMConnectionsEnterpriseSystemsManagement
+* For OpenManage Connections Client Systems Management documents —
+  dell.com/connectionsclientsystemsmanagement
+
+From the Dell Support site:
+===========================
+
+1. Go to www.dell.com/support.
+2. Click Browse all products, click Software.
+3. In the Software group box, click the required link from the
+   following:
+        * Analytics
+        * Enterprise Systems Management
+        * Public Sector Solutions
+        * Utilities
+        * Client Systems Management
+        * Mainframe
+        * Serviceability Tools
+        * Virtualization Solutions
+        * Enterprise Applications
+        * Operating Systems
+        * Support
+4. To view a document, click the required product version.
+
+Using search engines:
+=====================
+
+* Type the name and version of the document in the Search box.
+
+
+*******************************************************************************
+Contacting Dell EMC
+-------------------
+
+NOTE: If you do not have an active Internet connection, you can find contact
+information on your purchase invoice, packing slip, bill, or Dell EMC product
+catalog.
+
+Dell EMC provides several online and telephone-based support and service
+options. Availability varies by country and product, and some services
+may not be available in your area. To contact Dell EMC for sales,
+technical support, or customer service issues:
+
+1. Visit www.dell.com/support.
+2. Select your support category.
+3. Verify your country or region in the Choose a Country/Region drop-down
+   menu at the top of page.
+4. Select the appropriate service or support link based on your need.
+
+
+Dell EMC OpenManage Ansible Modules
+Version 1.2
+Copyright (C) 2019   Dell Inc.
+
+GNU General Public License v3.0+
+(see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+All rights reserved. Dell, EMC, and other trademarks are trademarks of
+Dell Inc. or its subsidiaries. Other trademarks may be trademarks of their
+respective owners
