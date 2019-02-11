@@ -2,6 +2,17 @@
 
 Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers (12th generation of PowerEdge servers and later) by leveraging the management automation capabilities in-built into the integrated Dell Remote Access Controller (iDRAC).
 
+With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
+
+# 1.2 (February 12, 2019)
+
+  * dellemc_install_firmware module is deprecated.
+
+  * A new and rich OME module (dellemc_ome_device_facts) to retrieve the list
+  of all devices with the exhaustive inventory of each device discovered in
+  the OME.
+
+
 # 1.1 (November 14, 2018)
 
   * New and updated playbook examples.

@@ -1,4 +1,4 @@
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
@@ -12,8 +12,6 @@
 
 from __future__ import (absolute_import, division,
                         print_function)
-import tempfile
-import os
 __metaclass__ = type
 
 try:
@@ -23,75 +21,37 @@ try:
     from omsdk.sdkprotopref import ProtoPreference, ProtocolEnum
     from omsdk.http.sdkwsmanbase import WsManOptions
     HAS_OMSDK = True
-
 except ImportError:
-
     HAS_OMSDK = False
 
 
-class iDRACConnection():
-    def __init__(self, module):
-        if HAS_OMSDK is False:
-            results = {}
-            results['msg'] = "Dell EMC OMSDK library is required for this module"
-            module.fail_json(**results)
+class iDRACConnection:
 
-        self.module = module
+    def __init__(self, module_params):
+        if not HAS_OMSDK:
+            raise ImportError("Dell EMC OMSDK library is required for this module")
+        self.idrac_ip = module_params['idrac_ip']
+        self.idrac_user = module_params['idrac_user']
+        self.idrac_pwd = module_params['idrac_pwd']
+        self.idrac_port = module_params['idrac_port']
+        if not all((self.idrac_ip, self.idrac_user, self.idrac_pwd)):
+            raise ValueError("hostname, username and password required")
         self.handle = None
+        self.creds = UserCredentials(self.idrac_user, self.idrac_pwd)
+        self.pOp = WsManOptions(port=self.idrac_port)
+        self.sdk = sdkinfra()
+        if self.sdk is None:
+            msg = "Could not initialize iDRAC drivers."
+            raise RuntimeError(msg)
 
-    def connect(self):
-        results = {}
+    def __enter__(self):
+        self.sdk.importPath()
+        self.handle = self.sdk.get_driver(self.sdk.driver_enum.iDRAC, self.idrac_ip, self.creds, pOptions=self.pOp)
+        if self.handle is None:
+            msg = "Could not find device driver for iDRAC with IP Address: {0}".format(self.idrac_ip)
+            raise RuntimeError(msg)
+        return self.handle
 
-        ansible_module_params = self.module.params
-
-        idrac = ansible_module_params.get('idrac')
-        idrac_ip = ansible_module_params.get('idrac_ip')
-        idrac_user = ansible_module_params.get('idrac_user')
-        idrac_pwd = ansible_module_params.get('idrac_pwd')
-        idrac_port = ansible_module_params.get('idrac_port')
-
-        if idrac:
-            return idrac
-
-        try:
-            sd = sdkinfra()
-            sd.importPath()
-        except Exception as e:
-            results['msg'] = "Could not initialize drivers"
-            results['exception'] = str(e)
-            self.module.fail_json(**results)
-
-        # Connect to iDRAC
-        if idrac_ip == '' or idrac_user == '' or idrac_pwd == '':
-            results['msg'] = "hostname, username and password required"
-            self.module.fail_json(**results)
-        else:
-            creds = UserCredentials(idrac_user, idrac_pwd)
-            pOp = WsManOptions(port=idrac_port)
-
-            idrac = sd.get_driver(sd.driver_enum.iDRAC, idrac_ip, creds, pOptions=pOp)
-
-            if idrac is None:
-                results['msg'] = "Could not find device driver for iDRAC with IP Address: " + idrac_ip
-                self.module.fail_json(**results)
-
-        self.handle = idrac
-        return idrac
-
-    def disconnect(self):
-        idrac = self.module.params.get('idrac')
-
-        if idrac:
-            # pre-existing handle from a task
-            return False
-
-        if self.handle:
-            self.handle.disconnect()
-            return True
-
-        return True
-
-
-class Constants:
-
-    share_name = tempfile.gettempdir() + os.sep
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.handle.disconnect()
+        return False
