@@ -1,72 +1,96 @@
 #!/usr/bin/python
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.0
-# Copyright (C) 2018 Dell Inc.
+# Version 1.2
+# Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
 
+from __future__ import (absolute_import, division, print_function)
 import os
 import sys
-import shutil
 import glob
+import shutil
+
 
 print("Dell EMC OpenManage Ansible Modules installation has started.")
 print("Checking prerequisites...")
-print("")
-# Check for Ansible installlisation with version
+
+# checking prerequisites..
+fail_message = "FAILED: Dell EMC OpenManage Ansible Modules installation failed."
 try:
     import ansible
-
-except ImportError:
-    print('Ansible is not installed.')
-    print('Dell EMC OpenManage Ansible Modules installation has failed.')
+    from ansible.module_utils.six.moves import input
+except ImportError as e:
+    print("")
+    print("Ansible is not installed.")
+    print(fail_message)
     sys.exit(1)
 
-# check for ansible verson
-required_version = '2.2.0'
-installed_version = ansible.__version__
+# required path to check
+ansible_installed_path = ansible.__path__[0]
 
-# check for omsdk installization
+# master contribution details:
+contrib_files = {
+    "module_utils/remote_management/dellemc/__init__.py": "ansible 2.8.0",
+    "module_utils/remote_management/dellemc/dellemc_idrac.py": "ansible 2.8.0",
+    "modules/remote_management/dellemc/__init__.py": "ansible 2.8.0",
+    "modules/remote_management/dellemc/idrac/dellemc_idrac_firmware.py": "ansible 2.8.0",
+    "modules/remote_management/dellemc/idrac/__init__.py": "ansible 2.8.0",
+}
 
-try:
-    from omsdk.sdkinfra import sdkinfra
-    from builtins import input
-    print("	OpenManage Software Development Kit is installed.")
-except ImportError:
-    print('OpenManage Software Development Kit is not installed.')
-    print('Dell EMC OpenManage Ansible Modules installation has failed.')
-    sys.exit(1)
+# ansible module path
+dellemc_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc")
+dellemc_idrac_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc", "idrac")
+dellemc_ome_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc", "ome")
 
-ansible_path = ansible.__path__[0]
-# print("Ansible config path :" + ansible_path)
-module_utils_path = ansible_path + '/module_utils/'
-extras_path = ansible_path + '/modules/extras'
-server_path = extras_path + '/dellemc'
-dellemc_idrac_path = server_path + '/server'
+# ansible util path
+dellemc_util_path = os.path.join(ansible_installed_path, "module_utils", "remote_management", "dellemc")
+old_util_file = os.path.join(ansible_installed_path, "module_utils", "dellemc_idrac.py")
 
-remote_mgmt_path = ansible_path + '/modules/remote_management'
-remote_mgmt_dellemc = remote_mgmt_path + '/dellemc'
-remote_mgmt_dellemc_idrac = remote_mgmt_dellemc + '/idrac'
-
-log_root = '/var/log'
-dell_emc_log_path = log_root + '/dellemc'
-dell_emc_log_file = dell_emc_log_path + '/dellemc_log.conf'
-dell_emc_json = remote_mgmt_dellemc_idrac + '/properties.json'
-dell_emc_depr = remote_mgmt_dellemc_idrac + '/dellemc_configure_raid.py'
-
-warning_message = "Dell EMC OpenManage Ansible Modules is already present. Do you want to upgrade? (y/n)  "
+# dellemc local path
+base_local_path = os.getcwd()
+src_idrac_path = os.path.join(base_local_path, "library", "dellemc", "idrac")
+src_ome_path = os.path.join(base_local_path, "library", "dellemc", "ome")
+src_util_path = os.path.join(base_local_path, "utils")
+idrac_util_exists = os.path.exists(os.path.join(dellemc_util_path, "dellemc_idrac.py"))
+property_json = os.path.join(dellemc_path, "properties.json")
+existing_files = set([k.split("/")[-1] for k, v in contrib_files.items()])
+installation_message = "Installing Dell EMC OpenManage Ansible Modules specific folders and files..."
+init_file = os.path.join(ansible_installed_path, "module_utils", "remote_management", "__init__.py")
+extras = os.path.join(ansible_installed_path, "modules", "extras")
 
 
-def update_check(message):
+def copy_files(src, dest, keep_util=False):
+    """
+    Copying all files from one directory to ansible directory.
+    """
+    srclst = os.listdir(src)
+    for f in srclst:
+        if f.endswith(".py") and not (f in existing_files and keep_util):
+            srcfile, destfile = os.path.join(src, f), os.path.join(dest, f)
+            shutil.copy(srcfile, destfile)
+
+
+def touch(fname, times=None):
+    """
+    Creating empty file in a directory.
+    """
+    with open(fname, 'a'):
+        os.utime(fname, times)
+
+
+def update_check():
+    """
+    checking whenever upgrade is required.
+    """
+    message = "Dell EMC OpenManage Ansible Modules is already present. Do you want to upgrade? (y/n)  "
     yes = {'y', ''}
     print(" ")
     print(message)
@@ -79,79 +103,70 @@ def update_check(message):
         return False
 
 
-if os.path.isdir(server_path) or os.path.isdir(remote_mgmt_dellemc):
-    checking = update_check(warning_message)
-    if not checking:
+def update_cleanup(*args):
+    for f in args:
+        if os.path.isdir(f):
+            shutil.rmtree(f)
+        if os.path.isfile(f):
+            os.remove(f)
+
+
+def complete_installation(keep_util=False):
+    """
+    Creating directory and copying files to ansible location.
+    """
+    if os.path.exists(dellemc_path) and os.path.exists(dellemc_util_path):
+        if not os.path.exists(dellemc_idrac_path):
+            shutil.copytree(os.path.join("library", "dellemc", "idrac"), dellemc_idrac_path)
+        copy_files(src_idrac_path, dellemc_idrac_path, keep_util=keep_util)
+        copy_files(src_util_path, dellemc_util_path, keep_util=keep_util)
+        if not os.path.exists(dellemc_ome_path):
+            shutil.copytree(os.path.join("library", "dellemc", "ome"), dellemc_ome_path)
+        copy_files(src_ome_path, dellemc_ome_path)
+    if not os.path.exists(dellemc_path):
+        shutil.copytree(os.path.join("library", "dellemc"), dellemc_path)
+    if not os.path.exists(dellemc_util_path):
+        shutil.copytree("utils", dellemc_util_path)
+        if not os.path.isfile(init_file):
+            touch(init_file)
+
+
+def install():
+    """
+    Creating module directory in Ansible location.
+    """
+    # Step 0: Upgrading dellemc modules with new directory structure.
+    if os.path.exists(dellemc_path) or (os.path.exists(extras)):
+        # Upgrade checking if dellemc modules are present.
+        module_files = [f for f in glob.glob(os.path.join(dellemc_path, "idrac", "*.py"))]
+        if os.path.exists(old_util_file) or len(module_files) > len(contrib_files) or (os.path.exists(extras)):
+            checking = update_check()
+            if not checking:
+                return
+        print(installation_message)
+        # Cleaning up dellemc modules.
+        if os.path.exists(dellemc_util_path):
+            update_cleanup(old_util_file, property_json, extras)
+            keep_util = True
+        else:
+            update_cleanup(dellemc_path, old_util_file, property_json, extras)
+            keep_util = False
+        # Complete installation with new directory structure, dellemc modules version 2.0.
+        complete_installation(keep_util=keep_util)
+
+    # Step 1: Installing complete dellemc modules if not present.
+    elif not os.path.exists(dellemc_path):
+        print(installation_message)
+        # Complete installation with new directory structure, dellemc modules version 2.0.
+        complete_installation(keep_util=False)
+
+    print("SUCCESS: Dell EMC OpenManage Ansible Modules is installed successfully.")
+
+
+if __name__ == "__main__":
+    try:
+        install()
+    except (IOError, OSError) as e:
+        print(str(e))
+        print(fail_message)
         sys.exit(1)
-
-print("Installing Dell EMC OpenManage Ansible Modules specific folders and files...")
-
-
-# Cleaning up old installation content from /modules/extras/dellemc and log config files
-def remove_files(src):
-    src_files = os.listdir(src)
-
-    for file_name in src_files:
-        src_file = os.path.join(src, file_name)
-
-        if (os.path.isfile(src_file)):
-            os.remove(src_file)
-
-
-if os.path.isdir(dellemc_idrac_path):
-    remove_files(dellemc_idrac_path)
-
-if os.path.isdir(server_path):
-    shutil.rmtree(server_path)
-
-if os.path.isfile(dell_emc_log_file):
-    os.remove(dell_emc_log_file)
-
-
-def touch(fname, times=None):
-    with open(fname, 'a'):
-        os.utime(fname, times)
-
-
-# Removing COPYING.txt and README.txt files.
-for f in glob.glob(os.path.join(remote_mgmt_dellemc_idrac, "*.txt")):
-    os.remove(f)
-
-# Removing properties.json file.
-if os.path.isfile(dell_emc_json):
-    os.remove(dell_emc_json)
-
-# Removing deprecated raid module
-if os.path.isfile(dell_emc_depr):
-    os.remove(dell_emc_depr)
-
-def copy_files(src, dest):
-    import shutil
-
-    src_files = os.listdir(src)
-
-    for file_name in src_files:
-        src_file, dst_file = '', ''
-        if not file_name.endswith(".txt") and not file_name.endswith(".md"):
-            src_file = os.path.join(src, file_name)
-            dst_file = os.path.join(dest, file_name)
-        if file_name != "install.py" and file_name != "uninstall.py":
-            if (os.path.isfile(src_file)):
-                shutil.copy(src_file, dst_file)
-
-
-# Create the directory for the main module under remote_management/dellemc/idrac repo
-if not os.path.isdir(remote_mgmt_dellemc_idrac):
-    os.makedirs(remote_mgmt_dellemc_idrac)
-touch(remote_mgmt_dellemc + '/__init__.py')
-touch(remote_mgmt_dellemc_idrac + '/__init__.py')
-
-# Copy files from parent folder to dellemc_idrac_path
-copy_files(os.getcwd(), remote_mgmt_dellemc)
-
-# Copy files from library folder to dellemc_idrac_path
-copy_files(os.getcwd() + '/library', remote_mgmt_dellemc_idrac)
-
-# Copy common files to module_util
-copy_files(os.getcwd() + '/utils', module_utils_path)
-print("SUCCESS: Dell EMC OpenManage Ansible Modules is installed successfully.")
