@@ -15,7 +15,7 @@ Dell EMC PowerEdge Servers with:
   * For OpenManage Ansible modules for iDRAC, install the supported version of [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ## Documentation
-Please refer to the [OpenManage Ansible Modules Documentation](./guides) or OpenManage Ansible Modules User Guide [gitpages](https://dell.github.io/Dell-EMC-Ansible-Modules-for-iDRAC/)
+Please refer to the [OpenManage Ansible Modules Documentation](./guides) or OpenManage Ansible Modules User Guide [gitpages](https://dell.github.io/dellemc-openmanage-ansible-modules/)
 
 ## Examples
 Sample playbooks and examples could be found under [examples](./examples) directory
@@ -27,8 +27,8 @@ Sample Results for the respective modules could be found under [samples](./sampl
 
   * Clone the latest development repository and install the ansible modules. 
   ```
-  git clone https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC.git
-  cd Dell-EMC-Ansible-Modules-for-iDRAC
+  git clone -b devel --single-branch https://github.com/dell/dellemc-openmanage-ansible-modules.git
+  cd dellemc-openmanage-ansible-modules
   python install.py
   ```
 
@@ -37,18 +37,18 @@ Sample Results for the respective modules could be found under [samples](./sampl
 ## Uninstallation
 
 ```
-cd Dell-EMC-Ansible-Modules-for-iDRAC
+cd dellemc-openmanage-ansible-modules
 python uninstall.py
 ```
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. Please see the [COPYING](
-https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/COPYING.md) for more information
+https://github.com/dell/dellemc-openmanage-ansible-modules/blob/master/COPYING.md) for more information
 
 ## Support
   * This devel branch corresponds to the release actively under development.
-  * If you want to report any issue, then please report it by creating a new issue [here](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/issues)
-  * If you have any requirements that is not currently addressed, then please let us know by creating a new issue [here](https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/issues)
+  * If you want to report any issue, then please report it by creating a new issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)
+  * If you have any requirements that is not currently addressed, then please let us know by creating a new issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)
   * If you want to provide any feedback to the development team, then you can do so by sending an email to **OpenManageAnsible@Dell.com**
   * We also have a **#openmanageansible** slack channel which you can use for reporting any issue, new feature request or for general discussion with development team. You can get an invite by requesting one at [here](http://community.codedellemc.com).
 
