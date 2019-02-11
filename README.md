@@ -6,8 +6,8 @@ With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities
 
 ## Supported Platforms
 Dell EMC PowerEdge Servers with:
-  * 12G and 13G PowerEdge Servers: iDRAC 7/8 with Firmware version 2.50.50.50 and above
-  * 14G PowerEdge Servers: iDRAC 9 with Firmware version 3.18.18.18 and above
+  * 12G and 13G PowerEdge Servers: iDRAC 7/8 with Firmware version 2.60.60.60 and above
+  * 14G PowerEdge Servers: iDRAC 9 with Firmware version 3.21.21.21 and above
 
 ## Prerequisites
   * [Ansible](https://github.com/ansible/ansible)
@@ -32,7 +32,7 @@ Sample Results for the respective modules could be found under [samples](./sampl
   python install.py
   ```
 
-      * It is recommended to update the ansible configuration setting environment variables to point to the current module paths, if any.
+  * It is recommended to update the ansible configuration setting environment variables to point to the current module paths, if any.
 
 ## Uninstallation
 
