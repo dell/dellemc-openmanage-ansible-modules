@@ -26,8 +26,8 @@ short_description: Export Server Configuration Profile (SCP) to a network share 
 version_added: "2.3"
 deprecated:
   removed_in: "2.11"
-  why: Replaced with M(dellemc_server_configuration_profile).
-  alternative: Use M(dellemc_server_configuration_profile) instead.
+  why: Replaced with M(dellemc_idrac_server_config_profile).
+  alternative: Use M(dellemc_idrac_server_config_profile) instead.
 description:
     - Export Server Configuration Profile.
 options:
@@ -209,7 +209,7 @@ def main():
 
         supports_check_mode=False)
     module.deprecate("The 'dellemc_export_server_config_profile' module has been deprecated. "
-                     "Use 'dellemc_server_configuration_profile' instead",
+                     "Use 'dellemc_idrac_server_config_profile' instead",
                      version=2.11)
 
     try:
