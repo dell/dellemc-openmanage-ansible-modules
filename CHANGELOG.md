@@ -4,13 +4,26 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
 
+# 1.3 (March 5, 2019)
+
+  * dellemc_export_server_config_profile and 
+  dellemc_import_server_config_profile modules are deprecated.
+  
+  * dellemc_idrac_server_config_profile is added.
+
+  * A new OME module (dellemc_ome_job_facts) to view or track job details of 
+  PowerEdge devices managed by OME.
+
+  * A new OME module (dellemc_ome_firmware) to update the firmware of PowerEdge 
+  devices and all its components.
+
+
 # 1.2 (February 12, 2019)
 
   * dellemc_install_firmware module is deprecated.
 
   * A new and rich OME module (dellemc_ome_device_facts) to retrieve the list
-  of all devices with the exhaustive inventory of each device discovered in
-  the OME.
+  of all devices with the exhaustive inventory of each device.
 
 
 # 1.1 (November 14, 2018)

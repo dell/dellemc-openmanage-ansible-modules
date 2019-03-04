@@ -12,7 +12,6 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
@@ -22,9 +21,11 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: dellemc_ome_device_facts
-short_description: Get Device Inventory.
-version_added: "2.7"
-description: Get Device Inventory.
+short_description: Retrieves Device details.
+version_added: "2.8"
+description:
+   - Retrieves the list of all devices with the exhaustive inventory of each
+     device.
 options:
     hostname:
         description:
@@ -33,17 +34,17 @@ options:
         required: True
     username:
         description:
-            - Target device username.
+            - Target username.
         type: str
         required: True
     password:
         description:
-            - Target device user password.
+            - Target user password.
         type: str
         required: True
     port:
         description:
-            - Target device HTTPS port.
+            - Target HTTPS port.
         type: int
         default: 443
     fact_subset:
@@ -77,6 +78,7 @@ options:
             filter:
                 description:
                     - For C(basic_inventory), it filters the collection of devices.
+                      I(filter) query format should be aligned with OData standards.
                 type: str
 
 requirements:
@@ -86,13 +88,13 @@ author: "Sajna Shetty(@Sajna-Shetty)"
 
 EXAMPLES = """
 ---
-- name: Get all devices details.
+- name: Retrieve basic inventory of all devices.
   dellemc_ome_device_facts:
     hostname:  "192.168.0.1"
     username: "username"
     password:  "password"
 
-- name: Get devices details by filtering.
+- name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering.
   dellemc_ome_device_facts:
     hostname: "192.168.0.1"
     username: "username"
@@ -101,7 +103,7 @@ EXAMPLES = """
     system_query_options:
       filter: "Id eq 33333 or Id eq 11111"
 
-- name: Get Inventory details of specified devices.
+- name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222.
   dellemc_ome_device_facts:
     hostname:  "192.168.0.1"
     username: "username"
@@ -112,7 +114,18 @@ EXAMPLES = """
         - 11111
         - 22222
 
-- name: Get details of specified inventory type of specified devices.
+- name: Retrieve inventory details of specified devices identified by service tags MXL1234 and MXL4567.
+  dellemc_ome_device_facts:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    fact_subset: "detailed_inventory"
+    system_query_options:
+      device_service_tag:
+        - MXL1234
+        - MXL4567
+
+- name: Retrieve details of specified inventory type of specified devices identified by ID and service tags.
   dellemc_ome_device_facts:
     hostname: "192.168.0.1"
     username: "username"
@@ -126,7 +139,7 @@ EXAMPLES = """
         - MXL4567
       inventory_type: "serverDeviceCards"
 
-- name: Get subsystem_health of specified devices.
+- name: Retrieve subsystem health of specified devices identified by service tags.
   dellemc_ome_device_facts:
     hostname: "192.168.0.1"
     username: "username"

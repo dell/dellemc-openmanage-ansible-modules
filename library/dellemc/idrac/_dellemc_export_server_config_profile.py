@@ -16,7 +16,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -24,6 +24,10 @@ DOCUMENTATION = """
 module: dellemc_export_server_config_profile
 short_description: Export Server Configuration Profile (SCP) to a network share or to a local file.
 version_added: "2.3"
+deprecated:
+  removed_in: "2.11"
+  why: Replaced with M(dellemc_server_configuration_profile).
+  alternative: Use M(dellemc_server_configuration_profile) instead.
 description:
     - Export Server Configuration Profile.
 options:
@@ -108,11 +112,8 @@ dest:
 
 from ansible.module_utils.remote_management.dellemc.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
-try:
-    from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
-except ImportError:
-    pass
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
 
 
 def run_export_server_config_profile(idrac, module):
@@ -207,6 +208,9 @@ def main():
         ),
 
         supports_check_mode=False)
+    module.deprecate("The 'dellemc_export_server_config_profile' module has been deprecated. "
+                     "Use 'dellemc_server_configuration_profile' instead",
+                     version=2.11)
 
     try:
         with iDRACConnection(module.params) as idrac:
