@@ -23,6 +23,8 @@
       reboot: False
       job_wait: True
     delegate_to: localhost
+    tags:
+      - cifs
 
   # Update firmware from repository on a NFS Share. 'xx.xx.xx.xx:/share' is
   # locally mounted to '/mnt/nfs_share' in a read-write mode on the Ansible
@@ -39,6 +41,8 @@
       reboot: False
       job_wait: True
     delegate_to: localhost
+    tags:
+      - nfs
 
   # Update firmware from repository on a HTTP Share.
   # In this example, http://<ipaddress>/firmware contains the Catalog file and
@@ -54,3 +58,22 @@
       reboot: False
       job_wait: True
     delegate_to: localhost
+    tags:
+      - http
+
+  # Update firmware from repository on a FTP Share.
+  # In this example, http://<ipaddress>/firmware contains the Catalog file and
+  # the DUPs 
+  - name: Update firmware from repository on a FTP Share
+    dellemc_install_firmware:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_pwd: "{{ idrac_pwd }}"
+      share_name: "ftp://<ipaddress>/firmware"
+      catalog_file_name: "Catalog.xml"
+      apply_update: True
+      reboot: False
+      job_wait: True
+    delegate_to: localhost
+    tags:
+      - ftp
