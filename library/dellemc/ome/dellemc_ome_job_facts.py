@@ -53,6 +53,9 @@ options:
       skip:
         description: Number of records to skip. Default value is 0.
         type: int
+      filter:
+        description: Filter records by the values supported.
+        type: str
 requirements:
     - "python >= 2.7.5"
 author: "Jagadeesh N V(@jagadeeshnv)"
@@ -82,6 +85,7 @@ EXAMPLES = r'''
     system_query_options:
       top: 2
       skip: 1
+      filter: "JobType/Id eq 8"
 
 '''
 
@@ -152,12 +156,12 @@ def _get_query_parameters(module_params):
     """Builds query parameter
 
     :returns: dictionary, which builds the query format
-     eg : {"$top: 3"}
+     eg : {"$filter": "JobType/Id eq 8"}
      """
     system_query_options_param = module_params.get("system_query_options")
     query_parameter = {}
     if system_query_options_param:
-        query_parameter = {'$' + k: v for k, v in system_query_options_param.items() if v}
+        query_parameter = {'$' + k: v for k, v in system_query_options_param.items() if v is not None}
     return query_parameter
 
 
@@ -172,6 +176,7 @@ def main():
             "system_query_options": {"required": False, "type": 'dict', "options": {
                 "top": {"type": 'int', "required": False},
                 "skip": {"type": 'int', "required": False},
+                "filter": {"type": 'str', "required": False},
             }},
         },
         supports_check_mode=False
@@ -186,7 +191,7 @@ def main():
                 jpath = "{0}({1})".format(joburi, job_id)
                 query_param = None
             else:
-                # Fetch all jobs and pagination options
+                # Fetch all jobs, filter and pagination options
                 # query applicable only for all jobs list fetching
                 query_param = _get_query_parameters(module.params)
                 jpath = joburi
