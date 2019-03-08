@@ -43,10 +43,14 @@ options:
     default: 443
     type: int
   device_service_tag:
-    description: "List of targeted device service tags."
+    description:
+      - List of targeted device service tags.
+      - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
     type: list
   device_id:
-    description: "List of targeted device ids."
+    description:
+      - List of targeted device ids.
+      - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
     type: list
   dup_file:
     description: "Executable file to apply on the targets."
