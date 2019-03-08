@@ -42,9 +42,11 @@ options:
     description: "Target HTTPS port."
     default: 443
     type: int
-  device_service_tags:
-    description: "List of targeted device service tags or ids."
-    required: true
+  device_service_tag:
+    description: "List of targeted device service tags."
+    type: list
+  device_id:
+    description: "List of targeted device ids."
     type: list
   dup_file:
     description: "Executable file to apply on the targets."
@@ -63,7 +65,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
-    device_service_tags:
+    device_id:
       - 11111
       - 22222
     dup_file: "/path/Chassis-System-Management_Firmware_6N9WN_WN64_1.00.01_A00.EXE"
@@ -73,7 +75,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
-    device_service_tags:
+    device_service_tag:
       - KLBR111
       - KLBR222
     dup_file: "/path/Network_Firmware_NTRW0_WN64_14.07.07_A00-00_01.EXE"
@@ -238,18 +240,13 @@ def upload_dup_file(rest_obj, module):
     return upload_success, token
 
 
-def get_device_ids(rest_obj, module):
+def get_device_ids(rest_obj, module, device_id_tags):
     """Getting the list of device ids filtered from the device inventory."""
     device_uri, device_id = "DeviceService/Devices", []
-    service_tags = module.params['device_service_tags']
-    if not isinstance(service_tags, list):
-        module.fail_json(
-            msg="argument {0} is type of {1} and we were unable to convert to list: {1} cannot be"
-                " converted to a list".format('device_service_tags', type(service_tags)))
     resp = rest_obj.invoke_request('GET', device_uri)
-    if resp.success and resp.status_code == 200 and resp.json_data['value']:
+    if resp.success and resp.json_data['value']:
         device_resp = {str(device['Id']): device['DeviceServiceTag'] for device in resp.json_data['value']}
-        device_tags = map(str, service_tags)
+        device_tags = map(str, device_id_tags)
         invalid_tags = []
         for tag in device_tags:
             if tag in device_resp.keys() or tag.isdigit():
@@ -261,11 +258,25 @@ def get_device_ids(rest_obj, module):
                 invalid_tags.append(tag)
         if invalid_tags:
             module.fail_json(
-                msg="Unable to complete the operation because the entered target service"
-                    " tag(s) '{0}' are invalid.".format(",".join(set(invalid_tags))))
+                msg="Unable to complete the operation because the entered target device service"
+                    " tag(s) or device id(s) '{0}' are invalid.".format(",".join(set(invalid_tags))))
     else:
         module.fail_json(msg="Failed to fetch the device facts.")
     return device_id
+
+
+def _validate_device_attributes(module):
+    service_tag = module.params['device_service_tag']
+    device_id = module.params['device_id']
+    device_id_tags = []
+    if not isinstance(service_tag, list) and not isinstance(device_id, list):
+        module.fail_json(msg="Either device_id or device_service_tag should be specified.")
+    else:
+        if device_id is not None:
+            device_id_tags.extend(device_id)
+        if service_tag is not None:
+            device_id_tags.extend(service_tag)
+    return device_id_tags
 
 
 def main():
@@ -275,14 +286,16 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
-            "device_service_tags": {"required": True, "type": "list"},
+            "device_service_tag": {"required": False, "type": "list"},
+            "device_id": {"required": False, "type": "list"},
             "dup_file": {"required": True, "type": "str"},
         },
     )
     update_status = {}
     try:
+        device_id_tags = _validate_device_attributes(module)
         with RestOME(module.params, req_session=True) as rest_obj:
-            device_ids = get_device_ids(rest_obj, module)
+            device_ids = get_device_ids(rest_obj, module, device_id_tags)
             upload_status, token = upload_dup_file(rest_obj, module)
             if upload_status:
                 report_payload = get_dup_applicability_payload(token, device_ids)

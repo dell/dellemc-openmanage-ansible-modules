@@ -26,3 +26,4 @@
       system_query_options:
         top: 2
         skip: 1
+        filter: "JobType/Id eq 8"
