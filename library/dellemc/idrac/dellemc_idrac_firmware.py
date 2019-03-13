@@ -356,7 +356,6 @@ def update_firmware(idrac, module):
 
     result = {}
     result['changed'] = False
-    result['failed'] = False
     result['update_status'] = {}
     err = False
 
