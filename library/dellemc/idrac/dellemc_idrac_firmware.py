@@ -414,8 +414,10 @@ def update_firmware(idrac, module):
 
     if "Status" in result['update_status']:
         if result['update_status']['Status'] == "Success":
-            result['msg'] = 'Successfully updated the firmware.'
-            result['changed'] = True
+            result['msg'] = 'Successfully created the repository update job.'
+            if module.params['job_wait']:
+                remote['msg'] = 'Succesfully completed the repository update job.'
+                result['changed'] = True
         else:
             result['msg'] = 'Failed to update firmware.'
             module.fail_json(**result)
