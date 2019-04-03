@@ -1,5 +1,5 @@
 ---
-- hosts: myhosts
+- hosts: hosts
   connection: local
   name: Dell OpenManage Ansible device inventory details.
   gather_facts: False
