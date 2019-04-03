@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.3
+# Version 1.4
 # Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -28,8 +28,10 @@ deprecated:
   why: Replaced with M(dellemc_idrac_firmware).
   alternative: Use M(dellemc_idrac_firmware) instead.
 description:
-  - Update the Firmware by connecting to a network repository (CIFS, NFS, HTTP, HTTPS, FTP) that contains a catalog of available updates.
-  - Remote network share or URL should contain a valid repository of Update Packages (DUPs) and a catalog file describing the DUPs.
+  - Update the Firmware by connecting to a network repository (CIFS, NFS, HTTP,
+    HTTPS, FTP) that contains a catalog of available updates.
+  - Remote network share or URL should contain a valid repository of Update
+    Packages (DUPs) and a catalog file describing the DUPs.
   - All applicable updates contained in the repository is applied to the system.
   - This feature is only available with iDRAC Enterprise License.
 options:
@@ -57,7 +59,8 @@ options:
   share_name:
     required: True
     description:
-      - Network share (CIFS, NFS, HTTP, HTTPS, FTP) containing the Catalog file and Update Packages (DUPs)
+      - Network share (CIFS, NFS, HTTP, HTTPS, FTP) containing the Catalog file
+        and Update Packages (DUPs)
     type: 'str'
   share_user:
     required: False
@@ -99,7 +102,11 @@ options:
     required: False
     description:
       - if C(True), reboot server for applying the updates
-      - if C(False), updates take effect after the system is rebooted the next time
+      - if C(False), updates take effect after the system is rebooted the next
+        time. If there are update packages in the repository that requires a
+        reboot, then please make sure that you don't set the I(reboot) to
+        C(False) and I(job_wait) to C(True), otherwise the module will be
+        waiting forever for a system reboot and eventually timeout
     default: False
     type: 'bool'
   job_wait:
@@ -223,6 +230,21 @@ except ImportError:
     HAS_OMSDK = False
 
 
+def _validate_args(module):
+    """
+    Validate module arguments
+
+    :param module: Ansible module
+    :type module: ``class AnsibleModule``
+
+    :returns: None
+    """
+
+    # check if valid catalog file
+    if not module.params['catalog_file_name'].lower().endswith('.xml'):
+        raise ValueError("Invalid catalog file: {0}. Must end with \'.xml\' or \'.XML\' extension".format(module.params['catalog_file_name']))
+
+
 def update_firmware_from_url(idrac, share_name, share_user, share_pwd,
                              catalog_file_name, apply_update=True,
                              reboot=False, job_wait=True,
@@ -253,11 +275,12 @@ def update_firmware_from_url(idrac, share_name, share_user, share_pwd,
     :param job_wait: True if need to wait for firmware job to be completed. False if need to return immediately after staging the job in LC queue
     :type job_wait: ``bool``
 
+    :param ignore_cert_warning: True if certificate check needed for HTTPS else False
+    :type ignore_cert_warning: ``bool``
+
     :returns: A dict containing the return value from the Update Job
     :rtype: ``dict``
     """
-
-    msg = ""
 
     # IPv4 address with an optional port number, for e.g. 192.168.10.20:80
     ipv4_re = re.compile(r'(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}(?=$|(?::(\d{2,5})))')
@@ -266,31 +289,33 @@ def update_firmware_from_url(idrac, share_name, share_user, share_pwd,
     schemes = ["ftp", "http", "https"]
 
     # Validate URL
-    p = urlparse(share_name)
-    if not p:
-        msg = "Invalid url: {0}".format(share_name)
+    repo_url = urlparse(share_name)
+
+    if not repo_url:
+        raise ValueError("Invalid url: {0}".format(share_name))
     else:
-        path = p.path
-        if p.scheme not in schemes:
+        path = repo_url.path
+
+        if repo_url.scheme not in schemes:
             error_str = "URL scheme must be one of " + str(schemes)
-            msg = "Invalid url: {0}. {1}".format(share_name, error_str)
-        elif not (p.netloc and re.match(ipv4_re, p.netloc)):
+            raise ValueError("Invalid url: {0}. {1}".format(share_name, error_str))
+        elif not (repo_url.netloc and re.match(ipv4_re, repo_url.netloc)):
             error_str = "URL netloc must be a valid IPv4 address."
-            msg = "Invalid url: {0}. {1}".format(share_name, error_str)
+            raise ValueError("Invalid url: {0}. {1}".format(share_name, error_str))
         else:
-            if not p.path:
+            if not repo_url.path:
                 # if path is empty (for e.g. in "http://192.168.10.10"), then
                 # use "/" as path
                 path += "/"
 
-            msg = idrac.update_mgr.update_from_repo_url(
+            result = idrac.update_mgr.update_from_repo_url(
                 ipaddress=p.netloc, share_type=p.scheme, share_name=path,
                 share_user=share_user, share_pwd=share_pwd,
                 catalog_file=catalog_file_name, apply_update=apply_update,
                 reboot_needed=reboot, ignore_cert_warning=ignore_cert_warning,
                 job_wait=job_wait)
 
-    return msg
+    return result
 
 
 def update_firmware_from_net_share(idrac, share_name, share_user, share_pwd,
@@ -337,12 +362,12 @@ def update_firmware_from_net_share(idrac, share_name, share_user, share_pwd,
                                  isFolder=True)
     catalog_path = net_share_repo.new_file(catalog_file_name)
 
-    msg = idrac.update_mgr.update_from_repo(catalog_path=catalog_path,
+    result = idrac.update_mgr.update_from_repo(catalog_path=catalog_path,
                                             apply_update=apply_update,
                                             reboot_needed=reboot,
                                             job_wait=job_wait)
 
-    return msg
+    return result
 
 
 def update_firmware(idrac, module):
@@ -359,11 +384,9 @@ def update_firmware(idrac, module):
     :rtype: ``tuple``
     """
 
-    msg = {}
-    msg['changed'] = False
-    msg['failed'] = False
-    msg['msg'] = {}
-    err = False
+    result = {}
+    result['changed'] = False
+    result['msg'] = {}
 
     try:
         share_name = module.params['share_name']
@@ -376,10 +399,6 @@ def update_firmware(idrac, module):
         job_wait = module.params['job_wait']
         ignore_cert_warning = module.params['ignore_cert_warning']
 
-        # check if valid catalog file
-        if not catalog_file_name.lower().endswith('.xml'):
-            module.fail_json(msg="Invalid catalog file: {0}. Must end with \'.xml\' or \'.XML\' extension".format(catalog_file_name))
-
         # Temporary Fix for 12G and 13G iDRAC - Use WS-Man API for Firmware
         # update from a network repository
         idrac.use_redfish = True
@@ -391,40 +410,42 @@ def update_firmware(idrac, module):
             # Update from http/https/ftp repo is currently supported using
             # only WS-Man
             idrac.use_redfish = False
-            msg['msg'] = update_firmware_from_url(idrac, share_name,
-                                                  share_user, share_pwd,
-                                                  catalog_file_name,
-                                                  apply_update,
-                                                  reboot, job_wait,
-                                                  ignore_cert_warning)
+            result['msg'] = update_firmware_from_url(idrac, share_name,
+                                                     share_user, share_pwd,
+                                                     catalog_file_name,
+                                                     apply_update,
+                                                     reboot, job_wait,
+                                                     ignore_cert_warning)
         else:
             # local mount point is required for SCP based firmware update
             if idrac.use_redfish and not share_mnt:
-                module.fail_json(msg="Error: \'share_mnt\' is a mandatory argument for firmware update using Server Configuration Profile")
+                raise TypeError(msg="Error: \'share_mnt\' is a mandatory argument for firmware update using Server Configuration Profile")
 
-            msg['msg'] = update_firmware_from_net_share(idrac, share_name,
-                                                        share_user, share_pwd,
-                                                        share_mnt,
-                                                        catalog_file_name,
-                                                        apply_update, reboot,
-                                                        job_wait)
+            result['msg'] = update_firmware_from_net_share(idrac, share_name,
+                                                           share_user, share_pwd,
+                                                           share_mnt,
+                                                           catalog_file_name,
+                                                           apply_update, reboot,
+                                                           job_wait)
 
     except RuntimeError as e:
         module.fail_json(msg=str(e))
 
-    if "Status" in msg['msg']:
-        if msg['msg']['Status'] == "Success":
-            msg['msg'] = 'Successfully created the repository update job.'
+    if "Status" in result['msg']:
+        if result['msg']['Status'] == "Success":
+            result['msg'] = 'Successfully created the repository update job.'
 
             if module.params['job_wait']:
-                msg['msg'] = 'Succesfully completed the repository update job.'
-                msg['changed'] = True
+                result['msg'] = 'Succesfully completed the repository update job.'
+                result['changed'] = True
         else:
-            module.fail_json(**msg)
+            result['msg'] = 'Failed to update firmware.'
+            module.fail_json(**result)
     else:
-        module.fail_json(**msg)
+        result['msg'] = 'Failed to update firmware.'
+        module.fail_json(**result)
 
-    return msg
+    return result
 
 
 def main():
@@ -450,6 +471,7 @@ def main():
             "job_wait": {"required": False, "default": True, "type": 'bool'},
             "ignore_cert_warning": {"required": False, "default": True, "type": 'bool'}
         },
+
         supports_check_mode=False)
 
     module.deprecate("The 'dellemc_install_firmware' module has been deprecated. "
@@ -457,14 +479,17 @@ def main():
                      version=2.11)
 
     try:
+        # validate module arguments
+        _validate_args(module)
+
         # Connect to iDRAC and update firmware
         with iDRACConnection(module.params) as idrac:
-            msg = update_firmware(idrac, module)
+            result = update_firmware(idrac, module)
 
-    except (ImportError, ValueError, RuntimeError) as e:
+    except (ImportError, ValueError, TypeError, RuntimeError) as e:
         module.fail_json(msg=str(e))
 
-    module.exit_json(**msg)
+    module.exit_json(**result)
 
 
 if __name__ == '__main__':
