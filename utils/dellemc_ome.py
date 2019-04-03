@@ -11,7 +11,6 @@
 #
 
 from __future__ import (absolute_import, division, print_function)
-
 __metaclass__ = type
 
 import json
@@ -70,16 +69,16 @@ class RestOME(object):
 
     def _get_base_url(self):
         """builds base url"""
-        return '{}://{}:{}/api'.format(self.protocol, self.hostname, self.port)
+        return '{0}://{1}:{2}/api'.format(self.protocol, self.hostname, self.port)
 
     def _build_url(self, path, query_param=None):
         """builds complete url"""
         url = path
         base_uri = self._get_base_url()
         if path:
-            url = '{}/{}'.format(base_uri, path)
+            url = '{0}/{1}'.format(base_uri, path)
         if query_param:
-            url += "?" + urlencode(query_param)
+            url += "?{0}".format(urlencode(query_param))
         return url
 
     def _url_common_args_spec(self, method, api_timeout, headers=None):
@@ -166,7 +165,3 @@ class RestOME(object):
             path = SESSION_RESOURCE_COLLECTION["SESSION_ID"].format(Id=self.session_id)
             self.invoke_request('DELETE', path)
         return False
-
-
-if __name__ == "__main__":
-    pass
