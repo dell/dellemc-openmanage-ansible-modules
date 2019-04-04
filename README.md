@@ -41,6 +41,9 @@ cd dellemc-openmanage-ansible-modules
 python uninstall.py
 ```
 
+## Docker image for OpenManage Ansible Modules
+The containerized version of the OpenManage Ansible Modules is available in the [Docker Store](https://hub.docker.com/r/dellemc/openmanage-ansible-modules). Refer following [how-to guide](./docker/README.md) with instructions on how to use the container.
+
 ## LICENSE
 This project is licensed under GPL-3.0 License. Please see the [COPYING](
 https://github.com/dell/dellemc-openmanage-ansible-modules/blob/master/COPYING.md) for more information
