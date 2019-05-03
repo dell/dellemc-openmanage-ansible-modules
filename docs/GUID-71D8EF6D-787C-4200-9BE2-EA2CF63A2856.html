@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><!-- saved from url=(0014)about:internet -->
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><!--$if html5Status  -->  <!--$else--><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><title>Export or import Server Configuration Profile</title><link rel="prev" href="GUID-11162478-04F0-4AC7-8C01-04B8EEC30700.html" /><link rel="next" href="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" /><link href="static/screen.css?fAL4Y+sp" rel="stylesheet" /><link href="static/print.css?IUS/7uGw" media="print" rel="stylesheet" /><script src="static/head.js?qUF72lF0"></script><link rel="shortcut icon" href="static/favicon-blue.ico" /></head><body id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" data-approot=""><header><div class="inner"><a id="logo-link" href="index.html" /><img id="logo" src="static/logoEmc.png" alt="Logo" /></a><div class="title-text">Dell EMC OpenManage Ansible Modules</div></div></header><div id="navheader"><div id="breadcrumbs"></div></div><nav class="navigation" id="topicnav"><div id="topicbuttons"><a id="button-back" href="#" title="Previous topic"><span>Previous topic</span></a><a id="button-forward" href="#" title="Next topic"><span>Next topic</span></a></div></nav><section id="center"><div id="scroller"><nav id="topnav"><div id="topbuttons"><a id="button-highlighting" href="#" title="Toggle highlighting"><span>Toggle highlighting</span></a><a id="button-hide-navigation" href="#" title="Toggle navigation"><span>Toggle navigation</span></a><a id="button-print" href="#" title="Print topic"><span>Print topic</span></a><a id="button-print-all" title="Print topics and subtopics"><span>Print topics and subtopics</span></a></div></nav><article><div id="thumbnailDialog"></div><h1>Export or import Server Configuration Profile</h1>
+<div class="section" id="GUID-8ED36109-F1E9-4648-826B-EB7D298331E4"><p><span class="uicontrol">Module: dellemc_idrac_server_config_profile</span></p><p><span class="uicontrol">Synopsis</span></p><p>This module exports Server Configuration profile (SCP) to a given network share or imports SCP from a network share or a local file.</p><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_702783CB011C4AD7921B7E88F036BA51_unique_1"><caption>Table 1. dellemc_idrac_server_config_profile</caption><thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>command</td><td>No</td><td>export</td><td><ul id="UL_30409F86474440F8AC91F51C9B93C134"><li id="LI_FB28355A674242AB9A3A9CD7CC4C4AC6">import</li><li id="LI_EA60DEC5050F4EE183E90F218AF78F7E">export</li></ul></td><td><ul id="UL_6CEE86DD39D04FFC99256017E582B1BF"><li id="LI_1AD9CDC695FA437980F0C47496F06327">If C(import), will perform SCP import operations.</li><li id="LI_0EB98AEBD39248B082B8A486F3DC65B3">If C(export), will perform SCP export operations.</li></ul></td></tr><tr><td>job_wait</td><td>Yes</td><td>NA</td><td>NA</td><td>Whether to wait for job completion or not.</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td>CIFS or NFS Network Share or a local path.</td></tr><tr><td>share_user</td><td>No</td><td>NA</td><td>NA</td><td>Network share user in the format &#39;user@domain&#39; or &#39;domain\\user&#39; if user is a part of a domain, else &#39;user&#39;. This option is mandatory for CIFS Network Share.</td></tr><tr><td>share_pwd</td><td>No</td><td>NA</td><td>NA</td><td>Network share user password. This option is mandatory for CIFS Network Share.</td></tr><tr><td>scp_file</td><td>No</td><td>NA</td><td>NA</td><td>Server Configuration Profile file name. This option is mandatory for C(import) state.</td></tr><tr><td>scp_components</td><td>No</td><td>ALL</td><td><ul id="UL_7DC9C68738A940C58C73F62F32E6FF0B"><li id="LI_7510679E436941998053317CE72F35FA">ALL</li><li id="LI_560423D1E9684B8C87A8CAED0AA0EB16">IDRAC</li><li id="LI_700E524BFB954315ACC507917EE73F54">BIOS</li><li id="LI_E293257750294BD0A7570A498CB2A77D">NIC</li><li id="LI_2B3F427ABB8F4A8C9F3AB705C367DB2C">RAID</li></ul></td><td><ul id="UL_F0AF5C23DBE74C0FA0EAE229B4F01D87_unique_2"> <li id="LI_A69BA6B00F1D4B34977FF6DC9662CDE9_unique_2">If C(ALL), the module imports all components configurations from SCP file.</li> <li id="LI_EDE98EDBDA39469188D7245D15DF44EB_unique_2">If C(iDRAC), the module imports iDRAC configuration from SCP file.</li> <li id="LI_F26C2AC18B8744DEAE4C7A4C9557A8B3_unique_2">If C(BIOS), the module imports BIOS configuration from  SCP file.</li> <li id="LI_F0EB83496C2B498FAF87BF4E2BC600CA_unique_2">If C(NIC), the module imports NIC configuration from SCP file.</li> <li id="LI_DB53E3AC184C4E4DBDF15457267C6358_unique_2">If C(RAID), the module imports RAID configuration from SCP file.</li> </ul></td></tr><tr><td>shutdown_type</td><td>No</td><td>Graceful</td><td><ul id="UL_7D763495259B41E7AE3D625C21E3EE2A_unique_1"><li id="LI_611D65B5C13745AB8CB80AF22E5F79D5_unique_1">Graceful</li><li id="LI_74EFB384A6B3495AAD777A73465D39BD_unique_1">Forced</li><li id="LI_76FEAB7D2C124E8984212657EDD94AFD_unique_1">NoReboot</li></ul></td><td>This option is applicable for C(import) state.<ul id="UL_7DD48CC3AE594636931D01C7A23404CD_unique_1"><li id="LI_D91D44205235498B98CB2C69C79211CA_unique_1">If C(Graceful), it gracefully shuts down the server</li><li id="LI_33761F9E6576423EB1DBA624EC9C4ECC_unique_1">If C(Forced), it forcefully shuts down the system</li><li id="LI_1C98C62C29EF43FE89739E85A566F0D3_unique_1">If C(NoReboot), it does not reboot the server</li></ul></td></tr><tr><td>end_host_power_state</td><td>No</td><td>On</td><td><ul id="UL_405648678DB84EB3AEC8C89B6E85DA1B_unique_1"><li id="LI_7162A49E6EA94E6097900EDCA59084C0_unique_1">On</li><li id="LI_39959AC474FB4D35922164BD8887013C_unique_1">Off</li></ul></td><td>This option is applicable for C(import) state.<ul id="UL_8FCDC85A309D438DB35F6B80BEB2CE35_unique_1"><li id="LI_E8E0E47B4E01455C9FD3420AF73D77E5_unique_1">If C(On), End host power state is on</li><li id="LI_6F3C3E58EBE445418E4E072A147F4736_unique_1">If C(Off), End host power state is off</li></ul></td></tr><tr><td>export_format</td><td>No</td><td>XML</td><td><ul id="UL_3394F5CBBD5440258621ED3D3EEFFC9C"><li id="LI_BE23BA048E2147DB99FDD28BFAB650F8">JSON</li><li id="LI_4D52492811C64321A2073EB28D96B159">XML</li></ul></td><td>Specify the output file format. This option is applicable for C(export) state.</td></tr><tr><td>export_use</td><td>No</td><td>Default</td><td><ul id="UL_AF4242E4E828489A928E2C18B39D1921"><li id="LI_9F2C5FE4855144FCAE9F05430ED4975B">Default</li><li id="LI_699BB55B792A424A8ADF2DD47BA7CC4D">Clone</li><li id="LI_6B987D47FF8B489CA3A9E111F5331622">Replace</li></ul></td><td>Specify the type of Sever Configuration Profile (SCP) to be exported. This option is applicable for C(export) state.</td></tr></tbody></table><p><span class="uicontrol">Return Values</span><pre class="codeblock">msg:
+  type: str
+  description: status of the import or export SCP job.
+  returned: always
+  sample: &quot;Successfully imported the Server Configuration Profile&quot;
+scp_status:
+  type: dict
+  description: SCP operation job and progress details from the iDRAC.
+  returned: success
+  sample:
+    {
+      &quot;Id&quot;: &quot;JID_XXXXXXXXX&quot;,
+      &quot;JobState&quot;: &quot;Completed&quot;,
+      &quot;JobType&quot;: &quot;ImportConfiguration&quot;,
+      &quot;Message&quot;: &quot;Successfully imported and applied Server Configuration Profile.&quot;,
+      &quot;MessageArgs&quot;: [],
+      &quot;MessageId&quot;: &quot;XXX123&quot;,
+      &quot;Name&quot;: &quot;Import Configuration&quot;,
+      &quot;PercentComplete&quot;: 100,
+      &quot;StartTime&quot;: &quot;TIME_NOW&quot;,
+      &quot;Status&quot;: &quot;Success&quot;,
+      &quot;TargetSettingsURI&quot;: null,
+      &quot;retval&quot;: true
+    }</pre></p><p><span class="uicontrol">Examples</span><pre class="codeblock">- name: Import Server Configuration Profile from a network share
+  dellemc_idrac_server_config_profile:
+    idrac_ip: &quot;192.168.0.1&quot;
+    idrac_user: &quot;user_name&quot;
+    idrac_pwd: &quot;user_pwd&quot;
+    command: &quot;import&quot;
+    share_name: &quot;192.168.0.2:/share&quot;
+    share_user: &quot;share_user_name&quot;
+    share_pwd: &quot;share_user_pwd&quot;
+    scp_file:   &quot;scp_filename.xml&quot;
+    scp_components: &quot;ALL&quot;
+    job_wait: True
+
+
+- name: Import Server Configuration Profile from a local path
+  dellemc_idrac_server_config_profile:
+    idrac_ip: &quot;192.168.0.1&quot;
+    idrac_user: &quot;user_name&quot;
+    idrac_pwd: &quot;user_pwd&quot;
+    command: &quot;import&quot;
+    share_name: &quot;/scp_folder&quot;
+    share_user: &quot;share_user_name&quot;
+    share_pwd: &quot;share_user_pwd&quot;
+    scp_file:   &quot;scp_filename.xml&quot;
+    scp_components: &quot;ALL&quot;
+    job_wait: True
+
+
+- name: Export Server Configuration Profile to a network share
+  dellemc_idrac_server_config_profile:
+    idrac_ip: &quot;192.168.0.1&quot;
+    idrac_user: &quot;user_name&quot;
+    idrac_pwd: &quot;user_pwd&quot;
+    share_name: &quot;192.168.0.2:/share&quot;
+    share_user: &quot;share_user_name&quot;
+    share_pwd: &quot;share_user_pwd&quot;
+    job_wait: False
+
+
+- name: Export Server Configuration Profile to a local path
+  dellemc_idrac_server_config_profile:
+    idrac_ip: &quot;192.168.0.1&quot;
+    idrac_user: &quot;user_name&quot;
+    idrac_pwd: &quot;user_pwd&quot;
+    share_name: &quot;/scp_folder&quot;
+    share_user: &quot;share_user_name&quot;
+    share_pwd: &quot;share_user_pwd&quot;
+    job_wait: False</pre></p></div>
+</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?KNPsPhBZ"></script></body></html>

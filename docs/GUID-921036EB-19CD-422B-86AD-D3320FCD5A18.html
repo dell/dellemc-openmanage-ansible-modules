@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en-us"><head><!-- saved from url=(0014)about:internet -->
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><!--$if html5Status  -->  <!--$else--><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><title>Create, modify or deploy a template</title><link rel="prev" href="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53.html" /><link rel="next" href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" /><link href="static/screen.css?fAL4Y+sp" rel="stylesheet" /><link href="static/print.css?IUS/7uGw" media="print" rel="stylesheet" /><script src="static/head.js?qUF72lF0"></script><link rel="shortcut icon" href="static/favicon-blue.ico" /></head><body id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18" data-approot=""><header><div class="inner"><a id="logo-link" href="index.html" /><img id="logo" src="static/logoEmc.png" alt="Logo" /></a><div class="title-text">Dell EMC OpenManage Ansible Modules</div></div></header><div id="navheader"><div id="breadcrumbs"></div></div><nav class="navigation" id="topicnav"><div id="topicbuttons"><a id="button-back" href="#" title="Previous topic"><span>Previous topic</span></a><a id="button-forward" href="#" title="Next topic"><span>Next topic</span></a></div></nav><section id="center"><div id="scroller"><nav id="topnav"><div id="topbuttons"><a id="button-highlighting" href="#" title="Toggle highlighting"><span>Toggle highlighting</span></a><a id="button-hide-navigation" href="#" title="Toggle navigation"><span>Toggle navigation</span></a><a id="button-print" href="#" title="Print topic"><span>Print topic</span></a><a id="button-print-all" title="Print topics and subtopics"><span>Print topics and subtopics</span></a></div></nav><article><div id="thumbnailDialog"></div><h1>Create, modify or deploy a template</h1>
+<div class="section" id="GUID-6F85F2AD-795C-4A2B-8D23-A0DDFECB3505_unique_2"><span class="uicontrol">Module: dellemc_ome_template</span></div>
+<div class="section" id="SECTION_4DC2C7291DCB41BF93DF3A1019B42B8B_unique_2"><span class="uicontrol">Synopsis</span><p>This module creates, modifies or deploys a template.</p><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_5ED657E329D74464836760FD6C1D46D1_unique_4"><caption>Table 1. dellemc_ome_template</caption>
+
+
+<thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>hostname</td><td>Yes</td><td>NA</td><td>NA</td><td>Target IP Address or hostname</td></tr><tr><td>username</td><td>Yes</td><td>NA</td><td>NA</td><td>Target username</td></tr><tr><td>password</td><td>Yes</td><td>NA</td><td>NA</td><td>Target user password</td></tr><tr><td>port</td><td>No</td><td>443</td><td>NA</td><td>Target device HTTPS port</td></tr><tr><td>state</td><td>No</td><td>create</td><td><ul id="UL_C1744510E94F4895920FCF0DE87B6E74"><li id="LI_960AEFA7946C4015BB5E47D4AAE68B1B">create</li><li id="LI_E24ACD94C0464E50B59EC80866C9267D">modify</li><li id="LI_39DB4DAA07A64F0E968B8BFFD0FFFCB0">deploy</li></ul></td><td> <ul id="UL_399F39C1935441D8AA2B50E9801B30FE"><li id="LI_14D4E6E25BC54571A2AC4AE7B67A60ED">C(create) creates a new template.</li><li id="LI_D89653FFEB094BCB837118CF8EFDCF4B">C(modify) modifies an existing template.</li><li id="LI_9F3F16FB28A945338381F91CB64B5748">C(deploy) deploys an existing template.
+</li></ul>
+       
+      </td></tr><tr><td>template_id</td><td>No</td><td>NA</td><td>NA</td><td>Unique ID of the template to be modified or deployed. This option is mandatory for C(modify) and C(deploy) operations.</td></tr><tr><td>device_id</td><td>No</td><td>[ ]</td><td>NA</td><td>List of targeted device id(s) for C(deploy) or a single id for C(create) operation. Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.</td></tr><tr><td>device_service_tag</td><td>No</td><td>[ ]</td><td>NA</td><td>List of targeted device service tag(s) for C(deploy) or a single service tag for C(create) operation. Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.</td></tr><tr><td>template_view_type</td><td>No</td><td>Deployment</td><td><ul id="UL_271CE818C4FA4B39AC6D782A3E64EAB4"><li id="LI_828CCEA74CDB4A438A69E82B825D7FA0">Deployment,</li><li id="LI_2E20921E735642B79A60C012F2887215">Compliance</li><li id="LI_01074DED16CF44E9B80959494F1D6BB7">Inventory</li><li id="LI_698D16410AAB41758279BDF248E5CE11">Sample</li><li id="LI_D9D4B37D14444B6DAA716732F040EABE">None</li></ul></td><td>The features that support template operations. This is applicable only for C(create) operation.</td></tr><tr><td>attributes</td><td>No</td><td>{ }</td><td>NA</td><td><ul id="UL_340ABA75945C45D2A5ADF142B5B0A456"><li id="LI_0E495B0BD82C409297172E8949C450BE">Name: Name of the template. This is mandatory for C(create) and C(modify) operations.</li><li id="LI_13FD0B1A5F7E446385128DC38DF145F1">Description: Description of the template. This is applicable for C(create) and C(modify) operations.</li><li id="LI_9F030C67C91142AA96AB3FA65535E7B3"> Fqdds: This provides functionality to copy only certain areas of system configuration from the specified reference server. One or more of the following values may be specified in a comma-separated string: iDRAC, System, BIOS, NIC, LifeCycleController, RAID, EventFilters, All. Default value is &#39;All&#39;. This is applicable for C(create) operation.</li><li id="LI_018A68D9E71448F2B9A825C0D0CEB12B"> Options: Options to control device shutdown or end power state during template deployment. This is applicable for C(deploy) operation.</li><li id="LI_869D0C8BA7454D9B98E766804CCD28A8"> Schedule: Options to schedule the deployment task immediately or at a specified time. This is applicable for C(deploy) operation.</li><li id="LI_D349F419A5054351978C130DE5E959D6"> NetworkBootIsoModel: Payload to specify the ISO deployment details. This is applicable for C(deploy) operation.</li><li id="LI_47ABEB43EFDF402990D1B50F1DABDDD7"> Attributes: list of dictionaries of attribute values (if any) to be modified in the template to be deployed. This is applicable for C(deploy) operation.</li></ul><div class="note" id="GUID-73CF3569-31FE-45D5-A37B-65B9A80B0EC7"><span class="notelabel">NOTE: </span> See OpenManage Enterprise API Reference Guide for more details.</div></td></tr></tbody>
+</table><p><span class="uicontrol">Return Values</span><pre class="codeblock">msg:
+  description: Overall status of the template operation.
+  returned: always
+  type: str
+  sample: &quot;Successfully created a Template with id 123&quot;
+return_id:
+  description: id of the template for C(create) and C(modify) or task created in case of C(deploy)
+  returned: success
+  type: int
+  sample: 124
+template_status:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    &quot;error&quot;: {
+      &quot;code&quot;: &quot;Base.1.0.GeneralError&quot;,
+      &quot;message&quot;: &quot;A general error has occurred. See ExtendedInfo for more information.&quot;,
+      &quot;@Message.ExtendedInfo&quot;: [
+        {
+          &quot;MessageId&quot;: &quot;GEN1234&quot;,
+          &quot;RelatedProperties&quot;: [],
+          &quot;Message&quot;: &quot;Unable to process the request because an error occurred.&quot;,
+          &quot;MessageArgs&quot;: [],
+          &quot;Severity&quot;: &quot;Critical&quot;,
+          &quot;Resolution&quot;: &quot;Retry the operation. If the issue persists, contact your system administrator.&quot;
+        }
+      ]
+    }
+  }</pre></p><p><span class="uicontrol">Examples</span><pre class="codeblock">- name: create template.
+  dellemc_ome_template:
+    hostname: &quot;192.168.0.1&quot;
+    username: &quot;username&quot;
+    password: &quot;password&quot;
+    device_id: 25123
+    attributes:
+      Name: &quot;New Template&quot;
+      Description: &quot;New Template description&quot;
+
+
+- name: modify template
+  dellemc_ome_template:
+    hostname: &quot;192.168.0.1&quot;
+    username: &quot;username&quot;
+    password: &quot;password&quot;
+    state: &quot;modify&quot;
+    template_id: 1234
+    attributes:
+      Name: &quot;New Custom Template&quot;
+      Description: &quot;Custom Template Description&quot;
+
+
+- name: deploy template.
+  dellemc_ome_template:
+    hostname:  &quot;192.168.0.1&quot;
+    username: &quot;username&quot;
+    password: &quot;password&quot;
+    state: &quot;deploy&quot;
+    template_id: 1234
+    device_id:
+      - 12345
+      - 45678
+    device_service_tag: [&#39;SVTG123&#39;, &#39;SVTG456&#39;]
+    attributes:
+      NetworkBootIsoModel:
+        BootToNetwork: false
+        ShareType: &quot;NFS&quot;
+        IsoPath: &quot;bootToIsoPath.iso&quot;
+        ShareDetail:
+          IpAddress: &quot;192.168.0.2&quot;
+          ShareName: &quot;/nfsshare&quot;
+          User: null
+          Password: null
+      Attributes:
+        - Id: 1234
+          Value: &quot;Test Attribute&quot;
+          IsIgnored: false
+      Options:
+        EndHostPowerState: 1
+        ShutdownType: 0
+        TimeToWaitBeforeShutdown: 300
+      Schedule:
+        RunLater: true
+        RunNow: false</pre></p></div></article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?KNPsPhBZ"></script></body></html>
