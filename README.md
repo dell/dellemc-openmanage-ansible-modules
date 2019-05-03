@@ -5,9 +5,9 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
 
 ## Supported Platforms
-Dell EMC PowerEdge Servers with:
-  * 12G and 13G PowerEdge Servers: iDRAC 7/8 with Firmware version 2.60.60.60 and above
-  * 14G PowerEdge Servers: iDRAC 9 with Firmware version 3.21.21.21 and above
+  * 12G and 13G Dell EMC PowerEdge Servers: iDRAC 7/8 with Firmware version 2.60.60.60 and above.
+  * 14G Dell EMC PowerEdge Servers: iDRAC 9 with Firmware version 3.21.21.21 and above.
+  * Dell EMC OpenManage Enterprise version 3.1 and above.
 
 ## Prerequisites
   * [Ansible](https://github.com/ansible/ansible)
@@ -18,7 +18,7 @@ Dell EMC PowerEdge Servers with:
 Please refer to the [OpenManage Ansible Modules Documentation](./guides) or OpenManage Ansible Modules User Guide [gitpages](https://dell.github.io/dellemc-openmanage-ansible-modules/)
 
 ## Examples
-Sample playbooks and examples could be found under [examples](./examples) directory
+Sample playbooks and examples could be found under [examples](./examples) directory.
 
 ## Results
 Sample Results for the respective modules could be found under [samples](./samples) directory.
