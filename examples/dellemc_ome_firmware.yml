@@ -1,0 +1,30 @@
+---
+- hosts: hosts
+  connection: local
+  name: "OME - Update Firmware"
+  gather_facts: False
+
+  tasks:
+  - name: "Update firmware from DUP file."
+    dellemc_ome_firmware:
+      hostname:  "192.168.0.1"
+      username: "username"
+      password:  "password"
+      device_id:
+        - 11111
+        - 22222
+      dup_file: "/path/Chassis-System-Management_Firmware_6N9WN_WN64_1.00.01_A00.EXE"
+    tags:
+      - firmware-update-device-ids
+
+  - name: "Update firmware from DUP file using device service tags."
+    dellemc_ome_firmware:
+      hostname: "192.168.0.1"
+      username: "username"
+      password: "password"
+      device_service_tag:
+        - KLBR111
+        - KLBR222
+      dup_file: "/path/Network_Firmware_NTRW0_WN64_14.07.07_A00-00_01.EXE"
+    tags:
+      - firmware-update-service-tags

@@ -1,0 +1,19 @@
+---
+- hosts: hosts
+  connection: local
+  name: Fetching ome user facts.
+  gather_facts: False
+
+  tasks:
+    - name: Retrieve basic details of all accounts.
+      dellemc_ome_user_facts:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+
+    - name: Retrieve details of a specific account identified by its account ID.
+      dellemc_ome_user_facts:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        account_id: "{{account_id}}"
