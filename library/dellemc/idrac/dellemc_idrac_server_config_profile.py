@@ -119,7 +119,7 @@ EXAMPLES = r'''
     share_name: "192.168.0.2:/share"
     share_user: "share_user_name"
     share_pwd: "share_user_pwd"
-    scp_file:   "scp_filename.xml"
+    scp_file: "scp_filename.xml"
     scp_components: "ALL"
     job_wait: True
 
@@ -132,7 +132,7 @@ EXAMPLES = r'''
     share_name: "/scp_folder"
     share_user: "share_user_name"
     share_pwd: "share_user_pwd"
-    scp_file:   "scp_filename.xml"
+    scp_file: "scp_filename.xml"
     scp_components: "ALL"
     job_wait: True
 
