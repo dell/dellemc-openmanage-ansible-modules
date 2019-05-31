@@ -16,7 +16,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -24,6 +24,10 @@ DOCUMENTATION = """
 module: dellemc_import_server_config_profile
 short_description: Import SCP from a network share or from a local file.
 version_added: "2.3"
+deprecated:
+  removed_in: "2.11"
+  why: Replaced with M(dellemc_idrac_server_config_profile).
+  alternative: Use M(dellemc_idrac_server_config_profile) instead.
 description:
     - Import a given Server Configuration Profile (SCP) file from a network share or from a local file.
 options:
@@ -119,13 +123,10 @@ dest:
 import os
 from ansible.module_utils.remote_management.dellemc.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
-try:
-    from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
-    from omdrivers.enums.iDRAC.iDRACEnums import (SCPTargetEnum, EndHostPowerStateEnum,
-                                                  ShutdownTypeEnum)
-except ImportError:
-    pass
+from omsdk.sdkfile import file_share_manager
+from omsdk.sdkcreds import UserCredentials
+from omdrivers.enums.iDRAC.iDRACEnums import (SCPTargetEnum, EndHostPowerStateEnum,
+                                              ShutdownTypeEnum)
 
 
 def run_import_server_config_profile(idrac, module):
@@ -230,7 +231,9 @@ def main():
         ),
 
         supports_check_mode=False)
-
+    module.deprecate("The 'dellemc_import_server_config_profile' module has been deprecated. "
+                     "Use 'dellemc_idrac_server_config_profile' instead",
+                     version=2.11)
     try:
         with iDRACConnection(module.params) as idrac:
             msg, err = run_import_server_config_profile(idrac, module)

@@ -1,0 +1,31 @@
+---
+- hosts: hosts
+  vars:
+    retries_count: 5
+    polling_interval: 5 #in seconds
+  connection: local
+  name: "OME - Power state management job tracking."
+  gather_facts: False
+
+  tasks:
+  - name: "Power state operation based on device id"
+    ome_powerstate:
+      hostname:  "{{ hostname }}"
+      username: "{{ username }}"
+      password:  "{{ password }}"
+      power_state: "off"
+      device_id: 11111
+    register: result
+    failed_when: "'job_status' not in result"
+
+  - name: "Get job details using job id from power state operation."
+    dellemc_ome_job_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      job_id: "{{result.job_status.Id}}"
+    register: job_result
+    failed_when: "'job_facts' not in job_result"
+    until: job_result.job_facts.LastRunStatus.Name == 'Completed' or job_result.job_facts.LastRunStatus.Name == 'Failed'
+    retries: "{{ retries_count }}"
+    delay: "{{ polling_interval }}"

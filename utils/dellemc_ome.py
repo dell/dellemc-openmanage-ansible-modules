@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.2
-# Copyright (C) 2018 Dell Inc.
+# Version 1.3
+# Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -11,7 +11,6 @@
 #
 
 from __future__ import (absolute_import, division, print_function)
-
 __metaclass__ = type
 
 import json
@@ -65,21 +64,21 @@ class RestOME(object):
         self.port = self.module_params["port"]
         self.req_session = req_session
         self.session_id = None
-        self.protocol = 'https' if self.module_params.get('use_ssl', True) else 'http'
+        self.protocol = 'https'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
     def _get_base_url(self):
         """builds base url"""
-        return '{}://{}:{}/api'.format(self.protocol, self.hostname, self.port)
+        return '{0}://{1}:{2}/api'.format(self.protocol, self.hostname, self.port)
 
     def _build_url(self, path, query_param=None):
         """builds complete url"""
         url = path
         base_uri = self._get_base_url()
         if path:
-            url = '{}/{}'.format(base_uri, path)
+            url = '{0}/{1}'.format(base_uri, path)
         if query_param:
-            url += "?" + urlencode(query_param)
+            url += "?{0}".format(urlencode(query_param))
         return url
 
     def _url_common_args_spec(self, method, api_timeout, headers=None):
@@ -114,7 +113,8 @@ class RestOME(object):
         url_kwargs["force_basic_auth"] = False
         return url_kwargs
 
-    def invoke_request(self, method, path, data=None, query_param=None, headers=None, api_timeout=30):
+    def invoke_request(self, method, path, data=None, query_param=None, headers=None,
+                       api_timeout=30, dump=True):
         """
         Sends a request via open_url
         Returns :class:`OpenURLResponse` object.
@@ -126,6 +126,7 @@ class RestOME(object):
             request
         :arg api_timeout: (optional) How long to wait for the server to send
             data before giving up
+        :arg dump: (Optional) boolean value for dumping payload data.
         :returns: OpenURLResponse
         """
         try:
@@ -133,7 +134,7 @@ class RestOME(object):
                 url_kwargs = self._args_with_session(method, api_timeout, headers=headers)
             else:
                 url_kwargs = self._args_without_session(method, api_timeout, headers=headers)
-            if data:
+            if data and dump:
                 data = json.dumps(data)
             url = self._build_url(path, query_param=query_param)
             resp = open_url(url, data=data, **url_kwargs)
@@ -164,7 +165,3 @@ class RestOME(object):
             path = SESSION_RESOURCE_COLLECTION["SESSION_ID"].format(Id=self.session_id)
             self.invoke_request('DELETE', path)
         return False
-
-
-if __name__ == "__main__":
-    pass
