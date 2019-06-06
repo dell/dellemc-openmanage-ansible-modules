@@ -9,7 +9,7 @@
     dellemc_configure_idrac_timezone:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        setup_idrac_timezone: "Singapore"
        enable_ntp: "Disabled"

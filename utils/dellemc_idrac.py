@@ -2,12 +2,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.0
-# Copyright (C) 2018 Dell Inc.
+# Version 2.0
+# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 from __future__ import (absolute_import, division,
@@ -32,7 +30,7 @@ class iDRACConnection:
             raise ImportError("Dell EMC OMSDK library is required for this module")
         self.idrac_ip = module_params['idrac_ip']
         self.idrac_user = module_params['idrac_user']
-        self.idrac_pwd = module_params['idrac_pwd']
+        self.idrac_pwd = module_params['idrac_password']
         self.idrac_port = module_params['idrac_port']
         if not all((self.idrac_ip, self.idrac_user, self.idrac_pwd)):
             raise ValueError("hostname, username and password required")

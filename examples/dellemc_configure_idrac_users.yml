@@ -9,11 +9,11 @@
     dellemc_configure_idrac_users:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        action: "create"
        user_name: "user_name"
-       user_password: "user_pwd"
+       user_password: "user_password"
        privilege_users: 'Administrator'
        ipmilanprivilege_users: 'Operator'
        ipmiserialprivilege_users: 'Administrator'
@@ -30,7 +30,7 @@
     dellemc_configure_idrac_users:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        action: "modify"
        user_name: "user_name"
@@ -50,7 +50,7 @@
     dellemc_configure_idrac_users:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        action: "delete"
        user_name: "user_name"

@@ -9,5 +9,5 @@
     dellemc_get_lc_job_status:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        job_id: "JID_123456789"

@@ -10,7 +10,7 @@
     dellemc_configure_bios:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        attributes:
          BootMode : "Bios"
          OneTimeBootMode: "Enabled"
@@ -23,7 +23,7 @@
     dellemc_configure_bios:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        attributes:
          PxeDev1EnDis: "Enabled"
          PxeDev1Protocol: "IPV4"
@@ -39,7 +39,7 @@
     dellemc_configure_bios:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        boot_sources:
          - Name : "NIC.Integrated.x-x-x"
            Enabled : true
@@ -55,7 +55,7 @@
     dellemc_configure_bios:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        boot_sources:
          - Name : "NIC.Integrated.x-x-x"
            Enabled : true
@@ -67,7 +67,7 @@
     dellemc_configure_bios:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        boot_sources:
          - Name : "NIC.Integrated.x-x-x"
            Index : 1

@@ -8,7 +8,7 @@
   gather_facts: False
 
   tasks:
-  - name: "Create template from DUP file."
+  - name: "Create template based on device id."
     dellemc_ome_template:
       hostname:  "{{ hostname }}"
       username: "{{ username }}"

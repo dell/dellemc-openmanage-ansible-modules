@@ -9,6 +9,6 @@
     dellemc_idrac_lc_attributes:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        csior: "Enabled"

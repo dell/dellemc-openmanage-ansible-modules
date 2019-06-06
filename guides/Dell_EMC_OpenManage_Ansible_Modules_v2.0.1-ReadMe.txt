@@ -2,13 +2,13 @@
 Dell EMC OpenManage Ansible Modules
 
 *******************************************************************************
-Version: 2.0
+Version: 2.0.1
 
 *******************************************************************************
 Release Date: May 2019
 
 *******************************************************************************
-Previous Version: 1.1
+Previous Version: 2.0
 
 *******************************************************************************
 Importance
@@ -24,74 +24,34 @@ Platform(s) Affected
 --------------------
 
 For the list of supported platforms, see the section "Support Matrix" in the 
-"Dell EMC OpenManage Ansible Modules version 2.0 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.0.1 Installation Guide".
 
 *******************************************************************************
 What is Supported
 -----------------
 
 For information on the hardware and software requirements, see 
-"Dell EMC OpenManage Ansible Modules version 2.0 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.0.1 Installation Guide".
 
 *******************************************************************************
 What’s New
 ----------
-The key features in OpenManage Ansible Modules version 2.0 include:
 
-* Improved capabilities with support for OpenManage Enterprise (OME).
-
-* Create, modify or delete a user account using a new OME module (ome_user).
-
-* A new OME module (ome_power_state) to perform the power management
-  operations.
-
-* Create, modify or deploy a template using a new OME module
-  (dellemc_ome_template).
-
-* Get the list and details of user accounts using a new OME module
-  (dellemc_ome_user_facts).
-
-* Get the list and details of templates using a new OME module
-  (dellemc_ome_template_facts).
-
-* A new OME module (dellemc_ome_job_facts) to view or track job details of
-  PowerEdge devices.
-
-* A new OME module (dellemc_ome_firmware) to update the firmware of
-  PowerEdge devices and all its components.
-
-* A new and rich OME module (dellemc_ome_device_facts) to retrieve the list
-  of all devices with the exhaustive inventory of each device.
-
-* The modules dellemc_export_server_config_profile and
-  dellemc_import_server_config_profile are deprecated and all the
-  functionality are added to the new dellemc_idrac_server_config_profile
-  module.
-
-* The dellemc_install_firmware module is deprecated and all the functionality
-  are added to the new dellemc_idrac_firmware module.
-
+The key features in OpenManage Ansible Modules version 2.0.1 include:
+  
+* idrac_firmware and idrac_server_config_profile modules are added.
+  
+* dellemc_idrac_firmware and dellemc_idrac_server_config_profile modules are deprecated.
+  
 For a complete list of supported features that you can leverage,
-see the “Dell EMC OpenManage Ansible Modules Version 2.0 User’s Guide”.
+see the “Dell EMC OpenManage Ansible Modules Version 2.0.1 User’s Guide”.
 
 *******************************************************************************
 Fixes
 -----
 
-* Issue 1(86459):
-  Description: iDRAC Time zone configuration task exits with a message "Job
-  wait did not return for 7200 seconds" on 14G server if the iDRAC firmware
-  version is 3.00.00.00 or 3.11.11.11. The new Time zone values are actually
-  applied on the server.
-
-* Issue 2(83769):
-  Description: Export LC log, TSR log using Linux NFS share fails with an error
-  "Cannot access Network Share" for 12G, 13G and 14G servers if the iDRAC
-  firmware version is lesser than 3.15.15.15.
-
-* Issue 3(91679):
-  Description: Firmware update fails if the DUP repository is on Linux NFS
-  share for 14G server with iDRAC firmware version 3.00.00.00.
+* Issue 1(134624)
+  Description: All iDRAC modules fail to run with Ansible v2.8.0 and OMAM v2.0
 
 *******************************************************************************
 Known Issues
@@ -140,19 +100,19 @@ Limitations
 Installation Prerequisites
 --------------------------
 For installation prerequisites, see "Dell EMC OpenManage Ansible Modules
-Version 2.0 Installation Guide".
+Version 2.0.1 Installation Guide".
 
 Software Requirements
 ---------------------
 
 * For information on the hardware and software requirements, see
-"Dell EMC OpenManage Ansible Modules Version 2.0 Installation Guide".
+"Dell EMC OpenManage Ansible Modules Version 2.0.1 Installation Guide".
 
 Installation Procedure
 -------------------------
 
 For the installation instructions, see "Dell EMC OpenManage Ansible Modules
-Version 2.0 Installation Guide".
+Version 2.0.1 Installation Guide".
 
 *******************************************************************************
 Accessing Documents from Dell Support Site
@@ -220,7 +180,7 @@ technical support, or customer service issues:
 
 
 Dell EMC OpenManage Ansible Modules
-Version 2.0
+Version 2.0.1
 Copyright (C) 2019   Dell Inc.
 
 GNU General Public License v3.0+

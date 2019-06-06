@@ -9,7 +9,7 @@
     dellemc_system_lockdown_mode:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        lockdown_mode: "Disabled"
 

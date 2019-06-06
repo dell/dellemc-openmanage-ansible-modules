@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.0
-# Copyright (C) 2018 Dell Inc.
+# Version 2.0
+# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -33,9 +31,10 @@ options:
     idrac_user:
         required: True
         description: iDRAC username.
-    idrac_pwd:
+    idrac_password:
         required: True
         description: iDRAC user password.
+        aliases: ['idrac_pwd']
     idrac_port:
         required: False
         description: iDRAC port.
@@ -47,9 +46,10 @@ options:
         required: False
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
-    share_pwd:
+    share_password:
         required: False
         description: Network share user password. This option is mandatory for CIFS Network Share.
+        aliases: ['share_pwd']
     share_mnt:
         required: False
         description: Local mount path of the network share with read-write permission for ansible user.
@@ -126,7 +126,7 @@ EXAMPLES = """
   dellemc_configure_bios:
     idrac_ip:   "xx.xx.xx.xx"
     idrac_user: "xxxx"
-    idrac_pwd:  "xxxxxxxx"
+    idrac_password:  "xxxxxxxx"
     attributes:
       BootMode : "Bios"
       OneTimeBootMode: "Enabled"
@@ -136,7 +136,7 @@ EXAMPLES = """
   dellemc_configure_bios:
     idrac_ip:   "xx.xx.xx.xx"
     idrac_user: "xxxx"
-    idrac_pwd:  "xxxxxxxx"
+    idrac_password:  "xxxxxxxx"
     attributes:
       PxeDev1EnDis: "Enabled"
       PxeDev1Protocol: "IPV4"
@@ -149,7 +149,7 @@ EXAMPLES = """
   dellemc_configure_bios:
     idrac_ip:   "xx.xx.xx.xx"
     idrac_user: "xxxx"
-    idrac_pwd:  "xxxxxxxx"
+    idrac_password:  "xxxxxxxx"
     boot_sources:
       - Name : "NIC.Integrated.x-x-x"
         Enabled : true
@@ -159,7 +159,7 @@ EXAMPLES = """
   dellemc_configure_bios:
     idrac_ip:   "xx.xx.xx.xx"
     idrac_user: "xxxx"
-    idrac_pwd:  "xxxxxxxx"
+    idrac_password:  "xxxxxxxx"
     boot_sources:
       - Name : "NIC.Integrated.x-x-x"
         Enabled : true
@@ -175,7 +175,7 @@ EXAMPLES = """
   dellemc_configure_bios:
     idrac_ip:   "xx.xx.xx.xx"
     idrac_user: "xxxx"
-    idrac_pwd:  "xxxxxxxx"
+    idrac_password:  "xxxxxxxx"
     boot_sources:
       - Name : "NIC.Integrated.x-x-x"
         Enabled : true
@@ -184,7 +184,7 @@ EXAMPLES = """
   dellemc_configure_bios:
     idrac_ip:   "xx.xx.xx.xx"
     idrac_user: "xxxx"
-    idrac_pwd:  "xxxxxxxx"
+    idrac_password:  "xxxxxxxx"
     boot_sources:
       - Name : "NIC.Integrated.x-x-x"
         Index : 0
@@ -238,7 +238,7 @@ def run_server_bios_config(idrac, module):
                                                         isFolder=True,
                                                         creds=UserCredentials(
                                                             module.params['share_user'],
-                                                            module.params['share_pwd'])
+                                                            module.params['share_password'])
                                                         )
         if module.params['boot_sources']:
             err, message = _validate_params(module.params['boot_sources'])
@@ -422,12 +422,12 @@ def main():
             # iDRAC credentials
             idrac_ip=dict(required=True, type='str'),
             idrac_user=dict(required=True, type='str'),
-            idrac_pwd=dict(required=True, type='str', no_log=True),
+            idrac_password=dict(required=True, type='str', aliases=['idrac_pwd'], no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
 
             # Export Destination
             share_name=dict(required=False, type='str'),
-            share_pwd=dict(required=False, type='str', no_log=True),
+            share_password=dict(required=False, type='str', aliases=['share_pwd'], no_log=True),
             share_user=dict(required=False, type='str'),
             share_mnt=dict(required=False, type='str'),
 

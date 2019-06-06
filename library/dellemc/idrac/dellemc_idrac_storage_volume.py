@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.5
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0
+# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -33,9 +31,10 @@ options:
   idrac_user:
     required: True
     description: iDRAC username.
-  idrac_pwd:
+  idrac_password:
     required: True
     description: iDRAC user password.
+    aliases: ['idrac_pwd']
   idrac_port:
     required: False
     description: iDRAC port.
@@ -146,7 +145,7 @@ EXAMPLES = r'''
   dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
-    idrac_pwd: "password"
+    idrac_password: "password"
     state: "create"
     controller_id: "RAID.Slot.1-1"
     volumes:
@@ -157,7 +156,7 @@ EXAMPLES = r'''
   dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
-    idrac_pwd: "password"
+    idrac_password: "password"
     raid_reset_config: "True"
     state: "create"
     controller_id: "RAID.Slot.1-1"
@@ -192,14 +191,14 @@ EXAMPLES = r'''
   dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
-    idrac_pwd: "password"
+    idrac_password: "password"
     state: "view"
 
 - name: View specific volume details.
   dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
-    idrac_pwd: "password"
+    idrac_password: "password"
     state: "view"
     controller_id: "RAID.Slot.1-1"
     volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
@@ -208,7 +207,7 @@ EXAMPLES = r'''
   dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
-    idrac_pwd: "password"
+    idrac_password: "password"
     state: "delete"
     volumes:
       - name: "volume_1"
@@ -217,7 +216,7 @@ EXAMPLES = r'''
   dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
-    idrac_pwd: "password"
+    idrac_password: "password"
     state: "delete"
     volumes:
       - name: "volume_1"
@@ -448,7 +447,7 @@ def main():
         argument_spec={
             "idrac_ip": {"required": True, "type": 'str'},
             "idrac_user": {"required": True, "type": 'str'},
-            "idrac_pwd": {"required": True, "type": 'str', "no_log": True},
+            "idrac_password": {"required": True, "type": 'str', "aliases": ["idrac_pwd"], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
             "state": {"required": False,
                       "choices": ['create', 'delete', 'view'], "default": 'view'},
