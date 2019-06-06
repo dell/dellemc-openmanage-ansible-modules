@@ -4,6 +4,12 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
 
+# 2.0.1 (June 6, 2019)
+
+  * idrac_firmware and idrac_server_config_profile modules are added.
+
+  * dellemc_idrac_firmware and dellemc_idrac_server_config_profile modules are deprecated.
+
 # 2.0 (May 3, 2019)
 
   * Create, modify or delete a user account using a new OME module (ome_user).
