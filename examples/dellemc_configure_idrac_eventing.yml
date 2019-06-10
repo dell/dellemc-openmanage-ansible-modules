@@ -9,7 +9,7 @@
     dellemc_configure_idrac_eventing:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        smtp_ip_address: "0.0.0.0"
        authentication: "Enabled"
@@ -23,7 +23,7 @@
     dellemc_configure_idrac_eventing:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        snmp_trap_state: "Enabled"
        destination_number: "2"
@@ -37,7 +37,7 @@
     dellemc_configure_idrac_eventing:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        email_alert_state: "Disabled"
        address: "test@test.com"
@@ -51,7 +51,7 @@
     dellemc_configure_idrac_eventing:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_pwd:  "{{ idrac_pwd }}"
+       idrac_password:  "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        enable_alerts: "Disabled"
 

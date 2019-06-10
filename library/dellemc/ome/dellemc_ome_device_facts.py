@@ -8,6 +8,7 @@
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
+# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -90,9 +91,9 @@ EXAMPLES = """
 ---
 - name: Retrieve basic inventory of all devices.
   dellemc_ome_device_facts:
-    hostname:  "192.168.0.1"
+    hostname: "192.168.0.1"
     username: "username"
-    password:  "password"
+    password: "password"
 
 - name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering.
   dellemc_ome_device_facts:
@@ -105,7 +106,7 @@ EXAMPLES = """
 
 - name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222.
   dellemc_ome_device_facts:
-    hostname:  "192.168.0.1"
+    hostname: "192.168.0.1"
     username: "username"
     password: "password"
     fact_subset: "detailed_inventory"
@@ -246,7 +247,7 @@ def _get_device_id_from_service_tags(service_tags, rest_obj):
                     service_tag_dict.update({item["Id"]: item["DeviceServiceTag"]})
             available_service_tags = service_tag_dict.values()
             not_available_service_tag = list(set(service_tags) - set(available_service_tags))
-            device_fact_error_report.update({tag: DESC_HTTP_ERROR for tag in not_available_service_tag})
+            device_fact_error_report.update(dict((tag, DESC_HTTP_ERROR) for tag in not_available_service_tag))
         else:
             raise ValueError(resp.json_data)
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
@@ -272,7 +273,7 @@ def _check_duplicate_device_id(device_id_list, service_tag_dict):
         common_val = list(set(device_id_represents_int) & set(service_tag_dict.keys()))
         for device_id in common_val:
             device_fact_error_report.update(
-                {service_tag_dict[device_id]: "Duplicate report of device_id: {}".format(device_id)})
+                {service_tag_dict[device_id]: "Duplicate report of device_id: {0}".format(device_id)})
             del service_tag_dict[device_id]
 
 
@@ -287,7 +288,7 @@ def _get_device_identifier_map(module_params, rest_obj):
         device_id_list = system_query_options_param.get("device_id")
         device_service_tag_list = system_query_options_param.get("device_service_tag")
         if device_id_list:
-            device_id_dict = {device_id: None for device_id in list(set(device_id_list))}
+            device_id_dict = dict((device_id, None) for device_id in list(set(device_id_list)))
             device_id_service_tag_dict["device_id"] = device_id_dict
         if device_service_tag_list:
             service_tag_dict = _get_device_id_from_service_tags(device_service_tag_list,
@@ -348,7 +349,7 @@ def _check_mutually_inclusive_arguments(val, module_params, required_args):
     system_query_options_param = module_params.get("system_query_options")
     if system_query_options_param is None or (system_query_options_param is not None and not any(
             system_query_options_param.get(qualifier) for qualifier in required_args)):
-        raise ValueError("One of the following {} is required for {}".format(required_args, val))
+        raise ValueError("One of the following {0} is required for {1}".format(required_args, val))
 
 
 def _validate_inputs(module_params):
@@ -408,8 +409,7 @@ def main():
         if 200 in resp_status:
             module.exit_json(ansible_facts={module.params["hostname"]: device_facts})
         else:
-            module.fail_json(msg="Failed to fetch the device facts",
-                             ansible_facts={module.params["hostname"]: device_facts})
+            module.fail_json(msg="Failed to fetch the device facts")
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         module.fail_json(msg=str(err))
 

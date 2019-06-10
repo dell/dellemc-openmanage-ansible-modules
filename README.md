@@ -34,6 +34,8 @@ Sample Results for the respective modules could be found under [samples](./sampl
 
   * It is recommended to update the ansible configuration setting environment variables to point to the current module paths, if any.
 
+  * If using an alternative python interpreter, i.e. virtualenv, you must set the Ansible variable ansible_python_interpreter to that path.
+
 ## Uninstallation
 
 ```

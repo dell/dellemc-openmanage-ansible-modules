@@ -1,0 +1,42 @@
+---
+- hosts: hosts
+  vars:
+    retries_count: 5
+    polling_interval: 5 #in seconds
+  connection: local
+  name: "OME - Create Template details tracking"
+  gather_facts: False
+
+  tasks:
+  - name: "Create template based on device id."
+    dellemc_ome_template:
+      hostname:  "{{ hostname }}"
+      username: "{{ username }}"
+      password:  "{{ password }}"
+      device_id: 25123
+      attributes:
+        Name: "New Template"
+        Description: "New Template description"
+    register: result
+    failed_when: "'return_id' not in result"
+
+  - name: "Get the job id using return id from template."
+    dellemc_ome_template_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      template_id: "{{ result.return_id }}"
+    register: facts_result
+    failed_when: "'ansible_facts' not in facts_result"
+
+  - name: "Get job details using job id from template task."
+    dellemc_ome_job_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      job_id: "{{ facts_result.ansible_facts[hostname].TaskId }}"
+    register: job_result
+    failed_when: "'job_facts' not in job_result"
+    until: job_result.job_facts.LastRunStatus.Name == 'Completed' or job_result.job_facts.LastRunStatus.Name == 'Failed'
+    retries: "{{ retries_count }}"
+    delay: "{{ polling_interval }}"

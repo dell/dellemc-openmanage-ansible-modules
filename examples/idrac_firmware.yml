@@ -1,0 +1,19 @@
+---
+- hosts: hosts
+  connection: local
+  name: Update Firmware Inventory
+  gather_facts: False
+
+  tasks:
+  - name: Update Firmware Inventory
+    idrac_firmware:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password}}"
+       share_name: "{{ share_name }}"
+       share_user: "{{ share_user }}"
+       share_password: "{{ share_password }}"
+       share_mnt: "{{ share_mnt }}"
+       reboot: False
+       job_wait: True
+       catalog_file_name: "{{ catalog_file_name }}"

@@ -3,11 +3,12 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.2
+# Version 1.3
 # Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
+# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -15,7 +16,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = r'''
@@ -23,6 +24,10 @@ DOCUMENTATION = r'''
 module: dellemc_idrac_server_config_profile
 short_description: Export or Import Server Configuration Profile(SCP).
 version_added: "2.8"
+deprecated:
+  removed_in: "2.12"
+  why: Replaced with M(idrac_server_config_profile).
+  alternative: Use M(idrac_server_config_profile) instead.
 description:
   - Export the Server Configuration Profile(SCP) from the iDRAC or Import from a network share or a local file.
 options:
@@ -118,7 +123,7 @@ EXAMPLES = r'''
     share_name: "192.168.0.2:/share"
     share_user: "share_user_name"
     share_pwd: "share_user_pwd"
-    scp_file:   "scp_filename.xml"
+    scp_file: "scp_filename.xml"
     scp_components: "ALL"
     job_wait: True
 
@@ -131,7 +136,7 @@ EXAMPLES = r'''
     share_name: "/scp_folder"
     share_user: "share_user_name"
     share_pwd: "share_user_pwd"
-    scp_file:   "scp_filename.xml"
+    scp_file: "scp_filename.xml"
     scp_components: "ALL"
     job_wait: True
 
@@ -198,27 +203,23 @@ except ImportError:
 
 def run_import_server_config_profile(idrac, module):
     """Import Server Configuration Profile from a network share."""
-    share_name = module.params['share_name']
     target = SCPTargetEnum[module.params['scp_components']]
     job_wait = module.params['job_wait']
-
     end_host_power_state = EndHostPowerStateEnum[module.params['end_host_power_state']]
     shutdown_type = ShutdownTypeEnum[module.params['shutdown_type']]
-
     idrac.use_redfish = True
 
     try:
         myshare = file_share_manager.create_share_obj(
-            share_path="{}{}{}".format(share_name, os.sep, module.params['scp_file']),
+            share_path="{0}{1}{2}".format(module.params['share_name'], os.sep, module.params['scp_file']),
             creds=UserCredentials(module.params['share_user'],
-                                  module.params['share_pwd']), isFolder=False, )
+                                  module.params['share_pwd']), isFolder=False)
         import_status = idrac.config_mgr.scp_import(myshare,
                                                     target=target, shutdown_type=shutdown_type,
                                                     end_host_power_state=end_host_power_state,
                                                     job_wait=job_wait)
         if not import_status or import_status.get('Status') != "Success":
             module.fail_json(msg='Failed to import scp.', scp_status=import_status)
-
     except RuntimeError as e:
         module.fail_json(msg=str(e))
     return import_status
@@ -226,14 +227,10 @@ def run_import_server_config_profile(idrac, module):
 
 def run_export_server_config_profile(idrac, module):
     """Export Server Configuration Profile to a network share."""
-    file_format = module.params['export_format'].lower()
     export_format = ExportFormatEnum[module.params['export_format']]
-    scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp." + file_format
-
+    scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.{0}".format(module.params['export_format'].lower())
     target = SCPTargetEnum[module.params['scp_components']]
-    job_wait = module.params['job_wait']
     export_use = ExportUseEnum[module.params['export_use']]
-
     idrac.use_redfish = True
 
     try:
@@ -246,10 +243,9 @@ def run_export_server_config_profile(idrac, module):
                                                     target=target,
                                                     export_format=export_format,
                                                     export_use=export_use,
-                                                    job_wait=job_wait)
+                                                    job_wait=module.params['job_wait'])
         if not export_status or export_status.get('Status') != "Success":
             module.fail_json(msg='Failed to export scp.', scp_status=export_status)
-
     except RuntimeError as e:
         module.fail_json(msg=str(e))
     return export_status
@@ -292,13 +288,17 @@ def main():
         ],
         supports_check_mode=False)
 
+    module.deprecate("The 'dellemc_server_config_profile' module has been deprecated. "
+                     "Use 'idrac_server_config_profile' instead",
+                     version=2.12)
+
     try:
         changed = False
         with iDRACConnection(module.params) as idrac:
             command = module.params['command']
             if command == 'import':
                 scp_status = run_import_server_config_profile(idrac, module)
-                if "No changes were applied" not in scp_status.get('Message', " "):
+                if "No changes were applied" not in scp_status.get('Message', ""):
                     changed = True
             else:
                 scp_status = run_export_server_config_profile(idrac, module)
