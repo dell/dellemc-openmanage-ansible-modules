@@ -11,7 +11,7 @@ perform the job or if it is taking long to execute. </li>
 </ul><p>Check_mode support: Yes</p><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_0ABB62BB179C4C48895B045361339016"><caption>Table 1. dellemc_delete_lc_job</caption>
 
 
-<thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>job_id</td><td>Yes</td><td>NA</td><td>NA</td><td>JOB ID in the format &quot;JID_XXXXXXXXX&quot;</td></tr></tbody>
+<thead><tr><td>Parameter/aliases</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_password/idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>job_id</td><td>Yes</td><td>NA</td><td>NA</td><td>JOB ID in the format &quot;JID_XXXXXXXXX&quot;</td></tr></tbody>
 </table><table class="table frame-all" id="TABLE_28BFE67A87FB40F9A8347EED248AA9D7"><caption>Table 2. Return Values</caption>
 
 
@@ -19,9 +19,9 @@ perform the job or if it is taking long to execute. </li>
 a JOB ID</td><td>Success</td><td>String</td><td><a data-scope="external" href="https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_delete_lc_job.md" target="_blank" title="">https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_delete_lc_job.md</a></td></tr></tbody>
 </table><p><span class="uicontrol">Examples</span><pre class="codeblock">-name: Delete LC Job
    dellemc_delete_lc_job:
-     idrac_ip:   &quot;xx.xx.xx.xx&quot;
-     idrac_user: &quot;xxxx&quot;
-     idrac_pwd:  &quot;xxxxx&quot;
-     idrac_port: &quot;xxx&quot;
-     job_id:     &quot;JID_XXXXXXXX&quot;</pre></p></div>
-</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?KNPsPhBZ"></script></body></html>
+     idrac_ip:        &quot;xx.xx.xx.xx&quot;
+     idrac_user:      &quot;xxxx&quot;
+     idrac_password:  &quot;xxxxx&quot;
+     idrac_port:      &quot;xxx&quot;
+     job_id:          &quot;JID_XXXXXXXX&quot;</pre></p></div>
+</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?+FkGWNYY"></script></body></html>

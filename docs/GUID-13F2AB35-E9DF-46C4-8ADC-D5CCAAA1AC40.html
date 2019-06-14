@@ -8,7 +8,7 @@ storage volume</h1>
 related attributes.</p><p>Check_mode support: Yes</p><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8"><caption>Table 1. dellemc_idrac_storage_volume</caption>
 
 
-<thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>span_depth</td><td>No</td><td>1</td><td>NA</td><td>Span Depth</td></tr><tr><td>span_length</td><td>No</td><td>1</td><td>NA</td><td>Span Length</td></tr><tr><td>number_dedicated_hot_spare</td><td>No</td><td>0</td><td>NA</td><td>Number of Dedicated Hot Spare</td></tr><tr><td>volume_type</td><td>No</td><td>RAID 0</td><td><ul id="UL_77B0FAF1CE304B03A74D0A9542BCCE70_unique_1">
+<thead><tr><td>Parameter/aliases</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_password/idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>span_depth</td><td>No</td><td>1</td><td>NA</td><td>Span Depth</td></tr><tr><td>span_length</td><td>No</td><td>1</td><td>NA</td><td>Span Length</td></tr><tr><td>number_dedicated_hot_spare</td><td>No</td><td>0</td><td>NA</td><td>Number of Dedicated Hot Spare</td></tr><tr><td>volume_type</td><td>No</td><td>RAID 0</td><td><ul id="UL_77B0FAF1CE304B03A74D0A9542BCCE70_unique_1">
 <li id="LI_3B1258D59D4F45CC9B5747B1E883588D_unique_1">RAID 0</li>
 <li id="LI_49FE1456AA694ED78AE8ADB56F12E5C9_unique_1">RAID 1</li>
 <li id="LI_1B6892DE01F8416AA7CB32738B697D6F_unique_1">RAID 5</li>
@@ -89,7 +89,7 @@ storage_status:
    dellemc_idrac_storage_volume:
      idrac_ip:        &quot;192.168.0.1&quot;
      idrac_user:      &quot;username&quot;
-     idrac_pwd:       &quot;password&quot;
+     idrac_password:  &quot;password&quot;
      controller_id:   &quot;RAID.Slot.1-1&quot;
      state:           &quot;create&quot;
      volumes:
@@ -99,7 +99,7 @@ storage_status:
    dellemc_idrac_storage_volume:
      idrac_ip:                  &quot;192.168.0.1&quot;
      idrac_user:                &quot;username&quot;
-     idrac_pwd:                 &quot;password&quot;
+     idrac_password:            &quot;password&quot;
      raid_reset_config:         &quot;True&quot;
      state:                     &quot;create&quot;
      controller_id:             &quot;RAID.Slot.1-1&quot;
@@ -131,30 +131,30 @@ storage_status:
          capacity:                200
          raid_init_operation:    &quot;None&quot;</pre><pre class="codeblock">-name: View all volume details
    dellemc_idrac_storage_volume:
-     idrac_ip:   &quot;192.168.0.1&quot;
-     idrac_user: &quot;username&quot;
-     idrac_pwd:  &quot;password&quot;
-     state:      &quot;view&quot;</pre><pre class="codeblock">-name: View specific volume details
+     idrac_ip:   					&quot;192.168.0.1&quot;
+     idrac_user: 					&quot;username&quot;
+     idrac_password:  &quot;password&quot;
+     state:      					&quot;view&quot;</pre><pre class="codeblock">-name: View specific volume details
    dellemc_idrac_storage_volume:
      idrac_ip:        &quot;192.168.0.1&quot;
      idrac_user:      &quot;username&quot;
-     idrac_pwd:       &quot;password&quot;
+     idrac_password:  &quot;password&quot;
      state:           &quot;view&quot;
      controller_id:   &quot;RAID.Slot.1-1&quot;
-     volume_id:        &quot;Disk.Virtual.0:RAID.Slot.1-1&quot;</pre><pre class="codeblock">-name: Delete single volume
+     volume_id:       &quot;Disk.Virtual.0:RAID.Slot.1-1&quot;</pre><pre class="codeblock">-name: Delete single volume
    dellemc_idrac_storage_volume:
-     idrac_ip:    &quot;192.168.0.1&quot;
-     idrac_user:  &quot;username&quot;
-     idrac_pwd:   &quot;password&quot;
-     state:       &quot;delete&quot;
+     idrac_ip:    			&quot;192.168.0.1&quot;
+     idrac_user:  			&quot;username&quot;
+     idrac_password: &quot;password&quot;
+     state:       			&quot;delete&quot;
      volumes:
        - name:    &quot;volume_1&quot;</pre><pre class="codeblock">-name: Delete multiple volume
    dellemc_idrac_storage_volume:
-     idrac_ip:    &quot;192.168.0.1&quot;
-     idrac_user:  &quot;username&quot;
-     idrac_pwd:   &quot;password&quot;
-     state:       &quot;delete&quot;
+     idrac_ip:    			&quot;192.168.0.1&quot;
+     idrac_user:  			&quot;username&quot;
+     idrac_password: &quot;password&quot;
+     state:       			&quot;delete&quot;
      volumes:
        - name: &quot;volume_1&quot;
        - name: &quot;volume_2&quot;</pre></p></div>
-</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?KNPsPhBZ"></script></body></html>
+</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?+FkGWNYY"></script></body></html>

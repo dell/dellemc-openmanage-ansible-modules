@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.0
-# Copyright (C) 2018 Dell Inc.
+# Version 2.0
+# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -21,7 +19,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = r'''
 ---
-module: dellemc_idrac_firmware
+module: idrac_firmware
 short_description: Firmware update from a repository on a network share (CIFS, NFS).
 version_added: "2.8"
 description:
@@ -39,10 +37,11 @@ options:
         description: iDRAC username.
         type: str
         required: True
-    idrac_pwd:
+    idrac_password:
         description: iDRAC user password.
         type: str
         required: True
+        aliases: ['idrac_pwd']
     idrac_port:
         description: iDRAC port.
         type: int
@@ -55,9 +54,10 @@ options:
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
         type: str
-    share_pwd:
+    share_password:
         description: Network share user password. This option is mandatory for CIFS Network Share.
         type: str
+        aliases: ['share_pwd']
     share_mnt:
         description: Local mount path of the network share with read-write permission for ansible user.
             This option is mandatory for Network Share.
@@ -86,13 +86,13 @@ author: "Rajeev Arakkal (@rajeevarakkal)"
 EXAMPLES = """
 ---
 - name: Update firmware from repository on a Network Share
-  dellemc_idrac_firmware:
+  idrac_firmware:
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
-       idrac_pwd: "user_pwd"
+       idrac_password: "user_password"
        share_name: "192.168.0.0:/share"
        share_user: "share_user_name"
-       share_pwd: "share_user_pwd"
+       share_password: "share_user_pwd"
        share_mnt: "/mnt/share"
        reboot: True
        job_wait: True
@@ -152,7 +152,7 @@ def update_firmware(idrac, module):
                                 isFolder=False,
                                 creds=UserCredentials(
                                     module.params['share_user'],
-                                    module.params['share_pwd'])
+                                    module.params['share_password'])
                                 )
 
         idrac.use_redfish = True
@@ -181,12 +181,12 @@ def main():
         argument_spec={
             "idrac_ip": {"required": True, "type": 'str'},
             "idrac_user": {"required": True, "type": 'str'},
-            "idrac_pwd": {"required": True, "type": 'str', "no_log": True},
+            "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
 
             "share_name": {"required": True, "type": 'str'},
             "share_user": {"required": False, "type": 'str'},
-            "share_pwd": {"required": False, "type": 'str', "no_log": True},
+            "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
             "share_mnt": {"required": True, "type": 'str'},
 
             "catalog_file_name": {"required": False, "type": 'str', "default": "Catalog.xml"},

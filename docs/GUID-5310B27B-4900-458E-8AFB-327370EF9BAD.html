@@ -1,6 +1,98 @@
 <!DOCTYPE html>
 <html lang="en-us"><head><!-- saved from url=(0014)about:internet -->
-<meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><!--$if html5Status  -->  <!--$else--><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><title>Install firmware</title><link rel="prev" href="GUID-898D187E-FE41-44B6-AEBF-B60F082ED7C8.html" /><link rel="next" href="GUID-ECB1DB01-7DB5-4138-A996-F01B628946A4.html" /><link href="static/screen.css?fAL4Y+sp" rel="stylesheet" /><link href="static/print.css?IUS/7uGw" media="print" rel="stylesheet" /><script src="static/head.js?qUF72lF0"></script><link rel="shortcut icon" href="static/favicon-blue.ico" /></head><body id="GUID-5310B27B-4900-458E-8AFB-327370EF9BAD" data-approot=""><header><div class="inner"><a id="logo-link" href="index.html" /><img id="logo" src="static/logoEmc.png" alt="Logo" /></a><div class="title-text">Dell EMC OpenManage Ansible Modules</div></div></header><div id="navheader"><div id="breadcrumbs"></div></div><nav class="navigation" id="topicnav"><div id="topicbuttons"><a id="button-back" href="#" title="Previous topic"><span>Previous topic</span></a><a id="button-forward" href="#" title="Next topic"><span>Next topic</span></a></div></nav><section id="center"><div id="scroller"><nav id="topnav"><div id="topbuttons"><a id="button-highlighting" href="#" title="Toggle highlighting"><span>Toggle highlighting</span></a><a id="button-hide-navigation" href="#" title="Toggle navigation"><span>Toggle navigation</span></a><a id="button-print" href="#" title="Print topic"><span>Print topic</span></a><a id="button-print-all" title="Print topics and subtopics"><span>Print topics and subtopics</span></a></div></nav><article><div id="thumbnailDialog"></div><h1>Install firmware</h1>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><!--$if html5Status  -->  <!--$else--><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><title>Install firmware</title><link rel="prev" href="GUID-898D187E-FE41-44B6-AEBF-B60F082ED7C8.html" /><link rel="next" href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" /><link href="static/screen.css?fAL4Y+sp" rel="stylesheet" /><link href="static/print.css?IUS/7uGw" media="print" rel="stylesheet" /><script src="static/head.js?qUF72lF0"></script><link rel="shortcut icon" href="static/favicon-blue.ico" /></head><body id="GUID-5310B27B-4900-458E-8AFB-327370EF9BAD" data-approot=""><header><div class="inner"><a id="logo-link" href="index.html" /><img id="logo" src="static/logoEmc.png" alt="Logo" /></a><div class="title-text">Dell EMC OpenManage Ansible Modules</div></div></header><div id="navheader"><div id="breadcrumbs"></div></div><nav class="navigation" id="topicnav"><div id="topicbuttons"><a id="button-back" href="#" title="Previous topic"><span>Previous topic</span></a><a id="button-forward" href="#" title="Next topic"><span>Next topic</span></a></div></nav><section id="center"><div id="scroller"><nav id="topnav"><div id="topbuttons"><a id="button-highlighting" href="#" title="Toggle highlighting"><span>Toggle highlighting</span></a><a id="button-hide-navigation" href="#" title="Toggle navigation"><span>Toggle navigation</span></a><a id="button-print" href="#" title="Print topic"><span>Print topic</span></a><a id="button-print-all" title="Print topics and subtopics"><span>Print topics and subtopics</span></a></div></nav><article><div id="thumbnailDialog"></div><h1>Install firmware</h1>
+<div class="section" id="GUID-12736486-5FC6-4FB0-A76C-205AA55CE284"><span class="uicontrol">Module: idrac_firmware</span></div><div class="section" id="SECTION_5A3D992D5C6E46D6878EC82783A2440E"><span class="uicontrol">Synopsis:</span> You
+can install the firmware from a repository on a network share (CIFS,
+NFS) to keep the system updated.<p>To install the firmware:<ul id="UL_AEA892363A644C44983E8099B84863B7">
+<li id="LI_009296C057A04D64B7AC01536CA5B26A">Make sure the network
+share contains a valid repository of Dell Update Packages (DUPs) and
+a catalog file that consists the latest DUPs.</li>
+<li id="LI_BF09F1D0595543D3B9F3C800516517F8">All applicable updates
+contained in the repository are applied to the system.</li>
+</ul></p><p>Check_mode support: No</p><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_7AC7C111AAD4414595BB4FFEB2824EA1"><caption>Table 1. idrac_firmware</caption>
+
+
+<thead><tr><td>Parameter/aliases</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_password/idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>job_wait</td><td>Yes</td><td>True</td><td>NA</td><td> Whether to wait for job completion or not. </td></tr><tr><td class=" valign_middle">catalog_file_name</td><td class=" valign_middle">No</td><td class=" valign_middle">Catalog.xml</td><td class=" valign_middle">NA</td><td class=" valign_middle">Catalog file name relative to the <code>I(share_name)</code>.</td></tr><tr><td>reboot</td><td>No</td><td>False</td><td>NA</td><td>Whether to reboot after applying the updates or not.</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td>  CIFS or NFS Network share</td></tr><tr><td>share_user</td><td>No</td><td>NA</td><td>NA</td><td>  Network share user in the format
+&#39;user@domain&#39; or &#39;domain\\user&#39; if user is   part of a domain else
+&#39;user&#39;. This option is mandatory for CIFS Network share.</td></tr><tr><td>share_password/share_pwd</td><td>No</td><td>NA</td><td>NA</td><td>Network share user password. This
+option is mandatory for CIFS Network share.</td></tr><tr><td>share_mnt</td><td>Yes</td><td>NA</td><td>NA</td><td> Local mount path of the network
+share with read-write permission for ansible user. This option is
+mandatory for Network share.</td></tr></tbody>
+</table><p><span class="uicontrol">Return Values</span><pre class="codeblock">msg:
+           type: str
+           description: Over all firmware update status.
+           returned: always
+           sample: &quot;Successfully updated the firmware.&quot;
+update_status:
+           type: dict
+           description: Firmware Update job and progress details from the iDRAC.
+           returned: success
+           sample: {
+                  &#39;InstanceID&#39;: &#39;JID_XXXXXXXXXXXX&#39;,
+                  &#39;JobState&#39;: &#39;Completed&#39;,
+                  &#39;Message&#39;: &#39;Job completed successfully.&#39;,
+                  &#39;MessageId&#39;: &#39;REDXXX&#39;,
+                  &#39;Name&#39;: &#39;Repository Update&#39;,
+                  &#39;JobStartTime&#39;: &#39;NA&#39;,
+                  &#39;Status&#39;: &#39;Success&#39;,
+                  }</pre></p><p><span class="uicontrol">Example</span><pre class="codeblock">- name: Update firmware from repository on a Network Share
+    dellemc_idrac_firmware:
+      idrac_ip:          &quot;192.168.0.1&quot;
+      idrac_user:        &quot;user_name&quot;
+      idrac_password:    &quot;user_password&quot;
+      share_name:        &quot;192.168.0.0:/share&quot;
+      share_user:        &quot;share_user_name&quot;
+      share_password:    &quot;share_user_pwd&quot;
+      share_mnt:         &quot;/mnt/share&quot;
+      reboot:             True
+      job_wait:           True
+      catalog_file_name: &quot;Catalog.xml&quot;</pre></p></div>
+<div class="section" id="SECTION_88DA83B97BA946F6B92EF69DDEFE5CB1"><span class="uicontrol">Module: dellemc_idrac_firmware</span></div><div class="section" id="SECTION_F9AF7A234580484394DF9DB4E597B760"><span class="uicontrol">Synopsis:</span> You
+can install the firmware from a repository on a network share (CIFS,
+NFS) to keep the system updated.<p>To install the firmware:<ul id="UL_8E59FF1749294212A6D1F40C16EE89C7">
+<li id="LI_4E9D3E5F591E4F05B0EB7D7355B7DE1F">Make sure the network
+share contains a valid repository of Dell Update Packages (DUPs) and
+a catalog file that consists the latest DUPs.</li>
+<li id="LI_B44638863E0C43C29B5B336EBDFE4D72">All applicable updates
+contained in the repository are applied to the system.</li>
+</ul></p><p>Check_mode support: No</p><div class="note" id="GUID-E4B742D6-CEC1-4C09-8158-FDF9E77D6A37"><span class="notelabel">NOTE: </span>This module is deprecated and replaced with <span class="uicontrol">idrac_firmware</span>.</div><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_88B5135FABBD4F2880E3C5716E64100F"><caption>Table 2. dellemc_idrac_firmware</caption>
+
+
+<thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>job_wait</td><td>Yes</td><td>True</td><td>NA</td><td> Whether to wait for job completion or not. </td></tr><tr><td class=" valign_middle">catalog_file_name</td><td class=" valign_middle">No</td><td class=" valign_middle">Catalog.xml</td><td class=" valign_middle">NA</td><td class=" valign_middle">Catalog file name relative to the <code>I(share_name)</code>.</td></tr><tr><td>reboot</td><td>No</td><td>False</td><td>NA</td><td>Whether to reboot after applying the updates or not.</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td>  CIFS or NFS Network share</td></tr><tr><td>share_user</td><td>No</td><td>NA</td><td>NA</td><td>  Network share user in the format
+&#39;user@domain&#39; or &#39;domain\\user&#39; if user is   part of a domain else
+&#39;user&#39;. This option is mandatory for CIFS Network share.</td></tr><tr><td>share_pwd</td><td>No</td><td>NA</td><td>NA</td><td>Network share user password. This
+option is mandatory for CIFS Network share.</td></tr><tr><td>share_mnt</td><td>Yes</td><td>NA</td><td>NA</td><td> Local mount path of the network
+share with read-write permission for ansible user. This option is
+mandatory for Network share.</td></tr></tbody>
+</table><p><span class="uicontrol">Return Values</span><pre class="codeblock">msg:
+           type: str
+           description: Over all firmware update status.
+           returned: always
+           sample: &quot;Successfully updated the firmware.&quot;
+update_status:
+           type: dict
+           description: Firmware Update job and progress details from the iDRAC.
+           returned: success
+           sample: {
+                  &#39;InstanceID&#39;: &#39;JID_XXXXXXXXXXXX&#39;,
+                  &#39;JobState&#39;: &#39;Completed&#39;,
+                  &#39;Message&#39;: &#39;Job completed successfully.&#39;,
+                  &#39;MessageId&#39;: &#39;REDXXX&#39;,
+                  &#39;Name&#39;: &#39;Repository Update&#39;,
+                  &#39;JobStartTime&#39;: &#39;NA&#39;,
+                  &#39;Status&#39;: &#39;Success&#39;,
+                  }</pre></p><p><span class="uicontrol">Example</span><pre class="codeblock">- name: Update firmware from repository on a Network Share
+    dellemc_idrac_firmware:
+      idrac_ip:          &quot;192.168.0.1&quot;
+      idrac_user:        &quot;user_name&quot;
+      idrac_pwd:         &quot;user_pwd&quot;
+      share_name:        &quot;192.168.0.0:/share&quot;
+      share_user:        &quot;share_user_name&quot;
+      share_pwd:         &quot;share_user_pwd&quot;
+      share_mnt:         &quot;/mnt/share&quot;
+      reboot:             True
+      job_wait:           True
+      catalog_file_name: &quot;Catalog.xml&quot;</pre></p></div>
 <div class="section" id="GUID-5581151A-AD63-4FB8-B1F5-780F9B497BD5"><p><span class="uicontrol">Module: dellemc_install_firmware</span></p><p><span class="uicontrol">Synopsis</span></p><p>You
 can install the firmware from a repository on a network share (CIFS,
 NFS) to keep the system updated.<ul id="UL_1A16FA69CFBC4E64A5B73A84F93791B3"><li id="LI_CC82C8F441CD48FAB73E56A610FACE5C">For 12<sup>th</sup> and 13<sup>th</sup> generation of PowerEdge servers, firmware update from a network repository is performed using WS-Man APIs.</li><li id="LI_B087D81062C746F6A8A7A4622E19EBC1">For 14<sup>th</sup> generation of PowerEdge servers, firmware update from a network repository is performed using the SCP.</li></ul></p><p>To install the
@@ -10,7 +102,7 @@ share contains a valid repository of Dell Update Packages (DUPs) and
 a catalog file that consists the latest DUPs.</li>
 <li id="LI_47DDBBD5EB414A32B5202448618A3B0C">All applicable updates
 contained in the repository are applied to the system.</li>
-</ul><p>Check_mode support: No</p><div class="note" id="GUID-6D8FEC18-92F1-400E-8B42-2DF9B09E2BF6"><span class="notelabel">NOTE: </span>This module is deprecated and replaced with <a data-scope="local" href="GUID-ECB1DB01-7DB5-4138-A996-F01B628946A4.html" title="">dellemc_idrac_firmware</a>.</div><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_5ED657E329D74464836760FD6C1D46D1"><caption>Table 1. dellemc_install_firmware</caption>
+</ul><p>Check_mode support: No</p><div class="note" id="GUID-6D8FEC18-92F1-400E-8B42-2DF9B09E2BF6"><span class="notelabel">NOTE: </span>This module is deprecated and replaced with <span class="uicontrol">idrac_firmware</span>.</div><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_5ED657E329D74464836760FD6C1D46D1"><caption>Table 3. dellemc_install_firmware</caption>
 
 
 <thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>job_wait</td><td>Yes</td><td>True</td><td>NA</td><td> Whether to wait for job completion or not. </td></tr><tr><td class=" valign_middle">catalog_file_name</td><td class=" valign_middle">No</td><td class=" valign_middle">Catalog.xml</td><td class=" valign_middle">NA</td><td class=" valign_middle">Catalog file name relative to the <code>I(share_name)</code>.</td></tr><tr><td>reboot</td><td>No</td><td>False</td><td>NA</td><td>Whether to reboot after applying the updates or not.</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td>  CIFS or NFS Network share</td></tr><tr><td>share_user</td><td>No</td><td>NA</td><td>NA</td><td>  Network share user in the format
@@ -19,7 +111,7 @@ contained in the repository are applied to the system.</li>
 option is mandatory for CIFS Network share.</td></tr><tr><td>share_mnt</td><td>Yes</td><td>NA</td><td>NA</td><td> Local mount path of the network
 share with read-write permission for ansible user. This option is
 mandatory for Network share.</td></tr></tbody>
-</table><table class="table frame-all" id="TABLE_EC7700887FD346FB87025157FDB18F7B"><caption>Table 2. Return Values</caption>
+</table><table class="table frame-all" id="TABLE_EC7700887FD346FB87025157FDB18F7B"><caption>Table 4. Return Values</caption>
 
 
 <thead><tr><td>Name</td><td>Description</td><td>Returned</td><td>Type</td><td>Sample</td></tr></thead><tbody><tr><td>Firmware</td><td>Updates firmware from a repository
@@ -36,4 +128,4 @@ on a network share (CIFS, NFS)</td><td>Success</td><td>String</td><td><a data-sc
      reboot:             &quot;True&quot;
      job_wait:           &quot;True&quot;
      catalog_file_name:  &quot;Catalog.xml&quot;</pre></p></div>
-</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?KNPsPhBZ"></script></body></html>
+</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?+FkGWNYY"></script></body></html>

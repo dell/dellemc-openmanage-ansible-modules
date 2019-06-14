@@ -8,10 +8,10 @@ iDRAC network</h1>
 networking attributes.</p><p>Check_mode support: Yes</p><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_87FE7CBCE3E6499E9E2DA1011E931E90"><caption>Table 1. dellemc_configure_idrac_network</caption>
 
 
-<thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td>CIFS or NFS Network share or a
+<thead><tr><td>Parameter/aliases</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_password/idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td>CIFS or NFS Network share or a
 local path</td></tr><tr><td>share_user</td><td>No</td><td>NA</td><td>NA</td><td>Network share user in the format
 &#39;user@domain&#39; or &#39;domain\user&#39; if user is   part of a domain else
-&#39;user&#39;. This option is mandatory for CIFS Network share.</td></tr><tr><td>share_pwd</td><td>No</td><td>NA</td><td>NA</td><td>Network share user password. This
+&#39;user&#39;. This option is mandatory for CIFS Network share.</td></tr><tr><td>share_password/share_pwd</td><td>No</td><td>NA</td><td>NA</td><td>Network share user password. This
 option is mandatory for CIFS Network share.</td></tr><tr><td>share_mnt</td><td>No</td><td>NA</td><td>NA</td><td> Local mount path of the network
 share with read-write permission for Ansible user. This option is
 mandatory for CIFS or NFS Network share.</td></tr><tr><td>setup_idrac_nic_vlan</td><td>No</td><td>NA</td><td>NA</td><td>Configuring the VLAN-related setting
@@ -80,9 +80,9 @@ to host</td></tr></tbody>
    dellemc_configure_idrac_network:
    idrac_ip:              &quot;xx.xx.xx.xx&quot;
    idrac_user:            &quot;xxxx&quot;
-   idrac_pwd:             &quot;xxxxxxxx&quot;
+   idrac_password:        &quot;xxxxxxxx&quot;
    share_name:            &quot;xx.xx.xx.xx:/share&quot;
-   share_pwd:             &quot;xxxxxxxx&quot;
+   share_password:        &quot;xxxxxxxx&quot;
    share_user:            &quot;xxxx&quot;
    share_mnt:             &quot;/mnt/share&quot;
    register_idrac_on_dns: &quot;Enabled&#39;
@@ -109,4 +109,4 @@ to host</td></tr></tbody>
    static_gateway:        &quot;None&quot;
    static_net_mask:       &quot;None&quot;
    </pre></p></div>
-</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?KNPsPhBZ"></script></body></html>
+</article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?+FkGWNYY"></script></body></html>

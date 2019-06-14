@@ -16,7 +16,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = r'''
@@ -24,6 +24,10 @@ DOCUMENTATION = r'''
 module: dellemc_idrac_server_config_profile
 short_description: Export or Import Server Configuration Profile(SCP).
 version_added: "2.8"
+deprecated:
+  removed_in: "2.12"
+  why: Replaced with M(idrac_server_config_profile).
+  alternative: Use M(idrac_server_config_profile) instead.
 description:
   - Export the Server Configuration Profile(SCP) from the iDRAC or Import from a network share or a local file.
 options:
@@ -283,6 +287,10 @@ def main():
             ["command", "import", ["scp_file"]]
         ],
         supports_check_mode=False)
+
+    module.deprecate("The 'dellemc_server_config_profile' module has been deprecated. "
+                     "Use 'idrac_server_config_profile' instead",
+                     version=2.12)
 
     try:
         changed = False
