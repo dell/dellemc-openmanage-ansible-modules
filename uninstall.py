@@ -47,7 +47,9 @@ old_util_file = os.path.join(ansible_installed_path, "module_utils", "dellemc_id
 # contributed module details for skipping if ansible 2.8 or more than exists.
 contrib_module_files = {
     os.path.join(ansible_installed_path,
-                 "modules/remote_management/dellemc/idrac/dellemc_idrac_firmware.py"): "ansible 2.8.0",
+                 "modules/remote_management/dellemc/idrac/idrac_firmware.py"): "ansible 2.8.0",
+    os.path.join(ansible_installed_path,
+                 "modules/remote_management/dellemc/idrac/idrac_server_config_profile.py"): "ansible 2.8.0",
     os.path.join(ansible_installed_path,
                  "modules/remote_management/dellemc/idrac/__init__.py"): "ansible 2.8.0",
     os.path.join(ansible_installed_path,

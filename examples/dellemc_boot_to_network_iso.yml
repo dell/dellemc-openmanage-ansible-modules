@@ -8,7 +8,7 @@
     - name: "Booting to Network Operating System image"
       dellemc_boot_to_network_iso: 
         idrac_ip: "{{ idrac_ip }}"
-        idrac_pwd: "{{ idrac_pwd }}"
+        idrac_password: "{{ idrac_password }}"
         idrac_user: "{{ idrac_user }}"
         share_name: "{{ playbook_dir }}"
         iso_image: "uninterrupted_os_installation_image.iso."        

@@ -41,7 +41,8 @@ contrib_files = {
     "module_utils/remote_management/dellemc/__init__.py": "ansible 2.8.0",
     "module_utils/remote_management/dellemc/dellemc_idrac.py": "ansible 2.8.0",
     "modules/remote_management/dellemc/__init__.py": "ansible 2.8.0",
-    "modules/remote_management/dellemc/idrac/dellemc_idrac_firmware.py": "ansible 2.8.0",
+    "modules/remote_management/dellemc/idrac/idrac_firmware.py": "ansible 2.8.0",
+    "modules/remote_management/dellemc/idrac/idrac_server_config_profile.py": "ansible 2.8.0",
     "modules/remote_management/dellemc/idrac/__init__.py": "ansible 2.8.0",
 }
 
