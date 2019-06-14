@@ -25,7 +25,7 @@ Sample Results for the respective modules could be found under [samples](./sampl
 
 ## Installation
 
-  * Clone the latest development repository and install the ansible modules. 
+  * Clone this repository and install the ansible modules. 
   ```
   git clone https://github.com/dell/dellemc-openmanage-ansible-modules.git
   cd dellemc-openmanage-ansible-modules
