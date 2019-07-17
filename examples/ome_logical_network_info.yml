@@ -1,0 +1,32 @@
+---
+- hosts: hosts
+  connection: local
+  name: Retrieve logical network information from OME
+  gather_facts: False
+
+  tasks:
+  - name: Retrieve information about all logical networks available in device.
+    ome_logical_network_info:
+      hostname: "100.100.29.97"
+      username: "admin"
+      password: "Dell@123"
+    tags:
+      ome_complete_logical_network_info
+
+  - name: Retrieve information about logical network with Id 12345 available in device.
+    ome_logical_network_info:
+      hostname: "192.168.0.1"
+      username: "username"
+      password: "password"
+      logical_network_id: 12345
+    tags:
+      ome_logical_network_info_specific_id
+
+  - name: Retrieve information about logical network with name "Logical Network - 1" available in device.
+    ome_logical_network_info:
+      hostname: "192.168.0.1"
+      username: "username"
+      password: "password"
+      logical_network_name: "Logical Network - 1"
+    tags:
+      ome_logical_network_info_specific_name
