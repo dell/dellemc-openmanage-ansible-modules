@@ -62,7 +62,7 @@ options:
 
 requirements:
     - "python >= 2.7.5"
-author: "Deepak Joshi(@deepakjoshishri)"
+author: "Deepak Joshi(@Dell-Deepak-Joshi)"
 '''
 
 EXAMPLES = """
