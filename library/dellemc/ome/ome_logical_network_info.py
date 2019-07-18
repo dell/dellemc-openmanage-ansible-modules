@@ -13,6 +13,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
@@ -152,29 +153,9 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 # Base URI to fetch all logical networks information
 LOGICAL_NETWORK_BASE_URI = "NetworkConfigurationService/Networks"
 
-
-def _get_logical_network_id_from_logical_network_name(logical_network_name, rest_obj):
-    """
-    Get logical network id from logical network name
-    Returns :dict : logical_network_id to logical_network_name map
-    :arg logical_network_name: unique name of logical network
-    :arg rest_obj: RestOME class object in case of request with session.
-    :returns: logical_network_id: False if not found, Id of logical network if found
-    """
-    logical_network_id = False
-    # Fetch all logical networks information
-    resp = rest_obj.invoke_request('GET', LOGICAL_NETWORK_BASE_URI)
-    if resp.success:
-        # Search for specified logical network name and
-        # return ID of logical network if found, else false
-        logical_networks_list = resp.json_data["value"]
-        for item in logical_networks_list:
-            if item["Name"] == logical_network_name:
-                logical_network_id = item["Id"]
-                break
-    else:
-        raise ValueError(resp.json_data)
-    return logical_network_id
+# Module Failure Messages
+MODULE_FAILURE_MESSAGE = "Failed to fetch the device logical network information "
+LOGICAL_NETWORK_NAME_NOT_FOUND = "Provided logical network name - '{0}' does not exist in the device"
 
 
 def main():
@@ -195,24 +176,26 @@ def main():
             if module.params.get("logical_network_id"):
                 # Form URI to fetch specific logical network information if logical_network_id is provided
                 logical_network_uri = "{0}({1})".format(logical_network_uri, module.params.get("logical_network_id"))
-            elif module.params.get("logical_network_name"):
+            resp = rest_obj.invoke_request('GET', logical_network_uri)
+            logical_network_info = resp.json_data
+            if module.params.get("logical_network_name"):
                 # Form URI to fetch specific logical network information if logical_network_name is provided,
                 # by fetching logical_network_id from logical_network_uri
                 logical_network_name = module.params.get("logical_network_name")
-                logical_network_id = _get_logical_network_id_from_logical_network_name(logical_network_name.strip(), rest_obj)
-                if logical_network_id:
-                    logical_network_uri = "{0}({1})".format(logical_network_uri, logical_network_id)
-                else:
-                    module.fail_json(msg="Provided logical network name - '{0}' does not exist in the device".
-                                     format(logical_network_name))
-            resp = rest_obj.invoke_request('GET', logical_network_uri)
-            logical_network_info = resp.json_data
-        if resp.status_code == 200:
-            module.exit_json(logical_network_info=logical_network_info)
-        else:
-            module.fail_json(msg="Failed to fetch the device logical network information")
+                logical_networks_list = resp.json_data["value"]
+                logical_network_info = {}
+                for item in logical_networks_list:
+                    if item["Name"] == logical_network_name.strip():
+                        logical_network_info = item
+                        break
+                if not logical_network_info:
+                    module.fail_json(msg=LOGICAL_NETWORK_NAME_NOT_FOUND.format(logical_network_name))
+            if resp.status_code == 200:
+                module.exit_json(logical_network_info=logical_network_info)
+            else:
+                module.fail_json(msg=MODULE_FAILURE_MESSAGE)
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
-        module.fail_json(msg=str(err))
+        module.fail_json(msg=MODULE_FAILURE_MESSAGE + str(err))
 
 
 if __name__ == '__main__':
