@@ -11,21 +11,24 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = r'''
 ---
-module: dellemc_ome_template_facts
-short_description: Retrieves template details.
+module: dellemc_ome_user_facts
+short_description: Retrieves details of all accounts or a specific account.
 version_added: "2.9"
+deprecated:
+  removed_in: "3.3"
+  why: Replaced with M(ome_user_info).
+  alternative: Use M(ome_user_info) instead.
 description:
-   - This module retrieves the list and details of all templates.
+   - This module retrieves the list and basic details of all accounts or details of a specific account.
 options:
   hostname:
     description: Target IP address or hostname.
@@ -43,68 +46,61 @@ options:
     description: Target HTTPS port.
     type: int
     default: 443
-  template_id:
-    description: Unique Id of the template.
+  account_id:
+    description: Unique Id of the account
     type: int
 requirements:
     - "python >= 2.7.5"
-author: "Sajna Shetty(@Sajna-Shetty)"
-
+author: "Jagadeesh N V(@jagadeeshnv)"
 '''
 
 EXAMPLES = r'''
 ---
-- name: Retrieve basic details of all templates.
-  dellemc_ome_template_facts:
+- name: Retrieve basic details of all accounts.
+  dellemc_ome_user_facts:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
-- name: Retrieve details of a specific template identified by its template ID.
-  dellemc_ome_template_facts:
+- name: Retrieve details of a specific account identified by its account ID.
+  dellemc_ome_user_facts:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
-    template_id: 1
+    account_id: 1
 '''
 
 RETURN = r'''
 ---
 msg:
   type: str
-  description: Over all template facts status.
+  description: Over all status of fetching user facts.
   returned: on error
-  sample: "Failed to fetch the template facts"
+  sample: "Failed to fetch the user facts"
 ansible_facts:
   type: dict
-  description: Details of the templates.
+  description: Details of the users.
   returned: success
   sample: {
         "192.168.0.1": {
-            "CreatedBy": "system",
-            "CreationTime": "1970-01-31 00:00:56.372144",
-            "Description": "Tune workload for Performance Optimized Virtualization",
-            "HasIdentityAttributes": false,
-            "Id": 1,
-            "IdentityPoolId": 0,
-            "IsBuiltIn": true,
-            "IsPersistencePolicyValid": false,
-            "IsStatelessAvailable": false,
-            "LastUpdatedBy": null,
-            "LastUpdatedTime": "1970-01-31 00:00:56.372144",
-            "Name": "iDRAC 14G Enable Performance Profile for Virtualization",
-            "SourceDeviceId": 0,
-            "Status": 0,
-            "TaskId": 0,
-            "TypeId": 2,
-            "ViewTypeId": 4
+            "Id": "1814",
+            "UserTypeId": 1,
+            "DirectoryServiceId": 0,
+            "Description": "user name description",
+            "Name": "user_name",
+            "Password": null,
+            "UserName": "user_name",
+            "RoleId": "10",
+            "Locked": false,
+            "IsBuiltin": true,
+            "Enabled": true
         }
     }
 '''
 
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.remote_management.dellemc.dellemc_ome import RestOME
+from ansible.module_utils.remote_management.dellemc.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -116,26 +112,30 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "type": 'int', "default": 443},
-            "template_id": {"type": 'int', "required": False},
+            "account_id": {"type": 'int', "required": False},
         },
         supports_check_mode=False
     )
-    template_uri = "TemplateService/Templates"
+    module.deprecate("The 'dellemc_ome_user_facts' module has been deprecated. "
+                     "Use 'ome_user_info' instead",
+                     version=3.3)
+    account_uri = "AccountService/Accounts"
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            if module.params.get("template_id") is not None:
-                # Fetch specific template
-                template_id = module.params.get("template_id")
-                template_path = "{0}({1})".format(template_uri, template_id)
+            if module.params.get("account_id") is not None:
+                # Fetch specific account
+                account_id = module.params.get("account_id")
+                account_path = "{0}('{1}')".format(account_uri, account_id)
             else:
-                # Fetch all templates
-                template_path = template_uri
-            resp = rest_obj.invoke_request('GET', template_path)
-            template_facts = resp.json_data
+                # Fetch all users
+                account_path = account_uri
+            resp = rest_obj.invoke_request('GET', account_path)
+            user_facts = resp.json_data
+            # check for 200 status as GET only returns this for success
         if resp.status_code == 200:
-            module.exit_json(ansible_facts={module.params["hostname"]: template_facts})
+            module.exit_json(ansible_facts={module.params["hostname"]: user_facts})
         else:
-            module.fail_json(msg="Failed to fetch the template facts")
+            module.fail_json(msg="Failed to fetch user facts")
     except HTTPError as err:
         module.fail_json(msg=json.load(err))
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:

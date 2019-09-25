@@ -25,7 +25,7 @@ module: dellemc_idrac_server_config_profile
 short_description: Export or Import Server Configuration Profile(SCP).
 version_added: "2.8"
 deprecated:
-  removed_in: "2.12"
+  removed_in: "3.2"
   why: Replaced with M(idrac_server_config_profile).
   alternative: Use M(idrac_server_config_profile) instead.
 description:
@@ -290,7 +290,7 @@ def main():
 
     module.deprecate("The 'dellemc_server_config_profile' module has been deprecated. "
                      "Use 'idrac_server_config_profile' instead",
-                     version=2.12)
+                     version=3.2)
 
     try:
         changed = False

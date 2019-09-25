@@ -4,6 +4,22 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
 
+# 2.0.2 (September 21, 2019)
+
+  * The dellemc_ome_template module is deprecated and all the functionality are added to the new ome_template module.
+
+  * The dellemc_ome_user_facts module is deprecated and all the functionality are added to the new ome_user_info module.
+
+  * The dellemc_boot_to_network_iso module is deprecated and all the functionality are added to the new idrac_os_deployment module.
+
+  * Support custom interval (default is 18 hours) for auto-detaching an ISO image for idrac_os_deployment.
+
+  * The ome_template_info and ome_user_info modules are enhanced to filter records using name in system_query_options.
+
+  * Support to modify or deploy template using parameter template_name in ome_template module.
+
+  * Support to delete an existing user account, using name in ome_user module.
+
 # 2.0.1 (June 6, 2019)
 
   * idrac_firmware and idrac_server_config_profile modules are added.

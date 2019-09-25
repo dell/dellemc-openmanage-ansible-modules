@@ -25,7 +25,7 @@ module: dellemc_import_server_config_profile
 short_description: Import SCP from a network share or from a local file.
 version_added: "2.3"
 deprecated:
-  removed_in: "2.11"
+  removed_in: "3.1"
   why: Replaced with M(dellemc_idrac_server_config_profile).
   alternative: Use M(dellemc_idrac_server_config_profile) instead.
 description:
@@ -233,7 +233,7 @@ def main():
         supports_check_mode=False)
     module.deprecate("The 'dellemc_import_server_config_profile' module has been deprecated. "
                      "Use 'dellemc_idrac_server_config_profile' instead",
-                     version=2.11)
+                     version=3.1)
     try:
         with iDRACConnection(module.params) as idrac:
             msg, err = run_import_server_config_profile(idrac, module)

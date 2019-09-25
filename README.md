@@ -45,7 +45,11 @@ python uninstall.py
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. Please see the [COPYING](
-https://github.com/dell/dellemc-openmanage-ansible-modules/blob/master/COPYING.md) for more information
+./COPYING.md) for more information
+
+
+## Contributing
+We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](./CODING_GUIDELINES.md) for more details.
 
 ## Support
   * This devel branch corresponds to the release actively under development.

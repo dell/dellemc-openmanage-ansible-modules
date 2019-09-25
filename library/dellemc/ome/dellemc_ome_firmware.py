@@ -150,7 +150,7 @@ update_status:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.remote_management.dellemc.dellemc_ome import RestOME
+from ansible.module_utils.remote_management.dellemc.ome import RestOME
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 

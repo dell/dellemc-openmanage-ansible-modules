@@ -16,7 +16,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = r'''
@@ -24,6 +24,10 @@ DOCUMENTATION = r'''
 module: dellemc_ome_template
 short_description: Create, modify or deploy a template.
 version_added: "2.8"
+deprecated:
+  removed_in: "3.3"
+  why: Replaced with M(ome_template).
+  alternative: Use M(ome_template) instead.
 description: This module creates, modifies or deploys a template.
 options:
   hostname:
@@ -204,7 +208,7 @@ template_status:
 
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.remote_management.dellemc.dellemc_ome import RestOME
+from ansible.module_utils.remote_management.dellemc.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -365,7 +369,9 @@ def main():
                      ['state', 'modify', ['template_id', 'attributes']],
                      ['state', 'deploy', ['template_id']], ],
         supports_check_mode=False)
-
+    module.deprecate("The 'dellemc_ome_template' module has been deprecated. "
+                     "Use 'ome_template' instead",
+                     version=3.3)
     try:
         _validate_inputs(module)
         with RestOME(module.params, req_session=True) as rest_obj:

@@ -25,7 +25,7 @@ module: dellemc_install_firmware
 short_description: Firmware update from a repository on a network share (CIFS, NFS).
 version_added: "2.3"
 deprecated:
-  removed_in: "2.11"
+  removed_in: "3.1"
   why: Replaced with M(dellemc_idrac_firmware).
   alternative: Use M(dellemc_idrac_firmware) instead.
 description:
@@ -217,7 +217,7 @@ def main():
 
     module.deprecate("The 'dellemc_install_firmware' module has been deprecated. "
                      "Use 'dellemc_idrac_firmware' instead",
-                     version=2.11)
+                     version=3.1)
 
     try:
         with iDRACConnection(module.params) as idrac:

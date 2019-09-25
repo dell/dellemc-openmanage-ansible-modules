@@ -45,11 +45,19 @@
             Enabled: True
             Description: "Modify user Description"
 
-  - name: delete existing user.
+  - name: delete existing user using id.
     ome_user:
         hostname:  "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
         state: "absent"
         user_id: 61874
+        
+  - name: delete existing user using name.
+    ome_user:
+        hostname:  "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: "absent"
+        name: "name"
 

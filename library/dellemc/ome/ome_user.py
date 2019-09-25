@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.5
+# Version 2.1
 # Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -52,8 +52,12 @@ options:
   user_id:
     description:
       - Unique ID of the user to be deleted.
-      - This option is mandatory for C(absent) operations.
+      - Either I(user_id) or I(name) is mandatory for C(absent) operation.
     type: int
+  name:
+    description:
+      - Unique Name of the user to be deleted.
+      - Either I(user_id) or I(name) is mandatory for C(absent) operation.
   attributes:
     type: dict
     default: {}
@@ -112,13 +116,21 @@ EXAMPLES = r'''
       Enabled: True
       Description: "Modify user Description"
 
-- name: delete existing user.
+- name: delete existing user using id.
   ome_user:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     state: "absent"
     user_id: 1234
+    
+- name: delete existing user using name.
+  ome_user:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "absent"
+    name: "name"
 '''
 
 RETURN = r'''
@@ -151,28 +163,39 @@ user_status:
 
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.remote_management.dellemc.dellemc_ome import RestOME
+from ansible.module_utils.remote_management.dellemc.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 
-def get_user_id_from_username(payload, rest_obj):
-    user_info = {'Id': None}
-    if payload.get('UserName') is not None:
+def _validate_inputs(module):
+    """both user_id and name are not acceptable in case of state is absent"""
+    state = module.params['state']
+    user_id = module.params.get('user_id')
+    name = module.params.get('name')
+    if state != 'present' and (user_id is None and name is None):
+        fail_module(module, msg="One of the following 'user_id' or 'name' "
+                                "option is required for state 'absent'")
+
+
+def get_user_id_from_name(rest_obj, name):
+    """Get the account id using account name"""
+    user_id = None
+    if name is not None:
         resp = rest_obj.invoke_request('GET', 'AccountService/Accounts')
-        user_name = payload['UserName']
         if resp.success:
             for user in resp.json_data.get('value'):
-                if 'UserName' in user and user['UserName'] == user_name:
-                    user_info.update({'Id': user['Id']})
-    return user_info
+                if 'UserName' in user and user['UserName'] == name:
+                    return user['Id']
+    return user_id
 
 
 def _get_resource_parameters(module, rest_obj):
     state = module.params["state"]
     payload = module.params.get("attributes")
     if state == "present":
-        user_id = get_user_id_from_username(payload, rest_obj)["Id"]
+        name = payload.get('UserName')
+        user_id = get_user_id_from_name(rest_obj, name)
         if user_id is not None:
             payload.update({"Id": user_id})
             path = "AccountService/Accounts('{user_id}')".format(user_id=user_id)
@@ -182,6 +205,12 @@ def _get_resource_parameters(module, rest_obj):
             method = 'POST'
     else:
         user_id = module.params.get("user_id")
+        if user_id is None:
+            name = module.params.get('name')
+            user_id = get_user_id_from_name(rest_obj, name)
+            if user_id is None:
+                fail_module(module, msg="Unable to get the account because the specified account "
+                                        "does not exist in the system.")
         path = "AccountService/Accounts('{user_id}')".format(user_id=user_id)
         method = 'DELETE'
     return method, path, payload
@@ -220,13 +249,15 @@ def main():
             "state": {"required": False, "default": "present",
                       "choices": ['present', 'absent']},
             "user_id": {"required": False, "type": 'int'},
-            "attributes": {"required": False, "type": 'dict', "default": {}},
+            "name": {"required": False, "type": 'str'},
+            "attributes": {"required": False, "type": 'dict'},
         },
-        required_if=[['state', 'present', ['attributes']],
-                     ['state', 'absent', ['user_id']], ],
+        mutually_exclusive=[['user_id', 'name'], ],
+        required_if=[['state', 'present', ['attributes']], ],
         supports_check_mode=False)
 
     try:
+        _validate_inputs(module)
         if module.params.get("attributes") is None:
             module.params["attributes"] = {}
         with RestOME(module.params, req_session=True) as rest_obj:
