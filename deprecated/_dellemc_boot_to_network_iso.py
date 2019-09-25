@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -22,6 +22,10 @@ DOCUMENTATION = """
 module: dellemc_boot_to_network_iso
 short_description: Boot to a network ISO image.
 version_added: "2.3"
+deprecated:
+  removed_in: "3.3"
+  why: Replaced with M(idrac_os_deployment).
+  alternative: Use M(idrac_os_deployment) instead.
 description: Boot to a network ISO image.
 options:
     idrac_ip:
@@ -150,7 +154,9 @@ def main():
 
         ),
         supports_check_mode=False)
-
+    module.deprecate("The 'dellemc_boot_to_network_iso' module has been deprecated. "
+                     "Use 'idrac_os_deployment' instead",
+                     version=3.3)
     try:
         with iDRACConnection(module.params) as idrac:
             msg, err = run_boot_to_network_iso(idrac, module)

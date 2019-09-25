@@ -16,7 +16,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = r'''
@@ -24,6 +24,10 @@ DOCUMENTATION = r'''
 module: dellemc_ome_device_facts
 short_description: Retrieves Device details.
 version_added: "2.8"
+deprecated:
+   removed_in: "3.2"
+   why: Replaced with M(ome_device_info).
+   alternative: Use M(ome_device_info) instead.
 description:
    - Retrieves the list of all devices with the exhaustive inventory of each
      device.
@@ -209,7 +213,7 @@ ansible_facts:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.remote_management.dellemc.dellemc_ome import RestOME
+from ansible.module_utils.remote_management.dellemc.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -380,7 +384,9 @@ def main():
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],
                      ['fact_subset', 'subsystem_health', ['system_query_options']], ],
         supports_check_mode=False)
-
+    module.deprecate("The 'dellemc_ome_device_facts' module has been deprecated. "
+                     "Use 'ome_device_info' instead",
+                     version=3.2)
     try:
         _validate_inputs(module.params)
         with RestOME(module.params, req_session=True) as rest_obj:

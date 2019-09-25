@@ -25,7 +25,7 @@ module: dellemc_idrac_firmware
 short_description: Firmware update from a repository on a network share (CIFS, NFS).
 version_added: "2.8"
 deprecated:
-  removed_in: "2.12"
+  removed_in: "3.2"
   why: Replaced with M(idrac_firmware).
   alternative: Use M(idrac_firmware) instead.
 description:
@@ -201,7 +201,7 @@ def main():
         supports_check_mode=False)
     module.deprecate("The 'dellemc_idrac_firmware' module has been deprecated. "
                      "Use 'idrac_firmware' instead",
-                     version=2.12)
+                     version=3.2)
 
     try:
         # Validate the catalog file

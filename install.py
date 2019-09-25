@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.2
+# Version 2.1
 # Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -44,6 +44,10 @@ contrib_files = {
     "modules/remote_management/dellemc/idrac/idrac_firmware.py": "ansible 2.8.0",
     "modules/remote_management/dellemc/idrac/idrac_server_config_profile.py": "ansible 2.8.0",
     "modules/remote_management/dellemc/idrac/__init__.py": "ansible 2.8.0",
+    "modules/remote_management/dellemc/ome_device_info.py": "ansible 2.9.0",
+    "module_utils/remote_management/dellemc/ome.py": "ansible 2.9.0",
+    "modules/remote_management/dellemc/idrac_firmware.py": "ansible 2.9.0",
+    "modules/remote_management/dellemc/idrac_server_config_profile.py": "ansible 2.9.0",
 }
 
 # ansible module path
@@ -54,6 +58,7 @@ dellemc_ome_path = os.path.join(ansible_installed_path, "modules", "remote_manag
 # ansible util path
 dellemc_util_path = os.path.join(ansible_installed_path, "module_utils", "remote_management", "dellemc")
 old_util_file = os.path.join(ansible_installed_path, "module_utils", "dellemc_idrac.py")
+old_ome_file = os.path.join(ansible_installed_path, "module_utils", "remote_management", "dellemc", "dellemc_ome.py")
 
 # dellemc local path
 base_local_path = os.getcwd()
@@ -62,21 +67,22 @@ src_ome_path = os.path.join(base_local_path, "library", "dellemc", "ome")
 src_util_path = os.path.join(base_local_path, "utils")
 idrac_util_exists = os.path.exists(os.path.join(dellemc_util_path, "dellemc_idrac.py"))
 property_json = os.path.join(dellemc_path, "properties.json")
-existing_files = set([k.split("/")[-1] for k, v in contrib_files.items()])
 installation_message = "Installing Dell EMC OpenManage Ansible Modules specific folders and files..."
 init_file = os.path.join(ansible_installed_path, "module_utils", "remote_management", "__init__.py")
 extras = os.path.join(ansible_installed_path, "modules", "extras")
+deprecated_src_path = os.path.join(base_local_path, "deprecated")
 
 
-def copy_files(src, dest, keep_util=False):
+def copy_files(src, dest):
     """
     Copying all files from one directory to ansible directory.
     """
     srclst = os.listdir(src)
     for f in srclst:
-        if f.endswith(".py") and not (f in existing_files and keep_util):
+        if f.endswith(".py"):
             srcfile, destfile = os.path.join(src, f), os.path.join(dest, f)
             shutil.copy(srcfile, destfile)
+
 
 
 def touch(fname, times=None):
@@ -112,24 +118,25 @@ def update_cleanup(*args):
             os.remove(f)
 
 
-def complete_installation(keep_util=False):
+def complete_installation():
     """
     Creating directory and copying files to ansible location.
     """
-    if os.path.exists(dellemc_path) and os.path.exists(dellemc_util_path):
-        if not os.path.exists(dellemc_idrac_path):
-            shutil.copytree(os.path.join("library", "dellemc", "idrac"), dellemc_idrac_path)
-        copy_files(src_idrac_path, dellemc_idrac_path, keep_util=keep_util)
-        copy_files(src_util_path, dellemc_util_path, keep_util=keep_util)
-        if not os.path.exists(dellemc_ome_path):
-            shutil.copytree(os.path.join("library", "dellemc", "ome"), dellemc_ome_path)
-        copy_files(src_ome_path, dellemc_ome_path)
+    if os.path.exists(dellemc_path):
+        copy_files(src_idrac_path, dellemc_path)
+        copy_files(src_ome_path, dellemc_path)
+        copy_files(src_util_path, dellemc_util_path)
     if not os.path.exists(dellemc_path):
-        shutil.copytree(os.path.join("library", "dellemc"), dellemc_path)
+        shutil.copytree(os.path.join("library", "dellemc", "idrac"), dellemc_path)
+        copy_files(src_ome_path, dellemc_path)
     if not os.path.exists(dellemc_util_path):
-        shutil.copytree("utils", dellemc_util_path)
+        shutil.copytree(src_util_path, dellemc_util_path)
         if not os.path.isfile(init_file):
             touch(init_file)
+    else:
+        copy_files(src_util_path, dellemc_util_path)
+
+    copy_files(deprecated_src_path, dellemc_path)
 
 
 def install():
@@ -139,27 +146,35 @@ def install():
     # Step 0: Upgrading dellemc modules with new directory structure.
     if os.path.exists(dellemc_path) or (os.path.exists(extras)):
         # Upgrade checking if dellemc modules are present.
-        module_files = [f for f in glob.glob(os.path.join(dellemc_path, "idrac", "*.py"))]
-        if os.path.exists(old_util_file) or len(module_files) > len(contrib_files) or (os.path.exists(extras)):
+        module_files = [f for f in glob.glob(os.path.join(dellemc_path, "*.py"))]
+        if os.path.exists(old_util_file) or len(module_files) > len(contrib_files) or (os.path.exists(extras)) or \
+                os.path.exists(dellemc_ome_path):
             checking = update_check()
             if not checking:
                 return
         print(installation_message)
         # Cleaning up dellemc modules.
-        if os.path.exists(dellemc_util_path):
-            update_cleanup(old_util_file, property_json, extras)
-            keep_util = True
-        else:
-            update_cleanup(dellemc_path, old_util_file, property_json, extras)
-            keep_util = False
-        # Complete installation with new directory structure, dellemc modules version 2.0.
-        complete_installation(keep_util=keep_util)
-
+        if os.path.exists(dellemc_idrac_path) and os.path.exists(dellemc_ome_path):
+            update_cleanup(dellemc_idrac_path, dellemc_ome_path)
+        if os.path.exists(dellemc_idrac_path) and not os.path.exists(dellemc_ome_path):
+            # Solve case
+            # when OMAM 1.1 to 2.1 upgrade is done with ansible version lesser than 2.8.4
+            # where idrac folder exists with contributed_file_lst.
+            #in this case upgrade is not removing other than contributed files inside idrac folder
+            contributed_file_lst = { dellemc_idrac_path+'/idrac_firmware.py',
+                                     dellemc_idrac_path+'/idrac_server_config_profile.py'}
+            old_module_idrac_files = [f for f in glob.glob(os.path.join(dellemc_idrac_path, "*.py"))]
+            removed_module = list(set(old_module_idrac_files) - contributed_file_lst)
+            if len(old_module_idrac_files) == len(removed_module):
+                update_cleanup(dellemc_idrac_path)
+            else:
+                update_cleanup(*removed_module)
+        update_cleanup(old_util_file, property_json, extras, old_ome_file)
     # Step 1: Installing complete dellemc modules if not present.
     elif not os.path.exists(dellemc_path):
         print(installation_message)
-        # Complete installation with new directory structure, dellemc modules version 2.0.
-        complete_installation(keep_util=False)
+    # Complete installation with new directory structure, dellemc modules version 2.0.
+    complete_installation()
 
     print("SUCCESS: Dell EMC OpenManage Ansible Modules is installed successfully.")
 

@@ -1,0 +1,18 @@
+--- 
+- 
+  connection: local
+  gather_facts: false
+  hosts: hosts
+  name: Booting to Network Operating System image
+  tasks: 
+    - name: "Booting to Network Operating System image"
+      idrac_os_deployment:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_password: "{{ idrac_password }}"
+        idrac_user: "{{ idrac_user }}"
+        share_name: "{{ playbook_dir }}"
+        iso_image: "uninterrupted_os_installation_image.iso."        
+        expose_duration: 180
+
+      tags:
+        - network_iso

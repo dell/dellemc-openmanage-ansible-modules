@@ -1,7 +1,7 @@
 ﻿Retrieve user account details:
 
 
-"ansible_facts": {
+"user_info": {
     "192.168.0.1": {
         "@odata.context": "/api/$metadata#Collection(AccountService.Account)",
         "@odata.count": 1,
