@@ -2,13 +2,13 @@
 Dell EMC OpenManage Ansible Modules
 
 *******************************************************************************
-Version: 2.0.2
+Version: 2.0.3
 
 *******************************************************************************
-Release Date: September 2019
+Release Date: October 2019
 
 *******************************************************************************
-Previous Version: 2.0.1
+Previous Version: 2.0.2
 
 *******************************************************************************
 Importance
@@ -24,43 +24,39 @@ Platform(s) Affected
 --------------------
 
 For the list of supported platforms, see the section "Support Matrix" in the 
-"Dell EMC OpenManage Ansible Modules version 2.0.2 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.0.3 Installation Guide".
 
 *******************************************************************************
 What is Supported
 -----------------
 
 For information on the hardware and software requirements, see 
-"Dell EMC OpenManage Ansible Modules version 2.0.2 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.0.3 Installation Guide".
 
 *******************************************************************************
 What’s New
 ----------
 
-The key features in OpenManage Ansible Modules version 2.0.2 include:
-  
-* The dellemc_ome_template module is deprecated and all the functionality
-  are added to the new ome_template module.
+The key features in OpenManage Ansible Modules version 2.0.3 include:
 
-* The dellemc_ome_user_facts module is deprecated and all the functionality
-  are added to the new ome_user_info module.
+  * The following enhancements have been made to the idrac_firmware module:
+    - Support for installing firmware from HTTP/HTTPS/FTP based repository.
+    - Support for viewing individual component update job ids.
+    - The apply_update option is added, which specifies if the packages from
+      the Catalog XML are queued for update.
+    - The ignore_cert_warning option is added, which specifies if certificate
+      warnings must be ignored.
 
-* The dellemc_boot_to_network_iso module is deprecated and all the
-  functionality are added to the new idrac_os_deployment module.
-
-* Support custom interval (default is 18 hours) for auto-detaching an
-  ISO image for idrac_os_deployment.
-
-* The ome_template_info and ome_user_info modules are enhanced to filter
-  records using name in system_query_options.
-
-* Support to modify or deploy template using parameter template_name in
-  ome_template module.
-
-* Support to delete an existing user account, using name in ome_user module.
+  * The following enhancements have been made to the installation script:
+    - All the modules present by default in the remote_management/dellemc
+      folder are now overwritten with updated versions.
+    - Modules will be installed to the custom path, if it is set by the
+      environment variable ANSIBLE_LIBRARY.
+    - The default python interpreter is now located using #!/usr/bin/env python
+      instead of #!/usr/bin/python.
 
 For a complete list of supported features that you can leverage,
-see the “Dell EMC OpenManage Ansible Modules Version 2.0.2 User’s Guide”.
+see the “Dell EMC OpenManage Ansible Modules Version 2.0.3 User’s Guide”.
 
 *******************************************************************************
 Known Issues
@@ -82,7 +78,7 @@ Known Issues
   version 2.50.50.50 and below.
  
 * Issue 3(126402):
-  Description: Creating template using "dellemc_ome_template"
+  Description: Creating template using "ome_template"
   module may fail on OMEnt 3.1 in case no template is created on this OMEnt
   within the 24 hours (approximately) after the initial OMEnt 
   installation and setup.
@@ -91,6 +87,10 @@ Known Issues
   PSQN which will create a folder in CIFS share. See
   https://kb.dell.com/infocenter/index?page=content&id=SLN316882
   for more details.
+
+* Issue 4(150664):
+  Description: Firmware update through "downloads.dell.com" does not work
+  on 13G via WSMAN in case of HTTP/HTTPS/FTP.
 
 *******************************************************************************
 Limitations
@@ -109,19 +109,19 @@ Limitations
 Installation Prerequisites
 --------------------------
 For installation prerequisites, see "Dell EMC OpenManage Ansible Modules
-Version 2.0.2 Installation Guide".
+Version 2.0.3 Installation Guide".
 
 Software Requirements
 ---------------------
 
 * For information on the hardware and software requirements, see
-"Dell EMC OpenManage Ansible Modules Version 2.0.2 Installation Guide".
+"Dell EMC OpenManage Ansible Modules Version 2.0.3 Installation Guide".
 
 Installation Procedure
 -------------------------
 
 For the installation instructions, see "Dell EMC OpenManage Ansible Modules
-Version 2.0.2 Installation Guide".
+Version 2.0.3 Installation Guide".
 
 *******************************************************************************
 Accessing Documents from Dell Support Site
@@ -189,7 +189,7 @@ technical support, or customer service issues:
 
 
 Dell EMC OpenManage Ansible Modules
-Version 2.0.2
+Version 2.0.3
 Copyright (C) 2019   Dell Inc.
 
 GNU General Public License v3.0+

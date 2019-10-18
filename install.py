@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #
@@ -34,7 +34,10 @@ except ImportError as e:
     sys.exit(1)
 
 # required path to check
-ansible_installed_path = ansible.__path__[0]
+if 'ANSIBLE_LIBRARY' in os.environ:
+    ansible_installed_path = os.environ['ANSIBLE_LIBRARY']
+else:
+    ansible_installed_path = ansible.__path__[0]
 
 # master contribution details:
 contrib_files = {

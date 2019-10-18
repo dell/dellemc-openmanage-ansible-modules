@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #
@@ -33,7 +33,10 @@ except ImportError:
     sys.exit(1)
 
 # Ansible and dellemc installed location path.
-ansible_installed_path = ansible.__path__[0]
+if 'ANSIBLE_LIBRARY' in os.environ:
+    ansible_installed_path = os.environ['ANSIBLE_LIBRARY']
+else:
+    ansible_installed_path = ansible.__path__[0]
 ansible_version = ansible.__version__
 
 # dellemc module path
