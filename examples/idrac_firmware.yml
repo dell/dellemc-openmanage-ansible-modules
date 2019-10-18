@@ -5,7 +5,29 @@
   gather_facts: False
 
   tasks:
-  - name: Update Firmware Inventory
+  - name: Update firmware from repository on a HTTP/HTTP/FTP repository
+    idrac_firmware:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password}}"
+       share_name: "{{ repo_share_name }}"
+       reboot: True
+       job_wait: True
+       apply_update: True
+       catalog_file_name: "{{ catalog_file_name }}"
+
+  - name: Update firmware from repository on a NFS Share
+    idrac_firmware:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password}}"
+       share_name: "{{ share_name }}"
+       reboot: True
+       job_wait: True
+       apply_update: True
+       catalog_file_name: "{{ catalog_file_name }}"
+
+  - name: Update firmware from repository on a CIFS Share
     idrac_firmware:
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"

@@ -4,6 +4,21 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
 
+# 2.0.3 (October 16, 2019)
+
+  * The following enhancements have been made to the idrac_firmware module:
+
+    - Support for installing firmware from HTTP/HTTPS/FTP based repository.
+    - Support for viewing individual component update job ids.
+    - The apply_update option is added, which specifies if the packages from the Catalog XML are queued for update.
+    - The ignore_cert_warning option is added, which specifies if certificate warnings must be ignored.
+
+  * The following enhancements have been made to the installation script:
+
+    - All the modules present by default in the remote_management/dellemc folder are now overwritten with updated versions.
+    - Modules will be installed to the custom path, if it is set by the environment variable ANSIBLE_LIBRARY.
+    - The default python interpreter is now located using #!/usr/bin/env python instead of #!/usr/bin/python.
+    
 # 2.0.2 (September 21, 2019)
 
   * The dellemc_ome_template module is deprecated and all the functionality are added to the new ome_template module.
