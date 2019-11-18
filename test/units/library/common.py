@@ -13,16 +13,23 @@
 import pytest
 from units.modules.utils import set_module_args
 from units.modules.utils import AnsibleFailJson, AnsibleExitJson
+from units.compat.mock import MagicMock
 
 class Constants:
     device_id1 = 1234
     device_id2 = 4321
     service_tag1 = "MXL1234"
 
+class AnsibleFailJSonException(Exception):
+    def __init__(self, msg, **kwargs):
+        super(AnsibleFailJSonException, self).__init__(msg)
+        self.fail_msg = msg
+        self.fail_kwargs = kwargs
 
 class FakeAnsibleModule:
 
-    def _run_module(self, module_args):
+    def _run_module(self, module_args, check_mode=False):
+        module_args.update({'_ansible_check_mode': check_mode})
         set_module_args(module_args)
         with pytest.raises(AnsibleExitJson) as ex:
             self.module.main()
@@ -34,3 +41,13 @@ class FakeAnsibleModule:
             self.module.main()
         result = exc.value.args[0]
         return result
+
+    def get_module_mock(self, params=None):
+        def fail_func(msg, **kwargs):
+            raise AnsibleFailJSonException(msg, **kwargs)
+
+        module = MagicMock()
+        module.fail_json.side_effect = fail_func
+        if params:
+            module.params = params
+        return module
