@@ -181,6 +181,7 @@ import os
 import re
 import socket
 import json
+from xml.etree import ElementTree as ET
 from ansible.module_utils.remote_management.dellemc.dellemc_idrac import iDRACConnection
 from ansible.module_utils.remote_management.dellemc.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
@@ -207,6 +208,18 @@ def _validate_catalog_file(catalog_file_name):
         raise ValueError('catalog_file_name should be a non-empty string.')
     elif not normilized_file_name.endswith("xml"):
         raise ValueError('catalog_file_name should be an XML file.')
+
+
+def _convert_xmltojson(job_details):
+    """get all the xml data from PackageList and returns as valid json."""
+    data = []
+    try:
+        xmldata = ET.fromstring(job_details['PackageList'])
+        for iname in xmldata.iter('INSTANCENAME'):
+            data.append({attr.attrib['NAME']: txt.text for attr in iname.iter("PROPERTY") for txt in attr})
+    except ET.ParseError:
+        data = job_details['PackageList']
+    return data
 
 
 def get_jobid(module, resp):
@@ -241,8 +254,7 @@ def update_firmware_url(module, idrac, share_name, catalog_file_name, apply_upda
             status = idrac.job_mgr.get_job_status_redfish(job_id)
             if job_wait:
                 status = idrac.job_mgr.job_wait(job_id)
-            if apply_update:
-                job_details = idrac._get_update_from_repo_list_using_redfish()
+            job_details = idrac._get_update_from_repo_list_using_redfish()
     else:
         status = idrac.update_mgr.update_from_repo_url(ipaddress=ipaddr, share_type=share_type,
                                                        share_name=sharename, catalog_file=catalog_file_name,
@@ -275,7 +287,8 @@ def update_firmware(idrac, module):
         firmware_version = re.match(r"^\d.\d{2}", idrac.entityjson['System'][0]['LifecycleControllerVersion']).group()
         idrac.use_redfish = False
         if ('14' in idrac.ServerGeneration and float(firmware_version) >= float('3.30')) or (
-                ('12' in idrac.ServerGeneration or '13' in idrac.ServerGeneration) and float(firmware_version) >= float('2.70')):
+                ('12' in idrac.ServerGeneration or '13' in idrac.ServerGeneration) and
+                float(firmware_version) >= float('2.70')):
             idrac.use_redfish = True
 
         if share_name.lower().startswith(('http://', 'https://', 'ftp://')):
@@ -298,20 +311,24 @@ def update_firmware(idrac, module):
                     msg['update_status'] = idrac.job_mgr.get_job_status_redfish(job_id)
                     if job_wait:
                         msg['update_status'] = idrac.job_mgr.job_wait(job_id)
-                    if apply_update:
-                        msg['update_status']['job_details'] = idrac._get_update_from_repo_list_using_redfish()
+                    msg['update_status']['job_details'] = idrac._get_update_from_repo_list_using_redfish()
             else:
                 if not ('12' in idrac.ServerGeneration or '13' in idrac.ServerGeneration):
                     if not module.params['share_mnt']:
                         raise TypeError("Error: 'share_mnt' is a mandatory argument for firmware update.")
                 msg['update_status'] = idrac.update_mgr.update_from_repo(upd_share, apply_update=apply_update,
                                                                          reboot_needed=reboot, job_wait=job_wait)
+        job_data = msg['update_status']['job_details']['Data']
+        pkglst = job_data['body'] if 'body' in job_data else job_data['GetRepoBasedUpdateList_OUTPUT']
+        if 'PackageList' in pkglst:
+            pkglst['PackageList'] = _convert_xmltojson(pkglst)
     except RuntimeError as e:
         module.fail_json(msg=str(e))
     if "Status" in msg['update_status']:
         if msg['update_status']['Status'] in ["Success", "InProgress"]:
-            if module.params['job_wait'] and ('job_details' in msg['update_status'] and
-                                              msg['update_status']['job_details']['Status'] == "Success"):
+            if module.params['job_wait'] and module.params['apply_update'] and \
+                    ('job_details' in msg['update_status'] and
+                     msg['update_status']['job_details']['Status'] == "Success"):
                 msg['changed'] = True
                 msg['update_msg'] = "Successfully updated the firmware."
         else:
@@ -349,7 +366,8 @@ def main():
             status = update_firmware(idrac, module)
     except HTTPError as err:
         module.fail_json(msg=str(err), update_status=json.load(err))
-    except (RuntimeError, URLError, SSLValidationError, ConnectionError, ImportError, ValueError, TypeError) as e:
+    except (RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
+            ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
 
     module.exit_json(msg=status['update_msg'], update_status=status['update_status'],

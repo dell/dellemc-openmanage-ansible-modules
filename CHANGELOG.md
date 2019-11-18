@@ -4,6 +4,18 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
 
+# 2.0.4 (November 8, 2019)
+
+  * A new OpenManage Enterprise(OME) module (ome_firmware_catalog) to
+    create a firmware catalog.
+  
+  * A new OME module (ome_firmware_baseline) to create a firmware baseline form existing catalog.
+  
+  * A new OME module (ome_firmware_baseline_compliance_info) to retrieve:
+  
+    - Firmware compliance report for specified identifiers (device ids, service tags, group names).
+    - Baseline compliance reports for specified baseline.
+
 # 2.0.3 (October 16, 2019)
 
   * The following enhancements have been made to the idrac_firmware module:

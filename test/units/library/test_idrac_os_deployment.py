@@ -24,21 +24,6 @@ from ansible.module_utils import basic
 from units.compat.mock import PropertyMock
 import json
 
-class AnsibleFailJSonException(Exception):
-    def __init__(self, msg, **kwargs):
-        super(AnsibleFailJSonException, self).__init__(msg)
-        self.fail_msg = msg
-        self.fail_kwargs = kwargs
-
-def get_module_mock():
-    def fail_func(msg, **kwargs):
-        raise AnsibleFailJSonException(msg, **kwargs)
-
-    module = MagicMock()
-    module.fail_json = fail_func
-    module.from_json = json.loads
-    return module
-
 
 class TestOsDeployment(FakeAnsibleModule):
     module = idrac_os_deployment
@@ -134,7 +119,7 @@ class TestOsDeployment(FakeAnsibleModule):
         assert result == '00000000000000.000000:000'
 
     def test_minutes_to_cim_format_failure_case(self):
-        fmodule = get_module_mock()
+        fmodule = self.get_module_mock()
         with pytest.raises(Exception) as exc:
             set_module_args({})
             self.module.minutes_to_cim_format(fmodule, -1)

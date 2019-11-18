@@ -15,7 +15,7 @@ from ansible.module_utils import basic
 from units.modules.utils import set_module_args, exit_json, fail_json
 from units.modules.utils import AnsibleFailJson, AnsibleExitJson
 from units.compat.mock import MagicMock
-
+import json
 
 @pytest.fixture(autouse=True)
 def module_mock(mocker):
@@ -23,16 +23,19 @@ def module_mock(mocker):
 
 
 @pytest.fixture
-def ome_connection_mock(mocker,ome_response_mock):
+def ome_connection_mock(mocker, ome_response_mock):
     connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
-    return connection_class_mock
+    return ome_connection_mock_obj
 
 
 @pytest.fixture
 def ome_response_mock(mocker):
-    response_class_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.OpenURLResponse')
+    set_method_result = {'json_data': {}}
+    response_class_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.OpenURLResponse',  return_value = set_method_result)
+    response_class_mock.success = True
+    response_class_mock.status_code = 200
     return response_class_mock
 
 
@@ -48,3 +51,8 @@ def fake_ansible_module_mock():
     module.fail_json = AnsibleFailJson()
     module.exit_json = AnsibleExitJson()
     return module
+
+@pytest.fixture
+def default_ome_args():
+    return {"hostname":"hostname", "username":"username", "password":"password"}
+
