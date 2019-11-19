@@ -5,7 +5,7 @@
   gather_facts: False
 
   tasks:
-    - name: Retrieve baseline report for specific device IDs.
+    - name: Retrieves device based compliance report for specified device IDs..
       ome_firmware_baseline_compliance_info:
         hostname: "{{hostname}}"
         username: "{{username}}"
@@ -15,7 +15,7 @@
             - 22222
       tags: device_ids
 
-    - name: Retrieve baseline report for specific device service Tags.
+    - name: Retrieves device based compliance report for specified service Tags.
       ome_firmware_baseline_compliance_info:
         hostname: "{{hostname}}"
         username: "{{username}}"
@@ -25,7 +25,7 @@
             - MXL4567
       tags: device_service_tags
 
-    - name: Retrieve baseline report for specific group names.
+    - name: Retrieves device based compliance report for specified group names.
       ome_firmware_baseline_compliance_info:
         hostname: "{{hostname}}"
         username: "{{username}}"
@@ -35,11 +35,10 @@
             - group2
       tags: group_names
 
-    - name: Retrieve compliance report for a specific baseline.
+    - name: Retrieves device compliance report for a specified baseline.
       ome_firmware_baseline_compliance_info:
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
         baseline_name: "baseline_name"
-        report_type: "baseline_device"
       tags: baseline_device

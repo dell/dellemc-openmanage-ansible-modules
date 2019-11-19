@@ -53,7 +53,7 @@ options:
   device_ids:
     description:
         - A list of unique identifier for device based compliance report.
-        - Either I(device_ids), I(device_service_tags) or I(group_names) 
+        - Either I(device_ids), I(device_service_tags) or I(group_names)
           is required to generate device based compliance report.
         - I(device_ids) is mutually exclusive with I(device_service_tags),
           I(group_names) and I(baseline_name).
@@ -62,16 +62,16 @@ options:
   device_service_tags:
     description:
         - A list of service tags for device based compliance report.
-        - Either I(device_ids), I(device_service_tags) or I(group_names) 
+        - Either I(device_ids), I(device_service_tags) or I(group_names)
           is required to generate device based compliance report.
-        - I(device_service_tags) is mutually exclusive with I(device_ids), 
+        - I(device_service_tags) is mutually exclusive with I(device_ids),
           I(group_names) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
   group_names:
     description:
         - A list of group names for device based compliance report.
-        - Either I(device_ids), I(device_service_tags) or I(group_names) 
+        - Either I(device_ids), I(device_service_tags) or I(group_names)
           is required to generate device based compliance report.
         - I(group_names) is mutually exclusive with I(device_ids),
           I(device_service_tags) and I(baseline_name).
@@ -372,6 +372,17 @@ def get_baseline_compliance_reports(rest_obj, module):
         raise err
 
 
+def validate_inputs(module):
+    module_params = module.params
+    device_service_tags = module_params.get("device_service_tags")
+    group_names = module_params.get("group_names")
+    device_ids = module_params.get("device_ids")
+    baseline_name = module_params.get("baseline_name")
+    if all(not identifer for identifer in [device_ids, device_service_tags, group_names, baseline_name]):
+            module.fail_json(msg="one of the following is required: device_ids, device_service_tags, "
+                                 "group_names, baseline_name to generate device based compliance report.")
+
+
 def main():
     module = AnsibleModule(
         argument_spec={
@@ -384,11 +395,12 @@ def main():
             "device_ids": {"required": False, "type": "list"},
             "group_names": {"required": False, "type": "list"},
         },
-        required_one_of=[['device_ids', 'device_service_tags', 'group_names', 'baseline_name']],
         mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'group_names']],
+        required_one_of=[['device_ids', 'device_service_tags', 'group_names', 'baseline_name']],
         supports_check_mode=False
     )
     try:
+        validate_inputs(module)
         with RestOME(module.params, req_session=True) as rest_obj:
             baseline_name = module.params.get("baseline_name")
             if baseline_name is not None:
