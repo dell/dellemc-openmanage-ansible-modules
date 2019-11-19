@@ -130,7 +130,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         with pytest.raises(HTTPError) as ex:
             self.module.get_device_ids_from_group_names(f_module, ome_connection_mock_for_firmware_baseline_compliance_info)
 
-    def test_gget_device_ids_from_group_names_value_error_case(self, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
+    def test_get_device_ids_from_group_names_value_error_case(self, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
         ome_response_mock.status_code = 500
         ome_response_mock.success = False
         f_module = self.get_module_mock(params={"group_names": ["abc", "xyz"]})
@@ -216,8 +216,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             self.module.get_baseline_id_from_name(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
 
     @pytest.mark.parametrize("exc_type", [URLError,  SSLValidationError, ConnectionError, TypeError, ValueError, HTTPError])
-    def test_main_failure_case_01(self,exc_type, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
-        """when invalid value for expose_durationis given """
+    def test_get_baseline_id_from_name_failure_case_01(self,exc_type, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
         if exc_type not in [HTTPError, SSLValidationError]:
             ome_connection_mock_for_firmware_baseline_compliance_info.invoke_request.side_effect = exc_type('test')
         else:
@@ -272,61 +271,18 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                                                            ome_connection_mock_for_firmware_baseline_compliance_info,
                                                            f_module)
 
-    def test_get_baseline_component_report_success_case(self, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
-        compliance_reports = {"value":[{"Id":1}]}
-        report_path = "UpdateService/Baselines(123)/DeviceComplianceReports"
-        f_module = self.get_module_mock()
 
-        ome_response_mock.success = True
-        ome_response_mock.json_data = {"value": [{"report1": "data"}]}
-        data = self.module.get_baseline_component_report(ome_connection_mock_for_firmware_baseline_compliance_info, f_module, report_path, compliance_reports)
-        assert data == [{"value": [{"report1": "data"}]}]
-
-    def test_get_baseline_component_report_when_report_list_is_empty_error_case(self, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
-        compliance_reports = {"value": []}
-        report_path = "UpdateService/Baselines(123)/DeviceComplianceReports"
-        f_module = self.get_module_mock(params = {"report_type": "baseline_component"})
-        with pytest.raises(Exception) as exc:
-            self.module.get_baseline_component_report(ome_connection_mock_for_firmware_baseline_compliance_info, f_module, report_path, compliance_reports)
-        assert exc.value.args[0] == "Could not find the baseline info for specified I(report_type) : baseline_component."
-
-
-    @pytest.mark.parametrize("exc_type", [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    def test_get_baseline_component_report_exception_handling(self,exc_type, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
-        if exc_type not in [HTTPError, SSLValidationError]:
-            ome_connection_mock_for_firmware_baseline_compliance_info.invoke_request.side_effect = exc_type('test')
-        else:
-            ome_connection_mock_for_firmware_baseline_compliance_info.invoke_request.side_effect = exc_type('http://testhost.com', 400, '', {}, None)
-        ome_response_mock.status_code = 400
-        ome_response_mock.success = False
-        f_module = self.get_module_mock()
-        compliance_reports = {"value":[{"Id":1}]}
-        report_path = "UpdateService/Baselines(123)/DeviceComplianceReports"
-        with pytest.raises(exc_type) as ex:
-            self.module.get_baseline_component_report(ome_connection_mock_for_firmware_baseline_compliance_info, f_module, report_path, compliance_reports)
-
-    def test_get_component_compliance_reports_success_case_for_baseline_device(self, mocker, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
+    def test_get_baseline_compliance_reports_success_case_for_baseline_device(self, mocker, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
         mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
                      return_value=123)
-        f_module = self.get_module_mock(params={"report_type": "baseline_device"})
+        f_module = self.get_module_mock(params={"baseline_name": "baseline1"})
         ome_response_mock.success = True
         ome_response_mock.json_data = {"value": [{"baseline_device_report1": "data"}]}
-        data = self.module.get_component_compliance_reports(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
+        data = self.module.get_baseline_compliance_reports(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
         assert data == [{"baseline_device_report1": "data"}]
 
-    def test_get_component_compliance_reports_success_case_for_baseline_component(self, mocker, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
-                     return_value=123)
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_component_report',
-                     return_value=[{"baseline_component_report1": "data"}])
-        f_module = self.get_module_mock(params={"report_type": "baseline_component"})
-        ome_response_mock.success = True
-        ome_response_mock.json_data = {"value": [{"baseline_device_report1": "data"}]}
-        data = self.module.get_component_compliance_reports(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
-        assert data == [{"baseline_component_report1": "data"}]
-
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    def test_get_component_compliance_reports_exception_handling_case(self, exc_type, mocker, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
+    def test_get_baseline_compliance_reports_exception_handling_case(self, exc_type, mocker, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
@@ -335,22 +291,27 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"},  StringIO(json_str)))
-        f_module = self.get_module_mock(params={"report_type": "baseline_component"})
+        f_module = self.get_module_mock(params={"baseline_name": "baseline1"})
         with pytest.raises(exc_type):
-            self.module.get_component_compliance_reports(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
+            self.module.get_baseline_compliance_reports(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
 
-    param_list1 = [{"report_type": "device"},
-                  {"report_type": "device","device_ids":[]},
-                  {"report_type": "device", "device_ids": None},
-                  {"report_type": "device", "device_service_tags": []},
-                  {"report_type": "device", "device_service_tags": None},
-                  {"report_type": "device", "group_names": []},
-                 {"report_type": "device", "group_names": None},
-                  {"report_type": "device", "device_ids":[], "device_service_tags": []},
-                  {"report_type": "device", "device_ids": None, "device_service_tags": None},
-                   {"report_type": "device", "device_ids": [], "device_service_tags": [],"group_names": []},
-                   {"report_type": "device", "device_ids": None, "device_service_tags": None, "group_names":None},
-                   {"report_type": "device", "device_ids": None, "device_service_tags": [], "group_names": None},
+    param_list1 = [ {"baseline_name": ""},
+                    {"baseline_name": None},
+                  {"device_ids": []},
+                  {"device_ids": None},
+                  {"device_ids": [], "baseline_name": ""},
+                  {"device_service_tags": []},
+                  {"device_service_tags": [], "baseline_name": ""},
+                  {"device_service_tags": None},
+                  {"group_names": [], "baseline_name": ""},
+                  {"group_names": []},
+                  {"group_names": None},
+                  {"device_ids":[], "device_service_tags": []},
+                  {"device_ids": None, "device_service_tags": None},
+                   {"device_ids": [], "device_service_tags": [],"group_names": []},
+                   {"device_ids": None, "device_service_tags": None, "group_names":None},
+                   {"device_ids": None, "device_service_tags": [], "group_names": None},
+                     {"device_ids": [], "device_service_tags": [], "group_names": [], "baseline_name": ""},
 
                 ]
 
@@ -358,69 +319,92 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_validate_input_error_handling_case(self,param):
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as exc:
-            self.module.validate_input(f_module)
-        assert exc.value.args[0] == "Either I(device_ids), I(device_service_tags) or " \
-                                    "I(group_names) option is required for report_type 'device'."
+            self.module.validate_inputs(f_module)
+        assert exc.value.args[0] == "one of the following is required: device_ids, " \
+                                    "device_service_tags, group_names, baseline_name " \
+                                    "to generate device based compliance report."
 
-    params_list2= [{"report_type": "baseline_device",
+    params_list2= [{
                     "device_ids":[Constants.device_id1],
                     "device_service_tags":[Constants.service_tag1]},
-             {"report_type": "device", "device_ids": [Constants.device_id1]},
-            {"report_type": "device", "group_names": ["group1"]},
-            {"report_type": "device", "device_service_tags": [Constants.service_tag1]},
-            {"report_type": "baseline_device", "device_ids": [Constants.device_id1]},
-            {"report_type": "baseline_device", "group_names": ["group1"]}
+             {"device_ids": [Constants.device_id1]},
+            {"group_names": ["group1"]},
+            {"device_service_tags": [Constants.service_tag1]},
+            {"baseline_name": "baseline1", "device_ids": [Constants.device_id1]},
+            {"baseline_name": "baseline1", "group_names": ["group1"]}
              ]
 
     @pytest.mark.parametrize("param", params_list2)
     def test_validate_input_params_without_error_handling_case(self, param):
         f_module = self.get_module_mock(params=param)
-        self.module.validate_input(f_module)
+        self.module.validate_inputs(f_module)
 
     def test_baseline_complaince_main_success_case_01(self, mocker, ome_default_args, module_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_input')
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_inputs')
         mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
                      return_value=[{"device":"device_report"}])
-        ome_default_args.update({"report_type": "device"})
+        ome_default_args.update({"device_ids": [Constants.device_id1]})
         result = self._run_module(ome_default_args)
         assert result["changed"] is False
         assert 'baseline_compliance_info' in result
         assert 'msg' not in result
 
     def test_baseline_complaince_main_success_case_02(self, mocker, ome_default_args, module_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_input')
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_component_compliance_reports',
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_inputs')
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_compliance_reports',
                      return_value=[{"baseline_device":"baseline_device_report"}])
-        ome_default_args.update({"report_type": "baseline_device", "baseline_name" : "baseline_name"})
+        ome_default_args.update({"baseline_name" : "baseline_name"})
         result = self._run_module(ome_default_args)
         assert result["changed"] is False
         assert 'baseline_compliance_info' in result
         assert 'msg' not in result
 
-    param_list3 =[{"report_type": "baseline_device"},
-                  {},
-                  {"device_ids":[Constants.device_id1],"device_service_tags": [Constants.service_tag1]},
-                  {"device_ids": [Constants.device_id1], "group_names": ["group_name1"]},
-                  {"device_ids": [Constants.device_id1], "group_names": ["group_name1"]},
-                  {"device_service_tags": [Constants.service_tag1], "group_names": ["group_name1"]},
-                  {"device_ids": [Constants.device_id1], "device_service_tags": [Constants.service_tag1],"group_names": ["group_name1"]
-                   }]
 
-    @pytest.mark.parametrize("param", param_list3)
-    def test_baseline_complaince_main_failure_case_01(self, param,  ome_default_args, module_mock, ome_response_mock):
+    def test_baseline_complaince_main_failure_case_01(self, ome_default_args, module_mock):
+        """required parameter is not passed along with specified report_type"""
+        #ome_default_args.update({})
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert 'baseline_compliance_info' not in result
+        assert 'msg' in result
+        assert result['msg'] == "one of the following is required: device_ids, " \
+                                "device_service_tags, group_names, baseline_name"
+        assert result['failed'] is True
+
+
+    param_list4 =[
+                  {"device_ids":[Constants.device_id1],"device_service_tags": [Constants.service_tag1]},
+                  {"device_service_tags": [Constants.device_id1], "group_names": ["group_name1"]},
+                  {"device_ids": [Constants.device_id1], "group_names": ["group_name1"]},
+                  {"device_ids": [Constants.device_id1], "device_service_tags": ["group_name1"]},
+                  {"device_ids":[Constants.device_id1], "device_service_tags": [Constants.service_tag1], "group_names": ["group_name1"]},
+                  {"device_ids": [Constants.device_id1], "device_service_tags": [Constants.service_tag1],
+                   "group_names": ["group_name1"], "baseline_name": "baseline1"
+                   },
+                   {"device_ids":[Constants.device_id1], "baseline_name": "baseline1"},
+                   {"device_service_tags":[Constants.service_tag1], "baseline_name": "baseline1"},
+                   {"group_names": ["group_name1"], "baseline_name": "baseline1"},
+                    {"device_ids": [], "device_service_tags": [],
+                     "group_names": [], "baseline_name": ""
+                     },
+                  ]
+
+    @pytest.mark.parametrize("param", param_list4)
+    def test_baseline_complaince_main_failure_case_02(self, param,  ome_default_args, module_mock):
         """required parameter is not passed along with specified report_type"""
         ome_default_args.update(param)
         result = self._run_module_with_fail_json(ome_default_args)
         assert 'baseline_compliance_info' not in result
         assert 'msg' in result
+        assert result["msg"] == "parameters are mutually exclusive: " \
+                                "baseline_name|device_service_tags|device_ids|group_names"
         assert result['failed'] is True
 
-    def test_baseline_complaince_main_failure_case_02(self, mocker, ome_default_args, module_mock, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
+    def test_baseline_complaince_main_failure_case_03(self, mocker, ome_default_args, module_mock, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
         """when ome response return value is None"""
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_input')
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_inputs')
         mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
                      return_value=None)
-        ome_default_args.update({"report_type": "device"})
+        ome_default_args.update({"device_ids": [Constants.device_id1]})
         result = self._run_module_with_fail_json(ome_default_args)
         assert 'baseline_compliance_info' not in result
         assert result['msg'] == "Failed to fetch the compliance baseline information."
@@ -428,8 +412,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
 
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
     def test_baseline_complaince_main_exception_handling_case(self, exc_type, mocker, ome_default_args, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
-        ome_default_args.update({"report_type": "device"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_input')
+        ome_default_args.update({"device_service_tags": [Constants.service_tag1]})
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_inputs')
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
         json_str = to_text(json.dumps({"data":"out"}))

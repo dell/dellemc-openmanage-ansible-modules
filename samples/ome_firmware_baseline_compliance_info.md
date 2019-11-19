@@ -1,4 +1,4 @@
-Retrieve baseline report for specific device IDs:
+Retrieve baseline report for specified device IDs:
 
 {
   "baseline_compliance_info": [
@@ -232,7 +232,7 @@ Retrieve baseline report for specific device IDs:
 }
 
 
-Retrieve baseline report for specific device service Tags:
+Retrieve baseline report for specified device service Tags:
 
 {
     "baseline_compliance_info": [
@@ -774,7 +774,7 @@ Retrieve baseline report for specific device service Tags:
 }
 
 
-Retrieve device compliance report for a specific group names:
+Retrieve device compliance report for a specified group names:
  {
  	"baseline_compliance_info": [{
  				"@odata.context": "/api/$metadata#UpdateService.DeviceComplianceReport",
@@ -876,7 +876,7 @@ Retrieve device compliance report for a specific group names:
 
 
 
-Retrieve device compliance report for a specific baseline:
+Retrieve device compliance report for a specified baseline:
 
  {
     "baseline_compliance_info": [
