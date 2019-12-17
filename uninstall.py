@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
+# Version 2.0.5
 # Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -43,6 +43,7 @@ ansible_version = ansible.__version__
 dellemc_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc")
 dellemc_idrac_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc", "idrac")
 dellemc_ome_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc", "ome")
+dellemc_redfish_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc", "redfish")
 
 # dellemc util path
 dellemc_util_path = os.path.join(ansible_installed_path, "module_utils", "remote_management", "dellemc")
@@ -119,6 +120,7 @@ def uninstall():
             removed_util = list(set(util_files) - set(contrib_util_files.keys()))
             removed_module.extend(removed_util)
             removed_module.append(dellemc_ome_path)
+            removed_module.append(dellemc_redfish_path)
             if version_check(ansible_version) < version_check("2.9.0"):
                 # remove ome modules if ansible version is lower than 2.9
                 remove_module_list, remove_modules_dict = [], {}
