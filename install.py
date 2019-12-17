@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
+# Version 2.0.5
 # Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -57,6 +57,7 @@ contrib_files = {
 dellemc_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc")
 dellemc_idrac_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc", "idrac")
 dellemc_ome_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc", "ome")
+dellemc_redfish_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc", "redfish")
 
 # ansible util path
 dellemc_util_path = os.path.join(ansible_installed_path, "module_utils", "remote_management", "dellemc")
@@ -67,6 +68,7 @@ old_ome_file = os.path.join(ansible_installed_path, "module_utils", "remote_mana
 base_local_path = os.getcwd()
 src_idrac_path = os.path.join(base_local_path, "library", "dellemc", "idrac")
 src_ome_path = os.path.join(base_local_path, "library", "dellemc", "ome")
+src_redfish_path = os.path.join(base_local_path, "library", "dellemc", "redfish")
 src_util_path = os.path.join(base_local_path, "utils")
 idrac_util_exists = os.path.exists(os.path.join(dellemc_util_path, "dellemc_idrac.py"))
 property_json = os.path.join(dellemc_path, "properties.json")
@@ -128,10 +130,12 @@ def complete_installation():
     if os.path.exists(dellemc_path):
         copy_files(src_idrac_path, dellemc_path)
         copy_files(src_ome_path, dellemc_path)
+        copy_files(src_redfish_path, dellemc_path)
         copy_files(src_util_path, dellemc_util_path)
     if not os.path.exists(dellemc_path):
         shutil.copytree(os.path.join("library", "dellemc", "idrac"), dellemc_path)
         copy_files(src_ome_path, dellemc_path)
+        copy_files(src_redfish_path, dellemc_path)
     if not os.path.exists(dellemc_util_path):
         shutil.copytree(src_util_path, dellemc_util_path)
         if not os.path.isfile(init_file):

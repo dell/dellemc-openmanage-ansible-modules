@@ -2,13 +2,13 @@
 Dell EMC OpenManage Ansible Modules
 
 *******************************************************************************
-Version: 2.0.4
+Version: 2.0.5
 
 *******************************************************************************
-Release Date: November 2019
+Release Date: December 2019
 
 *******************************************************************************
-Previous Version: 2.0.3
+Previous Version: 2.0.4
 
 *******************************************************************************
 Importance
@@ -24,33 +24,33 @@ Platform(s) Affected
 --------------------
 
 For the list of supported platforms, see the section "Support Matrix" in the 
-"Dell EMC OpenManage Ansible Modules version 2.0.4 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.0.5 Installation Guide".
 
 *******************************************************************************
 What is Supported
 -----------------
 
 For information on the hardware and software requirements, see 
-"Dell EMC OpenManage Ansible Modules version 2.0.4 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.0.5 Installation Guide".
 
 *******************************************************************************
 What’s New
 ----------
-The key features in OpenManage Ansible Modules version 2.0.4 include-
+The key features in OpenManage Ansible Modules version 2.0.5 include-
 
-* A new OpenManage Enterprise(OME) module (ome_firmware_catalog) to
-  create a firmware catalog.
+  * OpenManage Ansible now allows the use of standard redfish URIs supported
+  by iDRAC.
 
-* A new OME module (ome_firmware_baseline) to create a firmware baseline
-  from existing catalog.
+    - The module (redfish_firmware) performs a component firmware update
+    using an image file available on the local or remote system.
+    - The module (redfish_storage_volume) manages the storage volume
+    configuration.
 
-* A new OME module (ome_firmware_baseline_compliance_info) to retrieve:
-  - Firmware compliance report for specified identifiers (device ids,
-    service tags, group names).
-  - Baseline compliance reports for specified baseline.
+  * The iDRAC module (idrac_redfish_storage_controller) configures the
+  settings of a storage controller.
 
 For a complete list of supported features that you can leverage,
-see the “Dell EMC OpenManage Ansible Modules Version 2.0.4 User’s Guide”.
+see the “Dell EMC OpenManage Ansible Modules Version 2.0.5 User’s Guide”.
 
 *******************************************************************************
 Known Issues
@@ -87,6 +87,23 @@ Known Issues
   "downloads.dell.com" does not work on 13G via WSMAN in case of
   HTTP/HTTPS/FTP.
 
+* Issue 5(154815):
+  Description: Firmware update may fail if multiple DUPs are uploaded.
+  Local DUPs are stored in a temporary folder created by a scratch-pad.
+  The capacity of this folder is only 300MB.
+
+* Issue 6(155034):
+  Description: If the controller does not support updating the
+  EncryptionTypes parameter, a default value is automatically set during
+  the storage volume create operation. If the controller does not
+  support updating the EncryptionTypes parameter, the storage volume
+  modify operation fails.
+
+* Issue 7(155043):
+  Description: Values for redfish operation on volume progress and task
+  completion do no match.
+
+
 *******************************************************************************
 Limitations
 -----------
@@ -104,19 +121,19 @@ Limitations
 Installation Prerequisites
 --------------------------
 For installation prerequisites, see "Dell EMC OpenManage Ansible Modules
-Version 2.0.4 Installation Guide".
+Version 2.0.5 Installation Guide".
 
 Software Requirements
 ---------------------
 
 * For information on the hardware and software requirements, see
-"Dell EMC OpenManage Ansible Modules Version 2.0.4 Installation Guide".
+"Dell EMC OpenManage Ansible Modules Version 2.0.5 Installation Guide".
 
 Installation Procedure
 -------------------------
 
 For the installation instructions, see "Dell EMC OpenManage Ansible Modules
-Version 2.0.4 Installation Guide".
+Version 2.0.5 Installation Guide".
 
 *******************************************************************************
 Accessing Documents from Dell Support Site
@@ -184,7 +201,7 @@ technical support, or customer service issues:
 
 
 Dell EMC OpenManage Ansible Modules
-Version 2.0.4
+Version 2.0.5
 Copyright (C) 2019   Dell Inc.
 
 GNU General Public License v3.0+

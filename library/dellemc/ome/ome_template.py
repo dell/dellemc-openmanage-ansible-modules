@@ -46,8 +46,11 @@ options:
     description:
       - C(create) creates a new template.
       - C(modify) modifies an existing template.
-      - C(deploy) deploys an existing template.
+      - >-
+        C(deploy) deploys an existing template. To deploy a template on iDRAC, ensure the appropriate license is
+        present. Refer OpenManage Enterprise Licensing Guide for more details.
     choices: [create, modify, deploy]
+    type: str
     default: create
   template_id:
     description:
@@ -58,6 +61,7 @@ options:
     description:
       - Unique Name of the template to be modified or deployed.
       - This option is mandatory for C(modify) and C(deploy) operations.
+    type: str
   device_id:
     description:
       - List of targeted device id(s) for C(deploy) or a single id for C(create).
@@ -75,6 +79,7 @@ options:
       - The features that support template operations.
       - This is applicable only for C(create)
     choices: [Deployment, Compliance, Inventory, Sample, None]
+    type: str
     default: Deployment
   attributes:
     type: dict
@@ -111,7 +116,7 @@ author: "Jagadeesh N V (@jagadeeshnv)"
 
 EXAMPLES = r'''
 ---
-- name: create template.
+- name: "Create a template from a reference device."
   ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -121,7 +126,7 @@ EXAMPLES = r'''
       Name: "New Template"
       Description: "New Template description"
 
-- name: modify template
+- name: "Modify template name, description, and attribute value."
   ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -131,12 +136,16 @@ EXAMPLES = r'''
     attributes:
       Name: "New Custom Template"
       Description: "Custom Template Description"
+      # Attributes to be modified in the template.
+      # For information on any attribute id, use API /TemplateService/Templates(Id)/Views(Id)/AttributeViewDetails
+      # This section is optional
       Attributes:
         - Id: 1234
           Value: "Test Attribute"
           IsIgnored: false
 
-- name: deploy template.
+- name: "Deploys template on multiple devices and changes the device level attributes. After the template is deployed,
+an operating system can be installed using its image."
   ome_template:
     hostname:  "192.168.0.1"
     username: "username"
@@ -144,25 +153,40 @@ EXAMPLES = r'''
     state: "deploy"
     template_id: 1234
     device_id:
-      - 12345
-      - 45678
-    device_service_tag: ['SVTG123', 'SVTG456']
+      - 12765
+      - 10173
+    device_service_tag:
+      - 'SVTG123'
+      - 'SVTG456'
     attributes:
+      # Device specific attributes to be modified during deployment.
+      # For information on any attribute id, use API /TemplateService/Templates(Id)/Views(Id)/AttributeViewDetails
+      # This section is optional
+      Attributes:
+        # specific device where attribute to be modified at deployment run-time.
+        # The DeviceId should be mentioned above in the 'device_id' section.
+        # Service tags not allowed.
+        - DeviceId: 12765
+          Attributes:
+            - Id : 15645
+              Value : "0.0.0.0"
+              IsIgnored : false
+        - DeviceId: 10173
+          Attributes:
+            - Id : 18968,
+              Value : "hostname-1"
+              IsIgnored : false
+      # Include this to install operating system on the devices.
+      # This section is optional
       NetworkBootIsoModel:
         BootToNetwork: false
         ShareType: "NFS"
-        IsoPath: "bootToIsoPath.iso"
+        IsoPath: "/home/iso_path/filename.iso"
         ShareDetail:
           IpAddress: "192.168.0.2"
-          ShareName: "/nfsshare"
-          User: null
-          Password: null
-      Attributes:
-        - DeviceId: 12345
-          Attributes :
-            - Id : 123
-              Value : "0.0.0.0"
-              IsIgnored : true
+          ShareName: "sharename"
+          User: "share_user"
+          Password: "share_password"
       Options:
         EndHostPowerState: 1
         ShutdownType: 0
@@ -297,7 +321,7 @@ def get_template_by_name(template_name, module, rest_obj):
     :return: template_id: integer
     """
     template_id = None
-    template_path = "TemplateService/Templates".format(template_name)
+    template_path = "TemplateService/Templates"
     query_param = {"$filter": "Name eq '{0}'".format(template_name)}
     template_req = rest_obj.invoke_request("GET", template_path, query_param=query_param)
     for each in template_req.json_data.get('value'):
