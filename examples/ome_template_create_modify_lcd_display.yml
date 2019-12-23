@@ -1,11 +1,10 @@
 ---
 - hosts: hosts
   connection: local
-  name:
-    - Creates a new template from the provided reference server device.
-    - Track the template creation job till completion.
-    - Fetch the Attribute specific to LCD Configuration settings from the attribute view of the created template.
-    - Modify the created template with the user defined LCD string.
+  name: "Creates a new template from the provided reference server device.
+  Track the template creation job till completion.
+  Fetch the Attribute specific to LCD Configuration settings from the attribute view of the created template.
+  Modify the created template with the user defined LCD string."
   gather_facts: False
   vars:
     retries_count: 50
@@ -25,6 +24,9 @@
         Name: "{{ template_name }}"
         Description: "LCD Template description"
     register: result
+
+  - name: "sleep for 30 seconds and continue with play"
+    wait_for: timeout=30
 
   - name: "Fetch the Task ID from the Template Details using the Template ID"
     ome_template_info:
