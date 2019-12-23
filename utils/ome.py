@@ -179,3 +179,22 @@ class RestOME(object):
             path = SESSION_RESOURCE_COLLECTION["SESSION_ID"].format(Id=self.session_id)
             self.invoke_request('DELETE', path)
         return False
+
+    def get_report_list(self, uri):
+        try:
+            resp = self.invoke_request('GET', uri)
+            data = resp.json_data
+            next_uri = data.get("@odata.nextLink")
+            value = data["value"]
+            return resp, value, next_uri
+        except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+            raise err
+
+    def get_all_report_details(self, uri):
+        resp, report_list, next_uri = self.get_report_list(uri)
+        while next_uri:
+            report_uri = next_uri.split("/api/")[-1]
+            resp, value, next_uri = self.get_report_list(report_uri)
+            report_list.extend(value)
+        return {"resp_obj": resp, "report_list": report_list}
+

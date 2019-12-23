@@ -76,3 +76,40 @@ class TestRestOME(object):
         with pytest.raises(HTTPError) as e:
             with RestOME(module_params, req_session) as obj:
                 obj.invoke_request("/testpath", "GET")
+
+    def test_get_all_report_details(self, mock_response, mocker):
+        mock_response.success = True
+        mock_response.status_code = 200
+        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+                     return_value=mock_response)
+        get_report_list_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.get_report_list',
+                                            return_value=(mock_response, [1, 2], None))
+        module_params = {'hostname': '100.96.32.138', 'username': 'admin',
+                         'password': 'Dell_123', "port": 443}
+        with RestOME(module_params, True) as obj:
+            reports = obj.get_all_report_details("DeviceService/Devices")
+        assert reports == {"resp_obj": mock_response, "report_list": [1, 2]}
+
+    def test_get_report_list(self, mock_response, mocker, ome_connection_mock):
+        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+                     return_value=mock_response)
+        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.invoke_request',
+                     return_value=mock_response)
+        mock_response.json_data = {"@odata.nextLink": "next_link", "value": [1, 2]}
+        mock_response.success = True
+        module_params = {'hostname': '100.96.32.138', 'username': 'admin',
+                         'password': 'Dell_123', "port": 443}
+        with RestOME(module_params, False) as obj:
+            reports = obj.get_report_list("DeviceService/Devices")
+        assert reports == (mock_response, [1, 2], "next_link")
+
+    def test_get_report_list_error_case(self, mock_response, mocker, ome_connection_mock):
+        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+                     return_value=mock_response)
+        invoke_obj = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.invoke_request',
+                                  side_effect=HTTPError('http://testhost.com/', 400, 'Bad Request Error', {}, None))
+        module_params = {'hostname': '100.96.32.138', 'username': 'admin',
+                         'password': 'Dell_123', "port": 443}
+        with pytest.raises(HTTPError) as e:
+            with RestOME(module_params, False) as obj:
+                obj.get_all_report_details("DeviceService/Devices")
