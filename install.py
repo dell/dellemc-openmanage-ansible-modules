@@ -19,17 +19,16 @@ import glob
 import shutil
 
 
-print("Dell EMC OpenManage Ansible Modules installation has started.")
-print("Checking prerequisites...")
+print("\nDell EMC OpenManage Ansible Modules installation has started.")
+print("\nChecking prerequisites...\n")
 
 # checking prerequisites..
-fail_message = "FAILED: Dell EMC OpenManage Ansible Modules installation failed."
+fail_message = "\nFAILED: Dell EMC OpenManage Ansible Modules installation failed.\n"
 try:
     import ansible
     from ansible.module_utils.six.moves import input
 except ImportError as e:
-    print("")
-    print("Ansible is not installed.")
+    print("\tAnsible is not installed.")
     print(fail_message)
     sys.exit(1)
 
@@ -72,7 +71,7 @@ src_redfish_path = os.path.join(base_local_path, "library", "dellemc", "redfish"
 src_util_path = os.path.join(base_local_path, "utils")
 idrac_util_exists = os.path.exists(os.path.join(dellemc_util_path, "dellemc_idrac.py"))
 property_json = os.path.join(dellemc_path, "properties.json")
-installation_message = "Installing Dell EMC OpenManage Ansible Modules specific folders and files..."
+installation_message = "\tInstalling Dell EMC OpenManage Ansible Modules specific folders and files..."
 init_file = os.path.join(ansible_installed_path, "module_utils", "remote_management", "__init__.py")
 extras = os.path.join(ansible_installed_path, "modules", "extras")
 deprecated_src_path = os.path.join(base_local_path, "deprecated")
@@ -102,12 +101,11 @@ def update_check():
     """
     checking whenever upgrade is required.
     """
-    message = "Dell EMC OpenManage Ansible Modules is already present. Do you want to upgrade? (y/n)  "
+    message = "\tDell EMC OpenManage Ansible Modules is already present. Do you want to upgrade? (y/n)?"
     yes = {'y', ''}
-    print(" ")
     print(message)
-    print("Press `y` to update the Dell EMC OpenManage Ansible Modules specific folders and files...")
-    print("Press any other key to exit installation (default: 'y'):")
+    print("\tPress `y` to update the Dell EMC OpenManage Ansible Modules specific folders and files...")
+    print("\tPress any other key to exit installation (default: 'y'):")
     choice = input()
     if choice in yes:
         return True
@@ -183,7 +181,7 @@ def install():
     # Complete installation with new directory structure, dellemc modules version 2.0.
     complete_installation()
 
-    print("SUCCESS: Dell EMC OpenManage Ansible Modules is installed successfully.")
+    print("\nSUCCESS: Dell EMC OpenManage Ansible Modules is installed successfully.\n")
 
 
 if __name__ == "__main__":

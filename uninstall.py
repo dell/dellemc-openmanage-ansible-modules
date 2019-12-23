@@ -19,12 +19,12 @@ import glob
 import shutil
 
 
-no_ansible_message = "Dell EMC OpenManage Ansible Modules is not installed."
+no_ansible_message = "\nDell EMC OpenManage Ansible Modules is not installed.\n"
 # if any one of them are present proceeding with further process.
-started_message = "Dell EMC OpenManage Ansible Modules uninstallation has started."
-folder_message = "Uninstalling Dell EMC OpenManage Ansible Modules specific folders and files..."
-success_message = "SUCCESS: Dell EMC OpenManage Ansible Modules is uninstalled successfully."
-failed_message = "FAILED: Dell EMC OpenManage Ansible Modules uninstallation failed."
+started_message = "\nDell EMC OpenManage Ansible Modules uninstallation has started."
+folder_message = "\n\tUninstalling Dell EMC OpenManage Ansible Modules specific folders and files...\n"
+success_message = "SUCCESS: Dell EMC OpenManage Ansible Modules is uninstalled successfully.\n"
+failed_message = "FAILED: Dell EMC OpenManage Ansible Modules uninstallation failed.\n"
 
 try:
     import ansible
@@ -32,12 +32,16 @@ except ImportError:
     print(no_ansible_message)
     sys.exit(1)
 
-# Ansible and dellemc installed location path.
-if 'ANSIBLE_LIBRARY' in os.environ:
-    ansible_installed_path = os.environ['ANSIBLE_LIBRARY']
-else:
-    ansible_installed_path = ansible.__path__[0]
-ansible_version = ansible.__version__
+try:
+    # Ansible and dellemc installed location path.
+    if 'ANSIBLE_LIBRARY' in os.environ:
+        ansible_installed_path = os.environ['ANSIBLE_LIBRARY']
+    else:
+        ansible_installed_path = ansible.__path__[0]
+    ansible_version = ansible.__version__
+except (AttributeError, TypeError):
+    print(no_ansible_message)
+    sys.exit(1)
 
 # dellemc module path
 dellemc_path = os.path.join(ansible_installed_path, "modules", "remote_management", "dellemc")

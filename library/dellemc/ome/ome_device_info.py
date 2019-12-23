@@ -22,11 +22,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_device_info
-short_description: Retrieves the information about Device.
+short_description: Retrieves the information of devices inventoried by OpenManage Enterprise.
 version_added: "2.9"
 description:
-   - This module retrieves the list of all devices information with the exhaustive inventory of each
-     device.
+   - This module retrieves the list of devices in the inventory of OpenManage Enterprise along with the details of each device.
 options:
     hostname:
         description:
@@ -236,22 +235,14 @@ def _get_device_id_from_service_tags(service_tags, rest_obj):
     :arg rest_obj: RestOME class object in case of request with session.
     :returns: dict eg: {1345:"MXL1245"}
     """
-    try:
-        path = DEVICE_RESOURCE_COLLECTION[DEVICE_LIST]["resource"]
-        resp = rest_obj.invoke_request('GET', path)
-        if resp.success:
-            devices_list = resp.json_data["value"]
-            service_tag_dict = {}
-            for item in devices_list:
-                if item["DeviceServiceTag"] in service_tags:
-                    service_tag_dict.update({item["Id"]: item["DeviceServiceTag"]})
-            available_service_tags = service_tag_dict.values()
-            not_available_service_tag = list(set(service_tags) - set(available_service_tags))
-            device_fact_error_report.update(dict((tag, DESC_HTTP_ERROR) for tag in not_available_service_tag))
-        else:
-            raise ValueError(resp.json_data)
-    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
-        raise err
+    device_list = rest_obj.get_all_report_details(DEVICE_RESOURCE_COLLECTION[DEVICE_LIST]["resource"])["report_list"]
+    service_tag_dict = {}
+    for item in device_list:
+        if item["DeviceServiceTag"] in service_tags:
+            service_tag_dict.update({item["Id"]: item["DeviceServiceTag"]})
+    available_service_tags = service_tag_dict.values()
+    not_available_service_tag = list(set(service_tags) - set(available_service_tags))
+    device_fact_error_report.update(dict((tag, DESC_HTTP_ERROR) for tag in not_available_service_tag))
     return service_tag_dict
 
 
@@ -388,9 +379,19 @@ def main():
             resp_status = []
             if device_facts.get("basic_inventory"):
                 query_param = _get_query_parameters(module.params)
-                resp = rest_obj.invoke_request('GET', device_facts["basic_inventory"], query_param=query_param)
-                device_facts = resp.json_data
-                resp_status.append(resp.status_code)
+                if query_param is not None:
+                    resp = rest_obj.invoke_request('GET', device_facts["basic_inventory"], query_param=query_param)
+                    device_facts = resp.json_data
+                    resp_status.append(resp.status_code)
+                else:
+                    device_report = rest_obj.get_all_report_details(DEVICE_RESOURCE_COLLECTION[DEVICE_LIST]["resource"])
+                    device_facts = {"@odata.context": device_report["resp_obj"].json_data["@odata.context"],
+                                    "@odata.count": device_report["resp_obj"].json_data["@odata.count"],
+                                    "value": device_report["report_list"]}
+                    if device_facts["@odata.count"] > 0:
+                        resp_status.append(200)
+                    else:
+                        resp_status.append(400)
             else:
                 for identifier_type, path_dict_map in device_facts.items():
                     for identifier, path in path_dict_map.items():

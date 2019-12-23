@@ -33,20 +33,42 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
 
     @pytest.fixture
     def get_device_resource_parameters_mock(self, mocker):
-        response_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info._get_resource_parameters',return_value = resource_basic_inventory)
+        response_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info._get_resource_parameters',
+                                           return_value=resource_basic_inventory)
         return response_class_mock
 
     def test_main_basic_inventory_success_case(self, ome_default_args, module_mock, validate_device_inputs_mock, ome_connection_mock,
                                                get_device_resource_parameters_mock, ome_response_mock):
+        ome_response_mock.json_data = {"@odata.context": "/api/$metadata#Collection(DeviceService.Device)", "@odata.count": 1}
+        increment_device_details = {"resp_obj": ome_response_mock, "report_list": [{"DeviceServiceTag": Constants.service_tag1,
+                                                                                    "Id": Constants.device_id1}]}
+        ome_connection_mock.get_all_report_details.return_value = increment_device_details
+        ome_response_mock.status_code = 200
+        result = self._run_module(ome_default_args)
+        assert result['changed'] is False
+        assert 'device_info' in result
+        assert result["device_info"] == {"@odata.context": "/api/$metadata#Collection(DeviceService.Device)",
+                                         "@odata.count": 1,
+                                         "value": [{"DeviceServiceTag": Constants.service_tag1,
+                                                    "Id": Constants.device_id1}]}
+
+    def test_main_basic_inventory_query_param_success_case(self, mocker, ome_default_args, module_mock,
+                                                           validate_device_inputs_mock, ome_connection_mock,
+                                                           get_device_resource_parameters_mock, ome_response_mock):
+        quer_param_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info._get_query_parameters')
+        quer_param_mock.return_value = {"filter": "Type eq '1000'"}
         ome_response_mock.json_data = {"value": [{"device_id1": "details", "device_id2": "details"}]}
         ome_response_mock.status_code = 200
         result = self._run_module(ome_default_args)
         assert result['changed'] is False
         assert 'device_info' in result
+        assert result["device_info"] == {"value": [{"device_id1": "details", "device_id2": "details"}]}
 
     def test_main_basic_inventory_failure_case(self, ome_default_args, module_mock, validate_device_inputs_mock, ome_connection_mock,
                                                get_device_resource_parameters_mock, ome_response_mock):
         ome_response_mock.status_code = 500
+        ome_response_mock.json_data = {"@odata.context": "/api/$metadata#Collection(DeviceService.Device)", "@odata.count": 0}
+        ome_connection_mock.get_all_report_details.return_value = {"resp_obj": ome_response_mock, "report_list": []}
         result = self._run_module_with_fail_json(ome_default_args)
         assert result['msg'] == 'Failed to fetch the device information'
 
@@ -62,6 +84,17 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         result = self._run_module(ome_default_args)
         assert result['changed'] is False
         assert 'device_info' in result
+
+    def test_main_detailed_inventory_http_error_case(self, ome_default_args, module_mock, validate_device_inputs_mock, ome_connection_mock,
+                                                     get_device_resource_parameters_mock, ome_response_mock):
+        ome_default_args.update({"fact_subset": "detailed_inventory", "system_query_options": {"device_id": [Constants.device_id1],
+                                                                                               "device_service_tag": [Constants.service_tag1]}})
+        detailed_inventory = {"detailed_inventory:": {"device_id": {Constants.device_id1: "DeviceService/Devices(Constants.device_id1)/InventoryDetails"},
+                                                      "device_service_tag": {Constants.service_tag1: "DeviceService/Devices(4321)/InventoryDetails"}}}
+        get_device_resource_parameters_mock.return_value = detailed_inventory
+        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert 'device_info' not in result
 
     def test_main_HTTPError_error_case(self, ome_default_args, module_mock, validate_device_inputs_mock, ome_connection_mock,
                                        get_device_resource_parameters_mock, ome_response_mock):
@@ -132,17 +165,40 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         assert actual_res == expected_res
 
     def test_get_device_id_from_service_tags(self, ome_connection_mock, ome_response_mock):
-        ome_response_mock.json_data = {"value": [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.device_id1}]}
-        ome_response_mock.status_code = 200
-        ome_response_mock.success = True
-        self.module._get_device_id_from_service_tags(["MX1234", "INVALID"], ome_connection_mock)
+        ome_response_mock.json_data.update({"@odata.context": "/api/$metadata#Collection(DeviceService.Device)"})
+        ome_response_mock.json_data.update({"@odata.count": 1})
+        ome_connection_mock.get_all_report_details.return_value = {"resp_obj": ome_response_mock, "report_list": [{"DeviceServiceTag": Constants.service_tag1,
+                                                                                                                   "Id": Constants.device_id1}]}
+        self.module._get_device_id_from_service_tags([Constants.service_tag1, "INVALID"], ome_connection_mock)
 
     def test_get_device_id_from_service_tags_error_case(self, ome_connection_mock, ome_response_mock):
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
-        ome_response_mock.json_data = {"value": [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.device_id1}]}
-        ome_response_mock.status_code = 200
-        ome_response_mock.success = True
+        ome_connection_mock.get_all_report_details.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
         with pytest.raises(HTTPError) as ex:
             self.module._get_device_id_from_service_tags(["INVALID"], ome_connection_mock)
 
+    def test_main_detailed_inventory_device_fact_error_report_case_01(self, ome_default_args, module_mock, validate_device_inputs_mock, ome_connection_mock,
+                                                                      get_device_resource_parameters_mock, ome_response_mock):
+        ome_default_args.update({"fact_subset": "detailed_inventory", "system_query_options": {"device_id": [Constants.device_id1],
+                                                                                               "device_service_tag": [Constants.service_tag1]}})
+        detailed_inventory = {"detailed_inventory:": {"device_id": {Constants.device_id1: "DeviceService/Devices(Constants.device_id1)/InventoryDetails"},
+                                                      "device_service_tag": {Constants.service_tag1: "DeviceService/Devices(4321)/InventoryDetails"}}}
+        get_device_resource_parameters_mock.return_value = detailed_inventory
+        ome_response_mock.json_data = {"value": [{"device_id": {Constants.device_id1: "details"}}, {"device_service_tag": {Constants.service_tag1: "details"}}]}
+        ome_response_mock.status_code = 200
+        self.module.device_fact_error_report = {Constants.service_tag1: "Duplicate report of device_id: {0}".format(Constants.device_id1)}
+        result = self._run_module(ome_default_args)
+        assert result['changed'] is False
+        assert 'device_info' in result
 
+    def test_main_detailed_inventory_device_fact_error_report_case_02(self, ome_default_args, module_mock, validate_device_inputs_mock,
+                                                                      ome_connection_mock, get_device_resource_parameters_mock, ome_response_mock):
+        ome_default_args.update({"fact_subset": "detailed_inventory", "system_query_options": {"device_id": [Constants.device_id1],
+                                                                                               "device_service_tag": [Constants.service_tag1]}})
+        detailed_inventory = {"device_service_tag": {Constants.service_tag1: "DeviceService/Devices(4321)/InventoryDetails"}}
+        get_device_resource_parameters_mock.return_value = detailed_inventory
+        ome_response_mock.json_data = {"value": [{"device_id": {Constants.device_id1: "details"}}, {"device_service_tag": {Constants.service_tag1: "details"}}]}
+        ome_response_mock.status_code = 200
+        self.module.device_fact_error_report = {Constants.service_tag1: "Duplicate report of device_id: {0}".format(Constants.device_id1)}
+        result = self._run_module(ome_default_args)
+        assert result['changed'] is False
+        assert 'device_info' in result
