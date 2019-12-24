@@ -4,6 +4,10 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
 
+# 2.0.6 (December 20, 2019)
+  
+  * In the ome_device_info module, fixed the issue that is encountered with the device inventory when the device count is more than 50.
+
 # 2.0.5 (December 13, 2019)
 
   * OpenManage Ansible now allows the use of standard redfish URIs supported by iDRAC. 
