@@ -164,7 +164,8 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         actual_res = self.module.is_int(val)
         assert actual_res == expected_res
 
-    def test_get_device_id_from_service_tags(self, ome_connection_mock, ome_response_mock):
+    def test_get_device_id_from_service_tags(self, ome_connection_mock, ome_response_mock, mocker):
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info.update_device_details_with_filtering')
         ome_response_mock.json_data.update({"@odata.context": "/api/$metadata#Collection(DeviceService.Device)"})
         ome_response_mock.json_data.update({"@odata.count": 1})
         ome_connection_mock.get_all_report_details.return_value = {"resp_obj": ome_response_mock, "report_list": [{"DeviceServiceTag": Constants.service_tag1,
@@ -175,6 +176,32 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         ome_connection_mock.get_all_report_details.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
         with pytest.raises(HTTPError) as ex:
             self.module._get_device_id_from_service_tags(["INVALID"], ome_connection_mock)
+
+    def test_update_device_details_with_filtering_success_case_01(self, ome_connection_mock, ome_response_mock):
+        non_available_tags = [Constants.service_tag2]
+        service_tag_dict = {Constants.device_id1: Constants.service_tag1}
+        ome_response_mock.json_data = {"value":[{"DeviceServiceTag": Constants.service_tag2, "Id": Constants.device_id2}]}
+        self.module.update_device_details_with_filtering(non_available_tags, service_tag_dict, ome_connection_mock)
+        assert service_tag_dict[Constants.device_id1] == Constants.service_tag1
+        assert service_tag_dict[Constants.device_id2] == Constants.service_tag2
+        assert len(non_available_tags) == 0
+
+    def test_update_device_details_with_filtering_success_case_02(self, ome_connection_mock, ome_response_mock):
+        non_available_tags = ["MX700"]
+        service_tag_dict = {Constants.device_id1: Constants.service_tag1}
+        ome_response_mock.json_data = {"value":[{"DeviceServiceTag": "MX7000", "Id": Constants.device_id2}]}
+        self.module.update_device_details_with_filtering(non_available_tags, service_tag_dict, ome_connection_mock)
+        assert service_tag_dict[Constants.device_id1] == Constants.service_tag1
+        assert Constants.device_id2 not in service_tag_dict
+        assert len(non_available_tags) == 1
+
+    def test_update_device_details_with_filtering_failure_case_01(self, ome_connection_mock, ome_response_mock):
+        error_msg = '400: Bad Request'
+        service_tag_dict = {}
+        non_available_tags = [Constants.service_tag2]
+        ome_connection_mock.invoke_request.side_effect =  HTTPError('http://testhost.com', 400, error_msg, {}, None)
+        with pytest.raises(HTTPError, match=error_msg) as ex:
+            self.module.update_device_details_with_filtering(non_available_tags, service_tag_dict, ome_connection_mock)
 
     def test_main_detailed_inventory_device_fact_error_report_case_01(self, ome_default_args, module_mock, validate_device_inputs_mock, ome_connection_mock,
                                                                       get_device_resource_parameters_mock, ome_response_mock):

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.5
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.7
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -75,6 +75,8 @@ installation_message = "\tInstalling Dell EMC OpenManage Ansible Modules specifi
 init_file = os.path.join(ansible_installed_path, "module_utils", "remote_management", "__init__.py")
 extras = os.path.join(ansible_installed_path, "modules", "extras")
 deprecated_src_path = os.path.join(base_local_path, "deprecated")
+dellemc_ome_firmware = os.path.join(ansible_installed_path, "modules", "remote_management",
+                                    "dellemc", "dellemc_ome_firmware.py")
 
 
 def copy_files(src, dest):
@@ -174,7 +176,7 @@ def install():
                 update_cleanup(dellemc_idrac_path)
             else:
                 update_cleanup(*removed_module)
-        update_cleanup(old_util_file, property_json, extras, old_ome_file)
+        update_cleanup(old_util_file, property_json, extras, old_ome_file, dellemc_ome_firmware)
     # Step 1: Installing complete dellemc modules if not present.
     elif not os.path.exists(dellemc_path):
         print(installation_message)

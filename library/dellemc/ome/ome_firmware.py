@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.3
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.7
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -21,7 +21,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = r'''
 ---
-module: dellemc_ome_firmware
+module: ome_firmware
 short_description: "Firmware update of PowerEdge devices and its components."
 version_added: "2.8"
 description: "This module updates the firmware of PowerEdge devices and all its components."
@@ -45,12 +45,19 @@ options:
   device_service_tag:
     description:
       - List of targeted device service tags.
-      - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
+      - Either I(device_id) or I(device_service_tag) can be used individually or together.
+      - I(device_service_tag) is mutually exclusive with I(device_group_names).
     type: list
   device_id:
     description:
       - List of targeted device ids.
-      - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
+      - Either I(device_id) or I(device_service_tag) can be used individually or together.
+      - I(device_id) is mutually exclusive with I(device_group_names).
+    type: list
+  device_group_names:
+    description:
+      - Enter the name of the group to update the firmware of all the devices within the group.
+      - I(device_group_names) is mutually exclusive with I(device_id) and I(device_service_tag).
     type: list
   dup_file:
     description: "Executable file to apply on the targets."
@@ -65,7 +72,7 @@ author:
 EXAMPLES = r'''
 ---
 - name: "Update firmware from DUP file using device ids."
-  dellemc_ome_firmware:
+  ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -75,7 +82,7 @@ EXAMPLES = r'''
     dup_file: "/path/Chassis-System-Management_Firmware_6N9WN_WN64_1.00.01_A00.EXE"
 
 - name: "Update firmware from DUP file using device service tags."
-  dellemc_ome_firmware:
+  ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -83,6 +90,15 @@ EXAMPLES = r'''
       - KLBR111
       - KLBR222
     dup_file: "/path/Network_Firmware_NTRW0_WN64_14.07.07_A00-00_01.EXE"
+
+- name: "Update firmware from DUP file using device group names."
+  ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    device_group_names:
+      - servers
+    dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
 '''
 
 RETURN = r'''
@@ -91,7 +107,7 @@ msg:
   type: str
   description: "Overall firmware update status."
   returned: always
-  sample: "Successfully updated the firmware."
+  sample: "Successfully submitted the firmware update job."
 update_status:
   type: dict
   description: "Firmware Update job and progress details from the OME."
@@ -144,6 +160,26 @@ update_status:
       'Id': 5,
       'Name': 'Update_Task'}
 }
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
 '''
 
 
@@ -185,11 +221,8 @@ def get_applicable_components(rest_obj, dup_payload, module):
     target_data = []
     dup_url = "UpdateService/Actions/UpdateService.GetSingleDupReport"
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
-    try:
-        dup_resp = rest_obj.invoke_request("POST", dup_url, data=dup_payload,
-                                           headers=headers, api_timeout=60)
-    except HTTPError as err:
-        module.fail_json(msg=str(err), update_status=json.load(err))
+    dup_resp = rest_obj.invoke_request("POST", dup_url, data=dup_payload,
+                                       headers=headers, api_timeout=60)
     if dup_resp.status_code == 200:
         dup_data = dup_resp.json_data
         file_token = str(dup_payload['SingleUpdateReportFileToken'])
@@ -207,15 +240,19 @@ def get_applicable_components(rest_obj, dup_payload, module):
     return target_data
 
 
-def get_dup_applicability_payload(file_token, device_ids):
+def get_dup_applicability_payload(file_token, device_ids=None, group_ids=None):
     """Returns the DUP applicability JSON payload."""
     dup_applicability_payload = {'SingleUpdateReportBaseline': [],
                                  'SingleUpdateReportGroup': [],
                                  'SingleUpdateReportTargets': [],
                                  'SingleUpdateReportFileToken': file_token}
-    if device_ids:
+    if device_ids is not None:
         dup_applicability_payload.update(
             {"SingleUpdateReportTargets": list(map(int, device_ids))}
+        )
+    if group_ids is not None:
+        dup_applicability_payload.update(
+            {"SingleUpdateReportGroup": list(map(int, group_ids))}
         )
     return dup_applicability_payload
 
@@ -233,8 +270,8 @@ def upload_dup_file(rest_obj, module):
                 "converted to a string".format("dup_file", type(dup_file)))
     with open(module.params['dup_file'], 'rb') as payload:
         payload = payload.read()
-        response = rest_obj.invoke_request("POST", upload_uri, data=payload,
-                                           headers=headers, api_timeout=100, dump=False)
+        response = rest_obj.invoke_request("POST", upload_uri, data=payload, headers=headers,
+                                           api_timeout=100, dump=False)
         if response.status_code == 200:
             upload_success = True
             token = str(response.json_data)
@@ -246,10 +283,10 @@ def upload_dup_file(rest_obj, module):
 
 def get_device_ids(rest_obj, module, device_id_tags):
     """Getting the list of device ids filtered from the device inventory."""
-    device_uri, device_id = "DeviceService/Devices", []
-    resp = rest_obj.invoke_request('GET', device_uri)
-    if resp.success and resp.json_data['value']:
-        device_resp = {str(device['Id']): device['DeviceServiceTag'] for device in resp.json_data['value']}
+    device_id = []
+    resp = rest_obj.get_all_report_details("DeviceService/Devices")
+    if resp["report_list"]:
+        device_resp = {str(device['Id']): device['DeviceServiceTag'] for device in resp["report_list"]}
         device_tags = map(str, device_id_tags)
         invalid_tags = []
         for tag in device_tags:
@@ -269,12 +306,26 @@ def get_device_ids(rest_obj, module, device_id_tags):
     return device_id
 
 
+def get_group_ids(rest_obj, module):
+    """Getting the list of group ids filtered from the groups."""
+    resp = rest_obj.get_all_report_details("GroupService/Groups")
+    group_name = module.params.get('device_group_names')
+    if resp["report_list"]:
+        grp_ids = [grp['Id'] for grp in resp["report_list"] for grpname in group_name if grp['Name'] == grpname]
+        if len(set(group_name)) != len(set(grp_ids)):
+            module.fail_json(
+                msg="Unable to complete the operation because the entered target device group name(s)"
+                    " '{0}' are invalid.".format(",".join(set(group_name))))
+    return grp_ids
+
+
 def _validate_device_attributes(module):
-    service_tag = module.params['device_service_tag']
-    device_id = module.params['device_id']
+    service_tag = module.params.get('device_service_tag')
+    device_id = module.params.get('device_id')
+    group_name = module.params.get('device_group_names')
     device_id_tags = []
-    if not isinstance(service_tag, list) and not isinstance(device_id, list):
-        module.fail_json(msg="Either device_id or device_service_tag should be specified.")
+    if not isinstance(service_tag, list) and not isinstance(device_id, list) and not isinstance(group_name, list):
+        module.fail_json(msg="Either device_id or device_service_tag or device_group_names should be specified.")
     else:
         if device_id is not None:
             device_id_tags.extend(device_id)
@@ -293,16 +344,22 @@ def main():
             "device_service_tag": {"required": False, "type": "list"},
             "device_id": {"required": False, "type": "list"},
             "dup_file": {"required": True, "type": "str"},
+            "device_group_names": {"required": False, "type": "list"},
         },
+        mutually_exclusive=[['device_group_names', 'device_id'], ["device_group_names", "device_service_tag"]],
     )
-    update_status = {}
+    update_status, device_ids, group_ids = {}, None, None
     try:
-        device_id_tags = _validate_device_attributes(module)
         with RestOME(module.params, req_session=True) as rest_obj:
-            device_ids = get_device_ids(rest_obj, module, device_id_tags)
+            if module.params.get("device_group_names") is not None:
+                group_ids = get_group_ids(rest_obj, module)
+            else:
+                device_id_tags = _validate_device_attributes(module)
+                device_ids = get_device_ids(rest_obj, module, device_id_tags)
             upload_status, token = upload_dup_file(rest_obj, module)
             if upload_status:
-                report_payload = get_dup_applicability_payload(token, device_ids)
+                report_payload = get_dup_applicability_payload(token, device_ids=device_ids,
+                                                               group_ids=group_ids)
                 if report_payload:
                     target_data = get_applicable_components(rest_obj, report_payload, module)
                     if target_data:
@@ -310,11 +367,13 @@ def main():
                         update_status = spawn_update_job(rest_obj, job_payload)
                     else:
                         module.fail_json(msg="No components available for update.")
-    except (IOError, ValueError, SSLError, TypeError, URLError, ConnectionError) as err:
-        module.fail_json(msg=str(err))
     except HTTPError as err:
-        module.fail_json(msg=str(err), update_status=json.load(err))
-    module.exit_json(msg="Successfully updated the firmware.", update_status=update_status, changed=True)
+        module.fail_json(msg=str(err), error_info=json.load(err))
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError) as err:
+        module.fail_json(msg=str(err))
+    module.exit_json(msg="Successfully submitted the firmware update job.", update_status=update_status, changed=True)
 
 
 if __name__ == "__main__":

@@ -227,6 +227,29 @@ DEVICE_RESOURCE_COLLECTION = {
 }
 
 
+def update_device_details_with_filtering(missing_service_tags, service_tag_dict, rest_obj):
+    """
+    This is a workaround solutions.
+    Use filtering query, in case fetching all report list fails for some reason.
+    Updates service_tag_dict if filtering request is success.
+    :param missing_service_tags:  Service tags which are unable to fetch from pagination request.
+    :param service_tag_dict: this contains device id mapping with tags
+    :param rest_obj: ome connection object
+    :return: None.
+    """
+    try:
+        for tag in missing_service_tags:
+            query = "DeviceServiceTag eq '{0}'".format(tag)
+            query_param = {"$filter": query}
+            resp = rest_obj.invoke_request('GET', DEVICE_RESOURCE_COLLECTION[DEVICE_LIST]["resource"], query_param=query_param)
+            value = resp.json_data["value"]
+            if value and value[0]["DeviceServiceTag"] == tag:
+                service_tag_dict.update({value[0]["Id"]: value[0]["DeviceServiceTag"]})
+                missing_service_tags.remove(tag)
+    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+        raise err
+
+
 def _get_device_id_from_service_tags(service_tags, rest_obj):
     """
     Get device ids from device service tag
@@ -241,8 +264,9 @@ def _get_device_id_from_service_tags(service_tags, rest_obj):
         if item["DeviceServiceTag"] in service_tags:
             service_tag_dict.update({item["Id"]: item["DeviceServiceTag"]})
     available_service_tags = service_tag_dict.values()
-    not_available_service_tag = list(set(service_tags) - set(available_service_tags))
-    device_fact_error_report.update(dict((tag, DESC_HTTP_ERROR) for tag in not_available_service_tag))
+    missing_service_tags = list(set(service_tags) - set(available_service_tags))
+    update_device_details_with_filtering(missing_service_tags, service_tag_dict, rest_obj)
+    device_fact_error_report.update(dict((tag, DESC_HTTP_ERROR) for tag in missing_service_tags))
     return service_tag_dict
 
 
@@ -386,7 +410,7 @@ def main():
                 else:
                     device_report = rest_obj.get_all_report_details(DEVICE_RESOURCE_COLLECTION[DEVICE_LIST]["resource"])
                     device_facts = {"@odata.context": device_report["resp_obj"].json_data["@odata.context"],
-                                    "@odata.count": device_report["resp_obj"].json_data["@odata.count"],
+                                    "@odata.count": len(device_report["report_list"]),
                                     "value": device_report["report_list"]}
                     if device_facts["@odata.count"] > 0:
                         resp_status.append(200)
