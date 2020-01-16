@@ -2,7 +2,17 @@
 
 Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers (12th generation of PowerEdge servers and later) by leveraging the management automation capabilities in-built into the integrated Dell Remote Access Controller (iDRAC).
 
-With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules allows users to retrieve device inventory information of each device discovered in the OpenManage Enterprise.
+With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
+
+# 2.0.7 (January 16, 2020)
+
+  * The module ome_template is updated to include delete, clone, import and export operations.
+
+  * The dellemc_ome_firmware module is deprecated, and replaced with the ome_firmware module.
+  
+  * The ome_firmware module now supports firmware updates for groups of devices.
+
+  * The unreachable option in the ansible play recap is enabled for the ome_template and ome_firmware module. This option allows to identify the number of hosts that were unreachable during a run.
 
 # 2.0.6 (December 20, 2019)
   
@@ -15,8 +25,7 @@ With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities
     - The module (redfish_firmware) performs a component firmware update using an image file available on the local or remote system
     - The module (redfish_storage_volume) manages the storage volume configuration.
   
-  * The iDRAC module (idrac_redfish_storage_controller) configures the settings of a storage controller. 
-
+  * The iDRAC module (idrac_redfish_storage_controller) configures the settings of a storage controller.
 
 # 2.0.4 (November 8, 2019)
 

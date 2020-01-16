@@ -10,12 +10,16 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
 import pytest
 from ansible.module_utils import basic
 from units.modules.utils import set_module_args, exit_json, fail_json
 from units.modules.utils import AnsibleFailJson, AnsibleExitJson
 from units.compat.mock import MagicMock
 import json
+
 
 @pytest.fixture(autouse=True)
 def module_mock(mocker):
@@ -33,7 +37,16 @@ def ome_connection_mock(mocker, ome_response_mock):
 @pytest.fixture
 def ome_response_mock(mocker):
     set_method_result = {'json_data': {}}
-    response_class_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.OpenURLResponse',  return_value = set_method_result)
+    response_class_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.OpenURLResponse', return_value=set_method_result)
+    response_class_mock.success = True
+    response_class_mock.status_code = 200
+    return response_class_mock
+
+
+@pytest.fixture
+def redfish_response_mock(mocker):
+    set_method_result = {'json_data': {}}
+    response_class_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.redfish.OpenURLResponse', return_value=set_method_result)
     response_class_mock.success = True
     response_class_mock.status_code = 200
     return response_class_mock
@@ -44,6 +57,13 @@ def ome_default_args():
     default_args = {'hostname': '192.168.0.1', 'username': 'username', 'password': 'password'}
     return default_args
 
+
+@pytest.fixture
+def redfish_default_args():
+    default_args = {'baseuri': '192.168.0.1', 'username': 'username', 'password': 'password'}
+    return default_args
+
+
 @pytest.fixture
 def fake_ansible_module_mock():
     module = MagicMock()
@@ -52,7 +72,7 @@ def fake_ansible_module_mock():
     module.exit_json = AnsibleExitJson()
     return module
 
+
 @pytest.fixture
 def default_ome_args():
-    return {"hostname":"hostname", "username":"username", "password":"password"}
-
+    return {"hostname": "hostname", "username": "username", "password": "password"}

@@ -180,21 +180,26 @@ class RestOME(object):
             self.invoke_request('DELETE', path)
         return False
 
-    def get_report_list(self, uri):
+    def get_all_report_details(self, uri):
+        """
+        This implementation mainly dependent on '@odata.count' value.
+        Currently first request without query string, always returns total number of available
+        reports in '@odata.count'.
+        """
         try:
             resp = self.invoke_request('GET', uri)
             data = resp.json_data
-            next_uri = data.get("@odata.nextLink")
-            value = data["value"]
-            return resp, value, next_uri
+            report_list = data["value"]
+            total_count = data['@odata.count']
+            remaining_count = total_count - len(report_list)
+            first_page_count = len(report_list)
+            while remaining_count > 0:
+                resp = self.invoke_request('GET', uri, query_param={"$top": first_page_count, "$skip": len(report_list)})
+                data = resp.json_data
+                value = data["value"]
+                report_list.extend(value)
+                remaining_count = remaining_count - len(value)
+            return {"resp_obj": resp, "report_list": report_list}
         except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
             raise err
-
-    def get_all_report_details(self, uri):
-        resp, report_list, next_uri = self.get_report_list(uri)
-        while next_uri:
-            report_uri = next_uri.split("/api/")[-1]
-            resp, value, next_uri = self.get_report_list(report_uri)
-            report_list.extend(value)
-        return {"resp_obj": resp, "report_list": report_list}
 

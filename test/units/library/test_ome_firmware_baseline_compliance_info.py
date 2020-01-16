@@ -192,9 +192,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_baseline_id_from_name_when_baseline_is_empty(self, default_ome_args, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
         ome_response_mock.success = True
         ome_response_mock.json_data = {"value": []}
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock(params={"baseline_name": "baseline_name1"})
         with pytest.raises(AnsibleFailJSonException) as exc:
-            set_module_args({"baseline_name": "baseline_name1"})
             self.module.get_baseline_id_from_name(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
         assert exc.value.args[0] == "No baseline exists in the system."
 
@@ -210,9 +209,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_connection_mock_for_firmware_baseline_compliance_info.invoke_request.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock(params={"baseline_name": "baseline_name1"})
         with pytest.raises(HTTPError) as ex:
-            set_module_args({"baseline_name": "baseline_name1"})
             self.module.get_baseline_id_from_name(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
 
     @pytest.mark.parametrize("exc_type", [URLError,  SSLValidationError, ConnectionError, TypeError, ValueError, HTTPError])
@@ -223,9 +221,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             ome_connection_mock_for_firmware_baseline_compliance_info.invoke_request.side_effect = exc_type('http://testhost.com', 400, '', {}, None)
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock(params={"baseline_name": "baseline_name1"})
         with pytest.raises(exc_type) as ex:
-            set_module_args({"baseline_name": "baseline_name1"})
             self.module.get_baseline_id_from_name(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
 
     def test_get_baselines_report_by_device_ids_success_case(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):

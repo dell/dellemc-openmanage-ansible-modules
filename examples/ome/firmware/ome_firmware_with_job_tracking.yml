@@ -1,0 +1,80 @@
+---
+- hosts: hosts
+  connection: local
+  name: "OME - Update Firmware"
+  gather_facts: False
+  vars:
+    retries_count: 100
+    polling_interval: 10
+    all_firmware_task_tags:
+      - firmware-update-group-name
+      - firmware-update-device-ids
+      - firmware-update-group-name
+
+  tasks:
+  - name: "Update firmware from DUP file using device ids."
+    ome_firmware:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_id:
+        - 11111
+        - 22222
+      dup_file: "/path/Chassis-System-Management_Firmware_6N9WN_WN64_1.00.01_A00.EXE"
+    register: result
+    tags:
+      - firmware-update-device-ids
+
+  - name: "Update firmware from DUP file using device service tags."
+    ome_firmware:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_service_tag:
+        - KLBR111
+        - KLBR222
+      dup_file: "/path/Network_Firmware_NTRW0_WN64_14.07.07_A00-00_01.EXE"
+    register: result
+    tags:
+      - firmware-update-service-tags
+
+  - name: "Update firmware from DUP file using device group names."
+    ome_firmware:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_group_names:
+        - servers
+      dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
+    register: result
+    tags:
+      - firmware-update-group-name
+
+  - name: "Get job details using job id from ome firmware update operation."
+    dellemc_ome_job_facts:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      job_id: "{{ result.update_status.Id }}"
+    register: job_result
+    until: job_result.job_facts.LastRunStatus.Name == 'Completed' or job_result.job_facts.LastRunStatus.Name == 'Failed' or job_result.job_facts.LastRunStatus.Name == 'Warning'
+    retries: "{{ retries_count }}"
+    delay: "{{ polling_interval }}"
+    tags: "{{ all_firmware_task_tags }}"
+
+  - name: "Set job fact details in case of warning."
+    set_fact:
+      ome_firmware_job_fact: "{{ job_result | combine(job_msg, recursive=true) }}"
+    failed_when: job_result.job_facts.LastRunStatus.Name == 'Warning'
+    vars:
+      job_msg: {'msg': 'Completed with {{ job_result.job_facts.LastRunStatus.Name|lower}}'}
+    when: job_result.job_facts.LastRunStatus.Name == 'Warning'
+    tags: "{{ all_firmware_task_tags }}"
+
+  - name: "Set job fact details in case of completed or failed."
+    set_fact:
+      ome_firmware_job_fact: "{{ job_result }}"
+    failed_when: job_result.job_facts.LastRunStatus.Name == 'Failed'
+    changed_when: job_result.job_facts.LastRunStatus.Name == 'Completed'
+    when: job_result.job_facts.LastRunStatus.Name == 'Completed' or job_result.job_facts.LastRunStatus.Name == 'Failed'
+    tags: "{{ all_firmware_task_tags }}"
