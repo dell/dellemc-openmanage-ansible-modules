@@ -27,7 +27,7 @@
       tags:
         - create_volume
 
-    - name: "Tracking the job details till the storage volume create completion."
+    - name: "Tracking the job details until the storage volume create completion."
       uri:
         url: "https://{{ baseuri }}{{ result.task.uri }}"
         user: "{{ username }}"
