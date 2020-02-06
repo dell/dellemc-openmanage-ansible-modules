@@ -7,12 +7,13 @@
     retries_count: 100
     polling_interval: 10
     all_firmware_task_tags:
-      - firmware-update-group-name
-      - firmware-update-device-ids
-      - firmware-update-group-name
+      - device-ids
+      - service-tags
+      - group-name
+      - baseline-name
 
   tasks:
-  - name: "Update firmware from DUP file using device ids."
+  - name: "Update firmware from a DUP file using a device ids."
     ome_firmware:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
@@ -23,9 +24,9 @@
       dup_file: "/path/Chassis-System-Management_Firmware_6N9WN_WN64_1.00.01_A00.EXE"
     register: result
     tags:
-      - firmware-update-device-ids
+      - device-ids
 
-  - name: "Update firmware from DUP file using device service tags."
+  - name: "Update firmware from a DUP file using a device service tags."
     ome_firmware:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
@@ -36,9 +37,9 @@
       dup_file: "/path/Network_Firmware_NTRW0_WN64_14.07.07_A00-00_01.EXE"
     register: result
     tags:
-      - firmware-update-service-tags
+      - service-tags
 
-  - name: "Update firmware from DUP file using device group names."
+  - name: "Update firmware from a DUP file using a device group names."
     ome_firmware:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
@@ -48,9 +49,19 @@
       dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
     register: result
     tags:
-      - firmware-update-group-name
+      - group-name
 
-  - name: "Get job details using job id from ome firmware update operation."
+  - name: "Update firmware from a DUP file using a device baseline name."
+    ome_firmware:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      baseline_name: baseline_devices
+    register: result
+    tags:
+      - baseline-name
+
+  - name: "Track job details for the ome firmware update operation using a job id."
     dellemc_ome_job_facts:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
@@ -62,7 +73,7 @@
     delay: "{{ polling_interval }}"
     tags: "{{ all_firmware_task_tags }}"
 
-  - name: "Set job fact details in case of warning."
+  - name: "Set job fact details if the task status is warning."
     set_fact:
       ome_firmware_job_fact: "{{ job_result | combine(job_msg, recursive=true) }}"
     failed_when: job_result.job_facts.LastRunStatus.Name == 'Warning'
@@ -71,7 +82,7 @@
     when: job_result.job_facts.LastRunStatus.Name == 'Warning'
     tags: "{{ all_firmware_task_tags }}"
 
-  - name: "Set job fact details in case of completed or failed."
+  - name: "Set job fact details if the task status is completed or failed."
     set_fact:
       ome_firmware_job_fact: "{{ job_result }}"
     failed_when: job_result.job_facts.LastRunStatus.Name == 'Failed'

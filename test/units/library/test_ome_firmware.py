@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.7
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.8
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -183,9 +183,11 @@ class TestOmeFirmware(FakeAnsibleModule):
     ]
 
     @pytest.mark.parametrize("param", [{"inp": target_data, "out": payload1}])
-    def test_job_payload_for_update_success_case(self, param):
-
-        payload = self.module.job_payload_for_update(param["inp"])
+    def _test_job_payload_for_update_success_case(self,
+                                                 ome_connection_firmware_mock, param):
+        f_module = self.get_module_mock()
+        payload = self.module.job_payload_for_update(f_module,
+            ome_connection_firmware_mock, param["inp"])
         assert payload == param["out"]
 
     dupdata = [{"DeviceId": 1674, "DeviceReport": {"DeviceTypeId": "1000", "DeviceTypeName": "SERVER"}},
@@ -342,9 +344,11 @@ class TestOmeFirmware(FakeAnsibleModule):
         ome_response_mock.json_data = {'value': [{'device_service_tag': None, 'device_id': None}]}
         ome_response_mock.success = False
         f_module = self.get_module_mock()
-        with pytest.raises(Exception) as exc:
-            self.module._validate_device_attributes(f_module)
-        assert exc.value.args[0] == "Either device_id or device_service_tag or device_group_names should be specified."
+        # with pytest.raises(Exception) as exc:
+        devlist = self.module._validate_device_attributes(f_module)
+        assert devlist == []
+        # assert exc.value.args[0] == "Either device_id or device_service_tag or device_group_names" \
+        #                             " or baseline_names should be specified."
 
     def test_get_group_ids_fail_case(self, ome_default_args, ome_response_mock, ome_connection_firmware_mock):
         ome_default_args.update({'device_group_names': ["Servers"], "dup_file": ""})
@@ -354,6 +358,17 @@ class TestOmeFirmware(FakeAnsibleModule):
         data = self._run_module_with_fail_json(ome_default_args)
         assert data["msg"] == "Unable to complete the operation because the entered target device group name(s)" \
                               " '{0}' are invalid.".format(",".join(set(["Servers"])))
+
+    def test_get_baseline_ids_fail_case(self, ome_default_args, ome_response_mock, ome_connection_firmware_mock):
+        ome_default_args.update({'baseline_name': "baseline_servers",
+        "dup_file": ""})
+        ome_response_mock.json_data = [{"Id": 12,
+                                        "Name": "baseline_servers"}]
+        ome_response_mock.success = False
+        data = self._run_module_with_fail_json(ome_default_args)
+        assert data["msg"] == "Unable to complete the operation because the entered target baseline name" \
+                              " '{0}' is invalid.".format(",".join(set([
+            "baseline_servers"])))
 
     def test_main_firmware_success_case01(self, ome_default_args, mocker, ome_connection_firmware_mock):
         ome_default_args.update({"device_id": Constants.device_id1, "device_service_tag": Constants.service_tag1,

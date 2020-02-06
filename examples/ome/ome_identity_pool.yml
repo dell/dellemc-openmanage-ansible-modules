@@ -1,0 +1,49 @@
+---
+- hosts: hosts
+  connection: local
+  name: Dell OpenManage Ansible identity pool operations.
+  gather_facts: False
+
+  tasks:
+    - name: "Create an identity pool with ethernet_settings and fcoe_settings."
+      ome_identity_pool:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        pool_name: "pool1"
+        pool_description: "Identity pool with ethernet and fcoe settings"
+        ethernet_settings:
+          starting_mac_address: "50:50:50:50:50:00"
+          identity_count: 60
+        fcoe_settings:
+          starting_mac_address: "70:70:70:70:70:00"
+          identity_count: 75
+      tags: create1
+
+    - name: "Create an identity pool with ethernet settings"
+      ome_identity_pool:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        pool_name: "pool2"
+        pool_description: "Identity pool with ethernet"
+        ethernet_settings:
+            starting_mac_address: "aa-bb-cc-dd-ee-aa"
+            identity_count: 80
+      tags: create2
+
+    - name: "Modify an identity pool"
+      ome_identity_pool:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        pool_name: "pool1"
+        new_pool_name: "pool3"
+        pool_description: "modifying identity pool with ethernet and fcoe settings"
+        ethernet_settings:
+          starting_mac_address: "90-90-90-90-90-90"
+          identity_count: 61
+        fcoe_settings:
+          starting_mac_address: "aabb.ccdd.5050"
+          identity_count: 77
+      tags: modify1

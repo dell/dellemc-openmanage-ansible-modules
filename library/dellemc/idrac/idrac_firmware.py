@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.3
+# Version 2.0.8
 # Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -58,10 +58,10 @@ options:
         description: Network share user password. This option is mandatory for CIFS Network Share.
         type: str
         aliases: ['share_pwd']
-    share_mnt:
-        description: Local mount path of the network share with read-write permission for ansible user.
-        type: str
-        required: False
+    share_mnt:     
+        description: Local mount path of the network share with read-write permission for ansible user.     
+        type: str     
+        required: False 
     reboot:
         description: Whether to reboot for applying the updates or not.
         type: bool
@@ -117,7 +117,6 @@ EXAMPLES = """
        share_name: "full_cifs_path"
        share_user: "share_user"
        share_password: "share_password"
-       share_mnt: "/mnt_path"
        reboot: True
        job_wait: True
        apply_update: True
@@ -313,9 +312,6 @@ def update_firmware(idrac, module):
                         msg['update_status'] = idrac.job_mgr.job_wait(job_id)
                     msg['update_status']['job_details'] = idrac._get_update_from_repo_list_using_redfish()
             else:
-                if not ('12' in idrac.ServerGeneration or '13' in idrac.ServerGeneration):
-                    if not module.params['share_mnt']:
-                        raise TypeError("Error: 'share_mnt' is a mandatory argument for firmware update.")
                 msg['update_status'] = idrac.update_mgr.update_from_repo(upd_share, apply_update=apply_update,
                                                                          reboot_needed=reboot, job_wait=job_wait)
         job_data = msg['update_status']['job_details']['Data']

@@ -2,13 +2,13 @@
 Dell EMC OpenManage Ansible Modules
 
 *******************************************************************************
-Version: 2.0.7
+Version: 2.0.8
 
 *******************************************************************************
-Release Date: January 2019
+Release Date: February 2020
 
 *******************************************************************************
-Previous Version: 2.0.6
+Previous Version: 2.0.7
 
 *******************************************************************************
 Importance
@@ -24,33 +24,25 @@ Platform(s) Affected
 --------------------
 
 For the list of supported platforms, see the section "Support Matrix" in the 
-"Dell EMC OpenManage Ansible Modules version 2.0.7 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.0.8 Installation Guide".
 
 *******************************************************************************
 What is Supported
 -----------------
 
 For information on the hardware and software requirements, see 
-"Dell EMC OpenManage Ansible Modules version 2.0.7 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.0.8 Installation Guide".
 
 *******************************************************************************
 What’s New
 ----------
 
-* The module ome_template is updated to include delete, clone, import and
-export operations.
+* The ome_firmware module allows firmware updates using a baseline name.
 
-* The dellemc_ome_firmware module is deprecated, and replaced with the
-ome_firmware module.
-
-* The ome_firmware module now supports firmware updates for groups of devices.
-
-* The unreachable option in the ansible play recap is enabled for the
-ome_template and ome_firmware module. This option allows to identify
-the number of hosts that were unreachable during a run.
+* The new OME module (ome_identity_pool) allows to create and modify an identity pool using ethernet and FCoE settings.
 
 For a complete list of supported features that you can leverage,
-see the “Dell EMC OpenManage Ansible Modules Version 2.0.7 User’s Guide”.
+see the “Dell EMC OpenManage Ansible Modules Version 2.0.8 User’s Guide”.
 
 *******************************************************************************
 Known Issues
@@ -121,19 +113,19 @@ Limitations
 Installation Prerequisites
 --------------------------
 For installation prerequisites, see "Dell EMC OpenManage Ansible Modules
-Version 2.0.7 Installation Guide".
+Version 2.0.8 Installation Guide".
 
 Software Requirements
 ---------------------
 
 * For information on the hardware and software requirements, see
-"Dell EMC OpenManage Ansible Modules Version 2.0.7 Installation Guide".
+"Dell EMC OpenManage Ansible Modules Version 2.0.8 Installation Guide".
 
 Installation Procedure
 -------------------------
 
 For the installation instructions, see "Dell EMC OpenManage Ansible Modules
-Version 2.0.7 Installation Guide".
+Version 2.0.8 Installation Guide".
 
 *******************************************************************************
 Accessing Documents from Dell Support Site
@@ -201,7 +193,7 @@ technical support, or customer service issues:
 
 
 Dell EMC OpenManage Ansible Modules
-Version 2.0.7
+Version 2.0.8
 Copyright (C) 2019-2020   Dell Inc.
 
 GNU General Public License v3.0+
