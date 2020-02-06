@@ -49,6 +49,7 @@ class FakeAnsibleModule:
         result = exc.value.args[0]
         return result
 
+
     def get_module_mock(self, params=None):
         if params is None:
             params = {}
@@ -58,5 +59,6 @@ class FakeAnsibleModule:
 
         module = MagicMock()
         module.fail_json.side_effect = fail_func
+        module.exit_json.side_effect = fail_func
         module.params = params
         return module

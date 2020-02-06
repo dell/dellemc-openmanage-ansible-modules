@@ -203,3 +203,13 @@ class RestOME(object):
         except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
             raise err
 
+    def get_job_type_id(self, jobtype_name):
+        """This provides an ID of the job type."""
+        job_type_id = None
+        resp = self.invoke_request('GET', "JobService/JobTypes")
+        data = resp.json_data["value"]
+        for each in data:
+            if each["Name"] == jobtype_name:
+                job_type_id = each["Id"]
+                break
+        return job_type_id
