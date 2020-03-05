@@ -23,22 +23,31 @@ import sys
 import glob
 import shutil
 
+# print colors
+FAIL = "\033[91m"  # RED
+SUCCESS = "\033[92m"  # GREEN
+NORMAL = "\033[00m"  # DEFAULT
+
 NO_ANSIBLE_MESSAGE = "\nDell EMC OpenManage Ansible Modules is not " \
                      "installed.\n"
 # if any one of them are present proceeding with further process.
-STARTED_MESSAGE = "\nDell EMC OpenManage Ansible Modules uninstallation has " \
+STARTED_MESSAGE = "Dell EMC OpenManage Ansible Modules uninstallation has " \
                   "started."
 FOLDER_MESSAGE = "\n\tUninstalling Dell EMC OpenManage Ansible Modules " \
                  "specific folders and files...\n"
 SUCCESS_MESSAGE = "SUCCESS: Dell EMC OpenManage Ansible Modules is " \
-                  "uninstalled successfully.\n"
+                  "uninstalled successfully."
 FAILED_MESSAGE = "FAILED: Dell EMC OpenManage Ansible Modules uninstallation" \
-                 " failed.\n"
+                 " failed."
+START_END = "-------------------------------------------------------------" \
+            "------------------------------------"
 
 try:
     import ansible
 except ImportError:
-    print(NO_ANSIBLE_MESSAGE)
+    print("\n" + START_END)
+    print(FAIL + "{0}".format(NO_ANSIBLE_MESSAGE) + NORMAL)
+    print(START_END + "\n")
     sys.exit(1)
 
 try:
@@ -49,7 +58,9 @@ try:
         ANSIBLE_INSTALLED_PATH = ansible.__path__[0]
         ANSIBLE_VERSION = ansible.__version__
 except (AttributeError, TypeError):
-    print(NO_ANSIBLE_MESSAGE)
+    print("\n" + START_END)
+    print(FAIL + "{0}".format(NO_ANSIBLE_MESSAGE) + NORMAL)
+    print(START_END + "\n")
     sys.exit(1)
 
 # dellemc module path
@@ -71,46 +82,48 @@ OLD_UTIL_FILE = os.path.join(ANSIBLE_INSTALLED_PATH, "module_utils",
 # contributed module details for skipping if ansible 2.8 or more than exists.
 CONTRIB_MODULE_FILES = {
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "modules/remote_management/dellemc/idrac/idrac_firmware.py"):
-    "ansible 2.8.0",
+                 "modules/remote_management/dellemc/idrac/"
+                 "idrac_firmware.py"): "ansible 2.8.0",
     os.path.join(ANSIBLE_INSTALLED_PATH,
                  "modules/remote_management/dellemc/idrac"
                  "/idrac_server_config_profile.py"): "ansible 2.8.0",
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "modules/remote_management/dellemc/idrac/__init__.py"):
-    "ansible 2.8.0",
+                 "modules/remote_management/dellemc/idrac"
+                 "/__init__.py"): "ansible 2.8.0",
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "modules/remote_management/dellemc/__init__.py"):
-    "ansible 2.8.0",
+                 "modules/remote_management/dellemc/"
+                 "__init__.py"): "ansible 2.8.0",
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "modules/remote_management/dellemc/ome_device_info.py"):
-    "ansible 2.9.0",
+                 "modules/remote_management/dellemc/"
+                 "ome_device_info.py"): "ansible 2.9.0",
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "modules/remote_management/dellemc/__init__.py"):
-    "ansible 2.8.4",
+                 "modules/remote_management/dellemc/"
+                 "__init__.py"): "ansible 2.8.4",
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "modules/remote_management/dellemc/idrac_firmware.py"):
-    "ansible 2.8.4",
+                 "modules/remote_management/dellemc/"
+                 "idrac_firmware.py"): "ansible 2.8.4",
     os.path.join(ANSIBLE_INSTALLED_PATH,
                  "modules/remote_management/dellemc"
                  "/idrac_server_config_profile.py"): "ansible 2.8.4",
 }
 CONTRIB_UTIL_FILES = {
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "module_utils/remote_management/dellemc/dellemc_idrac.py"):
-    "ansible 2.8.0",
+                 "module_utils/remote_management/dellemc/"
+                 "dellemc_idrac.py"): "ansible 2.8.0",
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "module_utils/remote_management/dellemc/__init__.py"):
-    "ansible 2.8.0",
+                 "module_utils/remote_management/dellemc/"
+                 "__init__.py"): "ansible 2.8.0",
     os.path.join(ANSIBLE_INSTALLED_PATH,
-                 "module_utils/remote_management/dellemc/ome.py"):
-    "ansible 2.9.0",
+                 "module_utils/remote_management/dellemc/"
+                 "ome.py"): "ansible 2.9.0",
 }
 
 # Any of the path is not present exit with message.
 if not any(os.path.exists(exists) for exists in
            (DELLEMC_PATH, DELLEMC_UTIL_PATH, OLD_UTIL_FILE)):
-    print(NO_ANSIBLE_MESSAGE)
+    print("\n" + START_END)
+    print(FAIL + "{0}".format(NO_ANSIBLE_MESSAGE) + NORMAL)
+    print(START_END + "\n")
     sys.exit(1)
 
 
@@ -164,18 +177,20 @@ def uninstall():
                 remove_modules_dict.update(CONTRIB_MODULE_FILES)
                 remove_modules_dict.update(CONTRIB_UTIL_FILES)
                 for key, val in remove_modules_dict.items():
-                    if val == "ansible 2.9.0" or\
+                    if val == "ansible 2.9.0" or \
                             (val == "ansible 2.8.4" and
                              version_check(ANSIBLE_VERSION) <
-                             version_check("2.8.4")) and\
+                             version_check("2.8.4")) and \
                             "__init__" not in key:
                         remove_module_list.append(key)
                 removed_module.extend(remove_module_list)
+            print("\n" + START_END)
             print(STARTED_MESSAGE)
             print(FOLDER_MESSAGE)
             # removing installed files.
             complete_remove(*removed_module)
-            print(SUCCESS_MESSAGE)
+            print(SUCCESS + "{0}".format(SUCCESS_MESSAGE) + NORMAL)
+            print(START_END + "\n")
         elif os.path.exists(DELLEMC_IDRAC_PATH) and not os.path.exists(
                 DELLEMC_OME_PATH):
             # Solve case
@@ -202,23 +217,31 @@ def uninstall():
                 complete_remove(DELLEMC_IDRAC_PATH)
             else:
                 complete_remove(*removed_module)
+            print("\n" + START_END)
             print(STARTED_MESSAGE)
             print(FOLDER_MESSAGE)
             complete_remove(OLD_UTIL_FILE, property_json, extras, old_ome_file)
-            print(SUCCESS_MESSAGE)
+            print(SUCCESS + "{0}".format(SUCCESS_MESSAGE) + NORMAL)
+            print(START_END + "\n")
         else:
-            print(NO_ANSIBLE_MESSAGE)
+            print("\n" + START_END)
+            print(FAIL + "{0}".format(NO_ANSIBLE_MESSAGE) + NORMAL)
+            print(START_END + "\n")
     # Step 2: installed ansible version is less than 2.8,
     # removing all the files from installed location.
     elif any(map(lambda x, y: x <= y, tuple(map(int, version.split("."))),
                  (2, 8))):
+        print("\n" + START_END)
         print(STARTED_MESSAGE)
         print(FOLDER_MESSAGE)
         complete_remove(DELLEMC_PATH, DELLEMC_UTIL_PATH, OLD_UTIL_FILE)
-        print(SUCCESS_MESSAGE)
+        print(SUCCESS + "{0}".format(SUCCESS_MESSAGE) + NORMAL)
+        print(START_END + "\n")
     # Step 3: If ansible is not installed showing error message.
     else:
-        print(NO_ANSIBLE_MESSAGE)
+        print("\n" + START_END)
+        print(FAIL + "{0}".format(NO_ANSIBLE_MESSAGE) + NORMAL)
+        print(START_END + "\n")
 
 
 if __name__ == "__main__":
@@ -226,5 +249,7 @@ if __name__ == "__main__":
         uninstall()
     except (IOError, OSError) as err:
         print(str(err))
-        print(FAILED_MESSAGE)
+        print("\n" + START_END)
+        print(FAIL + "{0}".format(FAILED_MESSAGE) + NORMAL)
+        print(START_END + "\n")
         sys.exit(1)

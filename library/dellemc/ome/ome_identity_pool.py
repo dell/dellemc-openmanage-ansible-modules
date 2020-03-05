@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.8
+# Version 2.0.9
 # Copyright (C) 2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -23,7 +23,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_identity_pool
 short_description: Manages identity pool settings.
-version_added: "2.8"
+version_added: "2.9"
 description: This module allows to create, modify, or delete a single identity pool.
 options:
   hostname:
@@ -46,15 +46,16 @@ options:
     description:
       - C(present) modifies an existing identity pool. If the provided I (pool_name) does not exist,
        it creates a new identity pool.
+       - C(absent) deletes an existing identity pool.
     type: str
     required: False
     default: present
-    choices: [present]
+    choices: [present, absent]
   pool_name:
     type: str
     required: True
     description:
-      - This option is mandatory if I(command) is C(present) when creating and modifying an identity pool.
+      - This option is mandatory for I(state) when creating, modifying and deleting an identity pool.
   new_pool_name:
     type: str
     required: False
@@ -100,7 +101,7 @@ author:
 
 EXAMPLES = r'''
 ---
-- name: "Create an identity pool with ethernet_settings and fcoe_settings."
+- name: Create an identity pool with ethernet_settings and fcoe_settings.
   ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
@@ -115,7 +116,7 @@ EXAMPLES = r'''
         starting_mac_address: "70:70:70:70:70:00"
         identity_count: 75
 
-- name: "Create an identity pool with only ethernet_settings"
+- name: Create an identity pool with only ethernet_settings
   ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
@@ -126,7 +127,7 @@ EXAMPLES = r'''
         starting_mac_address: "aa-bb-cc-dd-ee-aa"
         identity_count: 80
 
-- name: "Modify an identity pool"
+- name: Modify an identity pool
   ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
@@ -140,6 +141,14 @@ EXAMPLES = r'''
     fcoe_settings:
         starting_mac_address: "aabb.ccdd.5050"
         identity_count: 77
+
+- name: Delete an identity pool
+  ome_identity_pool:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "absent"
+    pool_name: "pool2"
 '''
 
 RETURN = r'''
@@ -188,13 +197,13 @@ from ansible.module_utils.remote_management.dellemc.ome import RestOME
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
-identity_uri = "IdentityPoolService/IdentityPools"
+IDENTITY_URI = "IdentityPoolService/IdentityPools"
 
 
 def get_identity_pool_id_by_name(pool_name, rest_obj):
     pool_id = 0
     attributes = None
-    identity_list = rest_obj.get_all_report_details(identity_uri)["report_list"]
+    identity_list = rest_obj.get_all_report_details(IDENTITY_URI)["report_list"]
     for item in identity_list:
         if pool_name == item["Name"]:
             pool_id = item["Id"]
@@ -312,7 +321,7 @@ def pool_create_modify(module, rest_obj):
         pool_name = module.params["pool_name"]
         pool_id, existing_payload = get_identity_pool_id_by_name(pool_name, rest_obj)
         method = "POST"
-        uri = identity_uri
+        uri = IDENTITY_URI
         action = "create"
         setting_payload = get_payload(module, pool_id)
         if pool_id:
@@ -329,6 +338,22 @@ def pool_create_modify(module, rest_obj):
         msg = get_success_message(action, resp.json_data)
         return msg
     except (URLError, HTTPError, SSLValidationError, SSLError, ConnectionError, TypeError, ValueError) as err:
+        raise err
+
+
+def pool_delete(module, rest_obj):
+    try:
+        pool_name = module.params["pool_name"]
+        pool_id, existing_payload = get_identity_pool_id_by_name(pool_name, rest_obj)
+        if not pool_id:
+            message = "Unable to complete the operation because the entered target" \
+                      " pool name '{0}' is invalid.".format(pool_name)
+            module.fail_json(msg=message)
+        method = "DELETE"
+        uri = IDENTITY_URI + "({0})".format(pool_id)
+        rest_obj.invoke_request(method, uri)
+        return {"msg": "Successfully deleted the identity pool."}
+    except Exception as err:
         raise err
 
 
@@ -349,10 +374,7 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
-            "state": {"type": "str",
-                      "required": False,
-                      "default": "present",
-                      "choices": ['present']},
+            "state": {"type": "str", "required": False, "default": "present", "choices": ['present', 'absent']},
             "pool_name": {"required": True, "type": "str"},
             "new_pool_name": {"required": False, "type": "str"},
             "pool_description": {"required": False, "type": "str"},
@@ -363,13 +385,20 @@ def main():
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            message = pool_create_modify(module, rest_obj)
-            module.exit_json(msg=message["msg"], pool_status=message["result"], changed=True)
+            state = module.params["state"]
+            if state == "present":
+                message = pool_create_modify(module, rest_obj)
+                module.exit_json(msg=message["msg"], pool_status=message["result"], changed=True)
+            else:
+                message = pool_delete(module, rest_obj)
+                module.exit_json(msg=message["msg"], changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError) as err:
+        module.fail_json(msg=str(err))
+    except Exception as err:
         module.fail_json(msg=str(err))
 
 

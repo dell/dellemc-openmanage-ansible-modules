@@ -40,7 +40,7 @@
     tags:
       - group-name
 
-  - name: "Update firmware from a DUP file using a device baseline name."
+  - name: "Update firmware using baseline name."
     ome_firmware:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
@@ -48,3 +48,13 @@
       baseline_name: baseline_devices
     tags:
       - baseline-name
+
+  - name: "Update firmware from a DUP file using a baseline names."
+    ome_firmware:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      baseline_name: "baseline_devices, baseline_groups"
+      dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
+    tags:
+      - baseline-name-dup

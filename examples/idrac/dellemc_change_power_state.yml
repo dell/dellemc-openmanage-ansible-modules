@@ -5,12 +5,25 @@
   gather_facts: False
 
   tasks:
-  - name: Configure Server Power Setting
+
+  - name: Configure Server Power Setting - GracefulRestart
     dellemc_change_power_state:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
-       change_power: "PushPowerButton"
+       # GracefulRestart is applicable for idrac firmware versions below 3.30.30.30
+       change_power: "GracefulRestart"
 
     tags:
-      - power_state
+      - graceful-restart
+
+  - name: Configure Server Power Setting - ForceRestart
+    dellemc_change_power_state:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       # ForceRestart is applicable for idrac firmware versions above 3.30.30.30
+       reset_type: "ForceRestart"
+
+    tags:
+      - force-restart

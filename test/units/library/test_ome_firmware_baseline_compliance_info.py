@@ -100,7 +100,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
             self.module.get_device_ids_from_group_ids(f_module, ["123456"], ome_connection_mock_for_firmware_baseline_compliance_info)
-        assert exc.value.args[0] == "Failed to fetch the device ids from specified I(group_names)."
+        assert exc.value.args[0] == "Failed to fetch the device ids from specified I(device_group_names)."
 
     def test_get_device_ids_from_group_names_success_case(self, mocker, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
         ome_response_mock.json_data= {"value": [{"Name": "group1", "Id": 123}]}
@@ -108,7 +108,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_response_mock.success = True
         mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_device_ids_from_group_ids',
                      return_value=[Constants.device_id1, Constants.device_id2])
-        f_module = self.get_module_mock(params={"group_names": ["group1", "group2"]})
+        f_module = self.get_module_mock(params={"device_group_names": ["group1", "group2"]})
         device_ids = self.module.get_device_ids_from_group_names(f_module, ome_connection_mock_for_firmware_baseline_compliance_info)
         assert device_ids == [Constants.device_id1, Constants.device_id2]
 
@@ -118,7 +118,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_response_mock.success = True
         mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_device_ids_from_group_ids',
                      return_value=[])
-        f_module = self.get_module_mock(params={"group_names": ["abc", "xyz"]})
+        f_module = self.get_module_mock(params={"device_group_names": ["abc", "xyz"]})
         device_ids = self.module.get_device_ids_from_group_names(f_module, ome_connection_mock_for_firmware_baseline_compliance_info)
         assert device_ids == []
 
@@ -126,17 +126,17 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_connection_mock_for_firmware_baseline_compliance_info.invoke_request.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
         ome_response_mock.status_code = 200
         ome_response_mock.success = True
-        f_module = self.get_module_mock(params={"group_names": ["abc", "xyz"]})
+        f_module = self.get_module_mock(params={"device_group_names": ["abc", "xyz"]})
         with pytest.raises(HTTPError) as ex:
             self.module.get_device_ids_from_group_names(f_module, ome_connection_mock_for_firmware_baseline_compliance_info)
 
     def test_get_device_ids_from_group_names_value_error_case(self, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
         ome_response_mock.status_code = 500
         ome_response_mock.success = False
-        f_module = self.get_module_mock(params={"group_names": ["abc", "xyz"]})
+        f_module = self.get_module_mock(params={"device_group_names": ["abc", "xyz"]})
         with pytest.raises(Exception) as exc:
             self.module.get_device_ids_from_group_names(f_module, ome_connection_mock_for_firmware_baseline_compliance_info)
-        assert exc.value.args[0] == "Failed to fetch the specified I(group_names)."
+        assert exc.value.args[0] == "Failed to fetch the specified I(device_group_names)."
 
     def test_get_identifiers_with_device_ids(self, ome_connection_mock_for_firmware_baseline_compliance_info, module_mock, default_ome_args):
         """when device_ids given """
@@ -156,12 +156,12 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
 
     def test_get_identifiers_with_group_names(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, module_mock, default_ome_args):
         """when service tags given """
-        f_module = self.get_module_mock(params={"group_names": [Constants.service_tag1]})
+        f_module = self.get_module_mock(params={"device_group_names": [Constants.service_tag1]})
         mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_device_ids_from_group_names',
                      return_value=[123, 456])
         identifiers, identifiers_type = self.module.get_identifiers(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
         assert identifiers == [123, 456]
-        identifiers_type == "group_names"
+        identifiers_type == "device_group_names"
 
     def test_get_identifiers_with_service_tags_empty_case(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, module_mock, default_ome_args):
         """when service tags given """
@@ -245,7 +245,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
 
     def test_get_baselines_report_by_group_names_not_exits_case(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
         mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_identifiers',
-                     return_value=([], "group_names"))
+                     return_value=([], "device_group_names"))
         ome_response_mock.json_data = {"value": []}
         ome_response_mock.success = True
         f_module = self.get_module_mock()
@@ -300,15 +300,15 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                   {"device_service_tags": []},
                   {"device_service_tags": [], "baseline_name": ""},
                   {"device_service_tags": None},
-                  {"group_names": [], "baseline_name": ""},
-                  {"group_names": []},
-                  {"group_names": None},
+                  {"device_group_names": [], "baseline_name": ""},
+                  {"device_group_names": []},
+                  {"device_group_names": None},
                   {"device_ids":[], "device_service_tags": []},
                   {"device_ids": None, "device_service_tags": None},
-                   {"device_ids": [], "device_service_tags": [],"group_names": []},
-                   {"device_ids": None, "device_service_tags": None, "group_names":None},
-                   {"device_ids": None, "device_service_tags": [], "group_names": None},
-                     {"device_ids": [], "device_service_tags": [], "group_names": [], "baseline_name": ""},
+                   {"device_ids": [], "device_service_tags": [],"device_group_names": []},
+                   {"device_ids": None, "device_service_tags": None, "device_group_names":None},
+                   {"device_ids": None, "device_service_tags": [], "device_group_names": None},
+                     {"device_ids": [], "device_service_tags": [], "device_group_names": [], "baseline_name": ""},
 
                 ]
 
@@ -318,17 +318,17 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.validate_inputs(f_module)
         assert exc.value.args[0] == "one of the following is required: device_ids, " \
-                                    "device_service_tags, group_names, baseline_name " \
+                                    "device_service_tags, device_group_names, baseline_name " \
                                     "to generate device based compliance report."
 
     params_list2= [{
                     "device_ids":[Constants.device_id1],
                     "device_service_tags":[Constants.service_tag1]},
              {"device_ids": [Constants.device_id1]},
-            {"group_names": ["group1"]},
+            {"device_group_names": ["group1"]},
             {"device_service_tags": [Constants.service_tag1]},
             {"baseline_name": "baseline1", "device_ids": [Constants.device_id1]},
-            {"baseline_name": "baseline1", "group_names": ["group1"]}
+            {"baseline_name": "baseline1", "device_group_names": ["group1"]}
              ]
 
     @pytest.mark.parametrize("param", params_list2)
@@ -364,24 +364,24 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         assert 'baseline_compliance_info' not in result
         assert 'msg' in result
         assert result['msg'] == "one of the following is required: device_ids, " \
-                                "device_service_tags, group_names, baseline_name"
+                                "device_service_tags, device_group_names, baseline_name"
         assert result['failed'] is True
 
 
     param_list4 =[
                   {"device_ids":[Constants.device_id1],"device_service_tags": [Constants.service_tag1]},
-                  {"device_service_tags": [Constants.device_id1], "group_names": ["group_name1"]},
-                  {"device_ids": [Constants.device_id1], "group_names": ["group_name1"]},
+                  {"device_service_tags": [Constants.device_id1], "device_group_names": ["group_name1"]},
+                  {"device_ids": [Constants.device_id1], "device_group_names": ["group_name1"]},
                   {"device_ids": [Constants.device_id1], "device_service_tags": ["group_name1"]},
-                  {"device_ids":[Constants.device_id1], "device_service_tags": [Constants.service_tag1], "group_names": ["group_name1"]},
+                  {"device_ids":[Constants.device_id1], "device_service_tags": [Constants.service_tag1], "device_group_names": ["group_name1"]},
                   {"device_ids": [Constants.device_id1], "device_service_tags": [Constants.service_tag1],
-                   "group_names": ["group_name1"], "baseline_name": "baseline1"
+                   "device_group_names": ["group_name1"], "baseline_name": "baseline1"
                    },
                    {"device_ids":[Constants.device_id1], "baseline_name": "baseline1"},
                    {"device_service_tags":[Constants.service_tag1], "baseline_name": "baseline1"},
-                   {"group_names": ["group_name1"], "baseline_name": "baseline1"},
+                   {"device_group_names": ["group_name1"], "baseline_name": "baseline1"},
                     {"device_ids": [], "device_service_tags": [],
-                     "group_names": [], "baseline_name": ""
+                     "device_group_names": [], "baseline_name": ""
                      },
                   ]
 
@@ -393,7 +393,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         assert 'baseline_compliance_info' not in result
         assert 'msg' in result
         assert result["msg"] == "parameters are mutually exclusive: " \
-                                "baseline_name|device_service_tags|device_ids|group_names"
+                                "baseline_name|device_service_tags|device_ids|device_group_names"
         assert result['failed'] is True
 
     def test_baseline_complaince_main_failure_case_03(self, mocker, ome_default_args, module_mock, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):

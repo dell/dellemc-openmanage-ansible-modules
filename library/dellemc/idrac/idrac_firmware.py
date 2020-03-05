@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.8
-# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.0.9
+# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -58,10 +58,10 @@ options:
         description: Network share user password. This option is mandatory for CIFS Network Share.
         type: str
         aliases: ['share_pwd']
-    share_mnt:     
-        description: Local mount path of the network share with read-write permission for ansible user.     
-        type: str     
-        required: False 
+    share_mnt:
+        description: Local mount path of the network share with read-write permission for ansible user.
+        type: str
+        required: False
     reboot:
         description: Whether to reboot for applying the updates or not.
         type: bool
@@ -285,11 +285,8 @@ def update_firmware(idrac, module):
 
         firmware_version = re.match(r"^\d.\d{2}", idrac.entityjson['System'][0]['LifecycleControllerVersion']).group()
         idrac.use_redfish = False
-        if ('14' in idrac.ServerGeneration and float(firmware_version) >= float('3.30')) or (
-                ('12' in idrac.ServerGeneration or '13' in idrac.ServerGeneration) and
-                float(firmware_version) >= float('2.70')):
+        if '14' in idrac.ServerGeneration and float(firmware_version) >= float('3.30'):
             idrac.use_redfish = True
-
         if share_name.lower().startswith(('http://', 'https://', 'ftp://')):
             msg['update_status'], job_details = update_firmware_url(module, idrac, share_name, catalog_file_name,
                                                                     apply_update, reboot, ignore_cert_warning,

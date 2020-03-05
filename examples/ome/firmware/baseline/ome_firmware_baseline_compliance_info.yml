@@ -30,10 +30,10 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
-        group_names:
+        device_group_names:
             - group1
             - group2
-      tags: group_names
+      tags: device_group_names
 
     - name: Retrieves device compliance report for a specified baseline.
       ome_firmware_baseline_compliance_info:

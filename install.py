@@ -23,19 +23,28 @@ import sys
 import glob
 import shutil
 
-
-print("\nDell EMC OpenManage Ansible Modules installation has started.")
+print("\n-------------------------------------------------------------"
+      "------------------------------------")
+print("Dell EMC OpenManage Ansible Modules installation has started.")
 print("\nChecking prerequisites...\n")
 
 # checking prerequisites..
-FAIL_MESSAGES = "\nFAILED: Dell EMC OpenManage Ansible Modules installation " \
-               "failed.\n"
+FAIL_MESSAGE = "\nFAILED: Dell EMC OpenManage Ansible Modules " \
+               "installation failed."
+
+# print colors
+FAIL = "\033[91m"  # RED
+SUCCESS = "\033[92m"  # GREEN
+NORMAL = "\033[00m"  # DEFAULT
+
 try:
     import ansible
     from ansible.module_utils.six.moves import input
 except ImportError:
     print("\tAnsible is not installed.")
-    print(FAIL_MESSAGES)
+    print(FAIL + " {0}".format(FAIL_MESSAGE) + NORMAL)
+    print("---------------------------------------------------------"
+          "----------------------------------------\n")
     sys.exit(1)
 
 # required path to check
@@ -89,8 +98,8 @@ SRC_UTIL_PATH = os.path.join(BASE_LOCAL_PATH, "utils")
 IDRAC_UTIL_EXISTS = os.path.exists(
     os.path.join(DELLEMC_UTIL_PATH, "dellemc_idrac.py"))
 PROPERTY_JSON = os.path.join(DELLEMC_PATH, "properties.json")
-INSTALLATION_MESSAGE = "\tInstalling Dell EMC OpenManage Ansible Modules " \
-                       "specific folders and files..."
+INSTALLATION_MESSAGE = "\n\tInstalling Dell EMC OpenManage Ansible " \
+                       "Modules specific folders and files..."
 INIT_FILE = os.path.join(ANSIBLE_INSTALLED_PATH, "module_utils",
                          "remote_management", "__init__.py")
 EXTRAS = os.path.join(ANSIBLE_INSTALLED_PATH, "modules", "extras")
@@ -123,15 +132,14 @@ def update_check():
     """
     checking whenever upgrade is required.
     """
-    message = "\tDell EMC OpenManage Ansible Modules is already present. Do " \
-              "you want to upgrade? (y/n)?"
+    message = "\tDell EMC OpenManage Ansible Modules is already present." \
+              " Do you want to upgrade? (y/n)?"
     yes = {'y', '', 'Y'}
     print(message)
-    print(
-        "\tPress `y` to update the Dell EMC OpenManage Ansible Modules "
-        "specific folders and files...")
-    print("\tPress any other key to exit installation (default: 'y'):")
-    choice = input("        ")
+    print("\tPress `y` to update the Dell EMC OpenManage Ansible Modules"
+          " specific folders and files...")
+    choice = input("\tPress any other key to exit installation "
+                   "(default: 'y'):")
     return choice in yes
 
 
@@ -175,6 +183,7 @@ def install():
     Creating module directory in Ansible location.
     """
     # Step 0: Upgrading dellemc modules with new directory structure.
+    operation_message = 'installed'
     if os.path.exists(DELLEMC_PATH) or (os.path.exists(EXTRAS)):
         # Upgrade checking if dellemc modules are present.
         module_files = [f for f in
@@ -184,7 +193,11 @@ def install():
                 os.path.exists(DELLEMC_OME_PATH):
             checking = update_check()
             if not checking:
+                print(FAIL + "\n{0}".format("Aborting upgrade...") + NORMAL)
+                print("----------------------------------------------------"
+                      "---------------------------------------------\n")
                 return
+            operation_message = 'upgraded'
         print(INSTALLATION_MESSAGE)
         # Cleaning up dellemc modules.
         if os.path.exists(DELLEMC_IDRAC_PATH) and os.path.exists(
@@ -217,10 +230,12 @@ def install():
     # Complete installation with new directory structure, dellemc modules
     # version 2.0.
     complete_installation()
-
-    print(
-        "\nSUCCESS: Dell EMC OpenManage Ansible Modules is installed "
-        "successfully.\n")
+    print("\nDell EMC OpenMange Ansible Modules are present in: {0} \n"
+          "".format(DELLEMC_PATH))
+    print(SUCCESS + "SUCCESS: Dell EMC OpenManage Ansible Modules - {0} "
+                    "successfully.".format(operation_message) + NORMAL)
+    print("-----------------------------------------------------------"
+          "--------------------------------------\n")
 
 
 if __name__ == "__main__":
@@ -228,5 +243,5 @@ if __name__ == "__main__":
         install()
     except (IOError, OSError) as err:
         print(str(err))
-        print(FAIL_MESSAGES)
+        print(FAIL + " {0}".format(FAIL_MESSAGE) + NORMAL)
         sys.exit(1)

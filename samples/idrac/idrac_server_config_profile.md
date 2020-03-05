@@ -2,7 +2,8 @@
 
 {
     "changed": false,
-    "msg": "Successfully exported the Server Configuration Profile.",
+    "msg": "Successfully triggered the job to export the Server Configuration
+     Profile.",
     "scp_status": {
         "Data": {
             "StatusCode": 202,
@@ -22,7 +23,7 @@
     }
 }
 
-Import Server Configuration Profile from a Share
+Import SCP from a network share and wait for this job to get completed
 
 {
     "changed": true,

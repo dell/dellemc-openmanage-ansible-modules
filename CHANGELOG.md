@@ -4,6 +4,26 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
+# 2.0.9 (March 05, 2020)
+
+  * The option group_names in the ome_firmware_baseline and ome_firmware_baseline_compliance_info module is replaced with device_group_names.
+
+  * The ome_firmware module allows firmware updates using a single DUP path and a baseline name.
+
+  * The module ome_identity_pool is updated to delete an identity pool.
+   
+  * The new OME module(ome_template_identity_pool) allows to 
+    - attach an identity pool to a template
+    - detach an identity pool from a template
+
+  * The ome_template_network_vlan module lets you select tagged and untagged VLANs to be used in the OME template. 
+  
+  * The installation and uninstallation scripts have been updated to display 
+  the path where the modules have been installed.
+  
+  * Success and failure messages in the scripts now appear in green and red.
+
+
 # 2.0.8 (February 07, 2020)
 
   * The ome_firmware module allows firmware updates using a baseline name.

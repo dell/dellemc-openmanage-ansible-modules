@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0
-# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.0.9
+# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -96,6 +96,7 @@ options:
     trap_format:
         required: False
         description: SNMP trap format for iDRAC.
+        choices: [SNMPv1, SNMPv2, SNMPv3]
 requirements:
     - "omsdk"
     - "python >= 2.7.5"
@@ -125,7 +126,7 @@ EXAMPLES = """
        community_name: "None"
        alert_port: "None"
        discovery_port: "162"
-       trap_format: "None"
+       trap_format: "SNMPv3"
 """
 
 RETURNS = """
@@ -292,7 +293,7 @@ def main():
             snmp_protocol=dict(required=False, choices=['All', 'SNMPv3'], default=None),
             alert_port=dict(required=False),
             discovery_port=dict(required=False, type="int", default=162),
-            trap_format=dict(required=False, ),
+            trap_format=dict(required=False, choices=['SNMPv1', 'SNMPv2', 'SNMPv3'], default=None),
 
         ),
 

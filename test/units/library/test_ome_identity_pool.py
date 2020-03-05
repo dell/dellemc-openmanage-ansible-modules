@@ -24,7 +24,10 @@ from ssl import SSLError
 from io import StringIO
 from ansible.module_utils._text import to_text
 import json
-
+from ansible.module_utils import basic
+from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleExitJson
+import ast
+import pdb
 
 @pytest.fixture
 def ome_connection_mock_for_identity_pool(mocker, ome_response_mock):
@@ -52,7 +55,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                           "result": {"Id": 36, "IsSuccessful": True, "Issues": []}}
         mocker.patch('ansible.modules.remote_management.dellemc.ome_identity_pool.pool_create_modify', return_value=message_return)
         ome_default_args.update(sub_param)
-        result = self._run_module(ome_default_args)
+        result = self.execute_module(ome_default_args)
         assert result['changed'] is True
         assert 'pool_status' in result and "msg" in result
         assert result["msg"] == "Successfully created an identity pool."
@@ -62,6 +65,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                 "Issues": []
             }
 
+    #@pytest.mark.parametrize("exc_type", [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError])
     @pytest.mark.parametrize("exc_type", [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
     def test_main_ome_identity_pool_failure_case1(self, exc_type, mocker, ome_default_args,
                                                   ome_connection_mock_for_identity_pool, ome_response_mock):
@@ -329,7 +333,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         payload = {"Name": "pool1"}
         with pytest.raises(Exception) as exc:
             self.module.update_ethernet_fcoe_settings(payload, settings_params, "Ethernet_Settings", f_module)
-        return exc.value.args[0] == "please provide valid mac address format for ethernetsettings"
+        exc.value.args[0] == "please provide valid mac address format for ethernetsettings"
 
 
     def test_update_ethernet_fcoe_settings_case_02(self):
@@ -521,8 +525,42 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         base_64_val = self.module.mac_to_base64_conversion(mac_address, f_module)
         assert base_64_val == base_64_val_expected
 
+    def test_pool_delete_case_01(self, ome_connection_mock_for_identity_pool, mocker):
+        params = {"pool_name": "pool_name"}
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_identity_pool.get_identity_pool_id_by_name', return_value=(1, {"value": "data"}))
+        f_module = self.get_module_mock(params=params)
+        message = self.module.pool_delete(f_module, ome_connection_mock_for_identity_pool)
+        assert message["msg"] == "Successfully deleted the identity pool."
+
+    def test_pool_delete_case_02(self, ome_connection_mock_for_identity_pool, mocker):
+        params = {"pool_name": "pool_name"}
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_identity_pool.get_identity_pool_id_by_name', return_value=(0, {}))
+        f_module = self.get_module_mock(params=params)
+        with pytest.raises(Exception) as exc:
+            self.module.pool_delete(f_module, ome_connection_mock_for_identity_pool)
+        exc.value.args[0] == "Unable to complete the operation because the entered target" \
+                      " pool name '{0}' is invalid.".format(params["pool_name"])
 
 
+    def test_pool_create_modify_error_case_01(self, mocker, ome_connection_mock_for_identity_pool, ome_response_mock):
+        msg = "exception message"
+        params = {"pool_name": "pool_name"}
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_identity_pool.get_identity_pool_id_by_name', return_value=(1, "data"))
+        f_module = self.get_module_mock(params=params)
+        ome_connection_mock_for_identity_pool.invoke_request.side_effect = Exception(msg)
+        with pytest.raises(Exception, match=msg) as exc:
+            self.module.pool_delete(f_module, ome_connection_mock_for_identity_pool)
+
+    def test_main_ome_identity_pool_delete_success_case1(self, mocker, ome_default_args,
+                                                  ome_connection_mock_for_identity_pool, ome_response_mock):
+        sub_param = {"pool_name":  "pool1",
+                     "state": "absent",}
+        message_return = {"msg": "Successfully deleted the identity pool."}
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_identity_pool.pool_delete', return_value=message_return)
+        ome_default_args.update(sub_param)
+        result = self.execute_module(ome_default_args)
+        assert 'pool_status' not in result
+        assert result["msg"] == "Successfully deleted the identity pool."
 
 
 

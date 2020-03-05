@@ -22,3 +22,10 @@ modify identity pool:
     }
 
 }
+
+
+Delete identity pool:
+{
+    "changed": true,
+    "msg":  "Successfully deleted the identity pool."
+}
