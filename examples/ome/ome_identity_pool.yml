@@ -47,3 +47,12 @@
           starting_mac_address: "aabb.ccdd.5050"
           identity_count: 77
       tags: modify1
+
+    - name: "Delete an identity pool"
+      ome_identity_pool:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: "absent"
+        pool_name: "pool1"
+      tags: delete

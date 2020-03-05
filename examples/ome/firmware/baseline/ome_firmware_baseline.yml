@@ -37,6 +37,6 @@
       baseline_name: "baseline_name"
       baseline_description: "baseline_description"
       catalog_name: "catalog_name"
-      group_names:
+      device_group_names:
         - "Group1"
         - "Group2"

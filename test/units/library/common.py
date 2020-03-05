@@ -17,6 +17,7 @@ import pytest
 from units.modules.utils import set_module_args
 from units.modules.utils import AnsibleFailJson, AnsibleExitJson
 from units.compat.mock import MagicMock
+import ast
 
 
 class Constants:
@@ -49,6 +50,17 @@ class FakeAnsibleModule:
         result = exc.value.args[0]
         return result
 
+    def execute_module(self, module_args, check_mode=False):
+        """[workaround]: generic exception handling in module will
+         be caught here and extracted the result for exit_json case"""
+        module_args.update({'_ansible_check_mode': check_mode})
+        set_module_args(module_args)
+        try:
+            with pytest.raises(AnsibleExitJson) as ex:
+                self.module.main()
+        except Exception as err:
+            result = ast.literal_eval(err.args[0]['msg'])
+        return result
 
     def get_module_mock(self, params=None):
         if params is None:

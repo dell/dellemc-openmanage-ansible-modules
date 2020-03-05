@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.8
+# Version 2.0.9
 # Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -61,8 +61,13 @@ options:
     type: list
   baseline_name:
     description:
-      - Enter the baseline name to update the firmware of all the devices or groups of devices.
-      - I(baseline_name) is mutually exclusive with I(device_group_names), I(device_id) and I(device_service_tag).
+      - Enter the baseline name to update the firmware of all the devices or groups of
+        devices against the available compliance report.
+      - The firmware update can also be done by providing the baseline name and the path to
+        the single DUP file. To update multiple baselines at once, provide the baseline
+        names separated by commas.
+      - I(baseline_names) is mutually exclusive with I(device_group_names), I(device_id)
+        and I(device_service_tag).
     type: str
   dup_file:
     description: "Executable file to apply on the targets."
@@ -111,6 +116,14 @@ EXAMPLES = r'''
     username: "username"
     password: "password"
     baseline_name: baseline_devices
+
+- name: "Update firmware from a DUP file using a baseline names."
+  ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    baseline_name: "baseline_devices, baseline_groups"
+    dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
 '''
 
 RETURN = r'''
@@ -260,7 +273,7 @@ def get_applicable_components(rest_obj, dup_payload, module):
     return target_data
 
 
-def get_dup_applicability_payload(file_token, device_ids=None, group_ids=None):
+def get_dup_applicability_payload(file_token, device_ids=None, group_ids=None, baseline_ids=None):
     """Returns the DUP applicability JSON payload."""
     dup_applicability_payload = {'SingleUpdateReportBaseline': [],
                                  'SingleUpdateReportGroup': [],
@@ -273,6 +286,10 @@ def get_dup_applicability_payload(file_token, device_ids=None, group_ids=None):
     elif group_ids is not None:
         dup_applicability_payload.update(
             {"SingleUpdateReportGroup": list(map(int, group_ids))}
+        )
+    elif baseline_ids is not None:
+        dup_applicability_payload.update(
+            {"SingleUpdateReportBaseline": list(map(int, baseline_ids))}
         )
     return dup_applicability_payload
 
@@ -326,6 +343,22 @@ def get_device_ids(rest_obj, module, device_id_tags):
     return device_id
 
 
+def get_dup_baseline(rest_obj, module):
+    """Getting the list of baseline ids filtered from the baselines."""
+    resp = rest_obj.get_all_report_details("UpdateService/Baselines")
+    baseline = module.params.get('baseline_name').split(",")
+    if resp["report_list"]:
+        baseline_ids = [bse['Id'] for bse in resp["report_list"] for name in baseline if bse['Name'] == name]
+        if len(set(baseline)) != len(set(baseline_ids)):
+            module.fail_json(
+                msg="Unable to complete the operation because the entered target baseline name(s)"
+                    " '{0}' are invalid.".format(",".join(set(baseline))))
+    else:
+        module.fail_json(msg="Unable to complete the operation because the entered"
+                             "target baseline name(s) does not exists.")
+    return baseline_ids
+
+
 def get_group_ids(rest_obj, module):
     """Getting the list of group ids filtered from the groups."""
     resp = rest_obj.get_all_report_details("GroupService/Groups")
@@ -360,24 +393,26 @@ def get_baseline_ids(rest_obj, module):
 
 
 def single_dup_update(rest_obj, module):
-    target_data, device_ids, group_ids = None, None, None
+    target_data, device_ids, group_ids, baseline_ids = None, None, None, None
     if module.params.get("device_group_names") is not None:
         group_ids = get_group_ids(rest_obj, module)
+    elif module.params.get("baseline_name") is not None \
+            and module.params.get("dup_file") is not None:
+        baseline_ids = get_dup_baseline(rest_obj, module)
     else:
         device_id_tags = _validate_device_attributes(module)
         device_ids = get_device_ids(rest_obj, module, device_id_tags)
     upload_status, token = upload_dup_file(rest_obj, module)
     if upload_status:
-        report_payload = get_dup_applicability_payload(token, device_ids=device_ids,
-                                                       group_ids=group_ids)
+        report_payload = get_dup_applicability_payload(token, device_ids=device_ids, group_ids=group_ids,
+                                                       baseline_ids=baseline_ids)
         if report_payload:
             target_data = get_applicable_components(rest_obj, report_payload, module)
     return target_data
 
 
 def baseline_based_update(rest_obj, module, baseline):
-    compliance_uri = "UpdateService/Baselines({" \
-                     "0})/DeviceComplianceReports".format(baseline["baseline_id"])
+    compliance_uri = "UpdateService/Baselines({0})/DeviceComplianceReports".format(baseline["baseline_id"])
     resp = rest_obj.get_all_report_details(compliance_uri)
     compliance_report_list = []
     if resp["report_list"]:
@@ -446,7 +481,7 @@ def main():
     update_status, baseline_details = {}, None
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            if module.params.get("baseline_name") is not None:
+            if module.params.get("baseline_name") is not None and module.params.get("dup_file") is None:
                 baseline_details = get_baseline_ids(rest_obj, module)
                 target_data = baseline_based_update(rest_obj, module, baseline_details)
             else:
@@ -457,7 +492,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError) as err:
         module.fail_json(msg=str(err))
     module.exit_json(msg="Successfully submitted the firmware update job.", update_status=update_status, changed=True)
 

@@ -1,0 +1,100 @@
+# -*- coding: utf-8 -*-
+
+#
+# Dell EMC OpenManage Ansible Modules
+# Version 2.0.9
+# Copyright (C) 2020 Dell Inc.
+
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
+# Other trademarks may be trademarks of their respective owners.
+#
+
+from __future__ import absolute_import
+
+import pytest
+import json
+from ansible.modules.remote_management.dellemc import ome_template_identity_pool
+from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ssl import SSLError
+from io import StringIO
+from ansible.module_utils._text import to_text
+
+
+@pytest.fixture
+def ome_connection_mock_template_identity_pool(mocker, ome_response_mock):
+    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_template_identity_pool.RestOME')
+    ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
+    ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
+    return ome_connection_mock_obj
+
+
+class TestOMETemplateIdentityPool(FakeAnsibleModule):
+
+    module = ome_template_identity_pool
+
+    @pytest.mark.parametrize("exc_type", [HTTPError, URLError, ValueError, TypeError, ConnectionError, SSLError])
+    def test_main_template_identity_failure(self, exc_type, mocker, ome_default_args,
+                                            ome_connection_mock_template_identity_pool):
+        ome_default_args.update({"template_name": "template"})
+        ome_connection_mock_template_identity_pool.json_data = {"template_name": "ansible_template"}
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type == URLError:
+            mocker.patch(
+                'ansible.modules.remote_management.dellemc.ome_template_identity_pool.get_template_id',
+                side_effect=exc_type('url error'))
+            result = self._run_module(ome_default_args)
+            assert result["unreachable"] is True
+        elif exc_type not in [HTTPError, SSLValidationError]:
+            mocker.patch(
+                'ansible.modules.remote_management.dellemc.ome_template_identity_pool.get_template_id',
+                side_effect=exc_type('error'))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+        else:
+            mocker.patch(
+                'ansible.modules.remote_management.dellemc.ome_template_identity_pool.get_identity_id',
+                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                     {"accept-type": "application/json"}, StringIO(json_str))
+            )
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+        assert 'msg' in result
+
+    def test_main_success(self, mocker, ome_default_args, ome_connection_mock_template_identity_pool,
+                          ome_response_mock):
+        mocker.patch("ansible.modules.remote_management.dellemc.ome_template_identity_pool.get_template_id", return_value=10)
+        mocker.patch("ansible.modules.remote_management.dellemc.ome_template_identity_pool.get_identity_id", return_value=10)
+        ome_default_args.update({"template_name": "template", "identity_pool_name": "pool_name"})
+        ome_response_mock.json_data = {"msg": "Successfully assigned identity pool to template.", "changed": True}
+        ome_response_mock.success = True
+        ome_response_mock.status_code = 200
+        result = self.execute_module(ome_default_args)
+        assert "msg" in result
+        assert result["msg"] == "Successfully attached identity pool to " \
+                                "template."
+
+    def test_get_template_id(self, ome_connection_mock_template_identity_pool, ome_response_mock):
+        ome_response_mock.json_data = {"value": [{"Name": "template", "Id": 10}]}
+        ome_response_mock.success = True
+        f_module = self.get_module_mock(params={"template_name": "template"})
+        result = self.module.get_template_id(ome_connection_mock_template_identity_pool, f_module)
+        assert result == 10
+
+    def test_get_identity_id(self, ome_connection_mock_template_identity_pool):
+        data = {"report_list": [{"Name": "pool_name", "Id": 10}]}
+        ome_connection_mock_template_identity_pool.get_all_report_details.return_value = data
+        f_module = self.get_module_mock(params={"identity_pool_name": "pool_name"})
+        result = self.module.get_identity_id(ome_connection_mock_template_identity_pool, f_module)
+        assert result == 10
+
+    def test_get_identity_id_fail(self, ome_connection_mock_template_identity_pool, ome_response_mock):
+        data = {"report_list": [{"Name": "pool_name", "Id": 10}]}
+        ome_connection_mock_template_identity_pool.get_all_report_details.return_value = data
+        f_module = self.get_module_mock(params={"identity_pool_name": "invalid_pool_name"})
+        with pytest.raises(Exception) as exc:
+            self.module.get_identity_id(ome_connection_mock_template_identity_pool, f_module)
+        assert exc.value.args[0] == "Unable to complete the operation because the requested identity pool with " \
+                                    "name 'invalid_pool_name' is not present."

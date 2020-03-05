@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.4
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.9
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -68,17 +68,17 @@ options:
     type: list
     description:
       - list of device ids
-      - I(device_ids) is mutually exclusive with I(device_service_tags) and I(group_names).
+      - I(device_ids) is mutually exclusive with I(device_service_tags) and I(device_group_names).
   device_service_tags:
     type: list
     description:
       - list of service tags
-      - I(device_service_tags) is mutually exclusive with I(device_ids) and I(group_names).
-  group_names:
+      - I(device_service_tags) is mutually exclusive with I(device_ids) and I(device_group_names).
+  device_group_names:
     type: list
     description:
       - list of group names
-      - I(group_names) is mutually exclusive with I(device_ids) and I(device_service_tags).
+      - I(device_group_names) is mutually exclusive with I(device_ids) and I(device_service_tags).
 requirements:
     - "python >= 2.7.5"
 author: "Jagadeesh N V(@jagadeeshnv)"
@@ -118,7 +118,7 @@ EXAMPLES = r'''
     baseline_name: "baseline_name"
     baseline_description: "baseline_description"
     catalog_name: "catalog_name"
-    group_names:
+    device_group_names:
       - "Group1"
       - "Group2"
 '''
@@ -226,7 +226,7 @@ def get_dev_ids(module, rest_obj, param, devkey):
 
 
 def get_group_ids(module, rest_obj):
-    grp_name_list = module.params.get("group_names")
+    grp_name_list = module.params.get("device_group_names")
     resp = rest_obj.invoke_request('GET', "GroupService/Groups")
     targets = []
     if resp.success:
@@ -252,7 +252,7 @@ def get_target_list(module, rest_obj):
     target_list = None
     if module.params.get("device_service_tags"):
         target_list = get_dev_ids(module, rest_obj, "device_service_tags", "DeviceServiceTag")
-    elif module.params.get("group_names"):
+    elif module.params.get("device_group_names"):
         target_list = get_group_ids(module, rest_obj)
     elif module.params.get("device_ids"):
         target_list = get_dev_ids(module, rest_obj, "device_ids", "Id")
@@ -305,10 +305,10 @@ def main():
             "is_64_bit": {"required": False, "type": 'bool', "default": True},
             "device_ids": {"required": False, "type": 'list', "elements": 'int'},
             "device_service_tags": {"required": False, "type": 'list', "elements": 'str'},
-            "group_names": {"required": False, "type": 'list', "elements": 'str'},
+            "device_group_names": {"required": False, "type": 'list', "elements": 'str'},
         },
         mutually_exclusive=[
-            ('device_ids', 'device_service_tags', 'group_names')
+            ('device_ids', 'device_service_tags', 'device_group_names')
         ],
         # required_if=[['state', 'present', ['device_id', 'device_service_tags', 'group_name']]],
         supports_check_mode=False)
@@ -317,7 +317,7 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             myparams = module.params
             if not any([myparams.get("device_ids"), myparams.get("device_service_tags"),
-                        myparams.get("group_names")]):
+                        myparams.get("device_group_names")]):
                 module.fail_json(msg="No Targets Specified for baseline creation")
             payload = _get_baseline_payload(module, rest_obj)
             resp = rest_obj.invoke_request("POST", "UpdateService/Baselines", data=payload)

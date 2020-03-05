@@ -175,7 +175,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                                           "device_service_tags", "DeviceServiceTag")
         assert targets == params["out"]
 
-    grp_param1 = {"group_names": ["group1", "group2"]}
+    grp_param1 = {"device_group_names": ["group1", "group2"]}
     grp_out1 = [{
         "Id": 12,
         "Type": {
@@ -190,7 +190,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                 "Name": "GROUP"
             }
         }]
-    grp_param2 = {"group_names": ["group1"]}
+    grp_param2 = {"device_group_names": ["group1"]}
     grp_out2 = [{
         "Id": 12,
         "Type": {

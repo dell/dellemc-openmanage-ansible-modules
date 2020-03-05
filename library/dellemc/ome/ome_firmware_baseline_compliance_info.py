@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.4
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.9
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -48,32 +48,32 @@ options:
     description:
         - Name of the baseline, for which the device compliance report is generated.
         - This option is mandatory for generating baseline based device compliance report.
-        - I(baseline_name) is mutually exclusive with I(device_ids), I(device_service_tags) and I(group_names).
+        - I(baseline_name) is mutually exclusive with I(device_ids), I(device_service_tags) and I(device_group_names).
     type: str
   device_ids:
     description:
         - A list of unique identifier for device based compliance report.
-        - Either I(device_ids), I(device_service_tags) or I(group_names)
+        - Either I(device_ids), I(device_service_tags) or I(device_group_names)
           is required to generate device based compliance report.
         - I(device_ids) is mutually exclusive with I(device_service_tags),
-          I(group_names) and I(baseline_name).
+          I(device_group_names) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
   device_service_tags:
     description:
         - A list of service tags for device based compliance report.
-        - Either I(device_ids), I(device_service_tags) or I(group_names)
+        - Either I(device_ids), I(device_service_tags) or I(device_group_names)
           is required to generate device based compliance report.
         - I(device_service_tags) is mutually exclusive with I(device_ids),
-          I(group_names) and I(baseline_name).
+          I(device_group_names) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
-  group_names:
+  device_group_names:
     description:
         - A list of group names for device based compliance report.
-        - Either I(device_ids), I(device_service_tags) or I(group_names)
+        - Either I(device_ids), I(device_service_tags) or I(device_group_names)
           is required to generate device based compliance report.
-        - I(group_names) is mutually exclusive with I(device_ids),
+        - I(device_group_names) is mutually exclusive with I(device_ids),
           I(device_service_tags) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
@@ -108,7 +108,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
-    group_names:
+    device_group_names:
         - "group1"
         - "group2"
 
@@ -282,7 +282,7 @@ def get_device_ids_from_group_ids(module, grou_id_list, rest_obj):
                 for device_item in grp_list_value:
                     device_id_list.append(device_item["Id"])
             else:
-                module.fail_json(msg="Failed to fetch the device ids from specified I(group_names).")
+                module.fail_json(msg="Failed to fetch the device ids from specified I(device_group_names).")
         return device_id_list
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
@@ -290,7 +290,7 @@ def get_device_ids_from_group_ids(module, grou_id_list, rest_obj):
 
 def get_device_ids_from_group_names(module, rest_obj):
     try:
-        grp_name_list = module.params.get("group_names")
+        grp_name_list = module.params.get("device_group_names")
         resp = rest_obj.invoke_request('GET', group_service_path)
         group_id_list = []
         if resp.success:
@@ -301,7 +301,7 @@ def get_device_ids_from_group_names(module, rest_obj):
                         group_id_list.append(group['Id'])
                         break
         else:
-            module.fail_json(msg="Failed to fetch the specified I(group_names).")
+            module.fail_json(msg="Failed to fetch the specified I(device_group_names).")
         return get_device_ids_from_group_ids(module, group_id_list, rest_obj)
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
@@ -310,8 +310,8 @@ def get_device_ids_from_group_names(module, rest_obj):
 def get_identifiers(rest_obj, module):
     if module.params.get("device_ids") is not None:
         return module.params.get("device_ids"), "device_ids"
-    elif module.params.get("group_names") is not None:
-        return get_device_ids_from_group_names(module, rest_obj), "group_names"
+    elif module.params.get("device_group_names") is not None:
+        return get_device_ids_from_group_names(module, rest_obj), "device_group_names"
     else:
         service_tags = module.params.get("device_service_tags")
         service_tags_mapper = _get_device_id_from_service_tags(service_tags, rest_obj, module)
@@ -350,7 +350,7 @@ def get_baselines_report_by_device_ids(rest_obj, module):
             return resp.json_data
         else:
             identifier_map = {
-                "group_names": "Device details not available as the group name(s) provided are invalid.",
+                "device_group_names": "Device details not available as the group name(s) provided are invalid.",
                 "device_service_tags": "Device details not available as the service tag(s) provided are invalid."
             }
             message = identifier_map[identifier]
@@ -375,12 +375,12 @@ def get_baseline_compliance_reports(rest_obj, module):
 def validate_inputs(module):
     module_params = module.params
     device_service_tags = module_params.get("device_service_tags")
-    group_names = module_params.get("group_names")
+    device_group_names = module_params.get("device_group_names")
     device_ids = module_params.get("device_ids")
     baseline_name = module_params.get("baseline_name")
-    if all(not identifer for identifer in [device_ids, device_service_tags, group_names, baseline_name]):
+    if all(not identifer for identifer in [device_ids, device_service_tags, device_group_names, baseline_name]):
             module.fail_json(msg="one of the following is required: device_ids, device_service_tags, "
-                                 "group_names, baseline_name to generate device based compliance report.")
+                                 "device_group_names, baseline_name to generate device based compliance report.")
 
 
 def main():
@@ -393,10 +393,10 @@ def main():
             "baseline_name": {"type": 'str', "required": False},
             "device_service_tags": {"required": False, "type": "list"},
             "device_ids": {"required": False, "type": "list"},
-            "group_names": {"required": False, "type": "list"},
+            "device_group_names": {"required": False, "type": "list"},
         },
-        mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'group_names']],
-        required_one_of=[['device_ids', 'device_service_tags', 'group_names', 'baseline_name']],
+        mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'device_group_names']],
+        required_one_of=[['device_ids', 'device_service_tags', 'device_group_names', 'baseline_name']],
         supports_check_mode=False
     )
     try:

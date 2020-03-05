@@ -40,7 +40,7 @@
     tags:
       - scp_components_idrac_export_network_share
 
-  - name: Import Server Configuration Profile from a local path
+  - name: Import SCP from a local path and wait for this job to get completed
     idrac_server_config_profile:
       idrac_ip:        "{{ idracip }}"
       idrac_user:      "{{ username }}"
@@ -55,7 +55,7 @@
     tags:
       - scp_components_idrac_import_local_path
 
-  - name: Import Server Configuration Profile from a network share
+  - name: Import SCP from a network share and wait for this job to get completed
     idrac_server_config_profile:
       idrac_ip: "{{ idracip }}"
       idrac_user: "{{ username }}"
