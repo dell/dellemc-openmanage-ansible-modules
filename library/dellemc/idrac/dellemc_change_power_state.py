@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.9
+# Version 2.0.10
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -118,7 +118,11 @@ def is_change_applicable_for_power_state(current_power_state, apply_power_state)
     """
     apply_change_enum_list = ["GracefulRestart", "PushPowerButton", "Nmi", "ForceRestart"]
     try:
-        if apply_power_state in apply_change_enum_list or \
+        if current_power_state == "Off - Soft" and apply_power_state == "On":
+            msg = {'Status': 'Success', 'Message': 'Changes found to commit!', 'changes_applicable': True}
+        elif current_power_state == "Off - Soft" and apply_power_state in apply_change_enum_list:
+            msg = {'Status': 'Success', 'Message': 'No changes found to commit!', 'changes_applicable': False}
+        elif apply_power_state in apply_change_enum_list or \
                 apply_power_state not in power_state_mapper[current_power_state]:
             msg = {'Status': 'Success', 'Message': 'Changes found to commit!', 'changes_applicable': True}
         else:

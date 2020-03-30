@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.9
+# Version 2.0.10
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -199,6 +199,8 @@ SHARE_TYPE = {'nfs': 'NFS', 'cifs': 'CIFS', 'ftp': 'FTP',
               'http': 'HTTP', 'https': 'HTTPS', 'tftp': 'TFTP'}
 CERT_WARN = {True: 'On', False: 'Off'}
 PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService/Actions/DellSoftwareInstallationService.InstallFromRepository"
+GET_REPO_BASED_UPDATE_LIST_PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService/Actions/" \
+                                  "DellSoftwareInstallationService.GetRepoBasedUpdateList"
 
 
 def _validate_catalog_file(catalog_file_name):
@@ -253,7 +255,17 @@ def update_firmware_url(module, idrac, share_name, catalog_file_name, apply_upda
             status = idrac.job_mgr.get_job_status_redfish(job_id)
             if job_wait:
                 status = idrac.job_mgr.job_wait(job_id)
-            job_details = idrac._get_update_from_repo_list_using_redfish()
+            try:
+                resp_repo_based_update_list = obj.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST", data={})
+                job_details = eval(resp_repo_based_update_list.read())
+            except HTTPError as err:
+                err_message = json.load(err)
+                message = "Firmware versions on server match catalog, applicable updates are not present in the repository."
+                exit_message = "The catalog in the repository specified in the operation has the same firmware versions" \
+                               " as currently present on the server."
+                if err_message['error']['@Message.ExtendedInfo'][0]['Message'] == message:
+                    module.exit_json(msg=exit_message)
+                raise err
     else:
         status = idrac.update_mgr.update_from_repo_url(ipaddress=ipaddr, share_type=share_type,
                                                        share_name=sharename, catalog_file=catalog_file_name,
@@ -307,21 +319,27 @@ def update_firmware(idrac, module):
                     msg['update_status'] = idrac.job_mgr.get_job_status_redfish(job_id)
                     if job_wait:
                         msg['update_status'] = idrac.job_mgr.job_wait(job_id)
-                    msg['update_status']['job_details'] = idrac._get_update_from_repo_list_using_redfish()
+                    repo_based_update_list = obj.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH,
+                                                                method="POST", data={})
+                    msg['update_status']['job_details'] = eval(repo_based_update_list.read())
             else:
                 msg['update_status'] = idrac.update_mgr.update_from_repo(upd_share, apply_update=apply_update,
                                                                          reboot_needed=reboot, job_wait=job_wait)
-        job_data = msg['update_status']['job_details']['Data']
-        pkglst = job_data['body'] if 'body' in job_data else job_data['GetRepoBasedUpdateList_OUTPUT']
-        if 'PackageList' in pkglst:
-            pkglst['PackageList'] = _convert_xmltojson(pkglst)
+        json_data = msg['update_status']['job_details']
+        if "PackageList" not in json_data:
+            job_data = json_data['Data']
+            pkglst = job_data['body'] if 'body' in job_data else job_data['GetRepoBasedUpdateList_OUTPUT']
+            if 'PackageList' in pkglst:
+                pkglst['PackageList'] = _convert_xmltojson(pkglst)
+        else:
+            json_data['PackageList'] = _convert_xmltojson(json_data)
     except RuntimeError as e:
         module.fail_json(msg=str(e))
     if "Status" in msg['update_status']:
         if msg['update_status']['Status'] in ["Success", "InProgress"]:
             if module.params['job_wait'] and module.params['apply_update'] and \
                     ('job_details' in msg['update_status'] and
-                     msg['update_status']['job_details']['Status'] == "Success"):
+                     msg['update_status']['job_details']['PackageList']):
                 msg['changed'] = True
                 msg['update_msg'] = "Successfully updated the firmware."
         else:
