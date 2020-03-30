@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.5
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.10
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -176,6 +176,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 VALID_OPERATION = {"on": 2, "off": 12, "coldboot": 5, "warmboot": 10, "shutdown": 8}
 POWER_STATE_MAP = {"on": 17, "off": 18, "poweringon": 20, "poweringoff": 21}
+NOT_APPLICABLE_OPTIONS = ["coldboot", "warmboot", "shutdown"]
 
 
 def spawn_update_job(rest_obj, payload):
@@ -239,7 +240,9 @@ def get_device_resource(module, rest_obj):
 
     # For check mode changes.
     valid_option, valid_operation = VALID_OPERATION[power_state], False
-    if (valid_option == current_state) or \
+    if power_state in NOT_APPLICABLE_OPTIONS and current_state != POWER_STATE_MAP["on"]:
+        valid_operation = True
+    elif (valid_option == current_state) or \
             (power_state == "on" and current_state in (POWER_STATE_MAP["on"], POWER_STATE_MAP['poweringon'])) or \
             (power_state in ("off", "shutdown") and
              current_state in (POWER_STATE_MAP["off"], POWER_STATE_MAP['poweringoff'])):

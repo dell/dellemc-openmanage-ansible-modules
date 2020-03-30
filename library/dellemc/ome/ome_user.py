@@ -43,6 +43,7 @@ options:
     type: int
     default: 443
   state:
+    type: str
     description:
       - C(present) creates a user in case the I(UserName) provided inside I(attributes) does not exist.
       - C(present) modifies a user in case the I(UserName) provided inside I(attributes) exists.
@@ -55,6 +56,7 @@ options:
       - Either I(user_id) or I(name) is mandatory for C(absent) operation.
     type: int
   name:
+    type: str
     description:
       - Unique Name of the user to be deleted.
       - Either I(user_id) or I(name) is mandatory for C(absent) operation.
@@ -123,7 +125,7 @@ EXAMPLES = r'''
     password: "password"
     state: "absent"
     user_id: 1234
-    
+
 - name: delete existing user using name.
   ome_user:
     hostname: "192.168.0.1"
@@ -246,7 +248,7 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
-            "state": {"required": False, "default": "present",
+            "state": {"required": False, "type": 'str', "default": "present",
                       "choices": ['present', 'absent']},
             "user_id": {"required": False, "type": 'int'},
             "name": {"required": False, "type": 'str'},
