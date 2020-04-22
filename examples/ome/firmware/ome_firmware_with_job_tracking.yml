@@ -73,13 +73,13 @@
       - baseline-name-dup
 
   - name: "Track job details for the ome firmware update operation using a job id."
-    dellemc_ome_job_facts:
+    ome_job_info:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
       job_id: "{{ result.update_status.Id }}"
     register: job_result
-    until: job_result.job_facts.LastRunStatus.Name == 'Completed' or job_result.job_facts.LastRunStatus.Name == 'Failed' or job_result.job_facts.LastRunStatus.Name == 'Warning'
+    until: job_result.job_info.LastRunStatus.Name == 'Completed' or job_result.job_info.LastRunStatus.Name == 'Failed' or job_result.job_info.LastRunStatus.Name == 'Warning'
     retries: "{{ retries_count }}"
     delay: "{{ polling_interval }}"
     tags: "{{ all_firmware_task_tags }}"
@@ -87,16 +87,16 @@
   - name: "Set job fact details if the task status is warning."
     set_fact:
       ome_firmware_job_fact: "{{ job_result | combine(job_msg, recursive=true) }}"
-    failed_when: job_result.job_facts.LastRunStatus.Name == 'Warning'
+    failed_when: job_result.job_info.LastRunStatus.Name == 'Warning'
     vars:
-      job_msg: {'msg': 'Completed with {{ job_result.job_facts.LastRunStatus.Name|lower}}'}
-    when: job_result.job_facts.LastRunStatus.Name == 'Warning'
+      job_msg: {'msg': 'Completed with {{ job_result.job_info.LastRunStatus.Name|lower}}'}
+    when: job_result.job_info.LastRunStatus.Name == 'Warning'
     tags: "{{ all_firmware_task_tags }}"
 
   - name: "Set job fact details if the task status is completed or failed."
     set_fact:
       ome_firmware_job_fact: "{{ job_result }}"
-    failed_when: job_result.job_facts.LastRunStatus.Name == 'Failed'
-    changed_when: job_result.job_facts.LastRunStatus.Name == 'Completed'
-    when: job_result.job_facts.LastRunStatus.Name == 'Completed' or job_result.job_facts.LastRunStatus.Name == 'Failed'
+    failed_when: job_result.job_info.LastRunStatus.Name == 'Failed'
+    changed_when: job_result.job_info.LastRunStatus.Name == 'Completed'
+    when: job_result.job_info.LastRunStatus.Name == 'Completed' or job_result.job_info.LastRunStatus.Name == 'Failed'
     tags: "{{ all_firmware_task_tags }}"

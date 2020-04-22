@@ -31,7 +31,7 @@
       file_name: "catalog.gz"
 
   - name:  create catalog from CIFS network share.
-    dellemc_ome_job_facts:
+    ome_job_info:
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"
@@ -46,7 +46,7 @@
       repository_domain: "{{ repository_domain }}"
       
   - name:  create catalog from NFS network share.
-    dellemc_ome_job_facts:
+    ome_job_info:
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"

@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.10
-# Copyright (C) 2020 Dell Inc.
+# Version 2.0.11
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -26,10 +24,12 @@ module: ome_application_network_address
 short_description: Updates the network configuration.
 version_added: "2.9"
 description:
-  - This module allows to configure the DNS and an IPv4 or IPv6 network on OpenManage Enterprise
+  - This module allows the configuration of a DNS and an IPV4 or IPV6 network on OpenManage Enterprise.
+  - It is only applicable on versions 3.3 and above of OpenManage Enterprise and OpenManage Enterprise Modular.
 notes:
-  - This module can apply network setting to one interface at a time.
-  - In case of multiple network interfaces the Primary Interface is chosen.
+  - The configuration changes can only be applied to one interface at a time.
+  - "Once the configuration changes are applied, the system management consoles might be unreachable for 2 minutes,
+  based on the changes made."
 options:
   hostname:
     description: Target IP Address or hostname.
@@ -47,6 +47,15 @@ options:
     description: Target HTTPS port.
     default: 443
     type: int
+  enable_nic:
+    description: Enable or disable Network Interface Card (NIC) configuration.
+    type: bool
+    default: true
+  interface_name:
+    description:
+      - If there are multiple interfaces, network configuration changes can be applied to a single interface using the interface name of the NIC.
+      - If this option is not specified, Primary interface is chosen by default.
+    type: str
   ipv4_configuration:
     description:
       - IPv4 network configuration.
@@ -55,7 +64,8 @@ options:
     type: dict
     suboptions:
       enable:
-        description: Enable or disable access to the network using IPv4.
+        description:
+          - Enable or disable access to the network using IPv4.
         type: bool
         required: true
       enable_dhcp:
@@ -143,12 +153,33 @@ options:
           - Static IPv6 DNS alternate server
           - This option is applicable when I(use_dhcp_for_dns_server_names) is false.
         type: str
+  management_vlan:
+    description:
+      - vLAN configuration.
+      - These settings are applicable for OpenManage Enterprise Modular
+    type: dict
+    suboptions:
+      enable_vlan:
+        description:
+          - Enable or disable vLAN for management.
+          - The vLAN configuration cannot be updated if the I(register_with_dns) field under I(dns_configuration) is true.
+          - "I(WARNING) Ensure that the network cable is plugged to the correct port after the vLAN configuration
+          changes have been made. If not, the configuration change may not be effective."
+        required: true
+        type: bool
+      vlan_id:
+        description:
+          - vLAN ID.
+          - This option is applicable when I(enable_vlan) is true.
+        type: int
   dns_configuration:
     description: Domain Name System(DNS) settings.
     type: dict
     suboptions:
       register_with_dns:
-        description: Register/Unregister I(dns_name) on the DNS Server.
+        description:
+          - Register/Unregister I(dns_name) on the DNS Server.
+          - This option cannot be updated if vLAN configuration changes.
         type: bool
       use_dhcp_for_dns_domain_name:
         description: Get the I(dns_domain_name) using a DHCP server.
@@ -164,7 +195,9 @@ options:
           - This is applicable when I(use_dhcp_for_dns_domain_name) is false.
         type: str
   reboot_delay:
-    description: The time in seconds, after which settings are applied.
+    description:
+      - The time in seconds, after which settings are applied.
+      - This option is not mandatory.
     type: int
 requirements:
     - "python >= 2.7.5"
@@ -174,11 +207,12 @@ author:
 
 EXAMPLES = r'''
 ---
-- name: IPv4 network settings
+- name: IPv4 network configuration for primary interface
   ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    enable_nic: true
     ipv4_configuration:
       enable: true
       enable_dhcp: false
@@ -190,7 +224,7 @@ EXAMPLES = r'''
       static_alternate_dns_server: 192.168.0.5
     reboot_delay: 5
 
-- name: IPv6 network settings
+- name: IPv6 network configuration for primary interface
   ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
@@ -198,31 +232,56 @@ EXAMPLES = r'''
     ipv6_configuration:
       enable: true
       enable_auto_configuration: true
-      static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:10
+      static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
       static_prefix_length: 10
-      static_gateway: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+      static_gateway: 2626:f2f2:f081:9:1c1c:f1f1:4747:2
       use_dhcp_for_dns_server_names: true
-      static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:2
-      static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
-    reboot_delay: 10
+      static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+      static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
+
+- name: Management vLAN configuration for primary interface
+  ome_application_network_address:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    management_vlan:
+      enable_vlan: true
+      vlan_id: 3344
+    dns_configuration:
+      register_with_dns: false
+    reboot_delay: 1
 
 - name: DNS settings
   ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ipv4_configuration:
+      enable: true
+      use_dhcp_for_dns_server_names: false
+      static_preferred_dns_server: 192.168.0.4
+      static_alternate_dns_server: 192.168.0.5
     dns_configuration:
       register_with_dns: true
       use_dhcp_for_dns_domain_name: false
       dns_name: "MX-SVCTAG"
       dns_domain_name: "dnslocaldomain"
-    reboot_delay: 1
 
-- name: Complete network settings
+- name: Disbale nic interface eth1
   ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    enable_nic: false
+    interface_name: eth1
+
+- name: Complete network settings for interface eth1
+  ome_application_network_address:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    enable_nic: true
+    interface_name: eth1
     ipv4_configuration:
       enable: true
       enable_dhcp: false
@@ -235,18 +294,18 @@ EXAMPLES = r'''
     ipv6_configuration:
       enable: true
       enable_auto_configuration: true
-      static_ip_address: 2607:f2b1:f081:9:1c8c:f1c7:47e:f120
+      static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
       static_prefix_length: 10
       static_gateway: ffff::2607:f2b1:f081:9
       use_dhcp_for_dns_server_names: true
-      static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
-      static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:2
+      static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+      static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
     dns_configuration:
       register_with_dns: true
       use_dhcp_for_dns_domain_name: false
       dns_name: "MX-SVCTAG"
       dns_domain_name: "dnslocaldomain"
-    reboot_delay: 1
+    reboot_delay: 5
 '''
 
 RETURN = r'''
@@ -254,12 +313,12 @@ RETURN = r'''
 msg:
   type: str
   description: Overall status of the network address configuration change.
-  returned: success
+  returned: always
   sample: Successfully updated network address configuration
 network_configuration:
   type: dict
   description: Updated application network address configuration.
-  returned: success
+  returned: on success
   sample: {
     "Delay": 0,
     "DnsConfiguration": {
@@ -269,6 +328,8 @@ network_configuration:
         "UseDHCPForDNSDomainName": true
     },
     "EnableNIC": true,
+    "InterfaceName": "eth0",
+    "PrimaryInterface": true,
     "Ipv4Configuration": {
         "Enable": true,
         "EnableDHCP": false,
@@ -411,7 +472,9 @@ def remove_unwanted_keys(key_list, payload):
 
 
 def format_payload(src_dict):
-    address_payload_map = {"enable": "Enable",
+    address_payload_map = {"enable_nic": "EnableNIC",
+                           "interface_name": "InterfaceName",
+                           "enable": "Enable",
                            "enable_dhcp": "EnableDHCP",
                            "static_ip_address": "StaticIPAddress",
                            "static_subnet_mask": "StaticSubnetMask",
@@ -421,6 +484,8 @@ def format_payload(src_dict):
                            "static_alternate_dns_server": "StaticAlternateDNSServer",
                            "enable_auto_configuration": "EnableAutoConfiguration",
                            "static_prefix_length": "StaticPrefixLength",
+                           "enable_vlan": "EnableVLAN",
+                           "vlan_id": "Id",
                            "register_with_dns": "RegisterWithDNS",
                            "use_dhcp_for_dns_domain_name": "UseDHCPForDNSDomainName",
                            "dns_name": "DnsName",
@@ -438,7 +503,8 @@ def get_payload(module):
     ipv4_payload = format_payload(backup_params.get("ipv4_configuration", {}))
     ipv6_payload = format_payload(backup_params.get("ipv6_configuration", {}))
     dns_payload = format_payload(backup_params.get("dns_configuration", {}))
-    return ipv4_payload, ipv6_payload, dns_payload
+    vlan_payload = format_payload(backup_params.get("management_vlan", {}))
+    return ipv4_payload, ipv6_payload, dns_payload, vlan_payload
 
 
 def _compare_dict_merge(src_dict, new_dict, param_list):
@@ -510,47 +576,81 @@ def update_dns_payload(src_dict, new_dict):
     return diff
 
 
+def update_vlan_payload(src_dict, new_dict):
+    diff = 0
+    if new_dict:
+        mkey = "EnableVLAN"
+        if new_dict.get(mkey) is not None:
+            if new_dict.get(mkey) != src_dict.get(mkey):
+                src_dict[mkey] = new_dict.get(mkey)
+                diff += 1
+            if new_dict.get(mkey) is True:
+                diff = diff + _compare_dict_merge(src_dict, new_dict, ["Id"])
+    return diff
+
+
 def get_network_config_data(rest_obj, module):
-    rest_method = "PUT"
     try:
+        interface = module.params.get("interface_name")
         resp = rest_obj.invoke_request("GET", JOB_IP_CONFIG)
-        rest_method = "POST"
         adapter_list = resp.json_data.get("value")
-        if len(adapter_list) == 1:
-            return adapter_list[0], rest_method, POST_IP_CONFIG
-        elif adapter_list > 1:
+        int_adp = None
+        pri_adp = None
+        if adapter_list:
             for adp in adapter_list:
+                if interface and adp.get("InterfaceName") == interface:
+                    int_adp = adp
+                    break
                 if adp.get("PrimaryInterface"):
-                    return adp, rest_method, POST_IP_CONFIG
+                    pri_adp = adp
+        if interface and int_adp is None:
+            module.fail_json(msg="The 'interface_name' value provided {0} is invalid".format(interface))
+        elif int_adp:
+            return int_adp, "POST", POST_IP_CONFIG
+        else:
+            return pri_adp, "POST", POST_IP_CONFIG
     except HTTPError as err:
         pass
     except Exception as err:
         raise err
-    rest_method = "PUT"
     resp = rest_obj.invoke_request("GET", IP_CONFIG)
-    return resp.json_data, rest_method, IP_CONFIG
+    return resp.json_data, "PUT", IP_CONFIG
 
 
-def get_updated_payload(rest_obj, module, ipv4_payload, ipv6_payload, dns_payload):
+def get_updated_payload(rest_obj, module, ipv4_payload, ipv6_payload, dns_payload, vlan_payload):
     current_setting = {}
-    if not any([ipv4_payload, ipv6_payload, dns_payload]):
-        module.fail_json(msg="Unable to configure the network because network configuration settings are not provided.")
+    remove_keys = ["@odata.context", "@odata.type", "@odata.id", "CurrentSettings"]
+    current_setting, rest_method, uri = get_network_config_data(rest_obj, module)
+    remove_unwanted_keys(remove_keys, current_setting)
+    payload_dict = {"Ipv4Configuration": [ipv4_payload, update_ipv4_payload],
+                    "Ipv6Configuration": [ipv6_payload, update_ipv6_payload]}
+    opt_pload_dict = {"DnsConfiguration": [dns_payload, update_dns_payload],
+                      "ManagementVLAN": [vlan_payload, update_vlan_payload]}
+    diff = 0
+    enable_nic = module.params.get("enable_nic")
+    if current_setting.get("EnableNIC") != enable_nic:
+        current_setting["EnableNIC"] = enable_nic
+        diff += 1
+    if enable_nic:
+        for config, pload in payload_dict.items():
+            if pload[0]:
+                diff = diff + pload[1](current_setting.get(config), pload[0])
+        for config, pload in opt_pload_dict.items():
+            if pload[0]:
+                diff = diff + pload[1](current_setting.get(config), pload[0])
+            else:
+                current_setting.pop(config)
     else:
-        remove_keys = ["@odata.context", "@odata.type", "@odata.id", "CurrentSettings"]
-        current_setting, rest_method, uri = get_network_config_data(rest_obj, module)
-        remove_unwanted_keys(remove_keys, current_setting)
-        diff = 0
-        diff = diff + update_ipv4_payload(current_setting.get("Ipv4Configuration"), ipv4_payload)
-        diff = diff + update_ipv6_payload(current_setting.get("Ipv6Configuration"), ipv6_payload)
-        diff = diff + update_dns_payload(current_setting.get("DnsConfiguration"), dns_payload)
-        delay = module.params.get("reboot_delay")
-        if delay is not None:
-            if current_setting["Delay"] != delay:
-                current_setting["Delay"] = delay
-        if diff == 0:
-            module.exit_json(
-                msg="No changes made to network configuration as entered values are the same as current configured "
-                    "values", network_configuration=current_setting)
+        for config in payload_dict.keys():
+            current_setting.pop(config)
+    delay = module.params.get("reboot_delay")
+    if delay is not None:
+        if current_setting["Delay"] != delay:
+            current_setting["Delay"] = delay
+    if diff == 0:
+        module.exit_json(
+            msg="No changes made to network configuration as entered values are the same as current configured "
+                "values", network_configuration=current_setting)
     return current_setting, rest_method, uri
 
 
@@ -594,12 +694,16 @@ def main():
                    "use_dhcp_for_dns_domain_name": {"required": False, "type": "bool"},
                    "dns_name": {"required": False, "type": "str"},
                    "dns_domain_name": {"required": False, "type": "str"}}
+    management_vlan = {"enable_vlan": {"required": True, "type": "bool"},
+                       "vlan_id": {"required": False, "type": "int"}}
     module = AnsibleModule(
         argument_spec={
             "hostname": {"required": True, "type": "str"},
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "enable_nic": {"required": False, "type": "bool", "default": True},
+            "interface_name": {"required": False, "type": "str"},
             "ipv4_configuration":
                 {"required": False, "type": "dict", "options": ipv4_options,
                  "required_if": [
@@ -625,16 +729,31 @@ def main():
                      ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)]
                  ]
                  },
+            "management_vlan":
+                {"required": False, "type": "dict", "options": management_vlan,
+                 "required_if": [
+                     ['enable_vlan', True, ('vlan_id',), True]
+                 ]
+                 },
             "reboot_delay": {"required": False, "type": "int"}
         },
-        required_one_of=[("ipv4_configuration", "ipv6_configuration", "dns_configuration")],
+        required_if=[
+            ["enable_nic", True,
+             ("ipv4_configuration", "ipv6_configuration", "dns_configuration", "management_vlan"), True]
+        ],
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             validate_input(module)
-            ipv4_payload, ipv6_payload, dns_payload = get_payload(module)
-            updated_payload, rest_method, uri = get_updated_payload(rest_obj, module, ipv4_payload, ipv6_payload, dns_payload)
+            ipv4_payload, ipv6_payload, dns_payload, vlan_payload = get_payload(module)
+            updated_payload, rest_method, uri = get_updated_payload(
+                rest_obj, module, ipv4_payload, ipv6_payload, dns_payload, vlan_payload)
             resp = rest_obj.invoke_request(rest_method, uri, data=updated_payload)
+            if rest_method == "POST":
+                module.exit_json(msg="Successfully triggered job to update network address configuration",
+                                 network_configuration=updated_payload, job_info=resp.json_data, changed=True)
+            module.exit_json(msg="Successfully updated network address configuration",
+                             network_configuration=resp.json_data, changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
@@ -643,11 +762,6 @@ def main():
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))
-    if rest_method == "POST":
-        module.exit_json(msg="Successfully triggered job to update network address configuration",
-                         network_configuration=updated_payload, job_info=resp.json_data, changed=True)
-    module.exit_json(msg="Successfully updated network address configuration",
-                     network_configuration=resp.json_data, changed=True)
 
 
 if __name__ == "__main__":

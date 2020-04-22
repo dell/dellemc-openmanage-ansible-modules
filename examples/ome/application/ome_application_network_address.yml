@@ -31,21 +31,40 @@
       ipv6_configuration:
         enable: true
         enable_auto_configuration: true
-        static_ip_address: 2607:f2b1:f081:9:1c8c:f1c7:47e:f120
+        static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
         static_prefix_length: 10
-        static_gateway: ffff::2607:f2b1:f081:9
+        static_gateway: 2626:f2f2:f081:9:1c1c:f1f1:4747:2
         use_dhcp_for_dns_server_names: true
-        static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
-        static_alternate_dns_server: ""
+        static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+        static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
       reboot_delay: 10
     tags:
       - ipv6_config
+
+  - name: Management vLAN settings for primary interface
+    ome_application_network_address:
+      hostname: "{{hostname}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      management_vlan:
+        enable_vlan: true
+        vlan_id: 3344
+      dns_configuration:
+        register_with_dns: false
+      reboot_delay: 1
+    tags:
+      - mgmt_vlan
 
   - name: DNS settings
     ome_application_network_address:
       hostname: "{{hostname}}"
       username: "{{username}}"
       password: "{{password}}"
+      ipv4_configuration:
+        enable: true
+        use_dhcp_for_dns_server_names: false
+        static_preferred_dns_server: 192.168.0.4
+        static_alternate_dns_server: 192.168.0.5
       dns_configuration:
         register_with_dns: true
         use_dhcp_for_dns_domain_name: false

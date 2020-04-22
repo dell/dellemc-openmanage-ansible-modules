@@ -55,6 +55,7 @@ class FakeAnsibleModule:
          be caught here and extracted the result for exit_json case"""
         module_args.update({'_ansible_check_mode': check_mode})
         set_module_args(module_args)
+        result={}
         try:
             with pytest.raises(AnsibleExitJson) as ex:
                 self.module.main()
@@ -62,7 +63,7 @@ class FakeAnsibleModule:
             result = ast.literal_eval(err.args[0]['msg'])
         return result
 
-    def get_module_mock(self, params=None):
+    def get_module_mock(self, params=None, check_mode=False):
         if params is None:
             params = {}
 
@@ -73,4 +74,5 @@ class FakeAnsibleModule:
         module.fail_json.side_effect = fail_func
         module.exit_json.side_effect = fail_func
         module.params = params
+        module.check_mode = check_mode
         return module

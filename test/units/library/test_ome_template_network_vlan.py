@@ -3,11 +3,9 @@
 #
 # Dell EMC OpenManage Ansible Modules
 # Version 2.0.8
-# Copyright (C) 2020 Dell Inc.
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 from __future__ import absolute_import

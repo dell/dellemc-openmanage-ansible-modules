@@ -4,6 +4,20 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
+# 2.0.11 (April 20, 2020)
+
+  * The ome_application_network_webserver module allows the configuration of the network web server.
+
+  * The ome_application_network_time module allows the configuration of network time.
+  
+  * The module ome_application_network_address is updated to include the following:
+	- A specific NIC can be selected in case of multiple NICs,
+	- A NIC can be enabled or disabled using the option enable_nic,
+	- Support for the configuration of a management vLAN.
+   
+  * The module idrac_firmware is enhanced to support FQDN input format for
+   share details.
+
 # 2.0.10 (March 27, 2020)
 
   * The new OME module(ome_application_network_proxy) allows to configure a

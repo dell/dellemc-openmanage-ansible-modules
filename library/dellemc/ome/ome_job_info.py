@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.3
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.11
+# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 from __future__ import (absolute_import, division, print_function)
@@ -20,7 +18,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = r'''
 ---
-module: dellemc_ome_job_facts
+module: ome_job_info
 short_description: Get job details for a given job ID or entire job queue.
 version_added: "2.9"
 description: This module retrieves job details for a given job ID or entire job queue.
@@ -66,23 +64,23 @@ author: "Jagadeesh N V(@jagadeeshnv)"
 EXAMPLES = r'''
 ---
 - name: Get all jobs details.
-  dellemc_ome_job_facts:
-    hostname:  "192.168.0.1"
+  ome_job_info:
+    hostname: "192.168.0.1"
     username: "username"
-    password:  "password"
+    password: "password"
 
 - name: Get job details for id.
-  dellemc_ome_job_facts:
-    hostname:  "192.168.0.1"
+  ome_job_info:
+    hostname: "192.168.0.1"
     username: "username"
-    password:  "password"
+    password: "password"
     job_id: 12345
 
 - name: Get filtered job details.
-  dellemc_ome_job_facts:
-    hostname:  "192.168.0.1"
+  ome_job_info:
+    hostname: "192.168.0.1"
     username: "username"
-    password:  "password"
+    password: "password"
     system_query_options:
       top: 2
       skip: 1
@@ -96,7 +94,7 @@ msg:
   description: Overall status of the job facts operation.
   returned: always
   type: str
-job_facts:
+job_info:
   description: Details of the OpenManage Enterprise jobs.
   returned: success
   type: dict
@@ -155,7 +153,6 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 def _get_query_parameters(module_params):
     """Builds query parameter
-
     :returns: dictionary, which builds the query format
      eg : {"$filter": "JobType/Id eq 8"}
      """
@@ -199,15 +196,17 @@ def main():
             resp = rest_obj.invoke_request('GET', jpath, query_param=query_param)
             job_facts = resp.json_data
     except HTTPError as httperr:
-        module.fail_json(msg=str(httperr), job_facts=json.load(httperr))
-    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+        module.fail_json(msg=str(httperr), job_info=json.load(httperr))
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         module.fail_json(msg=str(err))
 
     # check for 200 status as GET only returns this for success
     if resp and resp.status_code == 200:
-        module.exit_json(msg="Successfully fetched the job facts", job_facts=job_facts)
+        module.exit_json(msg="Successfully fetched the job info", job_info=job_facts)
     else:
-        module.fail_json(msg="Failed to fetch the job facts")
+        module.fail_json(msg="Failed to fetch the job info")
 
 
 if __name__ == '__main__':
