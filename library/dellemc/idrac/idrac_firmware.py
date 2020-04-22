@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.10
+# Version 2.0.11
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -178,7 +178,6 @@ update_status:
 
 import os
 import re
-import socket
 import json
 from xml.etree import ElementTree as ET
 from ansible.module_utils.remote_management.dellemc.dellemc_idrac import iDRACConnection
@@ -213,14 +212,15 @@ def _validate_catalog_file(catalog_file_name):
 
 def _convert_xmltojson(job_details):
     """get all the xml data from PackageList and returns as valid json."""
-    data = []
+    data, repo_status = [], False
     try:
         xmldata = ET.fromstring(job_details['PackageList'])
         for iname in xmldata.iter('INSTANCENAME'):
             data.append({attr.attrib['NAME']: txt.text for attr in iname.iter("PROPERTY") for txt in attr})
+        repo_status = True
     except ET.ParseError:
         data = job_details['PackageList']
-    return data
+    return data, repo_status
 
 
 def get_jobid(module, resp):
@@ -241,9 +241,12 @@ def update_firmware_url(module, idrac, share_name, catalog_file_name, apply_upda
     """Update firmware through HTTP/HTTPS/FTP and return the job details."""
     repo_url = urlparse(share_name)
     job_details, status = {}, {}
-    ipaddr = socket.gethostbyname(repo_url.netloc)
+    ipaddr = repo_url.netloc
     share_type = repo_url.scheme
     sharename = repo_url.path.strip('/')
+    message = "Firmware versions on server match catalog, applicable updates are not present in the repository."
+    exit_message = "The catalog in the repository specified in the operation has the same firmware versions" \
+                   " as currently present on the server."
     if idrac.use_redfish:
         payload['IPAddress'] = ipaddr
         if repo_url.path:
@@ -260,17 +263,23 @@ def update_firmware_url(module, idrac, share_name, catalog_file_name, apply_upda
                 job_details = eval(resp_repo_based_update_list.read())
             except HTTPError as err:
                 err_message = json.load(err)
-                message = "Firmware versions on server match catalog, applicable updates are not present in the repository."
-                exit_message = "The catalog in the repository specified in the operation has the same firmware versions" \
-                               " as currently present on the server."
                 if err_message['error']['@Message.ExtendedInfo'][0]['Message'] == message:
                     module.exit_json(msg=exit_message)
                 raise err
+    elif not idrac.use_redfish and ipaddr == "downloads.dell.com":
+        status = idrac.update_mgr.update_from_dell_repo_url(ipaddress=ipaddr, share_type=share_type,
+                                                            share_name=sharename, catalog_file=catalog_file_name,
+                                                            apply_update=apply_update, reboot_needed=reboot,
+                                                            ignore_cert_warning=ignore_cert_warning, job_wait=job_wait)
+        if status["job_details"]["Data"]["GetRepoBasedUpdateList_OUTPUT"].get("Message") == message.rstrip("."):
+            module.exit_json(msg=exit_message)
     else:
         status = idrac.update_mgr.update_from_repo_url(ipaddress=ipaddr, share_type=share_type,
                                                        share_name=sharename, catalog_file=catalog_file_name,
                                                        apply_update=apply_update, reboot_needed=reboot,
                                                        ignore_cert_warning=ignore_cert_warning, job_wait=job_wait)
+        if status["job_details"]["Data"]["GetRepoBasedUpdateList_OUTPUT"].get("Message") == message.rstrip("."):
+            module.exit_json(msg=exit_message)
     return status, job_details
 
 
@@ -325,21 +334,20 @@ def update_firmware(idrac, module):
             else:
                 msg['update_status'] = idrac.update_mgr.update_from_repo(upd_share, apply_update=apply_update,
                                                                          reboot_needed=reboot, job_wait=job_wait)
-        json_data = msg['update_status']['job_details']
+        json_data, repo_status = msg['update_status']['job_details'], False
         if "PackageList" not in json_data:
-            job_data = json_data['Data']
-            pkglst = job_data['body'] if 'body' in job_data else job_data['GetRepoBasedUpdateList_OUTPUT']
+            job_data = json_data.get('Data')
+            pkglst = job_data['body'] if 'body' in job_data else job_data.get('GetRepoBasedUpdateList_OUTPUT')
             if 'PackageList' in pkglst:
-                pkglst['PackageList'] = _convert_xmltojson(pkglst)
+                pkglst['PackageList'], repo_status = _convert_xmltojson(pkglst)
         else:
-            json_data['PackageList'] = _convert_xmltojson(json_data)
+            json_data['PackageList'], repo_status = _convert_xmltojson(json_data)
     except RuntimeError as e:
         module.fail_json(msg=str(e))
     if "Status" in msg['update_status']:
         if msg['update_status']['Status'] in ["Success", "InProgress"]:
             if module.params['job_wait'] and module.params['apply_update'] and \
-                    ('job_details' in msg['update_status'] and
-                     msg['update_status']['job_details']['PackageList']):
+                    ('job_details' in msg['update_status'] and repo_status):
                 msg['changed'] = True
                 msg['update_msg'] = "Successfully updated the firmware."
         else:

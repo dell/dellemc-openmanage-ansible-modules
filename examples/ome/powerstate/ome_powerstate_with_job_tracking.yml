@@ -19,13 +19,13 @@
     failed_when: "'job_status' not in result"
 
   - name: "Get job details using job id from power state operation."
-    dellemc_ome_job_facts:
+    ome_job_info:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
       job_id: "{{result.job_status.Id}}"
     register: job_result
-    failed_when: "'job_facts' not in job_result"
-    until: job_result.job_facts.LastRunStatus.Name == 'Completed' or job_result.job_facts.LastRunStatus.Name == 'Failed'
+    failed_when: "'job_info' not in job_result"
+    until: job_result.job_info.LastRunStatus.Name == 'Completed' or job_result.job_info.LastRunStatus.Name == 'Failed'
     retries: "{{ retries_count }}"
     delay: "{{ polling_interval }}"

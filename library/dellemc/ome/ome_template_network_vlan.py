@@ -4,11 +4,9 @@
 #
 # Dell EMC OpenManage Ansible Modules
 # Version 2.0.9
-# Copyright (C) 2020 Dell Inc.
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -427,8 +425,7 @@ def main():
             payload = get_vlan_payload(module, rest_obj, untag_dict, tagged_dict)
             resp = rest_obj.invoke_request("POST", UPDATE_NETWORK_CONFIG, data=payload)
             if resp.success:
-                module.exit_json(msg="Successfully applied the network "
-                                     "settings to the template", changed=True)
+                module.exit_json(msg="Successfully applied the network settings to the template", changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
