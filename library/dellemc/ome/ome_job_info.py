@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.11
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.0.12
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -19,9 +19,9 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_job_info
-short_description: Get job details for a given job ID or entire job queue.
+short_description: Get job details for a given job ID or an entire job queue on OpenMange Enterprise.
 version_added: "2.9"
-description: This module retrieves job details for a given job ID or entire job queue.
+description: This module retrieves job details for a given job ID or an entire job queue on OpenMange Enterprise.
 options:
   hostname:
     description: Target IP Address or hostname.
@@ -150,6 +150,8 @@ from ansible.module_utils.remote_management.dellemc.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
+JOBS_URI = "JobService/Jobs"
+
 
 def _get_query_parameters(module_params):
     """Builds query parameter
@@ -179,31 +181,39 @@ def main():
         },
         supports_check_mode=False
     )
-    joburi = "JobService/Jobs"
-    resp = None
+
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
+            resp_status = []
             if module.params.get("job_id") is not None:
                 # Fetch specific job
                 job_id = module.params.get("job_id")
-                jpath = "{0}({1})".format(joburi, job_id)
-                query_param = None
+                jpath = "{0}({1})".format(JOBS_URI, job_id)
+                resp = rest_obj.invoke_request('GET', jpath)
+                job_facts = resp.json_data
+                resp_status.append(resp.status_code)
             else:
-                # Fetch all jobs, filter and pagination options
                 # query applicable only for all jobs list fetching
                 query_param = _get_query_parameters(module.params)
-                jpath = joburi
-            resp = rest_obj.invoke_request('GET', jpath, query_param=query_param)
-            job_facts = resp.json_data
+                if query_param:
+                    resp = rest_obj.invoke_request('GET', JOBS_URI, query_param=query_param)
+                    job_facts = resp.json_data
+                    resp_status.append(resp.status_code)
+                else:
+                    # Fetch all jobs, filter and pagination options
+                    job_report = rest_obj.get_all_report_details(JOBS_URI)
+                    job_facts = {"@odata.context": job_report["resp_obj"].json_data["@odata.context"],
+                                 "@odata.count": len(job_report["report_list"]),
+                                 "value": job_report["report_list"]}
+                    if job_facts["@odata.count"] > 0:
+                        resp_status.append(200)
     except HTTPError as httperr:
         module.fail_json(msg=str(httperr), job_info=json.load(httperr))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         module.fail_json(msg=str(err))
-
-    # check for 200 status as GET only returns this for success
-    if resp and resp.status_code == 200:
+    if 200 in resp_status:
         module.exit_json(msg="Successfully fetched the job info", job_info=job_facts)
     else:
         module.fail_json(msg="Failed to fetch the job info")

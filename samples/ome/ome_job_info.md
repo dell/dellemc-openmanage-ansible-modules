@@ -60,7 +60,7 @@ Get all job details filtered.:
 
 "job_info": {
 	"@odata.context": "/api/$metadata#Collection(JobService.Job)",
-	"@odata.count": 687,
+	"@odata.count": 2,
 	"@odata.nextLink": "/api/JobService/Jobs?$skip=3&$top=2",
 	"value": [
 		{

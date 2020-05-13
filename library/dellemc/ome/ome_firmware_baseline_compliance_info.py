@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.9
-# Copyright (C) 2019-2020 Dell Inc.
+# Version 2.0.12
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -22,11 +20,11 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_firmware_baseline_compliance_info
-short_description: Retrieves baseline compliance details.
+short_description: Retrieves baseline compliance details on OpenManage Enterprise.
 version_added: "2.9"
 description:
    - This module allows to retrieve firmware compliance for a list of devices,
-     or against a specified baseline.
+     or against a specified baseline on OpenManage Enterprise.
 options:
   hostname:
     description: Target IP address or hostname.
@@ -379,8 +377,8 @@ def validate_inputs(module):
     device_ids = module_params.get("device_ids")
     baseline_name = module_params.get("baseline_name")
     if all(not identifer for identifer in [device_ids, device_service_tags, device_group_names, baseline_name]):
-            module.fail_json(msg="one of the following is required: device_ids, device_service_tags, "
-                                 "device_group_names, baseline_name to generate device based compliance report.")
+        module.fail_json(msg="one of the following is required: device_ids, device_service_tags, "
+                             "device_group_names, baseline_name to generate device based compliance report.")
 
 
 def main():

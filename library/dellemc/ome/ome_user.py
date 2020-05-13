@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.12
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -22,9 +20,9 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_user
-short_description: Create, modify or delete a user.
+short_description: Create, modify or delete a user on OpenManage Enterprise.
 version_added: "2.9"
-description: This module creates, modifies or deletes a user.
+description: This module creates, modifies or deletes a user on OpenManage Enterprise.
 options:
   hostname:
     description: Target IP Address or hostname.
