@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.11
+# Version 2.0.12
 # Copyright (C) 2020 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_application_network_time
-short_description: Updates the network time.
+short_description: Updates the network time on OpenManage Enterprise.
 version_added: "2.9"
 description: This module allows the configuration of network time on OpenManage Enterprise.
 options:
@@ -185,10 +185,17 @@ def get_payload(module):
     return payload
 
 
+def update_time_config_output(back_up_settings):
+    remove_keys = ["@odata.context", "@odata.type", "@odata.id"]
+    remove_unwanted_keys(remove_keys, back_up_settings)
+    back_up_settings.update({"JobId": None})
+
+
 def get_updated_payload(rest_obj, module, payload):
     remove_keys = ["@odata.context", "@odata.type", "@odata.id", "TimeZoneIdLinux", "TimeZoneIdWindows", "TimeSource", "UtcTime"]
     resp = rest_obj.invoke_request("GET", TIME_CONFIG, api_timeout=150)
     current_setting = resp.json_data
+    back_up_settings = current_setting.copy()
     remove_unwanted_keys(remove_keys, current_setting)
     diff = any(key in current_setting and val != current_setting[key] for key, val in payload.items())
     if module.check_mode:
@@ -197,7 +204,12 @@ def get_updated_payload(rest_obj, module, payload):
         else:
             module.exit_json(changed=False, msg="No changes found to be applied to the time configuration.")
     else:
-        current_setting.update(payload)
+        if diff:
+            current_setting.update(payload)
+        else:
+            update_time_config_output(back_up_settings)
+            module.exit_json(changed=False, msg="No changes made to the time configuration as the entered"
+                                                " values are the same as the current configuration.", time_configuration=back_up_settings)
     return current_setting
 
 

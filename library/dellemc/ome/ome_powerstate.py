@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.10
-# Copyright (C) 2019-2020 Dell Inc.
+# Version 2.0.12
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -22,9 +20,9 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_powerstate
-short_description: Performs the power management operations.
+short_description: Performs the power management operations on OpenManage Enterprise.
 version_added: "2.9"
-description: This module performs the supported power management operations.
+description: This module performs the supported power management operations on OpenManage Enterprise.
 options:
   hostname:
     description: Target IP address or hostname.

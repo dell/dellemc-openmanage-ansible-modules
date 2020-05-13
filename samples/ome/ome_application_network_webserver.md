@@ -12,13 +12,13 @@
 Update webserver port and session time out configuration in check mode
 {
     "changed": true,
-    "msg": "Changes found to be updated for web server."
+    "msg": "Changes found to be applied to the web server."
 }
 
 No Changes found to apply 
 {
-    "msg": "No changes made to web server configuration as entered values 
-    are the same as current configured values",
+    "msg": "No changes made to the web server configuration as the entered
+     values are the same as the current configuration.",
     "webserver_configuration": {
         "EnableWebServer": true,
         "PortNumber": 443,
@@ -29,5 +29,5 @@ No Changes found to apply
 No Changes found to apply in check mode
 {
     "changed": true,
-    "msg": "No changes found to be updated for web server."
+    "msg": "No changes found to be applied to the web server."
 }

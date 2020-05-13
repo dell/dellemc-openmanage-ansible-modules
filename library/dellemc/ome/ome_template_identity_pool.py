@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.9
-# Copyright (C) 2020 Dell Inc.
+# Version 2.0.12
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -22,11 +20,11 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_template_identity_pool
-short_description: Attach or detach an identity pool to a requested template.
+short_description: Attach or detach an identity pool to a requested template on OpenManage Enterprise.
 version_added: "2.9"
 description: This module allows to-
-  - Attach an identity pool to a requested template.
-  - Detach an identity pool from a requested template.
+  - Attach an identity pool to a requested template on OpenManage Enterprise.
+  - Detach an identity pool from a requested template on OpenManage Enterprise.
 options:
   hostname:
     description: Target IP Address or hostname.

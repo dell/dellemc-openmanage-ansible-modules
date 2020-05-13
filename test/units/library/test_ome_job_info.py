@@ -10,25 +10,15 @@
 
 from __future__ import absolute_import
 
-import pytest, json
+import pytest
 
 from ansible.modules.remote_management.dellemc import ome_job_info
 from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock
-from units.modules.remote_management.dellemc.common import AnsibleFailJSonException
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.utils import AnsibleExitJson
-from ssl import SSLError
 from io import StringIO
 from ansible.module_utils._text import to_text
 import json
-from ansible.module_utils import basic
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleExitJson
-import ast
-import pdb
-
-
 
 
 class TestOmeJobInfo(FakeAnsibleModule):
@@ -40,7 +30,7 @@ class TestOmeJobInfo(FakeAnsibleModule):
         connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_job_info.RestOME')
         ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
         ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
-        return connection_class_mock.return_value
+        return ome_connection_mock_obj
 
     @pytest.mark.parametrize("module_params,data", [({"system_query_options": {"filter": "abc"}}, "$filter")])
     def test_get_query_parameters(self, module_params, data):
@@ -50,12 +40,15 @@ class TestOmeJobInfo(FakeAnsibleModule):
         else:
             assert res is None
 
+
     def test_job_info_success_case(self, ome_default_args, ome_connection_job_info_mock,
                                     ome_response_mock):
-        ome_connection_job_info_mock.__enter__.return_value = ome_connection_job_info_mock
-        ome_connection_job_info_mock.invoke_request.return_value = ome_response_mock
-        ome_response_mock.json_data = {"value": [""]}
-        ome_response_mock.status_code = 200
+        ome_response_mock.json_data = {"@odata.context": "/api/$metadata#Collection(JobService.Job)",
+                                       "@odata.count": 1}
+        ome_response_mock.success = True
+        job_details = {"resp_obj": ome_response_mock,
+                       "report_list": [{"Name": "job1", "Id": 123}, {"Name": "job2", "Id": 124}]}
+        ome_connection_job_info_mock.get_all_report_details.return_value = job_details
         result = self._run_module(ome_default_args)
         assert 'job_info' in result
         assert result['msg'] == "Successfully fetched the job info"

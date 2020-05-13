@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.9
+# Version 2.0.12
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,9 +20,11 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_template_network_vlan
-short_description: set tagged and untagged vlans to native network card supported by a template.
+short_description: "Set tagged and untagged vlans to native network card supported by a template on
+OpenManage Enterprise."
 version_added: "2.9"
-description: This module allows to set tagged and untagged vlans to native network card supported by a template.
+description: "This module allows to set tagged and untagged vlans to native network card supported by a template
+on OpenManage Enterprise."
 options:
   hostname:
     description: Target IP Address or hostname.
@@ -416,8 +418,7 @@ def main():
         },
         required_one_of=[("template_id", "template_name"),
                          ("untagged_networks", "tagged_networks")],
-        mutually_exclusive=[("template_id", "template_name"),
-                            ("untagged_network_id", "untagged_network_name")],
+        mutually_exclusive=[("template_id", "template_name")],
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:

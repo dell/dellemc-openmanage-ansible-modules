@@ -3,12 +3,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
-# Copyright (C) 2019 Dell Inc.
+# Version 2.0.12
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 
@@ -22,10 +20,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_template_info
-short_description: Retrieves template details.
+short_description: Retrieves template details from OpenManage Enterprise.
 version_added: "2.9"
 description:
-   - This module retrieves the list and details of all templates.
+   - This module retrieves the list and details of all the templates on OpenManage Enterprise.
 options:
   hostname:
     description: Target IP address or hostname.
@@ -145,9 +143,9 @@ def main():
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "type": 'int', "default": 443},
             "template_id": {"type": 'int', "required": False},
-            "system_query_options": {"required": False, "type": 'dict', "options": {
-              "filter": {"type": 'str', "required": False},
-            }},
+            "system_query_options": {"required": False, "type": 'dict',
+                                     "options": {"filter": {"type": 'str', "required": False}}
+                                     },
         },
         mutually_exclusive=[['template_id', 'system_query_options']],
         supports_check_mode=False

@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.11
+# Version 2.0.12
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -50,7 +50,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         assert result['changed'] is True
         assert "msg" in result
         assert "webserver_configuration" in result and result["webserver_configuration"] == resp
-        assert result["msg"] == "Successfully updated network web server configuration"
+        assert result["msg"] == "Successfully updated network web server configuration."
 
     in1 = {"webserver_port": 443, "webserver_timeout": 25}
     in2 = {"webserver_timeout": 25}
@@ -77,15 +77,15 @@ class TestOmeAppNetwork(FakeAnsibleModule):
                                        "@odata.context": "$metadata#Network.WebServerConfiguration/$entity",
                                        "@odata.id": "/api/ApplicationService/Network/WebServerConfiguration"}
         f_module = self.get_module_mock(params=ome_default_args)
-        error_message = "No changes are made to the web server configuration as entered values are the same as current " \
-                        "configuration values"
+        error_message = "No changes made to the web server configuration as the entered values are the same as the" \
+                        " current configuration."
         with pytest.raises(Exception, match=error_message) as err:
             self.module.get_updated_payload(ome_connection_mock_for_application_network_webserver, f_module)
 
     in1 = {"check_mode": True, "timeout": 25}
     in2 = {"check_mode": True, "timeout": 30}
-    out1 = "No changes found to be updated to the web server."
-    out2 = "Changes found to be updated to the web server."
+    out1 = "No changes found to be applied to the web server."
+    out2 = "Changes found to be applied to the web server."
 
     @pytest.mark.parametrize("sub_param", [{"in": in1, "out": out1},
                                            {"in": in2, "out": out2}])

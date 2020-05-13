@@ -4,6 +4,15 @@ Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to 
 
 With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
+
+# 2.0.12 (May 13, 2020)
+
+  * The ome_identity_pool module allows to create and modify an identity pool
+    using FC and iSCSI settings.
+
+  * The ome_application_certificate module allows to generate a certificate
+    signing request (CSR).
+
 # 2.0.11 (April 20, 2020)
 
   * The ome_application_network_webserver module allows the configuration of the network web server.

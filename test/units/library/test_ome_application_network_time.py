@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.11
+# Version 2.0.12
 # Copyright (C) 2020 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -323,7 +323,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                    'PrimaryNTPAddress': '10.136.112.220',
                    'SecondaryNTPAddress1': '10.136.112.221',
                    'SecondaryNTPAddress2': '10.136.112.222',
-                   'SystemTime': '2020-04-01 15:39:23.825',
+                   'SystemTime': '2020-04-01 15:39:23.826',
                    'TimeZone': 'TZ_ID_02'}
         ome_response_mock.json_data = current_setting
         f_module = self.get_module_mock(params=ome_default_args, check_mode=False)
@@ -425,12 +425,74 @@ class TestOmeTemplate(FakeAnsibleModule):
         f_module = self.get_module_mock(params=ome_default_args)
         self.module.validate_input(f_module)
 
+    def test_get_updated_payload_non_check_mode_success_case1(self, ome_default_args, ome_connection_mock_for_application_network_time, ome_response_mock):
+        current_setting = {"@odata.context": "/api/$metadata#Network.TimeConfiguration",
+                           "@odata.type": "#Network.TimeConfiguration",
+                           "@odata.id": "/api/ApplicationService/Network/TimeConfiguration",
+                           "TimeZone": "TZ_ID_02", "TimeZoneIdLinux": "Asia/Colombo",
+                           "TimeZoneIdWindows": "Sri Lanka Standard Time",
+                           "EnableNTP": True,
+                           "PrimaryNTPAddress": "10.136.112.220",
+                           "SecondaryNTPAddress1": "10.136.112.221",
+                           "SecondaryNTPAddress2": "10.136.112.222",
+                           "SystemTime": "2020-04-01 15:39:23.825",
+                           "TimeSource": "10.136.112.222","UtcTime": "2020-04-01 10:09:23.825"}
+        payload = {"EnableNTP": True, "TimeZone": "TZ_ID_02",
+                   "PrimaryNTPAddress": "10.136.112.220",
+                   "SecondaryNTPAddress1": "10.136.112.221",
+                   "SecondaryNTPAddress2": "10.136.112.222"
+                   }
+        ome_response_mock.json_data = current_setting
+        check_mode_no_diff_msg = "No changes made to the time configuration as the entered values are the same as the current configuration."
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=False)
+        with pytest.raises(Exception, match=check_mode_no_diff_msg):
+            self.module.get_updated_payload(ome_connection_mock_for_application_network_time,
+                                            f_module, payload)
 
+    def test_get_updated_payload_non_check_mode_success_case2(self, ome_default_args, ome_connection_mock_for_application_network_time, ome_response_mock):
+        current_setting = {"@odata.context": "/api/$metadata#Network.TimeConfiguration",
+                           "@odata.type": "#Network.TimeConfiguration",
+                           "@odata.id": "/api/ApplicationService/Network/TimeConfiguration",
+                           "TimeZone": "TZ_ID_02", "TimeZoneIdLinux":"Asia/Colombo",
+                           "TimeZoneIdWindows": "Sri Lanka Standard Time",
+                           "EnableNTP": True,
+                           "PrimaryNTPAddress": "10.136.112.220",
+                           "SecondaryNTPAddress1": "10.136.112.221",
+                           "SecondaryNTPAddress2": "10.136.112.222",
+                           "SystemTime": "2020-04-01 15:39:23.825",
+                           "TimeSource": "10.136.112.222", "UtcTime": "2020-04-01 10:09:23.825"}
+        payload = {"EnableNTP": True,  "PrimaryNTPAddress": "10.136.112.220"}
+        ome_response_mock.json_data = current_setting
+        check_mode_no_diff_msg = "No changes made to the time configuration as the entered values are the same as the current configuration."
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=False)
+        with pytest.raises(Exception, match=check_mode_no_diff_msg) as err:
+            self.module.get_updated_payload(ome_connection_mock_for_application_network_time,
+                                            f_module, payload)
 
-
-
-
-
-
-
-
+    def test_update_time_config_output(self):
+        backup_setting = {"@odata.context":"/api/$metadata#Network.TimeConfiguration",
+                          "@odata.type":"#Network.TimeConfiguration",
+                          "@odata.id":"/api/ApplicationService/Network/TimeConfiguration",
+                          "TimeZone":"TZ_ID_1",
+                          "TimeZoneIdLinux":"Etc/GMT+12",
+                          "TimeZoneIdWindows": "Dateline Standard Time",
+                           "EnableNTP": False,
+                          "PrimaryNTPAddress": None,
+                          "SecondaryNTPAddress1":None,
+                          "SecondaryNTPAddress2":None,
+                          "SystemTime":"2020-03-31 21:37:08.897",
+                          "TimeSource":"Local Clock",
+                          "UtcTime":"2020-04-01 09:37:08.897"}
+        self.module.update_time_config_output(backup_setting)
+        assert backup_setting == {
+        "EnableNTP": False,
+        "JobId": None,
+        "PrimaryNTPAddress": None,
+        "SecondaryNTPAddress1": None,
+        "SecondaryNTPAddress2": None,
+        "SystemTime": "2020-03-31 21:37:08.897",
+        "TimeSource": "Local Clock",
+        "TimeZone": "TZ_ID_1",
+        "TimeZoneIdLinux": "Etc/GMT+12",
+        "TimeZoneIdWindows":"Dateline Standard Time",
+        "UtcTime": "2020-04-01 09:37:08.897"}

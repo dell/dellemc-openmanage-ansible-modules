@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.11
+# Version 2.0.12
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,9 +20,9 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_application_network_webserver
-short_description: Updates the Web server configuration.
+short_description: Updates the Web server configuration on OpenManage Enterprise.
 version_added: "2.9"
-description: This module allows to configure a network web server.
+description: This module allows to configure a network web server on OpenManage Enterprise.
 options:
   hostname:
     description: Target IP Address or hostname.
@@ -159,12 +159,12 @@ def get_updated_payload(rest_obj, module):
                 diff += 1
     if diff == 0:  # Idempotency
         if module.check_mode:
-            module.exit_json(msg="No changes found to be updated to the web server.")
-        # module.exit_json(
-        #     msg="No changes are made to the web server configuration as entered values are the same as current "
-        #         "configuration values", webserver_configuration=current_setting)
+            module.exit_json(msg="No changes found to be applied to the web server.")
+        module.exit_json(
+            msg="No changes made to the web server configuration as the entered"
+                " values are the same as the current configuration.", webserver_configuration=current_setting)
     if module.check_mode:
-        module.exit_json(changed=True, msg="Changes found to be updated to the web server.")
+        module.exit_json(changed=True, msg="Changes found to be applied to the web server.")
     return current_setting, port_changed
 
 
@@ -184,7 +184,7 @@ def main():
     try:
         with RestOME(module.params, req_session=False) as rest_obj:
             updated_payload, port_change = get_updated_payload(rest_obj, module)
-            msg = "Successfully updated network web server configuration"
+            msg = "Successfully updated network web server configuration."
             resp = rest_obj.invoke_request("PUT", WEBSERVER_CONFIG, data=updated_payload)
             module.exit_json(msg=msg, webserver_configuration=resp.json_data, changed=True)
     except HTTPError as err:
@@ -193,7 +193,7 @@ def main():
         module.exit_json(msg=str(err), unreachable=True)
     except SSLError as err:
         if port_change:
-            module.exit_json(msg="{0}. Port has changed to {1}".format(msg, port_change),
+            module.exit_json(msg="{0} Port has changed to {1}.".format(msg, port_change),
                              webserver_configuration=updated_payload, changed=True)
         else:
             module.fail_json(msg=str(err))
