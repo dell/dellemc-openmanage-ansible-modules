@@ -187,7 +187,7 @@ dest:
 """
 
 
-from ansible.module_utils.remote_management.dellemc.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omdrivers.enums.iDRAC.iDRAC import (DNSRegister_NICTypes, DNSDomainFromDHCP_NICStaticTypes,
