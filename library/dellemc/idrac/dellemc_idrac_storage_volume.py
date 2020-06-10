@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0
+# Version 2.0.14
 # Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -280,6 +280,7 @@ def set_liason_share(idrac, module):
 
 
 def view_storage(idrac, module):
+    idrac.get_entityjson()
     storage_status = idrac.config_mgr.RaidHelper.view_storage(controller=module.params["controller_id"],
                                                               virtual_disk=module.params['volume_id'])
     if storage_status['Status'] == 'Failed':

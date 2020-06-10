@@ -1,4 +1,4 @@
-﻿Generate certificate signing request
+﻿Generate certificate signing request.
 
 {
     "msg": "Successfully generated certificate signing request.",
@@ -18,4 +18,10 @@
       EP3fq8iflVyV3hQjlUPSq/ZGYy7vPvwZHGhPPDXjvNVgyyD7zKSOkKZIyOL2Xvpom
       1cuJ1veYniuZkVvENkRNxzTmKlzUlYk4326Xauw==-----END CERTIFICATE REQUEST-----"
     }
+}
+
+Upload the certificate.
+
+{
+    "msg": "Successfully uploaded application certificate."
 }

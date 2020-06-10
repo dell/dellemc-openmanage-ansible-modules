@@ -57,6 +57,10 @@ def ome_default_args():
     default_args = {'hostname': '192.168.0.1', 'username': 'username', 'password': 'password'}
     return default_args
 
+@pytest.fixture
+def idrac_default_args():
+    default_args = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password"}
+    return default_args
 
 @pytest.fixture
 def redfish_default_args():

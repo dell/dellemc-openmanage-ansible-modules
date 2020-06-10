@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.0.14
 # Copyright (C) 2020 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -562,9 +562,8 @@ def pool_delete(module, rest_obj):
         pool_name = module.params["pool_name"]
         pool_id, existing_payload = get_identity_pool_id_by_name(pool_name, rest_obj)
         if not pool_id:
-            message = "Unable to complete the operation because the entered target" \
-                      " pool name '{0}' is invalid.".format(pool_name)
-            module.fail_json(msg=message)
+            message = "The identity pool '{0}' is not present in the system.".format(pool_name)
+            module.exit_json(msg=message)
         method = "DELETE"
         uri = IDENTITY_URI + "({0})".format(pool_id)
         rest_obj.invoke_request(method, uri)

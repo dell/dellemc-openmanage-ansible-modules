@@ -1,0 +1,25 @@
+---
+-
+  connection: local
+  gather_facts: false
+  hosts: hosts
+  name: "OME - Ansible Modules"
+
+  tasks:
+
+  - name: "Retrieve baseline information for specified devices."
+    ome_firmware_baseline_compliance_info:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_ids:
+        - 11111
+        - 22222
+    register: result
+
+  - name: "Filter out device compliance reports."
+    debug:
+      msg: "{{ item.Name }} : {{ item.DeviceComplianceReports.0.ComponentComplianceReports }}"
+    when: item.DeviceComplianceReports.0.ComponentComplianceReports
+    with_items:
+      - "{{ result.baseline_compliance_info }}"
