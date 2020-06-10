@@ -578,7 +578,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         val = self.module.compare_nested_dict(modify_setting_payload, existing_setting_payload)
         assert val is False
 
-    @pytest.mark.parametrize("modify_setting_payload", [{"Description": "Identity pool with ethernet and fcoe settings2"}, {"Name": "pool2"},
+    @pytest.mark.parametrize("modify_payload", [{"Description": "Identity pool with ethernet and fcoe settings2"}, {"Name": "pool2"},
                                                         {"EthernetSettings": {"Mac": {"IdentityCount": 61, "StartingMacAddress": "UFBQUFAA"}}},
                                                         {"EthernetSettings": {"Mac": {"IdentityCount": 60, "StartingMacAddress": "qrvM3e6q"}}},
                                                         {"FcoeSettings": {"Mac": {"IdentityCount": 70, "StartingMacAddress": "abcdfe"}}},
@@ -588,9 +588,9 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                                                         {"Description": "Identity pool with ethernet and fcoe settings2",
                                                          "EthernetSettings": {"Mac": {"IdentityCount": 60, "StartingMacAddress": "UFBQUFAA"}},
                                                          "FcoeSettings": {"Mac": {"IdentityCount": 70, "StartingMacAddress": "cHBwcHAA"}}}])
-    def test_compare_payload_attributes_case_false(self, modify_setting_payload):
+    def test_compare_payload_attributes_case_false(self, modify_payload):
         """case when chages are exists and payload can be used for modify opeartion"""
-        modify_setting_payload = modify_setting_payload
+        modify_setting_payload = modify_payload
         existing_setting_payload = {"@odata.context": "/api/$metadata#IdentityPoolService.IdentityPool", "@odata.type": "#IdentityPoolService.IdentityPool",
                                     "@odata.id": "/api/IdentityPoolService/IdentityPools(23)", "Id": 23, "Name": "pool1",
                                     "Description": "Identity pool with ethernet and fcoe settings1", "CreatedBy": "admin",
@@ -602,7 +602,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         val = self.module.compare_nested_dict(modify_setting_payload, existing_setting_payload)
         assert val is False
 
-    @pytest.mark.parametrize("modify_setting_payload", [
+    @pytest.mark.parametrize("modify_payload", [
         {"Name": "pool1", "EthernetSettings": {"Mac": {"StartingMacAddress": "qrvM3e6q"}}},
         {"Name": "pool1", "EthernetSettings": {"Mac": {"IdentityCount": 70}}},
         {"Name": "pool1", "EthernetSettings": {"Mac": {"StartingMacAddress": "qrvM3e6q"}}},
@@ -615,9 +615,9 @@ class TestOMeIdentityPool(FakeAnsibleModule):
          "FcoeSettings": {"Mac": {"IdentityCount": 70, "StartingMacAddress": "cHBwcHAA"}}},
         {"Description": "Identity pool with ethernet setting", "EthernetSettings": {"Mac": {"IdentityCount": 70, "StartingMacAddress": "qrvM3e6q"}},
          "FcoeSettings": {"Mac": {"IdentityCount": 70, "StartingMacAddress": "cHBwcHAA"}}}])
-    def test_compare_payload_attributes_case_true(self, modify_setting_payload):
+    def test_compare_payload_attributes_case_true(self, modify_payload):
         """setting values are same as existing payload and no need to apply the changes again"""
-        modify_setting_payload = modify_setting_payload
+        modify_setting_payload = modify_payload
         existing_setting_payload = {"@odata.context": "/api/$metadata#IdentityPoolService.IdentityPool", "@odata.type": "#IdentityPoolService.IdentityPool",
                                     "@odata.id": "/api/IdentityPoolService/IdentityPools(30)", "Id": 30, "Name": "pool1",
                                     "Description": "Identity pool with ethernet setting", "CreatedBy": "admin", "CreationTime": "2020-01-31 11:31:13.621182",
@@ -810,8 +810,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         f_module = self.get_module_mock(params=params)
         with pytest.raises(Exception) as exc:
             self.module.pool_delete(f_module, ome_connection_mock_for_identity_pool)
-        assert exc.value.args[0] == "Unable to complete the operation because the entered target" \
-                                    " pool name '{0}' is invalid.".format(params["pool_name"])
+        assert exc.value.args[0] == "The identity pool '{0}' is not present in the system.".format(params["pool_name"])
 
     def test_pool_delete_error_case_02(self, mocker, ome_connection_mock_for_identity_pool, ome_response_mock):
         msg = "exception message"

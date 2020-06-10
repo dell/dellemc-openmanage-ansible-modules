@@ -28,3 +28,16 @@
 
     tags:
        - idrac_snmp
+
+  - name: Setup iDRAC SNMP settings
+    dellemc_configure_idrac_services:
+      idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       share_name: "{{ playbook_dir }}"
+       ipmi_lan:
+         community_name: public
+       alert_port: 161
+       trap_format: SNMPv3
+    tags:
+      - idrac-snmp-settings

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.9
+# Version 2.0.14
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -85,18 +85,30 @@ options:
         choices: [All, SNMPv3]
     community_name:
         required: False
-        description: SNMP community name for iDRAC.
+        description: SNMP community name for iDRAC. It is used by iDRAC to validate SNMP queries
+            received from remote systems requesting SNMP data access.
     alert_port:
         required: False
-        description: SNMP alert port for iDRAC.
+        description: The iDRAC port number that must be used for SNMP traps.
+            The default value is 162, and the acceptable range is between 1 to 65535.
+        default: 162
     discovery_port:
         required: False
-        description: SNMP discovery port for iDRAC.
-        default: 162
+        description: The SNMP agent port on the iDRAC. The default value is 161,
+            and the acceptable range is between 1 to 65535.
+        default: 161
     trap_format:
         required: False
         description: SNMP trap format for iDRAC.
         choices: [SNMPv1, SNMPv2, SNMPv3]
+    ipmi_lan:
+        required: False
+        description: Community name set on iDRAC for SNMP settings.
+        options:
+            community_name:
+                required: False
+                description: This option is used by iDRAC when it sends out SNMP and IPMI traps.
+                    The community name is checked by the remote system to which the traps are sent.
 requirements:
     - "omsdk"
     - "python >= 2.7.5"
@@ -127,6 +139,8 @@ EXAMPLES = """
        alert_port: "None"
        discovery_port: "162"
        trap_format: "SNMPv3"
+       ipmi_lan:
+         community_name: public
 """
 
 RETURNS = """
@@ -236,6 +250,11 @@ def run_idrac_services_config(idrac, module):
             idrac.config_mgr.configure_snmp(
                 trap_format=module.params['trap_format']
             )
+        if module.params['ipmi_lan'] is not None:
+            ipmi_option = module.params.get('ipmi_lan')
+            community_name = ipmi_option.get('community_name')
+            if community_name is not None:
+                idrac.config_mgr.configure_snmp(ipmi_community=community_name)
 
         if module.check_mode:
             msg['msg'] = idrac.config_mgr.is_change_applicable()
@@ -287,12 +306,15 @@ def main():
                                                        'TLS_1_1_and_Higher', 'TLS_1_2_Only'], default=None),
             timeout=dict(required=False, default=None, type="str"),
 
-            # set up SNMP
+            # set up SNMP settings
             snmp_enable=dict(required=False, choices=['Enabled', 'Disabled'], default=None),
             community_name=dict(required=False, type='str'),
             snmp_protocol=dict(required=False, choices=['All', 'SNMPv3'], default=None),
-            alert_port=dict(required=False),
-            discovery_port=dict(required=False, type="int", default=162),
+            discovery_port=dict(required=False, type="int", default=161),
+
+            # set up SNMP settings
+            ipmi_lan=dict(required=False, type='dict', options=dict(community_name=dict(required=False, type='str'))),
+            alert_port=dict(required=False, type='int', default=162),
             trap_format=dict(required=False, choices=['SNMPv1', 'SNMPv2', 'SNMPv3'], default=None),
 
         ),

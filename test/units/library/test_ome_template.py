@@ -82,22 +82,10 @@ class TestOmeTemplate(FakeAnsibleModule):
                                                                                  "DeviceServiceTag": Constants.service_tag1}
                                                                                 ], "resp_obj": ome_response_mock}
         f_module = self.get_module_mock(params={'device_service_tag': [Constants.service_tag1], 'device_id': []})
-        #import pdb
-        #pdb.set_trace()
         with pytest.raises(Exception) as exc:
             device_ids = self.module.get_device_ids(f_module, ome_connection_mock_for_template)
             assert exc.value.args[0] == "Failed to fetch the device ids."
 
-
-
-    # def test_get_device_ids_failure_case02(self, ome_connection_mock_for_template, ome_response_mock, ome_default_args):
-    #     ome_response_mock.json_data = {'value': [{"device_service_tag": ["abdxcsa", "bacadds", "xyzed"]}]}
-    #     ome_response_mock.success = False
-    #     f_module = self.get_module_mock()
-    #     with pytest.raises(Exception) as exc:
-    #         self.module.get_device_ids(f_module, ome_response_mock)
-    #     assert exc.value.args[0] == "Unable to complete the operation because the entered target service" \
-    #                                 " tag(s) '{0}' are invalid.".format(["abdxcsa", "bacadds"])
 
     def test_get_view_id_success_case(self, ome_connection_mock_for_template, ome_response_mock):
         ome_response_mock.json_data = {'value': [{"Description": "", 'Id': 2}]}
@@ -121,16 +109,6 @@ class TestOmeTemplate(FakeAnsibleModule):
         f_module = self.get_module_mock()
         data = self.module.get_template_by_id(f_module, ome_response_mock, 17)
         assert data
-
-    # def test_get_template_by_id_failure_case(self, ome_response_mock, ome_default_args):
-    #     ome_response_mock.json_data = {'value': []}
-    #     ome_response_mock.status_code = 500
-    #     ome_response_mock.success = False
-    #     f_module = self.get_module_mock()
-    #     with pytest.raises(Exception) as exc:
-    #         self.module.get_template_by_id(f_module, ome_response_mock, 100000)
-    #     assert exc.value.args[0] == "Unable to complete the operation because the" \
-    #                                 " requested template is not present."
 
     def test_get_template_by_name_success_case(self, ome_response_mock, ome_connection_mock_for_template):
         ome_response_mock.json_data = {'value': [{"Name": "test Sample Template import1", "Id": 24}]}
@@ -252,6 +230,43 @@ class TestOmeTemplate(FakeAnsibleModule):
             data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert exc.value.args[0] == "Enter a valid template_name or template_id"
 
+    @pytest.mark.parametrize("params",
+                             [{"success": True, "json_data": {"value": [{"Name": "template_name", "Id": 123}]},
+                               "id": 123, "gtype": True},
+                              {"success": True, "json_data": {}, "id": 0, "gtype": False},
+                              {"success": False, "json_data": {"value": [{"Name": "template_name", "Id": 123}]},
+                               "id": 0, "gtype": False},
+                              {"success": True, "json_data": {"value": [{"Name": "template_name1", "Id": 123}]},
+                               "id": 12, "gtype": False}])
+    def test_get_type_id_valid(self, params, ome_connection_mock_for_template,
+                         ome_response_mock):
+        ome_response_mock.success = params["success"]
+        ome_response_mock.json_data = params["json_data"]
+        id = self.module.get_type_id_valid(ome_connection_mock_for_template, params["id"])
+        assert id == params["gtype"]
+
+    @pytest.mark.parametrize("params",
+                             [{"success": True, "json_data": {"value": [{"Description": "Deployment", "Id": 2}]},
+                               "view": "Deployment", "gtype": 2},
+                              {"success": True, "json_data": {}, "view": "Compliance", "gtype": 1},
+                              {"success": False, "json_data": {"value": [{"Description": "template_name", "Id": 1}]},
+                               "view": "Deployment", "gtype": 2},
+                              {"success": True, "json_data": {"value": [{"Description": "template_name1", "Id": 2}]},
+                               "view": "Deployment", "gtype": 2}])
+    def test_get_view_id(self, params, ome_connection_mock_for_template,
+                               ome_response_mock):
+        ome_response_mock.success = params["success"]
+        ome_response_mock.json_data = params["json_data"]
+        id = self.module.get_view_id(ome_connection_mock_for_template, params["view"])
+        assert id == params["gtype"]
+
+    @pytest.mark.parametrize("param",
+                             [{"pin":{"NetworkBootIsoModel":{"ShareDetail":{"Password": "share_password"}}}},
+                              {"pin":{"NetworkBootIsoModel":{"ShareDetail":{"Password1": "share_password"}}}},
+                              {"pin":{"NetworkBootIsoModel":{"ShareDetail":[{"Password1": "share_password"}]}}}])
+    def test_password_no_log(self, param):
+        attributes = param["pin"]
+        self.module.password_no_log(attributes)
 
     def test__get_resource_parameters_create_failure_case_02(self, mocker, ome_response_mock, ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "create", "template_name": "name"})
@@ -301,30 +316,52 @@ class TestOmeTemplate(FakeAnsibleModule):
         assert 'msg' in result
         assert result['failed'] is True
 
-    def test_get_modify_payload_success_case_01(self):
-        modify_payload = self.module.get_modify_payload({"attributes": {}}, 1234, {"Name": "template1", "Description": "template description"})
-        assert  modify_payload["Name"] == "template1"
-        assert modify_payload["Description"] == "template description"
-        assert modify_payload["Id"] == 1234
+    @pytest.mark.parametrize("param",
+                             [{"attr": {"attributes": {}}, "template_id": 1234,
+                               "template_dict": {"Name": "template1", "Description": "template description"}},
+                              {"attr": {"attributes": {"Name": "1", "Description": "d1"}}, "template_id": 1234,
+                               "template_dict": {"Name": "template1", "Description": "template description"}},
+                              {"attr": {"attributes": []}, "template_id": 1234,
+                               "template_dict": {"Name": "template1", "Description": "template description"}}
+                              ])
+    def test_get_modify_payload_success_case_01(self, param):
+        self.module.get_modify_payload(param["attr"], param["template_id"],
+                                                        param["template_dict"])
 
     def test_get_import_payload_success_case_01(self, ome_connection_mock_for_template):
         f_module = self.get_module_mock(params={"attributes": {"Name": "template1", "Content": "Content"}})
-        payload = self.module.get_import_payload(f_module, ome_connection_mock_for_template, 2)
-        payload["Name"] == 'template1'
-        payload["ViewTypeId"] == 2
-        payload["Type"] == 2
-        payload["Content"] == 'Content'
+        self.module.get_import_payload(f_module, ome_connection_mock_for_template, 2)
 
     def test_get_deploy_payload_success_case_01(self):
         module_params = {"attributes": {"Name": "template1"}}
-        payload = self.module.get_deploy_payload(module_params, [Constants.device_id1], 1234)
-        payload["Name"] == "template1"
-        payload["Id"] == 1234
-        payload["TargetIds"] == [Constants.device_id1]
+        self.module.get_deploy_payload(module_params, [Constants.device_id1], 1234)
 
-    def test_get_clone_payload_success_case_01(self):
-        module_params = {"attributes": {"Name": "template1"}}
-        payload = self.module.get_clone_payload(module_params, 1234, 2)
-        payload["NewTemplateName"] == "template1"
-        payload["SourceTemplateId"] == 1234
-        payload["ViewTypeId"] == 2
+    @pytest.mark.parametrize("param",
+                             [{"attr": {"attributes": {"Name": "template1"}}, "name": "template1"}])
+    def test_get_clone_payload_success_case_01(self, param):
+        module_params = param["attr"]
+        self.module.get_clone_payload(module_params, 1234, 2)
+
+    @pytest.mark.parametrize("param",
+                             [{"inp": {"command": "create", "template_name": "name", "device_id": [None],
+                                       "device_service_tag": [None]},
+                               "msg": "Argument device_id or device_service_tag has null values"},
+                              {"inp": {"command": "deploy", "template_name": "name", "device_id": [None],
+                                       "device_service_tag": [None]},
+                               "msg": "Argument device_id or device_service_tag has null values"},
+                              {"inp": {"command": "import", "template_name": "name", "device_id": [],
+                                       "device_service_tag": []},
+                               "msg": "Argument 'Name' required in attributes for import operation"},
+                              {"inp": {"command": "import", "attributes" : {"Name": "name"}, "device_id": [],
+                                       "device_service_tag": []},
+                               "msg": "Argument 'Content' required in attributes for import operation"},
+                              {"inp": {"command": "clone", "template_name": "name", "device_id": [],
+                                       "device_service_tag": []},
+                               "msg": "Argument 'Name' required in attributes for clone operation"}
+                              ])
+    def test_validate_inputs(self, param, mocker):
+        f_module = self.get_module_mock(param["inp"])
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.password_no_log')
+        with pytest.raises(Exception) as exc:
+            self.module._validate_inputs(f_module)
+        assert exc.value.args[0] == param["msg"]

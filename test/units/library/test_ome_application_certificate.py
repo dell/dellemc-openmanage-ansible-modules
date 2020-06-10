@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.0.14
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -83,6 +83,24 @@ class TestOmeAppCSR(FakeAnsibleModule):
         assert result[2] == {'DistinguishedName': 'hostname.com', 'Locality': 'Round Rock',
                              'DepartmentName': 'Remote Access Group', 'BusinessName': 'Dell Inc.',
                              'State': 'Texas', 'Country': 'US', 'Email': 'support@dell.com'}
+
+    def test_upload_csr_fail01(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                        ome_response_mock):
+        args = {"command": "upload", "upload_file": "/path/certificate.cer"}
+        f_module = self.get_module_mock(params=args)
+        with pytest.raises(Exception) as exc:
+            self.module.get_resource_parameters(f_module)
+        assert exc.value.args[0] == "No such file or directory."
+
+    def test_upload_csr_success(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
+                                ome_response_mock):
+        payload = "--BEGIN-REQUEST--"
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_application_certificate.get_resource_parameters',
+                     return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertificate", payload))
+        ome_default_args.update({"command": "upload", "upload_file": "/path/certificate.cer"})
+        ome_response_mock.success = True
+        result = self.execute_module(ome_default_args)
+        assert result['msg'] == "Successfully uploaded application certificate."
 
     def test_generate_csr(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                           ome_response_mock):

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.0.14
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,10 +20,13 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_application_certificate
-short_description: This module allows to generate a CSR.
+short_description: This module allows to generate a CSR and upload the certificate.
 version_added: "2.9"
 description:
-  - This module allows the generation a new certificate signing request (CSR).
+  - This module allows the generation a new certificate signing request (CSR) and to upload the certificate
+    on OpenManage Enterprise.
+notes:
+  - If a certificate is uploaded, which is identical to an already existing certificate, it is accepted by the module.
 options:
   hostname:
     description: Target IP address or hostname.
@@ -42,36 +45,35 @@ options:
     type: int
     default: 443
   command:
-    description:
-      - C(generate_csr) allows the generation of a CSR.
-      - The following options are applicable for this command I(distinguished_name),
-        I(department_name), I(business_name), I(locality), I(country_state),
-        I(country), I(email).
+    description: C(generate_csr) allows the generation of a CSR and C(upload) uploads the certificate.
     type: str
     default: generate_csr
-    choices: [generate_csr]
+    choices: [generate_csr, upload]
   distinguished_name:
-    description: Name of the certificate issuer.
+    description: Name of the certificate issuer. This option is applicable for C(generate_csr).
     type: str
   department_name:
-    description: Name of the department that issued the certificate.
+    description: Name of the department that issued the certificate. This option is applicable for C(generate_csr).
     type: str
   business_name:
-    description: Name of the business that issued the certificate.
+    description: Name of the business that issued the certificate. This option is applicable for C(generate_csr).
     type: str
   locality:
-    description: Local address of the issuer of the certificate.
+    description: Local address of the issuer of the certificate. This option is applicable for C(generate_csr).
     type: str
   country_state:
-    description: State in which the issuer resides.
+    description: State in which the issuer resides. This option is applicable for C(generate_csr).
     type: str
   country:
-    description: Country in which the issuer resides.
+    description: Country in which the issuer resides. This option is applicable for C(generate_csr).
     type: str
   email:
-    description: Email associated with the issuer.
+    description: Email associated with the issuer. This option is applicable for C(generate_csr).
     type: str
-
+  upload_file:
+    type: str
+    description: Local path of the certificate file to be uploaded. This option is applicable for C(upload).
+        Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
 requirements:
     - "python >= 2.7.5"
 author: "Felix Stephen (@felixs88)"
@@ -93,6 +95,13 @@ EXAMPLES = r'''
     country: "US"
     email: "support@dell.com"
 
+- name: upload the certificate.
+  ome_application_certificate:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "upload"
+    upload_file: "/path/certificate.cer"
 '''
 
 RETURN = r'''
@@ -146,6 +155,7 @@ error_info:
 '''
 
 import json
+import os
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.remote_management.dellemc.ome import RestOME
@@ -164,6 +174,14 @@ def get_resource_parameters(module):
                    "BusinessName": module.params["business_name"],
                    "Locality": module.params["locality"], "State": module.params["country_state"],
                    "Country": module.params["country"], "Email": module.params["email"]}
+    else:
+        file_path = module.params["upload_file"]
+        uri = csr_uri.format("UploadCertificate")
+        if os.path.exists(file_path):
+            with open(file_path, 'rb') as payload:
+                payload = payload.read()
+        else:
+            module.fail_json(msg="No such file or directory.")
     return method, uri, payload
 
 
@@ -175,7 +193,7 @@ def main():
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
             "command": {"type": "str", "required": False,
-                        "choices": ["generate_csr"], "default": "generate_csr"},
+                        "choices": ["generate_csr", "upload"], "default": "generate_csr"},
             "distinguished_name": {"required": False, "type": "str"},
             "department_name": {"required": False, "type": "str"},
             "business_name": {"required": False, "type": "str"},
@@ -183,22 +201,27 @@ def main():
             "country_state": {"required": False, "type": "str"},
             "country": {"required": False, "type": "str"},
             "email": {"required": False, "type": "str"},
+            "upload_file": {"required": False, "type": "str"},
         },
         required_if=[["command", "generate_csr", ["distinguished_name", "department_name",
                                                   "business_name", "locality", "country_state",
                                                   "country", "email"]],
-                     ],
+                     ["command", "upload", ["upload_file"]]],
         supports_check_mode=False
     )
+    header = {"Content-Type": "application/octet-stream", "Accept": "application/octet-stream"}
     try:
-        with RestOME(module.params, req_session=True) as rest_obj:
+        with RestOME(module.params, req_session=False) as rest_obj:
             method, uri, payload = get_resource_parameters(module)
             command = module.params.get("command")
-            resp = rest_obj.invoke_request(method, uri, data=payload)
+            dump = False if command == "upload" else True
+            headers = header if command == "upload" else None
+            resp = rest_obj.invoke_request(method, uri, headers=headers, data=payload, dump=dump)
             if resp.success:
                 if command == "generate_csr":
                     module.exit_json(msg="Successfully generated certificate signing request.",
                                      csr_status=resp.json_data)
+                module.exit_json(msg="Successfully uploaded application certificate.", changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:

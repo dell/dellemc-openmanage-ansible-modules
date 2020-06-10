@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.9
+# Version 2.0.14
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -130,8 +130,6 @@ EXAMPLES = r'''
     idrac_password: "user_password"
     command: "import"
     share_name: "/scp_folder"
-    share_user: "share_user_name"
-    share_password: "share_user_password"
     scp_file: "scp_filename.xml"
     scp_components: "ALL"
     job_wait: True
@@ -152,8 +150,6 @@ EXAMPLES = r'''
     idrac_user: "user_name"
     idrac_password: "user_password"
     share_name: "/scp_folder"
-    share_user: "share_user_name"
-    share_password: "share_user_password"
     job_wait: False
 '''
 

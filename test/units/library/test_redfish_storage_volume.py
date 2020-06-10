@@ -2,12 +2,10 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.7
-# Copyright (C) 2019-2020 Dell Inc.
+# Version 2.0.14
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 from __future__ import (absolute_import, division, print_function)
@@ -410,6 +408,37 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
         assert payload["OptimumIOSizeBytes"] == 65536
+
+    def test_volume_payload_case_03(self):
+        """Testing encrypted value in case value is passed false"""
+        param = {
+            "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
+            "capacity_bytes": 299439751168,
+            "block_size_bytes": 512,
+            "encryption_types": "NativeDriveEncryption",
+            "encrypted": False,
+            "volume_type": "NonRedundant",
+            "name": "VD1",
+            "optimum_io_size_bytes": 65536,
+            "oem": {"Dell": {"DellVirtualDisk": {"BusProtocol": "SAS", "Cachecade": "NonCachecadeVD",
+                                                 "DiskCachePolicy": "Disabled",
+                                                 "LockStatus": "Unlocked",
+                                                 "MediaType": "HardDiskDrive",
+                                                 "ReadCachePolicy": "NoReadAhead",
+                                                 "SpanDepth": 1,
+                                                 "SpanLength": 2,
+                                                 "WriteCachePolicy": "WriteThrough"}}}}
+        f_module = self.get_module_mock(params=param)
+        payload = self.module.volume_payload(f_module)
+        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["VolumeType"] == "NonRedundant"
+        assert payload["Name"] == "VD1"
+        assert payload["BlockSizeBytes"] == 512
+        assert payload["CapacityBytes"] == 299439751168
+        assert payload["OptimumIOSizeBytes"] == 65536
+        assert payload["Encrypted"] is False
+        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
+        assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
     def test_fetch_storage_resource_success_case_01(self, redfish_connection_mock_for_storage_volume, redfish_response_mock):
         f_module = self.get_module_mock()
