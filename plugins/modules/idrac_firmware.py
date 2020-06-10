@@ -180,8 +180,8 @@ import os
 import re
 import json
 from xml.etree import ElementTree as ET
-from ansible.module_utils.remote_management.dellemc.dellemc_idrac import iDRACConnection
-from ansible.module_utils.remote_management.dellemc.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.parse import urlparse
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError

@@ -146,7 +146,7 @@ job_info:
 
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.remote_management.dellemc.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 

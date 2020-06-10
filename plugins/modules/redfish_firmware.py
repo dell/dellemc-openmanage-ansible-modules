@@ -121,7 +121,7 @@ error_info:
 
 import json
 import os
-from ansible.module_utils.remote_management.dellemc.redfish import Redfish
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
