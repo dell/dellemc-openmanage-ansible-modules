@@ -13,10 +13,10 @@ from __future__ import absolute_import
 import json
 
 import pytest
-from ansible.modules.remote_management.dellemc import ome_application_network_time
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_time
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
 from io import StringIO
 from ansible.module_utils._text import to_text
 from ssl import SSLError
@@ -24,7 +24,7 @@ from ssl import SSLError
 
 @pytest.fixture
 def ome_connection_mock_for_application_network_time(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_time.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     ome_connection_mock_obj.get_all_report_details.return_value = {"report_list": []}
@@ -42,10 +42,10 @@ class TestOmeTemplate(FakeAnsibleModule):
     def test_ome_application_network_time_main_enable_ntp_false_success_case_01(self, mocker, ome_default_args, param1,
                                                                                 ome_connection_mock_for_application_network_time, ome_response_mock):
         ome_default_args.update(param1)
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.validate_input")
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.validate_time_zone")
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.get_payload", return_value={"key": "val"})
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.get_updated_payload", return_value={"key": "val"})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.validate_input")
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.validate_time_zone")
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.get_payload", return_value={"key": "val"})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.get_updated_payload", return_value={"key": "val"})
         time_data = {
             "EnableNTP": False,
             "JobId": None,
@@ -78,10 +78,10 @@ class TestOmeTemplate(FakeAnsibleModule):
                                                                                ome_connection_mock_for_application_network_time, ome_response_mock):
         ome_default_args.update(param1)
         ome_default_args.update(param2)
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.validate_input")
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.validate_time_zone")
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.get_payload", return_value={"key": "val"})
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.get_updated_payload", return_value={"key": "val"})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.validate_input")
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.validate_time_zone")
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.get_payload", return_value={"key": "val"})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.get_updated_payload", return_value={"key": "val"})
         time_data = {
             "EnableNTP": True,
             "JobId": None,
@@ -137,21 +137,21 @@ class TestOmeTemplate(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_application_network_time_main_success_exception_case3(self, exc_type, mocker, ome_default_args,
                                                                       ome_connection_mock_for_application_network_time, ome_response_mock):
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_time.validate_time_zone")
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.validate_time_zone")
         ome_default_args.update({"enable_ntp": False, "system_time": "2020-03-31 21:35:18"})
         json_str = to_text(json.dumps({"info": "error_details"}))
         if exc_type == URLError:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_time.get_payload', side_effect=URLError('TESTS'))
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.get_payload', side_effect=URLError('TESTS'))
             result = self._run_module(ome_default_args)
             assert result["unreachable"] is True
             assert result['msg'] == '<urlopen error TESTS>'
             assert result['changed'] is False
         elif exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_time.get_payload', side_effect=exc_type("exception message"))
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.get_payload', side_effect=exc_type("exception message"))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_time.get_payload',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_time.get_payload',
                          side_effect=exc_type('http://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},

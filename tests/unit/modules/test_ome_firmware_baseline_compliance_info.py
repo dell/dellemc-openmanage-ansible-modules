@@ -14,12 +14,12 @@ from __future__ import absolute_import
 
 import pytest
 import json
-from ansible.modules.remote_management.dellemc import ome_firmware_baseline_compliance_info
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware_baseline_compliance_info
 from ansible.module_utils.six.moves.urllib.error import HTTPError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.modules.remote_management.dellemc.common import AnsibleFailJSonException
-from units.modules.utils import set_module_args
-from units.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
@@ -28,7 +28,7 @@ from ansible.module_utils._text import to_text
 
 @pytest.fixture
 def ome_connection_mock_for_firmware_baseline_compliance_info(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -106,7 +106,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_response_mock.json_data= {"value": [{"Name": "group1", "Id": 123}]}
         ome_response_mock.status_code = 200
         ome_response_mock.success = True
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_device_ids_from_group_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_device_ids_from_group_ids',
                      return_value=[Constants.device_id1, Constants.device_id2])
         f_module = self.get_module_mock(params={"device_group_names": ["group1", "group2"]})
         device_ids = self.module.get_device_ids_from_group_names(f_module, ome_connection_mock_for_firmware_baseline_compliance_info)
@@ -116,7 +116,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_response_mock.json_data= {"value": []}
         ome_response_mock.status_code = 200
         ome_response_mock.success = True
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_device_ids_from_group_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_device_ids_from_group_ids',
                      return_value=[])
         f_module = self.get_module_mock(params={"device_group_names": ["abc", "xyz"]})
         device_ids = self.module.get_device_ids_from_group_names(f_module, ome_connection_mock_for_firmware_baseline_compliance_info)
@@ -148,7 +148,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_identifiers_with_service_tags(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, module_mock, default_ome_args):
         """when service tags given """
         f_module = self.get_module_mock(params={"device_service_tags": [Constants.service_tag1]})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info._get_device_id_from_service_tags',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info._get_device_id_from_service_tags',
                      return_value={Constants.device_id1:Constants.service_tag1})
         identifiers, identifiers_type = self.module.get_identifiers(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
         assert identifiers == [Constants.device_id1]
@@ -157,7 +157,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_identifiers_with_group_names(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, module_mock, default_ome_args):
         """when service tags given """
         f_module = self.get_module_mock(params={"device_group_names": [Constants.service_tag1]})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_device_ids_from_group_names',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_device_ids_from_group_names',
                      return_value=[123, 456])
         identifiers, identifiers_type = self.module.get_identifiers(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
         assert identifiers == [123, 456]
@@ -166,7 +166,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_identifiers_with_service_tags_empty_case(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, module_mock, default_ome_args):
         """when service tags given """
         f_module = self.get_module_mock(params={"device_service_tags": [Constants.service_tag1]})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info._get_device_id_from_service_tags',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info._get_device_id_from_service_tags',
                      return_value={})
         identifiers, identifiers_type = self.module.get_identifiers(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
         assert identifiers == []
@@ -226,7 +226,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             self.module.get_baseline_id_from_name(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
 
     def test_get_baselines_report_by_device_ids_success_case(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_identifiers',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_identifiers',
                      return_value=([Constants.device_id1], "device_ids"))
         ome_response_mock.json_data = {"value": []}
         ome_response_mock.success = True
@@ -234,7 +234,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         self.module.get_baselines_report_by_device_ids(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
 
     def test_get_baselines_report_by_device_service_tag_not_exits_case(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_identifiers',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_identifiers',
                      return_value=([], "device_service_tags"))
         ome_response_mock.json_data = {"value": []}
         ome_response_mock.success = True
@@ -244,7 +244,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         assert exc.value.args[0] == "Device details not available as the service tag(s) provided are invalid."
 
     def test_get_baselines_report_by_group_names_not_exits_case(self, mocker, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_identifiers',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_identifiers',
                      return_value=([], "device_group_names"))
         ome_response_mock.json_data = {"value": []}
         ome_response_mock.success = True
@@ -270,7 +270,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
 
 
     def test_get_baseline_compliance_reports_success_case_for_baseline_device(self, mocker, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
                      return_value=123)
         f_module = self.get_module_mock(params={"baseline_name": "baseline1"})
         ome_response_mock.success = True
@@ -282,10 +282,10 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_baseline_compliance_reports_exception_handling_case(self, exc_type, mocker, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
                          side_effect= exc_type('exception message'))
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baseline_id_from_name',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"},  StringIO(json_str)))
         f_module = self.get_module_mock(params={"baseline_name": "baseline1"})
@@ -337,8 +337,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         self.module.validate_inputs(f_module)
 
     def test_baseline_complaince_main_success_case_01(self, mocker, ome_default_args, module_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
                      return_value=[{"device":"device_report"}])
         ome_default_args.update({"device_ids": [Constants.device_id1]})
         result = self._run_module(ome_default_args)
@@ -347,8 +347,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         assert 'msg' not in result
 
     def test_baseline_complaince_main_success_case_02(self, mocker, ome_default_args, module_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baseline_compliance_reports',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baseline_compliance_reports',
                      return_value=[{"baseline_device":"baseline_device_report"}])
         ome_default_args.update({"baseline_name" : "baseline_name"})
         result = self._run_module(ome_default_args)
@@ -398,8 +398,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
 
     def test_baseline_complaince_main_failure_case_03(self, mocker, ome_default_args, module_mock, ome_response_mock, ome_connection_mock_for_firmware_baseline_compliance_info):
         """when ome response return value is None"""
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
                      return_value=None)
         ome_default_args.update({"device_ids": [Constants.device_id1]})
         result = self._run_module_with_fail_json(ome_default_args)
@@ -410,16 +410,16 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
     def test_baseline_complaince_main_exception_handling_case(self, exc_type, mocker, ome_default_args, ome_connection_mock_for_firmware_baseline_compliance_info, ome_response_mock):
         ome_default_args.update({"device_service_tags": [Constants.service_tag1]})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.validate_inputs')
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
         json_str = to_text(json.dumps({"data":"out"}))
 
         if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
                          side_effect=exc_type('test'))
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"},  StringIO(json_str)))
         result = self._run_module_with_fail_json(ome_default_args)

@@ -12,8 +12,8 @@ from __future__ import absolute_import
 
 import pytest
 
-from ansible.modules.remote_management.dellemc import ome_job_info
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_job_info
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
@@ -27,7 +27,7 @@ class TestOmeJobInfo(FakeAnsibleModule):
 
     @pytest.fixture
     def ome_connection_job_info_mock(self, mocker, ome_response_mock):
-        connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_job_info.RestOME')
+        connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_job_info.RestOME')
         ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
         ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
         return ome_connection_mock_obj
@@ -88,11 +88,11 @@ class TestOmeJobInfo(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_job_info._get_query_parameters',
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_job_info._get_query_parameters',
                 side_effect=exc_type('test'))
         else:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_job_info._get_query_parameters',
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_job_info._get_query_parameters',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:

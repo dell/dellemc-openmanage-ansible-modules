@@ -13,11 +13,11 @@ from __future__ import absolute_import
 
 import pytest
 import os
-from ansible.modules.remote_management.dellemc import dellemc_idrac_storage_volume
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_idrac_storage_volume
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -39,7 +39,7 @@ class TestStorageVolume(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_storage_volume_mock(self, mocker, idrac_storage_volume_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_idrac_storage_volume.iDRACConnection',
                                              return_value=idrac_storage_volume_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_storage_volume_mock
@@ -49,7 +49,7 @@ class TestStorageVolume(FakeAnsibleModule):
     def idrac_file_manager_storage_volume_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_idrac_storage_volume.file_share_manager')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -63,9 +63,9 @@ class TestStorageVolume(FakeAnsibleModule):
                                    "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
                                    "span_length": 3, "state": "create", "stripe_size": 2, "volume_type": "RAID 0",
                                    "write_cache_policy": "WriteThrough"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume._validate_options', return_value='state')
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.run_server_raid_config', return_value={"changes_applicable": True})
         msg = self._run_module(idrac_default_args)
         assert msg == {'changed': True, 'msg': 'Successfully completed the create storage volume operation',
@@ -79,9 +79,9 @@ class TestStorageVolume(FakeAnsibleModule):
                                    "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
                                    "span_length": 3, "state": "create", "stripe_size": 2, "volume_type": "RAID 0",
                                    "write_cache_policy": "WriteThrough"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume._validate_options', return_value='state')
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.run_server_raid_config', return_value={"storage_status": "pressent"})
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result == {'failed': True, 'msg': 'Failed to perform storage operation'}
@@ -93,9 +93,9 @@ class TestStorageVolume(FakeAnsibleModule):
                                    "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
                                    "span_length": 3, "state": "create", "stripe_size": 2, "volume_type": "RAID 0",
                                    "write_cache_policy": "WriteThrough"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume._validate_options', return_value='state')
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.run_server_raid_config', return_value={"Status": "Success",
                                                                                           "changed": True})
         msg = self._run_module(idrac_default_args)
@@ -109,9 +109,9 @@ class TestStorageVolume(FakeAnsibleModule):
                                    "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
                                    "span_length": 3, "state": "create", "stripe_size": 2, "volume_type": "RAID 0",
                                    "write_cache_policy": "WriteThrough"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume._validate_options', return_value='state')
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.run_server_raid_config',
                      return_value={"Status": "Success", "changed": False, "Message": "No changes found to commit!"})
         msg = self._run_module(idrac_default_args)
@@ -128,9 +128,9 @@ class TestStorageVolume(FakeAnsibleModule):
                                    "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
                                    "span_length": 3, "state": "create", "stripe_size": 2, "volume_type": "RAID 0",
                                    "write_cache_policy": "WriteThrough"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume._validate_options', return_value='state')
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.run_server_raid_config',
                      return_value={"Status": "Success", "changed": True, "Message": "Nooo changes found to commit!"})
         msg = self._run_module(idrac_default_args)
@@ -141,9 +141,9 @@ class TestStorageVolume(FakeAnsibleModule):
                                                               idrac_connection_storage_volume_mock,
                                                               idrac_default_args):
         idrac_default_args.update({"share_name": "sharename"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume._validate_options', return_value='state')
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.run_server_raid_config', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result
@@ -152,11 +152,11 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_run_server_raid_config_create_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                         mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "create"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.view_storage', return_value="view")
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.create_storage', return_value="create")
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.delete_storage', return_value="delete")
         f_module = self.get_module_mock(params=idrac_default_args)
         result = self.module.run_server_raid_config(idrac_connection_storage_volume_mock, f_module)
@@ -165,11 +165,11 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_run_server_raid_config_view_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                       mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "view"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.view_storage', return_value="view")
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.create_storage', return_value="create")
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.delete_storage', return_value="delete")
         f_module = self.get_module_mock(params=idrac_default_args)
         result = self.module.run_server_raid_config(idrac_connection_storage_volume_mock, f_module)
@@ -178,11 +178,11 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_run_server_raid_config_delete_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                         mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "delete"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.view_storage', return_value="view")
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.create_storage', return_value="create")
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.delete_storage', return_value="delete")
         f_module = self.get_module_mock(params=idrac_default_args)
         result = self.module.run_server_raid_config(idrac_connection_storage_volume_mock, f_module)
@@ -199,7 +199,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                   mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "create", "controller_id": "XYZ123",
                                    "capacity": -1.4})
-        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_idrac_storage_volume."
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume."
                      "error_handling_for_negative_num", return_value=("capacity", -3.4))
         with pytest.raises(ValueError) as ex:
             self.module._validate_options(idrac_default_args)
@@ -209,7 +209,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                     mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "create", "controller_id": "XYZ123",
                                    "capacity": 1.4, "stripe_size": -1})
-        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_idrac_storage_volume."
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume."
                      "error_handling_for_negative_num", return_value=("stripe_size", -1))
         with pytest.raises(ValueError) as ex:
             self.module._validate_options(idrac_default_args)
@@ -245,7 +245,7 @@ class TestStorageVolume(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "state": "create", "controller_id": "XYZ123",
                                    "capacity": 1.4, "stripe_size": 1,
                                    "volumes": [{"drives": {'location': [1]}, "stripe_size": -1}]})
-        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_idrac_storage_volume."
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume."
                      "error_handling_for_negative_num", return_value=("stripe_size", -1))
         with pytest.raises(ValueError) as ex:
             self.module._validate_options(idrac_default_args)
@@ -256,7 +256,7 @@ class TestStorageVolume(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "state": "create", "controller_id": "XYZ123",
                                    "capacity": 1.4, "stripe_size": 1,
                                    "volumes": [{"drives": {'location': [0]}, "capacity": -1.1}]})
-        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_idrac_storage_volume."
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume."
                      "error_handling_for_negative_num", return_value=("capacity", -1.1))
         with pytest.raises(ValueError) as ex:
             self.module._validate_options(idrac_default_args)
@@ -332,7 +332,7 @@ class TestStorageVolume(FakeAnsibleModule):
 
     def test_create_storage_success_case01(self, idrac_connection_storage_volume_mock, idrac_default_args, mocker):
         idrac_default_args.update({"volumes": {"name": "volume1"}, "controller_id": "x56y"})
-        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_idrac_storage_volume."
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume."
                      "multiple_vd_config", return_value={"name": "volume1", "stripe_size": 1.3})
         obj = MagicMock()
         idrac_connection_storage_volume_mock.config_mgr.RaidHelper = obj
@@ -343,7 +343,7 @@ class TestStorageVolume(FakeAnsibleModule):
 
     def test_create_storage_success_case02(self, idrac_connection_storage_volume_mock, idrac_default_args, mocker):
         idrac_default_args.update({"volumes": None, "controller_id": "x56y"})
-        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_idrac_storage_volume."
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_storage_volume."
                      "multiple_vd_config", return_value={"name": "volume1", "stripe_size": 1.3})
         obj = MagicMock()
         idrac_connection_storage_volume_mock.config_mgr.RaidHelper = obj

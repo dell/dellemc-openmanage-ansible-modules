@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_get_firmware_inventory
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock
-from units.compat.mock import PropertyMock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_get_firmware_inventory
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -36,7 +36,7 @@ class TestFirmware(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_get_firmware_inventory_connection_mock(self, mocker, idrac_firmware_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_get_firmware_inventory.iDRACConnection',
                                              return_value=idrac_firmware_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_firmware_mock
@@ -101,7 +101,7 @@ class TestFirmware(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_idrac_get_firmware_inventory_exception_handling_case(self, exc_type, mocker, idrac_get_firmware_inventory_connection_mock,
                                           idrac_default_args):
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_get_firmware_inventory.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_firmware_inventory.'
                      'run_get_firmware_inventory', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

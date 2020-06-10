@@ -14,9 +14,9 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import pytest
-from units.modules.utils import set_module_args
-from units.modules.utils import AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args
+from ansible_collections.dellemc.openmanage.tests.unit.utils import AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
 import ast
 
 

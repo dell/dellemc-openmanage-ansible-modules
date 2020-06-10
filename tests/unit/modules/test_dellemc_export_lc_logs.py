@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_export_lc_logs
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_export_lc_logs
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -36,7 +36,7 @@ class TestExportLcLogs(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_export_lc_logs_mock(self, mocker, idrac_export_lc_logs_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_export_lc_logs.iDRACConnection',
                                              return_value=idrac_export_lc_logs_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_export_lc_logs_mock
@@ -47,7 +47,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         try:
             lclog_file_name_format = "%ip_%Y%m%d_%H%M%S_LC_Log.log"
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_export_lc_logs.file_share_manager')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_export_lc_logs.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -60,7 +60,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
                                    "share_password": "sharepassword", "job_wait": True})
         message = {"Status": "Success"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_export_lc_logs.run_export_lc_logs',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_export_lc_logs.run_export_lc_logs',
                      return_value=(message, False))
         idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "Success"}
         result = self._run_module(idrac_default_args)
@@ -104,7 +104,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
                                    "share_password": "sharepassword", "job_wait": True})
         message = {"Status": "Failed"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_export_lc_logs.run_export_lc_logs',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_export_lc_logs.run_export_lc_logs',
                      return_value=(message, True))
         idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "Failed"}
         result = self._run_module_with_fail_json(idrac_default_args)
@@ -116,7 +116,7 @@ class TestExportLcLogs(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
                                    "share_password": "sharepassword", "job_wait": True})
         idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "Failed"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_export_lc_logs.run_export_lc_logs',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_export_lc_logs.run_export_lc_logs',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

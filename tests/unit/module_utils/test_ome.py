@@ -15,8 +15,8 @@ from __future__ import absolute_import
 import pytest
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.remote_management.dellemc.ome import RestOME
-from units.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
 import json
 
 
@@ -30,7 +30,7 @@ class TestRestOME(object):
         return mock_response
 
     def test_invoke_request_with_session(self, mock_response, mocker):
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.open_url',
                      return_value=mock_response)
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
                          'password': 'password', "port": 443}
@@ -42,7 +42,7 @@ class TestRestOME(object):
         assert response.success is True
 
     def test_invoke_request_without_session(self, mock_response, mocker):
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.open_url',
                      return_value=mock_response)
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
                          'password': 'password', "port": 443}
@@ -55,7 +55,7 @@ class TestRestOME(object):
 
     @pytest.mark.parametrize("exc", [URLError, SSLValidationError, ConnectionError])
     def test_invoke_request_error_case_handling(self, exc, mock_response, mocker):
-        open_url_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        open_url_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.open_url',
                                      return_value=mock_response)
         open_url_mock.side_effect = exc("test")
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
@@ -66,7 +66,7 @@ class TestRestOME(object):
                 obj.invoke_request("/testpath", "GET")
 
     def test_invoke_request_http_error_handling(self, mock_response, mocker):
-        open_url_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        open_url_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.open_url',
                                      return_value=mock_response)
         open_url_mock.side_effect = HTTPError('http://testhost.com/', 400,
                                               'Bad Request Error', {}, None)
@@ -81,7 +81,7 @@ class TestRestOME(object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {"@odata.count" : 50, "value": list(range(51))}
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.invoke_request',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.RestOME.invoke_request',
                      return_value=mock_response)
         module_params = {'hostname': '100.96.32.138', 'username': 'admin',
                          'password': 'Dell_123', "port": 443}
@@ -90,9 +90,9 @@ class TestRestOME(object):
         assert reports == {"resp_obj": mock_response, "report_list": list(range(51))}
 
     def test_get_report_list_error_case(self, mock_response, mocker, ome_connection_mock):
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.open_url',
                      return_value=mock_response)
-        invoke_obj = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.invoke_request',
+        invoke_obj = mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.RestOME.invoke_request',
                                   side_effect=HTTPError('http://testhost.com/', 400, 'Bad Request Error', {}, None))
         module_params = {'hostname': '100.96.32.138', 'username': 'admin',
                          'password': 'Dell_123', "port": 443}

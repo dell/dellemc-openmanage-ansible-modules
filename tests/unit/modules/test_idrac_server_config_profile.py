@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import idrac_server_config_profile
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -38,7 +38,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
     def idrac_file_manager_server_config_profile_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_server_config_profile.file_share_manager')
+                'ansible_collections.dellemc.openmanage.plugins.modules.idrac_server_config_profile.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -47,7 +47,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_server_configure_profile_mock(self, mocker, idrac_server_configure_profile_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'idrac_server_config_profile.iDRACConnection',
                                              return_value=idrac_server_configure_profile_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_server_configure_profile_mock
@@ -60,10 +60,10 @@ class TestServerConfigProfile(FakeAnsibleModule):
                                    "command": "import", "job_wait": True, "scp_components": "IDRAC",
                                    "scp_file": "scp_file.xml"})
         message = {"Status": "Success"}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_server_config_profile.run_import_server_config_profile',
                      return_value=message)
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_server_config_profile.run_export_server_config_profile', return_value=("export_status"))
         result = self._run_module(idrac_default_args)
         assert result == {'msg': 'Successfully imported the Server Configuration Profile.',
@@ -77,9 +77,9 @@ class TestServerConfigProfile(FakeAnsibleModule):
                                    "command": "export", "job_wait": True, "scp_components": "IDRAC",
                                    "scp_file": "scp_file.xml"})
         message = {"Status": "Success"}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_server_config_profile.run_import_server_config_profile', return_value=("import_status"))
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_server_config_profile.run_export_server_config_profile', return_value=message)
         result = self._run_module(idrac_default_args)
         assert result == {'msg': 'Successfully exported the Server Configuration Profile.',
@@ -93,9 +93,9 @@ class TestServerConfigProfile(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_user": "sharename", "share_password": "sharepswd",
                                    "command": "export", "job_wait": True, "scp_components": "IDRAC",
                                    "scp_file": "scp_file.xml"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_server_config_profile.run_import_server_config_profile', side_effect=exc_type('test'))
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_server_config_profile.run_export_server_config_profile', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

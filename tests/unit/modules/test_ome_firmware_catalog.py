@@ -13,11 +13,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import ome_firmware_catalog
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware_catalog
 from ansible.module_utils.six.moves.urllib.error import HTTPError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule
-from units.modules.utils import set_module_args
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args
 from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -27,7 +27,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 @pytest.fixture
 def ome_connection_catalog_mock(mocker,ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_catalog.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_catalog.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -38,7 +38,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
 
     @pytest.fixture
     def mock__get_catalog_payload(self, mocker):
-        mock_payload = mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_catalog._get_catalog_payload',return_value = {"Repistory":"Dummy val"})
+        mock_payload = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_catalog._get_catalog_payload',return_value = {"Repistory":"Dummy val"})
         return mock_payload
 
     def test_main_ome_firmware_catalog_success_case1(self, ome_default_args, mock__get_catalog_payload,

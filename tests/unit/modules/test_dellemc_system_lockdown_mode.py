@@ -12,10 +12,10 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_system_lockdown_mode
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_system_lockdown_mode
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -37,7 +37,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
     def idrac_file_manager_system_lockdown_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_system_lockdown_mode.file_share_manager')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_system_lockdown_mode.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -46,7 +46,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_system_lockdown_mode_mock(self, mocker, idrac_system_lockdown_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_system_lockdown_mode.iDRACConnection',
                                              return_value=idrac_system_lockdown_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_system_lockdown_mock
@@ -57,7 +57,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "dummy_share_name", "share_password": "dummy_share_password",
                   "lockdown_mode": "Enabled", "share_name": "share_dummy_name"})
         message = {"Status": "Success"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_system_lockdown_mode.run_system_lockdown_mode',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_system_lockdown_mode.run_system_lockdown_mode',
                      return_value=(message, False))
         idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = {"Status": "Success"}
         result = self._run_module(idrac_default_args)
@@ -68,7 +68,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "dummy_share_name", "share_password": "dummy_share_password",
                   "lockdown_mode": "Enabled", "share_name": "share_dummy_name"})
         message = {"Status": "Failed"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_system_lockdown_mode.run_system_lockdown_mode',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_system_lockdown_mode.run_system_lockdown_mode',
                      return_value=(message, True))
         idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = {"Status": "Failed"}
         result = self._run_module_with_fail_json(idrac_default_args)
@@ -80,7 +80,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "dummy_share_name", "share_password": "dummy_share_password",
                   "lockdown_mode": "Enabled", "share_name": "share_dummy_name"})
         idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = {"Status": "Failed"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_system_lockdown_mode.run_system_lockdown_mode',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_system_lockdown_mode.run_system_lockdown_mode',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

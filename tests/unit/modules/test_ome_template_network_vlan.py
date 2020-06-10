@@ -11,25 +11,25 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import ome_template_network_vlan
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock
-from units.modules.remote_management.dellemc.common import AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_template_network_vlan
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import AnsibleFailJSonException
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.utils import AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.utils import AnsibleExitJson
 from ssl import SSLError
 from io import StringIO
 from ansible.module_utils._text import to_text
 import json
 from ansible.module_utils import basic
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleExitJson
 import ast
 
 
 @pytest.fixture
 def ome_connection_mock_for_template_network_vlan(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template_network_vlan.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -56,9 +56,9 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         payload = {"TemplateId": 12,
                    "VlanAttributes": [{"ComponentId": 2302, "Tagged": [12765, 12767, 12768], "Untagged": 12766},
                                       {"ComponentId": 2301, "Tagged": [12765, 12766], "Untagged": 12767}]}
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.validate_vlans',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template_network_vlan.validate_vlans',
                      return_value=(untag_dict, tagged_dict))
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.get_vlan_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template_network_vlan.get_vlan_payload',
                      return_value=payload)
         ome_response_mock.json_data = {}
         ome_response_mock.success = True
@@ -135,7 +135,7 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         port_id_map = {1: 2302, 2: 2301}
         port_untagged_map = {1: 12766, 2: 12767}
         port_tagged_map = {1: [12765, 12767, 12768], 2: [12766]}
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.get_template_vlan_info',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template_network_vlan.get_template_vlan_info',
                      return_value=(port_id_map, port_untagged_map, port_tagged_map))
         payload = self.module.get_vlan_payload(f_module, ome_connection_mock_for_template_network_vlan, untag_dict,
                                                tagged_dict)
@@ -152,7 +152,7 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
                 {"port": 1, "untagged_network_name": "plat"},
                 {"port": 2, "untagged_network_id": 0},
                 {"port": 3, "untagged_network_id": 4}]})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.get_vlan_name_id_map',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template_network_vlan.get_vlan_name_id_map',
                      return_value={"vlan1": 1, "vlan2": 2, "gold": 3, "silver": 4, "plat": 5, "bronze": 6})
         untag_dict, tagged_dict = self.module.validate_vlans(f_module, ome_connection_mock_for_template_network_vlan)
         assert untag_dict == {1: 5, 2: 0, 3: 4}
@@ -215,17 +215,17 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
             {"port": 2, "tagged_network_ids": [22763], "tagged_network_names": ["gold", "silver"]}]})
         json_str = to_text(json.dumps({"info": "error_details"}))
         if exc_type == URLError:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.validate_vlans',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template_network_vlan.validate_vlans',
                          side_effect=exc_type("urlopen error"))
             result = self._run_module(ome_default_args)
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.validate_vlans',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template_network_vlan.validate_vlans',
                          side_effect=exc_type("exception message"))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.validate_vlans',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template_network_vlan.validate_vlans',
                          side_effect=exc_type('http://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},

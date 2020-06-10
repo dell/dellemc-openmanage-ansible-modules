@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_get_lcstatus
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_get_lcstatus
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -37,7 +37,7 @@ class TestLcStatus(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_lcstatus_mock(self, mocker, idrac_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_get_lcstatus.iDRACConnection', return_value=idrac_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_mock
         return idrac_mock
@@ -68,7 +68,7 @@ class TestLcStatus(FakeAnsibleModule):
 
     def test_main_get_lcstatus_success_case01(self, mocker, idrac_connection_lcstatus_mock, idrac_mock, idrac_default_args):
         message = ({"msg": {"LCReady": "lcready", "LCStatus": "lcstatus"}, "failed": False, "changed": False}, False)
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_get_lcstatus.run_get_lc_status',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_lcstatus.run_get_lc_status',
                      return_value=message)
         idrac_mock.config_mgr.LCReady.return_value = {"Status": "Success"}
         result = self._run_module(idrac_default_args)
@@ -90,7 +90,7 @@ class TestLcStatus(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_get_lcstatus_exception_handling_case(self, exc_type, mocker, idrac_mock,
                                                        idrac_connection_lcstatus_mock, idrac_default_args):
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_get_lcstatus.run_get_lc_status',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_lcstatus.run_get_lc_status',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

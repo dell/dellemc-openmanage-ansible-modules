@@ -16,17 +16,17 @@ __metaclass__ = type
 import json
 
 import pytest
-from ansible.modules.remote_management.dellemc import ome_user
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_user
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
 from io import StringIO
 from ansible.module_utils._text import to_text
 
 
 @pytest.fixture
 def ome_connection_for_user(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_user.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -44,7 +44,7 @@ class TestOmeUser(FakeAnsibleModule):
 
     def test__validate_inputs_user_pass_case(self, mocker):
         f_module = self.get_module_mock(params={"state": "absent", "user_id": 123})
-        fail_module_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_user.fail_module')
+        fail_module_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user.fail_module')
         self.module._validate_inputs(f_module)
         fail_module_mock.assert_not_called()
 
@@ -76,7 +76,7 @@ class TestOmeUser(FakeAnsibleModule):
                                                 "user_id": 23,
                                                 "attributes": {"UserName": "user1", "Password": "UserPassword",
                                                                "RoleId": "10", "Enabled": True}})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user.get_user_id_from_name', return_value=23)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user.get_user_id_from_name', return_value=23)
         data = self.module._get_resource_parameters(f_module, ome_response_mock)
         assert data == ('PUT', "AccountService/Accounts('23')",
                         {'Enabled': True, 'Id': 23, 'Password': 'UserPassword', 'RoleId': '10', 'UserName': 'user1'})
@@ -87,7 +87,7 @@ class TestOmeUser(FakeAnsibleModule):
         ome_response_mock.success = True
         ome_response_mock.json_date = {'value': []}
         f_module = self.get_module_mock(params={"state": "absent", "user_id": 23})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user.get_user_id_from_name', return_value=23)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user.get_user_id_from_name', return_value=23)
         data = self.module._get_resource_parameters(f_module, ome_response_mock)
         assert data == ('DELETE', "AccountService/Accounts('23')", None)
 
@@ -99,7 +99,7 @@ class TestOmeUser(FakeAnsibleModule):
                                                 "user_id": None,
                                                 "attributes": {"UserName": "user1", "Password": "UserPassword",
                                                                "RoleId": "10", "Enabled": True}})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user.get_user_id_from_name', return_value=None)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user.get_user_id_from_name', return_value=None)
         data = self.module._get_resource_parameters(f_module, ome_response_mock)
         assert data == ('POST', "AccountService/Accounts",
                         {'Enabled': True, 'Password': 'UserPassword', 'RoleId': '10', 'UserName': 'user1'})
@@ -109,24 +109,24 @@ class TestOmeUser(FakeAnsibleModule):
         ome_response_mock.success = True
         ome_response_mock.json_date = {'value': []}
         f_module = self.get_module_mock(params={"state": "absent", "user_id": None})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user.get_user_id_from_name', return_value=None)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user.get_user_id_from_name', return_value=None)
         with pytest.raises(Exception) as exc:
             self.module._get_resource_parameters(f_module, ome_response_mock)
         assert exc.value.args[0] == "Unable to get the account because the specified account " \
                                     "does not exist in the system."
 
     def test__get_resource_parameters_fail_case_02(self, ome_response_mock, mocker):
-        fail_module_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_user.fail_module')
+        fail_module_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user.fail_module')
         f_module = self.get_module_mock(params={"state": "absent", "user_id": None})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user.get_user_id_from_name', return_value=None)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user.get_user_id_from_name', return_value=None)
         res = self.module._get_resource_parameters(f_module, ome_response_mock)
         assert (res[0], res[1], res[2]) == ('DELETE', "AccountService/Accounts('None')", None)
         assert fail_module_mock.assert_not_called
 
     def test_main_user_success_case01(self, ome_default_args, mocker, ome_connection_for_user, ome_response_mock):
         ome_default_args.update({"state": "absent", "user_id": 23})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user._validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user._get_resource_parameters',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user._validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user._get_resource_parameters',
                      return_value=["DELETE", "ACCOUNT_RESOURCE", {"user_id": 23}])
         result = self._run_module(ome_default_args)
         assert result['changed'] is True
@@ -138,8 +138,8 @@ class TestOmeUser(FakeAnsibleModule):
                                  "user_id": 23,
                                  "attributes": {"UserName": "user1", "Password": "UserPassword",
                                                 "RoleId": "10", "Enabled": True}})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user._validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user._get_resource_parameters',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user._validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user._get_resource_parameters',
                      return_value=["PUT", "ACCOUNT_RESOURCE", {"user_id": 23}])
         result = self._run_module(ome_default_args)
         assert result['changed'] is True
@@ -154,9 +154,9 @@ class TestOmeUser(FakeAnsibleModule):
                                  "user_id": 23,
                                  "attributes": {"UserName": "user1", "Password": "UserPassword",
                                                 "RoleId": "10", "Enabled": True}})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user._validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user._validate_inputs')
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_user._get_resource_parameters', return_value=("method",
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_user._get_resource_parameters', return_value=("method",
                                                                                                          "path",
                                                                                                          "payload"))
         ome_response_mock.json_data = {"value": []}
@@ -167,7 +167,7 @@ class TestOmeUser(FakeAnsibleModule):
             ome_connection_for_user.invoke_request.side_effect = exc_type('test')
         else:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_user._get_resource_parameters',
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_user._get_resource_parameters',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module_with_fail_json(ome_default_args)

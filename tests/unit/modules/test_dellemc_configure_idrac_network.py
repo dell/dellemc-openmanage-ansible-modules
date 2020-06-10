@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_configure_idrac_network
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_configure_idrac_network
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -40,7 +40,7 @@ class TestConfigNetwork(FakeAnsibleModule):
     def idrac_file_manager_config_networking_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_configure_idrac_network.file_share_manager')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_configure_idrac_network.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -51,7 +51,7 @@ class TestConfigNetwork(FakeAnsibleModule):
     def is_changes_applicable_mock_network(self, mocker):
         try:
             changes_applicable_mock = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_configure_idrac_network.config_mgr')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_configure_idrac_network.config_mgr')
         except AttributeError:
             changes_applicable_mock = MagicMock()
         obj = MagicMock()
@@ -60,7 +60,7 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_configure_network_mock(self, mocker, idrac_configure_network_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_configure_idrac_network.iDRACConnection',
                                              return_value=idrac_configure_network_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_configure_network_mock
@@ -70,7 +70,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                                        idrac_default_args, idrac_file_manager_config_networking_mock):
         idrac_default_args.update({"share_name": "sharename"})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_idrac_network.run_idrac_network_config', return_value=(message, False))
         result = self._run_module(idrac_default_args)
         assert result == {'changed': False, 'msg': {'Status': 'Success', "message": "No changes found to commit!"}}
@@ -284,7 +284,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                                              idrac_connection_configure_network_mock,
                                                              idrac_file_manager_config_networking_mock):
         idrac_default_args.update({"share_name": "sharename"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_idrac_network.run_idrac_network_config', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

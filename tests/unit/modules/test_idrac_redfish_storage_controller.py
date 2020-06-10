@@ -13,16 +13,16 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import idrac_redfish_storage_controller
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock
-from units.modules.remote_management.dellemc.common import AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.plugins.modules import idrac_redfish_storage_controller
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import AnsibleFailJSonException
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 @pytest.fixture
 def idrac_connection_mock_for_redfish_storage_controller(mocker, redfish_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.Redfish')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_redfish_storage_controller.Redfish')
     idrac_redfish_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     idrac_redfish_connection_mock_obj.invoke_request.return_value = redfish_response_mock
     return idrac_redfish_connection_mock_obj
@@ -113,11 +113,11 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                                                                    redfish_response_mock,
                                                                    idrac_connection_mock_for_redfish_storage_controller,
                                                                    param):
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_raid_service')
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_id_exists'),
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_volume_array_exists'),
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_encryption_capability'),
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_redfish_storage_controller.validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_redfish_storage_controller.check_raid_service')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_redfish_storage_controller.check_id_exists'),
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_redfish_storage_controller.check_volume_array_exists'),
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_redfish_storage_controller.check_encryption_capability'),
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
         redfish_response_mock.headers = {"Location" : "Jobs/1234"}

@@ -12,17 +12,17 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_delete_lc_job
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_delete_lc_job
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.compat.mock import MagicMock
-from units.compat.mock import PropertyMock
-from units.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
 import pytest, json
 from io import StringIO
 from ansible.module_utils._text import to_text
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -42,7 +42,7 @@ class TestDeleteLcJob(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_delete_lc_job_mock(self, mocker, idrac_lc_job_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_delete_lc_job.iDRACConnection', return_value=idrac_lc_job_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_lc_job_mock
         return idrac_lc_job_mock
@@ -51,7 +51,7 @@ class TestDeleteLcJob(FakeAnsibleModule):
                                               mocker):
         idrac_default_args.update({"job_id": "job_id"})
         message = {"Status": "Success"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_delete_lc_job.run_delete_lc_job',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_delete_lc_job.run_delete_lc_job',
                      return_value=(message, False))
         idrac_connection_delete_lc_job_mock.job_mgr.delete_job.return_value = {"Status": "Success"}
         result = self._run_module(idrac_default_args)
@@ -118,7 +118,7 @@ class TestDeleteLcJob(FakeAnsibleModule):
                                                mocker):
         idrac_default_args.update({"job_id": "job_id"})
         message = {"Status": "Failed"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_delete_lc_job.run_delete_lc_job',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_delete_lc_job.run_delete_lc_job',
                      return_value=(message, True))
         idrac_connection_delete_lc_job_mock.job_mgr.delete_job.return_value = {"Status": "Failed"}
         result = self._run_module_with_fail_json(idrac_default_args)
@@ -129,7 +129,7 @@ class TestDeleteLcJob(FakeAnsibleModule):
                                                         mocker, idrac_default_args):
         idrac_default_args.update({"job_id": "job_id"})
         idrac_connection_delete_lc_job_mock.job_mgr.delete_job.return_value = {"Status": "Failed"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_delete_lc_job.run_delete_lc_job',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_delete_lc_job.run_delete_lc_job',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

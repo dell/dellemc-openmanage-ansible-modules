@@ -13,17 +13,17 @@ from __future__ import absolute_import
 
 import json
 
-from units.compat.mock import patch, mock_open
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch, mock_open
 import pytest
 import socket
-from ansible.modules.remote_management.dellemc import idrac_firmware
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.plugins.modules import idrac_firmware
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
 from ansible.module_utils.six.moves.urllib.parse import urlparse
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.parse import urlparse, ParseResult
@@ -65,7 +65,7 @@ class TestidracFirmware(FakeAnsibleModule):
     def re_match_mock(self, mocker):
         try:
             re_mock = mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_firmware.re')
+                'ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.re')
         except AttributeError:
             re_mock = MagicMock()
         obj = MagicMock()
@@ -76,7 +76,7 @@ class TestidracFirmware(FakeAnsibleModule):
     def ET_convert_mock(self, mocker):
         try:
             ET_mock = mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_firmware.ET')
+                'ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.ET')
         except AttributeError:
             ET_mock = MagicMock()
         obj = MagicMock()
@@ -85,13 +85,13 @@ class TestidracFirmware(FakeAnsibleModule):
 
     @pytest.fixture
     def fileonshare_idrac_firmware_mock(self, mocker):
-        share_mock = mocker.patch('ansible.modules.remote_management.dellemc.idrac_firmware.FileOnShare',
+        share_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.FileOnShare',
                                   return_value=MagicMock())
         return share_mock
 
     @pytest.fixture
     def idrac_connection_firmware_mock(self, mocker, idrac_firmware_update_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'idrac_firmware.iDRACConnection',
                                              return_value=idrac_firmware_update_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_firmware_update_mock
@@ -99,7 +99,7 @@ class TestidracFirmware(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_firmware_redfish_mock(self, mocker, idrac_firmware_job_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'idrac_firmware.iDRACRedfishAPI',
                                              return_value=idrac_firmware_job_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_firmware_job_mock
@@ -111,7 +111,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "reboot": True, "job_wait": True})
         message = {"Status": "Success", "update_msg": "Successfully updated the firmware.", "update_status": "Success",
                    'changed': False}
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_firmware.update_firmware',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.update_firmware',
                      return_value=message)
         result = self._run_module(idrac_default_args)
         assert result == {'msg': 'Successfully updated the firmware.', 'update_status': 'Success', 'changed': False}
@@ -123,9 +123,9 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
                                    "share_user": "sharename", "share_password": "sharepswd", "share_mnt": "sharmnt",
                                    "reboot": True, "job_wait": True})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_firmware._validate_catalog_file', return_value="catalog_file_name")
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_firmware.update_firmware', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result
@@ -136,7 +136,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_user": "sharename", "share_password": "sharepswd", "share_mnt": "sharmnt",
                                    "reboot": True, "job_wait": True})
         json_str = to_text(json.dumps({"data": "out"}))
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'idrac_firmware.update_firmware', side_effect=HTTPError('http://testhost.com',
                                                                              400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
@@ -149,7 +149,7 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "mhttps://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "UserName", "share_password": "sharepswd", "share_mnt": "shrmnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True, "apply_update": True})
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware.update_firmware_url",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.update_firmware_url",
                      return_value=({"update_status": {"job_details": {"Data": {"StatusCode": 200,
                                                                                "body": {"PackageList": [{}]}}}}},
                                    {"job_details": {"Data": {"StatusCode": 200,
@@ -170,13 +170,13 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "mhttps://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "UserName", "share_password": "sharepswd", "share_mnt": "shrmnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True, "apply_update": True})
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware.update_firmware_url",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.update_firmware_url",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
                                                                                "body": {"PackageList": [{}]}}}}},
                                    {"job_details": {"Data": {"StatusCode": 200,
                                    "body": {"PackageList": [{}]}}}}))
 
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware._convert_xmltojson", return_value=
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware._convert_xmltojson", return_value=
         ({
             "BaseLocation": None,
             "ComponentID": "18981",
@@ -214,12 +214,12 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "https://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "UserName", "share_password": "sharepswd", "share_mnt": "shrmnt",
                                    "reboot": True, "job_wait": False, "ignore_cert_warning": True, "apply_update": True})
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware.update_firmware_url",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.update_firmware_url",
                      return_value=({"job_details": {"Data": {"StatusCode": 200, "body": {"PackageList": [{}]}}}},
                                    {"Data": {"StatusCode": 200,
                                    "body": {"PackageList": [{}]}}}))
 
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware._convert_xmltojson", return_value=
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware._convert_xmltojson", return_value=
         ({
             "BaseLocation": None,
             "ComponentID": "18981",
@@ -246,13 +246,13 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "mhttps://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "UserName", "share_password": "sharepswd", "share_mnt": "sharemnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True, "apply_update": True})
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware.update_firmware_url",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.update_firmware_url",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
                                                                                "body": {"PackageList": [{}]}}}}},
                                    {"job_details": {"Data": {"StatusCode": 200,
                                                              "body": {"PackageList": [{}]}}}}))
 
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware._convert_xmltojson", return_value=
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware._convert_xmltojson", return_value=
         {
             "BaseLocation": None,
             "ComponentID": "18981",
@@ -286,13 +286,13 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "mhttps://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "UserName", "share_password": "sharepswd", "share_mnt": "sharemnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True, "apply_update": True})
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware.update_firmware_url",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.update_firmware_url",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
                                                                                "body": {"PackageList": [{}]}}}}},
                                    {"job_details": {"Data": {"StatusCode": 200,
                                                              "body": {"PackageList": [{}]}}}}))
 
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware._convert_xmltojson", return_value=
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware._convert_xmltojson", return_value=
         {
             "BaseLocation": None,
             "ComponentID": "18981",
@@ -384,9 +384,9 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "reboot": True, "job_wait": False, "ignore_cert_warning": True,
                                    "share_type": "http", "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
                                    "idrac_password": "idrac_password", "idrac_port": 443})
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware.get_jobid", return_value="23451")
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.get_jobid", return_value="23451")
 
-        mocker.patch("ansible.modules.remote_management.dellemc.idrac_firmware.urlparse",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.urlparse",
                      return_value=ParseResult(scheme='http', netloc='downloads.dell.com', path='/%7Eguido/Python.html',
                      params='', query='', fragment=''))
         mocker.patch("socket.gethostbyname", return_value="downloads.dell.com")
