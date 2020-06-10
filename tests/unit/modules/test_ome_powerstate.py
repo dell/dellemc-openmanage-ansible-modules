@@ -16,15 +16,15 @@ from unittest import result
 import pytest, json
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
 from io import StringIO
 from ansible.module_utils._text import to_text
-from ansible.modules.remote_management.dellemc import ome_powerstate
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_powerstate
 
 
 @pytest.fixture
 def ome_connection_powerstate_mock(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -191,7 +191,7 @@ class TestOmePowerstate(FakeAnsibleModule):
     def test_main_powerstate_success_case01(self, ome_default_args, mocker, ome_connection_powerstate_mock,
                                             ome_response_mock):
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_powerstate.get_device_resource',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
             return_value={"Repository": "payload"})
         ome_default_args.update({"device_id": "11111", "power_state": "off"})
         ome_response_mock.success = True
@@ -203,7 +203,7 @@ class TestOmePowerstate(FakeAnsibleModule):
 
     def test_main_powerstate_success_case02(self, ome_default_args, mocker, ome_connection_powerstate_mock,
                                             ome_response_mock):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.get_device_resource',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
                      return_value={"Repository": "payload"})
         ome_default_args.update({"device_service_tag": "KLBR111", "power_state": "on"})
         ome_response_mock.success = True
@@ -215,9 +215,9 @@ class TestOmePowerstate(FakeAnsibleModule):
 
     def test_main_powerstate_failure_case(self, ome_default_args, mocker, ome_connection_powerstate_mock,
                                           ome_response_mock):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.get_device_resource',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
                      return_value={"Repository": "payload"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.spawn_update_job',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.spawn_update_job',
                      return_value="payload")
         ome_default_args.update({"device_service_tag": None, "power_state": "on"})
         ome_response_mock.json_data = {"value": [{"device_service_tag": None, "power_state": "on"}]}
@@ -229,9 +229,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 ome_response_mock):
         ome_default_args.update({"device_id": Constants.service_tag1, "power_state": "on", "Type": 1000,
                                  "device_service_tag": Constants.service_tag1})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.get_device_state',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_state',
                      return_value=('on', 1000))
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.build_power_state_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.build_power_state_payload',
                      return_value={'Id': 0, 'JobDescription': 'DeviceAction_Task',
                                    'JobName': 'DeviceAction_Task_PowerState',
                                    'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
@@ -266,7 +266,7 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 ome_response_mock):
         ome_default_args.update({"device_id": None, "power_state": "on", "Type": 1000,
                                  "device_service_tag": "@#4"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.get_device_state',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_state',
                      return_value=('on', 1000))
         ome_response_mock.status_code = 400
         ome_response_mock.json_data = {
@@ -291,11 +291,11 @@ class TestOmePowerstate(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_powerstate.get_device_resource',
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
                 side_effect=exc_type('test'))
         else:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_powerstate.spawn_update_job',
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.spawn_update_job',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module_with_fail_json(ome_default_args)

@@ -13,12 +13,12 @@ __metaclass__ = type
 
 import pytest
 import json
-from ansible.modules.remote_management.dellemc import redfish_storage_volume
+from ansible_collections.dellemc.openmanage.plugins.modules import redfish_storage_volume
 from ansible.module_utils.six.moves.urllib.error import HTTPError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.modules.remote_management.dellemc.common import AnsibleFailJSonException
-from units.modules.utils import set_module_args
-from units.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
@@ -27,7 +27,7 @@ from ansible.module_utils._text import to_text
 
 @pytest.fixture
 def redfish_connection_mock_for_storage_volume(mocker, redfish_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.Redfish')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.Redfish')
     redfish_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     redfish_connection_mock_obj.invoke_request.return_value = redfish_response_mock
     return redfish_connection_mock_obj
@@ -57,9 +57,9 @@ class TestStorageVolume(FakeAnsibleModule):
 
     @pytest.mark.parametrize("param", arg_list1)
     def test_redfish_storage_volume_main_success_case_01(self, mocker, redfish_default_args, module_mock, redfish_connection_mock_for_storage_volume, param):
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.fetch_storage_resource')
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.configure_raid_operation',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.fetch_storage_resource')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.configure_raid_operation',
                      return_value={"msg": "Successfully submitted volume task.",
                                    "task_uri": "task_uri",
                                    "task_id": 1234})
@@ -87,16 +87,16 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_redfish_storage_volume_main_exception_handling_case(self, exc_type, mocker, redfish_default_args,
                                                                  redfish_connection_mock_for_storage_volume, redfish_response_mock):
         redfish_default_args.update({"state": "present"})
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.validate_inputs')
         redfish_response_mock.status_code = 400
         redfish_response_mock.success = False
         json_str = to_text(json.dumps({"data": "out"}))
 
         if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.configure_raid_operation',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.configure_raid_operation',
                          side_effect=exc_type('test'))
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.configure_raid_operation',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.configure_raid_operation',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module_with_fail_json(redfish_default_args)
@@ -131,15 +131,15 @@ class TestStorageVolume(FakeAnsibleModule):
     @pytest.mark.parametrize("input", [{"state": "present"}, {"state": "absent"}, {"command": "initialize"}])
     def test_configure_raid_operation(self, input, redfish_connection_mock_for_storage_volume, mocker):
         f_module = self.get_module_mock(params=input)
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.perform_volume_create_modify',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.perform_volume_create_modify',
                      return_value={"msg": "Successfully submitted create volume task.",
                                    "task_uri": "JobService/Jobs",
                                    "task_id": "JID_123"})
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.perform_volume_deletion',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.perform_volume_deletion',
                      return_value={"msg": "Successfully submitted delete volume task.",
                                    "task_uri": "JobService/Jobs",
                                    "task_id": "JID_456"})
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.perform_volume_initialization',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.perform_volume_initialization',
                      return_value={"msg": "Successfully submitted initialize volume task.",
                                    "task_uri": "JobService/Jobs",
                                    "task_id": "JID_789"})
@@ -158,8 +158,8 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_perform_volume_initialization_success_case_01(self, mocker, redfish_connection_mock_for_storage_volume, storage_volume_base_uri):
         message = {"msg": "Successfully submitted initialize volume task.", "task_uri": "JobService/Jobs", "task_id": "JID_789"}
         f_module = self.get_module_mock(params={"initialize_type": "Fast", "volume_id": "volume_id"})
-        obj1 = mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_initialization_progress', return_value=[])
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.perform_storage_volume_action', return_value=message)
+        obj1 = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_initialization_progress', return_value=[])
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.perform_storage_volume_action', return_value=message)
         message = self.module.perform_volume_initialization(f_module, redfish_connection_mock_for_storage_volume)
         assert message["msg"] == "Successfully submitted initialize volume task."
         assert message["task_id"] == "JID_789"
@@ -167,7 +167,7 @@ class TestStorageVolume(FakeAnsibleModule):
     @pytest.mark.parametrize("operations", [[{"OperationName": "initialize", "PercentageComplete": 70}], [{"OperationName": "initialize"}]])
     def test_perform_volume_initialization_failure_case_01(self, mocker, operations, redfish_connection_mock_for_storage_volume):
         f_module = self.get_module_mock(params={"volume_id": "volume_id"})
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_initialization_progress', return_value=operations)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_initialization_progress', return_value=operations)
         percentage_complete = operations[0].get("PercentageComplete")
         with pytest.raises(Exception) as exc:
             self.module.perform_volume_initialization(f_module, redfish_connection_mock_for_storage_volume)
@@ -188,8 +188,8 @@ class TestStorageVolume(FakeAnsibleModule):
         redfish_response_mock.success = True
         f_module = self.get_module_mock(params={"volume_id": "volume_id"})
         message = {"msg": "Successfully submitted delete volume task.", "task_uri": "JobService/Jobs", "task_id": "JID_456"}
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.perform_storage_volume_action', return_value=redfish_response_mock)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.perform_storage_volume_action', return_value=redfish_response_mock)
         self.module.perform_volume_deletion(f_module, redfish_connection_mock_for_storage_volume)
         assert message["msg"] == "Successfully submitted delete volume task."
         assert message["task_id"] == "JID_456"
@@ -203,9 +203,9 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_perform_volume_create_modify_success_case_01(self, mocker, storage_volume_base_uri, redfish_connection_mock_for_storage_volume):
         f_module = self.get_module_mock(params={"volume_id": "volume_id", "controller_id": "controller_id"})
         message = {"msg": "Successfully submitted create volume task.", "task_uri": "JobService/Jobs", "task_id": "JID_123"}
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_controller_id_exists', return_value=True)
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.volume_payload', return_value={"payload": "value"})
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.perform_storage_volume_action', return_value=message)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_controller_id_exists', return_value=True)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.volume_payload', return_value={"payload": "value"})
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.perform_storage_volume_action', return_value=message)
         message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
         assert message["msg"] == "Successfully submitted create volume task."
         assert message["task_id"] == "JID_123"
@@ -215,9 +215,9 @@ class TestStorageVolume(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"volume_id": "volume_id"})
         message = {"msg": "Successfully submitted modify volume task.", "task_uri": "JobService/Jobs", "task_id": "JID_123"}
         redfish_response_mock.success = True
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.volume_payload', return_value={"payload": "value"})
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.perform_storage_volume_action', return_value=message)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.volume_payload', return_value={"payload": "value"})
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.perform_storage_volume_action', return_value=message)
         message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
         assert message["msg"] == "Successfully submitted modify volume task."
         assert message["task_id"] == "JID_123"
@@ -227,16 +227,16 @@ class TestStorageVolume(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"volume_id": "volume_id"})
         message = {"msg": "Successfully submitted modify volume task.", "task_uri": "JobService/Jobs", "task_id": "JID_123"}
         redfish_response_mock.success = True
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.volume_payload', return_value={})
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.perform_storage_volume_action', return_value=message)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.volume_payload', return_value={})
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.perform_storage_volume_action', return_value=message)
         with pytest.raises(Exception) as exc:
             self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
         assert exc.value.args[0] == "Input options are not provided for the modify volume task."
 
     def test_perform_storage_volume_action_success_case(self, mocker, redfish_response_mock, redfish_connection_mock_for_storage_volume):
         redfish_response_mock.headers.update({"Location": "JobService/Jobs/JID_123"})
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.get_success_message', return_value="message")
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.get_success_message', return_value="message")
         msg = self.module.perform_storage_volume_action("POST", "uri", redfish_connection_mock_for_storage_volume, "create", payload={"payload": "value"})
         assert msg == "message"
 
@@ -249,7 +249,7 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_check_initialization_progress_case_01(self, mocker, redfish_connection_mock_for_storage_volume, redfish_response_mock):
         f_module = self.get_module_mock()
         redfish_response_mock.success = False
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
         opeartion_data = self.module.check_initialization_progress(f_module, redfish_connection_mock_for_storage_volume, "volume_id")
         assert opeartion_data == []
 
@@ -257,14 +257,14 @@ class TestStorageVolume(FakeAnsibleModule):
         f_module = self.get_module_mock()
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"Operations": "operation_value"}
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
         opeartion_data = self.module.check_initialization_progress(f_module, redfish_connection_mock_for_storage_volume, "volume_id")
         assert opeartion_data == "operation_value"
 
     def test_check_volume_id_exists(self, mocker, redfish_connection_mock_for_storage_volume, storage_volume_base_uri, redfish_response_mock):
         f_module = self.get_module_mock()
         redfish_response_mock.status_code = 200
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_specified_identifier_exists_in_the_system',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_specified_identifier_exists_in_the_system',
                      return_value=redfish_response_mock)
         resp = self.module.check_volume_id_exists(f_module, redfish_connection_mock_for_storage_volume, "volume_id")
         assert resp.status_code == 200
@@ -275,9 +275,9 @@ class TestStorageVolume(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"controller_id": "controller_id"})
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"Drives": "drive1"}
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_specified_identifier_exists_in_the_system',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_specified_identifier_exists_in_the_system',
                      return_value=redfish_response_mock)
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_physical_disk_exists',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_physical_disk_exists',
                      return_value=True)
         output = self.module.check_controller_id_exists(f_module, redfish_connection_mock_for_storage_volume)
         assert output is True
@@ -286,9 +286,9 @@ class TestStorageVolume(FakeAnsibleModule):
                                                         redfish_response_mock):
         f_module = self.get_module_mock(params={"controller_id": "1234"})
         redfish_response_mock.success = False
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_specified_identifier_exists_in_the_system',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_specified_identifier_exists_in_the_system',
                      return_value=redfish_response_mock)
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_storage_volume.check_physical_disk_exists',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_storage_volume.check_physical_disk_exists',
                      return_value=True)
         with pytest.raises(Exception) as exc:
             self.module.check_controller_id_exists(f_module, redfish_connection_mock_for_storage_volume)

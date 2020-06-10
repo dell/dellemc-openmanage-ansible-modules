@@ -12,12 +12,12 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_idrac_reset
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock
-from units.compat.mock import PropertyMock
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_idrac_reset
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -26,7 +26,7 @@ importorskip("omsdk.sdkcreds")
 
 @pytest.fixture
 def idrac_reset_connection_mock(mocker, idrac_mock):
-    idrac_connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+    idrac_connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                                'dellemc_idrac_reset.iDRACConnection')
     idrac_connection_class_mock.return_value.__enter__.return_value = idrac_mock
     return idrac_mock
@@ -47,7 +47,7 @@ class TestReset(FakeAnsibleModule):
     def idrac_config_mngr_reset_mock(self, mocker):
         try:
             config_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_idrac_reset.config_mgr')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_reset.config_mgr')
         except AttributeError:
             config_manager_obj = MagicMock()
         obj = MagicMock()
@@ -56,7 +56,7 @@ class TestReset(FakeAnsibleModule):
         return config_manager_obj
 
     def test_main_idrac_reset_success_case01(self, idrac_reset_connection_mock, idrac_default_args, mocker):
-        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_idrac_reset.run_idrac_reset",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_reset.run_idrac_reset",
                      return_value=({"Status": "Success"}, False))
         idrac_reset_connection_mock.config_mgr.reset_idrac.return_value = {"Status": "Success"}
         idrac_reset_connection_mock.config_mgr.reset_idrac.return_value = "Success"
@@ -82,14 +82,14 @@ class TestReset(FakeAnsibleModule):
         assert msg == {'changed': False, 'failed': False, 'msg': {'idracreset': 'msg'}}
 
     def test_main_idrac_reset_failure_case(self, idrac_reset_connection_mock, idrac_default_args, mocker):
-        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_idrac_reset.run_idrac_reset",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_reset.run_idrac_reset",
                      return_value=({"Status": "failed"}, True))
         msg, err = self._run_module_with_fail_json(idrac_default_args)
         assert msg == 'Status'
 
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_exception_handling_case(self, exc_type, mocker, idrac_reset_connection_mock, idrac_default_args):
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_idrac_reset.run_idrac_reset',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_reset.run_idrac_reset',
             side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

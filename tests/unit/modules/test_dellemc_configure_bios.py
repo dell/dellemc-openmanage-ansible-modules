@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_configure_bios
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_configure_bios
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -38,7 +38,7 @@ class TestConfigBios(FakeAnsibleModule):
     def idrac_file_manager_config_bios_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_configure_bios.file_share_manager')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_configure_bios.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -47,7 +47,7 @@ class TestConfigBios(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_configure_bios_mock(self, mocker, idrac_configure_bios_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_configure_bios.iDRACConnection',
                                              return_value=idrac_configure_bios_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_configure_bios_mock
@@ -57,7 +57,7 @@ class TestConfigBios(FakeAnsibleModule):
                                                  mocker, idrac_file_manager_config_bios_mock):
         idrac_default_args.update({"share_name": "sharename"})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios.run_server_bios_config', return_value=(message, False))
         result = self._run_module(idrac_default_args)
         assert result == {'changed': False, 'msg': {'Status': 'Success', "message": "No changes found to commit!"}}
@@ -67,7 +67,7 @@ class TestConfigBios(FakeAnsibleModule):
                                                             idrac_connection_configure_bios_mock,
                                                             idrac_default_args, idrac_file_manager_config_bios_mock):
         idrac_default_args.update({"share_name": "sharename"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios.run_server_bios_config', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result
@@ -77,7 +77,7 @@ class TestConfigBios(FakeAnsibleModule):
                                              idrac_file_manager_config_bios_mock):
         idrac_default_args.update({"share_name": "sharename"})
         message = {"Status": "Failed"}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_configure_bios.run_server_bios_config',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_configure_bios.run_server_bios_config',
                      return_value=(message, True))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result == {'Status': 'Failed', 'failed': True}
@@ -87,7 +87,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": True, "message": "changes are applicable"}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -104,7 +104,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": True, "Status": "Success", "message": "changes found to commit!"}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -121,7 +121,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": False, "Status": "Success", "Message": "No changes found to commit!"}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -138,7 +138,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": False, "Status": "Success", "Message": "No changes found to apply."}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -156,7 +156,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": False, "Status": "failed", "Message": "No changes found to apply."}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -173,7 +173,7 @@ class TestConfigBios(FakeAnsibleModule):
                                                             mocker, idrac_file_manager_config_bios_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(True, "Error occurs"))
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
@@ -188,7 +188,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {'Status': 'Failed', 'Message': 'message of validate params'}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(True, "Error occurs"))
         idrac_connection_configure_bios_mock.config_mgr.set_liason_share.return_value = message
         # idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -206,7 +206,7 @@ class TestConfigBios(FakeAnsibleModule):
                                    "share_password": "sharepassword", "boot_sources": "bootsources",
                                    "attributes": {"boot_mode": "BootMode", "nvme_mode": "NvmeMode"}})
         message = {'Status': 'Successs', 'Message': 'message of validate params'}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "Error didn't occurs"))
         idrac_connection_configure_bios_mock.config_mgr.configure_bios.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -405,7 +405,7 @@ class TestConfigBios(FakeAnsibleModule):
 
     def test__validate_params_check_params_case(self, idrac_connection_configure_bios_mock, mocker,
                                                 idrac_file_manager_config_bios_mock, idrac_default_args):
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios.check_params', return_value=(True, "Error occurs in check params"))
         attr = [{"Name": "name1"}, {"Index": "index1"}]
         err, msg = self.module._validate_params(attr)
@@ -414,7 +414,7 @@ class TestConfigBios(FakeAnsibleModule):
 
     def test__validate_params_empty_params_case(self, idrac_connection_configure_bios_mock, mocker,
                                                 idrac_file_manager_config_bios_mock, idrac_default_args):
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_name_index_duplication', return_value=(True, "Error occurs in "
                                                                                                     "validate name"))
         err, msg = self.module._validate_params([])

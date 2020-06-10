@@ -13,15 +13,15 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import idrac_os_deployment
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from ansible.module_utils.remote_management.dellemc.dellemc_idrac import iDRACConnection
-from units.compat.mock import MagicMock
-from units.modules.utils import set_module_args
+from ansible_collections.dellemc.openmanage.plugins.modules import idrac_os_deployment
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args
 
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
 from ansible.module_utils import basic
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 import json
 from pytest import importorskip
 
@@ -35,33 +35,33 @@ class TestOsDeployment(FakeAnsibleModule):
     @pytest.fixture
     def idrac_connection_mock(self, mocker, idrac_mock):
         idrac_connection_class_mock = mocker.patch(
-            'ansible.modules.remote_management.dellemc.idrac_os_deployment.iDRACConnection')
+            'ansible_collections.dellemc.openmanage.plugins.modules.idrac_os_deployment.iDRACConnection')
         # idrac_connection_class_mock.return_value = idrac_mock
         idrac_connection_class_mock.return_value.__enter__.return_value = idrac_mock
         return idrac_connection_class_mock
 
     @pytest.fixture
     def idrac_mock(self, mocker):
-        sdkinfra_obj = mocker.patch('ansible.module_utils.remote_management.dellemc.dellemc_idrac.sdkinfra')
+        sdkinfra_obj = mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac.sdkinfra')
         obj = MagicMock()
         sdkinfra_obj.get_driver.return_value = obj
         return sdkinfra_obj
 
     @pytest.fixture
     def omsdk_mock(self, mocker):
-        mocker.patch('ansible.module_utils.remote_management.dellemc.dellemc_idrac.UserCredentials')
-        mocker.patch('ansible.module_utils.remote_management.dellemc.dellemc_idrac.WsManOptions')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac.UserCredentials')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac.WsManOptions')
 
     @pytest.fixture
     def fileonshare_mock(self, mocker):
-        share_mock = mocker.patch('ansible.modules.remote_management.dellemc.idrac_os_deployment.FileOnShare',
+        share_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_os_deployment.FileOnShare',
                                   return_value=MagicMock())
         return share_mock
 
     @pytest.fixture
     def minutes_to_cim_format_mock(self, mocker):
         validate_device_inputs_mock = mocker.patch(
-            'ansible.modules.remote_management.dellemc.idrac_os_deployment.minutes_to_cim_format')
+            'ansible_collections.dellemc.openmanage.plugins.modules.idrac_os_deployment.minutes_to_cim_format')
         validate_device_inputs_mock.return_value = "time"
 
     @pytest.mark.parametrize("expose_duration_val", ["abc", None, "", 1.5, {"abc": 1}, [110, 210, 300], [120]])
@@ -154,7 +154,7 @@ class TestOsDeployment(FakeAnsibleModule):
 
         idrac_default_args.update({"iso_image": "iso_image", "share_name": "share_name"})
         idrac_default_args.update({"expose_duration": 10})
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_os_deployment.run_boot_to_network_iso',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_os_deployment.run_boot_to_network_iso',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

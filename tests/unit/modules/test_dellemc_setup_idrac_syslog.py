@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_setup_idrac_syslog
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_setup_idrac_syslog
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -38,7 +38,7 @@ class TestSetupSyslog(FakeAnsibleModule):
     def idrac_file_manager_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_setup_idrac_syslog.file_share_manager')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_setup_idrac_syslog.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -48,7 +48,7 @@ class TestSetupSyslog(FakeAnsibleModule):
     @pytest.fixture
     def is_changes_applicable_setup_syslog_mock(self, mocker):
         try:
-            changes_applicable_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+            changes_applicable_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                                    'dellemc_setup_idrac_syslog.config_mgr')
         except AttributeError:
             changes_applicable_mock = MagicMock()
@@ -58,7 +58,7 @@ class TestSetupSyslog(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_setup_syslog_mock(self, mocker, idrac_setup_syslog_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.dellemc_setup_idrac_syslog.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_setup_idrac_syslog.'
                                              'iDRACConnection', return_value=idrac_setup_syslog_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_setup_syslog_mock
         return idrac_setup_syslog_mock
@@ -68,7 +68,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", 'share_password': None, "syslog": "Enabled",
         'share_mnt': None, 'share_user': None})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_setup_idrac_syslog.run_setup_idrac_syslog',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_setup_idrac_syslog.run_setup_idrac_syslog',
                      return_value=(message, False))
         result = self._run_module(idrac_default_args)
         assert result == {'changed': False, 'msg': {'Status': 'Success', "message": "No changes found to commit!"}}
@@ -204,7 +204,7 @@ class TestSetupSyslog(FakeAnsibleModule):
                                                        idrac_default_args, idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", 'share_password': None,
                                    "syslog": "Enabled", 'share_mnt': None, 'share_user': None})
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_setup_idrac_syslog.run_setup_idrac_syslog',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_setup_idrac_syslog.run_setup_idrac_syslog',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

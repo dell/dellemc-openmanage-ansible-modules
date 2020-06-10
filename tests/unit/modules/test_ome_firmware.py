@@ -12,15 +12,15 @@
 
 from __future__ import absolute_import
 
-from units.compat.mock import patch, mock_open
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch, mock_open
 
 import pytest
 import json
 import sys
-from ansible.modules.remote_management.dellemc import ome_firmware
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
 from io import StringIO
 from ansible.module_utils._text import to_text
 
@@ -29,7 +29,7 @@ device_resource = {"device_path": "DeviceService/Devices"}
 
 @pytest.fixture
 def ome_connection_firmware_mock(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -366,19 +366,19 @@ class TestOmeFirmware(FakeAnsibleModule):
     def test_main_firmware_success_case01(self, ome_default_args, mocker, ome_connection_firmware_mock):
         ome_default_args.update({"device_id": Constants.device_id1, "device_service_tag": Constants.service_tag1,
                                  "dup_file": ""})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware._validate_device_attributes',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware._validate_device_attributes',
                      return_value=[Constants.device_id1, Constants.service_tag1])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.get_device_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.get_device_ids',
                      return_value=[Constants.device_id1, Constants.device_id2])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.upload_dup_file',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.upload_dup_file',
                      return_value=["SUCCESS", "token_id"])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.get_dup_applicability_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.get_dup_applicability_payload',
                      return_value={"report_payload": "values"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.get_applicable_components',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.get_applicable_components',
                      return_value="target_data")
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.job_payload_for_update',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.job_payload_for_update',
                      return_value={"job_payload": "values"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.spawn_update_job',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.spawn_update_job',
                      return_value="Success")
         data = self._run_module(ome_default_args)
         assert data['changed'] is True
@@ -387,14 +387,14 @@ class TestOmeFirmware(FakeAnsibleModule):
 
     def test_main_firmware_success_case02(self, ome_default_args, mocker, ome_connection_firmware_mock):
         ome_default_args.update({"baseline_name": "baseline_name"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.get_baseline_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.validate_inputs')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.get_baseline_ids',
                      return_value=[1, 2])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.job_payload_for_update',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.job_payload_for_update',
                      return_value={"job_payload": "values"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.spawn_update_job',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.spawn_update_job',
                      return_value="Success")
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.baseline_based_update',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.baseline_based_update',
                      return_value="target_data")
         data = self._run_module(ome_default_args)
         assert data['changed'] is True
@@ -407,7 +407,7 @@ class TestOmeFirmware(FakeAnsibleModule):
                                           ome_response_mock, ome_connection_firmware_mock):
         ome_default_args.update({"device_id": Constants.device_id1, "device_service_tag": Constants.service_tag1,
                                  "dup_file": ""})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware._validate_device_attributes')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware._validate_device_attributes')
         ome_response_mock.json_data = {"value": [{"Id": "DeviceServiceTag",
                                                   "dup_file": ""}]}
         ome_response_mock.status_code = 400
@@ -416,19 +416,19 @@ class TestOmeFirmware(FakeAnsibleModule):
 
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.get_device_ids')
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.get_device_ids')
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.upload_dup_file',
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.upload_dup_file',
                 side_effect=exc_type('test'))
         else:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.get_dup_applicability_payload')
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.get_dup_applicability_payload')
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.get_applicable_components')
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.get_applicable_components')
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.job_payload_for_update')
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.job_payload_for_update')
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.spawn_update_job',
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware.spawn_update_job',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:

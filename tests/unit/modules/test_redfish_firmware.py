@@ -17,22 +17,22 @@ __metaclass__ = type
 
 import pytest
 import json
-from ansible.modules.remote_management.dellemc import redfish_firmware
+from ansible_collections.dellemc.openmanage.plugins.modules import redfish_firmware
 from ansible.module_utils.six.moves.urllib.error import HTTPError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.modules.remote_management.dellemc.common import AnsibleFailJSonException
-from units.modules.utils import set_module_args
-from units.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-from units.compat.mock import patch, mock_open
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch, mock_open
 
 
 @pytest.fixture
 def redfish_firmware_connection_mock(mocker, redfish_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.redfish_firmware.Redfish')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware.Redfish')
     redfish_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     redfish_connection_mock_obj.invoke_request.return_value = redfish_response_mock
     return redfish_connection_mock_obj
@@ -45,7 +45,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
     def os_mock(self, mocker):
         try:
             fi_mock = mocker.patch(
-                'ansible.modules.remote_management.dellemc.redfish_firmware.payload_file.get("file")')
+                'ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware.payload_file.get("file")')
         except AttributeError:
             fi_mock = MagicMock()
         obj = MagicMock()
@@ -113,7 +113,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         redfish_default_args.update({"image_uri": "/home/firmware_repo/component.exe"})
         redfish_firmware_connection_mock.headers.get("Location").return_value = "https://multipart/form-data"
         redfish_firmware_connection_mock.headers.get("Location").split().return_value = "multipart/form-data"
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_firmware.firmware_update',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware.firmware_update',
                      return_value=redfish_response_mock)
         redfish_response_mock.json_data = {"image_uri": "http://home/firmware_repo/component.exe"}
         redfish_response_mock.status_code = 201
@@ -136,10 +136,10 @@ class TestRedfishFirmware(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
 
         if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.redfish_firmware.firmware_update',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware.firmware_update',
                          side_effect=exc_type('test'))
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.redfish_firmware.firmware_update',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware.firmware_update',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module_with_fail_json(redfish_default_args)
@@ -197,7 +197,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_firmware_update_success_case01(self, redfish_default_args, redfish_firmware_connection_mock,
                                           redfish_response_mock, mocker):
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._get_update_service_target",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._get_update_service_target",
                      return_value=('2134', 'http://dell.com', 'redfish'))
         redfish_default_args.update({"image_uri": "http://home/firmware_repo/component.exe",
                                      "transfer_protocol": "HTTP"})
@@ -211,9 +211,9 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_firmware_update_success_case02(self, redfish_default_args, redfish_firmware_connection_mock,
                                           redfish_response_mock, mocker):
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._get_update_service_target",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._get_update_service_target",
                      return_value=('2134', 'nhttp://dell.com', 'multipart/form-data'))
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._encode_form_data",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
         redfish_default_args.update({"image_uri": "nhttp://home/firmware_repo/component.exe",
                                      "transfer_protocol": "HTTP"})
@@ -232,9 +232,9 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_firmware_update_success_case03(self, redfish_default_args, redfish_firmware_connection_mock,
                                           redfish_response_mock, mocker):
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._get_update_service_target",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._get_update_service_target",
                      return_value=('2134', 'nhttp://dell.com', 'multipart/form-data'))
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._encode_form_data",
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
         redfish_default_args.update({"image_uri": "nhttp://home/firmware_repo/component.exe",
                                      "transfer_protocol": "HTTP"})

@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_get_system_inventory
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, Mock
-from units.compat.mock import PropertyMock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_get_system_inventory
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -36,7 +36,7 @@ class TestSystemInventory(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_get_system_inventory_connection_mock(self, mocker, idrac_system_inventory_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_get_system_inventory.iDRACConnection',
                                              return_value=idrac_system_inventory_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_system_inventory_mock
@@ -44,7 +44,7 @@ class TestSystemInventory(FakeAnsibleModule):
 
     def test_main_idrac_get_system_inventory_success_case01(self, idrac_get_system_inventory_connection_mock, mocker,
                                                             idrac_default_args):
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_get_system_inventory.run_get_system_inventory',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_system_inventory.run_get_system_inventory',
                      return_value=({"msg": "Success"}, False))
         msg = self._run_module(idrac_default_args)
         assert msg['changed'] is False
@@ -60,7 +60,7 @@ class TestSystemInventory(FakeAnsibleModule):
         assert err is True
 
     def test_main_error_case(self, idrac_get_system_inventory_connection_mock, idrac_default_args, mocker):
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_get_system_inventory.run_get_system_inventory',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_system_inventory.run_get_system_inventory',
                      return_value=({"msg": "Failed"}, True))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result['failed'] is True
@@ -69,7 +69,7 @@ class TestSystemInventory(FakeAnsibleModule):
     def test_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
                                           idrac_get_system_inventory_connection_mock):
 
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_get_system_inventory.run_get_system_inventory',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_system_inventory.run_get_system_inventory',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

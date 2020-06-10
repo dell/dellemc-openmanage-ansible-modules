@@ -12,21 +12,21 @@
 from __future__ import absolute_import
 
 import pytest, json
-from units.modules.utils import set_module_args, exit_json, \
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, \
     fail_json, AnsibleFailJson, AnsibleExitJson
 from ansible.module_utils import basic
-from ansible.modules.remote_management.dellemc import ome_user_info
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_user_info
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule
-from units.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
 from io import StringIO
 from ansible.module_utils._text import to_text
 
 
 @pytest.fixture
 def ome_connection_user_info_mock(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_user_info.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user_info.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -61,7 +61,7 @@ class TestOmeUserInfo(FakeAnsibleModule):
         assert 'user_info' in result
 
     def test_user_info_success_case03(self, ome_default_args, ome_connection_user_info_mock, ome_response_mock, mocker):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_user_info._get_query_parameters',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user_info._get_query_parameters',
                      return_value={"filter": "abc"})
         ome_default_args.update({"system_query_options": {"filter": "abc"}})
         ome_response_mock.success = True

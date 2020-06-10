@@ -15,17 +15,17 @@ from __future__ import absolute_import
 import json
 
 import pytest
-from ansible.modules.remote_management.dellemc import ome_template
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_template
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
 from io import StringIO
 from ansible.module_utils._text import to_text
 
 
 @pytest.fixture
 def ome_connection_mock_for_template(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_template.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     ome_connection_mock_obj.get_all_report_details.return_value = {"report_list": []}
@@ -39,7 +39,7 @@ class TestOmeTemplate(FakeAnsibleModule):
     @pytest.fixture
     def get_template_resource_mock(self, mocker):
         response_class_mock = mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_template._get_resource_parameters')
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_template._get_resource_parameters')
         return response_class_mock
 
     def test_get_service_tags_success_case(self, ome_connection_mock_for_template, ome_response_mock):
@@ -150,11 +150,11 @@ class TestOmeTemplate(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [{"inp": create_payload, "mid": inter_payload,"out": payload_out}])
     def test__get_resource_parameters_create_success_case(self, mocker, ome_response_mock, ome_connection_mock_for_template, params):
         f_module = self.get_module_mock(params=params["inp"])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_device_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_device_ids',
                      return_value=[25007])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_view_id',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_view_id',
                      return_value=["Deployment"])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_create_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_create_payload',
                      return_value=params["mid"])
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == params["out"]
@@ -179,9 +179,9 @@ class TestOmeTemplate(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [{"inp": modify_payload, "mid": inter_payload,"out": payload_out}])
     def test__get_resource_parameters_modify_success_case(self, mocker, ome_response_mock, ome_connection_mock_for_template, params):
         f_module = self.get_module_mock(params=params["inp"])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_template_by_id',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_template_by_id',
                      return_value={})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_modify_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_modify_payload',
                      return_value={})
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == ('TemplateService/Templates(1234)', {}, 'PUT')
@@ -198,27 +198,27 @@ class TestOmeTemplate(FakeAnsibleModule):
 
     def test__get_resource_parameters_deploy_success_case(self, mocker, ome_response_mock, ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "deploy", "template_id": 1234})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_device_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_device_ids',
                      return_value=[Constants.device_id1])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_deploy_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_deploy_payload',
                      return_value={"deploy_payload": "value"})
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == ('TemplateService/Actions/TemplateService.Deploy', {"deploy_payload": "value"}, 'POST')
 
     def test__get_resource_parameters_clone_success_case(self, mocker, ome_response_mock, ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "clone", "template_id": 1234, "template_view_type": 2})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_view_id',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_view_id',
                      return_value= 2)
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_clone_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_clone_payload',
                      return_value={"clone_payload": "value"})
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == ('TemplateService/Actions/TemplateService.Clone', {"clone_payload": "value"}, 'POST')
 
     def test__get_resource_parameters_import_success_case(self, mocker, ome_response_mock, ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "import", "template_id": 1234, "template_view_type": 2})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_view_id',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_view_id',
                      return_value=2)
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_import_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_import_payload',
                      return_value={"import_payload": "value"})
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == ('TemplateService/Actions/TemplateService.Import', {"import_payload": "value"}, 'POST')
@@ -270,9 +270,9 @@ class TestOmeTemplate(FakeAnsibleModule):
 
     def test__get_resource_parameters_create_failure_case_02(self, mocker, ome_response_mock, ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "create", "template_name": "name"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_device_ids',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_device_ids',
                      return_value=[Constants.device_id1, Constants.device_id2])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.get_template_by_name',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.get_template_by_name',
                      return_value= ("template", 1234))
         with pytest.raises(Exception) as exc:
             data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
@@ -286,7 +286,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         ome_response_mock.status_code = 200
         ome_default_args.update({"device_id": "1111", "command": "create", "attributes": {"Name": "new 1template name"}})
         ome_response_mock.success = True
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template._get_resource_parameters',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template._get_resource_parameters',
                      return_value=(TEMPLATE_RESOURCE, "template_payload", "POST"))
         result = self._run_module(ome_default_args)
         assert result['changed'] is True
@@ -305,7 +305,7 @@ class TestOmeTemplate(FakeAnsibleModule):
 
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_template._get_resource_parameters',
+                'ansible_collections.dellemc.openmanage.plugins.modules.ome_template._get_resource_parameters',
                 side_effect=exc_type('test'))
         else:
             ome_connection_mock_for_template.invoke_request.side_effect = exc_type('http://testhost.com', 400,
@@ -361,7 +361,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                               ])
     def test_validate_inputs(self, param, mocker):
         f_module = self.get_module_mock(param["inp"])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_template.password_no_log')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_template.password_no_log')
         with pytest.raises(Exception) as exc:
             self.module._validate_inputs(f_module)
         assert exc.value.args[0] == param["msg"]

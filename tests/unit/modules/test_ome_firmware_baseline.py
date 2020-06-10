@@ -13,8 +13,8 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import ome_firmware_baseline
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware_baseline
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
 
 payload_out1 = {
         "Name": "baseline1",
@@ -75,7 +75,7 @@ baseline_status1 = {
 
 @pytest.fixture
 def ome_connection_mock_for_firmware_baseline(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -87,7 +87,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     @pytest.fixture
     def mock__get_catalog_payload(self, mocker):
         mock_payload = mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline._get_baseline_payload',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline._get_baseline_payload',
             return_value = {
                 "Name": "baseline_name",
                 "CatalogId": "cat_id",
@@ -234,10 +234,10 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test__get_baseline_payload(self, ome_connection_mock_for_firmware_baseline, params, mocker):
         f_module = self.get_module_mock(params=params["inp"])
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline.get_catrepo_ids',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.get_catrepo_ids',
             return_value=(12, 23))
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline.get_target_list',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.get_target_list',
             return_value=[{"Id": 123,"Type": {
                 "Id": 1000,"Name": "DEVICE"}}])
         payload = self.module._get_baseline_payload(f_module, ome_connection_mock_for_firmware_baseline)
@@ -247,10 +247,10 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"catalog_name": "cat1",
                       "baseline_name": "baseline1"})
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline.get_catrepo_ids',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.get_catrepo_ids',
             return_value=(None, None))
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline.get_target_list',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.get_target_list',
             return_value=[{"Id": 123,"Type": {
                 "Id": 1000,"Name": "DEVICE"}}])
         with pytest.raises(Exception) as exc:
@@ -261,10 +261,10 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"catalog_name": "cat1",
                       "baseline_name": "baseline1"})
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline.get_catrepo_ids',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.get_catrepo_ids',
             return_value=(12, 23))
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline.get_target_list',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.get_target_list',
             return_value=None)
         with pytest.raises(Exception) as exc:
             self.module._get_baseline_payload(f_module, ome_connection_mock_for_firmware_baseline)
@@ -296,10 +296,10 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_target_list(self, ome_connection_mock_for_firmware_baseline, params, mocker):
         f_module = self.get_module_mock(params=params["inp"])
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline.get_dev_ids',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.get_dev_ids',
             return_value=params["out"])
         mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_firmware_baseline.get_group_ids',
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.get_group_ids',
             return_value=params["out"])
         targets = self.module.get_target_list(f_module, ome_connection_mock_for_firmware_baseline)
         assert targets == params["out"]
@@ -307,7 +307,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
 
 
     def test_main_success(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock, mocker):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline._get_baseline_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline._get_baseline_payload',
             return_value=payload_out1)
         ome_response_mock.success = True
         ome_response_mock.json_data = baseline_status1
@@ -317,7 +317,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         assert 'baseline_status' in result
 
     def test_main_failure01(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock, mocker):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline._get_baseline_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline._get_baseline_payload',
             return_value=payload_out1)
         ome_response_mock.success = False
         ome_response_mock.json_data = baseline_status1
@@ -327,7 +327,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         assert 'msg' in result
 
     def test_main_failure02(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock, mocker):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline._get_baseline_payload',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline._get_baseline_payload',
             return_value=payload_out1)
         ome_response_mock.success = False
         ome_response_mock.json_data = baseline_status1

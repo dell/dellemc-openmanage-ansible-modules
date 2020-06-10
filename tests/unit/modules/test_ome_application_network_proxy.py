@@ -15,10 +15,10 @@ from __future__ import absolute_import
 import json
 
 import pytest
-from ansible.modules.remote_management.dellemc import ome_application_network_proxy
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_proxy
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
 from io import StringIO
 from ansible.module_utils._text import to_text
 from ssl import SSLError
@@ -26,7 +26,7 @@ from ssl import SSLError
 
 @pytest.fixture
 def ome_connection_mock_for_application_network_proxy(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_proxy.RestOME')
+    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_proxy.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     ome_connection_mock_obj.get_all_report_details.return_value = {"report_list": []}
@@ -43,8 +43,8 @@ class TestOmeTemplate(FakeAnsibleModule):
     @pytest.mark.parametrize("sub_param", [sub_param1, sub_param2])
     def test_ome_application_network_proxy_main_success_case_01(self, mocker, ome_default_args, sub_param, ome_connection_mock_for_application_network_proxy, ome_response_mock):
         ome_default_args.update(sub_param)
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_proxy.get_payload", return_value={"key":"val"})
-        mocker.patch("ansible.modules.remote_management.dellemc.ome_application_network_proxy.get_updated_payload", return_value={"key":"val"})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_proxy.get_payload", return_value={"key":"val"})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_proxy.get_updated_payload", return_value={"key":"val"})
         ome_response_mock.json_data = {"EnableProxy": True, "IpAddress": "255.0.0.0", "PortNumber":443, "Username": "username", "Password": "password", "EnableAuthentication": True}
         result = self.execute_module(ome_default_args)
         assert result['changed'] is True
@@ -87,15 +87,15 @@ class TestOmeTemplate(FakeAnsibleModule):
         ome_default_args.update({"enable_proxy": False})
         json_str = to_text(json.dumps({"info": "error_details"}))
         if exc_type == URLError:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_proxy.get_payload', side_effect=exc_type("urlopen error"))
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_proxy.get_payload', side_effect=exc_type("urlopen error"))
             result = self._run_module(ome_default_args)
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_proxy.get_payload', side_effect=exc_type("exception message"))
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_proxy.get_payload', side_effect=exc_type("exception message"))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_proxy.get_payload',
+            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_proxy.get_payload',
                          side_effect=exc_type('http://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},

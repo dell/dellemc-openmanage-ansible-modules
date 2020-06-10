@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_get_lc_job_status
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock
-from units.compat.mock import PropertyMock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_get_lc_job_status
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -36,7 +36,7 @@ class TestLcJobStatus(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_get_lc_job_status_connection_mock(self, mocker, idrac_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_get_lc_job_status.iDRACConnection', return_value=idrac_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_mock
         return idrac_mock
@@ -45,7 +45,7 @@ class TestLcJobStatus(FakeAnsibleModule):
                                                          idrac_default_args, mocker):
         idrac_default_args.update({"job_id": "job_id"})
         message = ({"msg": {}, "failed": False, "changed": False}, False)
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_get_lc_job_status.run_get_lc_job_status',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_lc_job_status.run_get_lc_job_status',
                      return_value=message)
         idrac_get_lc_job_status_connection_mock.job_mgr.get_job_status.return_value = {"Status": "Success"}
         result = self._run_module(idrac_default_args)
@@ -91,7 +91,7 @@ class TestLcJobStatus(FakeAnsibleModule):
     def test_main_exception_handling_case(self, exc_type, mocker, idrac_get_lc_job_status_connection_mock,
                                           idrac_default_args):
         idrac_default_args.update({"job_id": "job_id"})
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_get_lc_job_status.run_get_lc_job_status',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_lc_job_status.run_get_lc_job_status',
                       side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

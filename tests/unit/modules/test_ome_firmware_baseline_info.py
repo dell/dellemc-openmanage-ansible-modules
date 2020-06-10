@@ -11,16 +11,16 @@
 
 from __future__ import absolute_import
 
-from units.compat.mock import patch, mock_open
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch, mock_open
 
 import pytest
 import json
 import sys
 from ssl import SSLError
-from ansible.modules.remote_management.dellemc import ome_firmware_baseline_info
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware_baseline_info
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
 from io import StringIO
 from ansible.module_utils._text import to_text
 import pdb
@@ -32,7 +32,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
 
     @pytest.fixture
     def ome_connection_ome_firmware_baseline_info_mock(self, mocker, ome_response_mock):
-        connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_info.RestOME')
+        connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_info.RestOME')
         ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
         ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
         return ome_connection_mock_obj
@@ -55,7 +55,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
     def test_ome_firmware_baseline_info_main_success_case_03(self, mocker, ome_response_mock,  ome_default_args, module_mock, ome_connection_ome_firmware_baseline_info_mock):
         ome_default_args.update({"baseline_name": "baseline1"})
         ome_response_mock.json_data = {"value": [{"Name": "baseline1", "data": "fake_data"}]}
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_info.get_specific_baseline',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_info.get_specific_baseline',
                      return_value={"Name": "baseline1", "data": "fake_data"})
         result = self.execute_module(ome_default_args)
         assert result["changed"] is False
@@ -66,7 +66,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
     def test_ome_firmware_baseline_info_main_success_case_04(self, mocker, ome_response_mock,  ome_default_args, module_mock, ome_connection_ome_firmware_baseline_info_mock):
         ome_default_args.update({"baseline_name": "baseline1"})
         ome_response_mock.json_data = {"value": []}
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware_baseline_info.get_specific_baseline',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_info.get_specific_baseline',
                      return_value={"baseline1": "fake_data"})
         result = self.execute_module(ome_default_args)
         assert 'baseline_info' not in result

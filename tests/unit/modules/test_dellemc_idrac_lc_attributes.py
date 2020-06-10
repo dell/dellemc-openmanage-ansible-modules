@@ -12,11 +12,11 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_idrac_lc_attributes
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
-from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from units.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_idrac_lc_attributes
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -38,7 +38,7 @@ class TestLcAttributes(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_lc_attribute_mock(self, mocker, idrac_lc_attributes_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                                              'dellemc_idrac_lc_attributes.iDRACConnection',
                                              return_value=idrac_lc_attributes_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_lc_attributes_mock
@@ -48,7 +48,7 @@ class TestLcAttributes(FakeAnsibleModule):
     def idrac_file_manager_lc_attribute_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_idrac_lc_attributes.file_share_manager')
+                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -60,7 +60,7 @@ class TestLcAttributes(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", 'share_password': None,
          'csior': 'Enabled', 'share_mnt': None, 'share_user': None})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
                      return_value=(message, False))
         result = self._run_module(idrac_default_args)
         assert result == {'changed': False, 'msg': {'Status': 'Success', "message": "No changes found to commit!"}}
@@ -183,7 +183,7 @@ class TestLcAttributes(FakeAnsibleModule):
                                                        idrac_default_args, idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": "sharename", 'share_password': None,
                                    'csior': 'Enabled', 'share_mnt': None, 'share_user': None})
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

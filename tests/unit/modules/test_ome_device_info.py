@@ -13,9 +13,9 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import ome_device_info
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_device_info
 from ansible.module_utils.six.moves.urllib.error import HTTPError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
 
 
 resource_basic_inventory = {"basic_inventory": "DeviceService/Devices"}
@@ -28,12 +28,12 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
 
     @pytest.fixture
     def validate_device_inputs_mock(self, mocker):
-        validate_device_inputs_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info._validate_inputs')
+        validate_device_inputs_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_device_info._validate_inputs')
         validate_device_inputs_mock.return_value = None
 
     @pytest.fixture
     def get_device_resource_parameters_mock(self, mocker):
-        response_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info._get_resource_parameters',
+        response_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_device_info._get_resource_parameters',
                                            return_value=resource_basic_inventory)
         return response_class_mock
 
@@ -55,7 +55,7 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
     def test_main_basic_inventory_query_param_success_case(self, mocker, ome_default_args, module_mock,
                                                            validate_device_inputs_mock, ome_connection_mock,
                                                            get_device_resource_parameters_mock, ome_response_mock):
-        quer_param_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info._get_query_parameters')
+        quer_param_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_device_info._get_query_parameters')
         quer_param_mock.return_value = {"filter": "Type eq '1000'"}
         ome_response_mock.json_data = {"value": [{"device_id1": "details", "device_id2": "details"}]}
         ome_response_mock.status_code = 200
@@ -109,7 +109,7 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
     def test_validate_inputs(self, fact_subset, mutually_exclusive_call, mocker):
         module_params = {"fact_subset": fact_subset}
         check_mutually_inclusive_arguments_mock = mocker.patch(
-            'ansible.modules.remote_management.dellemc.ome_device_info._check_mutually_inclusive_arguments')
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_device_info._check_mutually_inclusive_arguments')
         check_mutually_inclusive_arguments_mock.return_value = None
         self.module._validate_inputs(module_params)
         if mutually_exclusive_call:
@@ -149,7 +149,7 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
 
     @pytest.mark.parametrize("module_params", params)
     def test_get_device_identifier_map(self, module_params, ome_connection_mock, mocker):
-        get_device_id_from_service_tags_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info._get_device_id_from_service_tags')
+        get_device_id_from_service_tags_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_device_info._get_device_id_from_service_tags')
         get_device_id_from_service_tags_mock.return_value = None
         res = self.module._get_device_identifier_map(module_params, ome_connection_mock)
         assert isinstance(res, dict)
@@ -165,7 +165,7 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         assert actual_res == expected_res
 
     def test_get_device_id_from_service_tags(self, ome_connection_mock, ome_response_mock, mocker):
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_device_info.update_device_details_with_filtering')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_device_info.update_device_details_with_filtering')
         ome_response_mock.json_data.update({"@odata.context": "/api/$metadata#Collection(DeviceService.Device)"})
         ome_response_mock.json_data.update({"@odata.count": 1})
         ome_connection_mock.get_all_report_details.return_value = {"resp_obj": ome_response_mock, "report_list": [{"DeviceServiceTag": Constants.service_tag1,
