@@ -31,6 +31,7 @@ import json
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+from ansible.module_utils.six.moves.urllib.parse import quote
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "SessionService/Sessions",
@@ -92,7 +93,7 @@ class RestOME(object):
         if path:
             url = '{0}/{1}'.format(base_uri, path)
         if query_param:
-            url += "?{0}".format(urlencode(query_param))
+            url += "?{0}".format(urlencode(query_param, quote_via=quote))
         return url
 
     def _url_common_args_spec(self, method, api_timeout, headers=None):
