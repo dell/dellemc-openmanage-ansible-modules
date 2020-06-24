@@ -2,3 +2,4 @@ pytest
 pytest-xdist
 mock
 pytest-mock
+omsdk
