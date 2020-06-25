@@ -1,0 +1,8 @@
+---
+idrac_user: "user"
+idrac_pwd:  "pwd"
+share_name: "x.x.x.x:/NFSShare"
+share_pwd: "share_pwd"
+share_user: "share_user"
+share_mnt:  "/mnt/mntpoint"
+...
