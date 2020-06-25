@@ -1,180 +1,1432 @@
-<!DOCTYPE html>
-<html lang="en-us"><head><!-- saved from url=(0014)about:internet -->
-<meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><!--$if html5Status  -->  <!--$else--><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><title>Server Configuration Profile</title><link rel="prev" href="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7.html" /><link rel="next" href="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" /><link href="static/screen.css?fAL4Y+sp" rel="stylesheet" /><link href="static/print.css?IUS/7uGw" media="print" rel="stylesheet" /><script src="static/head.js?qUF72lF0"></script><link rel="shortcut icon" href="static/favicon-blue.ico" /></head><body id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" data-approot=""><header><div class="inner"><a id="logo-link" href="index.html" /><img id="logo" src="static/logoEmc.png" alt="Logo" /></a><div class="title-text">Dell EMC OpenManage Ansible Modules</div></div></header><div id="navheader"><div id="breadcrumbs"></div></div><nav class="navigation" id="topicnav"><div id="topicbuttons"><a id="button-back" href="#" title="Previous topic"><span>Previous topic</span></a><a id="button-forward" href="#" title="Next topic"><span>Next topic</span></a></div></nav><section id="center"><div id="scroller"><nav id="topnav"><div id="topbuttons"><a id="button-highlighting" href="#" title="Toggle highlighting"><span>Toggle highlighting</span></a><a id="button-hide-navigation" href="#" title="Toggle navigation"><span>Toggle navigation</span></a><a id="button-print" href="#" title="Print topic"><span>Print topic</span></a><a id="button-print-all" title="Print topics and subtopics"><span>Print topics and subtopics</span></a></div></nav><article><div id="thumbnailDialog"></div><h1>Server Configuration Profile</h1>
-<div class="section" id="GUID-12736486-5FC6-4FB0-A76C-205AA55CE284_unique_1"><h1 id="GUID-08D9D73B-7AFC-45F6-9FA7-2FC0AE2EA92D">Export or Import Server Configuration Profile</h1></div><div class="section" id="SECTION_57DC18EB1BC444E09F60FD48460E783C"><p><span class="uicontrol">Module: idrac_server_config_profile</span></p><p><span class="uicontrol">Synopsis</span></p><p>This module exports the Server Configuration Profile (SCP) from  iDRAC. It can also import from a network share or from a local file.</p><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_84398818627A45DCB8E0DDA0ADCC6070"><caption>Table 1. idrac_server_config_profile</caption><thead><tr><td>Parameter/aliases</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_password/idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>command</td><td>No</td><td>export</td><td><ul id="UL_B790CFFB068743A2A9AA0A8567494391"><li id="LI_FBAAB56339134A8BB2A15CCC93C5BD72">import</li><li id="LI_9635FABCD19B4869AABD6C827E2402A8">export</li></ul></td><td><ul id="UL_0C83679B8AD6405EB347715804073163"><li id="LI_EE7D1646077A47B1ACEF6D414867CD36">If C(import), will perform SCP import operations.</li><li id="LI_FDCC4642AAF94D54B1E37E22D00CBE79">If C(export), will perform SCP export operations.</li></ul></td></tr><tr><td>job_wait</td><td>Yes</td><td>NA</td><td>NA</td><td>Whether to wait for job completion or not.</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td>CIFS or NFS Network Share or a local path.</td></tr><tr><td>share_user</td><td>No</td><td>NA</td><td>NA</td><td>Network share user in the format &#39;user@domain&#39; or &#39;domain\\user&#39; if user is a part of a domain, else &#39;user&#39;. This option is mandatory for CIFS Network Share.</td></tr><tr><td>share_password/share_pwd</td><td>No</td><td>NA</td><td>NA</td><td>Network share user password. This option is mandatory for CIFS Network Share.</td></tr><tr><td>scp_file</td><td>No</td><td>NA</td><td>NA</td><td>Server Configuration Profile file name. This option is mandatory for C(import) state.</td></tr><tr><td>scp_components</td><td>No</td><td>ALL</td><td><ul id="UL_685753E24DD949809B7837C7BA29E070"><li id="LI_BD49A495FBA54093BC21B4A23505F889">ALL</li><li id="LI_75137C95ABAB4349B5ADDB6BA6C71B33">IDRAC</li><li id="LI_101A71E8334245B09D19D4DB76A0AC6E">BIOS</li><li id="LI_635F4E9316DD4847AEF44111A9E19560">NIC</li><li id="LI_E2FCCCCA3BA9430D999FC120687F71C2">RAID</li></ul></td><td><ul id="UL_26927BD6EB584911AB7AD3B77AEE28EA"> <li id="LI_2D56B200E3C4457C93DB06641337834E">If C(ALL), the module imports all components configurations from SCP file.</li> <li id="LI_07D3EC424C044790B6D4EE114D998959">If C(iDRAC), the module imports iDRAC configuration from SCP file.</li> <li id="LI_856EB17656234ABEBEE45F87E93BBF12">If C(BIOS), the module imports BIOS configuration from  SCP file.</li> <li id="LI_B08BE8D37E1F41408B9BE48C0787512B">If C(NIC), the module imports NIC configuration from SCP file.</li> <li id="LI_6354499E68F74BF6B60BC1740DE7F4BF">If C(RAID), the module imports RAID configuration from SCP file.</li> </ul></td></tr><tr><td>shutdown_type</td><td>No</td><td>Graceful</td><td><ul id="UL_D2182EF4D3584603BEDE8D19CD8A6899"><li id="LI_78965747414946D5B97682294949A23B">Graceful</li><li id="LI_C8CCABE0CD9546CCBBF3A61F0C7F2947">Forced</li><li id="LI_76A15B44545145EFB6E10EF648A8296A">NoReboot</li></ul></td><td>This option is applicable for C(import) state.<ul id="UL_8B3BB02984B2474F992251BA9F368266"><li id="LI_56BB464D0425439C872AEF16AE11D528">If C(Graceful), it gracefully shuts down the server</li><li id="LI_C4EE61F7C38848ABB986ECF5CB95C220">If C(Forced), it forcefully shuts down the system</li><li id="LI_F6E5583D557F49C2B4E641F8D773E825">If C(NoReboot), it does not reboot the server</li></ul></td></tr><tr><td>end_host_power_state</td><td>No</td><td>On</td><td><ul id="UL_AC4F3A60160F4726AE6EE7C284A8987D"><li id="LI_8498A15A27484FF6AB5591498AAF12F2">On</li><li id="LI_BD9A5EFF32214201860A59E0A3847AB9">Off</li></ul></td><td>This option is applicable for C(import) state.<ul id="UL_32F12FE751204E61AFFC492EFFB5F7E2"><li id="LI_1DC46479DB0848DD9C1B1F925773575E">If C(On), End host power state is on</li><li id="LI_6D56DADD95834F7F843E047CDFD0EACB">If C(Off), End host power state is off</li></ul></td></tr><tr><td>export_format</td><td>No</td><td>XML</td><td><ul id="UL_2124A306439F4A18BCD0FDE9CF3182E3"><li id="LI_DD42CEECACAF4A7D9022077804FFC9F7">JSON</li><li id="LI_122D007A2C5E4B80B6383D3209F45173">XML</li></ul></td><td>Specify the output file format. This option is applicable for C(export) state.</td></tr><tr><td>export_use</td><td>No</td><td>Default</td><td><ul id="UL_4AB95C68E9B04D01AE5650F252CCAEA6"><li id="LI_81FE07D524EB44588E1C9FF288939B1B">Default</li><li id="LI_D86BF89F6CE0466389CCD188F177B500">Clone</li><li id="LI_D39B3D9AC4BC432A891E1D646904D046">Replace</li></ul></td><td>Specify the type of Sever Configuration Profile (SCP) to be exported. This option is applicable for C(export) state.</td></tr></tbody></table><p><span class="uicontrol">Return Values</span><pre class="codeblock">msg:
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Export or Import Server Configuration Profile Module: idrac_server_config_profile Synopsis This module exports the Server Configuration Profile (SCP) from iDRAC. It can also import from a network ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Relation" scheme="URI" content="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" /><meta name="DC.Relation" scheme="URI" content="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7.html" /><meta name="DC.Relation" scheme="URI" content="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.Publisher" content="June 2020" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" /><meta name="DC.Language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /><title>Server Configuration Profile</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap-theme.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.2.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script>
+				$(document).ready(function() {
+					var metaelement = $("[name=meta-topic-title]");
+					var newTitle = $(metaelement).attr("content");
+					if(newTitle){
+						document.title = newTitle;
+					}
+				});
+			</script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules<span class="pipe-separator"></span></span><span class="booktitlealt">Version 2.1 User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div><script><!--
+							$(document).ready(function () {
+							$('#searchForm').submit(function (e) {
+							if ($('.wh_search_textfield').val().length < 1) {
+							e.preventDefault();
+							}
+							});
+							});
+						--></script></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul>
+   <li><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li>
+   <li><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf" class=" topicref " data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789"><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html">Accessing documents from the Dell EMC support site</a></span></span></li>
+</ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li>
+   <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" class="topicref" data-id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6.html" id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6-link">How OpenManage Ansible Modules work with iDRAC</a></span></span></li>
+         <li role="treeitem"><span data-tocid="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" class="topicref" data-id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5.html" id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5-link">Running your first iDRAC Playbook</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" class="topicref" data-id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8.html" id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link">Updating Firmware</a></span></span></li>
+         <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link">Configuring PowerEdge Servers</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7" class="topicref" data-id="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7.html" id="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7-link">View LC status</a></span></span></li>
+               <li role="treeitem" class="active"><span data-tocid="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" class="topicref" data-id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856.html" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856-link">Server Configuration Profile</a></span></span></li>
+               <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461" class="topicref" data-id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461-link">Configuring iDRAC</a></span></span></li>
+               <li role="treeitem"><span data-tocid="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA" class="topicref" data-id="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA.html" id="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA-link">Configure BIOS</a></span></span></li>
+               <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892" class="topicref" data-id="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4CFF4634-5713-44D7-B21B-32BB47D49892-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892.html" id="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892-link">Configure RAID</a></span></span></li>
+               <li role="treeitem"><span data-tocid="GUID-D9B24130-D512-4B98-8A44-50183FE342F9" class="topicref" data-id="GUID-D9B24130-D512-4B98-8A44-50183FE342F9" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D9B24130-D512-4B98-8A44-50183FE342F9.html" id="GUID-D9B24130-D512-4B98-8A44-50183FE342F9-link">Configure Collect System Inventory on Restart</a></span></span></li>
+               <li role="treeitem"><span data-tocid="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46" class="topicref" data-id="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46.html" id="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46-link">Configure syslog</a></span></span></li>
+            </ul>
+         </li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-9D880486-295B-4E50-AE21-050134D36869" class="topicref" data-id="GUID-9D880486-295B-4E50-AE21-050134D36869" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-9D880486-295B-4E50-AE21-050134D36869-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-9D880486-295B-4E50-AE21-050134D36869.html" id="GUID-9D880486-295B-4E50-AE21-050134D36869-link">Deploying operating system</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" class="topicref" data-id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273.html" id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link">Server Inventory</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" class="topicref" data-id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981.html" id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link">Server administration tasks</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" class="topicref" data-id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link">Storage controller</a></span></span></li>
+      </ul>
+   </li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li>
+   <li role="treeitem"><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" class="topicref" data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789-link">Accessing documents from the Dell EMC support site</a></span></span></li>
+</ul></div>
+                        </nav>
+                    
+
+                    <div class="col-lg-7 col-md-9 col-sm-9 col-xs-12" id="wh_topic_body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <nav class="wh_tools hidden-print col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="hidden-print"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li>
+   <li><span class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
+   <li><span class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8"><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html">Configuring PowerEdge Servers</a></span></span></li>
+   <li class="active"><span class="topicref" data-id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856"><span class="title"><a href="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856.html">Server Configuration Profile</a></span></span></li>
+</ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="link" href="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7.html" title="View LC status" aria-label="Previous topic: View LC status" rel="prev"></a></span>  
+<span class="navnext"><a class="link" href="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" title="Configuring iDRAC" aria-label="Next topic: Configuring iDRAC" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12" id="topic_content">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__GUID-5DFBF802-898C-4DA9-BADA-E6FB0C8FD7B8"> 
+  <h1 class="title topictitle1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__GUID-5DFBF802-898C-4DA9-BADA-E6FB0C8FD7B8">Server Configuration Profile</h1> 
+  <div class="body refbody"> 
+	 <section class="section" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__GUID-12736486-5FC6-4FB0-A76C-205AA55CE284"><h2 class="title sectiontitle">Export or Import Server Configuration Profile</h2>
+		
+	 </section>
+	 <section class="section" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__SECTION_57DC18EB1BC444E09F60FD48460E783C">
+		<p class="p"><span class="ph uicontrol bold">Module: idrac_server_config_profile</span>
+		</p>
+		<p class="p"><span class="ph uicontrol bold">Synopsis</span>
+		</p>
+		<p class="p">This module exports the Server Configuration Profile (SCP) from iDRAC. It can also import from a network share or from a local file.
+		</p>
+		<p class="p"><span class="ph uicontrol bold">Options</span>
+		</p>
+		<table class="table all  pgwide" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070"><caption><span class="table-anchor" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070"></span><span class="tablecap"><span class="table-label">Table 1. </span>idrac_server_config_profile</span></caption><colgroup><col style="width:19.273743016759777%" /><col style="width:15.363128491620111%" /><col style="width:13.966480446927374%" /><col style="width:16.480446927374302%" /><col style="width:34.91620111731844%" /></colgroup><thead class="thead">
+			 <tr>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1">Parameter/aliases
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2">Required
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3">Default
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4">Choices
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5">Comments
+				</th>
+			 </tr></thead><tbody class="tbody">
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">idrac_ip
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">iDRAC IP Address
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">idrac_user
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">iDRAC username
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">idrac_password/idrac_pwd
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">iDRAC user password
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">idrac_port
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">443
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">iDRAC port
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">command
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">export
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_B790CFFB068743A2A9AA0A8567494391">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_FBAAB56339134A8BB2A15CCC93C5BD72">import
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_9635FABCD19B4869AABD6C827E2402A8">export
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_0C83679B8AD6405EB347715804073163">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_EE7D1646077A47B1ACEF6D414867CD36">If C(import), will perform SCP import operations.
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_FDCC4642AAF94D54B1E37E22D00CBE79">If C(export), will perform SCP export operations.
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">job_wait
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">Whether to wait for job completion or not.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">share_name
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">CIFS or NFS Network Share or a local path.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">share_user
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">Network share user in the format 'user@domain' or 'domain\\user' if user is a part of a domain, else 'user'. This option is mandatory for CIFS Network Share.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">share_password/share_pwd
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">Network share user password. This option is mandatory for CIFS Network Share.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">scp_file
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">SCP file name. This option is mandatory for C(import) state.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">scp_components
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">ALL
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_685753E24DD949809B7837C7BA29E070">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_BD49A495FBA54093BC21B4A23505F889">ALL
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_75137C95ABAB4349B5ADDB6BA6C71B33">IDRAC
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_101A71E8334245B09D19D4DB76A0AC6E">BIOS
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_635F4E9316DD4847AEF44111A9E19560">NIC
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_E2FCCCCA3BA9430D999FC120687F71C2">RAID
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_26927BD6EB584911AB7AD3B77AEE28EA"> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_2D56B200E3C4457C93DB06641337834E">If C(ALL), the module imports all components configurations from SCP file.
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_07D3EC424C044790B6D4EE114D998959">If C(iDRAC), the module imports iDRAC configuration from SCP file.
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_856EB17656234ABEBEE45F87E93BBF12">If C(BIOS), the module imports BIOS configuration from SCP file.
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_B08BE8D37E1F41408B9BE48C0787512B">If C(NIC), the module imports NIC configuration from SCP file.
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_6354499E68F74BF6B60BC1740DE7F4BF">If C(RAID), the module imports RAID configuration from SCP file.
+					 </li> 
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">shutdown_type
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">Graceful
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_D2182EF4D3584603BEDE8D19CD8A6899">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_78965747414946D5B97682294949A23B">Graceful
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_C8CCABE0CD9546CCBBF3A61F0C7F2947">Forced
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_76A15B44545145EFB6E10EF648A8296A">NoReboot
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">This option is applicable for C(import) state.
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_8B3BB02984B2474F992251BA9F368266">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_56BB464D0425439C872AEF16AE11D528">If C(Graceful), it gracefully shuts down the server
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_C4EE61F7C38848ABB986ECF5CB95C220">If C(Forced), it forcefully shuts down the system
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_F6E5583D557F49C2B4E641F8D773E825">If C(NoReboot), it does not reboot the server
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">end_host_power_state
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">On
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_AC4F3A60160F4726AE6EE7C284A8987D">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_8498A15A27484FF6AB5591498AAF12F2">On
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_BD9A5EFF32214201860A59E0A3847AB9">Off
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">This option is applicable for C(import) state.
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_32F12FE751204E61AFFC492EFFB5F7E2">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_1DC46479DB0848DD9C1B1F925773575E">If C(On), End host power state is on
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_6D56DADD95834F7F843E047CDFD0EACB">If C(Off), End host power state is off
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">export_format
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">XML
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_2124A306439F4A18BCD0FDE9CF3182E3">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_DD42CEECACAF4A7D9022077804FFC9F7">JSON
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_122D007A2C5E4B80B6383D3209F45173">XML
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">Specify the output file format. This option is applicable for C(export) state.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__1 ">export_use
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__3 ">Default
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_4AB95C68E9B04D01AE5650F252CCAEA6">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_81FE07D524EB44588E1C9FF288939B1B">Default
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_D86BF89F6CE0466389CCD188F177B500">Clone
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_D39B3D9AC4BC432A891E1D646904D046">Replace
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_84398818627A45DCB8E0DDA0ADCC6070__entry__5 ">Specify the type of SCP to be exported. This option is applicable for C(export) state.
+				</td>
+			 </tr>
+		  </tbody></table>
+		<div class="p"><span class="ph uicontrol bold">Return Values</span>
+		  <pre class="pre codeblock"><code>msg:
   type: str
   description: status of the import or export SCP job.
   returned: always
-  sample: &quot;Successfully imported the Server Configuration Profile&quot;
+  sample: "Successfully imported the Server Configuration Profile"
 scp_status:
   type: dict
   description: SCP operation job and progress details from the iDRAC.
   returned: success
   sample:
     {
-      &quot;Id&quot;: &quot;JID_XXXXXXXXX&quot;,
-      &quot;JobState&quot;: &quot;Completed&quot;,
-      &quot;JobType&quot;: &quot;ImportConfiguration&quot;,
-      &quot;Message&quot;: &quot;Successfully imported and applied Server Configuration Profile.&quot;,
-      &quot;MessageArgs&quot;: [],
-      &quot;MessageId&quot;: &quot;XXX123&quot;,
-      &quot;Name&quot;: &quot;Import Configuration&quot;,
-      &quot;PercentComplete&quot;: 100,
-      &quot;StartTime&quot;: &quot;TIME_NOW&quot;,
-      &quot;Status&quot;: &quot;Success&quot;,
-      &quot;TargetSettingsURI&quot;: null,
-      &quot;retval&quot;: true
-    }</pre></p><p><span class="uicontrol">Examples</span><pre class="codeblock">- name: Import Server Configuration Profile from a network share
+      "Id": "JID_XXXXXXXXX",
+      "JobState": "Completed",
+      "JobType": "ImportConfiguration",
+      "Message": "Successfully imported and applied Server Configuration Profile.",
+      "MessageArgs": [],
+      "MessageId": "XXX123",
+      "Name": "Import Configuration",
+      "PercentComplete": 100,
+      "StartTime": "TIME_NOW",
+      "Status": "Success",
+      "TargetSettingsURI": null,
+      "retval": true
+    }</code></pre>
+		</div>
+		<div class="p"><span class="ph uicontrol bold">Examples</span>
+		  <pre class="pre codeblock"><code>- name: Import SCP from a network share and wait for this job to get completed.
   dellemc_idrac_server_config_profile:
-    idrac_ip:     &quot;192.168.0.1&quot;
-    idrac_user:   &quot;user_name&quot;
-    idrac_password:&quot;user_password&quot;
-    command:       &quot;import&quot;
-    share_name:    &quot;192.168.0.2:/share&quot;
-    share_user:    &quot;share_user_name&quot;
-    share_password:&quot;share_user_password&quot;
-    scp_file:      &quot;scp_filename.xml&quot;
-    scp_components:&quot;ALL&quot;
+    idrac_ip:     "192.168.0.1"
+    idrac_user:   "user_name"
+    idrac_password:"user_password"
+    command:       "import"
+    share_name:    "192.168.0.2:/share"
+    share_user:    "share_user_name"
+    share_password:"share_user_password"
+    scp_file:      "scp_filename.xml"
+    scp_components:"ALL"
     job_wait:       True
 
 
-- name: Import Server Configuration Profile from a local path
+- name: Import SCP from a local path and wait for this job to get completed.
   dellemc_idrac_server_config_profile:
-    idrac_ip:      &quot;192.168.0.1&quot;
-    idrac_user:    &quot;user_name&quot;
-    idrac_password:&quot;user_password&quot;
-    command:       &quot;import&quot;
-    share_name:    &quot;/scp_folder&quot;
-    share_user:    &quot;share_user_name&quot;
-    share_password:&quot;share_user_password&quot;
-    scp_file:      &quot;scp_filename.xml&quot;
-    scp_components:&quot;ALL&quot;
+    idrac_ip:      "192.168.0.1"
+    idrac_user:    "user_name"
+    idrac_password:"user_password"
+    command:       "import"
+    share_name:    "/scp_folder"
+    share_user:    "share_user_name"
+    share_password:"share_user_password"
+    scp_file:      "scp_filename.xml"
+    scp_components:"ALL"
     job_wait:       True
 
 
-- name: Export Server Configuration Profile to a network share
+- name: Export SCP to a network share
   dellemc_idrac_server_config_profile:
-    idrac_ip:       &quot;192.168.0.1&quot;
-    idrac_user:     &quot;user_name&quot;
-    idrac_password: &quot;user_password&quot;
-    share_name:     &quot;192.168.0.2:/share&quot;
-    share_user:     &quot;share_user_name&quot;
-    share_password: &quot;share_user_password&quot;
+    idrac_ip:       "192.168.0.1"
+    idrac_user:     "user_name"
+    idrac_password: "user_password"
+    share_name:     "192.168.0.2:/share"
+    share_user:     "share_user_name"
+    share_password: "share_user_password"
     job_wait:       False
 
 
-- name: Export Server Configuration Profile to a local path
+- name: Export SCP to a local path
   dellemc_idrac_server_config_profile:
-    idrac_ip:      &quot;192.168.0.1&quot;
-    idrac_user:    &quot;user_name&quot;
-    idrac_password:&quot;user_password&quot;
-    share_name:    &quot;/scp_folder&quot;
-    share_user:    &quot;share_user_name&quot;
-    share_password:&quot;share_user_password&quot;
-    job_wait:      False</pre></p></div><div class="section" id="GUID-8ED36109-F1E9-4648-826B-EB7D298331E4"><p><span class="uicontrol">Module: dellemc_idrac_server_config_profile</span></p><p><span class="uicontrol">Synopsis</span></p><p>This module exports Server Configuration profile (SCP) to a given network share or imports SCP from a network share or a local file.</p><div class="note" id="GUID-63276750-A03A-4191-9A73-C4673238549D"><span class="notelabel">NOTE: </span>This module is deprecated and replaced with   <span class="uicontrol">idrac_server_config_profile</span>.</div> <p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_702783CB011C4AD7921B7E88F036BA51"><caption>Table 2. dellemc_idrac_server_config_profile</caption><thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>command</td><td>No</td><td>export</td><td><ul id="UL_30409F86474440F8AC91F51C9B93C134"><li id="LI_FB28355A674242AB9A3A9CD7CC4C4AC6">import</li><li id="LI_EA60DEC5050F4EE183E90F218AF78F7E">export</li></ul></td><td><ul id="UL_6CEE86DD39D04FFC99256017E582B1BF"><li id="LI_1AD9CDC695FA437980F0C47496F06327">If C(import), will perform SCP import operations.</li><li id="LI_0EB98AEBD39248B082B8A486F3DC65B3">If C(export), will perform SCP export operations.</li></ul></td></tr><tr><td>job_wait</td><td>Yes</td><td>NA</td><td>NA</td><td>Whether to wait for job completion or not.</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td>CIFS or NFS Network Share or a local path.</td></tr><tr><td>share_user</td><td>No</td><td>NA</td><td>NA</td><td>Network share user in the format &#39;user@domain&#39; or &#39;domain\\user&#39; if user is a part of a domain, else &#39;user&#39;. This option is mandatory for CIFS Network Share.</td></tr><tr><td>share_pwd</td><td>No</td><td>NA</td><td>NA</td><td>Network share user password. This option is mandatory for CIFS Network Share.</td></tr><tr><td>scp_file</td><td>No</td><td>NA</td><td>NA</td><td>Server Configuration Profile file name. This option is mandatory for C(import) state.</td></tr><tr><td>scp_components</td><td>No</td><td>ALL</td><td><ul id="UL_7DC9C68738A940C58C73F62F32E6FF0B"><li id="LI_7510679E436941998053317CE72F35FA">ALL</li><li id="LI_560423D1E9684B8C87A8CAED0AA0EB16">IDRAC</li><li id="LI_700E524BFB954315ACC507917EE73F54">BIOS</li><li id="LI_E293257750294BD0A7570A498CB2A77D">NIC</li><li id="LI_2B3F427ABB8F4A8C9F3AB705C367DB2C">RAID</li></ul></td><td><ul id="UL_F0AF5C23DBE74C0FA0EAE229B4F01D87"> <li id="LI_A69BA6B00F1D4B34977FF6DC9662CDE9">If C(ALL), the module imports all components configurations from SCP file.</li> <li id="LI_EDE98EDBDA39469188D7245D15DF44EB">If C(iDRAC), the module imports iDRAC configuration from SCP file.</li> <li id="LI_F26C2AC18B8744DEAE4C7A4C9557A8B3">If C(BIOS), the module imports BIOS configuration from  SCP file.</li> <li id="LI_F0EB83496C2B498FAF87BF4E2BC600CA">If C(NIC), the module imports NIC configuration from SCP file.</li> <li id="LI_DB53E3AC184C4E4DBDF15457267C6358">If C(RAID), the module imports RAID configuration from SCP file.</li> </ul></td></tr><tr><td>shutdown_type</td><td>No</td><td>Graceful</td><td><ul id="UL_7D763495259B41E7AE3D625C21E3EE2A"><li id="LI_611D65B5C13745AB8CB80AF22E5F79D5">Graceful</li><li id="LI_74EFB384A6B3495AAD777A73465D39BD">Forced</li><li id="LI_76FEAB7D2C124E8984212657EDD94AFD">NoReboot</li></ul></td><td>This option is applicable for C(import) state.<ul id="UL_7DD48CC3AE594636931D01C7A23404CD"><li id="LI_D91D44205235498B98CB2C69C79211CA">If C(Graceful), it gracefully shuts down the server</li><li id="LI_33761F9E6576423EB1DBA624EC9C4ECC">If C(Forced), it forcefully shuts down the system</li><li id="LI_1C98C62C29EF43FE89739E85A566F0D3">If C(NoReboot), it does not reboot the server</li></ul></td></tr><tr><td>end_host_power_state</td><td>No</td><td>On</td><td><ul id="UL_405648678DB84EB3AEC8C89B6E85DA1B"><li id="LI_7162A49E6EA94E6097900EDCA59084C0">On</li><li id="LI_39959AC474FB4D35922164BD8887013C">Off</li></ul></td><td>This option is applicable for C(import) state.<ul id="UL_8FCDC85A309D438DB35F6B80BEB2CE35"><li id="LI_E8E0E47B4E01455C9FD3420AF73D77E5">If C(On), End host power state is on</li><li id="LI_6F3C3E58EBE445418E4E072A147F4736">If C(Off), End host power state is off</li></ul></td></tr><tr><td>export_format</td><td>No</td><td>XML</td><td><ul id="UL_3394F5CBBD5440258621ED3D3EEFFC9C"><li id="LI_BE23BA048E2147DB99FDD28BFAB650F8">JSON</li><li id="LI_4D52492811C64321A2073EB28D96B159">XML</li></ul></td><td>Specify the output file format. This option is applicable for C(export) state.</td></tr><tr><td>export_use</td><td>No</td><td>Default</td><td><ul id="UL_AF4242E4E828489A928E2C18B39D1921"><li id="LI_9F2C5FE4855144FCAE9F05430ED4975B">Default</li><li id="LI_699BB55B792A424A8ADF2DD47BA7CC4D">Clone</li><li id="LI_6B987D47FF8B489CA3A9E111F5331622">Replace</li></ul></td><td>Specify the type of Sever Configuration Profile (SCP) to be exported. This option is applicable for C(export) state.</td></tr></tbody></table><p><span class="uicontrol">Return Values</span><pre class="codeblock">msg:
+    idrac_ip:      "192.168.0.1"
+    idrac_user:    "user_name"
+    idrac_password:"user_password"
+    share_name:    "/scp_folder"
+    share_user:    "share_user_name"
+    share_password:"share_user_password"
+    job_wait:      False</code></pre>
+		</div>
+	 </section>
+	 <section class="section" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__GUID-8ED36109-F1E9-4648-826B-EB7D298331E4">
+		<p class="p"><span class="ph uicontrol bold">Module: dellemc_idrac_server_config_profile</span>
+		</p>
+		<p class="p"><span class="ph uicontrol bold">Synopsis</span>
+		</p>
+		<p class="p">This module exports Server Configuration profile (SCP) to a given network share or imports SCP from a network share or a local file.
+		</p>
+		<div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>This module is deprecated and replaced with 
+		  <span class="ph uicontrol bold">idrac_server_config_profile</span>.
+		</div></td></tr></tbody></table></div> 
+		<p class="p"><span class="ph uicontrol bold">Options</span>
+		</p>
+		<table class="table all  pgwide" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51"><caption><span class="table-anchor" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51"></span><span class="tablecap"><span class="table-label">Table 2. </span>dellemc_idrac_server_config_profile</span></caption><colgroup><col style="width:19.273743016759777%" /><col style="width:15.363128491620111%" /><col style="width:13.966480446927374%" /><col style="width:16.480446927374302%" /><col style="width:34.91620111731844%" /></colgroup><thead class="thead">
+			 <tr>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1">Parameter
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2">Required
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3">Default
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4">Choices
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5">Comments
+				</th>
+			 </tr></thead><tbody class="tbody">
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">idrac_ip
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">iDRAC IP Address
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">idrac_user
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">iDRAC username
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">idrac_pwd
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">iDRAC user password
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">idrac_port
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">443
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">iDRAC port
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">command
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">export
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_30409F86474440F8AC91F51C9B93C134">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_FB28355A674242AB9A3A9CD7CC4C4AC6">import
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_EA60DEC5050F4EE183E90F218AF78F7E">export
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_6CEE86DD39D04FFC99256017E582B1BF">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_1AD9CDC695FA437980F0C47496F06327">If C(import), will perform SCP import operations.
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_0EB98AEBD39248B082B8A486F3DC65B3">If C(export), will perform SCP export operations.
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">job_wait
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">Whether to wait for job completion or not.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">share_name
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">CIFS or NFS Network Share or a local path.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">share_user
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">Network share user in the format 'user@domain' or 'domain\\user' if user is a part of a domain, else 'user'. This option is mandatory for CIFS Network Share.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">share_pwd
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">Network share user password. This option is mandatory for CIFS Network Share.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">scp_file
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">Server Configuration Profile file name. This option is mandatory for C(import) state.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">scp_components
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">ALL
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_7DC9C68738A940C58C73F62F32E6FF0B">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_7510679E436941998053317CE72F35FA">ALL
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_560423D1E9684B8C87A8CAED0AA0EB16">IDRAC
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_700E524BFB954315ACC507917EE73F54">BIOS
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_E293257750294BD0A7570A498CB2A77D">NIC
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_2B3F427ABB8F4A8C9F3AB705C367DB2C">RAID
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_F0AF5C23DBE74C0FA0EAE229B4F01D87"> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_A69BA6B00F1D4B34977FF6DC9662CDE9">If C(ALL), the module imports all components configurations from SCP file.
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_EDE98EDBDA39469188D7245D15DF44EB">If C(iDRAC), the module imports iDRAC configuration from SCP file.
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_F26C2AC18B8744DEAE4C7A4C9557A8B3">If C(BIOS), the module imports BIOS configuration from SCP file.
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_F0EB83496C2B498FAF87BF4E2BC600CA">If C(NIC), the module imports NIC configuration from SCP file.
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_DB53E3AC184C4E4DBDF15457267C6358">If C(RAID), the module imports RAID configuration from SCP file.
+					 </li> 
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">shutdown_type
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">Graceful
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_7D763495259B41E7AE3D625C21E3EE2A">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_611D65B5C13745AB8CB80AF22E5F79D5">Graceful
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_74EFB384A6B3495AAD777A73465D39BD">Forced
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_76FEAB7D2C124E8984212657EDD94AFD">NoReboot
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">This option is applicable for C(import) state.
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_7DD48CC3AE594636931D01C7A23404CD">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_D91D44205235498B98CB2C69C79211CA">If C(Graceful), it gracefully shuts down the server
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_33761F9E6576423EB1DBA624EC9C4ECC">If C(Forced), it forcefully shuts down the system
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_1C98C62C29EF43FE89739E85A566F0D3">If C(NoReboot), it does not reboot the server
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">end_host_power_state
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">On
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_405648678DB84EB3AEC8C89B6E85DA1B">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_7162A49E6EA94E6097900EDCA59084C0">On
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_39959AC474FB4D35922164BD8887013C">Off
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">This option is applicable for C(import) state.
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_8FCDC85A309D438DB35F6B80BEB2CE35">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_E8E0E47B4E01455C9FD3420AF73D77E5">If C(On), End host power state is on
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_6F3C3E58EBE445418E4E072A147F4736">If C(Off), End host power state is off
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">export_format
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">XML
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_3394F5CBBD5440258621ED3D3EEFFC9C">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_BE23BA048E2147DB99FDD28BFAB650F8">JSON
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_4D52492811C64321A2073EB28D96B159">XML
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">Specify the output file format. This option is applicable for C(export) state.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__1 ">export_use
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__3 ">Default
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_AF4242E4E828489A928E2C18B39D1921">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_9F2C5FE4855144FCAE9F05430ED4975B">Default
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_699BB55B792A424A8ADF2DD47BA7CC4D">Clone
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_6B987D47FF8B489CA3A9E111F5331622">Replace
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_702783CB011C4AD7921B7E88F036BA51__entry__5 ">Specify the type of Sever Configuration Profile (SCP) to be exported. This option is applicable for C(export) state.
+				</td>
+			 </tr>
+		  </tbody></table>
+		<div class="p"><span class="ph uicontrol bold">Return Values</span>
+		  <pre class="pre codeblock"><code>msg:
   type: str
   description: status of the import or export SCP job.
   returned: always
-  sample: &quot;Successfully imported the Server Configuration Profile&quot;
+  sample: "Successfully imported the Server Configuration Profile"
 scp_status:
   type: dict
   description: SCP operation job and progress details from the iDRAC.
   returned: success
   sample:
     {
-      &quot;Id&quot;: &quot;JID_XXXXXXXXX&quot;,
-      &quot;JobState&quot;: &quot;Completed&quot;,
-      &quot;JobType&quot;: &quot;ImportConfiguration&quot;,
-      &quot;Message&quot;: &quot;Successfully imported and applied Server Configuration Profile.&quot;,
-      &quot;MessageArgs&quot;: [],
-      &quot;MessageId&quot;: &quot;XXX123&quot;,
-      &quot;Name&quot;: &quot;Import Configuration&quot;,
-      &quot;PercentComplete&quot;: 100,
-      &quot;StartTime&quot;: &quot;TIME_NOW&quot;,
-      &quot;Status&quot;: &quot;Success&quot;,
-      &quot;TargetSettingsURI&quot;: null,
-      &quot;retval&quot;: true
-    }</pre></p><p><span class="uicontrol">Examples</span><pre class="codeblock">- name: Import Server Configuration Profile from a network share
+      "Id": "JID_XXXXXXXXX",
+      "JobState": "Completed",
+      "JobType": "ImportConfiguration",
+      "Message": "Successfully imported and applied Server Configuration Profile.",
+      "MessageArgs": [],
+      "MessageId": "XXX123",
+      "Name": "Import Configuration",
+      "PercentComplete": 100,
+      "StartTime": "TIME_NOW",
+      "Status": "Success",
+      "TargetSettingsURI": null,
+      "retval": true
+    }</code></pre>
+		</div>
+		<div class="p"><span class="ph uicontrol bold">Examples</span>
+		  <pre class="pre codeblock"><code>- name: Import Server Configuration Profile from a network share
   dellemc_idrac_server_config_profile:
-    idrac_ip: &quot;192.168.0.1&quot;
-    idrac_user: &quot;user_name&quot;
-    idrac_pwd: &quot;user_pwd&quot;
-    command: &quot;import&quot;
-    share_name: &quot;192.168.0.2:/share&quot;
-    share_user: &quot;share_user_name&quot;
-    share_pwd: &quot;share_user_pwd&quot;
-    scp_file:   &quot;scp_filename.xml&quot;
-    scp_components: &quot;ALL&quot;
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_pwd: "user_pwd"
+    command: "import"
+    share_name: "192.168.0.2:/share"
+    share_user: "share_user_name"
+    share_pwd: "share_user_pwd"
+    scp_file:   "scp_filename.xml"
+    scp_components: "ALL"
     job_wait: True
 
 
 - name: Import Server Configuration Profile from a local path
   dellemc_idrac_server_config_profile:
-    idrac_ip: &quot;192.168.0.1&quot;
-    idrac_user: &quot;user_name&quot;
-    idrac_pwd: &quot;user_pwd&quot;
-    command: &quot;import&quot;
-    share_name: &quot;/scp_folder&quot;
-    share_user: &quot;share_user_name&quot;
-    share_pwd: &quot;share_user_pwd&quot;
-    scp_file:   &quot;scp_filename.xml&quot;
-    scp_components: &quot;ALL&quot;
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_pwd: "user_pwd"
+    command: "import"
+    share_name: "/scp_folder"
+    share_user: "share_user_name"
+    share_pwd: "share_user_pwd"
+    scp_file:   "scp_filename.xml"
+    scp_components: "ALL"
     job_wait: True
 
 
 - name: Export Server Configuration Profile to a network share
   dellemc_idrac_server_config_profile:
-    idrac_ip: &quot;192.168.0.1&quot;
-    idrac_user: &quot;user_name&quot;
-    idrac_pwd: &quot;user_pwd&quot;
-    share_name: &quot;192.168.0.2:/share&quot;
-    share_user: &quot;share_user_name&quot;
-    share_pwd: &quot;share_user_pwd&quot;
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_pwd: "user_pwd"
+    share_name: "192.168.0.2:/share"
+    share_user: "share_user_name"
+    share_pwd: "share_user_pwd"
     job_wait: False
 
 
 - name: Export Server Configuration Profile to a local path
   dellemc_idrac_server_config_profile:
-    idrac_ip: &quot;192.168.0.1&quot;
-    idrac_user: &quot;user_name&quot;
-    idrac_password: &quot;user_password&quot;
-    share_name: &quot;/scp_folder&quot;
-    share_user: &quot;share_user_name&quot;
-    share_pwd: &quot;share_user_pwd&quot;
-    job_wait: False</pre></p></div>
-<div class="section" id="SECTION_114F59AC539640A683D3D6207CBEBD4F"><p><span class="uicontrol">Module: dellemc_import_server_config_profile</span></p><p><span class="uicontrol">Synopsis</span></p><p>You can import an SCP file (in an XML or JSON format) exported from a golden PowerEdge server configuration to one or more servers, thus achieving an effortless, consistent, and automated deployment. Importing an SCP file is useful in restoring the configuration of the server to the state stored in the profile.</p><p>You can import SCP from a local or a remote share to iDRAC. For a remote share, make sure that a network share path and the file name are available.   If there are component configurations (such as BIOS, RAID, NIC, iDRAC, and so on) present in the SCP file that require a server restart, you can use the <span class="uicontrol">I(shutdown_type)</span> argument to specify whether a <span class="uicontrol">Graceful</span> or <span class="uicontrol">Forced</span> shutdown of the server is required.</p>
-<p>Check_mode support: No</p><div class="note" id="GUID-B4FE9348-CF1F-49A2-935C-9EDDCA1E931C"><span class="notelabel">NOTE: </span>This module is deprecated and replaced with <span class="uicontrol">idrac_server_config_profile</span>.</div><p><span class="uicontrol">Options</span></p><table class="table frame-all" id="TABLE_1740C99D8C77409890F00EC546FCEC5A"><caption>Table 3. dellemc_import_server_config_profile</caption><thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td>end_host_power_state</td><td>No</td><td>On</td><td><ul id="UL_C5E7394A968B47FFB1B240EF702A6707"><li id="LI_3FB9A04A496B42C68BBCFD8ABCF02B2D">On</li><li id="LI_9C79FDA72B5245C49CF63CA85813435D">Off</li></ul></td><td><ul id="UL_83E401670EF54DBBA87A0B2805473679"><li id="LI_638C59F2D910405B8E67E5A3C508AC76">If On, End host power is on</li><li id="LI_B23C502277284392B1E88AC4AC07F38F">If Off, End host power is off</li></ul></td></tr><tr><td>idrac_ip</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC IP Address</td></tr><tr><td>idrac_user</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC username</td></tr><tr><td>idrac_pwd</td><td>Yes</td><td>NA</td><td>NA</td><td>iDRAC user password</td></tr><tr><td>idrac_port</td><td>No</td><td>443</td><td>NA</td><td>iDRAC port</td></tr><tr><td>job_wait</td><td>Yes</td><td>NA</td><td><ul id="UL_462F5375221B4684A1C3C92F9E36FA57"><li id="LI_CF5B666A4F0140EAAF0D97A023A77910">True</li><li id="LI_CC1F848E10FD40E2B7A1DDFA9F7369DC">False</li></ul></td><td><ul id="UL_3E180C32C9934DDC8DD403606D6248EF"> <li id="LI_0F4B593EC90F41BCAE733C598FC7BB47">If the value is True, it waits for the SCP import job to finish and returns the job completion status</li> <li id="LI_6C7D4BAF85714A778FB6227EA269C3AE">If the value is False, it returns immediately with a JOB ID after queuing the SCP import job in LC job queue</li> </ul></td></tr><tr><td>scp_components</td><td>No</td><td>ALL</td><td><ul id="UL_276918B9AD4849B2B6D6554A9C0DDB29"><li id="LI_A28ACD93914D46D08BCD87303BFAFE91">ALL</li><li id="LI_D6586BBE6AF049E88FDB5A28EAB30F9C">iDRAC</li><li id="LI_B43B9E05668F4531BFFE3E633A25A360">BIOS</li><li id="LI_33A0EC34F0594133A1FDE2114A5F889D">NIC</li><li id="LI_5855A7E46C77418AB648574147817B20">RAID</li></ul></td><td><ul id="UL_5F725F9A3B204EEA88F8218551C8BA6C"> <li id="LI_15F7B7C073EF4ACCA1ACC872DA296B5C">If ALL, the module imports all components configurations from SCP file</li> <li id="LI_16E63E53006C4CD5A9A13AC935E50E9A">If iDRAC, the module imports iDRAC configuration from SCP file</li> <li id="LI_0F378EDFD9824CEFA3060AB3C984E495">If BIOS, the module imports BIOS configuration from  SCP file</li> <li id="LI_AD79D584677445668E807648A9107018">If NIC, the module imports NIC configuration from SCP file</li> <li id="LI_66AE7119AF2E46C8B6FCE68A4F7F985B">If RAID, the module imports RAID configuration from SCP file</li> </ul></td></tr><tr><td>scp_file</td><td>Yes</td><td>NA</td><td>NA</td><td>Server Configuration Profile file name</td></tr><tr><td>share_name</td><td>Yes</td><td>NA</td><td>NA</td><td> Network share or a local path</td></tr><tr><td>share_user</td><td>No</td><td>NA</td><td>NA</td><td> Network share user in the format &#39;user@domain&#39; or &#39;domain\user&#39; if user is
-
-
-part of a domain else &#39;user&#39;. This option is mandatory
-for CIFS Network share.</td></tr><tr><td>share_pwd</td><td>No</td><td>NA</td><td>NA</td><td>Network share user password. This option is mandatory
-for CIFS Network share.</td></tr><tr><td>shutdown_type</td><td>No</td><td>Graceful</td><td><ul id="UL_6C27BA4FBBFC4A2B915CC566ED05B8C1"><li id="LI_C5F1027A20584CE981098E06EBA41216">Graceful</li><li id="LI_9841321E0D9C4DD08250CE18F997A517">Forced</li><li id="LI_95082A4533D14B8FA4AF975C5B8EDB15">NoReboot</li></ul></td><td><ul id="UL_ED97698F809545849F9FE190B4A4F57B"><li id="LI_8104B4D4B2074EEEA4BB13E336E52457">If Graceful, it gracefully shuts down the server</li><li id="LI_D73412665B02411897DEBE3F32A287EE">If Forced, it forcefully shuts down the system</li><li id="LI_4149957ECD054A50A4F23AF0683283A2">If NoReboot, it does not reboot the server</li></ul></td></tr></tbody></table><table class="table frame-all" id="TABLE_696E2B5DE51645EBA6AAC031178D92B2"><caption>Table 4. Return Values</caption><thead><tr><td>Name</td><td>Description</td><td>Returned</td><td>Type</td><td>Sample</td></tr></thead><tbody><tr><td>Import SCP</td><td> Imports SCP from a network share or from a local file</td><td>Success</td><td>String</td><td><a data-scope="external" href="https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_import_server_config_profile.md" target="_blank" title="">https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_import_server_config_profile.md</a></td></tr></tbody></table><p><span class="uicontrol">Example</span><pre class="codeblock">-name: Import Server Configuration Profile
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    share_name: "/scp_folder"
+    share_user: "share_user_name"
+    share_pwd: "share_user_pwd"
+    job_wait: False</code></pre>
+		</div>
+	 </section> 
+	 <section class="section" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__SECTION_114F59AC539640A683D3D6207CBEBD4F">
+		<p class="p"><span class="ph uicontrol bold">Module: dellemc_import_server_config_profile</span>
+		</p>
+		<p class="p"><span class="ph uicontrol bold">Synopsis</span>
+		</p>
+		<p class="p">You can import an SCP file (in an XML or JSON format) exported from a golden PowerEdge server configuration to one or more servers, thus achieving an effortless, consistent, and automated deployment. Importing an SCP file is useful in restoring the configuration of the server to the state stored in the profile.
+		</p>
+		<p class="p">You can import SCP from a local or a remote share to iDRAC. For a remote share, make sure that a network share path and the file name are available. If there are component configurations (such as BIOS, RAID, NIC, iDRAC, and so on) present in the SCP file that require a server restart, you can use the 
+		  <span class="ph uicontrol bold">I(shutdown_type)</span> argument to specify whether a 
+		   <span class="ph uicontrol bold">Graceful</span> or 
+		   <span class="ph uicontrol bold">Forced</span> shutdown of the server is required.
+		</p> 
+		<p class="p">Check_mode support: No
+		</p>
+		<div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>This module is deprecated and replaced with 
+		  <span class="ph uicontrol bold">idrac_server_config_profile</span>.
+		</div></td></tr></tbody></table></div>
+		<p class="p"><span class="ph uicontrol bold">Options</span>
+		</p>
+		<table class="table all  pgwide" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A"><caption><span class="table-anchor" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A"></span><span class="tablecap"><span class="table-label">Table 3. </span>dellemc_import_server_config_profile</span></caption><colgroup><col style="width:19.273743016759777%" /><col style="width:15.363128491620111%" /><col style="width:13.966480446927374%" /><col style="width:16.480446927374302%" /><col style="width:34.91620111731844%" /></colgroup><thead class="thead">
+			 <tr>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1">Parameter
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2">Required
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3">Default
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4">Choices
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5">Comments
+				</th>
+			 </tr></thead><tbody class="tbody">
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">end_host_power_state
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">On
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_C5E7394A968B47FFB1B240EF702A6707">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_3FB9A04A496B42C68BBCFD8ABCF02B2D">On
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_9C79FDA72B5245C49CF63CA85813435D">Off
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_83E401670EF54DBBA87A0B2805473679">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_638C59F2D910405B8E67E5A3C508AC76">If On, End host power is on
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_B23C502277284392B1E88AC4AC07F38F">If Off, End host power is off
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">idrac_ip
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">iDRAC IP Address
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">idrac_user
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">iDRAC username
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">idrac_pwd
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">iDRAC user password
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">idrac_port
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">443
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">iDRAC port
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">job_wait
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_462F5375221B4684A1C3C92F9E36FA57">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_CF5B666A4F0140EAAF0D97A023A77910">True
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_CC1F848E10FD40E2B7A1DDFA9F7369DC">False
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_3E180C32C9934DDC8DD403606D6248EF"> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_0F4B593EC90F41BCAE733C598FC7BB47">If the value is True, it waits for the SCP import job to finish and returns the job completion status
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_6C7D4BAF85714A778FB6227EA269C3AE">If the value is False, it returns immediately with a JOB ID after queuing the SCP import job in LC job queue
+					 </li> 
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">scp_components
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">ALL
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_276918B9AD4849B2B6D6554A9C0DDB29">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_A28ACD93914D46D08BCD87303BFAFE91">ALL
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_D6586BBE6AF049E88FDB5A28EAB30F9C">iDRAC
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_B43B9E05668F4531BFFE3E633A25A360">BIOS
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_33A0EC34F0594133A1FDE2114A5F889D">NIC
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_5855A7E46C77418AB648574147817B20">RAID
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_5F725F9A3B204EEA88F8218551C8BA6C"> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_15F7B7C073EF4ACCA1ACC872DA296B5C">If ALL, the module imports all components configurations from SCP file
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_16E63E53006C4CD5A9A13AC935E50E9A">If iDRAC, the module imports iDRAC configuration from SCP file
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_0F378EDFD9824CEFA3060AB3C984E495">If BIOS, the module imports BIOS configuration from SCP file
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_AD79D584677445668E807648A9107018">If NIC, the module imports NIC configuration from SCP file
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_66AE7119AF2E46C8B6FCE68A4F7F985B">If RAID, the module imports RAID configuration from SCP file
+					 </li> 
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">scp_file
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">Server Configuration Profile file name
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">share_name
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 "> Network share or a local path
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">share_user
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 "> Network share user in the format 'user@domain' or 'domain\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network share.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">share_pwd
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">Network share user password. This option is mandatory for CIFS Network share.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__1 ">shutdown_type
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__3 ">Graceful
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_6C27BA4FBBFC4A2B915CC566ED05B8C1">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_C5F1027A20584CE981098E06EBA41216">Graceful
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_9841321E0D9C4DD08250CE18F997A517">Forced
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_95082A4533D14B8FA4AF975C5B8EDB15">NoReboot
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_1740C99D8C77409890F00EC546FCEC5A__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_ED97698F809545849F9FE190B4A4F57B">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_8104B4D4B2074EEEA4BB13E336E52457">If Graceful, it gracefully shuts down the server
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_D73412665B02411897DEBE3F32A287EE">If Forced, it forcefully shuts down the system
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_4149957ECD054A50A4F23AF0683283A2">If NoReboot, it does not reboot the server
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+		  </tbody></table>
+		<table class="table all  pgwide" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2"><caption><span class="table-anchor" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2"></span><span class="tablecap"><span class="table-label">Table 4. </span>Return Values</span></caption><colgroup><col style="width:14.473684210526313%" /><col style="width:25.21929824561403%" /><col style="width:10.964912280701753%" /><col style="width:11.951754385964913%" /><col style="width:37.39035087719298%" /></colgroup><thead class="thead">
+			 <tr>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__1">Name
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__2">Description
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__3">Returned
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__4">Type
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__5">Sample
+				</th>
+			 </tr></thead><tbody class="tbody">
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__1 ">Import SCP
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__2 "> Imports SCP from a network share or from a local file
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__3 ">Success
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__4 ">String
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_696E2B5DE51645EBA6AAC031178D92B2__entry__5 "><a class="xref" href="https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_import_server_config_profile.md" target="_blank">https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_import_server_config_profile.md</a>
+				</td>
+			 </tr>
+		  </tbody></table>
+		<div class="p"><span class="ph uicontrol bold">Example</span>
+		  <pre class="pre codeblock"><code>-name: Import Server Configuration Profile
    dellemc_import_server_config_profile
-     idrac_ip:       &quot;xx.xx.xx.xx&quot;
-     idrac_user:     &quot;xxxx&quot;
-     idrac_pwd:      &quot;xxxxxxxx&quot;
-     share_name:     &quot;xx.xx.xx.xx:/share&quot;
-     share_user:     &quot;xxxx&quot;
-     share_pwd:      &quot;xxxxxxxx&quot;
-     scp_file:       &quot;scp_file.xml&quot;
-     scp_components: &quot;ALL&quot;
-     job_wait:       &quot;True&quot;</pre></p></div><div class="section" id="SECTION_0C3322D29506419A94FC9D40CDCDEA92"><p><b>Module: dellemc_export_server_config_profile</b></p><p><b>Synopsis</b></p><p>You can export <span class="uicontrol">Server Configuration Profile (SCP)</span> with various components such as iDRAC, BIOS, NIC, RAID together or with one of these components. You can export SCP from iDRAC to a local or a network shared location. For shared location, make sure that a network share path is established. </p>
-
-
-<p>Check_mode support: No</p><div class="note" id="GUID-5050D50B-3F26-4031-B1A2-FA0DE3605DF0"><span class="notelabel">NOTE: </span>This module is deprecated and replaced with <span class="uicontrol">idrac_server_config_profile</span>.</div><p><b>Options</b></p><table class="table frame-all" id="TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497"><caption>Table 5. dellemc_export_server_config_profile</caption><thead><tr><td>Parameter</td><td>Required</td><td>Default</td><td>Choices</td><td>Comments</td></tr></thead><tbody><tr><td class=" valign_middle align_left">export_format</td><td class=" valign_middle">No</td><td class=" valign_middle">XML</td><td class=" valign_middle"><ul id="UL_74940723174A4D5BA474C24C3AAD5865"><li id="LI_F25B3D0DD84F4BEBA040F542D351177A">JSON</li><li id="LI_072175DB06094A6F91ADCB4922EABCC1">XML</li></ul></td><td class=" valign_middle align_left">The output file format</td></tr><tr><td class=" valign_middle align_left">export_use</td><td class=" valign_middle">No</td><td class=" valign_middle">Default</td><td class=" valign_middle"><ul id="UL_9DC85A4C67AA436986FE0B364DC70B51"><li id="LI_F432B58B774F46D0AD0BE1FE635C9098">Default</li><li id="LI_3993EE9782414FC390DE844AF2360597">Clone</li><li id="LI_9C388D68B70F400D9F5A228477F40DED">Replace</li></ul></td><td class=" valign_middle align_left"><ul id="UL_0B12C88298824328A408788D9AE995DA"><li id="LI_4FC5C5B70BD442B6AF17FCB9FBD9E244">If C(Default), will export the SCP using the Default method</li><li id="LI_01036742141C4497B60895D4BA3A03B9">If C(Clone), will export the SCP using the Clone method</li><li id="LI_4484B3F9212E450B8BFD8F4718D20FB8">If C(Replace), will export the SCP using the Replace method</li></ul></td></tr><tr><td class=" valign_middle align_left">idrac_ip</td><td class=" valign_middle">Yes</td><td class=" valign_middle">NA</td><td class=" valign_middle">NA</td><td class=" valign_middle align_left">iDRAC IP Address</td></tr><tr><td class=" valign_middle align_left">idrac_user</td><td class=" valign_middle">Yes</td><td class=" valign_middle">NA</td><td class=" valign_middle">NA</td><td class=" valign_middle align_left">iDRAC username</td></tr><tr><td class=" valign_middle align_left">idrac_pwd</td><td class=" valign_middle">Yes</td><td class=" valign_middle">NA</td><td class=" valign_middle">NA</td><td class=" valign_middle align_left">iDRAC user password</td></tr><tr><td class=" valign_middle align_left">idrac_port</td><td class=" valign_middle">No</td><td class=" valign_middle">443</td><td class=" valign_middle">NA</td><td class=" valign_middle align_left">iDRAC port</td></tr><tr><td class=" valign_middle align_left">job_wait</td><td class=" valign_middle">Yes</td><td class=" valign_middle">NA</td><td class=" valign_middle"><ul id="UL_A28831138453493CA72EEF727C0941AE"><li id="LI_649DF7AB25394D2C864827EB2CCF479B">True</li><li id="LI_D78138B1C8394928B0F6DB371C402348">False</li></ul></td><td class=" valign_middle align_left"> <ul id="UL_4B6F2D416D4B435F957660BB6A0571B8"> <li id="LI_7E2F905F95744044A92FBD53DCB6E7F8">If the value is True, it waits for the SCP export job to finish and returns the job completion status</li> <li id="LI_F2CAA13E1B734A1AB35823C3848BEE15">If the value is False, it returns immediately with a JOB ID after queuing the SCP export job in LC job queue</li> </ul> </td></tr><tr><td class=" valign_middle align_left">share_name</td><td class=" valign_middle">Yes</td><td class=" valign_middle">NA</td><td class=" valign_middle">NA</td><td class=" valign_middle align_left">CIFS or NFS network share or  a local path</td></tr><tr><td class=" valign_middle align_left">share_user</td><td class=" valign_middle">No</td><td class=" valign_middle">NA</td><td class=" valign_middle">NA</td><td class=" valign_middle align_left">Network share user in the format &#39;user@domain&#39; or &#39;domain\user&#39; if user is
-
-
-part of a domain else &#39;user&#39;. This option is mandatory
-for CIFS Network share.</td></tr><tr><td class=" valign_middle align_left">share_pwd</td><td class=" valign_middle">No</td><td class=" valign_middle">NA</td><td class=" valign_middle">NA</td><td class=" valign_middle align_left">Network share user password. This option is mandatory
-for CIFS Network share.</td></tr><tr><td class=" valign_middle align_left">scp_components</td><td class=" valign_middle">No</td><td class=" valign_middle">ALL</td><td class=" valign_middle"><ul id="UL_9DD65109061248FC807F6EBC48263B4B"><li id="LI_EA0BD49F17BD4C54B940AD067B1F297A">ALL</li><li id="LI_7E83483581984883893F0833DB7388AF">IDRAC</li><li id="LI_956C168FCA8C4F74AEF92ABCEF5ABC10">BIOS</li><li id="LI_F35DFBB34A3A4659891B06E357B7AB7C">NIC</li><li id="LI_1090705B0F43424281D57E51687CF6F9">RAID</li></ul></td><td class=" valign_middle align_left"> <p> Specify the hardware components configuration to be exported<ul id="UL_25677B068E464354B2689490AF008E9C"> <li id="LI_C4198EB68DC34398A4D367297913BB2B">If ALL, the module exports all components configurations in SCP file</li> <li id="LI_4CAE266DC4D34BB5A8FD167FE6E6671F">If IDRAC, the module exports iDRAC configuration in SCP file</li> <li id="LI_BE86D8195F66433E8FE08049E4FC9896">If BIOS, the module exports BIOS configuration in SCP file</li> <li id="LI_FD04557EE1314735A625D876BC037826">If NIC, the module exports NIC configuration in SCP file</li> <li id="LI_5E55D9C87CA4465A8F1E299F1D91A703">If RAID, the module exports RAID configuration in SCP file</li> </ul> </p></td></tr></tbody></table><table class="table frame-all" id="TABLE_EE20FABFF44C466BA78397A73F25E2FC"><caption>Table 6. Return Values</caption><thead><tr><td>Name</td><td>Description</td><td>Returned</td><td>Type</td><td>Sample</td></tr></thead><tbody><tr><td>Export SCP</td><td> Exports the SCP to the provided network share or to the local path</td><td>Success</td><td>String</td><td><a data-scope="external" href="https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_export_server_config_profile.md" target="_blank" title="">https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_export_server_config_profile.md</a></td></tr></tbody></table><p><span class="uicontrol">Example</span></p><pre class="codeblock">-name: Export Server Configuration Profile (SCP)
+     idrac_ip:       "xx.xx.xx.xx"
+     idrac_user:     "xxxx"
+     idrac_pwd:      "xxxxxxxx"
+     share_name:     "xx.xx.xx.xx:/share"
+     share_user:     "xxxx"
+     share_pwd:      "xxxxxxxx"
+     scp_file:       "scp_file.xml"
+     scp_components: "ALL"
+     job_wait:       "True"</code></pre>
+		</div>
+	 </section>
+	 <section class="section" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__SECTION_0C3322D29506419A94FC9D40CDCDEA92">
+		<p class="p"><span class="ph b">Module: dellemc_export_server_config_profile</span>
+		</p>
+		<p class="p"><span class="ph b">Synopsis</span>
+		</p>
+		<p class="p">You can export 
+		  <span class="ph uicontrol bold">Server Configuration Profile (SCP)</span> with various components such as iDRAC, BIOS, NIC, RAID together or with one of these components. You can export SCP from iDRAC to a local or a network shared location. For shared location, make sure that a network share path is established. 
+		</p> 
+		<p class="p">Check_mode support: No
+		</p>
+		<div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>This module is deprecated and replaced with 
+		  <span class="ph uicontrol bold">idrac_server_config_profile</span>.
+		</div></td></tr></tbody></table></div>
+		<p class="p"><span class="ph b">Options</span>
+		</p>
+		<table class="table all  pgwide" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497"><caption><span class="table-anchor" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497"></span><span class="tablecap"><span class="table-label">Table 5. </span>dellemc_export_server_config_profile</span></caption><colgroup><col style="width:19.35483870967742%" /><col style="width:14.025245441795231%" /><col style="width:16.40953716690042%" /><col style="width:15.708274894810662%" /><col style="width:34.50210378681627%" /></colgroup><thead class="thead">
+			 <tr>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1">Parameter
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2">Required
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3">Default
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4">Choices
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5">Comments
+				</th>
+			 </tr></thead><tbody class="tbody">
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">export_format
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">XML
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_74940723174A4D5BA474C24C3AAD5865">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_F25B3D0DD84F4BEBA040F542D351177A">JSON
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_072175DB06094A6F91ADCB4922EABCC1">XML
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">The output file format
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">export_use
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">Default
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_9DC85A4C67AA436986FE0B364DC70B51">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_F432B58B774F46D0AD0BE1FE635C9098">Default
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_3993EE9782414FC390DE844AF2360597">Clone
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_9C388D68B70F400D9F5A228477F40DED">Replace
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_0B12C88298824328A408788D9AE995DA">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_4FC5C5B70BD442B6AF17FCB9FBD9E244">If C(Default), will export the SCP using the Default method
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_01036742141C4497B60895D4BA3A03B9">If C(Clone), will export the SCP using the Clone method
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_4484B3F9212E450B8BFD8F4718D20FB8">If C(Replace), will export the SCP using the Replace method
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">idrac_ip
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">iDRAC IP Address
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">idrac_user
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">iDRAC username
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">idrac_pwd
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">iDRAC user password
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">idrac_port
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">443
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">iDRAC port
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">job_wait
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_A28831138453493CA72EEF727C0941AE">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_649DF7AB25394D2C864827EB2CCF479B">True
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_D78138B1C8394928B0F6DB371C402348">False
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 "> 
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_4B6F2D416D4B435F957660BB6A0571B8"> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_7E2F905F95744044A92FBD53DCB6E7F8">If the value is True, it waits for the SCP export job to finish and returns the job completion status
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_F2CAA13E1B734A1AB35823C3848BEE15">If the value is False, it returns immediately with a JOB ID after queuing the SCP export job in LC job queue
+					 </li> 
+				  </ul> 
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">share_name
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">Yes
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">CIFS or NFS network share or a local path
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">share_user
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">Network share user in the format 'user@domain' or 'domain\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network share.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">share_pwd
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">NA
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 ">Network share user password. This option is mandatory for CIFS Network share.
+				</td>
+			 </tr>
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__1 ">scp_components
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__2 ">No
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__3 ">ALL
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__4 ">
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_9DD65109061248FC807F6EBC48263B4B">
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_EA0BD49F17BD4C54B940AD067B1F297A">ALL
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_7E83483581984883893F0833DB7388AF">IDRAC
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_956C168FCA8C4F74AEF92ABCEF5ABC10">BIOS
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_F35DFBB34A3A4659891B06E357B7AB7C">NIC
+					 </li>
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_1090705B0F43424281D57E51687CF6F9">RAID
+					 </li>
+				  </ul>
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_9833E20E4AEC4FD7BFBCDE731F6CA497__entry__5 "> 
+				  <div class="p"> Specify the hardware components configuration to be exported
+				  <ul class="level1" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__UL_25677B068E464354B2689490AF008E9C"> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_C4198EB68DC34398A4D367297913BB2B">If ALL, the module exports all components configurations in SCP file
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_4CAE266DC4D34BB5A8FD167FE6E6671F">If IDRAC, the module exports iDRAC configuration in SCP file
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_BE86D8195F66433E8FE08049E4FC9896">If BIOS, the module exports BIOS configuration in SCP file
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_FD04557EE1314735A625D876BC037826">If NIC, the module exports NIC configuration in SCP file
+					 </li> 
+					 <li class="li" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__LI_5E55D9C87CA4465A8F1E299F1D91A703">If RAID, the module exports RAID configuration in SCP file
+					 </li> 
+				  </ul> 
+				  </div>
+				</td>
+			 </tr>
+		  </tbody></table>
+		<table class="table all  pgwide" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC"><caption><span class="table-anchor" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC"></span><span class="tablecap"><span class="table-label">Table 6. </span>Return Values</span></caption><colgroup><col style="width:11.601642710472278%" /><col style="width:28.234086242299796%" /><col style="width:10.677618069815194%" /><col style="width:10.266940451745379%" /><col style="width:39.21971252566735%" /></colgroup><thead class="thead">
+			 <tr>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__1">Name
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__2">Description
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__3">Returned
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__4">Type
+				</th>
+				<th class="entry cellrowborder" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__5">Sample
+				</th>
+			 </tr></thead><tbody class="tbody">
+			 <tr>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__1 ">Export SCP
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__2 "> Exports the SCP to the provided network share or to the local path
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__3 ">Success
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__4 ">String
+				</td>
+				<td class="entry cellrowborder" headers="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__TABLE_EE20FABFF44C466BA78397A73F25E2FC__entry__5 "><a class="xref" href="https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_export_server_config_profile.md" target="_blank">https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_export_server_config_profile.md</a>
+				</td>
+			 </tr>
+		  </tbody></table>
+		<p class="p"><span class="ph uicontrol bold">Example</span>
+		</p>
+		<pre class="pre codeblock"><code>-name: Export Server Configuration Profile (SCP)
    dellemc_export_server_config_profile:
-     idrac_ip:      &quot;xx.xx.xx.xx&quot;
-     idrac_user:    &quot;xxxx&quot;
-     idrac_pwd:     &quot;xxxxxxxx&quot;
-     share_name:    &quot;xx.xx.xx.xx:/share&quot;
-     share_user:    &quot;xxxx&quot;
-     share_pwd:     &quot;xxxxxxxx&quot;
-     export_format: &quot;XML&quot;
-     export_use:    &quot;Default&quot;
-     job_wait:      &quot;True&quot;
-</pre></div></article></div></section><div id="leftbar"><ul class="tabs"><li class="currentli"><a class="current toc" href="#"><span>Contents</span></a></li><li><a class="search" href="#"><span>Search</span></a></li></ul><form id="searchform"><div class="holdsearch"><input class="search" type="text" placeholder="Search" /></div><input class="submit" type="submit" value="Go" /></form><nav class="toc current"><div class="loader"><img src="static/loader.gif" alt="Loading" /></div></nav><nav class="search"><a id="search-toc-link" href="#"><img title="Table of Contents" id="table-oc-link" src="static/ic_nav_home_blu_16.png" alt="Table of Contents Button" /><span>Contents</span></a><div class="results"><span>No search has been performed.</span></div></nav></div><script src="static/body.js?+FkGWNYY"></script></body></html>
+     idrac_ip:      "xx.xx.xx.xx"
+     idrac_user:    "xxxx"
+     idrac_pwd:     "xxxxxxxx"
+     share_name:    "xx.xx.xx.xx:/share"
+     share_user:    "xxxx"
+     share_pwd:     "xxxxxxxx"
+     export_format: "XML"
+     export_use:    "Default"
+     job_wait:      "True"
+</code></pre>
+	 </section>
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                                    <nav role="navigation" id="wh_topic_toc" class="col-lg-2 hidden-md hidden-sm hidden-xs navbar hidden-print">
+                                        <div class=" wh_topic_toc "><div class="wh_topic_label">On this page</div><ul><li class="section-item"><a href="#GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__GUID-12736486-5FC6-4FB0-A76C-205AA55CE284" data-tocid="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856__GUID-12736486-5FC6-4FB0-A76C-205AA55CE284">Export or Import Server Configuration Profile</a></li><li class="section-item"></li><li class="section-item"></li><li class="section-item"></li><li class="section-item"></li></ul></div>
+                                    </nav>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <script src="./oxygen-webhelp/lib/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+        
+    </body>
+</html>

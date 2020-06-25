@@ -1,0 +1,48 @@
+/* Expand / collapse */
+.wh_expand_btn.expanded:before {
+    content:"\e259";
+}
+
+.wh_expand_btn:before {
+    content:"\e258";
+    font-family: "Glyphicons Halflings", serif;
+    font-style: normal;
+    font-size: 0.6em;
+    font-weight: lighter;
+    display: inline-block;
+    margin-right: 5px;
+    opacity: 0.5;
+    width: 1em
+
+}
+
+.wh_expand_btn {
+    cursor: pointer;
+    width: 1em;
+}
+
+/* WH-1613 */
+.permalink{
+    padding: 0 0.4em;
+    margin:0 0 0 0.5em;
+    opacity: 0.35;
+    transition: opacity .3s;
+    background: url(../img/link-icon.png) no-repeat;
+    background-size: contain;
+    background-position-y: 60%;
+    cursor:pointer
+}
+
+/* WH-1613 */
+.permalink:hover{
+    opacity: 1;
+    cursor:pointer
+}
+
+
+@media only screen and (max-width: 767px) {
+
+    .wh_expand_btn{
+        left: 3px;
+    }
+}

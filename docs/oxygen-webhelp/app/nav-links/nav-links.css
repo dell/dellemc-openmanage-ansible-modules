@@ -1,0 +1,107 @@
+/* Styles for the node state*/
+
+.wh_publication_toc .topicref {
+    display: flex;
+    align-items: baseline;
+}
+
+.wh_publication_toc .wh-expand-btn:before{
+    display: inline-block;
+    font-family: "Glyphicons Halflings", serif;
+    font-size: .7em;
+    font-weight: lighter;
+    font-style: normal;
+    width: 12px;
+    height: 12px;
+    margin-right: 4px;
+    border: 2px solid transparent;
+    opacity: 0.5;
+}
+
+.wh_publication_toc:hover .wh-expand-btn:before {
+    opacity: 0.8;
+}
+
+@media only screen and (max-width: 767px) {
+    .wh_publication_toc .wh-expand-btn:before {
+        opacity: 0.8;
+    }
+}
+
+.wh_publication_toc span[data-state=expanded] > .wh-expand-btn:before {
+    content: "\e259";
+}
+
+.wh_publication_toc span[data-state=not-ready]  > .wh-expand-btn:before,
+.wh_publication_toc span[data-state=collapsed] > .wh-expand-btn:before {
+    content: "\e258";
+}
+
+.wh_publication_toc span[data-state=collapsed] ~ ul {
+    display: none;
+}
+
+.wh_publication_toc span[data-state=leaf] > .wh-expand-btn:before {
+    content : " ";
+}
+
+.wh_publication_toc span[data-state=pending] > .wh-expand-btn:before {
+    display: inline-block;
+    content: " ";
+    border: 2px solid #f3f3f3; /* Light grey */
+    border-top: 2px solid #3498db; /* Blue */
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+    transition: border 1s;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* WH-1565 Inherit the styles of the parent node */
+.wh_publication_toc .topicref a * {
+    color: inherit !important;
+    background-color: transparent !important;
+}
+
+/* ------------------ Menu --------------------------- */
+
+@keyframes blink {
+    0% { opacity: .2; }
+    20% { opacity: 1; }
+    100% { opacity: .2; }
+}
+
+.wh_top_menu .loading {
+    padding: 0 10px 10px 10px;
+}
+
+.wh_top_menu .loading .dot:before {
+    content: ".";
+    display: inline-block;
+    font-size: 3em;
+    font-weight: bold;
+    line-height: 1em;
+    color: #ffffff;
+}
+
+.wh_top_menu .loading .dot {
+    animation-name: blink;
+    animation-duration: 1.4s;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+}
+
+.wh_top_menu .loading .dot:nth-child(2) {
+    animation-delay: .2s;
+}
+
+.wh_top_menu .loading .dot:nth-child(3) {
+    animation-delay: .4s;
+}
+
+.wh_top_menu .state[data-state="expanded"] + .loading {
+    display: none;
+}

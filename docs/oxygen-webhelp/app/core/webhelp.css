@@ -1,0 +1,1434 @@
+@import "fonts.css?buildId=2018061311";
+@import "../indexterms/indexterms.css?buildId=2018061311";
+
+.container-fluid {
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 1600px;
+}
+
+a.sr-only:focus {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 1.5em;
+    text-align: center;
+    background-color: #333;
+    z-index: 1;
+    line-height: 1.5em;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.embed-responsive {
+    background-color: #000;
+}
+
+/*
+ * Styles for printing
+ */
+@media print {
+	  body {
+	  	font-size: 11.5pt;
+        margin: auto;
+    }
+    .container {
+        width:100%;
+    }
+    *[class^="col-"], *[class^=" col-"] {
+        width: 100%;
+    }
+}
+
+/*
+ * Responsive images
+ */
+.image {
+    max-width: 100%;
+    height: auto;
+    background-repeat: no-repeat;
+}
+img.image:not(img[usemap]) {
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+img.image:not(img[usemap]):hover {opacity: 0.7;}
+
+/* The Modal background */
+#modal_img_large {
+    display: none; 
+    position: fixed; 
+    padding-top: 100px; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgb(0,0,0); 
+    background-color: rgba(0,0,0,0.9); 
+}
+.modal-content {
+    margin: auto;
+    display: block;
+    width: 80%;
+}
+#modal-img{
+    max-width: 80%;    
+}
+
+/* Caption of Modal Image (Image Text) */
+#caption {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+    text-align: center;
+    color: #ccc;
+    padding: 10px 0;
+    height: 150px;
+}
+/* Add Animation - Zoom in the Modal */
+.modal-content, #caption { 
+    -webkit-animation-name: zoom;
+    -webkit-animation-duration: 0.6s;
+    animation-name: zoom;
+    animation-duration: 0.6s;
+}
+@-webkit-keyframes zoom {
+    from {-webkit-transform:scale(0)} 
+    to {-webkit-transform:scale(1)}
+}
+@keyframes zoom {
+    from {transform:scale(0)} 
+    to {transform:scale(1)}
+}
+/* The Close button of the modal container*/
+.close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 30px;
+    transition: 0.3s;
+    font-weight: 100;
+    opacity: .4;
+    text-shadow: none;
+}
+.close:hover,
+.close:focus {
+    color: #ccc;
+    text-decoration: none;
+    cursor: pointer;
+    opacity:1;
+}
+
+.wh_topic_toc{
+    border-left: 1px solid #cfe2f5; 
+    margin-left:0;
+    padding-left:.5em;
+}
+.wh_topic_toc li, .wh_publication_toc li{
+    line-height: 1.4em;
+    margin:.5em 0;
+}
+
+.wh_topic_toc .wh_topic_label{
+    font-weight:600;
+}
+.wh_topic_toc .wh_topic_label:after{
+    content: ": "
+}
+
+.wh_topic_toc ul ul li:last-of-type, .wh_publication_toc ul ul li:last-of-type{
+    margin-bottom:0
+}
+
+#wh_topic_toc ul{
+    padding-left:0;
+    margin-left:0;
+    list-style:none;
+}
+
+#wh_topic_toc ul ul{
+    padding-left:1em
+}
+
+.wh_footer{
+    margin-top: 2em;
+}
+
+.wh_top_menu ul li a{
+    line-height:1.3em
+}
+
+/*
+ * ------------------------------------------------------------------
+ *  
+ * Fight bootstrap
+ *  
+ */
+ 
+/*Fix for: Bootstrap marks all the LIs as position:relative, so you cannot position an 
+  li:after or a li:before absolutely to a parent of your choice.*/
+.wh_publication_toc .nav>li {
+    position:inherit;
+}
+
+/* WH-231
+ * Compacting the side-toc
+ *  */
+li.hide-after, li.hide-before{display:none}
+.dots-before, .dots-after{cursor: pointer; text-indent: 1.1em; color: #ccc; font-size: .8em}
+.dots-before span, .dots-after span{border:1px solid #e1e1e1; padding: 2px 7px; border-radius: 14px; }
+.dots-before span:hover, .dots-after span:hover{border:1px solid #bbb; background-color:#fff }
+
+
+
+/*Fix for: Bootstrap puts a two pixels border bottom under the thead, 
+    with a light color and bottom alignement.*/
+.table>thead>tr>th,
+.table>thead>tr>td,
+.table>tfoot>tr>th,
+.table>tfoot>tr>td,
+.table>tbody>tr>th,
+.table>tbody>tr>td,
+.table>caption+thead>tr:first-child>td, 
+.table>caption+thead>tr:first-child>th, 
+.table>colgroup+thead>tr:first-child>td, 
+.table>colgroup+thead>tr:first-child>th, 
+.table>thead:first-child>tr:first-child>td, 
+.table>thead:first-child>tr:first-child>th {
+/*  
+   WH-1947 In order for the default alignment to apply as it is defined 
+   in elements-styles.css we need not to override it from this very specific rule. 
+*/
+/*  vertical-align:inherit ;*/
+    border-color:inherit;
+}
+td, th {
+    padding: 0.5em;
+}
+
+/*Fix for: Bootstrap sets a light gray color to the table caption. Use a darker color.*/
+caption{
+    color:inherit;
+    margin-top:1em;    
+}
+
+/* Bootstrap adds a dotted border-bottom for abbr elements and browser renders them with with a dotted underline */
+abbr, abbr[title] {
+  text-decoration: none;
+  border-bottom: none;
+}
+
+
+/*
+ * ------------------------------------------------------------------
+ *  
+ * Publication logo and title
+ *  
+ */
+
+.wh_header_flex_container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    align-content: center;
+    flex-wrap: wrap;
+}
+
+.wh_header {
+    padding: 1em;
+}
+
+.wh_logo_and_publication_title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wh_top_menu_and_indexterms_link {
+    padding: 0;
+}
+
+@media only screen and (max-width: 767px) {
+    .wh_header_flex_container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .wh_logo_and_publication_title_container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        align-content: center;
+        flex-wrap: wrap;
+        align-self: stretch;
+        width: 100%;
+    }
+
+    .wh_indexterms_link a:before {
+        padding-left: .5em !important;
+    }
+}
+
+.wh_publication_title a {
+    display: inline-block;
+    margin: 1em 0;
+}
+
+@media only screen and (min-width: 768px) {
+    .wh_top_menu_and_indexterms_link.navbar-collapse {
+        float: none;
+        display: inline-block !important;
+        vertical-align: middle;
+    }
+
+    .wh_top_menu {
+        line-height: 1em;
+        vertical-align: middle;
+
+    }
+
+    .wh_header {
+        text-align: center;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .wh_toggle_button {
+        float: none;
+        line-height: 1em;
+        margin: 10px 0;
+    }
+
+    .wh_header {
+        text-align: left;
+    }
+}
+
+
+
+/*------------------------------------------------------*/
+
+
+
+
+.wh_logo{
+    display:inline-block;
+    vertical-align:baseline;
+}
+.wh_publication_title {
+    display:inline-block;
+}
+
+.wh_logo_and_publication_title.navbar-brand {
+    font-size: 1em;
+    line-height: 1em;
+}
+
+
+
+/* Generic top_menu styles*/
+.wh_top_menu ul {
+    list-style: none;
+    padding-left:0;
+}
+
+/* Render top_menu for devices larger than 767px */
+@media only screen and (min-width: 768px) {
+    .wh_top_menu {
+        display: inline-block;        
+    }
+
+    .wh_top_menu ul ul {
+        display: none;
+    }
+
+    .wh_top_menu ul li:hover > ul {
+        display: block;
+    }
+
+    .wh_top_menu ul {
+        position: relative;
+        display: inline-table;
+        z-index: 999;
+        margin-bottom:0;
+    }
+
+    .wh_top_menu ul:after {
+        content: "";
+        clear: both;
+        display: block;
+    }
+
+    .wh_top_menu > ul > li {
+        display: inline-block;
+    }
+
+
+    .wh_top_menu ul li a {
+        display: block;
+        padding: 0.5em 1em;
+        text-decoration: none;
+    }
+
+    .wh_top_menu ul ul {
+        padding: 0;
+        position: absolute;
+        text-align: left;
+    }
+
+    .wh_top_menu ul ul li {
+        float: none;
+        position: relative;
+        border-top: 1px solid;
+        min-width:210px;
+    }
+
+
+    .wh_top_menu ul ul ul {
+        position: absolute;
+        left: 100%;
+        top: 0;
+    }
+    
+    /* Mark the items that have a submenu with a small double arrow. */
+    .wh_top_menu ul ul li.has-children{
+        position:relative;
+    }
+    .wh_top_menu ul ul li.has-children > span > a{
+        padding-right: 1em;
+    }
+    .wh_top_menu ul ul li.has-children:after{
+        display:block;
+        content: "\00BB";
+        color:silver;
+        position:absolute;
+        right:5px;
+        top:0;
+        line-height: 2.5em;
+    }
+
+    .wh_top_menu ul ul {
+        background-color: #0f0f0f;
+    }
+    .wh_top_menu ul ul li {
+        border-top-color: #4b545f;
+    }
+    .wh_top_menu ul ul li.has-children:after{
+        color:silver;
+    }
+    
+}
+
+/* Render top_menu for devices smaller than 767px */
+@media only screen and (max-width: 767px) {
+
+    .wh_top_menu ul {
+        margin-bottom: 0;
+    }
+    .wh_top_menu ul ul {
+        display: none;
+    }
+    .wh_top_menu ul li a {
+        display:block;
+        padding: .5em;
+        text-decoration: none;
+    }
+}
+.wh_top_menu ul li.active > ul {
+    display: block;
+    padding-left: .5em;
+}
+
+/*
+ * ------------------------------------------------------------------
+ *
+ * Welcome area, before search
+ *
+ */
+.wh_welcome:not(:empty) {
+    display: block;
+    font-family:"Roboto Bold", Verdana;
+    text-align: center;
+    font-size: 2.5em;
+    text-shadow: 0 0 10px black;
+    padding: 0.5em;
+    width: 80%;
+    margin: 0 auto .5em auto;
+    color: #fff;
+}
+.wh_welcome:empty{
+    display:none;
+}
+@media only screen and (max-width: 767px) {
+   .wh_welcome:not(:empty), .wh_welcome:empty {
+       display: none;
+   }
+}
+
+/*
+ * ------------------------------------------------------------------
+ *  
+ * Breadcrumb
+ *  
+ */
+
+/* Place the right tools in line with the breadcrumb. */
+.wh_tools{
+    position:relative;
+    padding-right: 80px;
+    display: flex;
+    align-items: center
+}
+.wh_breadcrumb {
+    display:inline-block;
+}
+.wh_right_tools {
+    display:inline-block;
+    position:absolute;
+    top: 0;
+    right:0;
+    padding: 7px;
+}
+/* Breadcrumb */
+.wh_breadcrumb ol {
+    margin:0;
+    border-radius: 0;
+    font-size: .9em;
+    padding: 8px 15px;
+    list-style: none;
+    background:none;
+}
+.wh_breadcrumb li{
+    display:inline-block;
+}
+.wh_breadcrumb li:not(:last-of-type):after {
+    content: "/";
+    padding: 0 5px;
+}
+
+/* WH-1520 */
+.webhelp_expand_collapse_sections:after{font-family: "oXygen WebHelp"; display:inline-block; vertical-align: bottom;}
+.webhelp_expand_collapse_sections[data-next-state='expanded']:after{content:'l'}
+.webhelp_expand_collapse_sections[data-next-state='collapsed']:after{content:'k'}
+
+.wh_hide_highlight, .webhelp_expand_collapse_sections{background: transparent; border:0; display: none}
+.wh_hide_highlight:after{font-family: "oXygen WebHelp"; content:'j'; display:inline-block; vertical-align: bottom;}
+.wh_hide_highlight:focus {outline: none}
+.wh_hide_highlight.hl-close:after{opacity:.7}
+
+/*TODO - dan - discuss with bogdan what for??*/
+#printlink:before {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    padding: 0 3px 0 3px;
+    margin-right: 3px;
+    cursor: pointer;
+    content: "";
+}
+#printlink:before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAC1QTFRFAwQEAwQEAwQEgICAYGBggICAk5OT2tra3t7e5eXl7Ozs9PT0+/v7/f39////qdjBqAAAAAV0Uk5TAAsmTWgvFGPAAAAAWElEQVQI12NgYA4FAgMGBgbWd0AQQBzDNBTECA1miHsK0p73lCHmejkQ1BxliN4NBlsZolaBwVKGyKkgNZFTGSIguloZXCGMEAYhVZBUkCIDA5MSECgwAACPPj1sb0KIdAAAAABJRU5ErkJggg==');
+}
+
+#printlink:hover:before {
+    opacity: 0.5;
+    filter: alpha(opacity=50);
+}
+
+#trigger.active {
+    transition: all 0.75s ease-in-out;
+}
+
+#trigger {
+    float:left;
+}
+
+.wh_publication_toc ul{
+    list-style: none;
+    margin:0;
+    padding:0;
+    word-wrap: break-word;
+}
+.wh_publication_toc ul ul {
+    padding-left: 1em;
+}
+
+.current_node {
+    font-weight: 700;
+    text-decoration: underline;
+}
+/*
+ * ------------------------------------------------------------------
+ *  
+ * Tools and navigation
+ * 
+ */
+.wh_print_link,
+.wh_navigation_links,
+.wh_navigation_links .navnext,
+.wh_navigation_links .navprev{
+    display:inline-block;
+    margin-left:0.5em;
+}
+
+.wh_print_link button {
+    border: none;
+    background-color: transparent;
+}
+
+/**
+ * Content area
+ */
+
+.wh_content_area {
+    min-height: 500px;
+}
+
+.wh_child_links .olchildlinks,
+.wh_child_links .ullinks,
+.wh_child_links li {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.wh_child_links strong {
+    font-weight: normal;
+}
+
+/*
+ * ------------------------------------------------------------------
+ *  
+ * Topic content
+ * 
+ */
+.wh_topic_content .related-links:empty{
+    display:none;
+}
+
+.sectiontitle {
+   /* EXM-37168: The section title should have the same color as the rest of the content. */
+   color:inherit;
+}
+
+/*
+ * Topic titles & subtitles
+ */
+.topictitle1 {
+    font-size: 2em;
+    margin-bottom: 1em;
+    font-weight: 400;
+}
+
+.topictitle2 {
+    margin: 1.5em 0 .5em 0;
+    font-size: 1.7em;
+    font-weight: 400;
+    font-style: italic;
+}
+
+.topictitle3 {
+    margin: 1.3em 0 .4em 0;
+    font-size: 1.4em;
+    font-weight: 300;
+    font-style: italic;
+}
+
+.topictitle4 {
+    margin: 1.2em 0 .3em 0;
+    font-size: 1.1em;
+    font-weight: 400;
+}
+
+.topictitle5, .topictitle6 {
+    margin: 1.1em 0 .3em 0;
+    font-size: 1em;
+    font-weight: 300;
+    font-style: italic;
+    text-decoration: underline;
+}
+
+/*
+ * ------------------------------------------------------------------
+ *  
+ * Link to the index.
+ * 
+ */
+.wh_indexterms_link{
+    display: inline-block;
+    vertical-align: middle;
+}
+.wh_indexterms_link a:before{
+    content:"a"; /*The book symbol*/
+    font-family: "oXygen WebHelp";
+    display: inline-block;
+    position: relative;
+    bottom:0em;
+    font-size: 1.6em;
+    margin-left:0.8em;
+}
+
+@media only screen and (max-width: 767px) {
+
+    .wh_indexterms_link {
+        float: none;
+    }
+
+    .wh_indexterms_link a:before{
+        position: relative;
+        padding-bottom: 0 !important;
+        margin-left: 0;
+    }
+}
+
+/*
+ * ------------------------------------------------------------------
+ *  
+ * Tree TOC for the main page.
+ * 
+ */
+.wh_main_page_toc{
+    width: 80%;
+    margin: 1em auto 2em;
+}
+.wh_main_page_toc_entry{
+    padding: 0.5em;
+}
+.wh_main_page_toc_accordion_entries {
+    display: none;
+}
+
+/* The size of the tiltes should be larger, to standout more against the short descriptions. */
+.wh_main_page_toc a{
+    font-size:1.1em;
+}
+.wh_toc_shortdesc{
+    font-size:0.9em;
+    color:gray;
+}
+
+
+/* Padding for all children from the second level, but leave the shortdesc at the X as the header. */
+.wh_main_page_toc_accordion_entries > *{
+    margin-left:5em;
+}
+.wh_main_page_toc_accordion_entries > .wh_toc_shortdesc{
+    margin-left:3em;
+}
+
+
+.expanded + .wh_main_page_toc_accordion_entries {
+    display: block;
+}
+.wh_main_page_toc > .wh_main_page_toc_accordion_header,
+.wh_main_page_toc > .wh_main_page_toc_entry{
+    padding:0.5em;
+    padding-left:3em;
+    margin:0;
+}
+.wh_main_page_toc_accordion_entries .wh_main_page_toc_entry:last-child{
+    padding-bottom:0.7em
+}
+
+/* Expand / collapse symbols*/
+.wh_main_page_toc {
+    position:relative;
+}
+.wh_main_page_toc .wh_main_page_toc_accordion_header.expanded:before,
+.wh_main_page_toc .wh_main_page_toc_accordion_header:before{
+    display: inline-block;
+    font-weight: bold;
+    font-family:"Glyphicons Halflings";
+    position: absolute;
+    left: 1em;
+    cursor: pointer;
+}
+.wh_main_page_toc .wh_main_page_toc_accordion_header:before{
+    content: "\e258"; /* expand symbol */
+}
+.wh_main_page_toc .wh_main_page_toc_accordion_header.expanded:before{
+    content: "\e259"; /* collapse symbol */
+}
+
+/* Colors */
+.wh_main_page_toc{
+    border: 1px solid #c0c0c0;
+    background-color: #ffffff;
+}
+.wh_main_page_toc .wh_main_page_toc_accordion_header, 
+.wh_main_page_toc > .wh_main_page_toc_entry {
+    border-bottom: 1px solid #c0c0c0;
+}
+.wh_main_page_toc>.wh_main_page_toc_entry:last-child {
+    border-bottom: none;
+}
+.wh_main_page_toc_accordion_entries{
+    background-color: #eeeeee;
+    border-bottom: 1px solid #c0c0c0;
+}
+.wh_main_page_toc .expanded {
+    background-color: #eeeeee;
+    border-bottom: 0;
+}
+.wh_main_page_toc .wh_main_page_toc_accordion_header:hover, 
+.wh_main_page_toc>.wh_main_page_toc_entry:hover{
+    background-color: #eeeeee;
+}
+.wh_main_page_toc a {
+    color: #2874bd;
+}
+
+
+/**
+ * 
+ * Tiles
+ * 
+ */
+
+.wh_content_flex_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: stretch;
+    flex-wrap: nowrap;
+}
+
+.wh_tiles {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    align-content: stretch;
+    flex-wrap: wrap;
+}
+
+.wh_tile {
+    margin: 1em;
+    padding: 1em;
+    width: 30%;
+    min-width: 300px;
+    min-height: 140px;
+}
+
+@media only screen and (max-width: 1200px) {
+    .wh_tile {
+        width: 45%;
+    }
+}
+
+
+@media only screen and (max-width: 767px) {
+    .wh_tile {
+        width: 100%;
+        min-width: 240px;
+    }
+}
+
+.wh_tile_image {
+    text-align: center;
+    padding-bottom: .5em;
+}
+
+/* Make the link from the tile the entire width */
+.wh_tile_text{
+    position:relative;
+    height:100%;
+    overflow:hidden;
+}
+
+.wh_tile_title span{
+    display: block;
+    width: 100%;
+}
+
+.wh_tile_title a{
+    display: block;
+    width: 100%;
+}
+
+@media only screen and (max-width: 767px) {
+    .wh_tile_text:after{
+        display: none;
+    }
+}
+
+/**
+ *
+ * Remove outline border on focus
+ *
+ */
+ input:focus{
+    outline:none;
+}
+
+.dd{
+    margin-bottom: .5em;
+    margin-left: 40px
+}
+
+/**
+ *
+ * Styles used for RTL pages
+ *
+ */
+html[dir='rtl'] .wh_search_button{
+    left:0;
+    right: auto;
+    float:left;
+    border-radius: 5px 0 0 5px;
+}
+
+html[dir='rtl'] .wh_right_tools {
+    right: auto;
+    left:0;
+}
+html[dir='rtl'] .wh_indexterms_link {
+    float: left;
+}
+html[dir='rtl'] .wh_toggle_button {
+    float:left;
+}
+html[dir='rtl'] .navprev, html[dir='rtl'] .navnext, html[dir='rtl'] .wh_print_link {
+    float:left;
+}
+
+@media only screen and (min-width: 768px){
+    html[dir='rtl'] .wh_logo_and_publication_title_container{
+        float:right;
+    }
+}
+@media only screen and (max-width: 767px) {
+    html[dir='rtl'] .wh_logo_and_publication_title {
+        float: right;
+    }
+    html[dir='rtl'] .wh_toggle_button {
+        margin-right: 0;
+        margin-left: 15px;
+    }
+}
+
+/* Render top_menu for devices larger than 767px */
+@media only screen and (min-width: 768px) {
+    html[dir='rtl'] .wh_top_menu {
+        float: left;
+    }
+
+    html[dir='rtl'] .wh_top_menu ul li {
+        float: right;
+    }
+
+    html[dir='rtl'] .wh_top_menu ul ul ul {
+        right: 100%;
+        left:auto;
+    }
+
+    /* Mark the items that have a submenu with a small double arrow. */
+    html[dir='rtl'] .wh_top_menu ul ul li.has-children > span > a{
+        padding-left: 0;
+        padding-right: 1em;
+    }
+    html[dir='rtl'] .wh_top_menu ul ul li.has-children:after{
+        left:5px;
+        right:auto;
+    }
+    html[dir='rtl'] .wh_top_menu ul li:hover > ul {
+        max-width: 210px;
+    }
+}
+
+/**
+ * WebHelp Feedback section
+ */
+#loginData .nav-tabs li.active:before{
+position: absolute;
+bottom: 0;
+left: 0;
+width: 100%;
+height: 4px;
+background: #2CC185;
+content: '';
+-webkit-transition: -webkit-transform 0.3s;
+transition: transform 0.3s;
+}
+
+#fbUnavailable{
+    text-align: center;
+    color: #a52a2a;
+}
+#wh_feedback
+{
+    padding: 10px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+#comments{
+    border-bottom:1px solid #eee;
+}
+
+.bt_reply
+{
+    color: grey;
+}
+.bt_reply:hover
+{
+    color: red;
+}
+input
+{
+    color: #000;
+}
+/**
+  * Administration page
+  */
+#signUp {
+    background-color: #fff;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccc;
+}
+
+#loginResponse
+{
+    color: red;
+}
+
+/**
+  * Product / Version buttons
+  */
+.selectedItem
+{
+    background-color: #369;
+    color: #fff;
+}
+.selectable:hover,
+.p_selectable:hover
+{
+    background-color: #58b;
+    color: #fff;
+}
+.products, .versions
+{
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccc;
+}
+
+/**
+  * Tables
+  */
+.tbHRow
+{
+    font-weight: bold;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #000;
+}
+.tbRow:nth-of-type(2n)
+{
+    background-color: #dfefff;
+}
+.tbRow:hover
+{
+    background-color: #cef4ff;
+}
+
+/**
+  * Set version
+  */
+.v_true,.v_false
+{
+    background-color: #eee;
+    border-radius: 7px;
+}
+.v_true:hover,.v_false:hover
+{
+    background-color: #9dc7dc;
+}
+.v_true
+{
+    background-color: #ddefff;
+}
+
+/* WH-1485: A wide table overflows the topic content area in the Responsive output. */
+.tablenoborder,
+.simpletable-container {
+    overflow-x: auto;
+}
+
+/*
+ * ------------------------------------------------------------------
+ *
+ * Search area
+ *
+ */
+.wh_search_input{
+    border: 0;
+}
+#searchForm{
+    margin:0;
+}
+#searchForm > div {
+    position: relative;
+    margin:auto;
+    width: 65%;
+    max-width: 1000px;
+}
+
+.wh_search_textfield {
+    display:inline-block;
+    width: 100%;
+    height:100%;
+    border:none;
+    margin: 0;
+}
+.wh_search_button{
+    display: inline-block;
+    position:absolute;
+    right:0;
+    top:0;
+    float:right;
+    width:2.8em;
+    height:100%;
+    border:none;
+}
+.wh_search_button>span{
+    display: none;
+}
+.wh_search_button:after{
+    font-family: "Glyphicons Halflings", serif;
+    content:"\e003";
+}
+
+.ui-menu-item-wrapper > .search-autocomplete-proposal-icon {
+  font-family: "oXygen WebHelp";
+  display: inline-block;
+  min-width: 1.5em;
+  font-size: 0.7em;
+}
+
+/*
+ * ------------------------------------------------------------------
+ *
+ * Search page
+ *
+ */
+
+/* Render search area for devices smaller than 767px */
+@media only screen and (max-width: 767px) {
+    #searchForm > div {
+        width: 90%;
+    }
+    .wh_search_button {
+        display: none;
+    }
+}
+
+/*
+ * Search results.
+ */
+.wh_search_results {
+    margin-top:10px;
+}
+
+/** Remove left padding added by the browser for <ul> */
+.searchresult {
+    padding-left:0;
+}
+
+/* Search results header containing search expression and current displayed page */
+
+.wh_search_results_header {
+    border-bottom: solid 1px #EBEBEB;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.wh_search_results_header_docs {
+    font-size: 1.3em;
+    flex-grow: 2;
+}
+
+.wh_search_results_for {
+    font-size: 1.5em;
+}
+
+/* Current displayed page 'Page 1 of 4' */
+.wh_search_results_header_pages {
+    align-self: flex-end;
+}
+
+/** Errors */
+.errorMessage{
+    display: block;
+    position: relative;
+    background: #fff;
+    border: 1px solid #d04437;
+    color: #333;
+    padding: 10px 0 10px 50px;
+    border-radius: 5px;
+}
+.errorMessage:before{
+    position: absolute;
+    display: block;
+    font-family: 'Glyphicons Halflings';
+    content: '\e101';
+    bottom: 0;
+    left: 0;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    color: #fff;
+    background-color: #d04437;
+    text-align: center;
+    padding-top:9px;
+}
+
+/** Search result item */
+.searchresult li a.foundResult {
+    font-size: 1.3em;
+}
+.searchresult li{
+    padding: .5em 0;
+}
+
+.searchItemAdditionalData {
+    display:flex;
+    justify-content:center;
+}
+
+/* Container displaying missing words and similar results */
+.missingAndSimilar {
+    flex-grow: 2;
+}
+
+#rightDiv {
+    align-self:flex-start;
+}
+/*
+ * Missing words.
+ */
+.searchresult .wh_missing_words {
+    color:#888888;
+}
+
+.searchresult .wh_missing_word {
+    text-decoration:line-through;
+}
+
+.searchresult .wh_missing_words {
+    margin: .3em .5em 0 0;
+}
+
+/* Search relative path */
+.searchresult .relativePath {
+    margin: .1em .5em 0 0;
+
+}
+
+/* Similar results */
+.showSimilarPages {
+    display: inline-block;
+    margin: .3em 0 0 0;
+    cursor: pointer
+}
+.showSimilarPages:before{
+    font-family: 'Glyphicons Halflings';
+    content: "\e250";
+    display: inline-block;
+    font-size: .7em;
+    padding-right: .3em
+}
+.showSimilarPages.expanded:before{
+    content: "\e252";
+}
+.similarResult {
+    display:none;
+    margin: 0 0 0 1.5em;
+}
+.showSimilarPages:hover {
+    color: red;
+}
+
+/*
+ * Rating of searched terms
+ */
+#star .star {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 85px;
+    height: 20px;
+    left: 1px;
+    top: -5px;
+    position: relative;
+    float: right;
+    background: url('../img/starsSmall.png') repeat-x 0 -25px;
+}
+#star div {
+    padding: 0;
+    margin: 0;
+    float: right;
+    display: block;
+    width: 85px;
+    height: 20px;
+    text-decoration: none;
+    text-indent: -9000px;
+    z-index: 20;
+}
+#star .curr {
+    background: url('../img/starsSmall.png') 0 25px;
+    float: left;
+    width: 85px;
+    font-size: 1px;
+}
+
+#star div.user {
+    left: 5px;
+    position: relative;
+    float: right;
+    font-size: 13px;
+    font-family: Arial, "Lucida Grande", Verdana, "Hiragino Kaku Gothic ProN", "Hiragino Kaku Gothic Pro", Meiryo, sans-serif;
+    color: #888;
+}
+
+/* Short description highlight. */
+.search-shortdescription-highlight {
+    font-weight: bold;
+}
+
+/* Center pagination widget */
+.wh-search-pagination {
+    display: flex;
+    justify-content: center;
+}
+
+/** 
+ * The list displaying search suggestions.
+ */
+.ui-autocomplete {
+    max-height: 300px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+}
+
+/* Don't add border or margin to active item in autocomplate widget */
+.ui-menu .ui-state-active,
+ui-menu-item > .ui-state-active{
+    margin: 0;
+    border: none;
+}
+
+.search-autocomplete-proposal-type-history a,
+.search-autocomplete-proposal-type-history a:hover,
+.search-autocomplete-proposal-type-history a:visited,
+.search-autocomplete-proposal-type-history a:active{
+    text-decoration: none;
+    color:#333;
+}
+
+.removed-from-history{
+    text-decoration: line-through;
+}
+
+.search-autocomplete-proposal-type-history {
+    float: right;
+}
+
+.search-autocomplete-proposal-hg {
+    font-weight: bold;    
+}
+
+/* 
+ * Codeblock copy to clipboard action
+ */
+.codeblock .copyTooltip{
+    background: #fafafa url("../img/Copy.png") no-repeat 85% 50%;
+    background-size: 15px;
+    width: 68px;
+    height: 32px;
+    margin-top: -7px;
+    color: #888;
+    border:1px solid #CCCCCC;
+    right: 15px;
+    position: absolute;
+    cursor: pointer;
+    opacity: 0.5;
+    font-size: 15px;
+    border-radius:0 7px 0 0px;
+}
+
+code{
+    background-color: #e7e7e7;
+    color: #222222;
+}
+
+.copyTooltip::before{
+    content: " Copy ";
+    line-height: 2em;
+    text-indent: 0.5em;
+}
+
+.codeblock .copyTooltip:hover{
+    opacity: 1;
+}
+
+.codeblock .tooltip.top .tooltip-arrow{
+    border-top-color: #4f4f4f;
+}
+
+.codeblock .tooltip-inner {
+    width: 200px;
+    padding: 0.7em 8px;
+    background-color: #4f4f4f;
+    font-size: 1.4em
+}
+
+pre{
+    margin-top: 0.5em;
+    border-radius: 7px;
+}
+.apiname{
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+}
+/*
+ * Go to top button
+ */
+#go2top {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    height: 44px;
+    width: 44px;
+    bottom: 37px;
+    right: 25px;
+    border-radius: 0.25em;
+    border: 1px solid #999999;
+    cursor: pointer;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #444444;
+    white-space: nowrap;
+    overflow: hidden;
+}
+/*
+ * Edit link
+ */
+div.edit-link-container {
+    display: inline;
+}
+.edit-link {
+    float: right;
+    font-style: normal;
+}

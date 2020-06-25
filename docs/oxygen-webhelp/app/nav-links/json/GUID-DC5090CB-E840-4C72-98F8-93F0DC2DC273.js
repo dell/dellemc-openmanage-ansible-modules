@@ -1,0 +1,1 @@
+define({"topics" : [{"title":"View the system inventory","href":"GUID-39F65738-53B5-436A-8411-77F321752954.html","attributes": {"data-id":"GUID-39F65738-53B5-436A-8411-77F321752954",},"menu": {"hasChildren":false,},"tocID":"GUID-39F65738-53B5-436A-8411-77F321752954","topics":[]}]});

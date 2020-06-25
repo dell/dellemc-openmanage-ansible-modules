@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.0.14
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -110,7 +110,7 @@ author: "Jagadeesh N V(@jagadeeshnv)"
 
 EXAMPLES = r'''
 ---
-- name: Import Server Configuration Profile from a network share
+- name: Import SCP from a network share and wait for this job to get completed.
   idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
@@ -123,20 +123,18 @@ EXAMPLES = r'''
     scp_components: "ALL"
     job_wait: True
 
-- name: Import Server Configuration Profile from a local path
+- name: Import SCP from a local path and wait for this job to get completed.
   idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
     command: "import"
     share_name: "/scp_folder"
-    share_user: "share_user_name"
-    share_password: "share_user_password"
     scp_file: "scp_filename.xml"
     scp_components: "ALL"
     job_wait: True
 
-- name: Export Server Configuration Profile to a network share
+- name: Export SCP to a network share
   idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
@@ -146,14 +144,12 @@ EXAMPLES = r'''
     share_password: "share_user_password"
     job_wait: False
 
-- name: Export Server Configuration Profile to a local path
+- name: Export SCP to a local path
   idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
     share_name: "/scp_folder"
-    share_user: "share_user_name"
-    share_password: "share_user_password"
     job_wait: False
 '''
 
@@ -296,8 +292,11 @@ def main():
                     changed = True
             else:
                 scp_status = run_export_server_config_profile(idrac, module)
-        module.exit_json(changed=changed, msg="Successfully {0}ed the Server Configuration Profile.".format(command),
-                         scp_status=scp_status)
+        if module.params.get('job_wait'):
+            msg = "Successfully {0}ed the Server Configuration Profile."
+        else:
+            msg = "Successfully triggered the job to {0} the Server Configuration Profile."
+        module.exit_json(changed=changed, msg=msg.format(command), scp_status=scp_status)
     except (ImportError, ValueError, RuntimeError) as e:
         module.fail_json(msg=str(e))
 
