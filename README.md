@@ -29,9 +29,9 @@ Sample Results for the respective modules could be found under [samples](./sampl
 
 ## Installation
 
-  * Clone the latest stable repository and install the ansible modules.
+  * Clone the latest development repository and install the ansible modules. 
   ```
-  git clone -b master --single-branch https://github.com/dell/dellemc-openmanage-ansible-modules.git
+  git clone -b devel --single-branch https://github.com/dell/dellemc-openmanage-ansible-modules.git
   cd dellemc-openmanage-ansible-modules
   python install.py
   ```
@@ -59,6 +59,7 @@ We welcome your contributions to OpenManage Ansible Modules. See [Coding Guideli
 See [here](test/README.md) for further information on testing.
 
 ## Support
+  * This devel branch corresponds to the release actively under development.
   * If you want to report any issue, then please report it by creating a new issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)
   * If you have any requirements that is not currently addressed, then please let us know by creating a new issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)
   * If you want to provide any feedback to the development team, then you can do so by sending an email to **OpenManageAnsible@Dell.com**
