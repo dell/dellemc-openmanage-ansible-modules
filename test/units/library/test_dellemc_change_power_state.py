@@ -58,13 +58,25 @@ class TestChangePowerState(FakeAnsibleModule):
         assert result["Message"] == 'No changes found to commit!'
         assert result["changes_applicable"] is False
 
+    def test_is_change_applicable_for_powerstate_success_case03(self, idrac_change_power_state_connection_mock):
+        result = self.module.is_change_applicable_for_power_state("Off - Soft", "On")
+        assert result['Status'] == "Success"
+        assert result["Message"] == 'Changes found to commit!'
+        assert result["changes_applicable"] is True
+
+    def test_is_change_applicable_for_powerstate_success_case04(self, idrac_change_power_state_connection_mock):
+        result = self.module.is_change_applicable_for_power_state("Off - Soft", "GracefulRestart")
+        assert result['Status'] == "Success"
+        assert result["Message"] == 'No changes found to commit!'
+        assert result["changes_applicable"] is False
+
     def test_is_change_applicable_for_powerstate_failed_case(self, idrac_change_power_state_connection_mock):
         result = self.module.is_change_applicable_for_power_state("GracefulRestart", "Nmis")
         assert result['Status'] == "Failed"
         assert result["Message"] == 'Failed to execute the command!'
         assert result["changes_applicable"] is False
 
-    def test_run_change_powerstate_success_case01(self,idrac_change_power_state_connection_mock, idrac_default_args,
+    def test_run_change_powerstate_success_case01(self, idrac_change_power_state_connection_mock, idrac_default_args,
                                                   mocker):
         idrac_default_args.update({"change_power": "GracefulRestart"})
         message = {'Status': 'Success', 'Message': 'Changes found to commit!', 'changes_applicable': True}
@@ -82,8 +94,7 @@ class TestChangePowerState(FakeAnsibleModule):
         idrac_default_args.update({"change_power": "On"})
         message = {'Status': 'Success', 'Message': 'No changes found to commit!','changes_applicable': False}
         idrac_change_power_state_connection_mock.config_mgr.change_power.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         result = self.module.run_change_power_state(idrac_change_power_state_connection_mock, f_module)
         assert result == ({'changed': True, 'failed': False,
                            'msg': {'Message': 'No changes found to commit!',
@@ -97,8 +108,7 @@ class TestChangePowerState(FakeAnsibleModule):
         idrac_default_args.update({"change_power": "On"})
         message = {'Status': 'Failed', 'Message': 'Failed to execute the command!', 'changes_applicable': False}
         idrac_change_power_state_connection_mock.config_mgr.change_power.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         result = self.module.run_change_power_state(idrac_change_power_state_connection_mock, f_module)
         assert result == ({'changed': False, 'failed': True,
                            'msg': {'Message': 'Failed to execute the command!',

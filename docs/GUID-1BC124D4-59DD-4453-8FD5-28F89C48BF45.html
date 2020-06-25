@@ -1,0 +1,535 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Module: dellemc_configure_idrac_services Synopsis This module configures the iDRAC services related attributes. Check_mode support: Yes Options Table 1. dellemc_configure_idrac_services Parameter ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Relation" scheme="URI" content="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" /><meta name="DC.Relation" scheme="URI" content="GUID-2FEC9543-2264-4E9C-86FB-ADD9AAC472E2.html" /><meta name="DC.Relation" scheme="URI" content="GUID-6A9E43EB-0385-4D96-8E67-1E46AE628DD7.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.Publisher" content="June 2020" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45" /><meta name="DC.Language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /><title>Configure iDRAC services</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap-theme.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.2.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script>
+				$(document).ready(function() {
+					var metaelement = $("[name=meta-topic-title]");
+					var newTitle = $(metaelement).attr("content");
+					if(newTitle){
+						document.title = newTitle;
+					}
+				});
+			</script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules<span class="pipe-separator"></span></span><span class="booktitlealt">Version 2.1 User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div><script><!--
+							$(document).ready(function () {
+							$('#searchForm').submit(function (e) {
+							if ($('.wh_search_textfield').val().length < 1) {
+							e.preventDefault();
+							}
+							});
+							});
+						--></script></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul>
+   <li><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li>
+   <li><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf" class=" topicref " data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789"><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html">Accessing documents from the Dell EMC support site</a></span></span></li>
+</ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li>
+   <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" class="topicref" data-id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6.html" id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6-link">How OpenManage Ansible Modules work with iDRAC</a></span></span></li>
+         <li role="treeitem"><span data-tocid="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" class="topicref" data-id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5.html" id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5-link">Running your first iDRAC Playbook</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" class="topicref" data-id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8.html" id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link">Updating Firmware</a></span></span></li>
+         <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link">Configuring PowerEdge Servers</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7" class="topicref" data-id="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7.html" id="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7-link">View LC status</a></span></span></li>
+               <li role="treeitem"><span data-tocid="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" class="topicref" data-id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856.html" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856-link">Server Configuration Profile</a></span></span></li>
+               <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461" class="topicref" data-id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461-link">Configuring iDRAC</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-48AC98BF-1908-4B6A-9BE0-68A8A4C4940C" class="topicref" data-id="GUID-48AC98BF-1908-4B6A-9BE0-68A8A4C4940C" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-48AC98BF-1908-4B6A-9BE0-68A8A4C4940C.html" id="GUID-48AC98BF-1908-4B6A-9BE0-68A8A4C4940C-link">Configure iDRAC users</a></span></span></li>
+                     <li role="treeitem"><span data-tocid="GUID-438586AA-6064-40E8-BBC1-F1D6A46B2ADD" class="topicref" data-id="GUID-438586AA-6064-40E8-BBC1-F1D6A46B2ADD" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-438586AA-6064-40E8-BBC1-F1D6A46B2ADD.html" id="GUID-438586AA-6064-40E8-BBC1-F1D6A46B2ADD-link">Configure iDRAC timezone</a></span></span></li>
+                     <li role="treeitem"><span data-tocid="GUID-2FEC9543-2264-4E9C-86FB-ADD9AAC472E2" class="topicref" data-id="GUID-2FEC9543-2264-4E9C-86FB-ADD9AAC472E2" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-2FEC9543-2264-4E9C-86FB-ADD9AAC472E2.html" id="GUID-2FEC9543-2264-4E9C-86FB-ADD9AAC472E2-link">Configure iDRAC eventing</a></span></span></li>
+                     <li role="treeitem" class="active"><span data-tocid="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45" class="topicref" data-id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45.html" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45-link">Configure iDRAC services</a></span></span></li>
+                     <li role="treeitem"><span data-tocid="GUID-6A9E43EB-0385-4D96-8E67-1E46AE628DD7" class="topicref" data-id="GUID-6A9E43EB-0385-4D96-8E67-1E46AE628DD7" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-6A9E43EB-0385-4D96-8E67-1E46AE628DD7.html" id="GUID-6A9E43EB-0385-4D96-8E67-1E46AE628DD7-link">Configure iDRAC network</a></span></span></li>
+                  </ul>
+               </li>
+               <li role="treeitem"><span data-tocid="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA" class="topicref" data-id="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA.html" id="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA-link">Configure BIOS</a></span></span></li>
+               <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892" class="topicref" data-id="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4CFF4634-5713-44D7-B21B-32BB47D49892-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892.html" id="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892-link">Configure RAID</a></span></span></li>
+               <li role="treeitem"><span data-tocid="GUID-D9B24130-D512-4B98-8A44-50183FE342F9" class="topicref" data-id="GUID-D9B24130-D512-4B98-8A44-50183FE342F9" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D9B24130-D512-4B98-8A44-50183FE342F9.html" id="GUID-D9B24130-D512-4B98-8A44-50183FE342F9-link">Configure Collect System Inventory on Restart</a></span></span></li>
+               <li role="treeitem"><span data-tocid="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46" class="topicref" data-id="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46.html" id="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46-link">Configure syslog</a></span></span></li>
+            </ul>
+         </li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-9D880486-295B-4E50-AE21-050134D36869" class="topicref" data-id="GUID-9D880486-295B-4E50-AE21-050134D36869" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-9D880486-295B-4E50-AE21-050134D36869-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-9D880486-295B-4E50-AE21-050134D36869.html" id="GUID-9D880486-295B-4E50-AE21-050134D36869-link">Deploying operating system</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" class="topicref" data-id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273.html" id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link">Server Inventory</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" class="topicref" data-id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981.html" id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link">Server administration tasks</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" class="topicref" data-id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link">Storage controller</a></span></span></li>
+      </ul>
+   </li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li>
+   <li role="treeitem"><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" class="topicref" data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789-link">Accessing documents from the Dell EMC support site</a></span></span></li>
+</ul></div>
+                        </nav>
+                    
+
+                    <div class="col-lg-7 col-md-9 col-sm-9 col-xs-12" id="wh_topic_body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <nav class="wh_tools hidden-print col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="hidden-print"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li>
+   <li><span class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
+   <li><span class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8"><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html">Configuring PowerEdge Servers</a></span></span></li>
+   <li><span class="topicref" data-id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461"><span class="title"><a href="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html">Configuring iDRAC</a></span></span></li>
+   <li class="active"><span class="topicref" data-id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45"><span class="title"><a href="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45.html">Configure iDRAC services</a></span></span></li>
+</ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="link" href="GUID-2FEC9543-2264-4E9C-86FB-ADD9AAC472E2.html" title="Configure iDRAC eventing" aria-label="Previous topic: Configure iDRAC eventing" rel="prev"></a></span>  
+<span class="navnext"><a class="link" href="GUID-6A9E43EB-0385-4D96-8E67-1E46AE628DD7.html" title="Configure iDRAC network" aria-label="Next topic: Configure iDRAC network" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12" id="topic_content">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__GUID-ECB3DDB8-173D-4430-AAD1-0D9015F291C0"> 
+  <h1 class="title topictitle1" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__GUID-ECB3DDB8-173D-4430-AAD1-0D9015F291C0">Configure iDRAC services</h1> 
+  <div class="body refbody"> 
+	 <section class="section" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__GUID-F2FD5005-F470-4021-9555-3B468071BFD5"><span class="ph uicontrol bold">Module: dellemc_configure_idrac_services</span> 
+	 </section> 
+	 <section class="section" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__SECTION_6FA39D45801F4BB68EF20D37812BBF8C"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="p">This module configures the iDRAC services related attributes. 
+		</p> 
+		<p class="p">Check_mode support: Yes 
+		</p> 
+		<p class="p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="table all  pgwide" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B"><caption><span class="table-anchor" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B"></span><span class="tablecap"><span class="table-label">Table 1. </span>dellemc_configure_idrac_services</span></caption><colgroup><col style="width:19.825072886297377%" /><col style="width:14.868804664723035%" /><col style="width:14.577259475218659%" /><col style="width:20.845481049562682%" /><col style="width:29.88338192419825%" /></colgroup><thead class="thead"> 
+			 <tr> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1">Parameter 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2">Required 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3">Default 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4">Choices 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="tbody"> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">idrac_ip 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">True 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">iDRAC IP Address 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">idrac_user 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">True 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">iDRAC username 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">idrac_password/idrac_pwd 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">True 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">iDRAC user password 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">idrac_port 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">443 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">iDRAC port 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">share_name 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">True 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">CIFS or NFS Network share or a local path 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">share_user 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 "> Network share user in the format 'user@domain' or 'domain\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network share. 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">share_password/share_pwd 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">Network share user password. This option is mandatory for CIFS Network share. 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">share_mnt 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 "> Local mount path of the network share with read/write permission for Ansible user. This option is mandatory for CIFS or NFS Network share. 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">enable_web_server 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 "> 
+				  <ul class="level1" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__UL_341F01D0C1054080A75DA40264411852"> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_EA64BF8E2E644B5EAF004C4C4256CB85">Enabled 
+					 </li> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_A687C403EF124B409AD9D85BA9AB20F4">Disabled 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">Whether to Enable or Disable web server configuration for iDRAC 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">ssl_encryption 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 "> 
+				  <ul class="level1" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__UL_4C5C935583B44C6F9BC4A5106B0500C0"> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_DD5D5C0277D44E9D863C8E5EB14B58FB">Auto_Negotiate 
+					 </li> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_08C032E43A8741C19710AF3C24E9F43F">T_128_Bit_or_higher 
+					 </li> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_7015ADE197A14532A6E106942D3CC76F">T_168_Bit_or_higher 
+					 </li> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_E8400C19F8A2484DB7BBE05C41B5AD58">T_256_Bit_or_higher 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">Secure Socket Layer encryption for web server 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">tls_protocol 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 "> 
+				  <ul class="level1" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__UL_0EB0D121DDE04ED5BFE75E80830DE828"> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_9C58A09949AD4374B077C1FA3466CB61">TLS_1_0_and_Higher 
+					 </li> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_825050D8732D4CC7B67F4B29FE9C9A07">TLS_1_1_and_Higher 
+					 </li> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_93F72CD056984D128ABF39C311BED94E">TLS_1_2_Only 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">Transport Layer Security for web server 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">https_port 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 "> HTTPS access port 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">http_port 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 "> HTTP access port 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">timeout 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 "> Timeout value 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">snmp_enable 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 "> 
+				  <ul class="level1" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__UL_9A91CD1AD2F6426A95A2B94C80612022"> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_5426BF2BC4F246F8A31BD58CBD86D2F6">Enabled 
+					 </li> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_75F1A16EE13246B2BC891CAD36F68D2F">Disabled 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">Whether to Enable or Disable SNMP protocol for iDRAC 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">snmp_protocol 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 "> 
+				  <ul class="level1" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__UL_853623B25C324C2EA4B4D7DC0E320169"> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_9209AF4AAD9B48C8A307B7153AEE674E">All 
+					 </li> 
+					 <li class="li" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__LI_623FA9D98C6944EF8980DFD4CDC34F50">SNMPv3 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">Type of the SNMP protocol 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">community_name 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">test 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">SNMP community name for iDRAC. It is used by iDRAC to validate SNMP queries, and gets received from remote systems requesting SNMP data access. 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">alert_port 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">None 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 "> The iDRAC port number that must be used for SNMP traps. The default value is 162, and the acceptable range is between 1 to 65535. 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">discovery_port 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">162 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 "> The SNMP agent port on the iDRAC. The default value is 161, and the acceptable range is between 1 to 65535. 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 ">trap_format 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">None 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 "> SNMPv1, SNMPv2 or SNMPv3 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 ">SNMP trap format for iDRAC 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__1 "> ipmi_lan 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__2 ">False 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_3DB6C8E52C6248F4B69212C12D500F4B__entry__5 "> This option used by iDRAC when it sends out SNMP and IPMI traps. The community name is checked by the remote system to which the traps are sent. 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<table class="table all  pgwide" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938"><caption><span class="table-anchor" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938"></span><span class="tablecap"><span class="table-label">Table 2. </span>Return Values</span></caption><colgroup><col style="width:13.276231263383298%" /><col style="width:26.445396145610278%" /><col style="width:10.706638115631693%" /><col style="width:10.920770877944326%" /><col style="width:38.650963597430405%" /></colgroup><thead class="thead"> 
+			 <tr> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__1">Name 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__2">Description 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__3">Returned 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__4">Type 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__5">Sample 
+				</th> 
+			 </tr></thead><tbody class="tbody"> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__1 ">iDRAC services 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__2 ">Configures the iDRAC services attributes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__3 ">Success 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__4 ">String 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-1BC124D4-59DD-4453-8FD5-28F89C48BF45__TABLE_9B49FEDB6C5148A29DE8B03E93AF0938__entry__5 "><a class="xref" href="https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_configure_idrac_services.md" target="_blank">https://github.com/dell/Dell-EMC-Ansible-Modules-for-iDRAC/blob/master/samples/dellemc_configure_idrac_services.md</a> 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<div class="p"><span class="ph uicontrol bold">Example</span> 
+		  <pre class="pre codeblock"><code>-name: Configure the iDRAC services attributes
+   dellemc_configure_idrac_services:
+     idrac_ip:          "xx.xx.xx.xx"
+     idrac_user:        "xxxx"
+     idrac_password:    "xxxxxxxx"
+     share_name:        "xx.xx.xx.xx:/share"
+     share_password:    "xxxxxxxx"
+     share_user:        "xxxx"
+     share_mnt:         "/mnt/share"
+     enable_web_server: "Enabled"
+     http_port:         "80"
+     https_port:        "443"
+     ssl_encryption:    "Auto_Negotiate"
+     tls_protocol:      "TLS_1_2_Only"
+     timeout:           "1800"
+     snmp_enable:       "Enabled"
+     snmp_protocol:     "SNMPv3"
+     community_name:    "test"
+     alert_port:        "None"
+     discovery_port:    "162"
+     trap_format:       "None"</code></pre> 
+		</div> 
+	 </section> 
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                                    <nav role="navigation" id="wh_topic_toc" class="col-lg-2 hidden-md hidden-sm hidden-xs navbar hidden-print">
+                                        <div class=" wh_topic_toc "><div class="wh_topic_label">On this page</div><ul><li class="section-item"></li><li class="section-item"></li></ul></div>
+                                    </nav>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <script src="./oxygen-webhelp/lib/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+        
+    </body>
+</html>

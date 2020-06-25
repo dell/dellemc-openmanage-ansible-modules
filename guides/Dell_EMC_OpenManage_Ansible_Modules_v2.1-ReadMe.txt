@@ -1,14 +1,32 @@
 ﻿*******************************************************************************
 Dell EMC OpenManage Ansible Modules
+*******************************************************************************
+
+Dell EMC OpenManage Ansible Modules allows data center and IT administrators
+to use RedHat Ansible to automate and orchestrate the configuration,
+deployment, and update of Dell EMC PowerEdge Servers (12th generation of
+PowerEdge servers and later) and modular infrastructure by leveraging the
+management automation capabilities in-built into the Integrated Dell Remote
+Access Controller(iDRAC) and OpenManage Enterprise (OME) respectively.
+
+With the latest release of Dell EMC OpenManage Ansible Modules, the
+capabilities have improved with support for OpenManage Enterprise. OpenManage
+Ansible Modules simplifies and automates provisioning, deployment, and updates
+of PowerEdge servers and modular infrastructure. It allows system
+administrators and software developers to introduce the physical infrastructure
+provisioning into their software provisioning stack, integrate with existing
+DevOps pipelines and manage their infrastructure using version-controlled
+playbooks, server configuration profiles, and templates in line with the
+Infrastructure-as-Code (IaC) principles.
 
 *******************************************************************************
-Version: 2.0.14
+Version: 2.1
 
 *******************************************************************************
 Release Date: June 2020
 
 *******************************************************************************
-Previous Version: 2.0.13
+Previous Version: 2.0.1
 
 *******************************************************************************
 Importance
@@ -24,24 +42,116 @@ Platform(s) Affected
 --------------------
 
 For the list of supported platforms, see the section "Support Matrix" in the 
-"Dell EMC OpenManage Ansible Modules version 2.0.14 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.1 Installation Guide".
 
 *******************************************************************************
 What is Supported
 -----------------
 
 For information on the hardware and software requirements, see 
-"Dell EMC OpenManage Ansible Modules version 2.0.14 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 2.1 Installation Guide".
 
 *******************************************************************************
 What’s New
 ----------
 
-  * The ome_firmware_baseline_info module allows to view the list of available
-  firmware baselines
-  
-  * The ome_application_certificate module allows to upload the certificate to
-  OpenManage Enterprise.
+  * OpenManage Ansible allows the use of standard Redfish URIs supported by
+  iDRAC.
+    - The new redfish_firmware module performs a component firmware update
+    using an image file available on the local or remote system
+    - The new redfish_storage_volume module manages the storage volume
+    configuration
+
+  * The new ome_firmware_baseline module allows to create a firmware baseline
+  from existing catalog
+
+  * The new ome_firmware_baseline_info module allows to view the list of
+  available firmware baselines
+
+  * The new ome_firmware_basline_compliance_info module allows to retrieve:
+    - Firmware compliance report for specified identifiers [device ids, service
+     tags, group names]
+    - Baseline compliance report for a specified baseline.
+
+  * The new ome_firmware_catalog module allows to create a firmware catalog.
+
+  * The new ome_template_identity_pool module allows to:
+    - Attach an identity pool to a template.
+    - Detach an identity pool from a template.
+
+  * The new ome_template_network_vlan module lets you select tagged and
+  untagged vLANs to be used in the OpenManage Enterprise template.
+
+  * The new ome_identity_pool module allows to create, modify, and delete an
+  identity pool using Ethernet, FCoE, iSCSI and FC settings.
+
+  * The new ome_application_certificate module allows to generate a certificate
+   signing request and upload the certificate on OpenManage Enterprise.
+
+  * The new ome_application_network_proxy module allows the configuration of a
+  network proxy.
+
+  * The new ome_application_network_address module allows to configure a DNS
+  and an IPv4 or IPv6 network.
+
+  * The new ome_application_network_webserver module allows the configuration
+  of the network web server
+
+  * The new ome_application_network_time module allows the configuration of
+  network time.
+
+  * The new iDRAC idrac_redfish_storage_controller module configures the
+  settings of a storage controller.
+
+  * The ome_firmware module supports the following:
+    - Firmware updates for group of devices
+    - Firmware updates using a baseline name, or a single DUP path and a
+    baseline name
+
+  * The ome_template module allows delete, clone, import and export operations.
+
+  * The parameter template_name from the ome_template module allows to modify
+  or deploy a template
+
+  * The ome_template_info and ome_user_info modules are enhanced to filter
+  records using name in system_query_options.
+
+  * The ome_user module allows to delete an existing user account using name
+
+  * Support custom interval (default is 18 hours) for auto-detaching an ISO
+  image for idrac_os_deployment.
+
+  * The following enhancements have been made to the idrac_firmware module:
+    - Support for installing firmware from CIFS, NFS, HTTP, HTTPS, or FTP based
+     repository
+    - Support for viewing individual component update job IDs.
+    - The apply_update option is added, which specifies if the packages from
+    the Catalog XML are queued for update.
+    - The ignore_cert_warning option is added, which specifies if certificate
+    warnings must be ignored.
+    - Supports FQDN input format for share details
+
+  * The following enhancements have been made to the installation script:
+    - All the modules present by default in the remote_management/dellemc
+    folder are now overwritten with updated versions.
+    - Modules are installed to the custom path, if it is set by the environment
+     variable ANSIBLE_LIBRARY.
+    - The installation and uninstallation scripts have been updated to display
+    the path where the modules have been installed.
+    - Success and failure messages in the scripts now appear in green and red.
+
+  * The dellemc_ome_firmware module is deprecated and all the functionality is
+  added to the new ome_firmware module
+
+  * The dellemc_ome_template module is deprecated, and all the functionality is
+   added to the new ome_template module.
+
+  * The dellemc_ome_user_facts module is deprecated, and all the functionality
+  is added to the new ome_user_info module.
+
+  * The dellemc_boot_to_network_iso module is deprecated and all the
+  functionality is added to the new idrac_os_deployment module.
+
 
 *******************************************************************************
 Fixes
@@ -57,11 +167,6 @@ Fixes
   https://kb.dell.com/infocenter/index?page=content&id=SLN316882 for more
   details.
 
-* Issue 2(150664):
-  Description: Firmware update using "idrac_firmware" through
-  "downloads.dell.com" does not work on iDRAC 7/8 based servers via WSMAN in
-  case of HTTP/HTTPS/FTP.
-
 *******************************************************************************
 Known Issues
 ------------
@@ -74,13 +179,12 @@ Known Issues
 * Issue 2(155034):
   Description: If the controller does not support updating the
   EncryptionTypes parameter, a default value is automatically set during
-  the storage volume create operation. If the controller does not
-  support updating the EncryptionTypes parameter, the storage volume
+  the storage volume create operation and the storage volume
   modify operation fails.
 
 * Issue 3(155043):
-  Description: Values for redfish operation on volume progress and task
-  completion do no match.
+  Description: Redfish Storage Volume operations sometime returns a operation
+  progress percentage different than the actual job status.
 
 
 *******************************************************************************
@@ -100,19 +204,19 @@ Limitations
 Installation Prerequisites
 --------------------------
 For installation prerequisites, see "Dell EMC OpenManage Ansible Modules
-Version 2.0.14 Installation Guide".
+Version 2.1 Installation Guide".
 
 Software Requirements
 ---------------------
 
 * For information on the hardware and software requirements, see
-"Dell EMC OpenManage Ansible Modules Version 2.0.14 Installation Guide".
+"Dell EMC OpenManage Ansible Modules Version 2.1 Installation Guide".
 
 Installation Procedure
 -------------------------
 
 For the installation instructions, see "Dell EMC OpenManage Ansible Modules
-Version 2.0.14 Installation Guide".
+Version 2.1 Installation Guide".
 
 *******************************************************************************
 Accessing Documents from Dell Support Site
@@ -180,7 +284,7 @@ technical support, or customer service issues:
 
 
 Dell EMC OpenManage Ansible Modules
-Version 2.0.14
+Version 2.1
 Copyright (C) 2019-2020   Dell Inc.
 
 GNU General Public License v3.0+

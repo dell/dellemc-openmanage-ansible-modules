@@ -1,0 +1,24 @@
+/*
+
+Oxygen WebHelp Plugin
+Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
+
+*/
+
+@import "elements-styles.css?buildId=2018061311";
+@import "print.css?buildId=2018061311";
+
+#wh_print_link{
+    margin-left: 5px;
+    cursor: pointer;
+    font-size: larger;
+    display: inline-block;
+    padding-bottom: 5px;
+    line-height: 16px;
+}
+
+#myPassword, #myUserName{
+  width:100%;  
+}
+
+	 

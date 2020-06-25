@@ -71,13 +71,23 @@ class TestReset(FakeAnsibleModule):
                            'msg': {'Status': 'Success', 'Message': 'Changes found to commit!',
                                    'changes_applicable': True}}, False)
 
+    def test_run_idrac_reset_Exception_fail_case01(self, idrac_reset_connection_mock, idrac_default_args,
+                                         idrac_config_mngr_reset_mock):
+        error_msg = "Error in Runtime"
+        obj2 = MagicMock()
+        idrac_reset_connection_mock.config_mgr = obj2
+        type(obj2).reset_idrac = Mock(side_effect=Exception(error_msg))
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        result, err = self.module.run_idrac_reset(idrac_reset_connection_mock, f_module)
+        assert result['failed'] is True
+        assert result['msg'] == "Error: {0}".format(error_msg)
+
     def test_run_idrac_reset_status_success_case02(self, idrac_reset_connection_mock, idrac_default_args):
         msg = {"Status": "Success"}
         obj = MagicMock()
         idrac_reset_connection_mock.config_mgr = obj
         obj.reset_idrac = Mock(return_value="msg")
-        f_module = self.get_module_mock(params=msg)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=msg, check_mode=False)
         msg, err = self.module.run_idrac_reset(idrac_reset_connection_mock, f_module)
         assert msg == {'changed': False, 'failed': False, 'msg': {'idracreset': 'msg'}}
 

@@ -128,19 +128,19 @@ EXAMPLES = """
        share_user: "xxxx"
        share_mnt: "/mnt/share"
        enable_web_server: "Enabled"
-       http_port: "80"
-       https_port: "443"
+       http_port: 80
+       https_port: 443
        ssl_encryption: "Auto_Negotiate"
        tls_protocol: "TLS_1_2_Only"
        timeout: "1800"
        snmp_enable: "Enabled"
        snmp_protocol: "SNMPv3"
-       community_name: "None"
-       alert_port: "None"
-       discovery_port: "162"
+       community_name: "public"
+       alert_port: 162
+       discovery_port: 161
        trap_format: "SNMPv3"
        ipmi_lan:
-         community_name: public
+         community_name: "public"
 """
 
 RETURNS = """

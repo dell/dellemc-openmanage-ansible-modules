@@ -1,0 +1,423 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Module: ome_user Synopsis This module: creates a new user account. modifies or deletes an existing user account. Options Table 1. ome_user Parameter Required Default Choices Comments hostname Yes NA ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Relation" scheme="URI" content="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" /><meta name="DC.Relation" scheme="URI" content="GUID-BA7AEEB3-77C8-4CEA-AA5F-47809B810565.html" /><meta name="DC.Relation" scheme="URI" content="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.Publisher" content="June 2020" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A" /><meta name="DC.Language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /><title>Configure user accounts</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap-theme.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.2.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script>
+				$(document).ready(function() {
+					var metaelement = $("[name=meta-topic-title]");
+					var newTitle = $(metaelement).attr("content");
+					if(newTitle){
+						document.title = newTitle;
+					}
+				});
+			</script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules<span class="pipe-separator"></span></span><span class="booktitlealt">Version 2.1 User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div><script><!--
+							$(document).ready(function () {
+							$('#searchForm').submit(function (e) {
+							if ($('.wh_search_textfield').val().length < 1) {
+							e.preventDefault();
+							}
+							});
+							});
+						--></script></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul>
+   <li><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li>
+   <li><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf" class=" topicref " data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789"><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html">Accessing documents from the Dell EMC support site</a></span></span></li>
+</ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li>
+   <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li>
+         <li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li>
+         <li role="treeitem"><span data-tocid="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE" class="topicref" data-id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE.html" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE-link">View device information</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li>
+         <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-BA7AEEB3-77C8-4CEA-AA5F-47809B810565" class="topicref" data-id="GUID-BA7AEEB3-77C8-4CEA-AA5F-47809B810565" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-BA7AEEB3-77C8-4CEA-AA5F-47809B810565.html" id="GUID-BA7AEEB3-77C8-4CEA-AA5F-47809B810565-link">View user account details</a></span></span></li>
+               <li role="treeitem" class="active"><span data-tocid="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A" class="topicref" data-id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A.html" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A-link">Configure user accounts</a></span></span></li>
+            </ul>
+         </li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage network settings</a></span></span></li>
+      </ul>
+   </li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li>
+   <li role="treeitem"><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" class="topicref" data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789-link">Accessing documents from the Dell EMC support site</a></span></span></li>
+</ul></div>
+                        </nav>
+                    
+
+                    <div class="col-lg-7 col-md-9 col-sm-9 col-xs-12" id="wh_topic_body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <nav class="wh_tools hidden-print col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="hidden-print"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li>
+   <li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
+   <li><span class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD"><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html">Manage users</a></span></span></li>
+   <li class="active"><span class="topicref" data-id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A"><span class="title"><a href="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A.html">Configure user accounts</a></span></span></li>
+</ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="link" href="GUID-BA7AEEB3-77C8-4CEA-AA5F-47809B810565.html" title="View user account details" aria-label="Previous topic: View user account details" rel="prev"></a></span>  
+<span class="navnext"><a class="link" href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" title="Manage identity pool" aria-label="Next topic: Manage identity pool" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12" id="topic_content">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__GUID-91F42C57-C2BD-4F40-97D6-5B40BE019944"> 
+  <h1 class="title topictitle1" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__GUID-91F42C57-C2BD-4F40-97D6-5B40BE019944">Configure user accounts</h1> 
+  <div class="body refbody"> 
+	 <section class="section" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__GUID-8CEFE435-FF73-4E79-8147-2E773385CBD6"><span class="ph uicontrol bold">Module: ome_user</span> 
+	 </section> 
+	 <section class="section" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__SECTION_4DC2C7291DCB41BF93DF3A1019B42B8B"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="p">This module: 
+		</p> 
+		<ul class="level1" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__UL_3363C9521A4B47D09D6A75DADD6580A5"> 
+		  <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_B32D488EF85940D7A5D87C64EB70E4F4">creates a new user account. 
+		  </li> 
+		  <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_1D95CFB624D04E7DB90FBE37306CD2B8">modifies or deletes an existing user account. 
+		  </li> 
+		</ul> 
+		<p class="p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="table all  pgwide" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1"><caption><span class="table-anchor" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1"></span><span class="tablecap"><span class="table-label">Table 1. </span>ome_user</span></caption><colgroup><col style="width:19.926199261992622%" /><col style="width:10.70110701107011%" /><col style="width:9.22509225092251%" /><col style="width:13.837638376383765%" /><col style="width:46.30996309963099%" /></colgroup><thead class="thead"> 
+			 <tr> 
+				<th class="entry cellrowborder" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1">Parameter 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2">Required 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3">Default 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4">Choices 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="tbody"> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">hostname 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Target IP Address or hostname 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">username 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Target username 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">password 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Target user password 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">port 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">443 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Target device HTTPS port 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">state 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">present 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 "> 
+				  <ul class="level1" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__UL_39A82561EC4040E5963F5D74A0C0DE8D"> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_30E44D6E59E64FF78B677BD5244FC04D">present 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_81E15F98E983410EAF52B62B09642EFC">absent 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 "> 
+				  <ul class="level1" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__UL_475F257669134F1A9925A08628081ADA"> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_E295BA3DDBF94C648DDB04655E5F0CF2">C(present) creates a user in case the I(UserName) provided inside I(attributes) does not exist . 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_A9014E84F84E4E928B088CD7C4488235">C(present) modifies a user in case the I(UserName) provided inside I(attributes) exists . 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_CD252E4863BC44E5A2C7268C45AB0D5C">C(absent) deletes an existing user. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">user_id 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 "> 
+				  <ul class="level1" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__UL_B15CF6899D5E4A0FA6650C0039215968"> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_D2F34FAC2FB34D93948DE7F758075C95"> ID of the user to be deleted. 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_0AC9D13CE9344A448E50C3E9834BBF10">Either I (user_id) or I (name) is mandatory for C (absent) operation. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">name 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 "> 
+				  <ul class="level1" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__UL_C68CFA2D216E40CFAE83BA9171C84E21"> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_2CAED2377FA64CF997D82F16B6AD3468"> Name of the user to be deleted 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_970F9F1B32E440529EBE1C8D6474ED30">Either I (user_id) or I (name) is mandatory for C (absent) operation. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">attributes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">{ } 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Payload data for the user operations. It can take the following attributes for C(present): 
+				  <ul class="level1" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__UL_A51F291F9FD64BF38B151FDC20685B1A"> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_EB8F11AD0720475481F01672190A2722">UserTypeId 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_6B657C7DFB9E48EAAC0DE1A00EE13A27">DirectoryServiceId 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_856FD77C8C114B83B29BEB5311BD7243">Description 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_97DD03CF8F784F2793BC21BE6C95908F">Name 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_C534D4791AD74DEF8072E18FC541A268">Password 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_833077895E3441DC85D274942FB0301C">UserName 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_FBCCC21C9468442FB1B7A1EC5CBAB4E7">RoleId 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_047C7CC616E240AD976968ABA89D5356">Locked 
+					 </li> 
+					 <li class="li" id="GUID-D860C397-D4C1-46CC-8B30-8BA9788FCD7A__LI_A5115378A0E942CCBDAA7EED8D0EBACE">Enabled 
+					 </li> 
+				  </ul> 
+				  <div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>OME will throw an error message if required parameter is not provided for the operation. 
+				  </div></td></tr></tbody></table></div> 
+				  <div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>See OpenManage Enterprise API Reference Guide for more details. 
+				  </div></td></tr></tbody></table></div> 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<div class="p"><span class="ph uicontrol bold">Return Values</span> 
+		  <pre class="pre codeblock"><code>msg:
+  description: Overall status of the user operation.
+  returned: always
+  type: str
+  sample: "Successfully created a User"
+user_status:
+  description: Details of the user operation when I(state) is C(present).
+  returned: When I(state) is C(present).
+  type: dict
+  sample:
+    {
+        "Description": "Test user creation",
+        "DirectoryServiceId": 0,
+        "Enabled": true,
+        "Id": "61546",
+        "IsBuiltin": false,
+        "Locked": false,
+        "Name": "test",
+        "ObjectGuid": null,
+        "Oem": null,
+        "Password": null,
+        "PlainTextPassword": null,
+        "RoleId": "10",
+        "UserName": "test",
+        "UserTypeId": 1
+    }
+</code></pre> 
+		</div> 
+		<div class="p"><span class="ph uicontrol bold">Examples</span> 
+		  <pre class="pre codeblock"><code>- name: Create user with required parameters.
+  ome_user:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    attributes:
+      UserName: "user1"
+      Password: "UserPassword"
+      RoleId: "10",
+      Enabled: True
+      
+- name: Create user with all parameters
+  ome_user:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    attributes:
+      UserName: "user2"
+      Description: "user2 description"
+      Password: "UserPassword"
+      RoleId: "10"
+      Enabled: True
+      DirectoryServiceId: 0
+      UserTypeId: 1
+      Locked: False
+      Name: "user2"
+      
+- name: Modify existing user
+  ome_user:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    attributes:
+      UserName: "user3"
+      RoleId: "10"
+      Enabled: True
+      Description: "Modify user Description"
+
+- name: Delete existing user using id.
+  ome_user:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "absent"
+    user_id: "1234"
+
+- name: Delete existing user using name.
+  ome_user:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "absent"
+    name:"name"
+</code></pre> 
+		</div> 
+	 </section> 
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                                    <nav role="navigation" id="wh_topic_toc" class="col-lg-2 hidden-md hidden-sm hidden-xs navbar hidden-print">
+                                        <div class=" wh_topic_toc "><div class="wh_topic_label">On this page</div><ul><li class="section-item"></li><li class="section-item"></li></ul></div>
+                                    </nav>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <script src="./oxygen-webhelp/lib/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+        
+    </body>
+</html>

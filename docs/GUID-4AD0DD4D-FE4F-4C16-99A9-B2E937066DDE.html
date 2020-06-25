@@ -1,0 +1,651 @@
+
+<!DOCTYPE html
+  PUBLIC "" "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Module: ome_device_info Synopsis This module retrieves the list of devices in the inventory of OpenManage Enterprise along with the details of each device. Options Table 1. ome_device_info Parameter ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Relation" scheme="URI" content="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" /><meta name="DC.Relation" scheme="URI" content="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" /><meta name="DC.Relation" scheme="URI" content="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.Publisher" content="June 2020" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE" /><meta name="DC.Language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /><title>View device information</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap-theme.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.2.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script>
+				$(document).ready(function() {
+					var metaelement = $("[name=meta-topic-title]");
+					var newTitle = $(metaelement).attr("content");
+					if(newTitle){
+						document.title = newTitle;
+					}
+				});
+			</script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules<span class="pipe-separator"></span></span><span class="booktitlealt">Version 2.1 User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div><script><!--
+							$(document).ready(function () {
+							$('#searchForm').submit(function (e) {
+							if ($('.wh_search_textfield').val().length < 1) {
+							e.preventDefault();
+							}
+							});
+							});
+						--></script></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul>
+   <li><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
+   <li class="has-children"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li>
+   <li><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf" class=" topicref " data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789"><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html">Accessing documents from the Dell EMC support site</a></span></span></li>
+</ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li>
+   <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li>
+         <li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li>
+         <li role="treeitem" class="active"><span data-tocid="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE" class="topicref" data-id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE.html" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE-link">View device information</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li>
+         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage network settings</a></span></span></li>
+      </ul>
+   </li>
+   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li>
+   <li role="treeitem"><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" class="topicref" data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789-link">Accessing documents from the Dell EMC support site</a></span></span></li>
+</ul></div>
+                        </nav>
+                    
+
+                    <div class="col-lg-7 col-md-9 col-sm-9 col-xs-12" id="wh_topic_body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <nav class="wh_tools hidden-print col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="hidden-print"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li>
+   <li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
+   <li class="active"><span class="topicref" data-id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE"><span class="title"><a href="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE.html">View device information</a></span></span></li>
+</ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="link" href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" title="Running your first OME Playbook" aria-label="Previous topic: Running your first OME Playbook" rel="prev"></a></span>  
+<span class="navnext"><a class="link" href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" title="Manage device configuration templates" aria-label="Next topic: Manage device configuration templates" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12" id="topic_content">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__GUID-9D4F8553-46D1-4E63-9CA3-0E69291159E1"> 
+  <h1 class="title topictitle1" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__GUID-9D4F8553-46D1-4E63-9CA3-0E69291159E1">View device information</h1> 
+  <div class="body refbody"> 
+	 <section class="section" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__GUID-6F85F2AD-795C-4A2B-8D23-A0DDFECB3505"><span class="ph uicontrol bold">Module: ome_device_info</span> 
+	 </section>
+	 <section class="section" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__SECTION_4DC2C7291DCB41BF93DF3A1019B42B8B"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="p">This module retrieves the list of devices in the inventory of OpenManage Enterprise along with the details of each device. 
+		</p> 
+		<p class="p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="table all  pgwide" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1"><caption><span class="table-anchor" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1"></span><span class="tablecap"><span class="table-label">Table 1. </span>ome_device_info</span></caption><colgroup><col style="width:19.96386630532972%" /><col style="width:9.033423667570009%" /><col style="width:13.098464317976513%" /><col style="width:36.043360433604335%" /><col style="width:21.860885275519422%" /></colgroup><thead class="thead"> 
+			 <tr> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1">Parameter 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2">Required 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3">Default 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4">Choices 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="tbody"> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">hostname 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Target IP Address or hostname 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">username 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Target username 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">password 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Target user password 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">port 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">443 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 ">Target device HTTPS port 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">fact_subset 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">basic_inventory 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 "> 
+				  <ul class="level1" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__UL_7AF30EE194DF438A884736D31BC44F3E"> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_31AC6621CBAE423AAAD98F17DEB4CE73">basic_inventory 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_331D09DD515B4F4FA86B11E47D1ABCFC">detailed_inventory 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_ACC47ED6E7E84AD48648984BEF8F6EE5">subsystem_health 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 "> 
+				  <ul class="level1" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__UL_F670D1CDA39B43498D32DBA29904A564"> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_F5DF5765BDAE4E20B630E09A476513F3">C(basic_inventory) returns the list of the devices. 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_471497EAB33E4BDEA9C9F26711D7EBFB">C(detailed_inventory) returns the inventory details of specified devices. 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_3C3E6576F1064C55B1CD241FB8E4AE6F">C(subsystem_health) returns the health status of specified devices. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__1 ">system_query_options 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__4 "> 
+				  <ul class="level1" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__UL_72EE8B486BEC44F898DA159A7A2A8D52"> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_EF6B8C06596A404D9380F56CC01BCE79">device_id: A list of unique identifier is applicable for C(detailed_inventory) and C(subsystem_health). 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_9A1D1C5FCED445B68BFDFF9BF0639ACF">device_service_tag: A list of service tags is applicable for C(detailed_inventory) and C(subsystem_health). 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_48A78E2743024E599B6F6A7F97C437BE">inventory_type: For C(detailed_inventory), it returns details of the specified inventory type. 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_0E13D1FD10C34DCF9C72E1564407AB69">filter: For C(basic_inventory), it filters the collection of devices. I(filter) query format should be aligned with OData standards. 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_5ED657E329D74464836760FD6C1D46D1__entry__5 "> 
+				  <ul class="level1" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__UL_9586322F1ED5493E86FA3E0C81BD1B04"> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_885A474F6F3344B9ADF55AB7BAEC351E">I(system_query_options) is applicable for the choices of the fact_subset. 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_2D3EBA9DEE7645C6BE5CCFDD250B02A4">Either I(device_id) or I(device_service_tag) is mandatory for C(detailed_inventory) and C(subsystem_health). 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_88806581D6E942A4B49ADBC8072C117A">I(device_id) or I(device_service_tag) can be used individually or together. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<div class="p"><span class="ph uicontrol bold">Return Values</span> 
+		  <pre class="pre codeblock"><code>msg:
+  type: str
+  description: Overall device information status.
+  returned: on error
+  sample: "Failed to fetch the device information"
+device_info:
+  type: dict
+  description: Returns the information collected from the device.
+  returned: success
+  sample: {
+        "value": [
+            {
+                "Actions": null,
+                "AssetTag": null,
+                "ChassisServiceTag": null,
+                "ConnectionState": true,
+                "DeviceManagement": [
+                    {
+                        "DnsName": "dnsname.host.com",
+                        "InstrumentationName": "MX-12345",
+                        "MacAddress": "11:10:11:10:11:10"
+                        "ManagementId": 12345,
+                        "ManagementProfile": [
+                            {
+                                "HasCreds": 0,
+                                "ManagementId": 12345,
+                                "ManagementProfileId": 12345,
+                                "ManagementURL": "https://192.168.0.1:443",
+                                "Status": 1000,
+                                "StatusDateTime": "2019-01-21 06:30:08.501"
+                            }
+                        ],
+                       "ManagementType": 2,
+                       "NetworkAddress": "192.168.0.1"
+                    }
+                ],
+                "DeviceName": "MX-0003I",
+                "DeviceServiceTag": "MXL1234",
+                "DeviceSubscription": null,
+                "LastInventoryTime": "2019-01-21 06:30:08.501",
+                "LastStatusTime": "2019-01-21 06:30:02.492",
+                "ManagedState": 3000,
+                "Model": "PowerEdge MX7000",
+                "PowerState": 17,
+                "SlotConfiguration": {},
+                "Status": 4000,
+                "SystemId": 2031,
+                "Type": 2000
+            }
+        ]
+    }</code></pre> 
+		</div> 
+		<div class="p"><span class="ph uicontrol bold">Examples</span> 
+		  <pre class="pre codeblock"><code>- name: Retrieve basic inventory of all devices.
+  ome_device_info:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+
+
+- name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering.
+  ome_device_info:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    fact_subset: "basic_inventory"
+    system_query_options:
+      filter: "Id eq 33333 or Id eq 11111"
+
+
+- name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222.
+  ome_device_info:
+     hostname:  "192.168.0.1"
+     username: "username"
+     password: "password"
+     fact_subset: "detailed_inventory"
+     system_query_options:
+       device_id:
+        - 11111
+        - 22222
+
+
+- name: Retrieve inventory details of specified devices identified by service tags MXL1234 and MXL4567.
+  ome_device_info:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    fact_subset: "detailed_inventory"
+    system_query_options:
+      device_service_tag:
+        - MXL1234
+        - MXL4567
+
+
+- name: Retrieve details of specified inventory type of specified devices identified by ID and service tags.
+  ome_device_info:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    fact_subset: "detailed_inventory"
+    system_query_options:
+      device_id:
+        - 11111
+      device_service_tag:
+        - MXL1234
+        - MXL4567
+      inventory_type: "serverDeviceCards"
+
+
+- name: Retrieve subsystem health of specified devices identified by service tags.
+  ome_device_info:
+    hostname:  "192.168.0.1"
+    username:  "username"
+    password:  "password"
+    fact_subset: "subsystem_health"
+    system_query_options:
+      device_service_tag:
+        - MXL1234
+        - MXL4567</code></pre> 
+		</div> 
+	 </section> 
+	 <section class="section" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__SECTION_E84157B68BA04D53930D06D30D0C4DC4"><span class="ph uicontrol bold">Module: dellemc_ome_device_facts</span> 
+	 </section>
+	 <section class="section" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__SECTION_F4A6F17D4CD546A4AAE939FD8E9E17A2"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="p">This module retrieves the list of all devices with the exhaustive inventory of each device discovered using OpenManage Enterprise. 
+		</p> 
+		<div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span><span class="ph b">This module is deprecated and replaced with ome_device_info</span>. 
+		</div></td></tr></tbody></table></div> 
+		<p class="p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="table all  pgwide" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC"><caption><span class="table-anchor" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC"></span><span class="tablecap"><span class="table-label">Table 2. </span>dellemc_ome_device_facts</span></caption><colgroup><col style="width:19.96386630532972%" /><col style="width:9.033423667570009%" /><col style="width:13.098464317976513%" /><col style="width:36.043360433604335%" /><col style="width:21.860885275519422%" /></colgroup><thead class="thead"> 
+			 <tr> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__1">Parameter 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__2">Required 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__3">Default 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__4">Choices 
+				</th> 
+				<th class="entry cellrowborder" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="tbody"> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__1 ">hostname 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__5 ">Target IP Address or hostname 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__1 ">username 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__5 ">Target username 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__1 ">password 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__2 ">Yes 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__5 ">Target user password 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__1 ">port 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__3 ">443 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__4 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__5 ">Target device HTTPS port 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__1 ">fact_subset 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__3 ">basic_inventory 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__4 "> 
+				  <ul class="level1" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__UL_23BDD63B39724194B750340195814EF5"> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_64A7207B93B34C73B1461BBBF1B1D590">basic_inventory 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_1B3E8F82D17946FAAC50DF917E2E7C29">detailed_inventory 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_E555C6E443024672AF5DD3AE7A046C70">subsystem_health 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__5 "> 
+				  <ul class="level1" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__UL_335F9C3C0FA5484FA7E376B078F97602"> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_35E5F9FF2D1A40FD9457EFB89E7F8C63">C(basic_inventory) returns the list of the devices. 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_68D1169C209C4B1B9C62A796788AAF96">C(detailed_inventory) returns the inventory details of specified devices. 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_9B44EE985EB343F5BB7B53BDC5CBEC41">C(subsystem_health) returns the health status of specified devices. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__1 ">system_query_options 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__2 ">No 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__3 ">NA 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__4 "> 
+				  <ul class="level1" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__UL_3DF50CF512004D37BEB0AAADCE27850B"> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_8D2FE97EDEA44D3882BB29933D62A49E">device_id: A list of unique identifier is applicable for C(detailed_inventory) and C(subsystem_health). 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_DF666B3B1DBA4D15AC379296E088C5CB">device_service_tag: A list of service tags is applicable for C(detailed_inventory) and C(subsystem_health). 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_B25E57688CF6405D8C96CE3781081676">inventory_type: For C(detailed_inventory), it returns details of the specified inventory type. 
+					 </li> 
+					 <li class="li" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__LI_09F2B55C326441AABFFCB19FB8F0AA9F">filter: For C(basic_inventory), it filters the collection of devices. I(filter) query format should be aligned with OData standards. 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="entry cellrowborder" headers="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE__TABLE_A4A316812BB84501B846AACCFA3637AC__entry__5 ">I(system_query_options) is applicable for the choices of the fact_subset. Either I(device_id) or I(device_service_tag) is mandatory for C(detailed_inventory) and C(subsystem_health) or both can be applicable. 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<div class="p"><span class="ph uicontrol bold">Return Values</span> 
+		  <pre class="pre codeblock"><code>msg:
+  type: str
+  description: Over all device_facts status.
+  returned: on error
+  sample: "Failed to fetch the device facts"
+ansible_facts:
+  type: dict
+  description: Device inventory details.
+  returned: success
+  sample: {
+        "value": [
+            {
+                "Actions": null,
+                "AssetTag": null,
+                "ChassisServiceTag": null,
+                "ConnectionState": true,
+                "DeviceManagement": [
+                    {
+                        "DnsName": "dnsname.host.com",
+                        "InstrumentationName": "MX-12345",
+                        "MacAddress": "11:10:11:10:11:10"
+                        "ManagementId": 12345,
+                        "ManagementProfile": [
+                            {
+                                "HasCreds": 0,
+                                "ManagementId": 12345,
+                                "ManagementProfileId": 12345,
+                                "ManagementURL": "https://192.168.0.1:443",
+                                "Status": 1000,
+                                "StatusDateTime": "2019-01-21 06:30:08.501"
+                            }
+                        ],
+                       "ManagementType": 2,
+                       "NetworkAddress": "192.168.0.1"
+                    }
+                ],
+                "DeviceName": "MX-0003I",
+                "DeviceServiceTag": "MXL1234",
+                "DeviceSubscription": null,
+                "LastInventoryTime": "2019-01-21 06:30:08.501",
+                "LastStatusTime": "2019-01-21 06:30:02.492",
+                "ManagedState": 3000,
+                "Model": "PowerEdge MX7000",
+                "PowerState": 17,
+                "SlotConfiguration": {},
+                "Status": 4000,
+                "SystemId": 2031,
+                "Type": 2000
+            }
+        ]
+    }</code></pre> 
+		</div> 
+		<div class="p"><span class="ph uicontrol bold">Examples</span> 
+		  <pre class="pre codeblock"><code>- name: Retrieve basic inventory of all devices.
+  dellemc_ome_device_facts:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+
+
+- name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering.
+  dellemc_ome_device_facts:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    fact_subset: "basic_inventory"
+    system_query_options:
+      filter: "Id eq 33333 or Id eq 11111"
+
+
+- name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222.
+  dellemc_ome_device_facts:
+     hostname:  "192.168.0.1"
+     username: "username"
+     password: "password"
+     fact_subset: "detailed_inventory"
+     system_query_options:
+       device_id:
+        - 11111
+        - 22222
+
+
+- name: Retrieve inventory details of specified devices identified by service tags MXL1234 and MXL4567.
+  dellemc_ome_device_facts:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    fact_subset: "detailed_inventory"
+    system_query_options:
+      device_service_tag:
+        - MXL1234
+        - MXL4567
+
+
+- name: Retrieve details of specified inventory type of specified devices identified by ID and service tags.
+  dellemc_ome_device_facts:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    fact_subset: "detailed_inventory"
+    system_query_options:
+      device_id:
+        - 11111
+      device_service_tag:
+        - MXL1234
+        - MXL4567
+      inventory_type: "serverDeviceCards"
+
+
+- name: Retrieve subsystem health of specified devices identified by service tags.
+  dellemc_ome_device_facts:
+    hostname:  "192.168.0.1"
+    username:  "username"
+    password:  "password"
+    fact_subset: "subsystem_health"
+    system_query_options:
+      device_service_tag:
+        - MXL1234
+        - MXL4567</code></pre> 
+		</div> 
+	 </section> 
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                                    <nav role="navigation" id="wh_topic_toc" class="col-lg-2 hidden-md hidden-sm hidden-xs navbar hidden-print">
+                                        <div class=" wh_topic_toc "><div class="wh_topic_label">On this page</div><ul><li class="section-item"></li><li class="section-item"></li><li class="section-item"></li><li class="section-item"></li></ul></div>
+                                    </nav>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <script src="./oxygen-webhelp/lib/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+        
+    </body>
+</html>

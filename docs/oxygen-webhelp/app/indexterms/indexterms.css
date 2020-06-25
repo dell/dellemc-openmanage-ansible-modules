@@ -1,0 +1,88 @@
+/** 
+ * Styles for Index page.
+ */
+
+/* Indexterms page */
+.wh-letters {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    align-content: stretch;
+    flex-wrap: wrap;
+    background-color: #f2f2f2;
+}
+
+ul.wh-letters li{
+    line-height: 2.5em;
+    font-size:1.5em;
+    vertical-align:middle;
+    max-width: 3em;
+    padding-left:0;
+
+}
+
+.wh-letters li a{
+padding: 0 .3em;
+}
+
+.wh-letters li::after{
+    content: " | ";
+    color: #a9a9a9
+}
+
+.wh-letters li:last-child::after{
+    content: "";
+}
+
+
+.wh_index_terms li, .wh_index_terms ul{
+    padding-left: 10px;
+    list-style: none;
+}
+.wh_index_terms li.wh_term{
+    line-height: 1.5em;
+}
+a.wh_term_target{
+    padding-left:5px;
+    vertical-align: super;
+    font-size: .8em;
+}
+.wh_index_terms .wh_first_letter{
+    text-indent: 0;
+    list-style: none;
+    font-size: 2em;
+    font-weight: bold;
+    display: inline-block;
+    border-bottom: 1px solid;
+    width: 100%;
+    margin: .4em 0 .2em;
+}
+
+/**
+ * Index page. Set multi-column layout.
+ */
+.wh_term_group > ul {
+    column-count: auto;
+    column-width: 20em;
+    column-gap: 1em;
+    column-rule: none;
+    
+}
+
+/**
+ * Try to avoid column break between an index group and its first child.
+ */
+.wh_term {
+    display: block;
+    -webkit-column-break-inside:avoid;
+    -moz-column-break-inside:avoid;
+    -o-column-break-inside:avoid;
+    -ms-column-break-inside:avoid;
+    column-break-inside:avoid;
+     page-break-inside:avoid; /* Firefox */
+}
+.wh_term > ul > .wh_term:first-child {
+    break-before: avoid-column;
+    -webkit-column-break-before: avoid;
+}

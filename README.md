@@ -7,7 +7,7 @@ With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities
 ## Supported Platforms
   * iDRAC 7/8 based Dell EMC PowerEdge Servers with Firmware
    version 2.60.60.60 and above.
-  * iDRAC 9 based Dell EMC PowerEdge Servers with Firmware version 3.21.21.21
+  * iDRAC 9 based Dell EMC PowerEdge Servers with Firmware version 3.34.34.34
    and above.
   * Dell EMC OpenManage Enterprise version 3.2.1 and above.
 
@@ -19,7 +19,7 @@ With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities
    [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ## Documentation
-Please refer to the [OpenManage Ansible Modules Documentation](./guides)
+Please refer to the [OpenManage Ansible Modules Documentation](./guides) or OpenManage Ansible Modules User Guide [gitpages](https://dell.github.io/dellemc-openmanage-ansible-modules/)
 
 ## Examples
 Sample playbooks and examples could be found under [examples](./examples) directory
@@ -29,9 +29,9 @@ Sample Results for the respective modules could be found under [samples](./sampl
 
 ## Installation
 
-  * Clone the latest development repository and install the ansible modules. 
+  * Clone the latest stable repository and install the ansible modules.
   ```
-  git clone -b devel --single-branch https://github.com/dell/dellemc-openmanage-ansible-modules.git
+  git clone -b master --single-branch https://github.com/dell/dellemc-openmanage-ansible-modules.git
   cd dellemc-openmanage-ansible-modules
   python install.py
   ```
@@ -55,12 +55,13 @@ This project is licensed under GPL-3.0 License. Please see the [COPYING](
 ## Contributing
 We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](./CODING_GUIDELINES.md) for more details.
 
+## Testing
+See [here](test/README.md) for further information on testing.
+
 ## Support
-  * This devel branch corresponds to the release actively under development.
   * If you want to report any issue, then please report it by creating a new issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)
   * If you have any requirements that is not currently addressed, then please let us know by creating a new issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)
   * If you want to provide any feedback to the development team, then you can do so by sending an email to **OpenManageAnsible@Dell.com**
-  * We also have a **#openmanageansible** slack channel which you can use for reporting any issue, new feature request or for general discussion with development team. You can get an invite by requesting one at [here](http://community.codedellemc.com).
 
 ## Authors
   * OpenManageAnsible (OpenManageAnsible@dell.com)

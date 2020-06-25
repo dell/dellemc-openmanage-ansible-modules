@@ -19,7 +19,7 @@
 
   - name: "Filter out device compliance reports."
     debug:
-      msg: "{{ item.Name }} : {{ item.DeviceComplianceReports.0.ComponentComplianceReports }}"
-    when: item.DeviceComplianceReports.0.ComponentComplianceReports
-    with_items:
-      - "{{ result.baseline_compliance_info }}"
+      msg: "{{ item.DeviceComplianceReports.0.ComponentComplianceReports }}"
+    loop: "{{ result.baseline_compliance_info }}"
+    loop_control:
+      label: "{{ item.Name }}"

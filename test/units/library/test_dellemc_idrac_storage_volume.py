@@ -142,12 +142,15 @@ class TestStorageVolume(FakeAnsibleModule):
                                                               idrac_default_args):
         idrac_default_args.update({"share_name": "sharename"})
         mocker.patch('ansible.modules.remote_management.dellemc.'
-                     'dellemc_idrac_storage_volume._validate_options', return_value='state')
+                     'dellemc_idrac_storage_volume._validate_options', side_effect=exc_type('test'))
         mocker.patch('ansible.modules.remote_management.dellemc.'
                      'dellemc_idrac_storage_volume.run_server_raid_config', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result
         assert result['failed'] is True
+        # with pytest.raises(Exception) as exc:
+        #     self._run_module_with_fail_json(idrac_default_args)
+        # assert exc.value.args[0] == "msg"
 
     def test_run_server_raid_config_create_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                         mocker):
@@ -385,6 +388,22 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "read_cache_policy": "NoReadAhead"}, "", {"protocol": "SAS"})
         assert result["mediatype"] == "HDD"
 
+    def test_multiple_vd_config_capacity_none_case02(self, idrac_connection_storage_volume_mock, idrac_default_args,
+                                                   mocker):
+        idrac_default_args.update({"name": "name1", "media_type": None, "protocol": "SAS", "drives": {"id": ["id1"]},
+                                   "capacity": None, "raid_init_operation": None, 'raid_reset_config': True,
+                                   "span_depth": 1, "span_length": 1, "number_dedicated_hot_spare": 0,
+                                   "volume_type": 'RAID 0', "disk_cache_policy": "Default", "stripe_size": 64 * 1024,
+                                   "write_cache_policy": "WriteThrough", "read_cache_policy": "NoReadAhead"})
+        result = self.module.multiple_vd_config({'name': 'volume1', 'stripe_size': 1.3, "capacity": 1,
+                                                 "drives": {"id": ["id"]}}, "",
+                                                {"media_type": None, "protocol": "SAS", "raid_init_operation": None,
+                                                 'raid_reset_config': True, "span_depth": 1, "span_length": 1,
+                                                 "number_dedicated_hot_spare": 0, "volume_type": 'RAID 0',
+                                                 "disk_cache_policy": "Default", "write_cache_policy": "WriteThrough",
+                                                 "read_cache_policy": "NoReadAhead", "stripe_size": 64 * 1024})
+        assert result['Name'] == 'volume1'
+
     def test_multiple_vd_config_capacity_none_case1(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                     mocker):
         idrac_default_args.update({"name": "name1", "media_type": 'HDD', "protocol": "SAS", "drives": {"id": ["id1"]},
@@ -399,4 +418,21 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "disk_cache_policy": "Default", "stripe_size": 64 * 1024,
                                                  "write_cache_policy": "WriteThrough",
                                                  "read_cache_policy": "NoReadAhead"}, "", {"protocol": "NAS"})
+        assert result["StripeSize"] == 65536
+
+    def test_multiple_vd_config_success_case02(self, idrac_connection_storage_volume_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"name": "name1", "media_type": 'HDD', "protocol": "SAS", "drives": None,
+                                   "capacity": 2, "raid_init_operation": 'Fast', 'raid_reset_config': True,
+                                   "span_depth": 1, "span_length": 1, "number_dedicated_hot_spare": 0,
+                                   "volume_type": 'RAID 0', "disk_cache_policy": "Default",
+                                   "write_cache_policy": "WriteThrough", "read_cache_policy": "NoReadAhead",
+                                   "stripe_size": 64 * 1024})
+        result = self.module.multiple_vd_config({'name': 'volume1', 'stripe_size': 1.3, "capacity": 1,
+                                                 "media_type": None, "protocol": None,
+                                                 "raid_init_operation": "Fast",
+                                                 'raid_reset_config': False, "span_depth": 1, "span_length": 1,
+                                                 "number_dedicated_hot_spare": 0, "volume_type": 'RAID 0',
+                                                 "disk_cache_policy": "Default", "stripe_size": 64 * 1024,
+                                                 "write_cache_policy": "WriteThrough",
+                                                 "read_cache_policy": "NoReadAhead"}, "", {})
         assert result["StripeSize"] == 65536

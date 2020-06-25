@@ -16,9 +16,10 @@
     register: result
 
   - name: "Filter out device compliance reports."
-    with_items:
-      - "{{ result.baseline_compliance_info }}" 
+    loop: "{{ result.baseline_compliance_info }}" 
     debug:
        msg: "{{item.ComponentComplianceReports}}"
+    loop_control:
+       label: "{{ item.DeviceId }}"
 
 

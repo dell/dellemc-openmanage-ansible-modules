@@ -84,11 +84,14 @@ class TestOmeAppNetwork(FakeAnsibleModule):
 
     in1 = {"check_mode": True, "timeout": 25}
     in2 = {"check_mode": True, "timeout": 30}
+    in3 = {"check_mode": False, "timeout": 25}
     out1 = "No changes found to be applied to the web server."
     out2 = "Changes found to be applied to the web server."
+    out3 = "No changes made to the web server configuration as the entered values are the same as the current configuration."
 
     @pytest.mark.parametrize("sub_param", [{"in": in1, "out": out1},
-                                           {"in": in2, "out": out2}])
+                                           {"in": in2, "out": out2},
+                                           {"in": in3, "out": out3}])
     def test_get_updated_payload_check_mode(self, sub_param, ome_default_args,
                                                                 ome_connection_mock_for_application_network_webserver, ome_response_mock):
         new_param = {"webserver_port": 443, "webserver_timeout": sub_param["in"]["timeout"]}
@@ -102,11 +105,12 @@ class TestOmeAppNetwork(FakeAnsibleModule):
             self.module.get_updated_payload(ome_connection_mock_for_application_network_webserver, f_module)
 
     @pytest.mark.parametrize("exc_type",
-                             [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
+                             [IOError, ValueError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_application_network_webserver_main_error_cases(self, exc_type, mocker, ome_default_args,
                                                                         ome_connection_mock_for_application_network_webserver,
                                                                         ome_response_mock):
         json_str = to_text(json.dumps({"info": "error_details"}))
+        ome_default_args.update({"webserver_port": 443, "webserver_timeout": 25})
         if exc_type == URLError:
             mocker.patch('ansible.modules.remote_management.dellemc.ome_application_network_webserver.get_updated_payload',
                          side_effect=exc_type("urlopen error"))

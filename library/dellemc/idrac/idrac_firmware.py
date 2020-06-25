@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.11
+# Version 2.1
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -59,11 +59,17 @@ options:
         type: str
         aliases: ['share_pwd']
     share_mnt:
-        description: Local mount path of the network share with read-write permission for ansible user.
+        description:
+          - Local mount path of the network share with read-write permission for ansible user.
+          - This option is not applicable for HTTP, HTTPS, and FTP shares.
         type: str
         required: False
     reboot:
-        description: Whether to reboot for applying the updates or not.
+        description:
+          - Whether to reboot for applying the updates or not.
+          - If I(reboot) is C(False), updates take effect after the system is rebooted. If update packages
+            in the repository require a reboot, ensure that I(reboot) is C(False) and I(job_wait) is C(True).
+            If not, the module will continue to wait for a system reboot and eventually time out.
         type: bool
         default: False
     job_wait:

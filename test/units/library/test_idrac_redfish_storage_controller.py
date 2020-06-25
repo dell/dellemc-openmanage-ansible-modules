@@ -12,13 +12,15 @@
 
 from __future__ import absolute_import
 
-import pytest
+import pytest, json
 from ansible.modules.remote_management.dellemc import idrac_redfish_storage_controller
 from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
 from units.compat.mock import MagicMock
 from units.modules.remote_management.dellemc.common import AnsibleFailJSonException
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from io import StringIO
+from ansible.module_utils._text import to_text
 
 @pytest.fixture
 def idrac_connection_mock_for_redfish_storage_controller(mocker, redfish_response_mock):
@@ -63,10 +65,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.check_raid_service(f_module, idrac_connection_mock_for_redfish_storage_controller)
         assert exc.value.args[0] == msg
 
-    msg = "Installed version of iDRAC does not support this feature using Redfish API"
     @pytest.mark.parametrize("input",
                              [
-                                 # {"error": HTTPError('http://testhost.com', 400, msg, {}, None),"msg": msg},
                                  {"error": URLError("test"), "msg": "<urlopen error test>"}
                              ])
     def test_check_raid_service_exceptions(self, idrac_connection_mock_for_redfish_storage_controller, input):
@@ -75,6 +75,16 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.check_raid_service(f_module, idrac_connection_mock_for_redfish_storage_controller)
         assert exc.value.args[0] == input['msg']
+
+    def test_check_raid_service_HttpError_exception(self, idrac_connection_mock_for_redfish_storage_controller,
+                                                    redfish_default_args):
+        f_module = self.get_module_mock(params=redfish_default_args)
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_connection_mock_for_redfish_storage_controller.invoke_request.side_effect = HTTPError('http://testhost.com', 400, 'http error message',
+                                           {"accept-type": "application/json"}, StringIO(json_str))
+        with pytest.raises(Exception) as exc:
+            self.module.check_raid_service(f_module, idrac_connection_mock_for_redfish_storage_controller)
+        assert exc.value.args[0] == "Installed version of iDRAC does not support this feature using Redfish API"
 
     @pytest.mark.parametrize("input", [{"volume_id": ["v1"]}])
     def test_check_volume_array_exists(self, idrac_connection_mock_for_redfish_storage_controller,
@@ -86,6 +96,33 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.check_volume_array_exists(f_module,
                                                   idrac_connection_mock_for_redfish_storage_controller)
         assert exc.value.args[0] == msg
+
+    def test_check_volume_array_exists_HttpError_exceptions(self, redfish_response_mock, redfish_default_args,
+                                                  idrac_connection_mock_for_redfish_storage_controller):
+        redfish_default_args.update({"volume_id": ["v1"]})
+        redfish_response_mock.json_data = {"volume_id": ["v1"]}
+        f_module = self.get_module_mock(params=redfish_default_args)
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_connection_mock_for_redfish_storage_controller.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400, 'http error message',
+            {"accept-type": "application/json"}, StringIO(json_str))
+        with pytest.raises(Exception) as exc:
+            self.module.check_volume_array_exists(f_module, idrac_connection_mock_for_redfish_storage_controller)
+        assert exc.value.args[0] == "Unable to locate the virtual disk with the ID: v1"
+
+    @pytest.mark.parametrize("input",
+                             [
+                                 {"error": URLError("test"), "msg": "<urlopen error test>"}
+                             ])
+    def test_check_volume_array_exists_exceptions(self, redfish_response_mock, redfish_default_args,
+                                                  idrac_connection_mock_for_redfish_storage_controller, input):
+        redfish_default_args.update({"volume_id": ["v1"]})
+        redfish_response_mock.json_data = {"volume_id": ["v1"]}
+        f_module = self.get_module_mock(params=redfish_default_args)
+        idrac_connection_mock_for_redfish_storage_controller.invoke_request.side_effect = input["error"]
+        with pytest.raises(Exception) as exc:
+            self.module.check_volume_array_exists(f_module, idrac_connection_mock_for_redfish_storage_controller)
+        assert exc.value.args[0] == input['msg']
 
     @pytest.mark.parametrize("input", [{"item": "x1"}])
     def test_check_id_exists(self,
@@ -100,11 +137,37 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                                         "item", "uri")
         assert exc.value.args[0] == msg
 
+    @pytest.mark.parametrize("input",
+                             [
+                                 {"error": URLError("test"), "msg": "<urlopen error test>"}
+                             ])
+    def test_check_id_exists_exceptions(self, idrac_connection_mock_for_redfish_storage_controller, input):
+        f_module = self.get_module_mock(params=input)
+        idrac_connection_mock_for_redfish_storage_controller.invoke_request.side_effect = input["error"]
+        with pytest.raises(Exception) as exc:
+            self.module.check_id_exists(f_module,
+                                        idrac_connection_mock_for_redfish_storage_controller,
+                                        "item", "uri")
+        assert exc.value.args[0] == input['msg']
+
+    def test_check_id_exists_HttpError_exceptions(self, idrac_connection_mock_for_redfish_storage_controller,
+                                                  redfish_default_args):
+        f_module = self.get_module_mock(params=redfish_default_args)
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_connection_mock_for_redfish_storage_controller.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400, 'http error message',
+            {"accept-type": "application/json"}, StringIO(json_str))
+        with pytest.raises(Exception) as exc:
+            self.module.check_id_exists(f_module,
+                                        idrac_connection_mock_for_redfish_storage_controller,
+                                        "item", "uri")
+        assert exc.value.args[0] == "item with id None not found in system"
+
     arg_list1 = [{"command": "ResetConfig", "controller_id": "c1"},
                  {"command": "RemoveControllerKey", "controller_id": "c1"},
                  {"command": "ReKey", "controller_id": "c1"},
                  {"command": "SetControllerKey", "controller_id": "c1", "key": "key", "key_id": "key_id"},
-                 {"command": "AssignSpare", "target": "target"}]
+                 {"command": "AssignSpare", "volume_id": ["v1"], "target": "target"}]
 
     @pytest.mark.parametrize("param", arg_list1)
     def test_idrac_redfish_storage_controller_main_success_case_01(self,
@@ -115,9 +178,9 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                                                                    param):
         mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.validate_inputs')
         mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_raid_service')
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_id_exists'),
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_volume_array_exists'),
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_encryption_capability'),
+        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_id_exists')
+        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_volume_array_exists')
+        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_encryption_capability')
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
         redfish_response_mock.headers = {"Location" : "Jobs/1234"}
@@ -127,3 +190,79 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         assert result['msg'] == "Successfully submitted the job that performs the {0} operation".format(param["command"])
         assert result["task"]["id"] == "1234"
         assert result["task"]["uri"] == "Jobs/1234"
+
+    arg_list1 = [{"command": "ResetConfig", "controller_id": "c1"},
+                 {"command": "RemoveControllerKey", "controller_id": "c1"},
+                 {"command": "ReKey", "controller_id": "c1"},
+                 {"command": "SetControllerKey", "controller_id": "c1", "key": "key", "key_id": "key_id"},
+                 {"command": "AssignSpare", "target": "target"}]
+
+    @pytest.mark.parametrize("param", arg_list1)
+    def test_idrac_redfish_storage_controller_main_success_case_02(self,
+                                                                   mocker,
+                                                                   redfish_default_args,
+                                                                   redfish_response_mock,
+                                                                   idrac_connection_mock_for_redfish_storage_controller,
+                                                                   param):
+        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.validate_inputs')
+        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_raid_service')
+        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_id_exists')
+        mocker.patch(
+            'ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_volume_array_exists')
+        mocker.patch(
+            'ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_encryption_capability')
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.headers = {"Location": "Jobs/1234"}
+        redfish_default_args.update(param)
+        result = self._run_module(redfish_default_args)
+        assert result["changed"] is True
+        assert result['msg'] == "Successfully submitted the job that performs the {0} operation".format(
+            param["command"])
+        assert result["task"]["id"] == "1234"
+        assert result["task"]["uri"] == "Jobs/1234"
+
+    @pytest.mark.parametrize("exc_type",
+                             [RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError, ImportError,
+            ValueError, TypeError])
+    def test_idrac_redfish_storage_controller_main_exception_case(self, exc_type, mocker,
+                                                                   redfish_default_args,
+                                                                   redfish_response_mock,
+                                                                   idrac_connection_mock_for_redfish_storage_controller):
+        mocker.patch(
+                'ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_encryption_capability',
+                side_effect=exc_type('test'))
+        mocker.patch(
+                'ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_raid_service',
+                side_effect=exc_type('test'))
+        mocker.patch(
+                'ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_id_exists',
+                side_effect=exc_type('test'))
+        mocker.patch(
+                'ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_volume_array_exists',
+                side_effect=exc_type('test'))
+        mocker.patch(
+                'ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.validate_inputs',
+                side_effect=exc_type('test'))
+        result = self._run_module_with_fail_json(redfish_default_args)
+        assert 'power_state' not in result
+        assert 'msg' in result
+        assert result['failed'] is True
+
+    arg_list1 = [{"command": "ResetConfig", "controller_id": "c1"},
+                 {"command": "RemoveControllerKey", "controller_id": "c1"},
+                 {"command": "ReKey", "controller_id": "c1"},
+                 {"command": "SetControllerKey", "controller_id": "c1", "key": "key", "key_id": "key_id"},
+                 {"command": "AssignSpare", "target": "target"}]
+
+    @pytest.mark.parametrize("param", arg_list1)
+    def test_idrac_redfish_main_HTTPError_case(self, param, idrac_connection_mock_for_redfish_storage_controller,
+                                               redfish_default_args, mocker):
+        redfish_default_args.update(param)
+        json_str = to_text(json.dumps({"data": "out"}))
+        mocker.patch('ansible.modules.remote_management.dellemc.idrac_redfish_storage_controller.check_raid_service',
+                     side_effect=HTTPError('http://testhost.com', 400, 'http error message',
+                                           {"accept-type": "application/json"}, StringIO(json_str)))
+        result = self._run_module_with_fail_json(redfish_default_args)
+        assert 'msg' in result
+        assert result['failed'] is True

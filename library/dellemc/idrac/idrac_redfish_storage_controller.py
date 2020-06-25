@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.5
+# Version 2.1
 # Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -39,7 +39,7 @@ options:
     required: True
   command:
     description:
-      - Set of actions to configure the storage controller settings.
+      - These actions may require a system reset, depending on the controller's capabilities.
       - C(ResetConfig) - Deletes all the virtual disks and unassigns all hot spares on physical disks.
       - C(AssignSpare) - Assigns a physical disk as a dedicated or global hot spare for a virtual disk.
       - >-

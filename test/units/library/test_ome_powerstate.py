@@ -262,6 +262,91 @@ class TestOmePowerstate(FakeAnsibleModule):
                                      'TargetType': {'Id': 'off',
                                                     'Name': 'DEVICE'}}]}
 
+    def test_get_device_resource_success_case02(self, mocker, ome_default_args, ome_connection_powerstate_mock,
+                                                ome_response_mock):
+        ome_default_args.update({"device_id": Constants.service_tag1, "power_state": "on", "Type": 1000,
+                                 "device_service_tag": Constants.service_tag1})
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.get_device_state',
+                     return_value=('on', 1000))
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.build_power_state_payload',
+                     return_value={'Id': 0, 'JobDescription': 'DeviceAction_Task',
+                                   'JobName': 'DeviceAction_Task_PowerState',
+                                   'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
+                                   'Params': [{'Key': 'operationName', 'Value': 'POWER_CONTROL'},
+                                              {'Key': 'powerState', 'Value': '2000'}],
+                                   'Schedule': 'startnow',
+                                   'State': 'Enabled',
+                                   'Targets': [{'Data': '',
+                                                'Id': 1234,
+                                                'TargetType': {'Id': 'off',
+                                                               'Name': 'DEVICE'}}]})
+        ome_response_mock.status_code = 200
+        ome_response_mock.json_data = {
+            'value': [{"DeviceServiceTag": None, "Id": Constants.service_tag1,
+                       "power_state": "on"}]}
+        ome_response_mock.success = True
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=False)
+        with pytest.raises(Exception) as exc:
+            self.module.get_device_resource(f_module, ome_connection_powerstate_mock)
+        assert exc.value.args[0] == "Unable to complete the operation because the entered target device " \
+                                    "service tag 'MXL1234' is invalid."
+
+    def test_get_device_resource_success_case03(self, mocker, ome_default_args, ome_connection_powerstate_mock,
+                                                ome_response_mock):
+        ome_default_args.update({"device_id": Constants.service_tag1, "power_state": "coldboot", "Type": 1000,
+                                 "device_service_tag": Constants.service_tag1})
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.get_device_state',
+                     return_value=('off', 1000))
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.build_power_state_payload',
+                     return_value={'Id': 0, 'JobDescription': 'DeviceAction_Task',
+                                   'JobName': 'DeviceAction_Task_PowerState',
+                                   'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
+                                   'Params': [{'Key': 'operationName', 'Value': 'POWER_CONTROL'},
+                                              {'Key': 'powerState', 'Value': '2000'}],
+                                   'Schedule': 'startnow',
+                                   'State': 'Enabled',
+                                   'Targets': [{'Data': '',
+                                                'Id': 1234,
+                                                'TargetType': {'Id': 'off',
+                                                               'Name': 'DEVICE'}}]})
+        ome_response_mock.status_code = 200
+        ome_response_mock.json_data = {
+            'value': [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.service_tag1,
+                       "power_state": "coldboot"}]}
+        ome_response_mock.success = True
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        with pytest.raises(Exception) as exc:
+            self.module.get_device_resource(f_module, ome_connection_powerstate_mock)
+        assert exc.value.args[0] == "No changes found to commit."
+
+    def test_get_device_resource_success_case04(self, mocker, ome_default_args, ome_connection_powerstate_mock,
+                                                ome_response_mock):
+        ome_default_args.update({"device_id": Constants.service_tag1, "power_state": "on", "Type": 1000,
+                                 "device_service_tag": Constants.service_tag1})
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.get_device_state',
+                     return_value=(2, 1000))
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_powerstate.build_power_state_payload',
+                     return_value={'Id': 0, 'JobDescription': 'DeviceAction_Task',
+                                   'JobName': 'DeviceAction_Task_PowerState',
+                                   'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
+                                   'Params': [{'Key': 'operationName', 'Value': 'POWER_CONTROL'},
+                                              {'Key': 'powerState', 'Value': '2000'}],
+                                   'Schedule': 'startnow',
+                                   'State': 'Enabled',
+                                   'Targets': [{'Data': '',
+                                                'Id': 1234,
+                                                'TargetType': {'Id': 'off',
+                                                               'Name': 'DEVICE'}}]})
+        ome_response_mock.status_code = 200
+        ome_response_mock.json_data = {
+            'value': [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.service_tag1,
+                       "power_state": "on"}]}
+        ome_response_mock.success = True
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        with pytest.raises(Exception) as exc:
+            self.module.get_device_resource(f_module, ome_connection_powerstate_mock)
+        assert exc.value.args[0] == "No changes found to commit."
+
     def test_get_device_resource_failed_case01(self, mocker, ome_default_args, ome_connection_powerstate_mock,
                                                 ome_response_mock):
         ome_default_args.update({"device_id": None, "power_state": "on", "Type": 1000,
@@ -293,9 +378,16 @@ class TestOmePowerstate(FakeAnsibleModule):
             mocker.patch(
                 'ansible.modules.remote_management.dellemc.ome_powerstate.get_device_resource',
                 side_effect=exc_type('test'))
+            mocker.patch(
+                'ansible.modules.remote_management.dellemc.ome_powerstate.spawn_update_job',
+                side_effect=exc_type('test'))
         else:
             mocker.patch(
                 'ansible.modules.remote_management.dellemc.ome_powerstate.spawn_update_job',
+                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                     {"accept-type": "application/json"}, StringIO(json_str)))
+            mocker.patch(
+                'ansible.modules.remote_management.dellemc.ome_powerstate.get_device_resource',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module_with_fail_json(ome_default_args)

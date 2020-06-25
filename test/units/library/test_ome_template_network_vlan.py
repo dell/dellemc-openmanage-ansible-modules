@@ -45,11 +45,11 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
             {"port": 2, "tagged_network_ids": [22763],
              "tagged_network_names": ["gold", "silver"]},
             {"port": 4, "tagged_network_names": ["bronze"]}],
-            "template_id": 12,
-            "untagged_networks": [
-                {"port": 2, "untagged_network_name": "plat"},
-                {"port": 3, "untagged_network_id": 0}
-            ]}
+                     "template_id": 12,
+                     "untagged_networks": [
+                         {"port": 2, "untagged_network_name": "plat"},
+                         {"port": 3, "untagged_network_id": 0}
+                     ]}
         ome_default_args.update(sub_param)
         untag_dict = {1: 5, 2: 0, 3: 4}
         tagged_dict = {1: [1, 2], 2: [], 3: [6]}
@@ -73,7 +73,7 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
                               {"success": False, "json_data": {"value": [{"Name": "template_name", "Id": 123}]}, "id": 0},
                               {"success": True, "json_data": {"value": [{"Name": "template_name1", "Id": 123}]}, "id": 0}])
     def test_get_item_id(self, params, ome_connection_mock_for_template_network_vlan,
-                                                          ome_response_mock):
+                         ome_response_mock):
         ome_response_mock.success = params["success"]
         ome_response_mock.json_data = params["json_data"]
         id = self.module.get_item_id(ome_connection_mock_for_template_network_vlan, "template_name", "uri")
@@ -158,6 +158,48 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         assert untag_dict == {1: 5, 2: 0, 3: 4}
         assert tagged_dict == {1: [1, 2], 2: [], 3: [6]}
 
+    @pytest.mark.parametrize("params",
+                             [{"inp": {"nic_identifier": "NIC1",
+                                       "template_id": 12},
+                               "msg": "Either tagged_networks | untagged_networks data needs to be provided"},
+                              {"inp": {"untagged_networks": [
+                                  {"port": 2, "untagged_network_name": "plat"},
+                                  {"port": 2, "untagged_network_id": 0}
+                              ]},
+                                  "msg": "port 2 is repeated for untagged_network_id"},
+                              {"inp": {"tagged_networks": [
+                                  {"port": 1, "tagged_network_ids": [1, 7]},
+                                  {"port": 2, "tagged_network_names": []},
+                                  {"port": 3, "tagged_network_names": ["bronze"]}]},
+                                  "msg": "7 is not a valid vlan id port 1"},
+                              {"inp": {"tagged_networks": [
+                                  {"port": 1, "tagged_network_ids": []},
+                                  {"port": 3, "tagged_network_names": ["bronzy"]}]},
+                                  "msg": "bronzy is not a valid vlan name port 3"},
+                              {"inp": {"untagged_networks": [
+                                  {"port": 2, "untagged_network_name": "platy"},
+                                  {"port": 3, "untagged_network_id": 0}
+                              ]},
+                                  "msg": "platy is not a valid vlan name for port 2"},
+                              {"inp": {"untagged_networks": [
+                                  {"port": 2, "untagged_network_name": "plat"},
+                                  {"port": 1, "untagged_network_id": 7}
+                              ]},
+                                  "msg": "untagged_network_id: 7 is not a valid vlan id for port 1"},
+                              {"inp": {"tagged_networks": [
+                                  {"port": 1, "tagged_network_ids": [1]}],
+                              "untagged_networks": [
+                                  {"port": 1, "untagged_network_id": 1}]},
+                                  "msg": "vlan 1('vlan1') cannot be in both tagged and untagged list for port 1"}
+                              ])
+    def test_validate_vlans_failure(self, params, mocker, ome_connection_mock_for_template_network_vlan):
+        f_module = self.get_module_mock(params["inp"])
+        mocker.patch('ansible.modules.remote_management.dellemc.ome_template_network_vlan.get_vlan_name_id_map',
+                     return_value={"vlan1": 1, "vlan2": 2, "gold": 3, "silver": 4, "plat": 5, "bronze": 6})
+        with pytest.raises(Exception) as exc:
+            self.module.validate_vlans(f_module, ome_connection_mock_for_template_network_vlan)
+        assert exc.value.args[0] == params["msg"]
+
     @pytest.mark.parametrize("modify_setting_payload",
                              [{"Description": "Identity pool with ethernet and fcoe settings2"}, {"Name": "pool2"},
                               {"EthernetSettings": {"Mac": {"IdentityCount": 61, "StartingMacAddress": "UFBQUFAA"}}},
@@ -209,8 +251,8 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_application_network_vlan_main_success_failure_case(self, exc_type,mocker, ome_default_args,
-                                                                     ome_connection_mock_for_template_network_vlan,
-                                                                     ome_response_mock):
+                                                                    ome_connection_mock_for_template_network_vlan,
+                                                                    ome_response_mock):
         ome_default_args.update({"nic_identifier": "NIC1", "template_id": 123, "tagged_networks": [
             {"port": 2, "tagged_network_ids": [22763], "tagged_network_names": ["gold", "silver"]}]})
         json_str = to_text(json.dumps({"info": "error_details"}))

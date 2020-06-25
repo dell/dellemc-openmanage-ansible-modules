@@ -55,6 +55,26 @@ class TestExportLcLogs(FakeAnsibleModule):
         file_manager_obj.myshare.new_file(lclog_file_name_format).return_value = obj
         return file_manager_obj
 
+    def test_get_user_credentials_case01(self, idrac_connection_export_lc_logs_mock, idrac_default_args, mocker,
+                                             idrac_file_manager_export_lc_logs_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser@gm.com",
+                                   "share_password": "sharepassword"})
+        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_export_lc_logs.UserCredentials",
+                     return_value=({"share_name": "sharename@gm.com", "share_password": "sharepassword"}))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        msg = self.module.get_user_credentials(f_module)
+        assert msg == {'share_name': 'sharename@gm.com', 'share_password': 'sharepassword'}
+
+    def test_get_user_credentials_case02(self, idrac_connection_export_lc_logs_mock, idrac_default_args, mocker,
+                                             idrac_file_manager_export_lc_logs_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser\\gm.com",
+                                   "share_password": "sharepassword"})
+        mocker.patch("ansible.modules.remote_management.dellemc.dellemc_export_lc_logs.UserCredentials",
+                     return_value=({"share_name": "sharename\\gm.com", "share_password": "sharepassword"}))
+        f_module = self.get_module_mock(params=idrac_default_args)
+        msg = self.module.get_user_credentials(f_module)
+        assert msg == {'share_name': 'sharename\\gm.com', 'share_password': 'sharepassword'}
+
     def test_main_export_lc_logs_success_case(self,idrac_connection_export_lc_logs_mock, idrac_default_args, mocker,
                                              idrac_file_manager_export_lc_logs_mock):
         idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
