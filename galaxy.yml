@@ -1,9 +1,0 @@
----
-namespace: "dellemc"
-name: "openmanage"
-version: "2.0.14"
-readme: "README.md"
-authors:
-  - "OpenManageAnsible <OpenManageAnsible@dell.com>"
-license_file: "COPYING.md"
-repository: "https://github.com/dell/dellemc-openmanage-ansible-modules"
