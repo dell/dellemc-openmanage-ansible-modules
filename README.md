@@ -1,8 +1,8 @@
 # Dell EMC OpenManage Ansible Modules
 
-Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers (12th generation of PowerEdge servers and later) by leveraging the management automation capabilities in-built into the integrated Dell Remote Access Controller (iDRAC).
+Dell EMC OpenManage Ansible Modules allows data center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers and modular infrastructure by leveraging the management automation capabilities in-built into the Integrated Dell Remote Access Controller (iDRAC) and OpenManage Enterprise.
 
-With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
+OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
 ## Supported Platforms
   * iDRAC 7/8 based Dell EMC PowerEdge Servers with Firmware
@@ -29,7 +29,7 @@ Sample Results for the respective modules could be found under [samples](./sampl
 
 ## Installation
 
-  * Clone the latest development repository and install the ansible modules. 
+  * Clone the latest development repository and install the ansible modules.
   ```
   git clone -b devel --single-branch https://github.com/dell/dellemc-openmanage-ansible-modules.git
   cd dellemc-openmanage-ansible-modules
@@ -46,6 +46,11 @@ Sample Results for the respective modules could be found under [samples](./sampl
 cd dellemc-openmanage-ansible-modules
 python uninstall.py
 ```
+
+## Ansible Galaxy Collections
+The latest Dell EMC OpenManage Ansible Modules are available on Ansible
+ Galaxy as collections. Please see [dellemc.openmanage
+](https://galaxy.ansible.com/dellemc/openmanage) for more information.
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. Please see the [COPYING](
