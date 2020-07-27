@@ -16,6 +16,13 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
    Kit (OMSDK) using ``` pip install omsdk --upgrade``` or from 
    [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
+## Installation
+Install the latest dellemc openmanage collection from this branch:
+```
+ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections
+```
+
+
 ## Documentation
 See the OpenManage Ansible Modules User Guide [gitpages](https://dell.github.io/dellemc-openmanage-ansible-modules).
 
