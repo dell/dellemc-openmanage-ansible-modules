@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -23,25 +23,12 @@ module: ome_firmware_baseline
 short_description: Create a firmware baseline on OpenManage Enterprise.
 version_added: "2.9"
 description: This module creates a baseline on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    type: str
-    required: true
-  username:
-    description: Target username.
-    type: str
-    required: true
-  password:
-    description: Target user password.
-    type: str
-    required: true
-  port:
-    description: Target HTTPS port.
-    type: int
-    default: 443
   baseline_name:
     type: str
+    required: true
     description:
       - Name for the baseline being created.
   baseline_description:
@@ -64,16 +51,19 @@ options:
     default: True
   device_ids:
     type: list
+    elements: int
     description:
       - list of device ids
       - I(device_ids) is mutually exclusive with I(device_service_tags) and I(device_group_names).
   device_service_tags:
     type: list
+    elements: str
     description:
       - list of service tags
       - I(device_service_tags) is mutually exclusive with I(device_ids) and I(device_group_names).
   device_group_names:
     type: list
+    elements: str
     description:
       - list of group names
       - I(device_group_names) is mutually exclusive with I(device_ids) and I(device_service_tags).
@@ -85,7 +75,7 @@ author: "Jagadeesh N V(@jagadeeshnv)"
 EXAMPLES = r'''
 ---
 - name: create baseline from device Ids.
-  ome_firmware_baseline:
+  dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -97,7 +87,7 @@ EXAMPLES = r'''
       - 2020
 
 - name: create baseline from servicetags.
-  ome_firmware_baseline:
+  dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -109,7 +99,7 @@ EXAMPLES = r'''
       - "SVCTAG2"
 
 - name: create baseline from device groups.
-  ome_firmware_baseline:
+  dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,23 +24,9 @@ version_added: "2.9"
 description:
    - "This module retrieves the list and basic details of all accounts or details of a specific account on
    OpenManage Enterprise."
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP address or hostname.
-    type: str
-    required: True
-  username:
-    description: Target username.
-    type: str
-    required: True
-  password:
-    description: Target user password.
-    type: str
-    required: True
-  port:
-    description: Target HTTPS port.
-    type: int
-    default: 443
   account_id:
     description: Unique Id of the account
     type: int
@@ -59,20 +45,20 @@ author: "Jagadeesh N V(@jagadeeshnv)"
 EXAMPLES = r'''
 ---
 - name: Retrieve basic details of all accounts.
-  ome_user_info:
+  dellemc.openmanage.ome_user_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
 - name: Retrieve details of a specific account identified by its account ID.
-  ome_user_info:
+  dellemc.openmanage.ome_user_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     account_id: 1
 
 - name: Get filtered user info based on user name.
-  ome_user_info:
+  dellemc.openmanage.ome_user_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

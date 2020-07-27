@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,23 +24,9 @@ module: ome_identity_pool
 short_description: Manages identity pool settings on OpenManage Enterprise.
 version_added: "2.9"
 description: This module allows to create, modify, or delete a single identity pool on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    required: true
-    type: str
-  username:
-    description: Target username.
-    required: true
-    type: str
-  password:
-    description: Target user password.
-    required: true
-    type: str
-  port:
-    description: Target HTTPS port.
-    default: 443
-    type: int
   state:
     description:
       - C(present) modifies an existing identity pool. If the provided I (pool_name) does not exist,
@@ -175,7 +161,7 @@ author:
 EXAMPLES = r'''
 ---
 - name: Create an identity pool using ethernet, FCoE, iSCSI and FC settings.
-  ome_identity_pool:
+  dellemc.openmanage.ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -204,7 +190,7 @@ EXAMPLES = r'''
         identity_count: 45
 
 - name: Create an identity pool using only ethernet settings.
-  ome_identity_pool:
+  dellemc.openmanage.ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -215,7 +201,7 @@ EXAMPLES = r'''
         identity_count: 80
 
 - name: Modify an identity pool
-  ome_identity_pool:
+  dellemc.openmanage.ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -230,7 +216,7 @@ EXAMPLES = r'''
         identity_count: 77
 
 - name: "Modify an identity pool using iSCSI and FC settings."
-  ome_identity_pool:
+  dellemc.openmanage.ome_identity_pool:
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
@@ -248,7 +234,7 @@ EXAMPLES = r'''
       identity_count: 98
 
 - name: Delete an identity pool
-  ome_identity_pool:
+  dellemc.openmanage.ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

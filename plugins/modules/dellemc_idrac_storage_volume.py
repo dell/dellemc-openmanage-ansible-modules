@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -24,21 +24,9 @@ short_description: Configures the RAID configuration attributes.
 version_added: "2.9"
 description:
   - This module is responsible for configuring the RAID attributes.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-  idrac_ip:
-    required: True
-    description: iDRAC IP Address.
-  idrac_user:
-    required: True
-    description: iDRAC username.
-  idrac_password:
-    required: True
-    description: iDRAC user password.
-    aliases: ['idrac_pwd']
-  idrac_port:
-    required: False
-    description: iDRAC port.
-    default: 443
   state:
     required: False
     description:
@@ -142,7 +130,7 @@ author: "Felix Stephen (@felixs88)"
 EXAMPLES = r'''
 ---
 - name: Create single volume.
-  dellemc_idrac_storage_volume:
+  dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -153,7 +141,7 @@ EXAMPLES = r'''
         location: [5]
 
 - name: Create multiple volume.
-  dellemc_idrac_storage_volume:
+  dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -188,14 +176,14 @@ EXAMPLES = r'''
         raid_init_operation: "None"
 
 - name: View all volume details.
-  dellemc_idrac_storage_volume:
+  dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
     state: "view"
 
 - name: View specific volume details.
-  dellemc_idrac_storage_volume:
+  dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -204,7 +192,7 @@ EXAMPLES = r'''
     volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
 
 - name: Delete single volume.
-  dellemc_idrac_storage_volume:
+  dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -213,7 +201,7 @@ EXAMPLES = r'''
       - name: "volume_1"
 
 - name: Delete multiple volume.
-  dellemc_idrac_storage_volume:
+  dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"

@@ -1,10 +1,10 @@
 #!/usr/bin/python
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0
-# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -24,21 +24,9 @@ short_description: Delete a Lifecycle Controller Job.
 version_added: "2.3"
 description:
     - Delete a Lifecycle Controller job for a given a JOB ID.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-    idrac_ip:
-        required: True
-        description: iDRAC IP Address.
-    idrac_user:
-        required: True
-        description: iDRAC username.
-    idrac_password:
-        required: True
-        description: iDRAC user password.
-        aliases: ['idrac_pwd']
-    idrac_port:
-        required: False
-        description: iDRAC port.
-        default: 443
     job_id:
         required: True
         description: JOB ID in the format "JID_XXXXXXXX".
@@ -52,7 +40,7 @@ author: "Felix Stephen (@felixs88)"
 EXAMPLES = """
 ---
 - name: Delete LC Job
-  dellemc_delete_lc_job:
+  dellemc.openmanage.dellemc_delete_lc_job:
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_password:  "xxxxxxxx"

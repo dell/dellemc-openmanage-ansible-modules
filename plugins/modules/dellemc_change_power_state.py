@@ -1,9 +1,9 @@
 #!/usr/bin/python
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.10
+# Version 2.1.1
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,25 +24,9 @@ short_description: Server power control.
 version_added: "2.9"
 description:
     - Server power control operations.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-    idrac_ip:
-        required: True
-        type: str
-        description: iDRAC IP Address.
-    idrac_user:
-        required: True
-        type: str
-        description: iDRAC username.
-    idrac_password:
-        required: True
-        description: iDRAC user password.
-        type: str
-        aliases: ['idrac_pwd']
-    idrac_port:
-        required: False
-        description: iDRAC port.
-        type: int
-        default: 443
     change_power:
         required:  False
         type: str
@@ -72,7 +56,7 @@ author:
 EXAMPLES = """
 ---
 - name: Change power state
-  dellemc_change_power_state:
+  dellemc.openmanage.dellemc_change_power_state:
        idrac_ip:   "192.168.0.1"
        idrac_user: "idrac_user"
        idrac_password:  "idrac_password"

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.5
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -24,22 +24,12 @@ short_description: Configures the storage controller settings.
 version_added: "2.9"
 description:
   - This module configures the settings of the storage controller using Redfish.
+extends_documentation_fragment:
+  - dellemc.openmanage.redfish_auth_options
 options:
-  baseuri:
-    description: "IP address of the target iDRAC. For example- <ipaddress>:<port>"
-    type: str
-    required: True
-  username:
-    description: Username of the target iDRAC.
-    type: str
-    required: True
-  password:
-    description: Password of the target iDRAC.
-    type: str
-    required: True
   command:
     description:
-      - Set of actions to configure the storage controller settings.
+      - These actions may require a system reset, depending on the controller's capabilities.
       - C(ResetConfig) - Deletes all the virtual disks and unassigns all hot spares on physical disks.
       - C(AssignSpare) - Assigns a physical disk as a dedicated or global hot spare for a virtual disk.
       - >-
@@ -64,6 +54,7 @@ options:
       - Applicable if I(command) is C(AssignSpare).
       - To know the number of volumes to which a hot spare can be assigned, refer iDRAC Redfish API guide.
     type: list
+    elements: str
     required: False
   controller_id:
     description:
@@ -113,7 +104,7 @@ author: "Jagadeesh N V (@jagadeeshnv)"
 EXAMPLES = r'''
 ---
 - name: Assign dedicated hot spare.
-  idrac_redfish_storage_controller:
+  dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
@@ -124,7 +115,7 @@ EXAMPLES = r'''
     - assign_dedicated_hot_spare
 
 - name: Assign global hot spare.
-  idrac_redfish_storage_controller:
+  dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
@@ -133,7 +124,7 @@ EXAMPLES = r'''
     - assign_global_hot_spare
 
 - name: Set controller encryption key.
-  idrac_redfish_storage_controller:
+  dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
@@ -145,7 +136,7 @@ EXAMPLES = r'''
     - set_controller_key
 
 - name: Rekey in LKM mode.
-  idrac_redfish_storage_controller:
+  dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
@@ -158,7 +149,7 @@ EXAMPLES = r'''
     - rekey_lkm
 
 - name: Rekey in SEKM mode.
-  idrac_redfish_storage_controller:
+  dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
@@ -169,7 +160,7 @@ EXAMPLES = r'''
     - rekey_sekm
 
 - name: Remove controller key.
-  idrac_redfish_storage_controller:
+  dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
@@ -179,7 +170,7 @@ EXAMPLES = r'''
     - remove_controller_key
 
 - name: Reset controller configuration.
-  idrac_redfish_storage_controller:
+  dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"

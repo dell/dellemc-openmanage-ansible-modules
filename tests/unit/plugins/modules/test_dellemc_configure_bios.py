@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -12,11 +12,10 @@
 from __future__ import absolute_import
 
 import pytest
+import sys
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_configure_bios
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock, PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -89,15 +88,14 @@ class TestConfigBios(FakeAnsibleModule):
         message = {"changes_applicable": True, "message": "changes are applicable"}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
-        idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
+        idrac_connection_configure_bios_mock.config_mgr.is_change_applicable.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = True
         msg, err = self.module.run_server_bios_config(idrac_connection_configure_bios_mock, f_module)
-        assert msg == {"changed": False, "failed": False, "msg": {"changes_applicable": True,
-                                                                 "message": "changes are applicable"}}
-        assert msg['changed'] is False
-        assert msg['failed'] is False
+        assert msg == {'changed': True,
+           'failed': False,
+           'msg': {'changes_applicable': True, 'message': 'changes are applicable'}}
 
     def test_run_idrac_bios_config_success_case02(self, idrac_connection_configure_bios_mock, idrac_default_args,
                                                   mocker, idrac_file_manager_config_bios_mock):
@@ -106,7 +104,7 @@ class TestConfigBios(FakeAnsibleModule):
         message = {"changes_applicable": True, "Status": "Success", "message": "changes found to commit!"}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
-        idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
+        idrac_connection_configure_bios_mock.config_mgr.is_change_applicable.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
@@ -123,7 +121,7 @@ class TestConfigBios(FakeAnsibleModule):
         message = {"changes_applicable": False, "Status": "Success", "Message": "No changes found to commit!"}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
-        idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
+        idrac_connection_configure_bios_mock.config_mgr.is_change_applicable.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
@@ -140,7 +138,7 @@ class TestConfigBios(FakeAnsibleModule):
         message = {"changes_applicable": False, "Status": "Success", "Message": "No changes found to apply."}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
-        idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
+        idrac_connection_configure_bios_mock.config_mgr.is_change_applicable.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
@@ -158,7 +156,7 @@ class TestConfigBios(FakeAnsibleModule):
         message = {"changes_applicable": False, "Status": "failed", "Message": "No changes found to apply."}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_bios._validate_params', return_value=(False, "message of validate params"))
-        idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
+        idrac_connection_configure_bios_mock.config_mgr.is_change_applicable.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
@@ -167,6 +165,25 @@ class TestConfigBios(FakeAnsibleModule):
                                                                 "changes_applicable": False, "Status": "failed"}}
         assert msg['changed'] is False
         assert msg['failed'] is True
+
+    def test_run_idrac_bios_config_bootmode_exception_failed_case0(self, idrac_connection_configure_bios_mock,
+                                                         idrac_default_args,
+                                                         mocker, idrac_file_manager_config_bios_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
+                                   "share_password": "sharepassword", "boot_sources": "bootsources"})
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'dellemc_configure_bios._validate_params', return_value=(False, "Error"))
+        error_msg = "Error in Runtime"
+        obj2 = MagicMock()
+        obj3 = MagicMock()
+        idrac_connection_configure_bios_mock.config_mgr = obj2
+        idrac_connection_configure_bios_mock.config_mgr = obj3
+        type(obj2).is_change_applicable = Mock(side_effect=Exception(error_msg))
+        type(obj3).configure_boot_sources = Mock(side_effect=Exception(error_msg))
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        result, err = self.module.run_server_bios_config(idrac_connection_configure_bios_mock, f_module)
+        assert result['failed'] is True
+        assert result['msg'] == "Error: {0}".format(error_msg)
 
     def test_run_idrac_bios_config_errorhandle_failed_case0(self, idrac_connection_configure_bios_mock,
                                                             idrac_default_args,
@@ -229,6 +246,21 @@ class TestConfigBios(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         msg, err = self.module.run_server_bios_config(idrac_connection_configure_bios_mock, f_module)
         assert msg == {'msg': 'Error: message of validate params', 'failed': True, 'changed': False}
+        assert err is True
+
+    @pytest.mark.parametrize("exc_type", [IndexError, KeyError])
+    def test_run_bios_config_status_boot_sources_indexError_failed_case(self, exc_type,
+                                                                        idrac_connection_configure_bios_mock, mocker,
+                                                              idrac_default_args, idrac_file_manager_config_bios_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
+                                   "share_password": "sharepassword", "boot_sources": None,
+                                   "attributes": {"boot_mode": "BootMode", "nvme_mode": "NvmeMode"}})
+        message = {'Status': 'Failed', 'Message': 'message of keyerror and indexerror'}
+        idrac_connection_configure_bios_mock.config_mgr.set_liason_share.return_value = message
+        idrac_connection_configure_bios_mock.config_mgr.set_liason.side_effect = exc_type
+        f_module = self.get_module_mock(params=idrac_default_args)
+        msg, err = self.module.run_server_bios_config(idrac_connection_configure_bios_mock, f_module)
+        assert msg == {'msg': 'Error: message of keyerror and indexerror', 'failed': True, 'changed': False}
         assert err is True
 
     def test_run_bios_config_status_boot_success_case(self, idrac_connection_configure_bios_mock, mocker,
@@ -441,3 +473,16 @@ class TestConfigBios(FakeAnsibleModule):
                                           [{"name": "Name0", "type": {}, "required": True},
                                            {"name": "Name2", "required": False}])
         assert result == (True, 'Name0 is required and must be of type: {}')
+
+    def test_check_params_true_case_type(self, idrac_connection_configure_bios_mock, idrac_default_args):
+        result = self.module.check_params({"required": True, 'name': ("type"), 'type': ("type")},
+                                          [{"name": ("type"), 'type': (list), "required": None}])
+        if sys.version_info[0] == 2:
+            assert result == (True, "type must be of type: <type 'list'>. type (<type 'str'>) provided.")
+        else:
+            assert result == (True, "type must be of type: <class 'list'>. type (<class 'str'>) provided.")
+
+    def test_check_params_true_case_name(self, idrac_connection_configure_bios_mock, idrac_default_args):
+        result = self.module.check_params({"required": True, 'name': 4, 'min': 7},
+                                          [{"name": "name", 'min': 6, 'type': (int), "required": False}])
+        assert result == (True, 'name must be greater than or equal to: 6')

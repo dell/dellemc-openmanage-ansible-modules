@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,40 +24,29 @@ short_description: "Firmware update of PowerEdge devices and its components thro
 version_added: "2.8"
 description: "This module updates the firmware of PowerEdge devices and all its components through
 OpenManage Enterprise."
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: "Target IP Address or hostname."
-    required: true
-    type: str
-  username:
-    description: "Target username."
-    required: true
-    type: str
-  password:
-    description: "Target user password."
-    required: true
-    type: str
-  port:
-    description: "Target HTTPS port."
-    default: 443
-    type: int
   device_service_tag:
     description:
       - List of targeted device service tags.
       - Either I(device_id) or I(device_service_tag) can be used individually or together.
       - I(device_service_tag) is mutually exclusive with I(device_group_names).
     type: list
+    elements: str
   device_id:
     description:
       - List of targeted device ids.
       - Either I(device_id) or I(device_service_tag) can be used individually or together.
       - I(device_id) is mutually exclusive with I(device_group_names).
     type: list
+    elements: int
   device_group_names:
     description:
       - Enter the name of the group to update the firmware of all the devices within the group.
       - I(device_group_names) is mutually exclusive with I(device_id) and I(device_service_tag).
     type: list
+    elements: str
   baseline_name:
     description:
       - Enter the baseline name to update the firmware of all the devices or groups of
@@ -81,7 +70,7 @@ author:
 EXAMPLES = r'''
 ---
 - name: "Update firmware from DUP file using device ids."
-  ome_firmware:
+  dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -91,7 +80,7 @@ EXAMPLES = r'''
     dup_file: "/path/Chassis-System-Management_Firmware_6N9WN_WN64_1.00.01_A00.EXE"
 
 - name: "Update firmware from a DUP file using a device service tags."
-  ome_firmware:
+  dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -101,7 +90,7 @@ EXAMPLES = r'''
     dup_file: "/path/Network_Firmware_NTRW0_WN64_14.07.07_A00-00_01.EXE"
 
 - name: "Update firmware from a DUP file using a device group names."
-  ome_firmware:
+  dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -110,14 +99,14 @@ EXAMPLES = r'''
     dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
 
 - name: "Update firmware using baseline name."
-  ome_firmware:
+  dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     baseline_name: baseline_devices
 
 - name: "Update firmware from a DUP file using a baseline names."
-  ome_firmware:
+  dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -463,10 +452,10 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
-            "device_service_tag": {"required": False, "type": "list"},
-            "device_id": {"required": False, "type": "list"},
+            "device_service_tag": {"required": False, "type": "list", "elements": 'str'},
+            "device_id": {"required": False, "type": "list", "elements": 'int'},
             "dup_file": {"required": False, "type": "str"},
-            "device_group_names": {"required": False, "type": "list"},
+            "device_group_names": {"required": False, "type": "list", "elements": 'str'},
             "baseline_name": {"required": False, "type": "str"},
         },
         required_one_of=[["device_id", "device_service_tag", "device_group_names", "baseline_name"]],

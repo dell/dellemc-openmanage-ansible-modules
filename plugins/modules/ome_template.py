@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,23 +24,9 @@ short_description: Create, modify, deploy, delete, export, import and clone a te
 version_added: "2.8"
 description: "This module creates, modifies, deploys, deletes, exports, imports and clones a template on
 OpenManage Enterprise."
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    type: str
-    required: true
-  username:
-    description: Target username.
-    type: str
-    required: true
-  password:
-    description: Target user password.
-    type: str
-    required: true
-  port:
-    description: Target HTTPS port.
-    type: int
-    default: 443
   command:
     description:
       - C(create) creates a new template.
@@ -73,6 +59,7 @@ options:
         specify the ID of a single device.
       - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
     type: list
+    elements: int
     default: []
   device_service_tag:
     description:
@@ -81,6 +68,7 @@ options:
         specify the service tag of a single device
       - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
     type: list
+    elements: str
     default: []
   template_view_type:
     description:
@@ -136,7 +124,7 @@ author: "Jagadeesh N V (@jagadeeshnv)"
 EXAMPLES = r'''
 ---
 - name: "Create a template from a reference device."
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -146,7 +134,7 @@ EXAMPLES = r'''
       Description: "New Template description"
 
 - name: "Modify template name, description, and attribute value."
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -164,7 +152,7 @@ EXAMPLES = r'''
           IsIgnored: false
 
 - name: "Deploy template on multiple devices "
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
@@ -178,7 +166,7 @@ EXAMPLES = r'''
       - 'SVTG456'
 
 - name: "Deploy template on multiple devices along with the attributes values to be modified on the target devices."
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
@@ -209,7 +197,7 @@ EXAMPLES = r'''
               IsIgnored : false
 
 - name: "Deploy template and Operating System (OS) on multiple devices"
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
@@ -241,7 +229,7 @@ EXAMPLES = r'''
 
 - name: "Deploy template on multiple devices and changes the device-level attributes. After the template is deployed,
 install OS using its image."
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
@@ -283,7 +271,7 @@ install OS using its image."
         RunNow: false
 
 - name: "delete template"
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -291,7 +279,7 @@ install OS using its image."
     template_id: 12
 
 - name: "export a template"
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -300,7 +288,7 @@ install OS using its image."
 
 # Start of example to export template to a local xml file
 - name: "export template to a local xml file"
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -317,7 +305,7 @@ install OS using its image."
 # End of example to export template to a local xml file
 
 - name: "clone a template"
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -327,7 +315,7 @@ install OS using its image."
       Name: "New Cloned Template Name"
 
 - name: "import template from XML content"
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -346,7 +334,7 @@ install OS using its image."
       <Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>\n"
 
 - name: "import template from local XML file"
-  ome_template:
+  dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
-# Copyright (C) 2019 Dell Inc.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -24,39 +24,32 @@ module: idrac_os_deployment
 short_description: Boot to a network ISO image.
 version_added: "2.9"
 description: Boot to a network ISO image.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-    idrac_ip:
-        required: True
-        description: iDRAC IP Address.
-    idrac_user:
-        required: True
-        description: iDRAC username.
-    idrac_password:
-        required: True
-        description: iDRAC user password.
-        aliases: ['idrac_pwd']
-    idrac_port:
-        required: False
-        description: iDRAC port.
-        default: 443
     share_name:
         required: True
         description: CIFS or NFS Network share.
+        type: str
     share_user:
         required: False
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+        type: str
     share_password:
         required: False
         description: Network share user password. This option is mandatory for CIFS Network Share.
+        type: str
         aliases: ['share_pwd']
     iso_image:
         required: True
         description: Network ISO name.
+        type: str
     expose_duration:
         required: False
         description: It is the time taken in minutes for the ISO image file to be exposed as a local CD-ROM device to
             the host server. When the time expires, the ISO image gets automatically detached.
+        type: int
         default: 1080
 requirements:
     - "omsdk"
@@ -69,7 +62,7 @@ author:
 EXAMPLES = r'''
 ---
 - name: Boot to Network ISO
-  idrac_os_deployment:
+  dellemc.openmanage.idrac_os_deployment:
       idrac_ip: "192.168.0.1"
       idrac_user: "user_name"
       idrac_password: "user_password"
@@ -122,7 +115,8 @@ def minutes_to_cim_format(module, dur_minutes):
         minutes = minutes % MIN_PER_HOUR
         if days > 0:
             hours = 23
-        cim_time = "{:08d}{:02d}{:02d}00.000000:000".format(days, hours, minutes)
+        cim_format = "{:08d}{:02d}{:02d}00.000000:000"
+        cim_time = cim_format.format(days, hours, minutes)
     except Exception:
         module.fail_json(msg="Invalid value for ExposeDuration.")
     return cim_time

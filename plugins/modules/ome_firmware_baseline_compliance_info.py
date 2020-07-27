@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -25,23 +25,9 @@ version_added: "2.9"
 description:
    - This module allows to retrieve firmware compliance for a list of devices,
      or against a specified baseline on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP address or hostname.
-    type: str
-    required: True
-  username:
-    description: Target username.
-    type: str
-    required: True
-  password:
-    description: Target user password.
-    type: str
-    required: True
-  port:
-    description: Target HTTPS port.
-    type: int
-    default: 443
   baseline_name:
     description:
         - Name of the baseline, for which the device compliance report is generated.
@@ -57,6 +43,7 @@ options:
           I(device_group_names) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
+    elements: int
   device_service_tags:
     description:
         - A list of service tags for device based compliance report.
@@ -66,6 +53,7 @@ options:
           I(device_group_names) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
+    elements: str
   device_group_names:
     description:
         - A list of group names for device based compliance report.
@@ -75,6 +63,7 @@ options:
           I(device_service_tags) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
+    elements: str
 requirements:
     - "python >= 2.7.5"
 author: "Sajna Shetty(@Sajna-Shetty)"
@@ -84,7 +73,7 @@ author: "Sajna Shetty(@Sajna-Shetty)"
 EXAMPLES = r'''
 ---
 - name: Retrieves device based compliance report for specified device IDs.
-  ome_firmware_baseline_compliance_info:
+  dellemc.openmanage.ome_firmware_baseline_compliance_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -93,7 +82,7 @@ EXAMPLES = r'''
         - 22222
 
 - name: Retrieves device based compliance report for specified service Tags.
-  ome_firmware_baseline_compliance_info:
+  dellemc.openmanage.ome_firmware_baseline_compliance_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -102,7 +91,7 @@ EXAMPLES = r'''
         - MXL4567
 
 - name: Retrieves device based compliance report for specified group names.
-  ome_firmware_baseline_compliance_info:
+  dellemc.openmanage.ome_firmware_baseline_compliance_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -111,7 +100,7 @@ EXAMPLES = r'''
         - "group2"
 
 - name: Retrieves device compliance report for a specified baseline.
-  ome_firmware_baseline_compliance_info:
+  dellemc.openmanage.ome_firmware_baseline_compliance_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -389,9 +378,9 @@ def main():
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "type": 'int', "default": 443},
             "baseline_name": {"type": 'str', "required": False},
-            "device_service_tags": {"required": False, "type": "list"},
-            "device_ids": {"required": False, "type": "list"},
-            "device_group_names": {"required": False, "type": "list"},
+            "device_service_tags": {"required": False, "type": "list", "elements": 'str'},
+            "device_ids": {"required": False, "type": "list", "elements": 'int'},
+            "device_group_names": {"required": False, "type": "list", "elements": 'str'},
         },
         mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'device_group_names']],
         required_one_of=[['device_ids', 'device_service_tags', 'device_group_names', 'baseline_name']],

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -13,15 +13,8 @@ from __future__ import absolute_import
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_change_power_state
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
-import pytest, json
-from io import StringIO
-from ansible.module_utils._text import to_text
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -58,13 +51,25 @@ class TestChangePowerState(FakeAnsibleModule):
         assert result["Message"] == 'No changes found to commit!'
         assert result["changes_applicable"] is False
 
+    def test_is_change_applicable_for_powerstate_success_case03(self, idrac_change_power_state_connection_mock):
+        result = self.module.is_change_applicable_for_power_state("Off - Soft", "On")
+        assert result['Status'] == "Success"
+        assert result["Message"] == 'Changes found to commit!'
+        assert result["changes_applicable"] is True
+
+    def test_is_change_applicable_for_powerstate_success_case04(self, idrac_change_power_state_connection_mock):
+        result = self.module.is_change_applicable_for_power_state("Off - Soft", "GracefulRestart")
+        assert result['Status'] == "Success"
+        assert result["Message"] == 'No changes found to commit!'
+        assert result["changes_applicable"] is False
+
     def test_is_change_applicable_for_powerstate_failed_case(self, idrac_change_power_state_connection_mock):
         result = self.module.is_change_applicable_for_power_state("GracefulRestart", "Nmis")
         assert result['Status'] == "Failed"
         assert result["Message"] == 'Failed to execute the command!'
         assert result["changes_applicable"] is False
 
-    def test_run_change_powerstate_success_case01(self,idrac_change_power_state_connection_mock, idrac_default_args,
+    def test_run_change_powerstate_success_case01(self, idrac_change_power_state_connection_mock, idrac_default_args,
                                                   mocker):
         idrac_default_args.update({"change_power": "GracefulRestart"})
         message = {'Status': 'Success', 'Message': 'Changes found to commit!', 'changes_applicable': True}
@@ -82,8 +87,7 @@ class TestChangePowerState(FakeAnsibleModule):
         idrac_default_args.update({"change_power": "On"})
         message = {'Status': 'Success', 'Message': 'No changes found to commit!','changes_applicable': False}
         idrac_change_power_state_connection_mock.config_mgr.change_power.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         result = self.module.run_change_power_state(idrac_change_power_state_connection_mock, f_module)
         assert result == ({'changed': True, 'failed': False,
                            'msg': {'Message': 'No changes found to commit!',
@@ -97,8 +101,7 @@ class TestChangePowerState(FakeAnsibleModule):
         idrac_default_args.update({"change_power": "On"})
         message = {'Status': 'Failed', 'Message': 'Failed to execute the command!', 'changes_applicable': False}
         idrac_change_power_state_connection_mock.config_mgr.change_power.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         result = self.module.run_change_power_state(idrac_change_power_state_connection_mock, f_module)
         assert result == ({'changed': False, 'failed': True,
                            'msg': {'Message': 'Failed to execute the command!',

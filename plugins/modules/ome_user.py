@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -23,23 +23,9 @@ module: ome_user
 short_description: Create, modify or delete a user on OpenManage Enterprise.
 version_added: "2.9"
 description: This module creates, modifies or deletes a user on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    type: str
-    required: true
-  username:
-    description: Target username.
-    type: str
-    required: true
-  password:
-    description: Target user password.
-    type: str
-    required: true
-  port:
-    description: Target HTTPS port.
-    type: int
-    default: 443
   state:
     type: str
     description:
@@ -78,7 +64,7 @@ author: "Sajna Shetty(@Sajna-Shetty)"
 EXAMPLES = r'''
 ---
 - name: create user with required parameters.
-  ome_user:
+  dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -89,7 +75,7 @@ EXAMPLES = r'''
       Enabled: True
 
 - name: create user with all parameters.
-  ome_user:
+  dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -105,7 +91,7 @@ EXAMPLES = r'''
       Name: "user2"
 
 - name: modify existing user.
-  ome_user:
+  dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -117,7 +103,7 @@ EXAMPLES = r'''
       Description: "Modify user Description"
 
 - name: delete existing user using id.
-  ome_user:
+  dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -125,7 +111,7 @@ EXAMPLES = r'''
     user_id: 1234
 
 - name: delete existing user using name.
-  ome_user:
+  dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

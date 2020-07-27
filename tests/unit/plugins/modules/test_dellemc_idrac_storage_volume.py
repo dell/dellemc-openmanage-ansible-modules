@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -14,10 +14,8 @@ from __future__ import absolute_import
 import pytest
 import os
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_idrac_storage_volume
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -142,12 +140,15 @@ class TestStorageVolume(FakeAnsibleModule):
                                                               idrac_default_args):
         idrac_default_args.update({"share_name": "sharename"})
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
-                     'dellemc_idrac_storage_volume._validate_options', return_value='state')
+                     'dellemc_idrac_storage_volume._validate_options', side_effect=exc_type('test'))
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume.run_server_raid_config', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result
         assert result['failed'] is True
+        # with pytest.raises(Exception) as exc:
+        #     self._run_module_with_fail_json(idrac_default_args)
+        # assert exc.value.args[0] == "msg"
 
     def test_run_server_raid_config_create_success_case(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                         mocker):
@@ -385,6 +386,22 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "read_cache_policy": "NoReadAhead"}, "", {"protocol": "SAS"})
         assert result["mediatype"] == "HDD"
 
+    def test_multiple_vd_config_capacity_none_case02(self, idrac_connection_storage_volume_mock, idrac_default_args,
+                                                   mocker):
+        idrac_default_args.update({"name": "name1", "media_type": None, "protocol": "SAS", "drives": {"id": ["id1"]},
+                                   "capacity": None, "raid_init_operation": None, 'raid_reset_config': True,
+                                   "span_depth": 1, "span_length": 1, "number_dedicated_hot_spare": 0,
+                                   "volume_type": 'RAID 0', "disk_cache_policy": "Default", "stripe_size": 64 * 1024,
+                                   "write_cache_policy": "WriteThrough", "read_cache_policy": "NoReadAhead"})
+        result = self.module.multiple_vd_config({'name': 'volume1', 'stripe_size': 1.3, "capacity": 1,
+                                                 "drives": {"id": ["id"]}}, "",
+                                                {"media_type": None, "protocol": "SAS", "raid_init_operation": None,
+                                                 'raid_reset_config': True, "span_depth": 1, "span_length": 1,
+                                                 "number_dedicated_hot_spare": 0, "volume_type": 'RAID 0',
+                                                 "disk_cache_policy": "Default", "write_cache_policy": "WriteThrough",
+                                                 "read_cache_policy": "NoReadAhead", "stripe_size": 64 * 1024})
+        assert result['Name'] == 'volume1'
+
     def test_multiple_vd_config_capacity_none_case1(self, idrac_connection_storage_volume_mock, idrac_default_args,
                                                     mocker):
         idrac_default_args.update({"name": "name1", "media_type": 'HDD', "protocol": "SAS", "drives": {"id": ["id1"]},
@@ -399,4 +416,21 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "disk_cache_policy": "Default", "stripe_size": 64 * 1024,
                                                  "write_cache_policy": "WriteThrough",
                                                  "read_cache_policy": "NoReadAhead"}, "", {"protocol": "NAS"})
+        assert result["StripeSize"] == 65536
+
+    def test_multiple_vd_config_success_case02(self, idrac_connection_storage_volume_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"name": "name1", "media_type": 'HDD', "protocol": "SAS", "drives": None,
+                                   "capacity": 2, "raid_init_operation": 'Fast', 'raid_reset_config': True,
+                                   "span_depth": 1, "span_length": 1, "number_dedicated_hot_spare": 0,
+                                   "volume_type": 'RAID 0', "disk_cache_policy": "Default",
+                                   "write_cache_policy": "WriteThrough", "read_cache_policy": "NoReadAhead",
+                                   "stripe_size": 64 * 1024})
+        result = self.module.multiple_vd_config({'name': 'volume1', 'stripe_size': 1.3, "capacity": 1,
+                                                 "media_type": None, "protocol": None,
+                                                 "raid_init_operation": "Fast",
+                                                 'raid_reset_config': False, "span_depth": 1, "span_length": 1,
+                                                 "number_dedicated_hot_spare": 0, "volume_type": 'RAID 0',
+                                                 "disk_cache_policy": "Default", "stripe_size": 64 * 1024,
+                                                 "write_cache_policy": "WriteThrough",
+                                                 "read_cache_policy": "NoReadAhead"}, "", {})
         assert result["StripeSize"] == 65536

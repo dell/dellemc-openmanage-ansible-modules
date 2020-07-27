@@ -1,0 +1,16 @@
+---
+- hosts: hosts
+  connection: local
+  name: Check LC Ready Status
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+  - name: Check LC Ready Status
+    dellemc_get_lcstatus:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+

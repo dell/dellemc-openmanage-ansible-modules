@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -56,7 +56,9 @@ class iDRACRedfishAPI(object):
         auth_kwargs['follow_redirects'] = 'all'
         return auth_kwargs
 
-    def invoke_request(self, uri, method, data={}):
+    def invoke_request(self, uri, method, data=None):
+        if data is None:
+            data = {}
         kwargs = self._auth_kwargs()
         path = self._get_url(uri)
         payload = json.dumps(data)

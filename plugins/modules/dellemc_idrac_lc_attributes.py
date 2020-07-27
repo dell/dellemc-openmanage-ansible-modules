@@ -1,10 +1,10 @@
 #!/usr/bin/python
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0
-# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -25,21 +25,9 @@ version_added: "2.3"
 description:
     -  This module is responsible for enabling or disabling of Collect System Inventory on Restart (CSIOR)
         property for all iDRAC/LC jobs.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-    idrac_ip:
-        required: True
-        description: iDRAC IP Address.
-    idrac_user:
-        required: True
-        description: iDRAC username.
-    idrac_password:
-        required: True
-        description: iDRAC user password.
-        aliases: ['idrac_pwd']
-    idrac_port:
-        required: False
-        description: iDRAC port.
-        default: 443
     share_name:
         required: True
         description: Network share or a local path.
@@ -71,7 +59,7 @@ author: "Felix Stephen (@felixs88)"
 EXAMPLES = """
 ---
 - name: Set up iDRAC LC Attributes
-  dellemc_idrac_lc_attributes:
+  dellemc.openmanage.dellemc_idrac_lc_attributes:
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_password:  "xxxxxxxx"

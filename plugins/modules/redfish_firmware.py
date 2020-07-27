@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.5
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -26,19 +26,9 @@ description:
     - This module allows the firmware update of only one component at a time.
       If the module is run for more than one component, an error message is returned.
     - Depending on the component, the firmware update is applied after an automatic or manual reboot.
+extends_documentation_fragment:
+  - dellemc.openmanage.redfish_auth_options
 options:
-    baseuri:
-        description: "IP Address of the target out-of-band controller. For example- <ipaddress>:<port>."
-        type: str
-        required: True
-    username:
-        description: Username of the target out-of-band controller.
-        type: str
-        required: True
-    password:
-        description: Password of the target out of-band controller.
-        type: str
-        required: True
     image_uri:
         description:
             - Firmware Image location URI or local path.
@@ -60,7 +50,7 @@ author:
 EXAMPLES = """
 ---
 - name: Update the firmware from a single executable file available in a HTTP protocol.
-  redfish_firmware:
+  dellemc.openmanage.redfish_firmware:
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
@@ -68,7 +58,7 @@ EXAMPLES = """
     transfer_protocol: "HTTP"
 
 - name: Update the firmware from a single executable file available in a local path.
-  redfish_firmware:
+  dellemc.openmanage.redfish_firmware:
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"

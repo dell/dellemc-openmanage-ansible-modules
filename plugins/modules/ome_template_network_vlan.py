@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -25,23 +25,9 @@ OpenManage Enterprise."
 version_added: "2.9"
 description: "This module allows to set tagged and untagged vlans to native network card supported by a template
 on OpenManage Enterprise."
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    required: true
-    type: str
-  username:
-    description: Target username.
-    required: true
-    type: str
-  password:
-    description: Target user password.
-    required: true
-    type: str
-  port:
-    description: Target HTTPS port.
-    default: 443
-    type: int
   template_name:
     description:
       - Name of the template.
@@ -111,7 +97,7 @@ author:
 EXAMPLES = r'''
 ---
 - name: Add tagged or untagged vLANs to a template using vLAN ID and name.
-  ome_template_network_vlan:
+  dellemc.openmanage.ome_template_network_vlan:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -139,7 +125,7 @@ EXAMPLES = r'''
           - vlan1
 
 - name: Clear the tagged and untagged vlans vLANs from a template.
-  ome_template_network_vlan:
+  dellemc.openmanage.ome_template_network_vlan:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
