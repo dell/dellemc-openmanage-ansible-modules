@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -13,10 +13,8 @@ from __future__ import absolute_import
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -53,7 +51,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_server_configure_profile_mock
         return idrac_server_configure_profile_mock
 
-    def test_main_idrac_server_config_profile_import_success_Case(self, idrac_connection_server_configure_profile_mock,
+    def test_main_idrac_server_config_profile_import_success_Case01(self, idrac_connection_server_configure_profile_mock,
                                                            idrac_default_args, mocker,
                                                            idrac_file_manager_server_config_profile_mock):
         idrac_default_args.update({"share_name": "sharename", "share_user": "sharename", "share_password": "sharepswd",
@@ -70,7 +68,25 @@ class TestServerConfigProfile(FakeAnsibleModule):
                           'scp_status': {'Status': 'Success'},
                           'changed': True}
 
-    def test_main_idrac_server_config_profile_export_success_Case(self, idrac_connection_server_configure_profile_mock,
+    def test_main_idrac_server_config_profile_import_success_Case02(self, idrac_connection_server_configure_profile_mock,
+                                                                  idrac_default_args, mocker,
+                                                                  idrac_file_manager_server_config_profile_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_user": "sharename", "share_password": "sharepswd",
+                                   "command": "import", "job_wait": False, "scp_components": "IDRAC",
+                                   "scp_file": "scp_file.xml"})
+        message = {"Status": "Success"}
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'idrac_server_config_profile.run_import_server_config_profile',
+                     return_value=message)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'idrac_server_config_profile.run_export_server_config_profile', return_value=("export_status"))
+        result = self._run_module(idrac_default_args)
+        assert result == {'changed': True,
+           'msg': 'Successfully triggered the job to import the Server Configuration '
+                  'Profile.',
+           'scp_status': {'Status': 'Success'}}
+
+    def test_main_idrac_server_config_profile_export_success_Case01(self, idrac_connection_server_configure_profile_mock,
                                                            idrac_default_args, mocker,
                                                            idrac_file_manager_server_config_profile_mock):
         idrac_default_args.update({"share_name": "sharename", "share_user": "sharename", "share_password": "sharepswd",
@@ -85,6 +101,23 @@ class TestServerConfigProfile(FakeAnsibleModule):
         assert result == {'msg': 'Successfully exported the Server Configuration Profile.',
                           'scp_status': {'Status': 'Success'},
                           'changed': False}
+
+    def test_main_idrac_server_config_profile_export_success_Case02(self, idrac_connection_server_configure_profile_mock,
+                                                           idrac_default_args, mocker,
+                                                           idrac_file_manager_server_config_profile_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_user": "sharename", "share_password": "sharepswd",
+                                   "command": "export", "job_wait": False, "scp_components": "IDRAC",
+                                   "scp_file": "scp_file.xml"})
+        message = {"Status": "Success"}
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'idrac_server_config_profile.run_import_server_config_profile', return_value=("import_status"))
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'idrac_server_config_profile.run_export_server_config_profile', return_value=message)
+        result = self._run_module(idrac_default_args)
+        assert result == {'changed': False,
+           'msg': 'Successfully triggered the job to export the Server Configuration '
+                  'Profile.',
+           'scp_status': {'Status': 'Success'}}
 
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_idrac_server_config_profile_exception_handling_case(self, exc_type, mocker, idrac_default_args,

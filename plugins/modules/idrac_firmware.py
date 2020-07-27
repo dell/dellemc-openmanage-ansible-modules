@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.11
+# Version 2.1.1
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -28,24 +28,9 @@ description:
     - Network share should contain a valid repository of Update Packages (DUPs) and a catalog file describing the DUPs.
     - All applicable updates contained in the repository are applied to the system.
     - This feature is available only with iDRAC Enterprise License.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-    idrac_ip:
-        description: iDRAC IP Address.
-        type: str
-        required: True
-    idrac_user:
-        description: iDRAC username.
-        type: str
-        required: True
-    idrac_password:
-        description: iDRAC user password.
-        type: str
-        required: True
-        aliases: ['idrac_pwd']
-    idrac_port:
-        description: iDRAC port.
-        type: int
-        default: 443
     share_name:
         description: Network share path of update repository. CIFS, NFS, HTTP, HTTPS and FTP share types are supported.
         type: str
@@ -59,11 +44,17 @@ options:
         type: str
         aliases: ['share_pwd']
     share_mnt:
-        description: Local mount path of the network share with read-write permission for ansible user.
+        description:
+          - Local mount path of the network share with read-write permission for ansible user.
+          - This option is not applicable for HTTP, HTTPS, and FTP shares.
         type: str
         required: False
     reboot:
-        description: Whether to reboot for applying the updates or not.
+        description:
+          - Whether to reboot for applying the updates or not.
+          - If I(reboot) is C(False), updates take effect after the system is rebooted. If update packages
+            in the repository require a reboot, ensure that I(reboot) is C(False) and I(job_wait) is C(True).
+            If not, the module will continue to wait for a system reboot and eventually time out.
         type: bool
         default: False
     job_wait:
@@ -99,7 +90,7 @@ author:
 EXAMPLES = """
 ---
 - name: Update firmware from repository on a NFS Share
-  idrac_firmware:
+  dellemc.openmanage.idrac_firmware:
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
        idrac_password: "user_password"
@@ -110,7 +101,7 @@ EXAMPLES = """
        catalog_file_name: "Catalog.xml"
 
 - name: Update firmware from repository on a CIFS Share
-  idrac_firmware:
+  dellemc.openmanage.idrac_firmware:
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
        idrac_password: "user_password"
@@ -123,7 +114,7 @@ EXAMPLES = """
        catalog_file_name: "Catalog.xml"
 
 - name: Update firmware from repository on a HTTP
-  idrac_firmware:
+  dellemc.openmanage.idrac_firmware:
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
        idrac_password: "user_password"
@@ -133,7 +124,7 @@ EXAMPLES = """
        apply_update: True
 
 - name: Update firmware from repository on a HTTPS
-  idrac_firmware:
+  dellemc.openmanage.idrac_firmware:
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
        idrac_password: "user_password"
@@ -143,7 +134,7 @@ EXAMPLES = """
        apply_update: True
 
 - name: Update firmware from repository on a FTP
-  idrac_firmware:
+  dellemc.openmanage.idrac_firmware:
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
        idrac_password: "user_password"

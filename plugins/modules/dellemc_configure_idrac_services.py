@@ -1,9 +1,9 @@
 #!/usr/bin/python
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,21 +24,9 @@ short_description: Configures the iDRAC services attributes.
 version_added: "2.3"
 description:
     - This module is responsible for configuring the iDRAC services attributes.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-    idrac_ip:
-        required: True
-        description: iDRAC IP Address.
-    idrac_user:
-        required: True
-        description: iDRAC username.
-    idrac_password:
-        required: True
-        description: iDRAC user password.
-        aliases: ['idrac_pwd']
-    idrac_port:
-        required: False
-        description: iDRAC port.
-        default: 443
     share_name:
         required: True
         description: Network share or a local path.
@@ -119,7 +107,7 @@ author: "Felix Stephen (@felixs88)"
 EXAMPLES = """
 ---
 - name: Configure the iDRAC services attributes.
-  dellemc_configure_idrac_services:
+  dellemc.openmanage.dellemc_configure_idrac_services:
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_password:  "xxxxxxxx"
@@ -128,19 +116,19 @@ EXAMPLES = """
        share_user: "xxxx"
        share_mnt: "/mnt/share"
        enable_web_server: "Enabled"
-       http_port: "80"
-       https_port: "443"
+       http_port: 80
+       https_port: 443
        ssl_encryption: "Auto_Negotiate"
        tls_protocol: "TLS_1_2_Only"
        timeout: "1800"
        snmp_enable: "Enabled"
        snmp_protocol: "SNMPv3"
-       community_name: "None"
-       alert_port: "None"
-       discovery_port: "162"
+       community_name: "public"
+       alert_port: 162
+       discovery_port: 161
        trap_format: "SNMPv3"
        ipmi_lan:
-         community_name: public
+         community_name: "public"
 """
 
 RETURNS = """

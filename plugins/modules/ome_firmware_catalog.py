@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -23,25 +23,12 @@ module: ome_firmware_catalog
 short_description: Creates a catalog on OpenManage Enterprise.
 version_added: "2.9"
 description: This module triggers the job to create a catalog on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    type: str
-    required: true
-  username:
-    description: Target username.
-    type: str
-    required: true
-  password:
-    description: Target user password.
-    type: str
-    required: true
-  port:
-    description: Target HTTPS port.
-    type: int
-    default: 443
   catalog_name:
     type: str
+    required: true
     description:
       - Name of the firmware catalog being created.
   catalog_description:
@@ -94,7 +81,7 @@ author: "Sajna Shetty(@Sajna-Shetty)"
 EXAMPLES = r'''
 ---
 - name: create catalog from repository on a HTTPS.
-  ome_firmware_catalog:
+  dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
     catalog_name: "catalog_name"
@@ -106,7 +93,7 @@ EXAMPLES = r'''
     check_certificate: True
 
 - name: create catalog from repository on a HTTP.
-  ome_firmware_catalog:
+  dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
     catalog_name: "catalog_name"
@@ -117,7 +104,7 @@ EXAMPLES = r'''
     file_name: "catalog.gz"
 
 - name: create catalog from CIFS network share.
-  ome_firmware_catalog:
+  dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
     catalog_name: "catalog_name"
@@ -131,7 +118,7 @@ EXAMPLES = r'''
     repository_domain: "repository_domain"
 
 - name: create catalog from NFS network share.
-  ome_firmware_catalog:
+  dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
     catalog_name: "catalog_name"

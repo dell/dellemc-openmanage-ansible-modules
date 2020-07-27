@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -12,18 +12,12 @@
 from __future__ import absolute_import
 
 import json
-
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch, mock_open
 import pytest
-import socket
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_firmware
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
-from ansible.module_utils.six.moves.urllib.parse import urlparse
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.parse import urlparse, ParseResult
@@ -412,3 +406,43 @@ class TestidracFirmware(FakeAnsibleModule):
                                                  "catalog.xml",
                                                  True, True, True, False, payload)
         assert result == ({'job_details': {'Data': {'GetRepoBasedUpdateList_OUTPUT': {'Message': [{}]}}}}, {})
+
+    def test_update_firmware_url(self, idrac_connection_firmware_mock, idrac_default_args,
+                                 mocker, idrac_connection_firmware_redfish_mock):
+        idrac_default_args.update({"share_name": "http://downloads.dell.com", "catalog_file_name": "catalog.xml",
+                                   "share_user": "shareuser", "share_password": "sharepswd", "share_mnt": "sharmnt",
+                                   "reboot": True, "job_wait": False, "ignore_cert_warning": True,
+                                   "share_type": "http", "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
+                                   "idrac_password": "idrac_password", "idrac_port": 443})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.get_jobid", return_value="23451")
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.eval", return_value={"PackageList": []})
+        idrac_connection_firmware_mock.use_redfish = True
+        idrac_connection_firmware_mock.idrac.update_mgr.job_mgr.get_job_status_redfish.return_value = "23451"
+        f_module = self.get_module_mock(params=idrac_default_args)
+        payload = {"ApplyUpdate": "True", "CatalogFile": "Catalog.xml", "IgnoreCertWarning": "On",
+                   "RebootNeeded": True, "UserName": "username", "Password": "psw"}
+        result = self.module.update_firmware_url(f_module, idrac_connection_firmware_mock, "http://downloads.dell.com/repo",
+                                                 "catalog.xml", True, True, True, True, payload)
+        assert result[1] == {"PackageList": []}
+
+    def test_update_firmware_redfish(self, idrac_connection_firmware_mock, idrac_default_args, re_match_mock,
+                                     mocker, idrac_connection_firmware_redfish_mock, fileonshare_idrac_firmware_mock):
+        idrac_default_args.update({"share_name": "192.168.0.1:/share_name", "catalog_file_name": "catalog.xml",
+                                   "share_user": "shareuser", "share_password": "sharepswd", "share_mnt": "sharmnt",
+                                   "reboot": True, "job_wait": False, "ignore_cert_warning": True,
+                                   "share_type": "http", "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
+                                   "idrac_password": "idrac_password", "idrac_port": 443, 'apply_update': True})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.SHARE_TYPE", return_value={"NFS": "NFS"})
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.eval", return_value={"PackageList": []})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        re_mock = mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.re", return_value=MagicMock())
+        re_mock.match(MagicMock(), MagicMock()).group.return_value = "3.60"
+        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.idrac_firmware.get_jobid", return_value="23451")
+        idrac_connection_firmware_mock.idrac.update_mgr.job_mgr.get_job_status_redfish.return_value = "23451"
+        idrac_connection_firmware_mock.ServerGeneration = "14"
+        upd_share = fileonshare_idrac_firmware_mock
+        upd_share.remote_addr.return_value = "192.168.0.1"
+        upd_share.remote.share_name.return_value = "share_name"
+        upd_share.remote_share_type.name.lower.return_value = "NFS"
+        result = self.module.update_firmware(idrac_connection_firmware_mock, f_module)
+        assert result['update_msg'] == "Successfully triggered the job to update the firmware."

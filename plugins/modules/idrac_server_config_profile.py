@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,28 +24,14 @@ short_description: Export or Import iDRAC Server Configuration Profile (SCP).
 version_added: "2.8"
 description:
   - Export the Server Configuration Profile (SCP) from the iDRAC or Import from a network share or a local file.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-  idrac_ip:
-    description: iDRAC IP Address.
-    type: str
-    required: True
-  idrac_user:
-    description: iDRAC username.
-    type: str
-    required: True
-  idrac_password:
-    description: iDRAC user password.
-    type: str
-    required: True
-    aliases: ['idrac_pwd']
-  idrac_port:
-    description: iDRAC port.
-    type: int
-    default: 443
   command:
     description:
       - If C(import), will perform SCP import operations.
       - If C(export), will perform SCP export operations.
+    type: str
     choices: ['import', 'export']
     default: 'export'
   job_wait:
@@ -74,6 +60,7 @@ options:
       - If C(BIOS), this module will import BIOS configuration from SCP file.
       - If C(NIC), this module will import NIC configuration from SCP file.
       - If C(RAID), this module will import RAID configuration from SCP file.
+    type: str
     choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
     default: 'ALL'
   shutdown_type:
@@ -82,6 +69,7 @@ options:
       - If C(Graceful), it gracefully shuts down the server.
       - If C(Forced),  it forcefully shuts down the server.
       - If C(NoReboot), it does not reboot the server.
+    type: str
     choices: ['Graceful', 'Forced', 'NoReboot']
     default: 'Graceful'
   end_host_power_state:
@@ -89,15 +77,18 @@ options:
       - This option is applicable for C(import) command.
       - If C(On), End host power state is on.
       - If C(Off), End host power state is off.
+    type: str
     choices: ['On' ,'Off']
     default: 'On'
   export_format:
     description: Specify the output file format. This option is applicable for C(export) command.
+    type: str
     choices: ['JSON',  'XML']
     default: 'XML'
   export_use:
     description: Specify the type of server configuration profile (SCP) to be exported.
       This option is applicable for C(export) command.
+    type: str
     choices: ['Default',  'Clone', 'Replace']
     default: 'Default'
 
@@ -111,7 +102,7 @@ author: "Jagadeesh N V(@jagadeeshnv)"
 EXAMPLES = r'''
 ---
 - name: Import SCP from a network share and wait for this job to get completed.
-  idrac_server_config_profile:
+  dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
@@ -124,7 +115,7 @@ EXAMPLES = r'''
     job_wait: True
 
 - name: Import SCP from a local path and wait for this job to get completed.
-  idrac_server_config_profile:
+  dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
@@ -135,7 +126,7 @@ EXAMPLES = r'''
     job_wait: True
 
 - name: Export SCP to a network share
-  idrac_server_config_profile:
+  dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
@@ -145,7 +136,7 @@ EXAMPLES = r'''
     job_wait: False
 
 - name: Export SCP to a local path
-  idrac_server_config_profile:
+  dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
@@ -182,8 +173,8 @@ scp_status:
 '''
 
 import os
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 try:
     from omsdk.sdkfile import file_share_manager
     from omsdk.sdkcreds import UserCredentials

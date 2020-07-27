@@ -1,9 +1,9 @@
 #!/usr/bin/python
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,25 +24,9 @@ short_description: Export Lifecycle Controller logs to a network share.
 version_added: "2.3"
 description:
     - Export Lifecycle Controller logs  to a given network share.
+extends_documentation_fragment:
+  - dellemc.openmanage.idrac_auth_options
 options:
-    idrac_ip:
-        required: True
-        type: str
-        description: iDRAC IP Address.
-    idrac_user:
-        required: True
-        type: str
-        description: iDRAC username.
-    idrac_password:
-        required: True
-        type: str
-        description: iDRAC user password.
-        aliases: ['idrac_pwd']
-    idrac_port:
-        required: False
-        type: int
-        description: iDRAC port.
-        default: 443
     share_name:
         required: True
         type: str
@@ -72,7 +56,7 @@ author: "Rajeev Arakkal (@rajeevarakkal)"
 EXAMPLES = """
 ---
 - name: Export Lifecycle Controller Logs
-  dellemc_export_lc_logs:
+  dellemc.openmanage.dellemc_export_lc_logs:
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_password:  "xxxxxxxx"

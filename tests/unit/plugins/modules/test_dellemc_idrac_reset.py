@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -13,11 +13,8 @@ from __future__ import absolute_import
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_idrac_reset
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -71,13 +68,23 @@ class TestReset(FakeAnsibleModule):
                            'msg': {'Status': 'Success', 'Message': 'Changes found to commit!',
                                    'changes_applicable': True}}, False)
 
+    def test_run_idrac_reset_Exception_fail_case01(self, idrac_reset_connection_mock, idrac_default_args,
+                                         idrac_config_mngr_reset_mock):
+        error_msg = "Error in Runtime"
+        obj2 = MagicMock()
+        idrac_reset_connection_mock.config_mgr = obj2
+        type(obj2).reset_idrac = Mock(side_effect=Exception(error_msg))
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        result, err = self.module.run_idrac_reset(idrac_reset_connection_mock, f_module)
+        assert result['failed'] is True
+        assert result['msg'] == "Error: {0}".format(error_msg)
+
     def test_run_idrac_reset_status_success_case02(self, idrac_reset_connection_mock, idrac_default_args):
         msg = {"Status": "Success"}
         obj = MagicMock()
         idrac_reset_connection_mock.config_mgr = obj
         obj.reset_idrac = Mock(return_value="msg")
-        f_module = self.get_module_mock(params=msg)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=msg, check_mode=False)
         msg, err = self.module.run_idrac_reset(idrac_reset_connection_mock, f_module)
         assert msg == {'changed': False, 'failed': False, 'msg': {'idracreset': 'msg'}}
 

@@ -2,10 +2,12 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
+# Other trademarks may be trademarks of their respective owners.
 #
 
 from __future__ import absolute_import
@@ -13,13 +15,12 @@ from __future__ import absolute_import
 import json
 
 import pytest
-from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_webserver
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants, AnsibleFailJSonException
 from io import StringIO
 from ansible.module_utils._text import to_text
-from ssl import SSLError
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_webserver
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 
 
 @pytest.fixture
@@ -84,11 +85,14 @@ class TestOmeAppNetwork(FakeAnsibleModule):
 
     in1 = {"check_mode": True, "timeout": 25}
     in2 = {"check_mode": True, "timeout": 30}
+    in3 = {"check_mode": False, "timeout": 25}
     out1 = "No changes found to be applied to the web server."
     out2 = "Changes found to be applied to the web server."
+    out3 = "No changes made to the web server configuration as the entered values are the same as the current configuration."
 
     @pytest.mark.parametrize("sub_param", [{"in": in1, "out": out1},
-                                           {"in": in2, "out": out2}])
+                                           {"in": in2, "out": out2},
+                                           {"in": in3, "out": out3}])
     def test_get_updated_payload_check_mode(self, sub_param, ome_default_args,
                                                                 ome_connection_mock_for_application_network_webserver, ome_response_mock):
         new_param = {"webserver_port": 443, "webserver_timeout": sub_param["in"]["timeout"]}
@@ -102,11 +106,12 @@ class TestOmeAppNetwork(FakeAnsibleModule):
             self.module.get_updated_payload(ome_connection_mock_for_application_network_webserver, f_module)
 
     @pytest.mark.parametrize("exc_type",
-                             [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
+                             [IOError, ValueError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_application_network_webserver_main_error_cases(self, exc_type, mocker, ome_default_args,
                                                                         ome_connection_mock_for_application_network_webserver,
                                                                         ome_response_mock):
         json_str = to_text(json.dumps({"info": "error_details"}))
+        ome_default_args.update({"webserver_port": 443, "webserver_timeout": 25})
         if exc_type == URLError:
             mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_webserver.get_updated_payload',
                          side_effect=exc_type("urlopen error"))

@@ -1,0 +1,8 @@
+omsdk
+pytest
+pytest-xdist
+mock
+pytest-mock
+pytest-cov
+pytest-ansible
+coverage

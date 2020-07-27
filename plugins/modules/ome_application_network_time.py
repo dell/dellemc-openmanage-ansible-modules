@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -23,23 +23,9 @@ module: ome_application_network_time
 short_description: Updates the network time on OpenManage Enterprise.
 version_added: "2.9"
 description: This module allows the configuration of network time on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    required: true
-    type: str
-  username:
-    description: Target username.
-    required: true
-    type: str
-  password:
-    description: Target user password.
-    required: true
-    type: str
-  port:
-    description: Target HTTPS port.
-    default: 443
-    type: int
   enable_ntp:
     description:
       - Enables or disables Network Time Protocol(NTP).
@@ -84,7 +70,7 @@ author:
 EXAMPLES = r'''
 ---
 - name: Configure system time.
-  ome_application_network_time:
+  dellemc.openmanage.ome_application_network_time:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -93,7 +79,7 @@ EXAMPLES = r'''
     time_zone: "TZ_ID_11"
 
 - name: Configure NTP server for time synchronization.
-  ome_application_network_time:
+  dellemc.openmanage.ome_application_network_time:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

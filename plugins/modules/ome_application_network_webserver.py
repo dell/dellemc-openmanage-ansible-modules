@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -23,23 +23,9 @@ module: ome_application_network_webserver
 short_description: Updates the Web server configuration on OpenManage Enterprise.
 version_added: "2.9"
 description: This module allows to configure a network web server on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    required: true
-    type: str
-  username:
-    description: Target username.
-    required: true
-    type: str
-  password:
-    description: Target user password.
-    required: true
-    type: str
-  port:
-    description: Target HTTPS port.
-    default: 443
-    type: int
   webserver_port:
     description:
       - Port number used by OpenManage Enterprise to establish a secure server connection.
@@ -60,7 +46,7 @@ author:
 EXAMPLES = r'''
 ---
 - name: Update web server port and session time out.
-  ome_application_network_webserver:
+  dellemc.openmanage.ome_application_network_webserver:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -68,14 +54,14 @@ EXAMPLES = r'''
     webserver_timeout: 20
 
 - name: Update session time out
-  ome_application_network_webserver:
+  dellemc.openmanage.ome_application_network_webserver:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     webserver_timeout: 30
 
 - name: Update web server port.
-  ome_application_network_webserver:
+  dellemc.openmanage.ome_application_network_webserver:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

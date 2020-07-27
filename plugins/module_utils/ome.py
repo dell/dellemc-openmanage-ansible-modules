@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 1.3
+# Version 2.1
 # Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -92,7 +92,9 @@ class RestOME(object):
         if path:
             url = '{0}/{1}'.format(base_uri, path)
         if query_param:
-            url += "?{0}".format(urlencode(query_param))
+            """Ome filtering does not work as expected when '+' is passed,
+            urlencode will encode spaces as '+' so replace it to '%20'"""
+            url += "?{0}".format(urlencode(query_param).replace('+', '%20'))
         return url
 
     def _url_common_args_spec(self, method, api_timeout, headers=None):

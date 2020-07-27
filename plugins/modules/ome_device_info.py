@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.2
-# Copyright (C) 2019 Dell Inc.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -26,27 +26,9 @@ short_description: Retrieves the information of devices inventoried by OpenManag
 version_added: "2.9"
 description:
    - This module retrieves the list of devices in the inventory of OpenManage Enterprise along with the details of each device.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-    hostname:
-        description:
-            - Target IP Address or hostname.
-        type: str
-        required: True
-    username:
-        description:
-            - Target username.
-        type: str
-        required: True
-    password:
-        description:
-            - Target user password.
-        type: str
-        required: True
-    port:
-        description:
-            - Target HTTPS port.
-        type: int
-        default: 443
     fact_subset:
         description:
             - C(basic_inventory) returns the list of the devices.
@@ -66,11 +48,13 @@ options:
                     - A list of unique identifier is applicable
                       for C(detailed_inventory) and C(subsystem_health).
                  type: list
+                 elements: int
             device_service_tag:
                  description:
                     - A list of service tags are applicable for C(detailed_inventory)
                       and C(subsystem_health).
                  type: list
+                 elements: str
             inventory_type:
                 description:
                     - For C(detailed_inventory), it returns details of the specified inventory type.
@@ -89,13 +73,13 @@ author: "Sajna Shetty(@Sajna-Shetty)"
 EXAMPLES = """
 ---
 - name: Retrieve basic inventory of all devices.
-  ome_device_info:
+  dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
 - name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering.
-  ome_device_info:
+  dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -104,7 +88,7 @@ EXAMPLES = """
       filter: "Id eq 33333 or Id eq 11111"
 
 - name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222.
-  ome_device_info:
+  dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -115,7 +99,7 @@ EXAMPLES = """
         - 22222
 
 - name: Retrieve inventory details of specified devices identified by service tags MXL1234 and MXL4567.
-  ome_device_info:
+  dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -126,7 +110,7 @@ EXAMPLES = """
         - MXL4567
 
 - name: Retrieve details of specified inventory type of specified devices identified by ID and service tags.
-  ome_device_info:
+  dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -140,7 +124,7 @@ EXAMPLES = """
       inventory_type: "serverDeviceCards"
 
 - name: Retrieve subsystem health of specified devices identified by service tags.
-  ome_device_info:
+  dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -376,8 +360,8 @@ def _validate_inputs(module_params):
 
 def main():
     system_query_options = {"type": 'dict', "required": False, "options": {
-        "device_id": {"type": 'list'},
-        "device_service_tag": {"type": 'list'},
+        "device_id": {"type": 'list', "elements": 'int'},
+        "device_service_tag": {"type": 'list', "elements": 'str'},
         "inventory_type": {"type": 'str'},
         "filter": {"type": 'str', "required": False},
     }}

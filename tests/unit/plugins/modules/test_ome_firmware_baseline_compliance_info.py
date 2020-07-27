@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.4
-# Copyright (C) 2019 Dell Inc.
+# Version 2.1.1
+# Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -14,16 +14,12 @@ from __future__ import absolute_import
 
 import pytest
 import json
-from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware_baseline_compliance_info
-from ansible.module_utils.six.moves.urllib.error import HTTPError
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import AnsibleFailJSonException
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
+from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware_baseline_compliance_info
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, AnsibleFailJSonException, Constants
 
 
 @pytest.fixture

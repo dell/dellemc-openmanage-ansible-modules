@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -13,10 +13,8 @@ from __future__ import absolute_import
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_setup_idrac_syslog
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -86,6 +84,17 @@ class TestSetupSyslog(FakeAnsibleModule):
         assert msg['changed'] is True
         assert msg['failed'] is False
 
+    def test_run_setup_idrac_syslog_disable_success_case01(self, idrac_connection_setup_syslog_mock, idrac_default_args,
+                                                   idrac_file_manager_mock, is_changes_applicable_setup_syslog_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
+                                   "syslog": "Disabled", "share_password": "sharepassword"})
+        message = {"changes_applicable": True, "message": "changes are applicable"}
+        idrac_connection_setup_syslog_mock.config_mgr.is_change_applicable.return_value = message
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        msg, err = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
+        assert msg == {'changed': True, 'failed': False, 'msg': {'changes_applicable': True,
+                                                                 'message': 'changes are applicable'}}
+
     def test_run_setup_idrac_syslog_success_case02(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                    idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
@@ -93,8 +102,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         message = {"changes_applicable": True, "message": "changes found to commit!", "changed": True,
                    "Status": "Success"}
         idrac_connection_setup_syslog_mock.config_mgr.enable_syslog.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         msg, err = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert msg == {"changed": True, "failed": False, "msg": {"changes_applicable": True,
                                                                  "message": "changes found to commit!",
@@ -109,8 +117,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         message = {"changes_applicable": True, "Message": "No changes found to commit!", "changed": False,
                    "Status": "Success"}
         idrac_connection_setup_syslog_mock.config_mgr.enable_syslog.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         msg, err = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert msg == {"changed": False, "failed": False, "msg": {"changes_applicable": True,
                                                                   "Message": "No changes found to commit!",
@@ -125,8 +132,7 @@ class TestSetupSyslog(FakeAnsibleModule):
         message = {"changes_applicable": True, "Message": "No Changes found to commit!", "changed": False,
                    "Status": "Success"}
         idrac_connection_setup_syslog_mock.config_mgr.disable_syslog.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         msg, err = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert msg == {"changed": True, "failed": False, "msg": {"changes_applicable": True,
                                                                   "Message": "No Changes found to commit!",
@@ -169,6 +175,19 @@ class TestSetupSyslog(FakeAnsibleModule):
         result, err = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert result == {'changed': False, 'failed': True, 'msg': 'status failed in checking Data'}
 
+    @pytest.mark.parametrize("exc_type", [IndexError, KeyError])
+    def test_run_setup_idrac_syslog_failed_indexerror_case01(self, exc_type, idrac_connection_setup_syslog_mock, idrac_default_args,
+                                                  idrac_file_manager_mock):
+        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
+                                   "syslog": "Enable", "share_password": "sharepassword"})
+        message = {'Status': 'Failed', 'Message': "failed to fetch data"}
+        idrac_connection_setup_syslog_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
+        idrac_connection_setup_syslog_mock.config_mgr.set_liason_share.return_value = message
+        idrac_connection_setup_syslog_mock.config_mgr.set_liason.side_effect = exc_type
+        f_module = self.get_module_mock(params=idrac_default_args)
+        result = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
+        assert result == ({'changed': False, 'failed': True, 'msg': 'failed to fetch data'}, True)
+
     def test_run_setup_idrac_syslog_failed_case03(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                   idrac_file_manager_mock):
         idrac_default_args.update({"share_name": "dummy_share_name", "share_mnt": "mountname",
@@ -178,8 +197,7 @@ class TestSetupSyslog(FakeAnsibleModule):
                    "Status": "failed"}
         idrac_connection_setup_syslog_mock.config_mgr.enable_syslog.return_value = message
         idrac_connection_setup_syslog_mock.config_mgr.disable_syslog.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        f_module.check_mode = False
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         msg, err = self.module.run_setup_idrac_syslog(idrac_connection_setup_syslog_mock, f_module)
         assert msg == {'msg': {"message": "No changes were applied", "changed": False,
                       "Status": "failed"}, 'failed': True, 'changed': False}

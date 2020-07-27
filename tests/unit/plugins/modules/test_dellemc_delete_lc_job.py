@@ -13,16 +13,8 @@ from __future__ import absolute_import
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_delete_lc_job
-from ansible_collections.dellemc.openmanage.tests.unit.modules.common import FakeAnsibleModule, Constants
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
-import pytest, json
-from io import StringIO
-from ansible.module_utils._text import to_text
-from ansible_collections.dellemc.openmanage.tests.unit.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock, PropertyMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")

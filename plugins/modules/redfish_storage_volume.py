@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,19 +24,9 @@ short_description: Manages the storage volume configuration.
 version_added: "2.9"
 description:
    - This module allows to create, modify, initialize, or delete a single storage volume.
+extends_documentation_fragment:
+  - dellemc.openmanage.redfish_auth_options
 options:
-  baseuri:
-    description: "IP address of the target out-of-band controller. For example- <ipaddress>:<port>"
-    type: str
-    required: True
-  username:
-    description: Username of the target out-of-band controller.
-    type: str
-    required: True
-  password:
-    description: Password of the target out-of-band controller.
-    type: str
-    required: True
   controller_id:
     description:
       - Fully Qualified Device Descriptor (FQDD) of the storage controller.
@@ -102,6 +92,7 @@ options:
       - For example- Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1.
       - Only applicable when I(state) is C(present) when creating a new volume.
     type: list
+    elements: str
     required: False
   block_size_bytes:
     description:
@@ -161,7 +152,7 @@ author: "Sajna Shetty(@Sajna-Shetty)"
 EXAMPLES = r'''
 ---
 - name: Create a volume with supported options.
-  redfish_storage_volume:
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
@@ -179,7 +170,7 @@ EXAMPLES = r'''
     encrypted: true
 
 - name: Create a volume with minimum options.
-  redfish_storage_volume:
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
@@ -190,7 +181,7 @@ EXAMPLES = r'''
        - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
 
 - name: Modify a volume's encryption type settings.
-  redfish_storage_volume:
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
@@ -200,7 +191,7 @@ EXAMPLES = r'''
     encrypted: true
 
 - name: Delete an existing volume.
-  redfish_storage_volume:
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
@@ -208,7 +199,7 @@ EXAMPLES = r'''
     volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
 
 - name: Initialize an existing volume.
-  redfish_storage_volume:
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"

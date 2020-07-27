@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -30,23 +30,9 @@ notes:
   - The configuration changes can only be applied to one interface at a time.
   - "Once the configuration changes are applied, the system management consoles might be unreachable for 2 minutes,
   based on the changes made."
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP Address or hostname.
-    required: true
-    type: str
-  username:
-    description: Target username.
-    required: true
-    type: str
-  password:
-    description: Target user password.
-    required: true
-    type: str
-  port:
-    description: Target HTTPS port.
-    default: 443
-    type: int
   enable_nic:
     description: Enable or disable Network Interface Card (NIC) configuration.
     type: bool
@@ -208,7 +194,7 @@ author:
 EXAMPLES = r'''
 ---
 - name: IPv4 network configuration for primary interface
-  ome_application_network_address:
+  dellemc.openmanage.ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -225,7 +211,7 @@ EXAMPLES = r'''
     reboot_delay: 5
 
 - name: IPv6 network configuration for primary interface
-  ome_application_network_address:
+  dellemc.openmanage.ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -240,7 +226,7 @@ EXAMPLES = r'''
       static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
 
 - name: Management vLAN configuration for primary interface
-  ome_application_network_address:
+  dellemc.openmanage.ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -252,7 +238,7 @@ EXAMPLES = r'''
     reboot_delay: 1
 
 - name: DNS settings
-  ome_application_network_address:
+  dellemc.openmanage.ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -268,7 +254,7 @@ EXAMPLES = r'''
       dns_domain_name: "dnslocaldomain"
 
 - name: Disbale nic interface eth1
-  ome_application_network_address:
+  dellemc.openmanage.ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -276,7 +262,7 @@ EXAMPLES = r'''
     interface_name: eth1
 
 - name: Complete network settings for interface eth1
-  ome_application_network_address:
+  dellemc.openmanage.ome_application_network_address:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

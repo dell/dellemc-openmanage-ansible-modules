@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,23 +24,9 @@ short_description: Retrieves baseline details from OpenManage Enterprise.
 version_added: "2.9"
 description:
    - This module retrieves the list and details of all the baselines on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP address or hostname.
-    type: str
-    required: True
-  username:
-    description: Target username.
-    type: str
-    required: True
-  password:
-    description: Target user password.
-    type: str
-    required: True
-  port:
-    description: Target HTTPS port.
-    type: int
-    default: 443
   baseline_name:
     description: Name of the baseline.If I(baseline_name) is not provided,
      all the available firmware baselines are returned.
@@ -54,13 +40,13 @@ author: "Sajna Shetty(@Sajna-Shetty)"
 EXAMPLES = r'''
 ---
 - name: Retrieve details of all the available firmware baselines.
-  ome_firmware_baseline_info:
+  dellemc.openmanage.ome_firmware_baseline_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
 - name: Retrieve details of a specific firmware baseline identified by its baseline name.
-  ome_firmware_baseline_info:
+  dellemc.openmanage.ome_firmware_baseline_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"

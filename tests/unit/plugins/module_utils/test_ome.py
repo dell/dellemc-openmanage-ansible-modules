@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0
+# Version 2.1
 # Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,6 +21,25 @@ import json
 
 
 class TestRestOME(object):
+
+    @pytest.fixture
+    def ome_response_mock(self, mocker):
+        set_method_result = {'json_data': {}}
+        response_class_mock = mocker.patch(
+            'ansible_collections.dellemc.openmanage.plugins.module_utils.ome.OpenURLResponse',
+            return_value=set_method_result)
+        response_class_mock.success = True
+        response_class_mock.status_code = 200
+        return response_class_mock
+
+    @pytest.fixture
+    def ome_connection_mock(self, mocker, ome_response_mock):
+        connection_class_mock = mocker.patch(
+            'ansible_collections.dellemc.openmanage.plugins.modules.ome_device_info.RestOME')
+        ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
+        ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
+        return ome_connection_mock_obj
+
     @pytest.fixture
     def mock_response(self):
         mock_response = MagicMock()

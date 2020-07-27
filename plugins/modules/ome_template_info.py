@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,23 +24,9 @@ short_description: Retrieves template details from OpenManage Enterprise.
 version_added: "2.9"
 description:
    - This module retrieves the list and details of all the templates on OpenManage Enterprise.
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
-  hostname:
-    description: Target IP address or hostname.
-    type: str
-    required: True
-  username:
-    description: Target username.
-    type: str
-    required: True
-  password:
-    description: Target user password.
-    type: str
-    required: True
-  port:
-    description: Target HTTPS port.
-    type: int
-    default: 443
   template_id:
     description: Unique Id of the template.
     type: int
@@ -60,20 +46,20 @@ author: "Sajna Shetty(@Sajna-Shetty)"
 EXAMPLES = r'''
 ---
 - name: Retrieve basic details of all templates.
-  ome_template_info:
+  dellemc.openmanage.ome_template_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
 - name: Retrieve details of a specific template identified by its template ID.
-  ome_template_info:
+  dellemc.openmanage.ome_template_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     template_id: 1
 
 - name: Get filtered template info based on name.
-  ome_template_info:
+  dellemc.openmanage.ome_template_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
