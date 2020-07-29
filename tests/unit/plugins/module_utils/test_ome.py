@@ -102,8 +102,8 @@ class TestRestOME(object):
         mock_response.json_data = {"@odata.count" : 50, "value": list(range(51))}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.RestOME.invoke_request',
                      return_value=mock_response)
-        module_params = {'hostname': '100.96.32.138', 'username': 'admin',
-                         'password': 'Dell_123', "port": 443}
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
         with RestOME(module_params, True) as obj:
             reports = obj.get_all_report_details("DeviceService/Devices")
         assert reports == {"resp_obj": mock_response, "report_list": list(range(51))}
@@ -113,8 +113,8 @@ class TestRestOME(object):
                      return_value=mock_response)
         invoke_obj = mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.ome.RestOME.invoke_request',
                                   side_effect=HTTPError('http://testhost.com/', 400, 'Bad Request Error', {}, None))
-        module_params = {'hostname': '100.96.32.138', 'username': 'admin',
-                         'password': 'Dell_123', "port": 443}
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
         with pytest.raises(HTTPError) as e:
             with RestOME(module_params, False) as obj:
                 obj.get_all_report_details("DeviceService/Devices")
