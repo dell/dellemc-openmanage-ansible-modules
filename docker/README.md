@@ -8,7 +8,10 @@ docker build -t dellemc/openmanage-ansible-modules .
 ```
 Upon success, new image with name _dellemc/openmanage-ansible-modules_ will be created. One can verify successful creation of image using command `docker image ls` which will list newly created image with repository name as _dellemc/openmanage-ansible-modules_.
 
-Note: This command need to be run from same directory where Dockerfile is downloaded. If not use the option `--file` to specify the path to Dockerfile.
+Note: 
+1. This command need to be run from same directory where Dockerfile is downloaded. If not use the option `--file` to specify the path to Dockerfile.
+1. Docker file shown here uses the Docker official image [python:3](https://hub.docker.com/_/python) as base. Change this value is you want to use other python images as base. 
+
 ## Usage
 `dellemc/openmanage-ansible-modules` docker image contains no playbook or configuration. One need to pass playbook, var files and inventory for running a task
 
