@@ -4,7 +4,7 @@ Containerized image of Dell EMC OpenManage Ansible Modules can be built using th
 ## Build
 Download [Dockerfile](./Dockerfile) to the machine where Docker Engine is installed and run below command. 
 ```bash
-docker build -t dellemc/openmanage-ansible-modules:latest .
+docker build -t dellemc/openmanage-ansible-modules .
 ```
 Upon success, new image with name _dellemc/openmanage-ansible-modules_ will be created. One can verify successful creation of image using command `docker image ls` which will list newly created image with repository name as _dellemc/openmanage-ansible-modules_.
 
