@@ -64,9 +64,10 @@ We welcome your contributions to OpenManage Ansible Modules. See [Coding Guideli
 See [here](test/README.md) for further information on testing.
 
 ## Support
-  * To report any issue, create an issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).
-  * If any requirements have not been addressed, then create an issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).
-  * To provide feedback to the development team, send an email to **OpenManageAnsible@Dell.com**.
+  * This devel branch corresponds to the release actively under development.
+  * If you want to report any issue, then please report it by creating a new issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)
+  * If you have any requirements that is not currently addressed, then please let us know by creating a new issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues)
+  * If you want to provide any feedback to the development team, then you can do so by sending an email to **OpenManageAnsible@Dell.com**
 
 ## Authors
   * OpenManageAnsible (OpenManageAnsible@dell.com)
