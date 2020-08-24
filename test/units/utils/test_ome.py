@@ -85,8 +85,8 @@ class TestRestOME(object):
         mock_response.json_data = {"@odata.count": 50, "value": list(range(51))}
         mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.invoke_request',
                      return_value=mock_response)
-        module_params = {'hostname': '100.xx.xx.xx', 'username': 'xxx',
-                         'password': 'xxx', "port": 443}
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
         with RestOME(module_params, True) as obj:
             reports = obj.get_all_report_details("DeviceService/Devices")
         assert reports == {"resp_obj": mock_response, "report_list": list(range(51))}
@@ -96,8 +96,8 @@ class TestRestOME(object):
                      return_value=mock_response)
         invoke_obj = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.invoke_request',
                                   side_effect=HTTPError('http://testhost.com/', 400, 'Bad Request Error', {}, None))
-        module_params = {'hostname': '100.xx.xx.xx', 'username': 'xxx',
-                         'password': 'xxx', "port": 443}
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
         with pytest.raises(HTTPError) as e:
             with RestOME(module_params, False) as obj:
                 obj.get_all_report_details("DeviceService/Devices")
@@ -110,10 +110,10 @@ class TestRestOME(object):
     ])
     def test_build_url(self, query_param, mocker):
         """builds complete url"""
-        base_uri = 'https://100.100.0.9:443/api'
+        base_uri = 'https://192.168.0.1:443/api'
         path = "AccountService/Accounts"
-        module_params = {'hostname': '100.100.0.9', 'username': 'xxx',
-                         'password': 'xxx', "port": 443}
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
         mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME._get_base_url',
                      return_value=base_uri)
         inp = query_param["inp"]

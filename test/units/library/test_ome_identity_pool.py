@@ -244,7 +244,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                 "identity_count": 75,
                 "starting_mac_address": "aabb.ccdd.7070"
             },
-            "hostname": "100.96.32.157",
+            "hostname": "192.168.0.1",
             "iscsi_settings": {
                 "identity_count": 30,
                 "initiator_config": {

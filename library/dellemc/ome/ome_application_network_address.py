@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -25,11 +25,9 @@ short_description: Updates the network configuration on OpenManage Enterprise.
 version_added: "2.9"
 description:
   - This module allows the configuration of a DNS and an IPV4 or IPV6 network on OpenManage Enterprise.
-  - It is only applicable on versions 3.3 and above of OpenManage Enterprise and OpenManage Enterprise Modular.
 notes:
   - The configuration changes can only be applied to one interface at a time.
-  - "Once the configuration changes are applied, the system management consoles might be unreachable for 2 minutes,
-  based on the changes made."
+  - The system management consoles might be unreachable for some time after the configuration changes are applied.
 options:
   hostname:
     description: Target IP Address or hostname.
@@ -53,7 +51,8 @@ options:
     default: true
   interface_name:
     description:
-      - If there are multiple interfaces, network configuration changes can be applied to a single interface using the interface name of the NIC.
+      - "If there are multiple interfaces, network configuration changes can be applied to a single interface using the
+      interface name of the NIC."
       - If this option is not specified, Primary interface is chosen by default.
     type: str
   ipv4_configuration:
@@ -623,9 +622,9 @@ def get_updated_payload(rest_obj, module, ipv4_payload, ipv6_payload, dns_payloa
     current_setting, rest_method, uri = get_network_config_data(rest_obj, module)
     remove_unwanted_keys(remove_keys, current_setting)
     payload_dict = {"Ipv4Configuration": [ipv4_payload, update_ipv4_payload],
-                    "Ipv6Configuration": [ipv6_payload, update_ipv6_payload]}
-    opt_pload_dict = {"DnsConfiguration": [dns_payload, update_dns_payload],
-                      "ManagementVLAN": [vlan_payload, update_vlan_payload]}
+                    "Ipv6Configuration": [ipv6_payload, update_ipv6_payload],
+                    "DnsConfiguration": [dns_payload, update_dns_payload],
+                    "ManagementVLAN": [vlan_payload, update_vlan_payload]}
     diff = 0
     enable_nic = module.params.get("enable_nic")
     if current_setting.get("EnableNIC") != enable_nic:
@@ -635,14 +634,6 @@ def get_updated_payload(rest_obj, module, ipv4_payload, ipv6_payload, dns_payloa
         for config, pload in payload_dict.items():
             if pload[0]:
                 diff = diff + pload[1](current_setting.get(config), pload[0])
-        for config, pload in opt_pload_dict.items():
-            if pload[0]:
-                diff = diff + pload[1](current_setting.get(config), pload[0])
-            else:
-                current_setting.pop(config)
-    else:
-        for config in payload_dict.keys():
-            current_setting.pop(config)
     delay = module.params.get("reboot_delay")
     if delay is not None:
         if current_setting["Delay"] != delay:
@@ -748,11 +739,11 @@ def main():
             ipv4_payload, ipv6_payload, dns_payload, vlan_payload = get_payload(module)
             updated_payload, rest_method, uri = get_updated_payload(
                 rest_obj, module, ipv4_payload, ipv6_payload, dns_payload, vlan_payload)
-            resp = rest_obj.invoke_request(rest_method, uri, data=updated_payload)
+            resp = rest_obj.invoke_request(rest_method, uri, data=updated_payload, api_timeout=150)
             if rest_method == "POST":
-                module.exit_json(msg="Successfully triggered job to update network address configuration",
+                module.exit_json(msg="Successfully triggered job to update network address configuration.",
                                  network_configuration=updated_payload, job_info=resp.json_data, changed=True)
-            module.exit_json(msg="Successfully updated network address configuration",
+            module.exit_json(msg="Successfully triggered task to update network address configuration.",
                              network_configuration=resp.json_data, changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))

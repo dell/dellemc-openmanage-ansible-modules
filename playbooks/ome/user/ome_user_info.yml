@@ -1,0 +1,27 @@
+---
+- hosts: ome
+  connection: local
+  name: Fetching ome user facts.
+  gather_facts: False
+
+  tasks:
+    - name: Retrieve basic details of all accounts.
+      ome_user_info:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+
+    - name: Retrieve details of a specific account identified by its account ID.
+      ome_user_info:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        account_id: "{{account_id}}"
+        
+    - name: Retrieve details of a specific user using filter with UserName.
+      ome_user_info:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        system_query_options:
+            filter: "UserName eq 'test'"

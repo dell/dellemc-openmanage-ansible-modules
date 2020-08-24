@@ -1,0 +1,21 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OpenManage Ansible firmware baseline details.
+  gather_facts: False
+
+  tasks:
+    - name: Retrieve details of all the available firmware baselines.
+      ome_firmware_baseline_info:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+      tags: firmware_baselines
+
+    - name:  Retrieve details of a specific firmware baseline identified by its baseline name.
+      ome_firmware_baseline_info:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        baseline_name: "baseline_name"
+      tags: firmware_baseline

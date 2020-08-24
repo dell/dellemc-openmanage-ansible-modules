@@ -1,0 +1,12 @@
+---
+- hosts: idrac
+  connection: local
+  name: Check LC Ready Status
+  gather_facts: False
+
+  tasks:
+  - name: Check LC Ready Status
+    idrac_lifecycle_controller_status_info:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"

@@ -1,0 +1,59 @@
+---
+- hosts: ome
+  connection: local
+  name: "OME - Create Catalog using Repository."
+  gather_facts: False
+
+  tasks:
+  - name: create catalog from repository on a HTTPS.
+    ome_firmware_catalog:
+      hostname:  "{{ hostname }}"
+      username: "{{ username }}"
+      password:  "{{ password }}"
+      catalog_name: catalog1
+      catalog_description: catalog description
+      source: downloads.company.com
+      repository_type: HTTPS
+      source_path: "catalog"
+      file_name: "catalog.gz"
+      check_certificate: True
+      
+  - name: create catalog from repository on a HTTP.
+    ome_firmware_catalog:
+      hostname:  "{{ hostname }}"
+      username: "{{ username }}"
+      password:  "{{ password }}"
+      catalog_name: "{{ catalog_name }}"
+      catalog_description: catalog description
+      source: downloads.company.com
+      repository_type: HTTP
+      source_path: "catalog"
+      file_name: "catalog.gz"
+
+  - name:  create catalog from CIFS network share.
+    ome_job_info:
+      hostname:  "{{ hostname }}"
+      username: "{{ username }}"
+      password:  "{{ password }}"
+      catalog_name: "{{ catalog_name }}"
+      catalog_description: catalog description
+      source: "192.166.0.1"
+      repository_type: CIFS
+      source_path: "cifs/R940"
+      file_name: "catalog.gz"
+      repository_username: "{{ repository_username }}"
+      repository_password: "{{ repository_password }}"
+      repository_domain: "{{ repository_domain }}"
+      
+  - name:  create catalog from NFS network share.
+    ome_job_info:
+      hostname:  "{{ hostname }}"
+      username: "{{ username }}"
+      password:  "{{ password }}"
+      catalog_name: "{{ catalog_name }}"
+      catalog_description: catalog description
+      source: "192.166.0.2"
+      repository_type: NFS
+      source_path: "/nfs/R940"
+      file_name: "catalog.xml"
+

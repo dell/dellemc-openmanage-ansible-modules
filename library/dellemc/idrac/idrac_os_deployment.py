@@ -27,36 +27,45 @@ description: Boot to a network ISO image.
 options:
     idrac_ip:
         required: True
+        type: str
         description: iDRAC IP Address.
     idrac_user:
         required: True
+        type: str
         description: iDRAC username.
     idrac_password:
         required: True
+        type: str
         description: iDRAC user password.
         aliases: ['idrac_pwd']
     idrac_port:
         required: False
+        type: int
         description: iDRAC port.
         default: 443
     share_name:
         required: True
         description: CIFS or NFS Network share.
+        type: str
     share_user:
         required: False
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+        type: str
     share_password:
         required: False
         description: Network share user password. This option is mandatory for CIFS Network Share.
+        type: str
         aliases: ['share_pwd']
     iso_image:
         required: True
         description: Network ISO name.
+        type: str
     expose_duration:
         required: False
         description: It is the time taken in minutes for the ISO image file to be exposed as a local CD-ROM device to
             the host server. When the time expires, the ISO image gets automatically detached.
+        type: int
         default: 1080
 requirements:
     - "omsdk"
@@ -122,7 +131,8 @@ def minutes_to_cim_format(module, dur_minutes):
         minutes = minutes % MIN_PER_HOUR
         if days > 0:
             hours = 23
-        cim_time = "{:08d}{:02d}{:02d}00.000000:000".format(days, hours, minutes)
+        cim_format = "{:08d}{:02d}{:02d}00.000000:000"
+        cim_time = cim_format.format(days, hours, minutes)
     except Exception:
         module.fail_json(msg="Invalid value for ExposeDuration.")
     return cim_time

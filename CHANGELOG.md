@@ -1,8 +1,35 @@
 # Dell EMC OpenManage Ansible Modules
 
-Dell EMC OpenManage Ansible Modules allows Data Center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers (12th generation of PowerEdge servers and later) by leveraging the management automation capabilities in-built into the integrated Dell Remote Access Controller (iDRAC).
+Dell EMC OpenManage Ansible Modules allows data center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers and modular infrastructure by leveraging the management automation capabilities in-built into the Integrated Dell Remote Access Controller (iDRAC), OpenManage Enterprise and OpenManage Enterprise Modular.
 
-With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities have improved with support for OpenManage Enterprise. OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
+OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
+
+# 2.1.1 (August 26, 2020)
+  
+  * Support for OpenManage Enterprise-Modular.
+  
+  * The dellemc_idrac_reset module is deprecated and replaced with the idrac_reset module.
+  
+  * The dellemc_setup_idrac_syslog module is deprecated and replaced with the idrac_syslog module.
+  
+  * The dellemc_get_lcstatus module is deprecated and replaced with the idrac_lifecycle_controller_status_info module.
+  
+  * The dellemc_get_lc_job_status module is deprecated and replaced with the idrac_lifecycle_controller_job_status_info
+    module.
+    
+  * The dellemc_export_lc_logs module is deprecated and replaced with the idrac_lifecycle_controller_logs module.
+  
+  * The dellemc_configure_idrac_timezone module is deprecated and replaced with the idrac_timezone_ntp module.
+  
+  * The dellemc_configure_bios module is deprecated and replaced with the idrac_bios module.
+  
+  * The dellemc_configure_idrac_network module is deprecated and replaced with the idrac_network module.
+  
+  * The dellemc_delete_lc_job and dellemc_delete_lc_job_queue modules are deprecated and replaced with the 
+    idrac_lifecycle_controller_jobs module.
+  
+  * 'examples' and 'samples' directories are renamed to 'playbooks' and 'output' respectively.
+  
 
 # 2.0.14 (June 09, 2020)
 
@@ -99,7 +126,8 @@ With the latest release of Dell EMC OpenManage Ansible Modules, the capabilities
   * A new OpenManage Enterprise(OME) module (ome_firmware_catalog) to
     create a firmware catalog.
   
-  * A new OME module (ome_firmware_baseline) to create a firmware baseline form existing catalog.
+  * A new OME module (ome_firmware_baseline) to create a firmware baseline
+   from existing catalog.
   
   * A new OME module (ome_firmware_baseline_compliance_info) to retrieve:
   

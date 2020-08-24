@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.8
+# Version 2.1.1
 # Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -222,10 +222,10 @@ class TestOmeFirmware(FakeAnsibleModule):
                             "PrerequisiteInfo": ""
                         }
                     ],
-                    "DeviceIPAddress": "100.100.208.103",
+                    "DeviceIPAddress": "192.168.0.3",
                     "DeviceId": "28628",
                     "DeviceModel": "PowerEdge R940",
-                    "DeviceName": "100.100.208.103",
+                    "DeviceName": "192.168.0.3",
                     "DeviceServiceTag": "HC2XFL2",
                     "DeviceTypeId": "1000",
                     "DeviceTypeName": "SERVER"

@@ -1,0 +1,27 @@
+---
+- hosts: redfish_hosts
+  connection: local
+  gather_facts: false
+  name: "Ansible Module for Simple Firmware Update"
+
+  tasks:
+
+    - name: "Update the firmware from a single executable file available in a local path"
+      redfish_firmware:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        image_uri: "/home/firmware_repo/component.exe"
+
+      tags:
+        - local-update
+
+    - name: "Update the firmware from a single executable file available in a HTTP protocol"
+      redfish_firmware:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        image_uri: "http://192.168.0.1/firmware_repo/component.exe"
+
+      tags:
+        - http-update

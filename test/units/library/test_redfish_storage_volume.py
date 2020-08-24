@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.1
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -367,7 +367,7 @@ class TestStorageVolume(FakeAnsibleModule):
             self.module.check_physical_disk_exists(f_module, drive)
         assert exc.value.args[0] == "No Drive(s) are attached to the specified Controller Id: RAID.Mezzanine.1C-1."
 
-    def test_volume_payload_case_01(self):
+    def test_volume_payload_case_01(self, storage_volume_base_uri):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
@@ -409,7 +409,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["BlockSizeBytes"] == 512
         assert payload["OptimumIOSizeBytes"] == 65536
 
-    def test_volume_payload_case_03(self):
+    def test_volume_payload_case_03(self, storage_volume_base_uri):
         """Testing encrypted value in case value is passed false"""
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
