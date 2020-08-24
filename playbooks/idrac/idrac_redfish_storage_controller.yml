@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
   name: Dell OpenManage Ansible iDRAC Redfish Storage Controller service.
   gather_facts: False

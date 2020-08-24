@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_application_certificate
 short_description: This module allows to generate a CSR and upload the certificate.
-version_added: "2.9"
+version_added: "2.9.10"
 description:
   - This module allows the generation a new certificate signing request (CSR) and to upload the certificate
     on OpenManage Enterprise.

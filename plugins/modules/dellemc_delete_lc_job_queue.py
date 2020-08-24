@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -22,6 +22,10 @@ DOCUMENTATION = """
 module: dellemc_delete_lc_job_queue
 short_description: Delete the Lifecycle Controller Job Queue.
 version_added: "2.3"
+deprecated:
+  removed_in: "2.13"
+  why: Replaced with M(idrac_lifecycle_controller_jobs).
+  alternative: Use M(idrac_lifecycle_controller_jobs) instead.
 description:
     - Delete the complete Lifecycle Controller Job Queue.
 extends_documentation_fragment:
@@ -99,6 +103,9 @@ def main():
         ),
 
         supports_check_mode=False)
+    module.deprecate("The 'dellemc_delete_lc_job_queue' module has been deprecated. "
+                     "Use 'idrac_lifecycle_contriller_jobs' instead",
+                     version="2.13")
 
     try:
         with iDRACConnection(module.params) as idrac:

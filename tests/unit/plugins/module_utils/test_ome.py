@@ -118,3 +118,24 @@ class TestRestOME(object):
         with pytest.raises(HTTPError) as e:
             with RestOME(module_params, False) as obj:
                 obj.get_all_report_details("DeviceService/Devices")
+
+    @pytest.mark.parametrize("query_param", [
+        {"inp": {"$filter": "UserName eq 'admin'"}, "out": "%24filter=UserName%20eq%20%27admin%27"},
+        {"inp": {"$top": 1, "$skip": 2, "$filter": "JobType/Id eq 8"}, "out":
+            "%24top=1&%24skip=2&%24filter=JobType%2FId%20eq%208"},
+        {"inp": {"$top": 1, "$skip": 3}, "out": "%24top=1&%24skip=3"}
+    ])
+    def test_build_url(self, query_param, mocker):
+        """builds complete url"""
+        base_uri = 'https://192.168.0.1:443/api'
+        path = "AccountService/Accounts"
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
+        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME._get_base_url',
+                     return_value=base_uri)
+        inp = query_param["inp"]
+        out = query_param["out"]
+        url = RestOME(module_params=module_params)._build_url(path, query_param=inp)
+        assert url == base_uri + "/" + path + "?" + out
+        assert "+" not in url
+

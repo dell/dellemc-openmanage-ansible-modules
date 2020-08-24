@@ -2,7 +2,7 @@
 -
   connection: local
   gather_facts: false
-  hosts: hosts
+  hosts: redfish_hosts
   name: "Redfish Storage Volume - Ansible Module"
   vars:
     retries_count: 15

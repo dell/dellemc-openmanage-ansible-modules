@@ -1,10 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+# _*_ coding: utf-8 _*_
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.0
+# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -22,10 +22,27 @@ DOCUMENTATION = """
 module: dellemc_idrac_reset
 short_description: Reset iDRAC.
 version_added: "2.3"
+deprecated:
+  removed_in: "2.13"
+  why: Replaced with M(idrac_reset).
+  alternative: Use M(idrac_reset) instead.
 description:
     - Reset the iDRAC.
-extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
+options:
+    idrac_ip:
+        required: True
+        description: iDRAC IP Address.
+    idrac_user:
+        required: True
+        description: iDRAC username.
+    idrac_password:
+        required: True
+        description: iDRAC user password.
+        aliases: ['idrac_pwd']
+    idrac_port:
+        required: False
+        description: iDRAC port.
+        default: 443
 
 requirements:
     - "omsdk"
@@ -37,7 +54,7 @@ author: "Felix Stephen (@felixs88)"
 EXAMPLES = """
 ---
 - name: Reset iDRAC
-  dellemc.openmanage.dellemc_idrac_reset:
+  dellemc_idrac_reset:
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_password:  "xxxxxxxx"
@@ -102,6 +119,9 @@ def main():
         ),
 
         supports_check_mode=True)
+    module.deprecate("The 'dellemc_idrac_reset' module has been deprecated. "
+                     "Use 'idrac_reset instead",
+                     version="2.13")
 
     try:
         with iDRACConnection(module.params) as idrac:

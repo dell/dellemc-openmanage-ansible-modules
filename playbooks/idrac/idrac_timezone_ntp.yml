@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
   name: Configure the iDRAC timezone attributes
   gather_facts: False
@@ -9,7 +9,7 @@
 
   tasks:
   - name: Setup iDRAC Timezone
-    dellemc_configure_idrac_timezone:
+    idrac_timezone_ntp:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"

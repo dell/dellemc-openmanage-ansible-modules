@@ -222,10 +222,10 @@ class TestOmeFirmware(FakeAnsibleModule):
                             "PrerequisiteInfo": ""
                         }
                     ],
-                    "DeviceIPAddress": "100.100.208.103",
+                    "DeviceIPAddress": "192.168.0.3",
                     "DeviceId": "28628",
                     "DeviceModel": "PowerEdge R940",
-                    "DeviceName": "100.100.208.103",
+                    "DeviceName": "192.168.0.3",
                     "DeviceServiceTag": "HC2XFL2",
                     "DeviceTypeId": "1000",
                     "DeviceTypeName": "SERVER"

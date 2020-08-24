@@ -1,16 +1,17 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
-  name: Check LC Ready Status
+  name: Configure iDRAC syslog attributes
   gather_facts: False
 
   collections:
     - dellemc.openmanage
 
   tasks:
-  - name: Check LC Ready Status
-    dellemc_get_lcstatus:
+  - name: Configure iDRAC syslog attributes
+    idrac_syslog:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
-
+       share_name: "{{ playbook_dir }}"
+       syslog: "Disabled"

@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
   name: Configure the iDRAC services attributes
   gather_facts: False

@@ -1,5 +1,5 @@
 ---
-- hosts: myhosts
+- hosts: idrac
   connection: local
   name: Server Configuration Profile
   gather_facts: False
@@ -72,4 +72,3 @@
       job_wait: True
     tags:
       - scp_components_idrac_import_network_share
-

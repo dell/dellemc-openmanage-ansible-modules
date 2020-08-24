@@ -1,16 +1,15 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
-  name: Get LC job Status
+  name: Check LC Ready Status
   gather_facts: False
 
   collections:
     - dellemc.openmanage
 
   tasks:
-  - name: Get LC job Status
-    dellemc_get_lc_job_status:
+  - name: Check LC Ready Status
+    idrac_lifecycle_controller_status_info:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
-       job_id: "JID_123456789"

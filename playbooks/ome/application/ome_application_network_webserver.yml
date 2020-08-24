@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: ome
   connection: local
   name: Dell OME Application network webserver settings.
   gather_facts: False

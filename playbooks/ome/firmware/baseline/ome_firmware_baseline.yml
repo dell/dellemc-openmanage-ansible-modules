@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: ome
   connection: local
   name: Dell OpenManage Ansible OME firmware baseline operations.
   gather_facts: False

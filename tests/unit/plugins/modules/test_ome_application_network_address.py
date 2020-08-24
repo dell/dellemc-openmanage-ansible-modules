@@ -1,33 +1,32 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
 # Version 2.1.1
-# Copyright (C) 2019-2020 Dell Inc.
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
 import json
-
 import pytest
+from io import StringIO
+from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from io import StringIO
 from ansible.module_utils._text import to_text
-from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_address
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+
+
 @pytest.fixture
 def ome_connection_mock_for_application_network_address(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch(
-        'ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.RestOME')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'ome_application_network_address.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -103,10 +102,10 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         dns = {"RegisterWithDNS": False, "DnsName": "openmanage-enterprise",
                "UseDHCPForDNSDomainName": False, "DnsDomainName": "localdomain"}
         vlan = {"EnableVLAN": False, "Id": 1}
-        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.validate_input")
-        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.get_payload",
+        mocker.patch(MODULE_PATH + "ome_application_network_address.validate_input")
+        mocker.patch(MODULE_PATH + "ome_application_network_address.get_payload",
                      return_value=(ipv4, ipv6, dns, vlan))
-        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.get_updated_payload",
+        mocker.patch(MODULE_PATH + "ome_application_network_address.get_updated_payload",
                      return_value=(addr_param["out"], "PUT", IP_CONFIG))
         ome_response_mock.json_data = addr_param["out"]
         ome_response_mock.success = True
@@ -114,7 +113,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         assert mresult['changed'] is True
         assert "msg" in mresult
         assert "network_configuration" in mresult and mresult["network_configuration"] == addr_param["out"]
-        assert mresult["msg"] == "Successfully updated network address configuration"
+        assert mresult["msg"] == "Successfully triggered task to update network address configuration."
 
     @pytest.mark.parametrize("addr_param", [{"in": inp_param, "out": out_param}])
     def test_ome_application_network_address_main_success_case_02(self, mocker, ome_default_args, addr_param,
@@ -132,10 +131,10 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         dns = {"RegisterWithDNS": False, "DnsName": "openmanage-enterprise",
                "UseDHCPForDNSDomainName": False, "DnsDomainName": "localdomain"}
         vlan = {"EnableVLAN": False, "Id": 1}
-        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.validate_input")
-        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.get_payload",
+        mocker.patch(MODULE_PATH + "ome_application_network_address.validate_input")
+        mocker.patch(MODULE_PATH + "ome_application_network_address.get_payload",
                      return_value=(ipv4, ipv6, dns, vlan))
-        mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.get_updated_payload",
+        mocker.patch(MODULE_PATH + "ome_application_network_address.get_updated_payload",
                      return_value=(addr_param["out"], "POST", POST_IP_CONFIG))
         ome_response_mock.json_data = addr_param["out"]
         ome_response_mock.success = True
@@ -143,7 +142,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         assert mresult['changed'] is True
         assert "msg" in mresult
         assert "network_configuration" in mresult and mresult["network_configuration"] == addr_param["out"]
-        assert mresult["msg"] == "Successfully triggered job to update network address configuration"
+        assert mresult["msg"] == "Successfully triggered job to update network address configuration."
 
     @pytest.mark.parametrize("addr_param", [{"in": inp_param, "out": out_param}])
     def test_get_payload(self, addr_param, ome_default_args):
@@ -258,13 +257,13 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         with pytest.raises(Exception, match=error_message) as err:
             self.module.validate_input(f_module)
 
-    @pytest.mark.parametrize("addr_param", [{"in": "100.100.255.255", "out": True},
+    @pytest.mark.parametrize("addr_param", [{"in": "192.168.0.5", "out": True},
                                             {"in": "2607:f2b1:f081:9:1c8c:f1c7:47e:f121", "out": False}])
     def test_validate_ip_address(self, addr_param):
         ret_val = self.module.validate_ip_address(addr_param["in"])
         assert ret_val == addr_param["out"]
 
-    @pytest.mark.parametrize("addr_param", [{"in": "100.100.255.255", "out": False},
+    @pytest.mark.parametrize("addr_param", [{"in": "192.168.0.5", "out": False},
                                             {"in": "2607:f2b1:f081:9:1c8c:f1c7:47e:f121", "out": True}])
     def test_validate_ip_v6_address(self, addr_param):
         ret_val = self.module.validate_ip_v6_address(addr_param["in"])
@@ -338,20 +337,20 @@ class TestOmeAppNetwork(FakeAnsibleModule):
                                  "ipv6_configuration": {"enable": False, "enable_auto_configuration": True}})
         json_str = to_text(json.dumps({"info": "error_details"}))
         if exc_type == URLError:
-            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.validate_input',
-                         side_effect=exc_type("urlopen error"))
+            mocker.patch(MODULE_PATH + 'ome_application_network_address.validate_input',
+                         side_effect=exc_type("url open error"))
             ome_default_args.update({"dns_configuration": {"dns_domain_name": "localdomain"},
                                      "ipv4_configuration": {"enable": True, "enable_dhcp": True},
                                      "ipv6_configuration": {"enable": False, "enable_auto_configuration": True}})
             result = self._run_module(ome_default_args)
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.validate_input',
+            mocker.patch(MODULE_PATH + 'ome_application_network_address.validate_input',
                          side_effect=exc_type("exception message"))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_network_address.validate_input',
+            mocker.patch(MODULE_PATH + 'ome_application_network_address.validate_input',
                          side_effect=exc_type('http://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
@@ -407,7 +406,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         assert POST_IP_CONFIG == "ApplicationService/Actions/Network.ConfigureNetworkAdapter"
 
     def test_get_network_config_data_exception_case_01(self, ome_connection_mock_for_application_network_address,
-                                                    ome_response_mock):
+                                                       ome_response_mock):
         param = {"interface_name": "interface_name_val"}
         ome_response_mock.json_data = {"value": []}
         f_module = self.get_module_mock(params=param)
@@ -424,4 +423,3 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         with pytest.raises(Exception, match=msg):
             self.module.get_network_config_data(
                 ome_connection_mock_for_application_network_address, f_module)
-
