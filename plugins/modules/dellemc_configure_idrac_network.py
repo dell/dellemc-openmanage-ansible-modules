@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -22,6 +22,10 @@ DOCUMENTATION = """
 module: dellemc_configure_idrac_network
 short_description: Configures the iDRAC network attributes.
 version_added: "2.3"
+deprecated:
+  removed_in: "2.13"
+  why: Replaced with M(idrac_network).
+  alternative: Use M(idrac_network) instead.
 description:
     - This module is responsible for configuring the iDRAC network attributes.
 extends_documentation_fragment:
@@ -403,6 +407,9 @@ def main():
         ),
 
         supports_check_mode=True)
+    module.deprecate("The 'dellemc_configure_idrac_network' module has been deprecated. "
+                     "Use 'idrac_network' instead",
+                     version="2.13")
 
     try:
         with iDRACConnection(module.params) as idrac:

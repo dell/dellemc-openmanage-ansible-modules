@@ -22,7 +22,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_identity_pool
 short_description: Manages identity pool settings on OpenManage Enterprise.
-version_added: "2.9"
+version_added: "2.9.10"
 description: This module allows to create, modify, or delete a single identity pool on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options

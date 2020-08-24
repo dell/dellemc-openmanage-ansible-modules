@@ -1,0 +1,73 @@
+---
+- hosts: idrac
+  connection: local
+  name: Configure Boot Mode Setting
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+  - name: Configure Bios Generic Attributes
+    idrac_bios:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password }}"
+       attributes:
+         BootMode: "Bios"
+         OneTimeBootMode: "Enabled"
+         BootSeqRetry: "Enabled"
+    tags: 
+        - bootconfig
+ 
+  - name: Configure PXE Generic Attributes
+    idrac_bios:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       attributes:
+         PxeDev1EnDis: "Enabled"
+         PxeDev1Protocol: "IPV4"
+         PxeDev1VlanEnDis: "Enabled"
+         PxeDev1VlanId: x
+         PxeDev1Interface: "NIC.Embedded.x-x-x"
+         PxeDev1VlanPriority: x
+    tags: 
+        - pxeconfig
+ 
+  - name: Configure Boot Sources
+    idrac_bios:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       boot_sources:
+         - Name: "NIC.Integrated.x-x-x"
+           Enabled: true
+           Index: 1
+         - Name: "NIC.Integrated.x-x-x"
+           Enabled: true
+           Index: 0
+    tags: 
+        - boot_sources
+
+  - name: Configure Boot Sources - Enabled
+    idrac_bios:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       boot_sources:
+         - Name: "HardDisk.List.1-1"
+           Enabled: true
+    tags: 
+        - boot_sources_enabled
+
+  - name: Configure Boot Sources - Index
+    idrac_bios:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       boot_sources:
+         - Name: "NIC.Integrated.x-x-x"
+           Index: 1
+    tags: 
+        - boot_sources_index

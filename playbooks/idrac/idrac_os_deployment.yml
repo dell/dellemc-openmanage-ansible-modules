@@ -1,8 +1,7 @@
 --- 
-- 
+- hosts: idrac
   connection: local
   gather_facts: false
-  hosts: hosts
   name: Booting to Network Operating System image
 
   collections:

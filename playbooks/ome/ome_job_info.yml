@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: ome
   connection: local
   name: Dell OpenManage Ansible job details.
   gather_facts: False

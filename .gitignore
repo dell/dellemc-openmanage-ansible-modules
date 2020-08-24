@@ -1,6 +1,9 @@
-# build products...
+# Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[co]
-# Mac OS X stuff...
-.DS_Store
+*.py[cod]
+*$py.class
 # test output
 *.retry
+#changelogs
+changelogs/*

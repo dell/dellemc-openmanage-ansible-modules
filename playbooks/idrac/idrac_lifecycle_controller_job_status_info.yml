@@ -1,18 +1,16 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
-  name: Reset iDRAC
+  name: Get LC job Status
   gather_facts: False
 
   collections:
     - dellemc.openmanage
 
   tasks:
-  - name: Reset iDRAC
-    dellemc_idrac_reset:
+  - name: Get LC job Status
+    idrac_lifecycle_controller_job_status_info:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
-
-    tags:
-      - idrac_reset
+       job_id: "JID_844222910040"

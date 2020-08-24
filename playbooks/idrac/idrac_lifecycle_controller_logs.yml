@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
   name: Export Lifecycle Controller Logs
   gather_facts: False
@@ -9,10 +9,9 @@
 
   tasks:
   - name: Export Lifecycle Controller Logs
-    dellemc_export_lc_logs:
+    idrac_lifecycle_controller_logs:
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password }}"
        share_name: "{{ playbook_dir }}"
        job_wait: "True"
-

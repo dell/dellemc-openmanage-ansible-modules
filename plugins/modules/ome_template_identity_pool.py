@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_template_identity_pool
 short_description: Attach or detach an identity pool to a requested template on OpenManage Enterprise.
-version_added: "2.9"
+version_added: "2.9.10"
 description: This module allows to-
   - Attach an identity pool to a requested template on OpenManage Enterprise.
   - Detach an identity pool from a requested template on OpenManage Enterprise.

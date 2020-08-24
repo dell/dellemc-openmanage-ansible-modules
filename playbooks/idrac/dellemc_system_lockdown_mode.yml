@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
   name: Configure System lockdown mode
   gather_facts: False

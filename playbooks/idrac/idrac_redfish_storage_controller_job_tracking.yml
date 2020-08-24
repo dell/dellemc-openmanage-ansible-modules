@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: idrac
   connection: local
   name: iDRAC Redfish storage controller service with job tracking.
   gather_facts: False

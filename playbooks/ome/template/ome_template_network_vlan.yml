@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: ome
   connection: local
   name: Dell OpenManage Ansible template tag and untag.
   gather_facts: False

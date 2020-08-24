@@ -1,0 +1,26 @@
+---
+- hosts: idrac
+  connection: local
+  name: Delete LC job
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+  - name: Delete LC job Queue
+    idrac_lifecycle_controller_jobs:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+    tags:
+      - delete_all_jobs
+
+  - name: Delete a LC job
+    idrac_lifecycle_controller_jobs:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       job_id: "JID_123456789"
+    tags:
+      - delete_job

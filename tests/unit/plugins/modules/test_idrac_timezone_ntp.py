@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 #
@@ -9,20 +8,24 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
 
 import pytest
-from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_configure_idrac_timezone
+import json
+from ansible_collections.dellemc.openmanage.plugins.modules import idrac_timezone_ntp
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
-from pytest import importorskip
+from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock, PropertyMock
+from io import StringIO
+from ansible.module_utils._text import to_text
+from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
-importorskip("omsdk.sdkfile")
-importorskip("omsdk.sdkcreds")
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
 
 class TestConfigTimezone(FakeAnsibleModule):
-    module = dellemc_configure_idrac_timezone
+    module = idrac_timezone_ntp
 
     @pytest.fixture
     def idrac_configure_timezone_mock(self, mocker):
@@ -38,7 +41,7 @@ class TestConfigTimezone(FakeAnsibleModule):
     def idrac_file_manager_config_timesone_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible_collections.dellemc.openmanage.plugins.modules.dellemc_configure_idrac_timezone.file_share_manager')
+                MODULE_PATH + 'idrac_timezone_ntp.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -46,20 +49,9 @@ class TestConfigTimezone(FakeAnsibleModule):
         return file_manager_obj
 
     @pytest.fixture
-    def is_changes_applicable_timezone_mock(self, mocker):
-        try:
-            changes_applicable_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
-                                            'dellemc_configure_idrac_timezone.config_mgr')
-        except AttributeError:
-            changes_applicable_mock = MagicMock()
-        obj = MagicMock()
-        changes_applicable_mock.is_change_applicable.return_value = obj
-        return changes_applicable_mock
-
-    @pytest.fixture
     def idrac_connection_configure_timezone_mock(self, mocker, idrac_configure_timezone_mock):
-        idrac_conn_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
-                                             'dellemc_configure_idrac_timezone.iDRACConnection',
+        idrac_conn_class_mock = mocker.patch(MODULE_PATH +
+                                             'idrac_timezone_ntp.iDRACConnection',
                                              return_value=idrac_configure_timezone_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_configure_timezone_mock
         return idrac_configure_timezone_mock
@@ -68,14 +60,15 @@ class TestConfigTimezone(FakeAnsibleModule):
                                                      mocker, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": "sharename"})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
-                     'dellemc_configure_idrac_timezone.run_idrac_timezone_config', return_value=(message, False))
+        mocker.patch(MODULE_PATH +
+                     'idrac_timezone_ntp.run_idrac_timezone_config', return_value=(message, False))
         result = self._run_module(idrac_default_args)
-        assert result == {'changed': False, 'msg': {'Status': 'Success', "message": "No changes found to commit!"}}
+        assert result == {'changed': False, 'msg': ({'changed': False,
+                                                     'msg': {'Status': 'Success',
+                                                             'message': 'No changes found to commit!'}}, False)}
 
     def test_run_idrac_timezone_config_success_case01(self, idrac_connection_configure_timezone_mock,
-                                                      idrac_default_args, idrac_file_manager_config_timesone_mock,
-                                                      is_changes_applicable_timezone_mock):
+                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
@@ -83,11 +76,8 @@ class TestConfigTimezone(FakeAnsibleModule):
         message = {"changes_applicable": True, "message": "changes are applicable"}
         idrac_connection_configure_timezone_mock.config_mgr.is_change_applicable.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        msg, err = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
-        assert msg == {"changed": True, "failed": False, "msg": {"changes_applicable": True,
-                                                                 "message": "changes are applicable"}}
-        assert msg['changed'] is True
-        assert msg['failed'] is False
+        msg = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
+        assert msg == {'changes_applicable': True, 'message': 'changes are applicable'}
 
     def test_run_idrac_timezone_config_success_case02(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
@@ -100,11 +90,11 @@ class TestConfigTimezone(FakeAnsibleModule):
         idrac_connection_configure_timezone_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success', 'message': 'changes found to commit!', 'changed': True,
-                               'changes_applicable': True}, 'failed': False, 'changed': True}
-        assert msg['changed'] is True
-        assert msg['failed'] is False
+        msg = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
+        assert msg == {'Status': 'Success',
+                       'changed': True,
+                       'changes_applicable': True,
+                       'message': 'changes found to commit!'}
 
     def test_run_idrac_timezone_config_success_case03(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
@@ -117,11 +107,11 @@ class TestConfigTimezone(FakeAnsibleModule):
         idrac_connection_configure_timezone_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success', 'Message': 'No changes found to commit!', 'changed': False,
-                               'changes_applicable': False}, 'failed': False, 'changed': False}
-        assert msg['changed'] is False
-        assert msg['failed'] is False
+        msg = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
+        assert msg == {'Message': 'No changes found to commit!',
+                       'Status': 'Success',
+                       'changed': False,
+                       'changes_applicable': False}
 
     def test_run_idrac_timezone_config_success_case04(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
@@ -134,11 +124,11 @@ class TestConfigTimezone(FakeAnsibleModule):
         idrac_connection_configure_timezone_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success', 'Message': "No changes found to commit!", 'changed': False,
-                               'changes_applicable': False}, 'failed': False, 'changed': False}
-        assert msg['changed'] is False
-        assert msg['failed'] is False
+        msg = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
+        assert msg == {'Message': 'No changes found to commit!',
+                       'Status': 'Success',
+                       'changed': False,
+                       'changes_applicable': False}
 
     def test_run_idrac_timezone_config_success_case05(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
@@ -153,11 +143,11 @@ class TestConfigTimezone(FakeAnsibleModule):
         idrac_connection_configure_timezone_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success', 'Message': "No changes found to commit!", 'changed': False,
-                               'changes_applicable': False}, 'failed': False, 'changed': False}
-        assert msg['changed'] is False
-        assert msg['failed'] is False
+        msg = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
+        assert msg == {'Message': 'No changes found to commit!',
+                       'Status': 'Success',
+                       'changed': False,
+                       'changes_applicable': False}
 
     def test_run_idrac_timezone_config_failed_case01(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
@@ -168,10 +158,9 @@ class TestConfigTimezone(FakeAnsibleModule):
         message = {'Status': 'Failed', "Data": {'Message': 'status failed in checking Data'}}
         idrac_connection_configure_timezone_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
         idrac_connection_configure_timezone_mock.config_mgr.set_liason_share.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        result, err = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
-        assert result == {'msg': 'status failed in checking Data', 'failed': True, 'changed': False}
-        assert err is True
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        result = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
+        assert result == idrac_connection_configure_timezone_mock.config_mgr.is_change_applicable()
 
     def test_run_idrac_timezone_config_failed_case02(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
@@ -184,11 +173,11 @@ class TestConfigTimezone(FakeAnsibleModule):
         idrac_connection_configure_timezone_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
-        assert msg == {'msg': {'Status': 'failed', 'Message': 'No changes were applied', 'changed': False,
-                               'changes_applicable': False}, 'failed': True, 'changed': False}
-        assert msg['changed'] is False
-        assert msg['failed'] is True
+        msg = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
+        assert msg == {'Message': 'No changes were applied',
+                       'Status': 'failed',
+                       'changed': False,
+                       'changes_applicable': False}
 
     def test_run_idrac_timezone_config_failed_case03(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
@@ -199,33 +188,29 @@ class TestConfigTimezone(FakeAnsibleModule):
         message = {'Status': 'Failed', "Data": {'Message': "Failed to found changes"}}
         idrac_connection_configure_timezone_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
         idrac_connection_configure_timezone_mock.config_mgr.set_liason_share.return_value = message
-        f_module = self.get_module_mock(params=idrac_default_args)
-        msg, err = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
-        assert msg == {'changed': False, 'failed': True, 'msg': 'Failed to found changes'}
-        assert msg['changed'] is False
-        assert msg['failed'] is True
-        assert err is True
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        msg = self.module.run_idrac_timezone_config(idrac_connection_configure_timezone_mock, f_module)
+        assert msg == idrac_connection_configure_timezone_mock.config_mgr.is_change_applicable()
 
-    def test_main_configure_timezone_failure_case(self, idrac_connection_configure_timezone_mock, idrac_default_args,
-                                                  idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename"})
-        error_msg = "Error in Runtime"
-        obj2 = MagicMock()
-        idrac_connection_configure_timezone_mock.file_share_manager = obj2
-        idrac_connection_configure_timezone_mock.config_mgr = obj2
-        type(obj2).create_share_obj = Mock(side_effect=Exception(error_msg))
-        type(obj2).set_liason_share = Mock(side_effect=Exception(error_msg))
-        msg = self._run_module_with_fail_json(idrac_default_args)
-        assert msg['failed'] is True
-        assert msg['msg'] == "Error: {0}".format(error_msg)
-
-    @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
+    @pytest.mark.parametrize("exc_type", [RuntimeError, SSLValidationError, ConnectionError, KeyError,
+                                          ImportError, ValueError, TypeError, HTTPError, URLError])
     def test_main_idrac_configure_timezone_exception_handling_case(self, exc_type, mocker, idrac_default_args,
                                                                    idrac_connection_configure_timezone_mock,
                                                                    idrac_file_manager_config_timesone_mock):
         idrac_default_args.update({"share_name": "sharename"})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
-                     'dellemc_configure_idrac_timezone.run_idrac_timezone_config', side_effect=exc_type('test'))
-        result = self._run_module_with_fail_json(idrac_default_args)
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type not in [HTTPError, SSLValidationError]:
+            mocker.patch(
+                MODULE_PATH + 'idrac_timezone_ntp.run_idrac_timezone_config',
+                side_effect=exc_type('test'))
+        else:
+            mocker.patch(
+                MODULE_PATH + 'idrac_timezone_ntp.run_idrac_timezone_config',
+                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                     {"accept-type": "application/json"}, StringIO(json_str)))
+        if not exc_type == URLError:
+            result = self._run_module_with_fail_json(idrac_default_args)
+            assert result['failed'] is True
+        else:
+            result = self._run_module(idrac_default_args)
         assert 'msg' in result
-        assert result['failed'] is True

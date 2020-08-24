@@ -20,9 +20,8 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_template_network_vlan
-short_description: "Set tagged and untagged vlans to native network card supported by a template on
-OpenManage Enterprise."
-version_added: "2.9"
+short_description: "Set tagged and untagged vlans to native network card supported by a template on OpenManage Enterprise."
+version_added: "2.9.10"
 description: "This module allows to set tagged and untagged vlans to native network card supported by a template
 on OpenManage Enterprise."
 extends_documentation_fragment:

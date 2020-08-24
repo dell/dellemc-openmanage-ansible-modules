@@ -1,5 +1,5 @@
 ---
-- hosts: hosts
+- hosts: ome
   vars:
     retries_count: 30
     polling_interval: 15 #in seconds

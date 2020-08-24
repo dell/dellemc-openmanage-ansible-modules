@@ -1,10 +1,10 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+# _*_ coding: utf-8 _*_
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.0
+# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -22,23 +22,36 @@ DOCUMENTATION = """
 module: dellemc_export_lc_logs
 short_description: Export Lifecycle Controller logs to a network share.
 version_added: "2.3"
+deprecated:
+  removed_in: "2.13"
+  why: Replaced with M(idrac_lifecycle_controller_logs).
+  alternative: Use M(idrac_lifecycle_controller_logs) instead.
 description:
     - Export Lifecycle Controller logs  to a given network share.
-extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
 options:
+    idrac_ip:
+        required: True
+        description: iDRAC IP Address.
+    idrac_user:
+        required: True
+        description: iDRAC username.
+    idrac_password:
+        required: True
+        description: iDRAC user password.
+        aliases: ['idrac_pwd']
+    idrac_port:
+        required: False
+        description: iDRAC port.
+        default: 443
     share_name:
         required: True
-        type: str
         description: Network share path.
     share_user:
         required: False
-        type: str
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_password:
         required: False
-        type: str
         description: Network share user password. This option is mandatory for CIFS Network Share.
         aliases: ['share_pwd']
     job_wait:
@@ -56,7 +69,7 @@ author: "Rajeev Arakkal (@rajeevarakkal)"
 EXAMPLES = """
 ---
 - name: Export Lifecycle Controller Logs
-  dellemc.openmanage.dellemc_export_lc_logs:
+  dellemc_export_lc_logs:
        idrac_ip:   "xx.xx.xx.xx"
        idrac_user: "xxxx"
        idrac_password:  "xxxxxxxx"
@@ -85,22 +98,6 @@ except ImportError:
     pass
 
 
-def get_user_credentials(module):
-    share_username = module.params['share_user']
-    share_password = module.params['share_password']
-    work_group = None
-    if share_username is not None and "@" in share_username:
-        username_domain = share_username.split("@")
-        share_username = username_domain[0]
-        work_group = username_domain[1]
-    elif share_username is not None and "\\" in share_username:
-        username_domain = share_username.split("\\")
-        work_group = username_domain[0]
-        share_username = username_domain[1]
-    creds = UserCredentials(share_username, share_password, work_group=work_group)
-    return creds
-
-
 def run_export_lc_logs(idrac, module):
     """
     Export Lifecycle Controller Log to the given file share
@@ -118,7 +115,8 @@ def run_export_lc_logs(idrac, module):
         lclog_file_name_format = "%ip_%Y%m%d_%H%M%S_LC_Log.log"
 
         myshare = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                      creds=get_user_credentials(module),
+                                                      creds=UserCredentials(module.params['share_user'],
+                                                                            module.params['share_password']),
                                                       isFolder=True)
 
         lc_log_file = myshare.new_file(lclog_file_name_format)
@@ -157,6 +155,9 @@ def main():
         ),
 
         supports_check_mode=False)
+    module.deprecate("The 'dellemc_export_lc_logs' module has been deprecated. "
+                     "Use 'idrac_lifecycle_controller_logs' instead",
+                     version="2.13")
 
     try:
         with iDRACConnection(module.params) as idrac:

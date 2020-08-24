@@ -1,0 +1,75 @@
+---
+- hosts: idrac
+  connection: local
+  name: Configure the iDRAC network attributes
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+  - name: Register iDRAC on DNS
+    idrac_network:
+       idrac_ip:   "{{idrac_ip}}"
+       idrac_user: "{{idrac_user}}"
+       idrac_password:  "{{idrac_password}}"
+       share_name: "{{playbook_dir}}"
+       register_idrac_on_dns: "Enabled"
+       dns_idrac_name: "idrac-3CZWCK2"
+       auto_config: "Enabled"
+       static_dns: "dell.com"
+
+    tags:
+      - dns_register
+
+  - name: Setup VLAN attributes
+    idrac_network:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       share_name: "{{ playbook_dir }}"
+       setup_idrac_nic_vlan: "Enabled"
+
+    tags:
+      - setup_vlan
+
+  - name: Setup iDRAC NIC
+    idrac_network:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       share_name: "{{ playbook_dir }}"
+       enable_nic: "Enabled"
+       nic_selection: "Dedicated"
+       failover_network: "T_None"
+       auto_detect: "Disabled"
+       auto_negotiation: "Enabled"
+       network_speed: "T_1000"
+       duplex_mode: "Full"
+
+    tags:
+       - idrac_nic
+
+  - name: Setup iDRAC IPv4
+    idrac_network:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       share_name: "{{ playbook_dir }}"
+       enable_dhcp: "Enabled"
+       dns_from_dhcp: "Enabled"
+       enable_ipv4: "Enabled"
+
+    tags:
+       - idrac_ipv4
+
+  - name: Setup iDRAC Static IPv4
+    idrac_network:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       share_name: "{{ playbook_dir }}"
+       dns_from_dhcp: "Disabled"
+
+    tags:
+       - idrac_staticipv4
