@@ -18,17 +18,17 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
    [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ## Documentation
-Please refer to the [OpenManage Ansible Modules Documentation](./guides) or OpenManage Ansible Modules User Guide [gitpages](https://dell.github.io/dellemc-openmanage-ansible-modules/)
+Please refer to the [OpenManage Ansible Modules Documentation](./guides)
 
 ## Examples
-Sample playbooks and examples could be found under [playbooks](./playbooks) directory
+Latest sample playbooks and examples are available under [playbooks](./playbooks) directory
 
 ## Results
-Sample Results for the respective modules could be found under [output](./output) directory.
+Latest sample results for the respective modules are available under [output](./output) directory.
 
 ## Installation
 
-  * Clone the latest stable repository and install the ansible modules.
+  * Clone the latest development repository and install the ansible modules.
   ```
   git clone -b devel --single-branch https://github.com/dell/dellemc-openmanage-ansible-modules.git
   cd dellemc-openmanage-ansible-modules
