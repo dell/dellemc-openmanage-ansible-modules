@@ -19,23 +19,21 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 
 ## Installation
 
-* From [galaxy](https://galaxy.ansible.com/dellemc/openmanage):
+* From [galaxy](https://galaxy.ansible.com/dellemc/openmanage):  
+Download the tar build and follow the below command to install the collection
 ```
 ansible-galaxy collection install dellemc-openmanage-2.1.1.tar.gz -p ./collections
 ```
 Set the environment variable as: `export ANSIBLE_COLLECTIONS_PATHS=$ANSIBLE_COLLECTIONS_PATHS:/collections`
 
-* From [github](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections):
+* From [github](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections):  
+Install the collection from the github repository using the latest commit on the branch 'collections'
 ```
 ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections
 ```
 
-
-## Documentation
-See the OpenManage Ansible Modules User Guide [gitpages](https://dell.github.io/dellemc-openmanage-ansible-modules).
-
 ## Playbooks
-Sample playbooks and examples are available at [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
+Latest sample playbooks and examples are available at [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. See the [COPYING](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/COPYING.md) for more information.
