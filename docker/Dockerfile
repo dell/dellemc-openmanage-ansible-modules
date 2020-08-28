@@ -1,16 +1,16 @@
-FROM python:3
+FROM python:3-slim
 LABEL maintainer="OpenManageAnsible@Dell.com"
 
-ENV version 2.1-master
 ENV path /dellemc
 RUN mkdir $path
 WORKDIR $path
 
-RUN pip install ansible omsdk
+RUN pip install "ansible<2.10" omsdk
 
-RUN curl -sL https://github.com/dell/dellemc-openmanage-ansible-modules/archive/v$version.tar.gz | \
-    tar xz && \
-    cd dellemc-openmanage-ansible-modules-$version && \
+ADD https://github.com/dell/dellemc-openmanage-ansible-modules/archive/devel.tar.gz .
+
+RUN tar -xvf devel.tar.gz && \
+    cd dellemc-openmanage-ansible-modules-devel && \
     python install.py
 
 VOLUME [$path]
