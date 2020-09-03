@@ -1,35 +1,60 @@
-# Containerizing Dell EMC OpenManage Ansible Modules
-Containerized image of Dell EMC OpenManage Ansible Modules can be built using the dockerfile available [here](./Dockerfile). We will be using Docker Engine for containerizing OpenManage Ansible Modules. More information about Docker Engine and install instructions can be found [here](https://docs.docker.com/engine/).
+# Build a Docker image of Dell EMC OpenManage Ansible Modules
+Build a docker image for Dell EMC OpenManage Ansible Modules by using the Docker Engine and the docker file for OpenManage Ansible Modules. Download the docker file from [here](./Dockerfile).
 
-## Build
-Download [Dockerfile](./Dockerfile) to the machine where Docker Engine is installed and run below command. 
-```bash
-docker build -t dellemc/openmanage-ansible-modules .
-```
-Upon success, new image with name _dellemc/openmanage-ansible-modules_ will be created. One can verify successful creation of image using command `docker image ls` which will list newly created image with repository name as _dellemc/openmanage-ansible-modules_.
+For more information about the Docker Engine and how to install the Docker Engine, see https://docs.docker.com/engine/.
 
-Note: 
-1. This command need to be run from same directory where Dockerfile is downloaded. If not use the option `--file` to specify the path to Dockerfile.
-1. Docker file shown here uses the Docker official image [python:3](https://hub.docker.com/_/python) as base. Change this value is you want to use other python images as base. 
+## How to build the Docker image
+To build the docker image, do the following:
+1. Download and install Docker Engine in your system.
+1. Download and save the OpenManage Ansible modules docker file from [here](./Dockerfile). Ensure that this docker file is downloaded on the same system where the docker engine is installed.
+1. Run the following Command:
+    ```bash
+    docker build -t dellemc/openmanage-ansible-modules .
+    ```
 
-## Usage
-`dellemc/openmanage-ansible-modules` docker image contains no playbook or configuration. One need to pass playbook, var files and inventory for running a task
+    An  image with the name _dellemc/openmanage-ansible-modules_ is created. The size of this image will be 379MB.
 
-### Ansible inventory, vars_files and playbooks
-Setup a volume or use a bind mount folder containing ansible inventory, vars_files and playbook. This need to be mounted into the container using -v or --mount.
+    Note:
+    * Run the command from the same directory where the Dockerfile is downloaded. If not use the option `--file` to specify the path to Dockerfile.
+    * Make sure that the `docker.io` registry search path is enabled on the system.
+    * The OpenManage Enterprise docker file uses the official docker image [python:3-slim](https://hub.docker.com/_/python) as a base. Change this value if you want to use a different python image as a base.
+    * To know about the security risks associated with docker images and docker containers, see https://docs.docker.com/engine/security/security/
 
-Modules are configured to run with python in `/usr/local/bin/python`. Hence 'ansible_python_interpreter' option need to be set in inventory file or passed as argument while running the playbook with `-e` option
 
-### Running playbook
-Once playbook, inventory and variable files are set in the current working directory, one can run the playbook as shown below
+1. To verify if the image is created successfully, run the following command:
+
+    ```bash
+    docker image ls
+    ```
+
+    If the image is created successfully, this command lists the image named as _dellemc/openmanage-ansible-modules_.
+
+## Add playbook, variable files and inventory
+The Docker image of OpenManage Ansible Modules does not contain the playbook and the required configuration to run a task.
+
+To add the playbook, variable files and inventory, do one of the following.
+- Setup a volume and mount the volume in the container using the option `-v`.
+- Use a bind mount folder that contains the playbook, inventory and optional variable files and mount the folder in the container using the the option `--mount`. 
+
+The volume or bind folder must be mounted on the target mount point `/dellemc`.
+
+The latest sample playbooks and examples are available in the [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/devel/playbooks) directory.
+
+### Running a playbook
+Run the playbook using the following command after the playbook, inventory and optional variable files are added to the current working directory.
+
 ```bash
 docker run --rm \
     -v $(pwd):/dellemc dellemc/openmanage-ansible-modules:latest \
-    -v playbook.yml -i inventory -t getlcstatus \
-    -e 'ansible_python_interpreter=/usr/local/bin/python'
+    -v playbook.yml -i inventory -t getlcstatus
 ```
+
+Note:
+* To allow access to mounted shares in the docker container, use the volume or bind mount option when running export or import server configuration profile tasks.
+
 ### Running ad-hoc commands
-Ansible ad-hoc commands can also be run with following command.
+Ansible ad-hoc commands can also be used. Following is an example of how to use an ad-hoc command to get the status of a lifecycle controller.
+
 ```bash
 docker run --rm \
     --entrypoint '/usr/local/bin/ansible' \

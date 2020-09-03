@@ -1,5 +1,7 @@
 FROM python:3-slim
-LABEL maintainer="OpenManageAnsible@Dell.com"
+
+LABEL author="Saishiva K (@saishivarcr)" \
+    version="1.0"
 
 ENV path /dellemc
 RUN mkdir $path
