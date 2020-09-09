@@ -1,7 +1,10 @@
 # Build a Docker image of Dell EMC OpenManage Ansible Modules
 Build a docker image for Dell EMC OpenManage Ansible Modules by using the Docker Engine and the docker file for OpenManage Ansible Modules. Download the docker file from [here](./Dockerfile).
 
+OpenManage Ansible Modules docker file contains [Ansible](https://pypi.org/project/ansible/), [OpenManage Python SDK (OMSDK)](https://pypi.org/project/omsdk/), and [Python:3-slim](https://hub.docker.com/_/python) image source packages. Ensure that you adhere to the licensing terms and conditions of these packages and get the required approval before building the docker image from this file.
+
 For more information about the Docker Engine and how to install the Docker Engine, see https://docs.docker.com/engine/.
+
 
 ## How to build the Docker image
 To build the docker image, do the following:
@@ -12,14 +15,12 @@ To build the docker image, do the following:
     docker build -t dellemc/openmanage-ansible-modules .
     ```
 
-    An  image with the name _dellemc/openmanage-ansible-modules_ is created. The size of this image will be 379MB.
+    An  image with the name _dellemc/openmanage-ansible-modules_ is created. The size of this image will be around 379MB.
 
     Note:
     * Run the command from the same directory where the Dockerfile is downloaded. If not use the option `--file` to specify the path to Dockerfile.
-    * Make sure that the `docker.io` registry search path is enabled on the system.
-    * The OpenManage Enterprise docker file uses the official docker image [python:3-slim](https://hub.docker.com/_/python) as a base. Change this value if you want to use a different python image as a base.
-    * To know about the security risks associated with docker images and docker containers, see https://docs.docker.com/engine/security/security/
-
+    * The OpenManage Enterprise docker file uses the official docker image [python:3-slim](https://hub.docker.com/_/python) as a base.
+    * Ensure that the `docker.io` registry search path is enabled on the system if the Docker engine fails to download the base image.
 
 1. To verify if the image is created successfully, run the following command:
 
@@ -32,13 +33,9 @@ To build the docker image, do the following:
 ## Add playbook, variable files and inventory
 The Docker image of OpenManage Ansible Modules does not contain the playbook and the required configuration to run a task.
 
-To add the playbook, variable files and inventory, do one of the following.
-- Setup a volume and mount the volume in the container using the option `-v`.
-- Use a bind mount folder that contains the playbook, inventory and optional variable files and mount the folder in the container using the the option `--mount`. 
-
-The volume or bind folder must be mounted on the target mount point `/dellemc`.
-
 The latest sample playbooks and examples are available in the [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/devel/playbooks) directory.
+
+Bind mount the folder containing the playbook, variable and inventory files to the target mount point `/dellemc` using the option `-v`.
 
 ### Running a playbook
 Run the playbook using the following command after the playbook, inventory and optional variable files are added to the current working directory.
@@ -59,5 +56,5 @@ Ansible ad-hoc commands can also be used. Following is an example of how to use 
 docker run --rm \
     --entrypoint '/usr/local/bin/ansible' \
     dellemc/openmanage-ansible-modules:latest localhost \
-    -m dellemc_get_lcstatus -a "idrac_ip=192.168.10.1 idrac_user=user idrac_pwd=password"
+    -m idrac_lifecycle_controller_status_info -a "idrac_ip=192.168.10.1 idrac_user=user idrac_pwd=password"
 ```

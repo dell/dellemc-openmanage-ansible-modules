@@ -1,7 +1,6 @@
 FROM python:3-slim
 
-LABEL author="Saishiva K (@saishivarcr)" \
-    version="1.0"
+LABEL author="Saishiva K (@saishivarcr)"
 
 ENV path /dellemc
 RUN mkdir $path
