@@ -21,6 +21,12 @@ from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Co
 from units.compat.mock import MagicMock, patch, Mock
 from io import StringIO
 from ansible.module_utils._text import to_text
+from pytest import importorskip
+
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
+
+MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
 
 
 class TestSetupSyslog(FakeAnsibleModule):
@@ -32,15 +38,13 @@ class TestSetupSyslog(FakeAnsibleModule):
         idrac_obj = MagicMock()
         omsdk_mock.file_share_manager = idrac_obj
         omsdk_mock.config_mgr = idrac_obj
-        # type(idrac_obj).create_share_obj = Mock(return_value="Status")
-        # type(idrac_obj).set_liason_share = Mock(return_value="Status")
         return idrac_obj
 
     @pytest.fixture
     def idrac_file_manager_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_syslog.file_share_manager')
+                MODULE_PATH + 'idrac_syslog.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -49,8 +53,8 @@ class TestSetupSyslog(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_setup_syslog_mock(self, mocker, idrac_setup_syslog_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.idrac_syslog.'
-                                             'iDRACConnection', return_value=idrac_setup_syslog_mock)
+        idrac_conn_class_mock = mocker.patch(MODULE_PATH +
+                                             'idrac_syslog.iDRACConnection', return_value=idrac_setup_syslog_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_setup_syslog_mock
         return idrac_setup_syslog_mock
 
@@ -59,7 +63,8 @@ class TestSetupSyslog(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", 'share_password': None, "syslog": "Enabled",
                                    'share_mnt': None, 'share_user': None})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch('ansible.modules.remote_management.dellemc.idrac_syslog.run_setup_idrac_syslog',
+        mocker.patch(MODULE_PATH +
+                     'idrac_syslog.run_setup_idrac_syslog',
                      return_value=message)
         result = self._run_module(idrac_default_args)
         assert result == {
@@ -174,10 +179,12 @@ class TestSetupSyslog(FakeAnsibleModule):
                                    "syslog": "Enabled", 'share_mnt': None, 'share_user': None})
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.idrac_syslog.run_setup_idrac_syslog',
+            mocker.patch(MODULE_PATH +
+                         'idrac_syslog.run_setup_idrac_syslog',
                          side_effect=exc_type('test'))
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.idrac_syslog.run_setup_idrac_syslog',
+            mocker.patch(MODULE_PATH +
+                         'idrac_syslog.run_setup_idrac_syslog',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:

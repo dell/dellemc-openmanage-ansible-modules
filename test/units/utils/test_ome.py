@@ -3,14 +3,16 @@
 #
 # Dell EMC OpenManage Ansible Modules
 # Version 2.1
-# Copyright (C) 2019-2010 Dell Inc.
+# Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
+
+__metaclass__ = type
 
 import pytest
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -19,9 +21,20 @@ from ansible.module_utils.remote_management.dellemc.ome import RestOME
 from units.compat.mock import MagicMock
 import json
 
+MODULE_UTIL_PATH = 'ansible.module_utils.remote_management.dellemc.'
+
 
 class TestRestOME(object):
-    module = RestOME
+
+    @pytest.fixture
+    def ome_response_mock(self, mocker):
+        set_method_result = {'json_data': {}}
+        response_class_mock = mocker.patch(
+            MODULE_UTIL_PATH + 'ome.OpenURLResponse',
+            return_value=set_method_result)
+        response_class_mock.success = True
+        response_class_mock.status_code = 200
+        return response_class_mock
 
     @pytest.fixture
     def mock_response(self):
@@ -32,7 +45,7 @@ class TestRestOME(object):
         return mock_response
 
     def test_invoke_request_with_session(self, mock_response, mocker):
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        mocker.patch(MODULE_UTIL_PATH + 'ome.open_url',
                      return_value=mock_response)
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
                          'password': 'password', "port": 443}
@@ -44,7 +57,7 @@ class TestRestOME(object):
         assert response.success is True
 
     def test_invoke_request_without_session(self, mock_response, mocker):
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        mocker.patch(MODULE_UTIL_PATH + 'ome.open_url',
                      return_value=mock_response)
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
                          'password': 'password', "port": 443}
@@ -55,9 +68,34 @@ class TestRestOME(object):
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
+    def test_invoke_request_without_session_with_header(self, mock_response, mocker):
+        mocker.patch(MODULE_UTIL_PATH + 'ome.open_url',
+                     return_value=mock_response)
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
+        req_session = False
+        with RestOME(module_params, req_session) as obj:
+            response = obj.invoke_request("/testpath", "POST", headers={"application": "octstream"})
+        assert response.status_code == 200
+        assert response.json_data == {"value": "data"}
+        assert response.success is True
+
+    def test_invoke_request_with_session_connection_error(self, mocker, mock_response):
+        mock_response.success = False
+        mock_response.status_code = 500
+        mock_response.json_data = {}
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
+                     return_value=mock_response)
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
+        req_session = True
+        with pytest.raises(ConnectionError):
+            with RestOME(module_params, req_session) as obj:
+                obj.invoke_request("/testpath", "GET")
+
     @pytest.mark.parametrize("exc", [URLError, SSLValidationError, ConnectionError])
     def test_invoke_request_error_case_handling(self, exc, mock_response, mocker):
-        open_url_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        open_url_mock = mocker.patch(MODULE_UTIL_PATH + 'ome.open_url',
                                      return_value=mock_response)
         open_url_mock.side_effect = exc("test")
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
@@ -68,7 +106,7 @@ class TestRestOME(object):
                 obj.invoke_request("/testpath", "GET")
 
     def test_invoke_request_http_error_handling(self, mock_response, mocker):
-        open_url_mock = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        open_url_mock = mocker.patch(MODULE_UTIL_PATH + 'ome.open_url',
                                      return_value=mock_response)
         open_url_mock.side_effect = HTTPError('http://testhost.com/', 400,
                                               'Bad Request Error', {}, None)
@@ -83,7 +121,7 @@ class TestRestOME(object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {"@odata.count": 50, "value": list(range(51))}
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.invoke_request',
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
                      return_value=mock_response)
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
                          'password': 'password', "port": 443}
@@ -92,9 +130,9 @@ class TestRestOME(object):
         assert reports == {"resp_obj": mock_response, "report_list": list(range(51))}
 
     def test_get_report_list_error_case(self, mock_response, mocker):
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.open_url',
+        mocker.patch(MODULE_UTIL_PATH + 'ome.open_url',
                      return_value=mock_response)
-        invoke_obj = mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME.invoke_request',
+        invoke_obj = mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
                                   side_effect=HTTPError('http://testhost.com/', 400, 'Bad Request Error', {}, None))
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
                          'password': 'password', "port": 443}
@@ -114,10 +152,36 @@ class TestRestOME(object):
         path = "AccountService/Accounts"
         module_params = {'hostname': '192.168.0.1', 'username': 'username',
                          'password': 'password', "port": 443}
-        mocker.patch('ansible.module_utils.remote_management.dellemc.ome.RestOME._get_base_url',
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME._get_base_url',
                      return_value=base_uri)
         inp = query_param["inp"]
         out = query_param["out"]
         url = RestOME(module_params=module_params)._build_url(path, query_param=inp)
         assert url == base_uri + "/" + path + "?" + out
         assert "+" not in url
+
+    def test_get_job_type_id(self, mock_response, mocker):
+        mock_response.success = True
+        mock_response.status_code = 200
+        mock_response.json_data = {"@odata.count": 50, "value": [{"Name": "PowerChange", "Id": 11}]}
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
+                     return_value=mock_response)
+        jobtype_name = "PowerChange"
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
+        with RestOME(module_params, True) as obj:
+            job_id = obj.get_job_type_id(jobtype_name)
+        assert job_id == 11
+
+    def test_get_job_type_id_null_case(self, mock_response, mocker):
+        mock_response.success = True
+        mock_response.status_code = 200
+        mock_response.json_data = {"@odata.count": 50, "value": [{"Name": "PowerChange", "Id": 11}]}
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
+                     return_value=mock_response)
+        jobtype_name = "FirmwareUpdate"
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
+        with RestOME(module_params, True) as obj:
+            job_id = obj.get_job_type_id(jobtype_name)
+        assert job_id is None

@@ -11,6 +11,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+
 import pytest
 import json
 from ansible.modules.remote_management.dellemc import idrac_lifecycle_controller_jobs
@@ -20,6 +21,11 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from units.compat.mock import MagicMock, PropertyMock
 from io import StringIO
 from ansible.module_utils._text import to_text
+from pytest import importorskip
+
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
+
 
 MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
 

@@ -12,7 +12,7 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_configure_idrac_users
+from ansible.modules.remote_management.dellemc import _dellemc_configure_idrac_users
 from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
 from units.compat.mock import MagicMock, patch, Mock
 from units.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
@@ -24,7 +24,7 @@ importorskip("omsdk.sdkcreds")
 
 
 class TestConfigUsers(FakeAnsibleModule):
-    module = dellemc_configure_idrac_users
+    module = _dellemc_configure_idrac_users
 
     @pytest.fixture
     def idrac_configure_users_mock(self, mocker):

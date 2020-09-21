@@ -12,7 +12,7 @@
 from __future__ import absolute_import
 
 import pytest
-from ansible.modules.remote_management.dellemc import dellemc_change_power_state
+from ansible.modules.remote_management.dellemc import _dellemc_change_power_state
 from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -29,7 +29,7 @@ importorskip("omsdk.sdkcreds")
 
 
 class TestChangePowerState(FakeAnsibleModule):
-    module = dellemc_change_power_state
+    module = _dellemc_change_power_state
 
     @pytest.fixture
     def idrac_change_powerstate_mock(self, mocker):
@@ -42,7 +42,7 @@ class TestChangePowerState(FakeAnsibleModule):
     @pytest.fixture
     def idrac_change_power_state_connection_mock(self, mocker, idrac_change_powerstate_mock):
         idrac_connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
-                                                   'dellemc_change_power_state.iDRACConnection')
+                                                   '_dellemc_change_power_state.iDRACConnection')
         idrac_connection_class_mock.return_value.__enter__.return_value = idrac_change_powerstate_mock
         return idrac_change_powerstate_mock
 
@@ -123,7 +123,7 @@ class TestChangePowerState(FakeAnsibleModule):
         message = ({'changed': False, 'failed': False,
                    'msg': {'Status': 'Success', 'Message': 'Changes found to commit!', 'changes_applicable': True}},
                    False)
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_change_power_state.run_change_power_state',
+        mocker.patch('ansible.modules.remote_management.dellemc._dellemc_change_power_state.run_change_power_state',
                      return_value=message)
         result = self._run_module(idrac_default_args)
         assert result['changed'] is False
@@ -143,7 +143,7 @@ class TestChangePowerState(FakeAnsibleModule):
     def test_main_exception_handling_case(self, exc_type, idrac_default_args, idrac_change_power_state_connection_mock,
                                           mocker):
         idrac_default_args.update({"change_power": "GracefulRestart"})
-        mocker.patch('ansible.modules.remote_management.dellemc.dellemc_change_power_state.run_change_power_state',
+        mocker.patch('ansible.modules.remote_management.dellemc._dellemc_change_power_state.run_change_power_state',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

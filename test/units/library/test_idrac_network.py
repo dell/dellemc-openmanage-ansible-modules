@@ -21,16 +21,19 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-import os
+from pytest import importorskip
 
-MODULE_PATH1 = 'ansible.modules.remote_management.​dellemc.'
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
+
+MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
 
 
 class TestConfigNetwork(FakeAnsibleModule):
     module = idrac_network
 
     @pytest.fixture
-    def idrac_configure_network_mock(self, mocker):
+    def idrac_configure_network_mock(self):
         omsdk_mock = MagicMock()
         idrac_obj = MagicMock()
         omsdk_mock.file_share_manager = idrac_obj
@@ -43,7 +46,7 @@ class TestConfigNetwork(FakeAnsibleModule):
     def idrac_file_manager_config_networking_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_network.file_share_manager')
+                MODULE_PATH + 'idrac_network.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -52,7 +55,7 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_configure_network_mock(self, mocker, idrac_configure_network_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch(MODULE_PATH +
                                              'idrac_network.iDRACConnection',
                                              return_value=idrac_configure_network_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_configure_network_mock
@@ -62,7 +65,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                                        idrac_default_args, idrac_file_manager_config_networking_mock):
         idrac_default_args.update({"share_name": "sharename"})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_network.run_idrac_network_config', return_value=message)
         result = self._run_module(idrac_default_args)
         assert result == {
@@ -261,11 +264,11 @@ class TestConfigNetwork(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_network.run_idrac_network_config',
+                MODULE_PATH + 'idrac_network.run_idrac_network_config',
                 side_effect=exc_type('test'))
         else:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_network.run_idrac_network_config',
+                MODULE_PATH + 'idrac_network.run_idrac_network_config',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:

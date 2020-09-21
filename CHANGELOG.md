@@ -4,6 +4,26 @@ Dell EMC OpenManage Ansible Modules allows data center and IT administrators to 
 
 OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
+# 2.1.2 (September 23, 2020)
+
+  * The dellemc_change_power_state module is deprecated and replaced with the redfish_powerstate module.
+
+  * The dellemc_configure_idrac_users module is deprecated and replaced with the idrac_user module.
+
+  * Support for creating docker image of OpenManage Ansible modules.
+  
+  * The idrac_server_config_profile module supports a user provided file name for an export operation.
+  
+  * The following GitHub issues have been fixed:
+    - dellemc_configure_idrac_users error [#26](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/26)
+    - Executing dellemc_configure_idrac_users twice fails the second attempt [#100](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/100)
+    - dellemc_configure_idrac_users is unreliable - errors [#113](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/113)
+    - dellemc_change_power_state not idempotent [#115](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/115)
+    - dellemc_change_power_state fails if host is already on [#132](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/132)
+    - idrac_server_config_profile improvement requested (request) [#137](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/137)
+    - Documentation improvement request [#140](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/140)
+    - ome_firmware_catalog.yml example errors [#145](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/145)
+
 # 2.1.1 (August 26, 2020)
   
   * Support for OpenManage Enterprise-Modular.

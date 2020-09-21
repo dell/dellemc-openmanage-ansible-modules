@@ -11,17 +11,19 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-
 import pytest
 import json
 from ansible.modules.remote_management.dellemc import idrac_timezone_ntp
 from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.compat.mock import MagicMock, patch, Mock
+from units.compat.mock import MagicMock, patch, Mock, PropertyMock
 from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from pytest import importorskip
 
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
 
@@ -87,8 +89,8 @@ class TestConfigTimezone(FakeAnsibleModule):
                                    "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
                                    "ntp_server_2": "ntp server2", "ntp_server_3": "ntp server3"})
-        message = {"changes_applicable": True, "message": "changes found to commit!",
-                   "changed": True, "Status": "Success"}
+        message = {"changes_applicable": True, "message": "changes found to commit!", "changed": True,
+                   "Status": "Success"}
         idrac_connection_configure_timezone_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False

@@ -21,6 +21,11 @@ from units.compat.mock import MagicMock, patch, Mock
 from io import StringIO
 from ansible.module_utils._text import to_text
 
+from pytest import importorskip
+
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
+
 MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
 
 
@@ -79,8 +84,8 @@ class TestReset(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'idrac_reset.run_idrac_reset', side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + 'idrac_reset.run_idrac_reset',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
-                                     {"accept-type": "application/json"}, StringIO(json_str)))
+                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                              {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True

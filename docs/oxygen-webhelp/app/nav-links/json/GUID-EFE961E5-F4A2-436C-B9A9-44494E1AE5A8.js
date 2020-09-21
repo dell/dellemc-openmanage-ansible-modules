@@ -1,1 +1,0 @@
-define({"topics" : [{"title":"Manage Identity pool settings","href":"GUID-D7F30DC5-799A-429B-ADB2-5B31132D45AB.html","attributes": {"data-id":"GUID-D7F30DC5-799A-429B-ADB2-5B31132D45AB",},"menu": {"hasChildren":false,},"tocID":"GUID-D7F30DC5-799A-429B-ADB2-5B31132D45AB","topics":[]}]});

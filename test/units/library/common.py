@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.7
+# Version 2.1.2
 # Copyright (C) 2019-2020 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -11,11 +11,12 @@
 #
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 import pytest
-from units.modules.utils import set_module_args
-from units.modules.utils import AnsibleFailJson, AnsibleExitJson
+from units.modules.utils import set_module_args, AnsibleFailJson, \
+    AnsibleExitJson
 from units.compat.mock import MagicMock
 import ast
 
@@ -55,7 +56,7 @@ class FakeAnsibleModule:
          be caught here and extracted the result for exit_json case"""
         module_args.update({'_ansible_check_mode': check_mode})
         set_module_args(module_args)
-        result={}
+        result = {}
         try:
             with pytest.raises(AnsibleExitJson) as ex:
                 self.module.main()

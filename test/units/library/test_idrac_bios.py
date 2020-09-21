@@ -9,6 +9,7 @@
 #
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 import pytest
@@ -21,6 +22,12 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from pytest import importorskip
+
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
+
+MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
 
 
 class TestConfigBios(FakeAnsibleModule):
@@ -38,7 +45,7 @@ class TestConfigBios(FakeAnsibleModule):
     def idrac_file_manager_config_bios_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_bios.file_share_manager')
+                MODULE_PATH + 'idrac_bios.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -47,7 +54,7 @@ class TestConfigBios(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_connection_configure_bios_mock(self, mocker, idrac_configure_bios_mock):
-        idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
+        idrac_conn_class_mock = mocker.patch(MODULE_PATH +
                                              'idrac_bios.iDRACConnection',
                                              return_value=idrac_configure_bios_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_configure_bios_mock
@@ -57,7 +64,7 @@ class TestConfigBios(FakeAnsibleModule):
                                                  mocker, idrac_file_manager_config_bios_mock):
         idrac_default_args.update({"share_name": "sharename"})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios.run_server_bios_config', return_value=message)
         result = self._run_module(idrac_default_args)
         assert result == {
@@ -73,11 +80,11 @@ class TestConfigBios(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_bios.run_server_bios_config',
+                MODULE_PATH + 'idrac_bios.run_server_bios_config',
                 side_effect=exc_type('test'))
         else:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.idrac_bios.run_server_bios_config',
+                MODULE_PATH + 'idrac_bios.run_server_bios_config',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
@@ -92,7 +99,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": True, "message": "changes are applicable"}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -106,7 +113,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": True, "Status": "Success", "message": "changes found to commit!"}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -122,7 +129,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": False, "Status": "Success", "Message": "No changes found to commit!"}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -138,7 +145,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": False, "Status": "Success", "Message": "No changes found to apply."}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -155,7 +162,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {"changes_applicable": False, "Status": "failed", "Message": "No changes found to apply."}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_params', return_value=(False, "message of validate params"))
         idrac_connection_configure_bios_mock.config_mgr.is_change_applicabl.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -171,7 +178,7 @@ class TestConfigBios(FakeAnsibleModule):
                                                             mocker, idrac_file_manager_config_bios_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_params', return_value=(True, "Error occurs"))
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
@@ -183,7 +190,7 @@ class TestConfigBios(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "boot_sources": "bootsources"})
         message = {'Status': 'Failed', 'Message': 'message of validate params'}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_params', return_value=(True, "Error occurs"))
         idrac_connection_configure_bios_mock.config_mgr.set_liason_share.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -197,7 +204,7 @@ class TestConfigBios(FakeAnsibleModule):
                                    "share_password": "sharepassword", "boot_sources": "bootsources",
                                    "attributes": {"boot_mode": "BootMode", "nvme_mode": "NvmeMode"}})
         message = {'Status': 'Successs', 'Message': 'message of validate params'}
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_params', return_value=(False, "Error didn't occurs"))
         idrac_connection_configure_bios_mock.config_mgr.configure_bios.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
@@ -382,7 +389,7 @@ class TestConfigBios(FakeAnsibleModule):
 
     def test__validate_params_check_params_case(self, idrac_connection_configure_bios_mock, mocker,
                                                 idrac_file_manager_config_bios_mock, idrac_default_args):
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios.check_params', return_value=(True, "Error occurs in check params"))
         attr = [{"name": "name1"}, {"Index": "index1"}]
         msg = self.module._validate_params(attr)
@@ -390,7 +397,7 @@ class TestConfigBios(FakeAnsibleModule):
 
     def test__validate_params_empty_params_case(self, idrac_connection_configure_bios_mock, mocker,
                                                 idrac_file_manager_config_bios_mock, idrac_default_args):
-        mocker.patch('ansible.modules.remote_management.dellemc.'
+        mocker.patch(MODULE_PATH +
                      'idrac_bios._validate_name_index_duplication', return_value=(True, "Error occurs in "
                                                                                         "validate name"))
         msg = self.module._validate_params([])
