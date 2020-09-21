@@ -4,7 +4,7 @@ Build a docker image for Dell EMC OpenManage Ansible Modules by using the Docker
 The docker file for OpenManage Ansible Modules contains the following packages:
 * [Ansible](https://pypi.org/project/ansible/)
 * [OpenManage Python SDK (OMSDK)](https://pypi.org/project/omsdk/)
-* [Python:3-slim](https://hub.docker.com/_/python)
+* [python:3-slim](https://hub.docker.com/_/python) as a base
 
 Ensure that you adhere to the licensing terms and conditions of the respective packages.
 
@@ -53,7 +53,7 @@ docker run --rm \
 
 Note:
 * To allow access to mounted shares in the Docker container, use the volume or bind mount option when running export or import server configuration profile tasks.
-* If Security-Enhanced Linux (SELinux) is configured on the system, playbook may fail to run. Refer Docker documentation on how to bind mount folders using SELinux label. 
+* The playbook may fail if Security-Enhanced Linux (SELinux) is configured on the system. Refer the Docker [documentation](https://docs.docker.com/) on how to bind mount folders using SELinux label. 
 
 ### Running ad-hoc commands
 Ansible ad-hoc commands can also be used. The following example command shows how to to view the status of a Lifecycle Controller.
