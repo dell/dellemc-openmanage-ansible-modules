@@ -51,6 +51,8 @@ The latest Dell EMC OpenManage Ansible Modules are available on Ansible
  Galaxy as a collection. Please see [dellemc.openmanage](https://galaxy.ansible.com/dellemc/openmanage)
  for more information. The collection branch is available [here.](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections)
  
+## Building a Docker image of OpenManage Ansible Modules
+Refer the following [document](./docker/README.md) for detailed instructions on how to build a docker image of OpenManage Ansible Modules.
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. Please see the [COPYING](
