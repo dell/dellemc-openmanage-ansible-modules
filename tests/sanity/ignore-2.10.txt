@@ -12,6 +12,9 @@ plugins/modules/ome_template.py compile-2.6!skip
 plugins/modules/ome_template_info.py compile-2.6!skip
 plugins/modules/ome_user_info.py compile-2.6!skip
 plugins/modules/redfish_storage_volume.py compile-2.6!skip
+plugins/modules/redfish_powerstate.py compile-2.6!skip
+plugins/modules/idrac_user.py compile-2.6!skip
+plugins/module_utils/idrac_redfish.py compile-2.6!skip
 plugins/modules/idrac_firmware.py import-2.6!skip
 plugins/modules/ome_application_network_address.py import-2.6!skip
 plugins/modules/ome_application_network_proxy.py import-2.6!skip
@@ -26,3 +29,6 @@ plugins/modules/ome_template.py import-2.6!skip
 plugins/modules/ome_template_info.py import-2.6!skip
 plugins/modules/ome_user_info.py import-2.6!skip
 plugins/modules/redfish_storage_volume.py import-2.6!skip
+plugins/modules/redfish_powerstate.py import-2.6!skip
+plugins/modules/idrac_user.py import-2.6!skip
+plugins/module_utils/idrac_redfish.py import-2.6!skip

@@ -21,6 +21,10 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
 from io import StringIO
 from ansible.module_utils._text import to_text
+from pytest import importorskip
+
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 

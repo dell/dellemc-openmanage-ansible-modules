@@ -1,0 +1,70 @@
+---
+- hosts: idrac
+  connection: local
+  name: Configure the iDRAC users attributes
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+  - name: Configure the create iDRAC users attributes
+    idrac_user:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password }}"
+       state: "present"
+       user_name: "user_name"
+       user_password: "user_password"
+       privilege: "Administrator"
+       ipmi_lan_privilege: "User"
+       enable: "true"
+       sol_enable: "true"
+       protocol_enable: "true"
+       authentication_protocol: "MD5"
+       privacy_protocol: "DES"
+
+    tags:
+      - create-user
+
+  - name: Configure the modify iDRAC users attributes
+    idrac_user:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password }}"
+       action: "present"
+       user_name: "user_name"
+       new_user_name: "new_user_name"
+       privilege: "Administrator"
+       ipmi_lan_privilege: "User"
+       enable: "true"
+       sol_enable: "true"
+       protocol_enable: "true"
+       authentication_protocol: "MD5"
+       privacy_protocol: "DES"
+
+    tags:
+      - modify-user
+
+  - name: Configure the modify iDRAC username and password attributes.
+    idrac_user:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password }}"
+       action: "present"
+       user_name: "user_name"
+       new_user_name: "new_user_name"
+       user_password: "user_password"
+    tags:
+      - modify-username
+
+  - name: Configure the delete iDRAC users attributes
+    idrac_user:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password }}"
+       state: "absent"
+       user_name: "user_name"
+
+    tags:
+      - remove-user

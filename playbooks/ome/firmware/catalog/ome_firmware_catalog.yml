@@ -34,7 +34,7 @@
       file_name: "catalog.gz"
 
   - name:  create catalog from CIFS network share.
-    ome_job_info:
+    ome_firmware_catalog:
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"
@@ -49,7 +49,7 @@
       repository_domain: "{{ repository_domain }}"
       
   - name:  create catalog from NFS network share.
-    ome_job_info:
+    ome_firmware_catalog:
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"

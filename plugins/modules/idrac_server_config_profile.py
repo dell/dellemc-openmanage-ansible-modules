@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.2
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -51,7 +51,11 @@ options:
     type: str
     aliases: ['share_pwd']
   scp_file:
-    description: Server Configuration Profile file name. This option is mandatory for C(import) command.
+    description:
+      - Name of the server configuration profile (SCP) file.
+      - This option is mandatory if I(command) is C(import)
+      - The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used if this option is not specified for C(import)
+      - I(export_format) is used if the valid extension file is not provided for C(import)
     type: str
   scp_components:
     description:
@@ -142,6 +146,17 @@ EXAMPLES = r'''
     idrac_password: "user_password"
     share_name: "/scp_folder"
     job_wait: False
+
+- name: Export SCP to a local path with a specified name for the file.
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    share_name: "/scp_folder"
+    # extension for filename is considered if provided
+    scp_file: "exported_scp_filename"
+    export_format: "JSON"
+    job_wait: False
 '''
 
 RETURN = r'''
@@ -211,7 +226,13 @@ def run_import_server_config_profile(idrac, module):
 def run_export_server_config_profile(idrac, module):
     """Export Server Configuration Profile to a network share."""
     export_format = ExportFormatEnum[module.params['export_format']]
-    scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.{0}".format(module.params['export_format'].lower())
+    scp_file = module.params['scp_file']
+    if scp_file:
+        scp_file_name_format = scp_file
+        if not str(scp_file.lower()).endswith(('.xml', '.json')):
+            scp_file_name_format = "{0}.{1}".format(scp_file, module.params['export_format'].lower())
+    else:
+        scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.{0}".format(module.params['export_format'].lower())
     target = SCPTargetEnum[module.params['scp_components']]
     export_use = ExportUseEnum[module.params['export_use']]
     idrac.use_redfish = True
@@ -222,11 +243,8 @@ def run_export_server_config_profile(idrac, module):
                                                                             module.params['share_password']),
                                                       isFolder=True)
         scp_file_name = myshare.new_file(scp_file_name_format)
-        export_status = idrac.config_mgr.scp_export(scp_file_name,
-                                                    target=target,
-                                                    export_format=export_format,
-                                                    export_use=export_use,
-                                                    job_wait=module.params['job_wait'])
+        export_status = idrac.config_mgr.scp_export(scp_file_name, target=target, export_format=export_format,
+                                                    export_use=export_use, job_wait=module.params['job_wait'])
         if not export_status or export_status.get('Status') != "Success":
             module.fail_json(msg='Failed to export scp.', scp_status=export_status)
     except RuntimeError as e:

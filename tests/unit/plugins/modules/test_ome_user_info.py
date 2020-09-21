@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 #
@@ -9,9 +8,12 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
 
-import pytest, json
+__metaclass__ = type
+
+import pytest
+import json
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_user_info
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -19,10 +21,12 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from io import StringIO
 from ansible.module_utils._text import to_text
 
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+
 
 @pytest.fixture
 def ome_connection_user_info_mock(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user_info.RestOME')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'ome_user_info.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -57,7 +61,7 @@ class TestOmeUserInfo(FakeAnsibleModule):
         assert 'user_info' in result
 
     def test_user_info_success_case03(self, ome_default_args, ome_connection_user_info_mock, ome_response_mock, mocker):
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_user_info._get_query_parameters',
+        mocker.patch(MODULE_PATH + 'ome_user_info._get_query_parameters',
                      return_value={"filter": "abc"})
         ome_default_args.update({"system_query_options": {"filter": "abc"}})
         ome_response_mock.success = True

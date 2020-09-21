@@ -20,6 +20,10 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from pytest import importorskip
+
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 

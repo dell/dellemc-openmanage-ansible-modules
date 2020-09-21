@@ -21,6 +21,10 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import PropertyMock
 from io import StringIO
 from ansible.module_utils._text import to_text
+from pytest import importorskip
+
+importorskip("omsdk.sdkfile")
+importorskip("omsdk.sdkcreds")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
