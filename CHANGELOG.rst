@@ -5,6 +5,43 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v2.1.2
+======
+
+Release Summary
+---------------
+
+The dellemc_change_power_state and dellemc_configure_idrac_users modules are standardized as per ansible guidelines. 8 GitHub issues are fixed.
+
+Minor Changes
+-------------
+
+- The idrac_server_config_profile module supports a user provided file name for an export operation.
+
+Deprecated Features
+-------------------
+
+- The dellemc_change_power_state module is deprecated and replaced with the redfish_powerstate module.
+- The dellemc_configure_idrac_users module is deprecated and replaced with the idrac_user module.
+
+Bugfixes
+--------
+
+- Documentation improvement request `#140 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/140>`_
+- Executing dellemc_configure_idrac_users twice fails the second attempt `#100 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/100>`_
+- dellemc_change_power_state fails if host is already on `#132 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/132>`_
+- dellemc_change_power_state not idempotent `#115 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/115>`_
+- dellemc_configure_idrac_users error `#26 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/26>`_
+- dellemc_configure_idrac_users is unreliable - errors `#113 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/113>`_
+- idrac_server_config_profile improvement requested (request) `#137 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/137>`_
+- ome_firmware_catalog.yml example errors `#145 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/145>`_
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_user - Configure settings for user accounts.
+- dellemc.openmanage.redfish_powerstate - Manage device power state.
+
 v2.1.1
 ======
 

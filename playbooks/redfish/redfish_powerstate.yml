@@ -1,0 +1,24 @@
+---
+- hosts: redfish
+  connection: local
+  name: Configure Server Power Setting
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+  - name: Manage power state of the first device.
+    redfish_powerstate:
+       baseuri:   "{{ baseuri }}"
+       username: "{{ username }}"
+       password:  "{{ password }}"
+       reset_type: "On"
+
+  - name: Manage power state of a specified device.
+    dellemc.openmanage.redfish_powerstate:
+       baseuri: "{{ baseuri }}"
+       username: "{{ username }}"
+       password: "{{ password }}"
+       reset_type: "ForceOff"
+       resource_id: "System.Embedded.1"

@@ -10,17 +10,24 @@
 # Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
+
+__metaclass__ = type
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_os_deployment
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args, exit_json, fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args, exit_json, \
+    fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
 importorskip("omsdk.sdkcreds")
+
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+
+MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'
 
 
 class TestOsDeployment(FakeAnsibleModule):
@@ -29,33 +36,33 @@ class TestOsDeployment(FakeAnsibleModule):
     @pytest.fixture
     def idrac_connection_mock(self, mocker, idrac_mock):
         idrac_connection_class_mock = mocker.patch(
-            'ansible_collections.dellemc.openmanage.plugins.modules.idrac_os_deployment.iDRACConnection')
+            MODULE_PATH + 'idrac_os_deployment.iDRACConnection')
         # idrac_connection_class_mock.return_value = idrac_mock
         idrac_connection_class_mock.return_value.__enter__.return_value = idrac_mock
         return idrac_connection_class_mock
 
     @pytest.fixture
     def idrac_mock(self, mocker):
-        sdkinfra_obj = mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac.sdkinfra')
+        sdkinfra_obj = mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.sdkinfra')
         obj = MagicMock()
         sdkinfra_obj.get_driver.return_value = obj
         return sdkinfra_obj
 
     @pytest.fixture
     def omsdk_mock(self, mocker):
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac.UserCredentials')
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac.WsManOptions')
+        mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.UserCredentials')
+        mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.WsManOptions')
 
     @pytest.fixture
     def fileonshare_mock(self, mocker):
-        share_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_os_deployment.FileOnShare',
+        share_mock = mocker.patch(MODULE_PATH + 'idrac_os_deployment.FileOnShare',
                                   return_value=MagicMock())
         return share_mock
 
     @pytest.fixture
     def minutes_to_cim_format_mock(self, mocker):
         validate_device_inputs_mock = mocker.patch(
-            'ansible_collections.dellemc.openmanage.plugins.modules.idrac_os_deployment.minutes_to_cim_format')
+            MODULE_PATH + 'idrac_os_deployment.minutes_to_cim_format')
         validate_device_inputs_mock.return_value = "time"
 
     @pytest.mark.parametrize("expose_duration_val", ["abc", None, "", 1.5, {"abc": 1}, [110, 210, 300], [120]])
@@ -81,7 +88,8 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
                   "share_name": "dummy_share_name", "share_password": "dummy_share_password",
-                  "iso_image": "dummy_iso_image", "expose_duration": "100"}
+                  "iso_image": "dummy_iso_image", "expose_duration": "100"
+                  }
         set_module_args(params)
         result = self._run_module(params)
         assert result == {'changed': True, 'msg': {'Status': 'Success'}}
@@ -93,7 +101,8 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
                   "share_name": None, "share_password": "dummy_share_password",
-                  "iso_image": "dummy_iso_image", "expose_duration": "100"}
+                  "iso_image": "dummy_iso_image", "expose_duration": "100"
+                  }
         set_module_args(params)
         result = self._run_module(params)
         assert result == {'changed': True, 'msg': {'Status': 'Success'}}
@@ -105,7 +114,8 @@ class TestOsDeployment(FakeAnsibleModule):
         fileonshare_mock.side_effect = RuntimeError("Error in Runtime")
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
                   "share_name": "invalid_share_name", "share_password": "dummy_share_password",
-                  "iso_image": "dummy_iso_image", "expose_duration": "100"}
+                  "iso_image": "dummy_iso_image", "expose_duration": "100"
+                  }
         set_module_args(params)
         result = self._run_module_with_fail_json(params)
         assert result == {'failed': True, 'msg': 'Error in Runtime'}
@@ -115,7 +125,8 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Failure"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
                   "share_name": "dummy_share_name", "share_password": "dummy_share_password",
-                  "iso_image": "dummy_iso_image", "expose_duration": "100"}
+                  "iso_image": "dummy_iso_image", "expose_duration": "100"
+                  }
         set_module_args(params)
         result = self._run_module_with_fail_json(params)
         assert result['failed'] is True
@@ -144,11 +155,9 @@ class TestOsDeployment(FakeAnsibleModule):
     def test_main_idrac_os_deployment_exception_handling_case(self, exc_type, mocker, idrac_connection_mock,
                                                               idrac_default_args, idrac_mock, fileonshare_mock,
                                                               omsdk_mock):
-        import pdb
-
         idrac_default_args.update({"iso_image": "iso_image", "share_name": "share_name"})
         idrac_default_args.update({"expose_duration": 10})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_os_deployment.run_boot_to_network_iso',
+        mocker.patch(MODULE_PATH + 'idrac_os_deployment.run_boot_to_network_iso',
                      side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result

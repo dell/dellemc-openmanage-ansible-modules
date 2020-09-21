@@ -72,3 +72,16 @@
       job_wait: True
     tags:
       - scp_components_idrac_import_network_share
+
+  - name: Export SCP to a local path with explicit name for file
+    idrac_server_config_profile:
+      idrac_ip: "192.168.0.1"
+      idrac_user: "user_name"
+      idrac_password: "user_password"
+      share_name: "/scp_folder"
+      # extension for filename is considered if provided
+      scp_file: "exported_scp_filename"
+      export_format: "JSON"
+      job_wait: False
+    tags:
+      - scp_export_local_filename

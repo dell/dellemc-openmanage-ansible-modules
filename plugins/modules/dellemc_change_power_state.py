@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
+                    'status': ['deprecated'],
                     'supported_by': 'community'}
 
 DOCUMENTATION = """
@@ -22,6 +22,10 @@ DOCUMENTATION = """
 module: dellemc_change_power_state
 short_description: Server power control.
 version_added: "2.9"
+deprecated:
+  removed_in: "2.13"
+  why: Replaced with M(redfish_powerstate).
+  alternative: Use M(redfish_powerstate) instead.
 description:
     - Server power control operations.
 extends_documentation_fragment:
@@ -178,6 +182,9 @@ def main():
         required_one_of=[["change_power", "reset_type"]],
         mutually_exclusive=[["change_power", "reset_type"]],
         supports_check_mode=True)
+    module.deprecate("The 'dellemc_change_power_state' module has been deprecated."
+                     "Use 'redfish_powerstate' instead",
+                     version="2.13")
     try:
         with iDRACConnection(module.params) as idrac:
             msg, err = run_change_power_state(idrac, module)
