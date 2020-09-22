@@ -1,15 +1,15 @@
 # Building a Docker image of Dell EMC OpenManage Ansible Modules
 Build a docker image for Dell EMC OpenManage Ansible Modules by using the Docker Engine and the docker file for OpenManage Ansible Modules. Download the OpenManage Ansible Modules docker file from [here](./Dockerfile).
 
+For more information about the Docker Engine and how to install the Docker Engine, see https://docs.docker.com/engine/.
+
 The docker file for OpenManage Ansible Modules contains the following packages:
 * [Ansible](https://pypi.org/project/ansible/)
 * [OpenManage Python SDK (OMSDK)](https://pypi.org/project/omsdk/)
 * [python:3-slim](https://hub.docker.com/_/python) as a base
 
-Ensure that you adhere to the licensing terms and conditions of the respective packages.
-
-For more information about the Docker Engine and how to install the Docker Engine, see https://docs.docker.com/engine/.
-
+__Disclaimer:__
+You use the docker image for Dell EMC OpenManage Ansible Modules and any underlying image source packages at your own risk. The docker image for Dell EMC OpenManage Ansible Modules and any underlying image source packages may not meet your requirements or expectations. It could include quality, technical or other mistakes, inaccuracies or typographical errors. Dell makes no express warranties, and disclaims all implied warranties, including merchantability, fitness for a particular purpose, title, and non-infringement as well as any warranty arising by statute, operation of law, course of dealing or performance or usage of trade regarding the docker image for Dell EMC OpenManage Ansible Modules and any underlying image source packages. Dell has no liability to you for any damages that arise out of or relate to your use of the docker image for Dell EMC OpenManage Ansible Modules and any underlying image source packages.  
 
 ## How to build the Docker image
 To build the docker image, do the following:
