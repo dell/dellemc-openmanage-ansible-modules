@@ -159,3 +159,4 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
             assert 'msg' in result
+
