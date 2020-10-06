@@ -20,9 +20,8 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-import json
 
-__metaclass__ = type
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
 response = {
     '@odata.context': '/api/$metadata#Collection(NetworkConfigurationService.Network)',
@@ -125,24 +124,38 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
                                           TypeError, ValueError])
     def test_network_vlan_info_info_main_exception_case(self, exc_type, mocker, ome_default_args,
                                                         ome_connection_network_vlan_info_mock, ome_response_mock):
-        ome_response_mock.status_code = 400
+        ome_response_mock.status_code = 404
         ome_response_mock.success = False
         json_str = to_text(json.dumps({"data": "out"}))
-        if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch(
-                'ansible_collections.dellemc.openmanage.plugins.modules.ome_network_vlan_info.get_network_type_and_qos_type_information',
-                side_effect=exc_type('test'))
-        else:
-            mocker.patch(
-                'ansible_collections.dellemc.openmanage.plugins.modules.ome_network_vlan_info.get_network_type_and_qos_type_information',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
-                                     {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type == URLError:
-            ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type("ansible.module_utils.urls.open_url error")
+            ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
+                "ansible.module_utils.urls.open_url error")
             result = self._run_module(ome_default_args)
             assert result["unreachable"] is True
-        else:
+        elif exc_type == HTTPError:
+            ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
+                'http://testhost.com', 400, '<400 bad request>', {"accept-type": "application/json"},
+                StringIO(json_str))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
-        assert 'network_vlan_info' not in result
-        assert 'msg' in result
+            assert 'msg' in result
+            assert 'error_info' in result
+
+            ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
+                'http://testhost.com', 404, '<404 not found>', {"accept-type": "application/json"}, StringIO(json_str))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+            assert 'msg' in result
+        elif exc_type != SSLValidationError:
+            mocker.patch(MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
+                         side_effect=exc_type('test'))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+            assert 'msg' in result
+        else:
+            mocker.patch(MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
+                         side_effect=exc_type('http://testhost.com', 404, 'http error message',
+                                              {"accept-type": "application/json"}, StringIO(json_str)))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+            assert 'msg' in result
