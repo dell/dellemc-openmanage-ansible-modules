@@ -72,7 +72,7 @@ EXAMPLES = """
 RETURN = '''
 ---
 msg:
-  type: dict
+  type: str
   description: Detailed information of the network VLAN(s).
   returned: success
   sample: {
