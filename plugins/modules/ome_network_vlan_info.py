@@ -167,6 +167,8 @@ MODULE_SUCCESS_MESSAGE = "Successfully retrieved the network VLAN information."
 MODULE_FAILURE_MESSAGE = "Failed to retrieve the network VLAN information."
 NETWORK_VLAN_NAME_NOT_FOUND = "Provided network VLAN with name - '{0}' does not exist."
 
+SAFE_MAX_LIMIT = 9999
+
 
 def clean_data(data):
     """
@@ -212,7 +214,7 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             # Form URI to fetch network VLAN information
             network_vlan_uri = "{0}({1})".format(NETWORK_VLAN_BASE_URI, module.params.get("id")) if module.params.get(
-                "id") else NETWORK_VLAN_BASE_URI
+                "id") else "{0}?$top={1}".format(NETWORK_VLAN_BASE_URI, SAFE_MAX_LIMIT)
             resp = rest_obj.invoke_request('GET', network_vlan_uri)
             if resp.status_code == 200:
                 network_vlan_info = resp.json_data.get('value') if isinstance(resp.json_data.get('value'), list) else [
