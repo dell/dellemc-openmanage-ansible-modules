@@ -194,22 +194,34 @@ def clean_data(data):
     return data
 
 
-def get_network_type_and_qos_type_information(rest_obj, network_vlan):
+def get_type_information(rest_obj, uri):
     """
     rest_obj: Object containing information about connection to device.
-    network_vlan: A dictionary containing information of network VLAN.
-    return: updated dictionary with additional info for "Type" and "QosType" keys.
+    return: dict with information retrieved from URI.
     """
-    network_vlan = clean_data(network_vlan)
-    network_types_uri = "{0}({1})".format(NETWORK_TYPE_BASE_URI, network_vlan.get("Type"))
-    resp = rest_obj.invoke_request('GET', network_types_uri)
+    type_info_dict = {}
+    resp = rest_obj.invoke_request('GET', uri)
     if resp.status_code == 200:
-        network_vlan['Type'] = clean_data(resp.json_data)
-        qos_type_uri = "{0}({1})".format(QOS_TYPE_BASE_URI, network_vlan.get("Type").get("QosType"))
-        resp = rest_obj.invoke_request('GET', qos_type_uri)
-        network_vlan['Type']['QosType'] = clean_data(resp.json_data) if resp.status_code == 200 else \
-            network_vlan['Type']['QosType']
-    return network_vlan
+        type_info = resp.json_data.get('value') if isinstance(resp.json_data.get('value'), list) \
+            else [resp.json_data]
+        for item in type_info:
+            item = clean_data(item)
+            type_info_dict[item['Id']] = item
+    return type_info_dict
+
+
+def get_network_type_and_qos_type_information(rest_obj):
+    """
+    rest_obj: Object containing information about connection to device.
+    return: Dictionary with information for "Type" and "QosType" keys.
+    """
+    # Fetch network type and qos type information once
+    network_type_dict = get_type_information(rest_obj, NETWORK_TYPE_BASE_URI)
+    qos_type_dict = get_type_information(rest_obj, QOS_TYPE_BASE_URI)
+    # Update each network type with qos type info
+    for key, item in network_type_dict.items():
+        item['QosType'] = qos_type_dict[item['QosType']]
+    return network_type_dict
 
 
 def main():
@@ -243,11 +255,13 @@ def main():
                     if not network_vlan:
                         module.fail_json(msg=NETWORK_VLAN_NAME_NOT_FOUND.format(network_vlan_name))
                     network_vlan_info = network_vlan
-                complete_network_vlan_info = []
-                # Get network type and Qos Type information for each dict in list
+                # Get network type and Qos Type information
+                network_type_dict = get_network_type_and_qos_type_information(rest_obj)
+                # Update each network VLAN with network type and wos type information
                 for network_vlan in network_vlan_info:
-                    complete_network_vlan_info.append(get_network_type_and_qos_type_information(rest_obj, network_vlan))
-                module.exit_json(msg=MODULE_SUCCESS_MESSAGE, network_vlan_info=complete_network_vlan_info)
+                    network_vlan = clean_data(network_vlan)
+                    network_vlan['Type'] = network_type_dict[network_vlan['Type']]
+                module.exit_json(msg=MODULE_SUCCESS_MESSAGE, network_vlan_info=network_vlan_info)
             else:
                 module.fail_json(msg=MODULE_FAILURE_MESSAGE)
     except HTTPError as err:
