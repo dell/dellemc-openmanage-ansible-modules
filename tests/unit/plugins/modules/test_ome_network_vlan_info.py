@@ -25,7 +25,7 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
 response = {
     '@odata.context': '/api/$metadata#Collection(NetworkConfigurationService.Network)',
-    '@odata.count': 2,
+    '@odata.count': 1,
     'value': [
         {
             '@odata.type': '#NetworkConfigurationService.Network',
@@ -35,30 +35,40 @@ response = {
             'Description': 'Description of Logical Network - 1',
             'VlanMaximum': 111,
             'VlanMinimum': 111,
-            'Type': 1,
+            "Type": 1,
             'CreatedBy': 'admin',
             'CreationTime': '2020-09-02 18:48:42.129',
             'UpdatedBy': None,
             'UpdatedTime': '2020-09-02 18:48:42.129',
             'InternalRefNWUUId': '42b9903d-93f8-4184-adcf-0772e4492f71'
-        },
-        {
-            '@odata.type': '#NetworkConfigurationService.Network',
-            '@odata.id': '/api/NetworkConfigurationService/Networks(20058)',
-            'Id': 20058,
-            'Name': 'Logical Network - 2',
-            'Description': 'Description of Logical Network - 2',
-            'VlanMaximum': 112,
-            'VlanMinimum': 112,
-            'Type': 2,
-            'CreatedBy': 'admin',
-            'CreationTime': '2020-09-02 18:49:11.507',
-            'UpdatedBy': None,
-            'UpdatedTime': '2020-09-02 18:49:11.507',
-            'InternalRefNWUUId': 'e46ccb3f-ef57-4617-ac76-46c56594005c'
         }
     ]
 }
+
+network_type_qos_type_dict_reponse = {1: {'Id': 1, 'Name': 'General Purpose (Bronze)',
+                                          'Description':
+                                              'This is the network for general purpose traffic. QOS Priority : Bronze.',
+                                          'VendorCode': 'GeneralPurpose', 'NetworkTrafficType': 'Ethernet',
+                                          'QosType': {'Id': 4, 'Name': 'Bronze'}}}
+
+network_type_dict_response = {1: {'Id': 1, 'Name': 'General Purpose (Bronze)',
+                                  'Description':
+                                      'This is the network for general purpose traffic. QOS Priority : Bronze.',
+                                  'VendorCode': 'GeneralPurpose', 'NetworkTrafficType': 'Ethernet',
+                                  'QosType': 4}}
+
+qos_type_dict_response = {4: {'Id': 4, 'Name': 'Bronze'}}
+
+type_dict_ome_reponse = {'@odata.context': '/api/$metadata#Collection(NetworkConfigurationService.Network)',
+                         '@odata.count': 1,
+                         'value': [
+                             {'@odata.type': '#NetworkConfigurationService.NetworkType',
+                              '@odata.id': '/api/NetworkConfigurationService/NetworkTypes(1)',
+                              'Id': 1,
+                              'Name': 'General Purpose (Bronze)',
+                              'Description': 'This is the network for general purpose traffic. QOS Priority : Bronze.',
+                              'VendorCode': 'GeneralPurpose', 'NetworkTrafficType': 'Ethernet',
+                              'QosType': 4}]}
 
 
 class TestOmeNetworkVlanInfo(FakeAnsibleModule):
@@ -73,11 +83,15 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
         ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
         return ome_connection_mock_obj
 
-    def test_get_network_vlan_info_success_case(self, ome_default_args, ome_connection_network_vlan_info_mock,
+    def test_get_network_vlan_info_success_case(self, mocker, ome_default_args, ome_connection_network_vlan_info_mock,
                                                 ome_response_mock):
         ome_response_mock.json_data = response
         ome_response_mock.status_code = 200
+        mocker.patch(
+            MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
+            return_value=network_type_qos_type_dict_reponse)
         result = self._run_module(ome_default_args)
+        print(result)
         assert 'network_vlan_info' in result
         assert result['msg'] == "Successfully retrieved the network VLAN information."
 
@@ -87,6 +101,9 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
         ome_response_mock.success = True
         ome_response_mock.json_data = response
         ome_response_mock.status_code = 200
+        mocker.patch(
+            MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
+            return_value=network_type_qos_type_dict_reponse)
         result = self._run_module(ome_default_args)
         assert result['changed'] is False
         assert 'network_vlan_info' in result
@@ -98,10 +115,27 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
         ome_response_mock.success = True
         ome_response_mock.json_data = response
         ome_response_mock.status_code = 200
+        mocker.patch(
+            MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
+            return_value=network_type_qos_type_dict_reponse)
         result = self._run_module(ome_default_args)
         assert result['changed'] is False
         assert 'network_vlan_info' in result
         assert result['msg'] == "Successfully retrieved the network VLAN information."
+
+    def test_get_network_type_and_qos_type_information(self, mocker, ome_connection_network_vlan_info_mock):
+        mocker.patch(MODULE_PATH + 'ome_network_vlan_info.get_type_information',
+                     side_effect=[network_type_dict_response, qos_type_dict_response])
+        result = self.module.get_network_type_and_qos_type_information(ome_connection_network_vlan_info_mock)
+        assert result[1]['QosType']['Id'] == 4
+
+    def test_get_type_information(self, mocker, ome_default_args,
+                                  ome_connection_network_vlan_info_mock, ome_response_mock):
+        ome_response_mock.success = True
+        ome_response_mock.json_data = type_dict_ome_reponse
+        ome_response_mock.status_code = 200
+        result = self.module.get_type_information(ome_connection_network_vlan_info_mock, '')
+        assert result[1]['QosType'] == 4
 
     def test_network_vlan_info_failure_case(self, ome_default_args, ome_connection_network_vlan_info_mock,
                                             ome_response_mock):
