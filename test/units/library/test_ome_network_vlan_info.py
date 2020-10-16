@@ -78,7 +78,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
     @pytest.fixture
     def ome_connection_network_vlan_info_mock(self, mocker, ome_response_mock):
         connection_class_mock = mocker.patch(
-            'ansible_collections.dellemc.openmanage.plugins.modules.ome_network_vlan_info.RestOME')
+            'ansible.modules.remote_management.dellemc.ome_network_vlan_info.RestOME')
         ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
         ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
         return ome_connection_mock_obj
