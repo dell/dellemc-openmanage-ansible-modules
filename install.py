@@ -53,7 +53,7 @@ if 'ANSIBLE_LIBRARY' in os.environ:
 else:
     ANSIBLE_INSTALLED_PATH = ansible.__path__[0]
 
-# master contribution details:
+# contribution details:
 CONTRIB_FILES = {
     "module_utils/remote_management/dellemc/__init__.py": "ansible 2.8.0",
     "module_utils/remote_management/dellemc/dellemc_idrac.py": "ansible 2.8.0",

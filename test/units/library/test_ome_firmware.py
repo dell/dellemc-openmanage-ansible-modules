@@ -2,34 +2,36 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2019-2020 Dell Inc.
+# Version 2.1.3
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
+
+__metaclass__ = type
 
 from units.compat.mock import patch, mock_open
 
 import pytest
 import json
 import sys
-from ansible.modules.remote_management.dellemc import ome_firmware
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
 from io import StringIO
 from ansible.module_utils._text import to_text
+from ansible.modules.remote_management.dellemc import ome_firmware
+from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
+
+MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
 
 device_resource = {"device_path": "DeviceService/Devices"}
 
 
 @pytest.fixture
 def ome_connection_firmware_mock(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.RestOME')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'ome_firmware.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -366,19 +368,19 @@ class TestOmeFirmware(FakeAnsibleModule):
     def test_main_firmware_success_case01(self, ome_default_args, mocker, ome_connection_firmware_mock):
         ome_default_args.update({"device_id": Constants.device_id1, "device_service_tag": Constants.service_tag1,
                                  "dup_file": ""})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware._validate_device_attributes',
+        mocker.patch(MODULE_PATH + 'ome_firmware._validate_device_attributes',
                      return_value=[Constants.device_id1, Constants.service_tag1])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.get_device_ids',
+        mocker.patch(MODULE_PATH + 'ome_firmware.get_device_ids',
                      return_value=[Constants.device_id1, Constants.device_id2])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.upload_dup_file',
+        mocker.patch(MODULE_PATH + 'ome_firmware.upload_dup_file',
                      return_value=["SUCCESS", "token_id"])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.get_dup_applicability_payload',
+        mocker.patch(MODULE_PATH + 'ome_firmware.get_dup_applicability_payload',
                      return_value={"report_payload": "values"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.get_applicable_components',
+        mocker.patch(MODULE_PATH + 'ome_firmware.get_applicable_components',
                      return_value="target_data")
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.job_payload_for_update',
+        mocker.patch(MODULE_PATH + 'ome_firmware.job_payload_for_update',
                      return_value={"job_payload": "values"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.spawn_update_job',
+        mocker.patch(MODULE_PATH + 'ome_firmware.spawn_update_job',
                      return_value="Success")
         data = self._run_module(ome_default_args)
         assert data['changed'] is True
@@ -387,14 +389,14 @@ class TestOmeFirmware(FakeAnsibleModule):
 
     def test_main_firmware_success_case02(self, ome_default_args, mocker, ome_connection_firmware_mock):
         ome_default_args.update({"baseline_name": "baseline_name"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.validate_inputs')
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.get_baseline_ids',
+        mocker.patch(MODULE_PATH + 'ome_firmware.validate_inputs')
+        mocker.patch(MODULE_PATH + 'ome_firmware.get_baseline_ids',
                      return_value=[1, 2])
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.job_payload_for_update',
+        mocker.patch(MODULE_PATH + 'ome_firmware.job_payload_for_update',
                      return_value={"job_payload": "values"})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.spawn_update_job',
+        mocker.patch(MODULE_PATH + 'ome_firmware.spawn_update_job',
                      return_value="Success")
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware.baseline_based_update',
+        mocker.patch(MODULE_PATH + 'ome_firmware.baseline_based_update',
                      return_value="target_data")
         data = self._run_module(ome_default_args)
         assert data['changed'] is True
@@ -407,7 +409,7 @@ class TestOmeFirmware(FakeAnsibleModule):
                                           ome_response_mock, ome_connection_firmware_mock):
         ome_default_args.update({"device_id": Constants.device_id1, "device_service_tag": Constants.service_tag1,
                                  "dup_file": ""})
-        mocker.patch('ansible.modules.remote_management.dellemc.ome_firmware._validate_device_attributes')
+        mocker.patch(MODULE_PATH + 'ome_firmware._validate_device_attributes')
         ome_response_mock.json_data = {"value": [{"Id": "DeviceServiceTag",
                                                   "dup_file": ""}]}
         ome_response_mock.status_code = 400
@@ -416,19 +418,19 @@ class TestOmeFirmware(FakeAnsibleModule):
 
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.get_device_ids')
+                MODULE_PATH + 'ome_firmware.get_device_ids')
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.upload_dup_file',
+                MODULE_PATH + 'ome_firmware.upload_dup_file',
                 side_effect=exc_type('test'))
         else:
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.get_dup_applicability_payload')
+                MODULE_PATH + 'ome_firmware.get_dup_applicability_payload')
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.get_applicable_components')
+                MODULE_PATH + 'ome_firmware.get_applicable_components')
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.job_payload_for_update')
+                MODULE_PATH + 'ome_firmware.job_payload_for_update')
             mocker.patch(
-                'ansible.modules.remote_management.dellemc.ome_firmware.spawn_update_job',
+                MODULE_PATH + 'ome_firmware.spawn_update_job',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
@@ -508,11 +510,11 @@ class TestOmeFirmware(FakeAnsibleModule):
     def test_get_dup_baseline_case_01(self, ome_connection_firmware_mock):
         baseline = "baseline_name1,baseline_name2,baseline_name3"
         report_list = [{'Name': 'baseline_name1', 'Id': 1}, {'Name': 'baseline_name2', 'Id': 2},
-                               {'Name': 'baseline_name3', 'Id': 3}]
+                       {'Name': 'baseline_name3', 'Id': 3}]
         ome_connection_firmware_mock.get_all_report_details.return_value = {"report_list": report_list}
         f_module = self.get_module_mock(params={'baseline_name': baseline})
         baseline_ids = self.module.get_dup_baseline(ome_connection_firmware_mock, f_module)
-        assert baseline_ids == [1,2,3]
+        assert baseline_ids == [1, 2, 3]
 
     def test_get_dup_baseline_exception_case_01(self, ome_connection_firmware_mock):
         baseline = "baseline_name5"
@@ -522,9 +524,8 @@ class TestOmeFirmware(FakeAnsibleModule):
         f_module = self.get_module_mock(params={'baseline_name': baseline})
         with pytest.raises(Exception) as exc:
             self.module.get_dup_baseline(ome_connection_firmware_mock, f_module)
-        assert exc.value.args[
-                   0] == "Unable to complete the operation because the entered target baseline name(s) " \
-                          "'baseline_name5' are invalid."
+        assert exc.value.args[0] == "Unable to complete the operation because the entered" \
+                                    " target baseline name(s) 'baseline_name5' are invalid."
 
     def test_get_dup_baseline_exception_case_02(self, ome_connection_firmware_mock):
         baseline = "baseline_name1,baseline_name2,baseline_name3"
@@ -539,24 +540,28 @@ class TestOmeFirmware(FakeAnsibleModule):
         ome_connection_firmware_mock.get_all_report_details.return_value = {"report_list": []}
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
-            self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id":1})
+            self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id": 1})
         assert exc.value.args[0] == "No components available for update."
 
     def test_baseline_based_update_case_02(self, ome_connection_firmware_mock):
         f_module = self.get_module_mock(params={'baseline_id': 1})
-        response = {"report_list": [{"DeviceId": 1111, "DeviceTypeId": 2000,"DeviceName": "MX-111","DeviceTypeName": "CHASSIS",
-        "ComponentComplianceReports": [{"UpdateAction": "UPGRADE","SourceName": "SAS.xx.x2"}]}]}
+        response = {"report_list": [
+            {"DeviceId": 1111, "DeviceTypeId": 2000, "DeviceName": "MX-111", "DeviceTypeName": "CHASSIS",
+             "ComponentComplianceReports": [{"UpdateAction": "UPGRADE", "SourceName": "SAS.xx.x2"}]}]}
         ome_connection_firmware_mock.get_all_report_details.return_value = response
-        compliance_report_list = self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id":1})
-        assert compliance_report_list == [{'Id': 1111, 'Data': 'SAS.xx.x2', 'TargetType': {'Id': 2000, 'Name': 'CHASSIS'}}]
+        compliance_report_list = self.module.baseline_based_update(ome_connection_firmware_mock, f_module,
+                                                                   {"baseline_id": 1})
+        assert compliance_report_list == [
+            {'Id': 1111, 'Data': 'SAS.xx.x2', 'TargetType': {'Id': 2000, 'Name': 'CHASSIS'}}]
 
     def test_baseline_based_update_case_03(self, ome_connection_firmware_mock):
         f_module = self.get_module_mock(params={'baseline_id': 1})
-        response = {"report_list": [{"DeviceId": 1111, "DeviceTypeId": 2000,"DeviceName": "MX-111","DeviceTypeName": "CHASSIS",
-        "ComponentComplianceReports":[]}]}
+        response = {"report_list": [
+            {"DeviceId": 1111, "DeviceTypeId": 2000, "DeviceName": "MX-111", "DeviceTypeName": "CHASSIS",
+             "ComponentComplianceReports": []}]}
         ome_connection_firmware_mock.get_all_report_details.return_value = response
         with pytest.raises(Exception, match="No components available for update.") as exc:
-            self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id":1})
+            self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id": 1})
 
     def test_validate_inputs(self):
         f_module = self.get_module_mock(params={"device_id": 111})
@@ -564,5 +569,3 @@ class TestOmeFirmware(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.validate_inputs(f_module)
         assert exc.value.args[0] == msg
-
-

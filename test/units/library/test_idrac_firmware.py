@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.3
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -498,7 +498,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                       idrac_firmware_job_mock,
                                       idrac_connection_firmware_redfish_mock):
         idrac_default_args.update({"Location": "https://jobmnager/jid123"})
-        idrac_firmware_job_mock.code = 202
+        idrac_firmware_job_mock.status_code = 202
         idrac_firmware_job_mock.Success = True
         idrac_connection_firmware_redfish_mock.update_mgr.headers.get().split().__getitem__().return_value = "jid123"
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -584,15 +584,15 @@ class TestidracFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_firmware.eval",
                      return_value={"PackageList": []})
         idrac_connection_firmware_mock.use_redfish = True
-        idrac_connection_firmware_mock.idrac.update_mgr.job_mgr.get_job_status_redfish.return_value = "23451"
+        idrac_connection_firmware_mock.job_mgr.get_job_status_redfish.return_value = "23451"
+        idrac_connection_firmware_mock.job_mgr.job_wait.return_value = {"InstanceID": "JID_12345678"}
         f_module = self.get_module_mock(params=idrac_default_args)
         payload = {"ApplyUpdate": "True", "CatalogFile": "Catalog.xml", "IgnoreCertWarning": "On",
-                   "RebootNeeded": True, "UserName": "username", "Password": "psw"
-                   }
+                   "RebootNeeded": True, "UserName": "username", "Password": "psw"}
         result = self.module.update_firmware_url(f_module, idrac_connection_firmware_mock,
                                                  "http://downloads.dell.com/repo",
                                                  "catalog.xml", True, True, True, True, payload)
-        assert result[1] == {"PackageList": []}
+        assert result[0] == {"InstanceID": "JID_12345678"}
 
     def test_update_firmware_redfish(self, idrac_connection_firmware_mock, idrac_default_args, re_match_mock,
                                      mocker, idrac_connection_firmware_redfish_mock,

@@ -168,7 +168,7 @@ class TestIDRACUser(FakeAnsibleModule):
         user_attr = {"User.2#UserName": "test_user"}
         response = self.module.create_or_modify_account(f_module, idrac_connection_user_mock, None, None,
                                                         empty_slot_id, empty_slot_uri, user_attr)
-        assert response[1] == "Unable to retrieve the user details."
+        assert response[1] == "Successfully created user account."
 
     def test_create_or_modify_account_2(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
@@ -281,7 +281,7 @@ class TestIDRACUser(FakeAnsibleModule):
         user_attr = {"User.2#UserName": "test_user"}
         response = self.module.create_or_modify_account(f_module, idrac_connection_user_mock, None, None,
                                                         slot_id, slot_uri, user_attr)
-        assert response[1] == "Unable to retrieve the user details."
+        assert response[1] == "Successfully created user account."
 
     def test_create_or_modify_account_7(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",

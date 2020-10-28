@@ -1,15 +1,16 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.1
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
+
+__metaclass__ = type
 
 import pytest
 from ansible.modules.remote_management.dellemc import _dellemc_configure_idrac_users
@@ -40,7 +41,7 @@ class TestConfigUsers(FakeAnsibleModule):
     def idrac_file_manager_config_users_mock(self, mocker):
         try:
             file_manager_obj = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_configure_idrac_users.file_share_manager')
+                'ansible.modules.remote_management.dellemc._dellemc_configure_idrac_users.file_share_manager')
         except AttributeError:
             file_manager_obj = MagicMock()
         obj = MagicMock()
@@ -51,7 +52,7 @@ class TestConfigUsers(FakeAnsibleModule):
     def is_changes_applicable_mock_users(self, mocker):
         try:
             changes_applicable_mock = mocker.patch(
-                'ansible.modules.remote_management.dellemc.dellemc_configure_idrac_users.config_mgr')
+                'ansible.modules.remote_management.dellemc._dellemc_configure_idrac_users.config_mgr')
         except AttributeError:
             changes_applicable_mock = MagicMock()
         obj = MagicMock()
@@ -61,7 +62,7 @@ class TestConfigUsers(FakeAnsibleModule):
     @pytest.fixture
     def idrac_connection_configure_users_mock(self, mocker, idrac_configure_users_mock):
         idrac_conn_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.'
-                                             'dellemc_configure_idrac_users.iDRACConnection',
+                                             '_dellemc_configure_idrac_users.iDRACConnection',
                                              return_value=idrac_configure_users_mock)
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_configure_users_mock
         return idrac_configure_users_mock
@@ -71,7 +72,7 @@ class TestConfigUsers(FakeAnsibleModule):
         idrac_default_args.update({"share_name": "sharename"})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
         mocker.patch('ansible.modules.remote_management.dellemc.'
-                     'dellemc_configure_idrac_users.run_idrac_users_config', return_value=(message, False))
+                     '_dellemc_configure_idrac_users.run_idrac_users_config', return_value=(message, False))
         result = self._run_module(idrac_default_args)
         assert result == {'changed': False, 'msg': {'Status': 'Success', "message": "No changes found to commit!"}}
 
@@ -339,7 +340,7 @@ class TestConfigUsers(FakeAnsibleModule):
                                                                 idrac_file_manager_config_users_mock):
         idrac_default_args.update({"share_name": "sharename"})
         mocker.patch('ansible.modules.remote_management.dellemc.'
-                     'dellemc_configure_idrac_users.run_idrac_users_config', side_effect=exc_type('test'))
+                     '_dellemc_configure_idrac_users.run_idrac_users_config', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
         assert 'msg' in result
         assert result['failed'] is True

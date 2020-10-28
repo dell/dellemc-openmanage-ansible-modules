@@ -4,6 +4,14 @@ Dell EMC OpenManage Ansible Modules allows data center and IT administrators to 
 
 OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
+# 2.1.3 (October 29, 2020)
+
+  * The ome_network_vlan module allows to create, modify, or delete a VLAN.
+  
+  * The ome_network_port_breakout module allows to automate the breaking out of IOMs in fabric mode into logical sub ports.
+  
+  * The ome_network_vlan_info module retrieves the information about the network VLANs present in OpenManage Enterprise.
+
 # 2.1.2 (September 23, 2020)
 
   * The dellemc_change_power_state module is deprecated and replaced with the redfish_powerstate module.

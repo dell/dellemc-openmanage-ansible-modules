@@ -223,8 +223,9 @@ EXAMPLES = r'''
       # Include this to install OS on the devices.
       # This section is optional
       NetworkBootIsoModel:
-        BootToNetwork: false
+        BootToNetwork: true
         ShareType: "NFS"
+        IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
         IsoPath: "/home/iso_path/filename.iso"
         ShareDetail:
           IpAddress: "192.168.0.2"
@@ -266,8 +267,9 @@ install OS using its image."
               Value : "hostname-1"
               IsIgnored : false
       NetworkBootIsoModel:
-        BootToNetwork: false
+        BootToNetwork: true
         ShareType: "NFS"
+        IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
         IsoPath: "/home/iso_path/filename.iso"
         ShareDetail:
           IpAddress: "192.168.0.2"
