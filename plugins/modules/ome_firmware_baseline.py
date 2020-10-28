@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.3
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -74,7 +74,7 @@ author: "Jagadeesh N V(@jagadeeshnv)"
 
 EXAMPLES = r'''
 ---
-- name: create baseline from device Ids.
+- name: create baseline for device Ids.
   dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"
@@ -86,7 +86,7 @@ EXAMPLES = r'''
       - 1010
       - 2020
 
-- name: create baseline from servicetags.
+- name: create baseline for servicetags.
   dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"
@@ -98,7 +98,7 @@ EXAMPLES = r'''
       - "SVCTAG1"
       - "SVCTAG2"
 
-- name: create baseline from device groups.
+- name: create baseline for device groups.
   dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"

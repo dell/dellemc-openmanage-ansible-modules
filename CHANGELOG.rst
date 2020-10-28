@@ -5,6 +5,21 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v2.1.3
+======
+
+Release Summary
+---------------
+
+Network configuration service related modules ome_network_vlan, ome_network_port_breakout and ome_network_vlan_info are added.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_network_port_breakout - This module allows to automate the port partitioning or breaking out to logical sub ports.
+- dellemc.openmanage.ome_network_vlan - Create, modify & delete a VLAN.
+- dellemc.openmanage.ome_network_vlan_info - Retrieves the information about networks VLAN(s) present in OpenManage Enterprise.
+
 v2.1.2
 ======
 
