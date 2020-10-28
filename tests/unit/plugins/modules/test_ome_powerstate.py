@@ -1,18 +1,19 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.3
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
 
+__metaclass__ = type
 
-import pytest, json
+import pytest
+import json
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
@@ -20,10 +21,12 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_powerstate
 
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+
 
 @pytest.fixture
 def ome_connection_powerstate_mock(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.RestOME')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'ome_powerstate.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -100,61 +103,104 @@ class TestOmePowerstate(FakeAnsibleModule):
                                    ome_connection_powerstate_mock):
         ome_response_mock.status_code = 201
         ome_response_mock.success = True
-        ome_response_mock.json_data = {"Builtin": False,
-                                       "CreatedBy": "admin",
-                                       "Editable": True,
-                                       "EndTime": None,
-                                       "Id": 29099,
-                                       "JobDescription": "Firmware Update Task",
-                                       "JobName": "Firmware Update Task",
-                                       "JobStatus": {"Id": 2080,
-                                                     "Name": "New"},
-                                       "JobType": {"Id": 5,
-                                                   "Internal": False,
-                                                   "Name": "Update_Task"},
-                                       "LastRun": None,
-                                       "LastRunStatus": {"Id": 2200,
-                                                         "Name": "NotRun"},
-                                       "NextRun": None,
-                                       "Params": [{"JobId": 29099,
-                                                   "Key": "operationName",
-                                                   "Value": "INSTALL_FIRMWARE"},
-                                                  {"JobId": 29099,
-                                                   "Key": "complianceUpdate",
-                                                   "Value": "false"},
-                                                  {"JobId": 29099,
-                                                   "Key": "stagingValue",
-                                                   "Value": "false"},
-                                                  {"JobId": 29099,
-                                                   "Key": "signVerify",
-                                                   "Value": "true"}],
+        ome_response_mock.json_data = {
+            "Builtin": False,
+            "CreatedBy": "admin",
+            "Editable": True,
+            "EndTime": None,
+            "Id": 29099,
+            "JobDescription": "Firmware Update Task",
+            "JobName": "Firmware Update Task",
+            "JobStatus": {
+                "Id": 2080,
+                "Name": "New"
+            },
+            "JobType": {
+                "Id": 5,
+                "Internal": False,
+                "Name": "Update_Task"
+            },
+            "LastRun": None,
+            "LastRunStatus": {
+                "Id": 2200,
+                "Name": "NotRun"
+            },
+            "NextRun": None,
+            "Params": [
+                {
+                    "JobId": 29099,
+                    "Key": "operationName",
+                    "Value": "INSTALL_FIRMWARE"
+                },
+                {
+                    "JobId": 29099,
+                    "Key": "complianceUpdate",
+                    "Value": "false"
+                },
+                {
+                    "JobId": 29099,
+                    "Key": "stagingValue",
+                    "Value": "false"
+                },
+                {
+                    "JobId": 29099,
+                    "Key": "signVerify",
+                    "Value": "true"
+                }
+            ],
 
-                                       "Schedule": "startnow",
-                                       "StartTime": None,
-                                       "State": "Enabled",
-                                       "Targets": [{"Data": "DCIM:INSTALLED#741__BIOS.Setup.1-1=1577776981156",
-                                                    "Id": 28628,
-                                                    "JobId": 29099,
-                                                    "TargetType": {"Id": 1000,
-                                                                   "Name": "DEVICE"}}],
-                                       "UpdatedBy": None,
-                                       "Visible": True}
+            "Schedule": "startnow",
+            "StartTime": None,
+            "State": "Enabled",
+            "Targets": [{
+                "Data": "DCIM:INSTALLED#741__BIOS.Setup.1-1=1577776981156",
+                "Id": 28628,
+                "JobId": 29099,
+                "TargetType": {
+                    "Id": 1000,
+                    "Name": "DEVICE"
+                }
+            }],
+            "UpdatedBy": None,
+            "Visible": True
+        }
         data = self.module.spawn_update_job(ome_connection_powerstate_mock, param)
         assert data == param
 
     def test_build_power_state_payload_success_case(self, ome_connection_powerstate_mock):
 
         payload = self.module.build_power_state_payload(Constants.device_id1, "off", 2000)
-        assert payload == {'Id': 0, 'JobDescription': 'DeviceAction_Task', 'JobName': 'DeviceAction_Task_PowerState',
-                           'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
-                           'Params': [{'Key': 'operationName', 'Value': 'POWER_CONTROL'},
-                           {'Key': 'powerState', 'Value': '2000'}],
-                           'Schedule': 'startnow',
-                           'State': 'Enabled',
-                           'Targets': [{'Data': '',
-                                        'Id': 1234,
-                                        'TargetType': {'Id': 'off',
-                                                       'Name': 'DEVICE'}}]}
+        assert payload == {
+            'Id': 0,
+            'JobDescription': 'DeviceAction_Task',
+            'JobName': 'DeviceAction_Task_PowerState',
+            'JobType': {
+                'Id': 3,
+                'Name': 'DeviceAction_Task'
+            },
+            'Params': [
+                {
+                    'Key': 'operationName',
+                    'Value': 'POWER_CONTROL'
+                },
+                {
+                    'Key': 'powerState',
+                    'Value': '2000'
+                }
+            ],
+            'Schedule': 'startnow',
+            'State': 'Enabled',
+            'Targets': [
+                {
+                    'Data': '',
+                    'Id': 1234,
+                    'TargetType': {
+                        'Id': 'off',
+                        'Name': 'DEVICE'
+                    }
+                }
+            ]
+        }
 
     def test_get_device_state_success_case01(self, ome_connection_powerstate_mock, ome_response_mock):
         ome_response_mock.json_data = {
@@ -190,7 +236,7 @@ class TestOmePowerstate(FakeAnsibleModule):
     def test_main_powerstate_success_case01(self, ome_default_args, mocker, ome_connection_powerstate_mock,
                                             ome_response_mock):
         mocker.patch(
-            'ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
+            MODULE_PATH + 'ome_powerstate.get_device_resource',
             return_value={"Repository": "payload"})
         ome_default_args.update({"device_id": "11111", "power_state": "off"})
         ome_response_mock.success = True
@@ -202,7 +248,7 @@ class TestOmePowerstate(FakeAnsibleModule):
 
     def test_main_powerstate_success_case02(self, ome_default_args, mocker, ome_connection_powerstate_mock,
                                             ome_response_mock):
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.get_device_resource',
                      return_value={"Repository": "payload"})
         ome_default_args.update({"device_service_tag": "KLBR111", "power_state": "on"})
         ome_response_mock.success = True
@@ -214,9 +260,9 @@ class TestOmePowerstate(FakeAnsibleModule):
 
     def test_main_powerstate_failure_case(self, ome_default_args, mocker, ome_connection_powerstate_mock,
                                           ome_response_mock):
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.get_device_resource',
                      return_value={"Repository": "payload"})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.spawn_update_job',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.spawn_update_job',
                      return_value="payload")
         ome_default_args.update({"device_service_tag": None, "power_state": "on"})
         ome_response_mock.json_data = {"value": [{"device_service_tag": None, "power_state": "on"}]}
@@ -228,9 +274,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 ome_response_mock):
         ome_default_args.update({"device_id": Constants.service_tag1, "power_state": "on", "Type": 1000,
                                  "device_service_tag": Constants.service_tag1})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_state',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.get_device_state',
                      return_value=('on', 1000))
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.build_power_state_payload',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.build_power_state_payload',
                      return_value={'Id': 0, 'JobDescription': 'DeviceAction_Task',
                                    'JobName': 'DeviceAction_Task_PowerState',
                                    'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
@@ -265,9 +311,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 ome_response_mock):
         ome_default_args.update({"device_id": Constants.service_tag1, "power_state": "on", "Type": 1000,
                                  "device_service_tag": Constants.service_tag1})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_state',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.get_device_state',
                      return_value=('on', 1000))
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.build_power_state_payload',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.build_power_state_payload',
                      return_value={'Id': 0, 'JobDescription': 'DeviceAction_Task',
                                    'JobName': 'DeviceAction_Task_PowerState',
                                    'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
@@ -294,9 +340,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 ome_response_mock):
         ome_default_args.update({"device_id": Constants.service_tag1, "power_state": "coldboot", "Type": 1000,
                                  "device_service_tag": Constants.service_tag1})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_state',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.get_device_state',
                      return_value=('off', 1000))
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.build_power_state_payload',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.build_power_state_payload',
                      return_value={'Id': 0, 'JobDescription': 'DeviceAction_Task',
                                    'JobName': 'DeviceAction_Task_PowerState',
                                    'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
@@ -322,9 +368,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 ome_response_mock):
         ome_default_args.update({"device_id": Constants.service_tag1, "power_state": "on", "Type": 1000,
                                  "device_service_tag": Constants.service_tag1})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_state',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.get_device_state',
                      return_value=(2, 1000))
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.build_power_state_payload',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.build_power_state_payload',
                      return_value={'Id': 0, 'JobDescription': 'DeviceAction_Task',
                                    'JobName': 'DeviceAction_Task_PowerState',
                                    'JobType': {'Id': 3, 'Name': 'DeviceAction_Task'},
@@ -347,10 +393,10 @@ class TestOmePowerstate(FakeAnsibleModule):
         assert exc.value.args[0] == "No changes found to commit."
 
     def test_get_device_resource_failed_case01(self, mocker, ome_default_args, ome_connection_powerstate_mock,
-                                                ome_response_mock):
+                                               ome_response_mock):
         ome_default_args.update({"device_id": None, "power_state": "on", "Type": 1000,
                                  "device_service_tag": "@#4"})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_state',
+        mocker.patch(MODULE_PATH + 'ome_powerstate.get_device_state',
                      return_value=('on', 1000))
         ome_response_mock.status_code = 400
         ome_response_mock.json_data = {
@@ -375,18 +421,18 @@ class TestOmePowerstate(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                'ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
+                MODULE_PATH + 'ome_powerstate.get_device_resource',
                 side_effect=exc_type('test'))
             mocker.patch(
-                'ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.spawn_update_job',
+                MODULE_PATH + 'ome_powerstate.spawn_update_job',
                 side_effect=exc_type('test'))
         else:
             mocker.patch(
-                'ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.spawn_update_job',
+                MODULE_PATH + 'ome_powerstate.spawn_update_job',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
             mocker.patch(
-                'ansible_collections.dellemc.openmanage.plugins.modules.ome_powerstate.get_device_resource',
+                MODULE_PATH + 'ome_powerstate.get_device_resource',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module_with_fail_json(ome_default_args)

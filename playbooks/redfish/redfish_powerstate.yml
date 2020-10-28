@@ -10,13 +10,13 @@
   tasks:
   - name: Manage power state of the first device.
     redfish_powerstate:
-       baseuri:   "{{ baseuri }}"
-       username: "{{ username }}"
-       password:  "{{ password }}"
-       reset_type: "On"
+      baseuri:   "{{ baseuri }}"
+      username: "{{ username }}"
+      password:  "{{ password }}"
+      reset_type: "On"
 
   - name: Manage power state of a specified device.
-    dellemc.openmanage.redfish_powerstate:
+    redfish_powerstate:
        baseuri: "{{ baseuri }}"
        username: "{{ username }}"
        password: "{{ password }}"

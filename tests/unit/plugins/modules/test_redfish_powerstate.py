@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.2
+# Version 2.1.3
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -176,7 +176,8 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             "Systems": {
                 "@odata.id": "/redfish/v1/Systems"
             },
-            "Members": [
+            "Members":
+            [
                 {
                     "@odata.id": "/redfish/v1/Systems/System.Embedded.1"
                 },
