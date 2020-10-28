@@ -59,4 +59,3 @@
       repository_type: NFS
       source_path: "/nfs/R940"
       file_name: "catalog.xml"
-

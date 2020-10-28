@@ -72,14 +72,14 @@
             # Service tags not allowed.
             - DeviceId: 12765
               Attributes:
-                - Id : 15645
-                  Value : "0.0.0.0"
-                  IsIgnored : false
+                - Id: 15645
+                  Value: "0.0.0.0"
+                  IsIgnored: false
             - DeviceId: 10173
               Attributes:
-                - Id : 18968,
-                  Value : "hostname-1"
-                  IsIgnored : false
+                - Id: 18968,
+                  Value: "hostname-1"
+                  IsIgnored: false
 
     - name: "Deploy template and Operating System (OS) on multiple devices"
       ome_template:
@@ -96,8 +96,9 @@
           # Include this to install OS on the devices.
           # This section is optional
           NetworkBootIsoModel:
-            BootToNetwork: false
+            BootToNetwork: true
             ShareType: "NFS"
+            IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
             IsoPath: "/home/iso_path/filename.iso"
             ShareDetail:
               IpAddress: "192.168.0.2"
@@ -130,17 +131,18 @@
           Attributes:
             - DeviceId: 12765
               Attributes:
-                - Id : 15645
-                  Value : "0.0.0.0"
-                  IsIgnored : false
+                - Id: 15645
+                  Value: "0.0.0.0"
+                  IsIgnored: false
             - DeviceId: 10173
               Attributes:
-                - Id : 18968,
-                  Value : "hostname-1"
-                  IsIgnored : false
+                - Id: 18968,
+                  Value: "hostname-1"
+                  IsIgnored: false
           NetworkBootIsoModel:
-            BootToNetwork: false
+            BootToNetwork: true
             ShareType: "NFS"
+            IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
             IsoPath: "/home/iso_path/filename.iso"
             ShareDetail:
               IpAddress: "192.168.0.2"

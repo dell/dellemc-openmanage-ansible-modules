@@ -1,0 +1,58 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell EMC OpenManage Ansible VLAN operations.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: "Create a VLAN range"
+      ome_network_vlan:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: present
+        name: "vlan1"
+        description: "VLAN desc"
+        type: "General Purpose (Bronze)"
+        vlan_minimum: 35
+        vlan_maximum: 40
+      tags: create_vlan_range
+
+    - name: "Create a VLAN with a single value"
+      ome_network_vlan:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: present
+        name: "vlan2"
+        description: "VLAN desc"
+        type: "General Purpose (Bronze)"
+        vlan_minimum: 127
+        vlan_maximum: 127
+      tags: create_vlan_single
+
+    - name: "Modify a VLAN"
+      ome_network_vlan:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: present
+        name: "vlan1"
+        new_name: "vlan_gold1"
+        description: "new description"
+        type: "General Purpose (Gold)"
+        vlan_minimum: 45
+        vlan_maximum: 50
+      tags: modify_vlan
+
+    - name: "Delete a VLAN"
+      ome_network_vlan:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: "absent"
+        name: "vlan1"
+      tags: delete_vlan

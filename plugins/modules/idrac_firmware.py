@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.3
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -217,7 +217,7 @@ def _convert_xmltojson(job_details):
 def get_jobid(module, resp):
     """Get the Job ID from the response header."""
     jobid = None
-    if resp.code == 202:
+    if resp.status_code == 202:
         joburi = resp.headers.get('Location')
         if joburi is None:
             module.fail_json(msg="Failed to update firmware.")
@@ -250,8 +250,9 @@ def update_firmware_url(module, idrac, share_name, catalog_file_name, apply_upda
             if job_wait:
                 status = idrac.job_mgr.job_wait(job_id)
             try:
-                resp_repo_based_update_list = obj.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST", data={})
-                job_details = eval(resp_repo_based_update_list.read())
+                resp_repo_based_update_list = obj.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH,
+                                                                 method="POST", data="{}", dump=False)
+                job_details = resp_repo_based_update_list.json_data
             except HTTPError as err:
                 err_message = json.load(err)
                 if err_message['error']['@Message.ExtendedInfo'][0]['Message'] == message:
@@ -320,8 +321,8 @@ def update_firmware(idrac, module):
                     if job_wait:
                         msg['update_status'] = idrac.job_mgr.job_wait(job_id)
                     repo_based_update_list = obj.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH,
-                                                                method="POST", data={})
-                    msg['update_status']['job_details'] = eval(repo_based_update_list.read())
+                                                                method="POST", data="{}", dump=False)
+                    msg['update_status']['job_details'] = repo_based_update_list.json_data
             else:
                 msg['update_status'] = idrac.update_mgr.update_from_repo(upd_share, apply_update=apply_update,
                                                                          reboot_needed=reboot, job_wait=job_wait)

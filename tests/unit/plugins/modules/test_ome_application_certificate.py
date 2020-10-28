@@ -2,15 +2,15 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2019-2020 Dell Inc.
+# Version 2.1.3
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function)
+
+__metaclass__ = type
 
 import json
 
@@ -23,11 +23,13 @@ from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_certificate
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+
 
 @pytest.fixture
 def ome_connection_mock_for_application_certificate(mocker, ome_response_mock):
     connection_class_mock = mocker.patch(
-        'ansible_collections.dellemc.openmanage.plugins.modules.ome_application_certificate.RestOME')
+        MODULE_PATH + 'ome_application_certificate.RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -48,17 +50,17 @@ class TestOmeAppCSR(FakeAnsibleModule):
                 "email": "support@dell.com"}
         ome_default_args.update(args)
         if exc_type == URLError:
-            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_certificate.get_resource_parameters',
-                         side_effect=exc_type("urlopen error"))
+            mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
+                         side_effect=exc_type("TEST"))
             result = self._run_module(ome_default_args)
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_certificate.get_resource_parameters',
+            mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
                          side_effect=exc_type("exception message"))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_certificate.get_resource_parameters',
+            mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
                          side_effect=exc_type('http://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
@@ -68,8 +70,9 @@ class TestOmeAppCSR(FakeAnsibleModule):
         assert 'csr_status' not in result
         assert 'msg' in result
 
-    def test_get_resource_parameters_generate(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
-                                     ome_response_mock):
+    def test_get_resource_parameters_generate(self, mocker, ome_default_args,
+                                              ome_connection_mock_for_application_certificate,
+                                              ome_response_mock):
         args = {"command": "generate_csr", "distinguished_name": "hostname.com",
                 "department_name": "Remote Access Group", "business_name": "Dell Inc.",
                 "locality": "Round Rock", "country_state": "Texas", "country": "US",
@@ -83,7 +86,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
                              'State': 'Texas', 'Country': 'US', 'Email': 'support@dell.com'}
 
     def test_upload_csr_fail01(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
-                        ome_response_mock):
+                               ome_response_mock):
         args = {"command": "upload", "upload_file": "/path/certificate.cer"}
         f_module = self.get_module_mock(params=args)
         with pytest.raises(Exception) as exc:
@@ -93,7 +96,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
     def test_upload_csr_success(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                                 ome_response_mock):
         payload = "--BEGIN-REQUEST--"
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_certificate.get_resource_parameters',
+        mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
                      return_value=("POST", "ApplicationService/Actions/ApplicationService.UploadCertificate", payload))
         ome_default_args.update({"command": "upload", "upload_file": "/path/certificate.cer"})
         ome_response_mock.success = True
@@ -106,7 +109,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
         payload = {"DistinguishedName": "hostname.com", "DepartmentName": "Remote Access Group",
                    "BusinessName": "Dell Inc.", "Locality": "Round Rock", "State": "Texas",
                    "Country": "US", "Email": "support@dell.com"}
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_application_certificate.get_resource_parameters',
+        mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
                      return_value=("POST", "ApplicationService/Actions/ApplicationService.GenerateCSR", payload))
         ome_default_args.update({"command": "generate_csr", "distinguished_name": "hostname.com",
                                  "department_name": "Remote Access Group", "business_name": "Dell Inc.",

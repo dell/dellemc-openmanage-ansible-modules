@@ -1,6 +1,6 @@
 namespace: dellemc
 name: openmanage
-version: 2.1.2
+version: 2.1.3
 readme: README.md
 authors:
 - Rajeev Arakkal <Rajeev_Arakkal@Dell.com>
