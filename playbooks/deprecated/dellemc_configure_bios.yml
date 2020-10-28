@@ -5,14 +5,13 @@
   gather_facts: False
 
   tasks:
-
   - name: Configure Bios Generic Attributes
     dellemc_configure_bios:
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
        attributes:
-         BootMode : "Bios"
+         BootMode: "Bios"
          OneTimeBootMode: "Enabled"
          BootSeqRetry: "Enabled"
          
@@ -41,12 +40,12 @@
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
        boot_sources:
-         - Name : "NIC.Integrated.x-x-x"
-           Enabled : true
-           Index : 1
-         - Name : "NIC.Integrated.x-x-x"
-           Enabled : true
-           Index : 0
+         - Name: "NIC.Integrated.x-x-x"
+           Enabled: true
+           Index: 1
+         - Name: "NIC.Integrated.x-x-x"
+           Enabled: true
+           Index: 0
            
     tags: 
         - boot_sources
@@ -57,8 +56,8 @@
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
        boot_sources:
-         - Name : "NIC.Integrated.x-x-x"
-           Enabled : true
+         - Name: "NIC.Integrated.x-x-x"
+           Enabled: true
 
     tags: 
         - boot_sources_enabled
@@ -69,8 +68,8 @@
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
        boot_sources:
-         - Name : "NIC.Integrated.x-x-x"
-           Index : 1
+         - Name: "NIC.Integrated.x-x-x"
+           Index: 1
 
     tags: 
         - boot_sources_index

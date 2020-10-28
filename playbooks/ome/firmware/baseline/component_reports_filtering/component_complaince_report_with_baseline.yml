@@ -20,5 +20,3 @@
        msg: "{{item.ComponentComplianceReports}}"
     loop_control:
        label: "{{ item.DeviceId }}"
-
-

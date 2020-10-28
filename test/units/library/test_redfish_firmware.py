@@ -1,9 +1,8 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.3
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -18,10 +17,7 @@ __metaclass__ = type
 import pytest
 import json
 from ansible.modules.remote_management.dellemc import redfish_firmware
-from ansible.module_utils.six.moves.urllib.error import HTTPError
 from units.modules.remote_management.dellemc.common import FakeAnsibleModule, Constants
-from units.modules.remote_management.dellemc.common import AnsibleFailJSonException
-from units.modules.utils import set_module_args
 from units.compat.mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -29,10 +25,12 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from units.compat.mock import patch, mock_open
 
+MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
+
 
 @pytest.fixture
 def redfish_firmware_connection_mock(mocker, redfish_response_mock):
-    connection_class_mock = mocker.patch('ansible.modules.remote_management.dellemc.redfish_firmware.Redfish')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'redfish_firmware.Redfish')
     redfish_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     redfish_connection_mock_obj.invoke_request.return_value = redfish_response_mock
     return redfish_connection_mock_obj
@@ -45,7 +43,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
     def os_mock(self, mocker):
         try:
             fi_mock = mocker.patch(
-                'ansible.modules.remote_management.dellemc.redfish_firmware.payload_file.get("file")')
+                MODULE_PATH + 'redfish_firmware.payload_file.get("file")')
         except AttributeError:
             fi_mock = MagicMock()
         obj = MagicMock()
@@ -113,7 +111,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         redfish_default_args.update({"image_uri": "/home/firmware_repo/component.exe"})
         redfish_firmware_connection_mock.headers.get("Location").return_value = "https://multipart/form-data"
         redfish_firmware_connection_mock.headers.get("Location").split().return_value = "multipart/form-data"
-        mocker.patch('ansible.modules.remote_management.dellemc.redfish_firmware.firmware_update',
+        mocker.patch(MODULE_PATH + 'redfish_firmware.firmware_update',
                      return_value=redfish_response_mock)
         redfish_response_mock.json_data = {"image_uri": "http://home/firmware_repo/component.exe"}
         redfish_response_mock.status_code = 201
@@ -136,10 +134,10 @@ class TestRedfishFirmware(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
 
         if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch('ansible.modules.remote_management.dellemc.redfish_firmware.firmware_update',
+            mocker.patch(MODULE_PATH + 'redfish_firmware.firmware_update',
                          side_effect=exc_type('test'))
         else:
-            mocker.patch('ansible.modules.remote_management.dellemc.redfish_firmware.firmware_update',
+            mocker.patch(MODULE_PATH + 'redfish_firmware.firmware_update',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module_with_fail_json(redfish_default_args)
@@ -155,49 +153,70 @@ class TestRedfishFirmware(FakeAnsibleModule):
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
-        redfish_response_mock.json_data = {"Actions": {"#UpdateService.SimpleUpdate":
-                                            {"TransferProtocol@Redfish.AllowableValues": ["HTTP"], "target": ""
-                                             }},
-                                           "transfer_protocol": "HTTP",
-                                           "HttpPushUri": "http://dell.com",
-                                           "FirmwareInventory": {"@odata.id": "2134"}}
+        redfish_response_mock.json_data = {
+            "Actions": {
+                "#UpdateService.SimpleUpdate": {
+                    "TransferProtocol@Redfish.AllowableValues": ["HTTP"],
+                    "target": ""
+                }
+            },
+            "transfer_protocol": "HTTP",
+            "HttpPushUri": "http://dell.com",
+            "FirmwareInventory": {
+                "@odata.id": "2134"
+            }
+        }
         result = self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
         assert result == ('2134', 'http://dell.com', '')
 
     def test_get_update_service_target_uri_none_case(self, redfish_default_args, redfish_firmware_connection_mock,
-                                                    redfish_response_mock):
+                                                     redfish_response_mock):
         redfish_default_args.update({"transfer_protocol": "HTTP"})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
-        redfish_response_mock.json_data = {"Actions": {"#UpdateService.SimpleUpdate":
-                                            {"TransferProtocol@Redfish.AllowableValues": ["HTTP"], "target": None
-                                             }},
-                                           "transfer_protocol": "HTTP",
-                                           "HttpPushUri": None,
-                                           "FirmwareInventory": {"@odata.id": None}}
+        redfish_response_mock.json_data = {
+            "Actions": {
+                "#UpdateService.SimpleUpdate": {
+                    "TransferProtocol@Redfish.AllowableValues": ["HTTP"],
+                    "target": None
+                }
+            },
+            "transfer_protocol": "HTTP",
+            "HttpPushUri": None,
+            "FirmwareInventory": {
+                "@odata.id": None
+            }
+        }
         with pytest.raises(Exception) as ex:
             self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
         assert ex.value.args[0] == "Target firmware version doesn't support redfish firmware update."
 
     def test_get_update_service_target_failed_case(self, redfish_default_args, redfish_firmware_connection_mock,
-                                                    redfish_response_mock):
+                                                   redfish_response_mock):
         redfish_default_args.update({"transfer_protocol": "HTTP"})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
-        redfish_response_mock.json_data = {"Actions": {"#UpdateService.SimpleUpdate":
-                                                           {"TransferProtocol@Redfish.AllowableValues": [""]}},
-                                           "transfer_protocol": "HTTP",
-                                           "HttpPushUri": "http://dell.com",
-                                           "FirmwareInventory": {"@odata.id": "2134"}}
+        redfish_response_mock.json_data = {
+            "Actions": {
+                "#UpdateService.SimpleUpdate": {
+                    "TransferProtocol@Redfish.AllowableValues": [""]
+                }
+            },
+            "transfer_protocol": "HTTP",
+            "HttpPushUri": "http://dell.com",
+            "FirmwareInventory": {
+                "@odata.id": "2134"
+            }
+        }
         with pytest.raises(Exception) as ex:
             self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
         assert ex.value.args[0] == "Target firmware version doesn't support {0} protocol.".format("HTTP")
 
     def test_firmware_update_success_case01(self, redfish_default_args, redfish_firmware_connection_mock,
-                                          redfish_response_mock, mocker):
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._get_update_service_target",
+                                            redfish_response_mock, mocker):
+        mocker.patch(MODULE_PATH + 'redfish_firmware._get_update_service_target',
                      return_value=('2134', 'http://dell.com', 'redfish'))
         redfish_default_args.update({"image_uri": "http://home/firmware_repo/component.exe",
                                      "transfer_protocol": "HTTP"})
@@ -205,13 +224,13 @@ class TestRedfishFirmware(FakeAnsibleModule):
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"image_uri": "http://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"}
+                                           "transfer_protocol": "HTTP"}
         result = self.module.firmware_update(redfish_firmware_connection_mock, f_module)
         assert result == redfish_response_mock
 
     def test_firmware_update_success_case02(self, redfish_default_args, redfish_firmware_connection_mock,
-                                          redfish_response_mock, mocker):
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._get_update_service_target",
+                                            redfish_response_mock, mocker):
+        mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
                      return_value=('2134', 'nhttp://dell.com', 'multipart/form-data'))
         mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
@@ -221,7 +240,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"image_uri": "nhttp://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"}
+                                           "transfer_protocol": "HTTP"}
         if sys.version_info.major == 3:
             builtin_module_name = 'builtins'
         else:
@@ -231,10 +250,10 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result == redfish_response_mock
 
     def test_firmware_update_success_case03(self, redfish_default_args, redfish_firmware_connection_mock,
-                                          redfish_response_mock, mocker):
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._get_update_service_target",
+                                            redfish_response_mock, mocker):
+        mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
                      return_value=('2134', 'nhttp://dell.com', 'multipart/form-data'))
-        mocker.patch("ansible.modules.remote_management.dellemc.redfish_firmware._encode_form_data",
+        mocker.patch(MODULE_PATH + "redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
         redfish_default_args.update({"image_uri": "nhttp://home/firmware_repo/component.exe",
                                      "transfer_protocol": "HTTP"})
@@ -242,7 +261,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         redfish_response_mock.status_code = 201
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"image_uri": "nhttp://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"}
+                                           "transfer_protocol": "HTTP"}
         if sys.version_info.major == 3:
             builtin_module_name = 'builtins'
         else:

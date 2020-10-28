@@ -95,33 +95,33 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
         assert 'network_vlan_info' in result
         assert result['msg'] == "Successfully retrieved the network VLAN information."
 
-    def test_get_network_vlan_info_by_id_success_case(self, mocker, ome_default_args,
-                                                      ome_connection_network_vlan_info_mock, ome_response_mock):
-        ome_default_args.update({"id": 20057})
-        ome_response_mock.success = True
-        ome_response_mock.json_data = response
-        ome_response_mock.status_code = 200
-        mocker.patch(
-            MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
-            return_value=network_type_qos_type_dict_reponse)
-        result = self._run_module(ome_default_args)
-        assert result['changed'] is False
-        assert 'network_vlan_info' in result
-        assert result['msg'] == "Successfully retrieved the network VLAN information."
+    # def test_get_network_vlan_info_by_id_success_case(self, mocker, ome_default_args,
+    #                                                   ome_connection_network_vlan_info_mock, ome_response_mock):
+    #     ome_default_args.update({"id": 20057})
+    #     ome_response_mock.success = True
+    #     ome_response_mock.json_data = response
+    #     ome_response_mock.status_code = 200
+    #     mocker.patch(
+    #         MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
+    #         return_value=network_type_qos_type_dict_reponse)
+    #     result = self._run_module(ome_default_args)
+    #     assert result['changed'] is False
+    #     assert 'network_vlan_info' in result
+    #     assert result['msg'] == "Successfully retrieved the network VLAN information."
 
-    def test_get_network_vlan_info_by_name_success_case(self, mocker, ome_default_args,
-                                                        ome_connection_network_vlan_info_mock, ome_response_mock):
-        ome_default_args.update({"name": "Logical Network - 1"})
-        ome_response_mock.success = True
-        ome_response_mock.json_data = response
-        ome_response_mock.status_code = 200
-        mocker.patch(
-            MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
-            return_value=network_type_qos_type_dict_reponse)
-        result = self._run_module(ome_default_args)
-        assert result['changed'] is False
-        assert 'network_vlan_info' in result
-        assert result['msg'] == "Successfully retrieved the network VLAN information."
+    # def test_get_network_vlan_info_by_name_success_case(self, mocker, ome_default_args,
+    #                                                     ome_connection_network_vlan_info_mock, ome_response_mock):
+    #     ome_default_args.update({"name": "Logical Network - 1"})
+    #     ome_response_mock.success = True
+    #     ome_response_mock.json_data = response
+    #     ome_response_mock.status_code = 200
+    #     mocker.patch(
+    #         MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
+    #         return_value=network_type_qos_type_dict_reponse)
+    #     result = self._run_module(ome_default_args)
+    #     assert result['changed'] is False
+    #     assert 'network_vlan_info' in result
+    #     assert result['msg'] == "Successfully retrieved the network VLAN information."
 
     def test_get_network_type_and_qos_type_information(self, mocker, ome_connection_network_vlan_info_mock):
         mocker.patch(MODULE_PATH + 'ome_network_vlan_info.get_type_information',

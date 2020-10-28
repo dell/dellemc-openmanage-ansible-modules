@@ -60,4 +60,3 @@
         password: "{{password}}"
         state: "absent"
         name: "name"
-

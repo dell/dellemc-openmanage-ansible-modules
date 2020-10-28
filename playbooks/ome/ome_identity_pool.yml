@@ -28,8 +28,8 @@
                 ip_range: "10.33.0.1-10.33.0.255"
                 subnet_mask: "255.255.255.0"
                 gateway: "192.168.4.1"
-                primary_dns_server : "10.8.8.8"
-                secondary_dns_server : "8.8.8.8"
+                primary_dns_server: "10.8.8.8"
+                secondary_dns_server: "8.8.8.8"
         fc_settings:
             starting_address: "10-10-10-10-10-10"
             identity_count: 45
@@ -63,8 +63,8 @@
                 ip_range: "20.33.0.1-20.33.0.255"
                 subnet_mask: "255.255.255.0"
                 gateway: "192.168.4.1"
-                primary_dns_server : "10.8.8.8"
-                secondary_dns_server : "8.8.8.8"
+                primary_dns_server: "10.8.8.8"
+                secondary_dns_server: "8.8.8.8"
       tags: create3
       
     - name: "Modify an identity pool using FC settings."
