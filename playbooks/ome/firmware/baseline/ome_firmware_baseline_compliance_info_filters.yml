@@ -1,8 +1,7 @@
 ---
--
+- hosts: ome
   connection: local
   gather_facts: false
-  hosts: ome
   name: "OME - Ansible Modules"
 
   collections:

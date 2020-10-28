@@ -11,7 +11,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * Dell EMC OpenManage Enterprise-Modular versions 1.20.00 and above.
 
 ## Prerequisites
-  * [Ansible = 2.9.13](https://github.com/ansible/ansible)
+  * [Ansible = 2.10.1](https://github.com/ansible/ansible)
   * Python >=2.7.17 or >=3.6.5
   * To run the iDRAC modules, install OpenManage Python Software Development
    Kit (OMSDK) using ``` pip install omsdk --upgrade``` or from 
@@ -22,7 +22,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 * From [galaxy](https://galaxy.ansible.com/dellemc/openmanage):  
 Download the tar build and follow the below command to install the collection
 ```
-ansible-galaxy collection install dellemc-openmanage-2.1.2.tar.gz -p ./collections
+ansible-galaxy collection install dellemc-openmanage-2.1.3.tar.gz -p ./collections
 ```
 Set the environment variable as: `export ANSIBLE_COLLECTIONS_PATHS=$ANSIBLE_COLLECTIONS_PATHS:/collections`
 

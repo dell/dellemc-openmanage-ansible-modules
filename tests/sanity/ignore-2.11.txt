@@ -11,6 +11,7 @@ plugins/modules/ome_powerstate.py compile-2.6!skip
 plugins/modules/ome_template.py compile-2.6!skip
 plugins/modules/ome_template_info.py compile-2.6!skip
 plugins/modules/ome_user_info.py compile-2.6!skip
+plugins/modules/ome_network_vlan.py compile-2.6!skip
 plugins/modules/redfish_storage_volume.py compile-2.6!skip
 plugins/modules/redfish_powerstate.py compile-2.6!skip
 plugins/modules/idrac_user.py compile-2.6!skip
@@ -28,6 +29,7 @@ plugins/modules/ome_powerstate.py import-2.6!skip
 plugins/modules/ome_template.py import-2.6!skip
 plugins/modules/ome_template_info.py import-2.6!skip
 plugins/modules/ome_user_info.py import-2.6!skip
+plugins/modules/ome_network_vlan.py import-2.6!skip
 plugins/modules/redfish_storage_volume.py import-2.6!skip
 plugins/modules/redfish_powerstate.py import-2.6!skip
 plugins/modules/idrac_user.py import-2.6!skip
