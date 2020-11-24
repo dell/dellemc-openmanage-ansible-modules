@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.4
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -45,10 +45,10 @@ class TestFirmware(FakeAnsibleModule):
                                                               idrac_default_args):
         idrac_get_firmware_inventory_connection_mock.update_mgr.InstalledFirmware.return_value = {"Status": "Success"}
         result = self._run_module(idrac_default_args)
-        assert result == {'ansible_facts':
-                         {idrac_get_firmware_inventory_connection_mock.ipaddr:
-                         {'Firmware Inventory': idrac_get_firmware_inventory_connection_mock.update_mgr.
-                         InstalledFirmware}}, "changed": False}
+        assert result == {'ansible_facts': {
+            idrac_get_firmware_inventory_connection_mock.ipaddr: {
+                'Firmware Inventory': idrac_get_firmware_inventory_connection_mock.update_mgr.InstalledFirmware}},
+            "changed": False}
 
     def test_run_get_firmware_inventory_success_case01(self, idrac_get_firmware_inventory_connection_mock,
                                                        idrac_default_args):
@@ -98,8 +98,9 @@ class TestFirmware(FakeAnsibleModule):
         assert result['msg'] == "Error: {0}".format(error_msg)
 
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
-    def test_main_idrac_get_firmware_inventory_exception_handling_case(self, exc_type, mocker, idrac_get_firmware_inventory_connection_mock,
-                                          idrac_default_args):
+    def test_main_idrac_get_firmware_inventory_exception_handling_case(self, exc_type, mocker,
+                                                                       idrac_get_firmware_inventory_connection_mock,
+                                                                       idrac_default_args):
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_get_firmware_inventory.'
                      'run_get_firmware_inventory', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
