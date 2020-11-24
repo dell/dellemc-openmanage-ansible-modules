@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.4
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -54,10 +54,10 @@ class TestLcAttributes(FakeAnsibleModule):
         file_manager_obj.create_share_obj.return_value = obj
         return file_manager_obj
 
-    def test_main_lc_attributes_success_case01(self,idrac_connection_lc_attribute_mock, idrac_default_args, mocker,
-                                               idrac_file_manager_lc_attribute_mock):
+    def test_main_lc_attributes_success_case01(self, idrac_connection_lc_attribute_mock,
+                                               idrac_default_args, mocker, idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": "sharename", 'share_password': None,
-         'csior': 'Enabled', 'share_mnt': None, 'share_user': None})
+                                   'csior': 'Enabled', 'share_mnt': None, 'share_user': None})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
                      return_value=(message, False))
@@ -105,11 +105,11 @@ class TestLcAttributes(FakeAnsibleModule):
         msg, err = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
         assert msg == {"changed": False, "failed": False, "msg": {"changes_applicable": True,
                                                                   "Message": "No changes found to commit!",
-                                                                  "changed": False,"Status": "Success"}}
+                                                                  "changed": False, "Status": "Success"}}
         assert msg['changed'] is False
         assert msg['failed'] is False
 
-    def test_run_setup_csior_disable_case(self,idrac_connection_lc_attribute_mock, idrac_default_args,
+    def test_run_setup_csior_disable_case(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                           idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "csior": 'Disabled'})
@@ -123,7 +123,7 @@ class TestLcAttributes(FakeAnsibleModule):
         assert msg == {'changed': False, 'failed': False, 'msg': 'Disabled'}
         assert err is False
 
-    def test_run_setup_csior_enable_case(self,idrac_connection_lc_attribute_mock, idrac_default_args,
+    def test_run_setup_csior_enable_case(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                          idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "csior": 'Enabled'})

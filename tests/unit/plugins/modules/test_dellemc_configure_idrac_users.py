@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.4
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -146,17 +146,11 @@ class TestConfigUsers(FakeAnsibleModule):
         message = {"changes_applicable": False, "Message": 'No changes found to commit', "changed": False,
                    "Status": "Success"}
         idrac_connection_configure_users_mock.config_mgr._sysconfig.iDRAC.Users.find_first.return_value = message
-        idrac_connection_configure_users_mock.user_mgr.Users.new.return_value = {"user_name": "username",
-                                                                    "user_password": "userpassword",
-                                                                    "enable_users": "Enabled",
-                                                                    "solenable_users": "Enabled",
-                                                                    "protocolenable_users": "Enabled",
-                                                                    "privilege_users": "Administrator",
-                                                                    "ipmilanprivilege_users": "Administrator",
-                                                                    "ipmiserialprivilege_users": "Administrator",
-                                                                    "authenticationprotocol_users": "SHA",
-                                                                    "privacyprotocol_users": "AES",
-                                                                    "action": "create"}
+        idrac_connection_configure_users_mock.user_mgr.Users.new.return_value = {
+            "user_name": "username", "user_password": "userpassword", "enable_users": "Enabled",
+            "solenable_users": "Enabled", "protocolenable_users": "Enabled", "privilege_users": "Administrator",
+            "ipmilanprivilege_users": "Administrator", "ipmiserialprivilege_users": "Administrator",
+            "authenticationprotocol_users": "SHA", "privacyprotocol_users": "AES", "action": "create"}
         idrac_connection_configure_users_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
@@ -179,17 +173,11 @@ class TestConfigUsers(FakeAnsibleModule):
                                    "user_password": "userpassword"})
         message = {'Status': 'Success', 'Message': 'No changes found to commit', 'changes_applicable': False}
         idrac_connection_configure_users_mock.config_mgr._sysconfig.iDRAC.Users.find_first.return_value = message
-        idrac_connection_configure_users_mock.user_mgr.Users.new.return_value = {"user_name": "username",
-                                                                    "user_password": "userpassword",
-                                                                    "enable_users": "Enabled",
-                                                                    "solenable_users": "Enabled",
-                                                                    "protocolenable_users": "Enabled",
-                                                                    "privilege_users": "Administrator",
-                                                                    "ipmilanprivilege_users": "Administrator",
-                                                                    "ipmiserialprivilege_users": "Administrator",
-                                                                    "authenticationprotocol_users": "SHA",
-                                                                    "privacyprotocol_users": "AES",
-                                                                    "action": "create"}
+        idrac_connection_configure_users_mock.user_mgr.Users.new.return_value = {
+            "user_name": "username", "user_password": "userpassword", "enable_users": "Enabled",
+            "solenable_users": "Enabled", "protocolenable_users": "Enabled", "privilege_users": "Administrator",
+            "ipmilanprivilege_users": "Administrator", "ipmiserialprivilege_users": "Administrator",
+            "authenticationprotocol_users": "SHA", "privacyprotocol_users": "AES", "action": "create"}
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = True
         msg, err = self.module.run_idrac_users_config(idrac_connection_configure_users_mock, f_module)

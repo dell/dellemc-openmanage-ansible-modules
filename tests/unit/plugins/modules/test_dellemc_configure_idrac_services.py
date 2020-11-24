@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.4
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -107,12 +107,9 @@ class TestConfigServices(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
         msg, err = self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
-        assert msg == {'changed': True,
-           'failed': False,
-           'msg': {'Status': 'Success',
-                   'changed': True,
-                   'changes_applicable': True,
-                   'message': 'changes found to commit!'}}
+        assert msg == {'changed': True, 'failed': False,
+                       'msg': {'Status': 'Success', 'changes_applicable': True,
+                               'message': 'changes found to commit!'}}
 
     def test_run_idrac_services_config_success_case03(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
@@ -129,12 +126,9 @@ class TestConfigServices(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
         msg, err = self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
-        assert msg == {'changed': False,
-           'failed': False,
-           'msg': {'Message': 'No changes found to commit!',
-                   'Status': 'Success',
-                   'changed': False,
-                   'changes_applicable': False}}
+        assert msg == {'changed': False, 'failed': False,
+                       'msg': {'Message': 'No changes found to commit!',
+                               'Status': 'Success', 'changed': False, 'changes_applicable': False}}
 
     def test_run_idrac_services_config_success_case04(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
@@ -151,12 +145,9 @@ class TestConfigServices(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
         msg, err = self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
-        assert msg == {'changed': False,
-           'failed': False,
-           'msg': {'Message': 'No changes found to commit!',
-                   'Status': 'Success',
-                   'changed': False,
-                   'changes_applicable': False}}
+        assert msg == {'changed': False, 'failed': False,
+                       'msg': {'Message': 'No changes found to commit!', 'Status': 'Success',
+                               'changed': False, 'changes_applicable': False}}
 
     def test_run_idrac_services_config_success_case05(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
@@ -175,12 +166,9 @@ class TestConfigServices(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
         msg, err = self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
-        assert msg == {'changed': False,
-           'failed': False,
-           'msg': {'Message': 'No changes found to commit!',
-                   'Status': 'Success',
-                   'changed': False,
-                   'changes_applicable': False}}
+        assert msg == {'changed': False, 'failed': False,
+                       'msg': {'Message': 'No changes found to commit!',
+                               'Status': 'Success', 'changed': False, 'changes_applicable': False}}
 
     def test_run_idrac_services_config_failed_case01(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
@@ -188,7 +176,7 @@ class TestConfigServices(FakeAnsibleModule):
                                    "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
-                                   "community_name": "communityname", "snmp_protocol": "All","alert_port": 445,
+                                   "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
                                    "discovery_port": 1000, "trap_format": "SNMPv1"})
         message = {'Status': 'Failed', "Data": {'Message': 'status failed in checking Data'}}
         idrac_connection_configure_services_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
@@ -204,7 +192,7 @@ class TestConfigServices(FakeAnsibleModule):
                                    "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
-                                   "community_name": "communityname", "snmp_protocol": "All","alert_port": 445,
+                                   "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
                                    "discovery_port": 1000, "trap_format": "SNMPv1",
                                    "ipmi_lan": {"community_name": "public"}})
         message = {"changes_applicable": False, "Message": "No changes were applied", "changed": False,
@@ -213,20 +201,17 @@ class TestConfigServices(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
         msg, err = self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
-        assert msg == {'changed': False,
-           'failed': True,
-           'msg': {'Message': 'No changes were applied',
-                   'Status': 'failed',
-                   'changed': False,
-                   'changes_applicable': False}}
+        assert msg == {'changed': False, 'failed': True,
+                       'msg': {'Message': 'No changes were applied', 'Status': 'failed',
+                               'changed': False, 'changes_applicable': False}}
 
     def test_run_idrac_services_config_failed_case03(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword",  "enable_web_server": "Enabled", "http_port": 443,
+                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
-                                   "community_name": "communityname", "snmp_protocol": "All","alert_port": 445,
+                                   "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
                                    "discovery_port": 1000, "trap_format": "SNMPv1"})
         message = {'Status': 'Failed', "Data": {'Message': "Failed to found changes"}}
         idrac_connection_configure_services_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
@@ -241,10 +226,10 @@ class TestConfigServices(FakeAnsibleModule):
     def test_run_idrac_services_config_failed_case04(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword",  "enable_web_server": "Enabled", "http_port": 443,
+                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
-                                   "community_name": "communityname", "snmp_protocol": "All","alert_port": 445,
+                                   "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
                                    "discovery_port": 1000, "trap_format": "SNMPv1"})
         error_msg = "Error in Runtime"
         obj2 = MagicMock()
@@ -269,8 +254,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_idrac_configure_services_exception_handling_case(self, exc_type, mocker, idrac_default_args,
-                                                             idrac_connection_configure_services_mock,
-                                                              idrac_file_manager_config_services_mock):
+                                                                   idrac_connection_configure_services_mock,
+                                                                   idrac_file_manager_config_services_mock):
         idrac_default_args.update({"share_name": "sharename"})
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_idrac_services.run_idrac_services_config', side_effect=exc_type('test'))

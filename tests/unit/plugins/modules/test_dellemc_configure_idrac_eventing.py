@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.4
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -115,7 +115,7 @@ class TestConfigureEventing(FakeAnsibleModule):
     def test_run_idrac_eventing_config_success_case03(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword",  "destination_number": 1,
+                                   "share_password": "sharepassword", "destination_number": 1,
                                    "destination": "1.1.1.1", "snmp_v3_username": "snmpuser",
                                    "snmp_trap_state": "Enabled", "alert_number": 4, "email_alert_state": "Enabled",
                                    "address": "abc@xyz", "custom_message": "test", "enable_alerts": "Enabled",
@@ -218,7 +218,7 @@ class TestConfigureEventing(FakeAnsibleModule):
     def test_run_idrac_eventing_config_failed_case03(self, idrac_connection_configure_eventing_mock,
                                                      idrac_default_args, idrac_file_manager_config_eventing_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword",  "destination_number": 1,
+                                   "share_password": "sharepassword", "destination_number": 1,
                                    "destination": "1.1.1.1", "snmp_v3_username": "snmpuser",
                                    "snmp_trap_state": "Enabled", "alert_number": 4, "email_alert_state": "Enabled",
                                    "address": "abc@xyz", "custom_message": "test", "enable_alerts": "Enabled",
