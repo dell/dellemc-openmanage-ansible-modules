@@ -357,6 +357,7 @@ def validate_ioms(module, rest_obj, uplinks):
 def validate_networks(module, rest_obj, fabric_id, media_id):
     resp = rest_obj.invoke_request('POST', APPLICABLE_NETWORKS.format(fabric_id=fabric_id),
                                    data={"UplinkType": media_id})
+    vlans = []
     if resp.json_data.get('ApplicableUplinkNetworks'):
         vlans = resp.json_data.get('ApplicableUplinkNetworks', [])
     vlan_payload = []
@@ -378,6 +379,7 @@ def validate_networks(module, rest_obj, fabric_id, media_id):
 def validate_native_vlan(module, rest_obj, fabric_id, media_id):
     resp = rest_obj.invoke_request('POST', APPLICABLE_UNTAGGED.format(fabric_id=fabric_id),
                                    data={"UplinkType": media_id})
+    vlans = []
     if resp.json_data.get('ApplicableUplinkNetworks'):
         vlans = resp.json_data.get('ApplicableUplinkNetworks', [])
     vlan_id = 0
