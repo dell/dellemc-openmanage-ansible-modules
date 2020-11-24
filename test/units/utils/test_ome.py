@@ -185,3 +185,100 @@ class TestRestOME(object):
         with RestOME(module_params, True) as obj:
             job_id = obj.get_job_type_id(jobtype_name)
         assert job_id is None
+
+    def test_get_device_id_from_service_tag_ome_case01(self, mocker, mock_response):
+        mock_response.success = True
+        mock_response.status_code = 200
+        mock_response.json_data = {"@odata.count": 1, "value": [{"Name": "xyz", "Id": 11}]}
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
+                     return_value=mock_response)
+        ome_default_args = {'hostname': '192.168.0.1', 'username': 'username',
+                            'password': 'password', "port": 443}
+        with RestOME(ome_default_args, True) as obj:
+            details = obj.get_device_id_from_service_tag("xyz")
+        assert details["Id"] == 11
+        assert details["value"] == {"Name": "xyz", "Id": 11}
+
+    def test_get_device_id_from_service_tag_ome_case02(self, mocker, mock_response):
+        mock_response.success = True
+        mock_response.status_code = 200
+        mock_response.json_data = {"@odata.count": 0, "value": []}
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
+                     return_value=mock_response)
+        ome_default_args = {'hostname': '192.168.0.1', 'username': 'username',
+                            'password': 'password', "port": 443}
+        with RestOME(ome_default_args, True) as obj:
+            details = obj.get_device_id_from_service_tag("xyz")
+        assert details["Id"] is None
+        assert details["value"] == {}
+
+    def test_get_all_items_with_pagination(self, mock_response, mocker):
+        mock_response.success = True
+        mock_response.status_code = 200
+        mock_response.json_data = {"@odata.count": 50, "value": list(range(51))}
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
+                     return_value=mock_response)
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
+        with RestOME(module_params, True) as obj:
+            reports = obj.get_all_items_with_pagination("DeviceService/Devices")
+        assert reports == {"total_count": 50, "value": list(range(51))}
+
+    def test_get_all_items_with_pagination_error_case(self, mock_response, mocker):
+        mocker.patch(MODULE_UTIL_PATH + 'ome.open_url',
+                     return_value=mock_response)
+        invoke_obj = mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
+                                  side_effect=HTTPError('http://testhost.com/', 400, 'Bad Request Error', {}, None))
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
+        with pytest.raises(HTTPError) as e:
+            with RestOME(module_params, False) as obj:
+                obj.get_all_items_with_pagination("DeviceService/Devices")
+
+    def test_get_device_type(self, mock_response, mocker):
+        mock_response.success = True
+        mock_response.status_code = 200
+        mock_response.json_data = {
+            "@odata.context": "/api/$metadata#Collection(DeviceService.DeviceType)",
+            "@odata.count": 5,
+            "value": [
+                {
+                    "@odata.type": "#DeviceService.DeviceType",
+                    "DeviceType": 1000,
+                    "Name": "SERVER",
+                    "Description": "Server Device"
+                },
+                {
+                    "@odata.type": "#DeviceService.DeviceType",
+                    "DeviceType": 2000,
+                    "Name": "CHASSIS",
+                    "Description": "Chassis Device"
+                },
+                {
+                    "@odata.type": "#DeviceService.DeviceType",
+                    "DeviceType": 3000,
+                    "Name": "STORAGE",
+                    "Description": "Storage Device"
+                },
+                {
+                    "@odata.type": "#DeviceService.DeviceType",
+                    "DeviceType": 4000,
+                    "Name": "NETWORK_IOM",
+                    "Description": "NETWORK IO Module Device"
+                },
+                {
+                    "@odata.type": "#DeviceService.DeviceType",
+                    "DeviceType": 8000,
+                    "Name": "STORAGE_IOM",
+                    "Description": "Storage IOM Device"
+                }
+            ]
+        }
+        mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.invoke_request',
+                     return_value=mock_response)
+        module_params = {'hostname': '192.168.0.1', 'username': 'username',
+                         'password': 'password', "port": 443}
+        with RestOME(module_params, False) as obj:
+            type_map = obj.get_device_type()
+        assert type_map == {1000: "SERVER", 2000: "CHASSIS", 3000: "STORAGE",
+                            4000: "NETWORK_IOM", 8000: "STORAGE_IOM"}
