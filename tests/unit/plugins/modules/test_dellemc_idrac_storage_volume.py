@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.4
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -68,11 +68,11 @@ class TestStorageVolume(FakeAnsibleModule):
                      'dellemc_idrac_storage_volume.run_server_raid_config', return_value={"changes_applicable": True})
         msg = self._run_module(idrac_default_args)
         assert msg == {'changed': True, 'msg': 'Successfully completed the create storage volume operation',
-                                                'storage_status': {'changes_applicable': True}}
+                       'storage_status': {'changes_applicable': True}}
         assert msg["msg"] == "Successfully completed the {0} storage volume operation".format("create")
 
     def test_main_idrac_storage_volume_fail_Case1(self, idrac_connection_storage_volume_mock, idrac_default_args,
-                                                mocker):
+                                                  mocker):
         idrac_default_args.update({"disk_cache_policy": "Default", "capacity": 12.4, "media_type": "HDD",
                                    "number_dedicated_hot_spare": 1, "protocol": "SAS", "raid_init_operation": "None",
                                    "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
@@ -86,7 +86,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert result == {'failed': True, 'msg': 'Failed to perform storage operation'}
 
     def test_main_idrac_storage_volume_success_case01(self, idrac_connection_storage_volume_mock, idrac_default_args,
-                                                    mocker):
+                                                      mocker):
         idrac_default_args.update({"disk_cache_policy": "Default", "capacity": 12.4, "media_type": "HDD",
                                    "number_dedicated_hot_spare": 1, "protocol": "SAS", "raid_init_operation": "None",
                                    "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
@@ -102,7 +102,7 @@ class TestStorageVolume(FakeAnsibleModule):
                        'storage_status': {'Status': 'Success', 'changed': True}}
 
     def test_main_idrac_storage_volume_success_case02(self, idrac_connection_storage_volume_mock, idrac_default_args,
-                                                    mocker):
+                                                      mocker):
         idrac_default_args.update({"disk_cache_policy": "Default", "capacity": 12.4, "media_type": "HDD",
                                    "number_dedicated_hot_spare": 1, "protocol": "SAS", "raid_init_operation": "None",
                                    "raid_reset_config": True, "read_cache_policy": "ReadAhead", "span_depth": 4,
@@ -116,11 +116,11 @@ class TestStorageVolume(FakeAnsibleModule):
         msg = self._run_module(idrac_default_args)
         assert msg == {'changed': False, 'msg': 'No changes found to commit!',
                        'storage_status': {'Message': 'No changes found to commit!',
-                        'Status': 'Success',
-                        'changed': False}}
+                                          'Status': 'Success',
+                                          'changed': False}}
 
     def test_main_idrac_storage_volume_success_case03(self, idrac_connection_storage_volume_mock, idrac_default_args,
-                                                    mocker):
+                                                      mocker):
         idrac_default_args.update({"disk_cache_policy": "Default", "capacity": 12.4,
                                    "media_type": "HDD",
                                    "number_dedicated_hot_spare": 1, "protocol": "SAS", "raid_init_operation": "None",
@@ -137,8 +137,8 @@ class TestStorageVolume(FakeAnsibleModule):
 
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError, TypeError])
     def test_main_idrac_storage_volume_exception_handling_case(self, exc_type, mocker,
-                                                              idrac_connection_storage_volume_mock,
-                                                              idrac_default_args):
+                                                               idrac_connection_storage_volume_mock,
+                                                               idrac_default_args):
         idrac_default_args.update({"share_name": "sharename"})
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_idrac_storage_volume._validate_options', side_effect=exc_type('test'))
@@ -254,7 +254,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert str(("stripe_size", -1)) == str(ex.value)
 
     def test_validate_create_success_case_volumes_capacity(self, idrac_connection_storage_volume_mock,
-                                                              idrac_default_args, mocker):
+                                                           idrac_default_args, mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "create", "controller_id": "XYZ123",
                                    "capacity": 1.4, "stripe_size": 1,
                                    "volumes": [{"drives": {'location': [0]}, "capacity": -1.1}]})
@@ -325,9 +325,9 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_delete_storage_case(self, idrac_connection_storage_volume_mock, idrac_default_args):
         idrac_default_args.update({"volumes": [{"name": "nameofvolume"}]})
         msg = {"Status": "Success"}
-        obj =MagicMock()
+        obj = MagicMock()
         idrac_connection_storage_volume_mock.config_mgr.RaidHelper = obj
-        obj.delete_virtual_disk= Mock(return_value=msg)
+        obj.delete_virtual_disk = Mock(return_value=msg)
         f_module = self.get_module_mock(params=idrac_default_args)
         result = self.module.delete_storage(idrac_connection_storage_volume_mock, f_module)
         assert result == {"Status": "Success"}
@@ -381,14 +381,14 @@ class TestStorageVolume(FakeAnsibleModule):
         result = self.module.multiple_vd_config({"media_type": 'HDD', "protocol": "SAS", "drives": None,
                                                  "capacity": 2, "raid_init_operation": 'Fast',
                                                  'raid_reset_config': True, "span_depth": 1, "span_length": 1,
-                                                 "number_dedicated_hot_spare": 0,"volume_type": 'RAID 0',
+                                                 "number_dedicated_hot_spare": 0, "volume_type": 'RAID 0',
                                                  "disk_cache_policy": "Default", "stripe_size": 64 * 1024,
                                                  "write_cache_policy": "WriteThrough",
                                                  "read_cache_policy": "NoReadAhead"}, "", {"protocol": "SAS"})
         assert result["mediatype"] == "HDD"
 
     def test_multiple_vd_config_capacity_none_case02(self, idrac_connection_storage_volume_mock, idrac_default_args,
-                                                   mocker):
+                                                     mocker):
         idrac_default_args.update({"name": "name1", "media_type": None, "protocol": "SAS", "drives": {"id": ["id1"]},
                                    "capacity": None, "raid_init_operation": None, 'raid_reset_config': True,
                                    "span_depth": 1, "span_length": 1, "number_dedicated_hot_spare": 0,
@@ -426,7 +426,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                    "volume_type": 'RAID 0', "disk_cache_policy": "Default",
                                    "write_cache_policy": "WriteThrough", "read_cache_policy": "NoReadAhead",
                                    "stripe_size": 64 * 1024})
-        result = self.module.multiple_vd_config({'name': 'volume1', 'stripe_size': 1.3, "capacity": 1,
+        result = self.module.multiple_vd_config({'name': 'volume1', "capacity": 1,
                                                  "media_type": None, "protocol": None,
                                                  "raid_init_operation": "Fast",
                                                  'raid_reset_config': False, "span_depth": 1, "span_length": 1,

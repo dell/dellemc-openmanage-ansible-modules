@@ -215,3 +215,55 @@ class RestOME(object):
                 job_type_id = each["Id"]
                 break
         return job_type_id
+
+    def get_device_id_from_service_tag(self, service_tag):
+        """
+        :param service_tag: service tag of the device
+        :return: dict
+        Id: int: device id
+        value: dict: device id details
+        not_found_msg: str: message if service tag not found
+        """
+        device_id = None
+        query = "DeviceServiceTag eq '{0}'".format(service_tag)
+        response = self.invoke_request("GET", "DeviceService/Devices", query_param={"$filter": query})
+        value = response.json_data.get("value", [])
+        device_info = {}
+        if value:
+            device_info = value[0]
+            device_id = device_info["Id"]
+        return {"Id": device_id, "value": device_info}
+
+    def get_all_items_with_pagination(self, uri):
+        """
+         This implementation mainly to get all available items from ome for pagination
+         supported GET uri
+        :param uri: uri which supports pagination
+        :return: dict.
+        """
+        try:
+            resp = self.invoke_request('GET', uri)
+            data = resp.json_data
+            total_items = data.get("value", [])
+            total_count = data.get('@odata.count', 0)
+            next_link = data.get('@odata.nextLink', "")
+            while next_link:
+                resp = self.invoke_request('GET', uri)
+                data = resp.json_data
+                value = data["value"]
+                total_items.extend(value)
+            return {"total_count": total_count, "value": total_items}
+        except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+            raise err
+
+    def get_device_type(self):
+        """
+        Returns device type map where as key is type and value is type name
+        eg: {1000: "SERVER", 2000: "CHASSIS", 4000: "NETWORK_IOM", "8000": "STORAGE_IOM", 3000: "STORAGE"}
+        :return: dict, first item dict gives device type map
+        """
+        device_map = {}
+        response = self.invoke_request("GET", "DeviceService/DeviceType")
+        if response.json_data.get("value"):
+            device_map = dict([(item["DeviceType"], item["Name"]) for item in response.json_data["value"]])
+        return device_map
