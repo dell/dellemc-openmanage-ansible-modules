@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.4
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -86,7 +86,7 @@ class TestChangePowerState(FakeAnsibleModule):
     def test_run_change_powerstate_success_case02(self, idrac_change_power_state_connection_mock, mocker,
                                                   idrac_default_args):
         idrac_default_args.update({"change_power": "On"})
-        message = {'Status': 'Success', 'Message': 'No changes found to commit!','changes_applicable': False}
+        message = {'Status': 'Success', 'Message': 'No changes found to commit!', 'changes_applicable': False}
         idrac_change_power_state_connection_mock.config_mgr.change_power.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         result = self.module.run_change_power_state(idrac_change_power_state_connection_mock, f_module)

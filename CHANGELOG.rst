@@ -5,6 +5,20 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v2.1.4
+======
+
+Release Summary
+---------------
+
+Fabric management related modules ome_smart_fabric and ome_smart_fabric_uplink are added.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_smart_fabric - Create, modify or delete a fabric on OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_smart_fabric_uplink - Create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular.
+
 v2.1.3
 ======
 
