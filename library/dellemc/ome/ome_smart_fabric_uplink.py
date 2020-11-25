@@ -465,8 +465,6 @@ def modify_uplink(module, rest_obj, fabric_id, uplink_id, uplinks):
             break
     pload_keys = ["Id", "Name", "Description", "MediaType", "NativeVLAN", "UfdEnable", "Ports", "Networks"]
     modify_payload = dict((pload_key, uplinks_payload[pload_key]) for pload_key in pload_keys)
-    if modify_payload["UfdEnable"] not in ["Enabled", "Disabled"]:
-        modify_payload.pop("UfdEnable")
     port_list = list(port["Id"] for port in modify_payload["Ports"])
     modify_payload["Ports"] = sorted(port_list)
     network_list = list(network["Id"] for network in modify_payload["Networks"])
@@ -477,6 +475,8 @@ def modify_uplink(module, rest_obj, fabric_id, uplink_id, uplinks):
         modify_data["Name"] = mparams.get("new_name")
     if mparams.get("description"):
         modify_data["Description"] = mparams.get("description")
+    if mparams.get("ufd_enable"):
+        modify_data["UfdEnable"] = mparams.get("ufd_enable")
     if mparams.get("uplink_type"):
         if mparams.get("uplink_type") != uplinks_payload["MediaType"]:
             module.fail_json(msg="Uplink Type cannot be modified.")
