@@ -24,13 +24,6 @@ jobs:
         with:
           python-version: 3.8
 
-#      - name: Install dependencies
-#        run: |
-#          pip install pytest
-#          pip install omsdk
-#          pip install wheel
-#          pip install coverage==5.3
-
       - name: Install ansible (${{ matrix.ansible-version }})
         run: pip install ansible=="${{ matrix.ansible-version }}"
 
@@ -62,23 +55,6 @@ jobs:
       - name: Install ansible (${{ matrix.ansible-version }})
         run: pip install ansible=="${{ matrix.ansible-version }}"
 
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          pip install wheel
-#          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-#      - name: Install dependencies
-#        run: |
-#          pip install wheel
-#          pip install pytest
-#          pip install omsdk
-#          pip install pytest-cov
-#          pip install pytest-ansible==2.0.1
-#          pip install coverage==5.3
-#          pip install mock
-#          pip install pytest-mock
-#          pip install pytest-xdist
-
       - name: Download migrated collection artifacts
         uses: actions/download-artifact@v1
         with:
@@ -99,14 +75,14 @@ jobs:
         run: ansible-test units --python ${{ matrix.python-version }}
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-      - name: Generate coverage report using pytest
-        run: |
-          cd /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
-          pytest -v --cov-config=/home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/.coveragerc --cov=/home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
-
 #      - name: Generate coverage report using pytest
-#        run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
-#        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+#        run: |
+#          cd /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+#          pytest -v --cov-config=/home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/.coveragerc --cov=/home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
+
+      - name: Generate coverage report using pytest
+        run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
+        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
 
   sanity:
