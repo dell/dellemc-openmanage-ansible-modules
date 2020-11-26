@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [2.7, 3.6, 3.8]
+        python-version: [3.6, 3.8]
         ansible-version: [2.10.3]
 
     steps:
@@ -72,12 +72,16 @@ jobs:
 
       - name: Run Unit tests using ansible-test
         continue-on-error: true
-        run: ansible-test units --python ${{ matrix.python-version }}
+        run: ansible-test units --python ${{ matrix.python-version }} --coverage
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-      - name: Generate coverage report using pytest
-        run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
-        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+      - name: Generate coverage report
+        run: ansible-test coverage html -v --requirements --group-by command --group-by version
+        working-directory: ./home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+
+#      - name: Generate coverage report using pytest
+#        run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
+#        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
 
   sanity:
