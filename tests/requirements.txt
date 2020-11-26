@@ -4,5 +4,6 @@ pytest-xdist
 mock
 pytest-mock
 pytest-cov
-pytest-ansible
+pytest-ansible==2.0.1
 coverage
+#pycodestyle
