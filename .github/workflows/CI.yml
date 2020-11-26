@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [2.7, 3.5, 3.6, 3.7, 3.8]
+        python-version: [3.5, 3.6, 3.7, 3.8]
         ansible-version: [2.10.3]
 
     steps:
@@ -85,7 +85,6 @@ jobs:
 #        working-directory: ./home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
       - name: Generate coverage report using pytest
-        continue-on-error: true
         run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
