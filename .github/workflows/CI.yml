@@ -75,11 +75,6 @@ jobs:
         run: ansible-test units --python ${{ matrix.python-version }}
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-#      - name: Generate coverage report using pytest
-#        run: |
-#          cd /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
-#          pytest -v --cov-config=/home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/.coveragerc --cov=/home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
-
       - name: Generate coverage report using pytest
         run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
