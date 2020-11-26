@@ -1,0 +1,15 @@
+[run]
+branch = True
+omit =
+   # omit deprecated files
+   */test_*.py
+   # omit other than test files
+   */utils.py
+   */compat/*.py
+   */conftest.py
+   */common.py
+   */dellemc_*.py
+   */doc_fragments/*.py
+   */module_utils/dellemc_*.py
+   */module_utils/idrac_redfish.py
+   */module_utils/redfish.py

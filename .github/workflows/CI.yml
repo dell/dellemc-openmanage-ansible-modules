@@ -1,0 +1,139 @@
+name: DellEMC OpenManage Ansble Continuous Integration
+
+on:
+  push:
+    branches: [ collections ]
+  pull_request:
+    branches: [ collections ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build collection
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible-version: [2.10.3]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          pip install pytest
+          pip install omsdk
+          pip install wheel
+          pip install coverage==5.3
+
+      - name: Install ansible (${{ matrix.ansible-version }})
+        run: pip install ansible=="${{ matrix.ansible-version }}"
+
+      - name: Build a collection tarball
+        run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
+
+      - name: Store migrated collection artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: collection
+          path: .cache/collection-tarballs
+
+  unit:
+    name: Unit Tests
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [2.7, 3.8]
+        ansible-version: [2.10.3]
+
+    steps:
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install ansible (${{ matrix.ansible-version }})
+        run: pip install ansible=="${{ matrix.ansible-version }}"
+
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install wheel
+#          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Install dependencies
+        run: |
+          pip install wheel
+          pip install pytest
+          pip install omsdk
+          pip install pytest-cov
+          pip install pytest-ansible==2.0.1
+          pip install coverage==5.3
+          pip install mock
+          pip install pytest-mock
+
+      - name: Download migrated collection artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: collection
+          path: .cache/collection-tarballs
+
+      - name: Setup Unit test Pre-requisites
+        run: |
+          ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
+          git clone https://github.com/ansible/ansible.git
+          cp -rf ansible/test/units/compat /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/
+          cp -rf ansible/test/units/modules/utils.py /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/
+          sed -i 's/units/ansible_collections.dellemc.openmanage.tests.unit/' /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/utils.py
+          pip install pytest pytest-xdist pytest-mock mock coverage omsdk
+
+      - name: Run Unit tests using ansible-test
+        continue-on-error: true
+        run: ansible-test units --python ${{ matrix.python-version }}
+        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+
+      - name: Generate coverage report using pytest
+        run: |
+          cd /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+          pytest -v --cov-config=/home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/.coveragerc --cov=/home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
+
+#      - name: Generate coverage report using pytest
+#        run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
+#        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+
+
+  sanity:
+    name: Sanity Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+      matrix:
+        ansible-version: [2.10.3]
+
+    steps:
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install ansible (${{ matrix.ansible-version }})
+        run: pip install ansible=="${{ matrix.ansible-version }}"
+
+      - name: Download migrated collection artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: collection
+          path: .cache/collection-tarballs
+
+      - name: Setup Unit test Pre-requisites
+        run: ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
+
+      - name: Run sanity tests
+        run: ansible-test sanity --docker -v --color --truncate 0 --coverage
+        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
