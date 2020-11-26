@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
@@ -50,12 +50,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [2.7, 3.8]
+        python-version: [2.7, 3.6, 3.8]
         ansible-version: [2.10.3]
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -77,6 +77,7 @@ jobs:
           pip install coverage==5.3
           pip install mock
           pip install pytest-mock
+          pip install pytest-xdist
 
       - name: Download migrated collection artifacts
         uses: actions/download-artifact@v1
@@ -117,7 +118,7 @@ jobs:
 
     steps:
       - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.8
 
