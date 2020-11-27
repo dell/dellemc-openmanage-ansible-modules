@@ -88,11 +88,6 @@ jobs:
         run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-      # See the reports at https://codecov.io/gh/ansible_collections/GITHUBORG/REPONAME
-#      - uses: codecov/codecov-action@v1
-#        with:
-#          fail_ci_if_error: false
-
 
   sanity:
     name: Sanity Tests
