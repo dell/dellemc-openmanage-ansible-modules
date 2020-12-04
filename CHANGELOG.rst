@@ -13,6 +13,11 @@ Release Summary
 
 Fabric management related modules ome_smart_fabric and ome_smart_fabric_uplink are added.
 
+Known Issues
+------------
+
+- Issue 1(186024): ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
 New Modules
 -----------
 
