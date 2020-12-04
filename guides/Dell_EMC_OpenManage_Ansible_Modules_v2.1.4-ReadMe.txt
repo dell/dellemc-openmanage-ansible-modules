@@ -90,6 +90,11 @@ Known Issues
   Description: Redfish Storage Volume operations sometime returns a operation
   progress percentage different than the actual job status.
 
+* Issue 4(186024):
+  Description: ome_smart_fabric_uplink module does not allow the creation of
+  multiple uplinks of the same name even though this is supported by OpenManage
+  Enterprise Modular. If an uplink is created using the same name as an
+  existing uplink, the existing uplink is modified.
 
 *******************************************************************************
 Limitations
