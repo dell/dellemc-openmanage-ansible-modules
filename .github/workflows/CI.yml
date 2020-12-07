@@ -63,12 +63,12 @@ jobs:
 
       - name: Setup Unit test Pre-requisites
         run: |
-          if [ -f /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt ]; then python -m pip install -r /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt; fi
           ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
           git clone https://github.com/ansible/ansible.git
           cp -rf ansible/test/units/compat /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/
           cp -rf ansible/test/units/modules/utils.py /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/
           sed -i 's/units/ansible_collections.dellemc.openmanage.tests.unit/' /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/utils.py
+          if [ -f /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt ]; then pip install -r /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt; fi
 
 
       - name: Run Unit tests using ansible-test
