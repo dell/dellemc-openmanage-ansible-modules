@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [2.7, 3.5, 3.6, 3.8]
+        python-version: [2.7, 3.6]
         ansible-version: [stable-2.10, devel]
 
     steps:
@@ -76,10 +76,10 @@ jobs:
         run: ansible-test units -v --color --python ${{ matrix.python-version }} --coverage
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-      - name: Generate coverage report
-        continue-on-error: true
-        run: ansible-test coverage xml -v --group-by command --group-by version
-        working-directory: ./home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+#      - name: Generate coverage report
+#        continue-on-error: true
+#        run: ansible-test coverage xml -v --group-by command --group-by version
+#        working-directory: ./home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
 #      # See the reports at https://codecov.io/gh/GITHUBORG/REPONAME
 #      - uses: codecov/codecov-action@v1
