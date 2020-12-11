@@ -81,10 +81,10 @@ jobs:
         run: ansible-test coverage xml -v --group-by command --group-by version
         working-directory: ./home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-      # See the reports at https://codecov.io/gh/GITHUBORG/REPONAME
-      - uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: false
+#      # See the reports at https://codecov.io/gh/GITHUBORG/REPONAME
+#      - uses: codecov/codecov-action@v1
+#        with:
+#          fail_ci_if_error: false
 
       - name: Generate coverage report using pytest
         run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
