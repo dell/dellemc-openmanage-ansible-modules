@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,7 +21,7 @@ DOCUMENTATION = """
 ---
 module: dellemc_system_lockdown_mode
 short_description: Check system lockdown mode.
-version_added: "2.3"
+version_added: "2.3.0"
 description:
     - Enabling or Disabling System lockdown Mode.
 extends_documentation_fragment:
@@ -29,21 +29,26 @@ extends_documentation_fragment:
 options:
     share_name:
         required: True
+        type: str
         description: Network share or a local path.
     share_user:
         required: False
+        type: str
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_password:
         required: False
+        type: str
         description: Network share user password. This option is mandatory for CIFS Network Share.
         aliases: ['share_pwd']
     share_mnt:
         required: False
+        type: str
         description: Local mount path of the network share with read-write permission for ansible user.
             This option is mandatory for Network Share.
     lockdown_mode:
         required:  True
+        type: str
         description: Whether to Enable or Disable system lockdown mode.
         choices: [Enabled, Disabled]
 requirements:
@@ -117,7 +122,7 @@ def run_system_lockdown_mode(idrac, module):
             except (IndexError, KeyError):
                 message = set_liason['Message']
             err = True
-            msg['msg'] = "{}".format(message)
+            msg['msg'] = "{0}".format(message)
             msg['failed'] = True
             return msg, err
 

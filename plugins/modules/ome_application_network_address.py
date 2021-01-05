@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -477,7 +477,7 @@ def format_payload(src_dict):
                            "dns_domain_name": "DnsDomainName",
                            "reboot_delay": "Delay"}
     if src_dict:
-        return {address_payload_map[key]: val for key, val in src_dict.items() if val is not None}
+        return dict([(address_payload_map[key], val) for key, val in src_dict.items() if val is not None])
 
 
 def get_payload(module):

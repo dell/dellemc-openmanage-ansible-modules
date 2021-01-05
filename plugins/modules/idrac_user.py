@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.2
+# Version 2.1.5
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -237,7 +237,7 @@ def compare_payload(json_payload, idrac_attr):
         if split_key == "Password":
             is_change_required = True
             break
-        elif split_key == "Privilege":
+        if split_key == "Privilege":
             copy_json[key] = str(val)
     else:
         is_change_required = bool(list(set(copy_json.items()) - set(idrac_attr.items())))
@@ -263,7 +263,7 @@ def get_user_account(module, idrac):
             slot_id = num
             slot_uri = ACCOUNT_URI + str(num)
             break
-        elif not user_attributes.get(user_name) and (empty_slot_uri and empty_slot) is None:
+        if not user_attributes.get(user_name) and (empty_slot_uri and empty_slot) is None:
             empty_slot = num
             empty_slot_uri = ACCOUNT_URI + str(num)
     return user_attributes, slot_uri, slot_id, empty_slot, empty_slot_uri
@@ -295,7 +295,7 @@ def get_payload(module, slot_id, action=None):
                         "Users.{0}.IpmiLanPrivilege": "No Access", "Users.{0}.IpmiSerialPrivilege": "No Access",
                         "Users.{0}.SolEnable": "Disabled", "Users.{0}.ProtocolEnable": "Disabled",
                         "Users.{0}.AuthenticationProtocol": "SHA", "Users.{0}.PrivacyProtocol": "AES"}
-    payload = {k.format(slot_id): v for k, v in slot_payload.items() if v is not None}
+    payload = dict([(k.format(slot_id), v) for k, v in slot_payload.items() if v is not None])
     return payload
 
 

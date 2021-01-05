@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -355,7 +355,7 @@ def get_updated_modify_payload(modify_payload, existing_payload):
             elif existing_payload.get(key) and key == "IscsiSettings":
                 update_modify_setting(modify_payload, existing_payload, key,
                                       ["Mac", "InitiatorConfig", "InitiatorIpPoolSettings"])
-    modify_payload = {k: v for k, v in modify_payload.items() if v is not None}
+    modify_payload = dict([(k, v) for k, v in modify_payload.items() if v is not None])
     return modify_payload
 
 
@@ -373,7 +373,7 @@ def update_mac_settings(payload, settings_params, setting_type, module):
                              .format(setting_type.split('Settings')[0]))
     sub_setting_mapper = {"StartingMacAddress": mac_base_64_format,
                           "IdentityCount": settings_params.get("identity_count")}
-    sub_settings_payload = {k: v for k, v in sub_setting_mapper.items() if v is not None}
+    sub_settings_payload = dict([(k, v) for k, v in sub_setting_mapper.items() if v is not None])
     if any(sub_settings_payload):
         payload.update({setting_type: {"Mac": sub_settings_payload}})
 
@@ -392,14 +392,14 @@ def update_iscsi_specific_settings(payload, settings_params, setting_type):
                                       "Gateway": initiator_ip_pool_settings.get("gateway"),
                                       "PrimaryDnsServer": initiator_ip_pool_settings.get("primary_dns_server"),
                                       "SecondaryDnsServer": initiator_ip_pool_settings.get("secondary_dns_server")}
-        initiator_ip_pool_settings = {k: v for k, v in initiator_ip_pool_settings.items() if v is not None}
+        initiator_ip_pool_settings = dict([(k, v) for k, v in initiator_ip_pool_settings.items() if v is not None])
         sub_setting_mapper.update({
             "InitiatorIpPoolSettings": initiator_ip_pool_settings})
     if any(sub_setting_mapper):
         if "IscsiSettings" in payload:
             """update MAC address setting"""
             sub_setting_mapper.update(payload[setting_type])
-        sub_setting_mapper = {key: val for key, val in sub_setting_mapper.items() if any(val)}
+        sub_setting_mapper = dict([(key, val) for key, val in sub_setting_mapper.items() if any(val)])
         payload.update({setting_type: sub_setting_mapper})
 
 
@@ -446,7 +446,7 @@ def update_fc_settings(payload, settings_params, setting_type, module):
         wwpn_payload.update({"IdentityCount": identity_count})
     sub_setting_mapper.update({"Wwnn": wwnn_payload,
                                "Wwpn": wwpn_payload})
-    sub_setting_mapper = {key: val for key, val in sub_setting_mapper.items() if any(val)}
+    sub_setting_mapper = dict([(key, val) for key, val in sub_setting_mapper.items() if any(val)])
     if any(sub_setting_mapper):
         payload.update({setting_type: sub_setting_mapper})
 
@@ -476,7 +476,7 @@ def get_payload(module, pool_id=None):
         if new_name is not None:
             setting_payload.update({"Name": new_name})
         setting_payload["Id"] = pool_id
-    payload = {k: v for k, v in setting_payload.items() if v is not None}
+    payload = dict([(k, v) for k, v in setting_payload.items() if v is not None])
     return payload
 
 

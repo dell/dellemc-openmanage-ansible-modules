@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -214,7 +214,7 @@ def get_device_resource(module, rest_obj):
     service_tag = module.params['device_service_tag']
     resp = rest_obj.invoke_request('GET', "DeviceService/Devices")
     if resp.success and resp.json_data['value'] and service_tag is not None:
-        device_resp = {str(device['DeviceServiceTag']): device['Id'] for device in resp.json_data['value']}
+        device_resp = dict([(device.get('DeviceServiceTag'), str(device.get('Id'))) for device in resp.json_data['value']])
         if service_tag in device_resp:
             device_id = device_resp[service_tag]
         else:

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_template_network_vlan
 short_description: "Set tagged and untagged vlans to native network card supported by a template on OpenManage Enterprise."
-version_added: "2.9.10"
+version_added: "2.10.3"
 description: "This module allows to set tagged and untagged vlans to native network card supported by a template
 on OpenManage Enterprise."
 extends_documentation_fragment:
@@ -38,7 +38,7 @@ options:
       - It is mutually exclusive with I(template_name)
     type: int
   nic_identifier:
-    description: Display name of NIC port in the template for vLAN configuration.
+    description: Display name of NIC port in the template for VLAN configuration.
     required: true
     type: str
   untagged_networks:
@@ -47,15 +47,15 @@ options:
     type: list
     suboptions:
       port:
-        description: NIC port number of the untagged vLAN.
+        description: NIC port number of the untagged VLAN.
         required: true
         type: int
       untagged_network_id:
         description:
-          - ID of the untagged vLAN
-          - Enter 0 to clear the untagged vLAN from the port.
+          - ID of the untagged VLAN
+          - Enter 0 to clear the untagged VLAN from the port.
           - This option is mutually exclusive with I(untagged_network_name)
-          - To get the vLAN network ID use the API U( https://I(hostname)/api/NetworkConfigurationService/Networks)
+          - To get the VLAN network ID use the API U( https://I(hostname)/api/NetworkConfigurationService/Networks)
         type: int
       untagged_network_name:
         description:
@@ -64,27 +64,27 @@ options:
           - This parameter is mutually exclusive with I(untagged_network_id)
         type: str
   tagged_networks:
-    description: List of tagged vLANs and their corresponding NIC ports.
+    description: List of tagged VLANs and their corresponding NIC ports.
     type: list
     elements: dict
     suboptions:
       port:
-        description: NIC port number of the tagged vLAN
+        description: NIC port number of the tagged VLAN
         required: true
         type: int
       tagged_network_ids:
         description:
-          - List of IDs of the tagged vLANs
-          - Enter [] to remove the tagged vLAN from a port.
-          - List of I(tagged_network_ids) is combined with list of I(tagged_network_names) when adding tagged vLANs to a port.
-          - To get the vLAN network ID use the API U( https://I(hostname)/api/NetworkConfigurationService/Networks)
+          - List of IDs of the tagged VLANs
+          - Enter [] to remove the tagged VLAN from a port.
+          - List of I(tagged_network_ids) is combined with list of I(tagged_network_names) when adding tagged VLANs to a port.
+          - To get the VLAN network ID use the API U( https://I(hostname)/api/NetworkConfigurationService/Networks)
         type: list
         elements: int
       tagged_network_names:
         description:
-          - List of names of tagged vLANs
+          - List of names of tagged VLANs
           - Enter [] to remove the tagged VLAN from a port.
-          - List of I(tagged_network_names) is combined with list of I(tagged_network_ids) when adding tagged vLANs to a port.
+          - List of I(tagged_network_names) is combined with list of I(tagged_network_ids) when adding tagged VLANs to a port.
         type: list
         elements: str
 requirements:
@@ -95,7 +95,7 @@ author:
 
 EXAMPLES = r'''
 ---
-- name: Add tagged or untagged vLANs to a template using vLAN ID and name.
+- name: Add tagged or untagged VLANs to a template using VLAN ID and name.
   dellemc.openmanage.ome_template_network_vlan:
     hostname: "192.168.0.1"
     username: "username"
@@ -123,7 +123,7 @@ EXAMPLES = r'''
           - vlan4
           - vlan1
 
-- name: Clear the tagged and untagged vlans vLANs from a template.
+- name: Clear the tagged and untagged VLANs from a template.
   dellemc.openmanage.ome_template_network_vlan:
     hostname: "192.168.0.1"
     username: "username"
@@ -131,13 +131,13 @@ EXAMPLES = r'''
     template_id: 78
     nic_identifier: NIC Slot 4
     untagged_networks:
-      # For removing the untagged vLANs for the port 1 and 2
+      # For removing the untagged VLANs for the port 1 and 2
       - port: 1
         untagged_network_id: 0
       - port: 2
         untagged_network_name: 0
     tagged_networks:
-      # For removing the tagged vLANs for port 1, 4 and 2
+      # For removing the tagged VLANs for port 1, 4 and 2
       - port: 1
         tagged_network_ids: []
       - port: 4
@@ -194,7 +194,7 @@ UPDATE_NETWORK_CONFIG = "TemplateService/Actions/TemplateService.UpdateNetworkCo
 TEMPLATE_ATTRIBUTE_VIEW = "TemplateService/Templates({0})/Views({1}" \
                           ")/AttributeViewDetails"
 VLAN_NETWORKS = "NetworkConfigurationService/Networks?$top=9999"
-TEMPLATE_VIEW = "TemplateService/Templates"
+TEMPLATE_VIEW = "TemplateService/Templates"  # Add ?$top=9999 if not query
 
 KEY_ATTR_NAME = 'DisplayName'
 SUB_GRP_ATTR_NAME = 'SubAttributeGroups'
@@ -203,14 +203,21 @@ GRP_NAME_ID_ATTR_NAME = 'GroupNameId'
 CUSTOM_ID_ATTR_NAME = 'CustomId'
 
 
-def get_item_id(rest_obj, name, uri):
-    resp = rest_obj.invoke_request('GET', uri)
+def get_template_details(module, rest_obj):
+    id = module.params.get('template_id')
+    query_param = {"$filter": "Id eq {0}".format(id)}
+    srch = 'Id'
+    if not id:
+        id = module.params.get('template_name')
+        query_param = {"$filter": "Name eq '{0}'".format(id)}
+        srch = 'Name'
+    resp = rest_obj.invoke_request('GET', TEMPLATE_VIEW, query_param=query_param)
     if resp.success and resp.json_data.get('value'):
         tlist = resp.json_data.get('value', [])
         for xtype in tlist:
-            if xtype.get('Name', "") == name:
-                return xtype.get('Id')
-    return 0
+            if xtype.get(srch) == id:
+                return xtype
+    module.fail_json(msg="Template with {0} '{1}' not found.".format(srch, id))
 
 
 def get_vlan_name_id_map(rest_obj):
@@ -229,12 +236,22 @@ def get_template_vlan_info(module, rest_obj, template_id):
     port_id_map = {}
     port_untagged_map = {}
     port_tagged_map = {}
+    port_nic_bond_map = {}
+    nic_bonding_tech = ""
     resp = rest_obj.invoke_request('GET', TEMPLATE_ATTRIBUTE_VIEW.format(
         template_id, NETWORK_HIERARCHY_VIEW))
     if resp.success:
         nic_id = module.params.get("nic_identifier")
         nic_model = resp.json_data.get('AttributeGroups', [])
-        nic_group = nic_model[0]['SubAttributeGroups']
+        # nic_group = nic_model[0]['SubAttributeGroups']
+        for xnic in nic_model:
+            if xnic.get(KEY_ATTR_NAME) == "NICModel":
+                nic_group = xnic.get('SubAttributeGroups', [])
+            if xnic.get(KEY_ATTR_NAME) == "NicBondingTechnology":
+                nic_bonding_list = xnic.get("Attributes", [])
+                for xbnd in nic_bonding_list:
+                    if xbnd.get(KEY_ATTR_NAME).lower() == "nic bonding technology":
+                        nic_bonding_tech = xbnd.get('Value')
         nic_found = False
         for nic in nic_group:
             if nic_id == nic.get(KEY_ATTR_NAME):
@@ -252,9 +269,11 @@ def get_template_vlan_info(module, rest_obj, template_id):
                                     if attribute['Value']:
                                         port_tagged_map[port_number] = \
                                             list(map(int, (attribute['Value']).replace(" ", "").split(",")))
+                                if attribute.get(KEY_ATTR_NAME).lower() == "nic bonding enabled":
+                                    port_nic_bond_map[port_number] = attribute['Value']
         if not nic_found:
             module.fail_json(msg="NIC with name '{0}' not found for template with id {1}".format(nic_id, template_id))
-    return port_id_map, port_untagged_map, port_tagged_map
+    return port_id_map, port_untagged_map, port_tagged_map, port_nic_bond_map, nic_bonding_tech
 
 
 def compare_nested_dict(modify_setting_payload, existing_setting_payload):
@@ -273,12 +292,13 @@ def compare_nested_dict(modify_setting_payload, existing_setting_payload):
 
 def get_vlan_payload(module, rest_obj, untag_dict, tagged_dict):
     payload = {}
-    template_id = module.params.get("template_id")
-    if not template_id:
-        template_id = get_item_id(rest_obj, module.params.get("template_name"), TEMPLATE_VIEW)
-    payload["TemplateId"] = template_id
+    template = get_template_details(module, rest_obj)
+    payload["TemplateId"] = template["Id"]
+    payload["IdentityPoolId"] = template["IdentityPoolId"]
     # VlanAttributes
-    port_id_map, port_untagged_map, port_tagged_map = get_template_vlan_info(module, rest_obj, template_id)
+    port_id_map, port_untagged_map, port_tagged_map, port_nic_bond_map, nic_bonding_tech =\
+        get_template_vlan_info(module, rest_obj, template['Id'])
+    payload["BondingTechnology"] = nic_bonding_tech
     untag_equal_dict = compare_nested_dict(untag_dict, port_untagged_map)
     tag_equal_dict = compare_nested_dict(tagged_dict, port_tagged_map)
     if untag_equal_dict and tag_equal_dict:
@@ -290,14 +310,15 @@ def get_vlan_payload(module, rest_obj, untag_dict, tagged_dict):
             mdict["Untagged"] = untag_dict.pop(pk, port_untagged_map.get(pk))
             mdict["Tagged"] = tagged_dict.pop(pk, port_tagged_map.get(pk))
             mdict["ComponentId"] = port_id_map.get(pk)
+            mdict["IsNicBonded"] = port_nic_bond_map.get(pk)
         if mdict:
             vlan_attributes.append(mdict)
     if untag_dict:
         module.fail_json(msg="Invalid port(s) {0} found for untagged "
-                             "vLAN".format(untag_dict.keys()))
+                             "VLAN".format(untag_dict.keys()))
     if tagged_dict:
         module.fail_json(msg="Invalid port(s) {0} found for tagged "
-                             "vLAN".format(tagged_dict.keys()))
+                             "VLAN".format(tagged_dict.keys()))
     payload["VlanAttributes"] = vlan_attributes
     return payload
 
@@ -398,7 +419,8 @@ def main():
             "template_name": {"required": False, "type": "str"},
             "template_id": {"required": False, "type": "int"},
             "nic_identifier": {"required": True, "type": "str"},
-            "untagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_untagged_spec},
+            "untagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_untagged_spec,
+                                  "mutually_exclusive": [("untagged_network_id", "untagged_network_name")]},
             "tagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_tagged_spec}
         },
         required_one_of=[("template_id", "template_name"),
