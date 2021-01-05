@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.4
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -131,8 +131,8 @@ msg:
   sample: "Fabric creation operation is initiated."
 fabric_id:
   type: str
-  description: Returns the ID when an fabric is created or modified.
-  returned: when I(state=present)
+  description: Returns the ID when an fabric is created, modified or deleted.
+  returned: success
   sample: "1312cceb-c3dd-4348-95c1-d8541a17d776"
 additional_info:
   type: dict
@@ -613,7 +613,7 @@ def delete_fabric(all_fabrics, rest_obj, module, name):
     """
     fabric_id = check_fabric_exits_for_state_absent(all_fabrics, module, name)
     rest_obj.invoke_request("DELETE", FABRIC_ID_URI.format(fabric_id=fabric_id))
-    module.exit_json(msg="Fabric deletion operation is initiated.", changed=True)
+    module.exit_json(msg="Fabric deletion operation is initiated.", fabric_id=fabric_id, changed=True)
 
 
 def fabric_actions(rest_obj, module):
