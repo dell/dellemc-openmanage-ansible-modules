@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.5
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: dellemc_idrac_storage_volume
 short_description: Configures the RAID configuration attributes.
-version_added: "2.9"
+version_added: "2.9.0"
 description:
   - This module is responsible for configuring the RAID attributes.
 options:
@@ -41,6 +41,7 @@ options:
     default: 443
   state:
     required: False
+    type: str
     description:
       - C(create), performs create volume operation.
       - C(delete), performs remove volume operation.
@@ -49,62 +50,76 @@ options:
     default: 'view'
   span_depth:
     required: False
+    type: int
     description: Span Depth.
     default: 1
   span_length:
     required: False
+    type: int
     description: Span Length.
     default: 1
   number_dedicated_hot_spare:
     required: False
+    type: int
     description: Number of Dedicated Hot Spare.
     default: 0
   volume_type:
     required: False
+    type: str
     description: Provide the the required RAID level.
     choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
     default: 'RAID 0'
   disk_cache_policy:
     required: False
+    type: str
     description: Disk Cache Policy.
     choices: ["Default", "Enabled", "Disabled"]
     default: "Default"
   write_cache_policy:
     required: False
+    type: str
     description: Write cache policy.
     choices: ["WriteThrough", "WriteBack", "WriteBackForce"]
     default: "WriteThrough"
   read_cache_policy:
     required: False
+    type: str
     description: Read cache policy.
     choices: ["NoReadAhead", "ReadAhead", "AdaptiveReadAhead"]
     default: "NoReadAhead"
   stripe_size:
     required: False
+    type: int
     description: Stripe size value to be provided in multiples of 64 * 1024.
     default: 65536
   controller_id:
     required: False
+    type: str
     description:
       - >-
         Fully Qualified Device Descriptor (FQDD) of the storage controller, for e.g. 'RAID.Integrated.1-1'.
         Controller FQDD is required for C(create) RAID configuration.
   media_type:
     required:  False
+    type: str
     description: Media type.
     choices: ['HDD', 'SSD']
   protocol:
     required:  False
+    type: str
     description: Bus protocol.
     choices: ['SAS', 'SATA']
   volume_id:
     required: False
+    type: str
     description:
       - >-
         Fully Qualified Device Descriptor (FQDD) of the virtual disk, for e.g. 'Disk.virtual.0:RAID.Slot.1-1'.
         This option is used to get the virtual disk information.
   volumes:
     required: False
+    type: list
+    elements: str
     description:
       - >-
         A list of virtual disk specific iDRAC attributes. This is applicable for C(create) and C(delete) operations.
@@ -118,9 +133,11 @@ options:
       - See the examples for more details.
   capacity:
     required: False
+    type: float
     description: Virtual disk size in GB.
   raid_reset_config:
     required: False
+    type: str
     description:
       - >-
         This option represents whether a reset config operation needs to be performed on the RAID controller.
@@ -129,6 +146,7 @@ options:
     default: False
   raid_init_operation:
     required: False
+    type: str
     description: This option represents initialization configuration operation to be performed on the virtual disk.
     choices: [None, Fast]
 
@@ -321,7 +339,7 @@ def delete_storage(idrac, module):
 
 def _validate_options(options):
     if options['state'] == "create":
-        if options["controller_id"] is None or options["controller_id"] is "":
+        if options["controller_id"] is None or options["controller_id"] == "":
             raise ValueError('Controller ID is required.')
         capacity = options.get("capacity")
         if capacity is not None:
@@ -363,7 +381,11 @@ def _validate_options(options):
                 raise ValueError(message)
 
 
-def multiple_vd_config(mod_args={}, pd_filter="", each_vd={}):
+def multiple_vd_config(mod_args=None, pd_filter="", each_vd=None):
+    if mod_args is None:
+        mod_args = {}
+    if each_vd is None:
+        each_vd = {}
     if each_vd:
         mod_args.update(each_vd)
     disk_size = None
@@ -378,7 +400,7 @@ def multiple_vd_config(mod_args={}, pd_filter="", each_vd={}):
             id_list = drives.get("id")
     if size is not None:
         size_check = float(size)
-        disk_size = "{}".format(int(size_check * 1073741824))
+        disk_size = "{0}".format(int(size_check * 1073741824))
 
     if mod_args['media_type'] is not None:
         pd_filter += ' and disk.MediaType == "{0}"'.format(mod_args['media_type'])
@@ -453,7 +475,7 @@ def main():
             "state": {"required": False,
                       "choices": ['create', 'delete', 'view'], "default": 'view'},
             "volume_id": {"required": False, "type": 'str'},
-            "volumes": {"required": False, "type": 'list'},
+            "volumes": {"required": False, "type": 'list', "elements": 'str'},
             "span_depth": {"required": False, "type": 'int', "default": 1},
             "span_length": {"required": False, "type": 'int', "default": 1},
             "number_dedicated_hot_spare": {"required": False, "type": 'int', "default": 0},

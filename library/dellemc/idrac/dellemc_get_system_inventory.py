@@ -1,10 +1,10 @@
 #!/usr/bin/python
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0
-# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.5
+# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,7 +21,7 @@ DOCUMENTATION = """
 ---
 module: dellemc_get_system_inventory
 short_description: Get the PowerEdge Server System Inventory.
-version_added: "2.3"
+version_added: "2.3.0"
 description:
     - Get the PowerEdge Server System Inventory.
 options:
@@ -95,7 +95,7 @@ def main():
             idrac_ip=dict(required=True, type='str'),
             idrac_user=dict(required=True, type='str'),
             idrac_password=dict(required=True, type='str', aliases=['idrac_pwd'], no_log=True),
-            idrac_port=dict(required=False, default=443)
+            idrac_port=dict(required=False, type='int', default=443)
         ),
         supports_check_mode=False)
 

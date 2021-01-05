@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.5
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,7 +20,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_user_info
 short_description: Retrieves details of all accounts or a specific account on OpenManage Enterprise.
-version_added: "2.9"
+version_added: "2.9.10"
 description:
    - "This module retrieves the list and basic details of all accounts or details of a specific account on
    OpenManage Enterprise."
@@ -124,7 +124,7 @@ def _get_query_parameters(module_params):
     system_query_param = module_params.get("system_query_options")
     query_param = {}
     if system_query_param:
-        query_param = {"$" + k: v for k, v in system_query_param.items() if v is not None}
+        query_param = dict([("$" + k, v) for k, v in system_query_param.items() if v is not None])
     return query_param
 
 

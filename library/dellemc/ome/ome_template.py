@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.5
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -73,6 +73,7 @@ options:
         specify the ID of a single device.
       - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
     type: list
+    elements: int
     default: []
   device_service_tag:
     description:
@@ -81,6 +82,7 @@ options:
         specify the service tag of a single device
       - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
     type: list
+    elements: str
     default: []
   template_view_type:
     description:
@@ -432,7 +434,7 @@ def get_device_ids(module, rest_obj):
         return list(set(device_id))
     device_list = rest_obj.get_all_report_details(DEVICE_URI)["report_list"]
     if device_list:
-        device_resp = {device.get('DeviceServiceTag'): str(device.get('Id')) for device in device_list}
+        device_resp = dict([(device.get('DeviceServiceTag'), str(device.get('Id'))) for device in device_list])
         device_tags = list(map(str, service_tags))
         invalid_tags = []
         for tag in device_tags:

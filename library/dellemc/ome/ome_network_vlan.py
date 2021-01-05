@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -216,7 +216,7 @@ def format_payload(src_dict):
         "type": "Type"
     }
     if src_dict:
-        return {address_payload_map[key]: val for key, val in src_dict.items() if key in address_payload_map}
+        return dict([(address_payload_map[key], val) for key, val in src_dict.items() if key in address_payload_map])
 
 
 def get_item_id(rest_obj, name, uri):

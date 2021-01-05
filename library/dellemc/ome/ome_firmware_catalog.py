@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.5
+# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_firmware_catalog
 short_description: Creates a catalog on OpenManage Enterprise.
-version_added: "2.9"
+version_added: "2.9.10"
 description: This module triggers the job to create a catalog on OpenManage Enterprise.
 options:
   hostname:
@@ -238,7 +238,7 @@ def _get_catalog_payload(params):
     del repository_dict['username']
     del repository_dict['password']
     del repository_dict['port']
-    repository_payload = {catalog_mapper[k]: v for k, v in repository_dict.items() if v is not None}
+    repository_payload = dict([(catalog_mapper[k], v) for k, v in repository_dict.items() if v is not None])
     if any(repository_payload):
         catalog_payload.update({"Repository": repository_payload})
     return catalog_payload

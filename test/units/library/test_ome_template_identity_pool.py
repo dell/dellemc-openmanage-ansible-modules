@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -22,12 +22,12 @@ from ssl import SSLError
 from io import StringIO
 from ansible.module_utils._text import to_text
 
-MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
+MODULE_PATH = 'ansible.modules.remote_management.dellemc.ome_template_identity_pool.'
 
 
 @pytest.fixture
 def ome_connection_mock_template_identity_pool(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch(MODULE_PATH + 'ome_template_identity_pool.RestOME')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -44,19 +44,19 @@ class TestOMETemplateIdentityPool(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type == URLError:
             mocker.patch(
-                MODULE_PATH + 'ome_template_identity_pool.get_template_id',
+                MODULE_PATH + 'get_template_id',
                 side_effect=exc_type('url error'))
             result = self._run_module(ome_default_args)
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(
-                MODULE_PATH + 'ome_template_identity_pool.get_template_id',
+                MODULE_PATH + 'get_template_id',
                 side_effect=exc_type('error'))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(
-                MODULE_PATH + 'ome_template_identity_pool.get_identity_id',
+                MODULE_PATH + 'get_identity_id',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str))
             )
@@ -66,8 +66,8 @@ class TestOMETemplateIdentityPool(FakeAnsibleModule):
 
     def test_main_success(self, mocker, ome_default_args, ome_connection_mock_template_identity_pool,
                           ome_response_mock):
-        mocker.patch(MODULE_PATH + "ome_template_identity_pool.get_template_id", return_value=10)
-        mocker.patch(MODULE_PATH + "ome_template_identity_pool.get_identity_id", return_value=10)
+        mocker.patch(MODULE_PATH + "get_template_id", return_value=10)
+        mocker.patch(MODULE_PATH + "get_identity_id", return_value=10)
         ome_default_args.update({"template_name": "template", "identity_pool_name": "pool_name"})
         ome_response_mock.json_data = {"msg": "Successfully assigned identity pool to template.", "changed": True}
         ome_response_mock.success = True
@@ -77,12 +77,43 @@ class TestOMETemplateIdentityPool(FakeAnsibleModule):
         assert result["msg"] == "Successfully attached identity pool to " \
                                 "template."
 
+    def test_get_template_vlan_info(self, ome_connection_mock_template_identity_pool, ome_response_mock):
+        f_module = self.get_module_mock(params={"nic_identifier": "NIC Slot 4"})
+        temp_net_details = {
+            "AttributeGroups": [
+                {
+                    "GroupNameId": 1001,
+                    "DisplayName": "NICModel",
+                    "SubAttributeGroups": [{
+                        "GroupNameId": 1,
+                        "DisplayName": "NIC Slot 4",
+                        "SubAttributeGroups": [],
+                        "Attributes": []
+                    }],
+                    "Attributes": []
+                },
+                {
+                    "GroupNameId": 1005,
+                    "DisplayName": "NicBondingTechnology",
+                    "SubAttributeGroups": [],
+                    "Attributes": [{"AttributeId": 0,
+                                    "DisplayName": "Nic Bonding Technology",
+                                    "Description": None, "Value": "LACP",
+                                    "IsIgnored": False}]
+                }
+            ]
+        }
+        ome_response_mock.success = True
+        ome_response_mock.json_data = temp_net_details
+        nic_bonding_tech = self.module.get_template_vlan_info(ome_connection_mock_template_identity_pool, 12)
+        assert nic_bonding_tech == "LACP"
+
     def test_get_template_id(self, ome_connection_mock_template_identity_pool, ome_response_mock):
-        ome_response_mock.json_data = {"value": [{"Name": "template", "Id": 10}]}
+        ome_response_mock.json_data = {"value": [{"Name": "template", "Id": 10, "IdentityPoolId": 5}]}
         ome_response_mock.success = True
         f_module = self.get_module_mock(params={"template_name": "template"})
-        result = self.module.get_template_id(ome_connection_mock_template_identity_pool, f_module)
-        assert result == 10
+        res_temp = self.module.get_template_id(ome_connection_mock_template_identity_pool, f_module)
+        assert res_temp == 10
 
     def test_get_identity_id(self, ome_connection_mock_template_identity_pool):
         data = {"report_list": [{"Name": "pool_name", "Id": 10}]}

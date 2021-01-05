@@ -1,10 +1,10 @@
 #!/usr/bin/python
-# _*_ coding: utf-8 _*_
+# -*- coding: utf-8 -*-
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0
-# Copyright (C) 2018-2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 2.1.5
+# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -22,7 +22,7 @@ DOCUMENTATION = """
 ---
 module: dellemc_configure_idrac_eventing
 short_description: Configures the iDRAC eventing attributes.
-version_added: "2.3"
+version_added: "2.3.0"
 description:
     - This module is responsible for configuring the iDRAC eventing attributes.
 options:
@@ -42,64 +42,82 @@ options:
         default: 443
     share_name:
         required: True
+        type: str
         description: Network share or a local path.
     share_user:
         required: False
+        type: str
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_password:
         required: False
+        type: str
         description: Network share user password. This option is mandatory for CIFS Network Share.
         aliases: ['share_pwd']
     share_mnt:
         required: False
+        type: str
         description: Local mount path of the network share with read-write permission for ansible user.
             This option is mandatory for Network Share.
     destination_number:
         required: False
+        type: int
         description: Destination number for SNMP Trap.
     destination:
         required: False
+        type: str
         description: Destination for SNMP Trap.
     snmp_v3_username:
         required: False
+        type: str
         description: SNMP v3 username for SNMP Trap.
     snmp_trap_state:
         required: False
+        type: str
         description: Whether to Enable or Disable SNMP alert.
         choices: [Enabled, Disabled]
     email_alert_state:
         required: False
+        type: str
         description: Whether to Enable or Disable Email alert.
         choices: [Enabled, Disabled]
     alert_number:
         required: False
+        type: int
         description: Alert number for Email configuration.
     address:
         required: False
+        type: str
         description: Email address for SNMP Trap.
     custom_message:
         required: False
+        type: str
         description: Custom message for SNMP Trap reference.
     enable_alerts:
         required: False
+        type: str
         description: Whether to Enable or Disable iDRAC alerts.
         choices: [Enabled, Disabled]
     authentication:
         required: False
+        type: str
         description: Simple Mail Transfer Protocol Authentication.
         choices: [Enabled, Disabled]
     smtp_ip_address:
         required: False
+        type: str
         description: SMTP IP address for communication.
     smtp_port:
         required: False
+        type: str
         description: SMTP Port number for access.
     username:
         required: False
+        type: str
         description: Username for SMTP authentication.
     password:
         required: False
+        type: str
         description: Password for SMTP authentication.
 requirements:
     - "omsdk"
@@ -186,7 +204,7 @@ def run_idrac_eventing_config(idrac, module):
             except (IndexError, KeyError):
                 message = set_liason['Message']
             err = True
-            msg['msg'] = "{}".format(message)
+            msg['msg'] = "{0}".format(message)
             msg['failed'] = True
             return msg, err
 
