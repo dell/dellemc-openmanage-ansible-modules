@@ -5,6 +5,31 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v2.1.5
+======
+
+Release Summary
+---------------
+
+The idrac_firmware module is enhanced to include checkmode support and job tracking.
+
+Minor Changes
+-------------
+
+- The idrac_server_config_profile module supports IPv6 address format.
+
+Bugfixes
+--------
+
+- Identity pool does not reset when a network VLAN is added to a template in the ome_template_network_vlan module. `#169 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues /169>`_
+- Missing parameter added in ome_smart_fabric_uplink module documenation. `#181 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/181>`_
+
+Known Issues
+------------
+
+- Issue 1(186024): ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+- Issue 2(187956): If an invalid job_id is provided, idrac_lifecycle_controller_job_status_info returns an error message. This error message does not contain information about the exact issue with the invalid job_id.
+
 v2.1.4
 ======
 

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -99,6 +99,25 @@ from ssl import SSLError
 CONFIG_URI = "TemplateService/Actions/TemplateService.UpdateNetworkConfig"
 TEMPLATE_URI = "TemplateService/Templates"
 IDENTITY_URI = "IdentityPoolService/IdentityPools"
+TEMPLATE_ATTRIBUTE_VIEW = "TemplateService/Templates({template_id})/Views(4)/AttributeViewDetails"
+KEY_ATTR_NAME = 'DisplayName'
+
+
+def get_template_vlan_info(rest_obj, template_id):
+    nic_bonding_tech = ""
+    try:
+        resp = rest_obj.invoke_request('GET', TEMPLATE_ATTRIBUTE_VIEW.format(template_id=template_id))
+        if resp.success:
+            nic_model = resp.json_data.get('AttributeGroups', [])
+            for xnic in nic_model:
+                if xnic.get(KEY_ATTR_NAME) == "NicBondingTechnology":
+                    nic_bonding_list = xnic.get("Attributes", [])
+                    for xbnd in nic_bonding_list:
+                        if xbnd.get(KEY_ATTR_NAME).lower() == "nic bonding technology":
+                            nic_bonding_tech = xbnd.get('Value')
+    except Exception:
+        nic_bonding_tech = ""
+    return nic_bonding_tech
 
 
 def get_template_id(rest_obj, module):
@@ -148,7 +167,8 @@ def main():
             if module.params["identity_pool_name"] is not None:
                 identity_id = get_identity_id(rest_obj, module)
                 message = "Successfully attached identity pool to template."
-            payload = {"TemplateId": template_id, "IdentityPoolId": identity_id}
+            nic_bonding_tech = get_template_vlan_info(rest_obj, template_id)
+            payload = {"TemplateId": template_id, "IdentityPoolId": identity_id, "BondingTechnology": nic_bonding_tech}
             resp = rest_obj.invoke_request("POST", CONFIG_URI, data=payload)
             if resp.status_code == 200:
                 module.exit_json(msg=message, changed=True)

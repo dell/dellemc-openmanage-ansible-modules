@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.4
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -1193,8 +1193,9 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
         mocker.patch(MODULE_PATH + 'ome_smart_fabric.check_fabric_exits_for_state_absent',
                      return_value=all_fabric_details[0]["Id"])
-        with pytest.raises(Exception, match="Fabric deletion operation is initiated."):
+        with pytest.raises(Exception, match="Fabric deletion operation is initiated.") as err:
             self.module.delete_fabric(all_fabric_details, ome_connection_mock_for_smart_fabric, f_module, "Fabric1")
+        err.value.fail_kwargs['fabric_id'] == all_fabric_details[0]["Id"]
 
     def test_fabric_actions_case_01(self, mocker, ome_connection_mock_for_smart_fabric, ome_default_args):
         ome_default_args.update({

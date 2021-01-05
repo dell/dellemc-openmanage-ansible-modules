@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -311,7 +311,7 @@ def get_device_ids(rest_obj, module, device_id_tags):
     device_id = []
     resp = rest_obj.get_all_report_details("DeviceService/Devices")
     if resp["report_list"]:
-        device_resp = {str(device['Id']): device['DeviceServiceTag'] for device in resp["report_list"]}
+        device_resp = dict([(str(device['Id']), device['DeviceServiceTag']) for device in resp["report_list"]])
         device_tags = map(str, device_id_tags)
         invalid_tags = []
         for tag in device_tags:
