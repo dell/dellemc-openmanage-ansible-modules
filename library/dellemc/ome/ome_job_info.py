@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,7 +20,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_job_info
 short_description: Get job details for a given job ID or an entire job queue on OpenMange Enterprise.
-version_added: "2.9"
+version_added: "2.9.10"
 description: This module retrieves job details for a given job ID or an entire job queue on OpenMange Enterprise.
 options:
   hostname:
@@ -161,7 +161,7 @@ def _get_query_parameters(module_params):
     system_query_options_param = module_params.get("system_query_options")
     query_parameter = {}
     if system_query_options_param:
-        query_parameter = {'$' + k: v for k, v in system_query_options_param.items() if v is not None}
+        query_parameter = dict([("$" + k, v) for k, v in system_query_options_param.items() if v is not None])
     return query_parameter
 
 

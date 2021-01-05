@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -22,12 +22,12 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 import json
 
-MODULE_PATH = 'ansible.modules.remote_management.dellemc.'
+MODULE_PATH = 'ansible.modules.remote_management.dellemc.ome_template_network_vlan.'
 
 
 @pytest.fixture
 def ome_connection_mock_for_template_network_vlan(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch(MODULE_PATH + 'ome_template_network_vlan.RestOME')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -70,9 +70,9 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         payload = {"TemplateId": 12,
                    "VlanAttributes": [{"ComponentId": 2302, "Tagged": [12765, 12767, 12768], "Untagged": 12766},
                                       {"ComponentId": 2301, "Tagged": [12765, 12766], "Untagged": 12767}]}
-        mocker.patch(MODULE_PATH + 'ome_template_network_vlan.validate_vlans',
+        mocker.patch(MODULE_PATH + 'validate_vlans',
                      return_value=(untag_dict, tagged_dict))
-        mocker.patch(MODULE_PATH + 'ome_template_network_vlan.get_vlan_payload',
+        mocker.patch(MODULE_PATH + 'get_vlan_payload',
                      return_value=payload)
         ome_response_mock.json_data = {}
         ome_response_mock.success = True
@@ -82,19 +82,15 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         assert result["msg"] == "Successfully applied the network settings to the template"
 
     @pytest.mark.parametrize("params",
-                             [{"success": True, "json_data": {"value": [{"Name": "template_name", "Id": 123}]},
-                               "id": 123},
-                              {"success": True, "json_data": {}, "id": 0},
-                              {"success": False, "json_data": {"value": [{"Name": "template_name", "Id": 123}]},
-                               "id": 0},
-                              {"success": True, "json_data": {"value": [{"Name": "template_name1", "Id": 123}]},
-                               "id": 0}])
-    def test_get_item_id(self, params, ome_connection_mock_for_template_network_vlan,
-                         ome_response_mock):
-        ome_response_mock.success = params["success"]
+                             [{"mparams": {"template_id": 123}, "success": True,
+                               "json_data": {"value": [{"Name": "vlan_name", "Id": 123, "IdentityPoolId": 23}]},
+                               "res": {"Name": "vlan_name", "Id": 123, "IdentityPoolId": 23}}])
+    def test_get_template_details(self, params, ome_connection_mock_for_template_network_vlan, ome_response_mock):
+        ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
-        id = self.module.get_item_id(ome_connection_mock_for_template_network_vlan, "template_name", "uri")
-        assert id == params["id"]
+        f_module = self.get_module_mock(params=params["mparams"])
+        result = self.module.get_template_details(f_module, ome_connection_mock_for_template_network_vlan)
+        assert result == params["res"]
 
     @pytest.mark.parametrize("kv",
                              [{"key": "1", "dct": {"one": "1", "two": "2"}, "res": "one"},
@@ -173,8 +169,8 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         }
         ome_response_mock.success = True
         ome_response_mock.json_data = temp_net_details
-        port_id_map, port_untagged_map, port_tagged_map = self.module.get_template_vlan_info(
-            f_module, ome_connection_mock_for_template_network_vlan, 12)
+        port_id_map, port_untagged_map, port_tagged_map, port_nic_bond_map, nic_bonding_tech\
+            = self.module.get_template_vlan_info(f_module, ome_connection_mock_for_template_network_vlan, 12)
         assert port_id_map == {1: 2302, 2: 2301}
         assert port_untagged_map == {1: 12766, 2: 12767}
         assert port_tagged_map == {1: [12765, 12767, 12768], 2: [12766]}
@@ -186,13 +182,19 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         port_id_map = {1: 2302, 2: 2301}
         port_untagged_map = {1: 12766, 2: 12767}
         port_tagged_map = {1: [12765, 12767, 12768], 2: [12766]}
-        mocker.patch(MODULE_PATH + 'ome_template_network_vlan.get_template_vlan_info',
-                     return_value=(port_id_map, port_untagged_map, port_tagged_map))
+        port_nic_bond_map = {1: True, 2: False}
+        nic_bonding_tech = "LACP"
+        mocker.patch(MODULE_PATH + 'get_template_details',
+                     return_value={"Name": "vlan_name", "Id": 12, "IdentityPoolId": 23})
+        mocker.patch(MODULE_PATH + 'get_template_vlan_info',
+                     return_value=(port_id_map, port_untagged_map, port_tagged_map, port_nic_bond_map, nic_bonding_tech))
         payload = self.module.get_vlan_payload(f_module, ome_connection_mock_for_template_network_vlan, untag_dict,
                                                tagged_dict)
         assert payload["TemplateId"] == 12
-        assert payload["VlanAttributes"] == [{"ComponentId": 2302, "Tagged": [12765, 12767, 12768], "Untagged": 12766},
-                                             {"ComponentId": 2301, "Tagged": [12765, 12766], "Untagged": 12767}]
+        assert payload["VlanAttributes"] == [{"ComponentId": 2302, "Tagged": [12765, 12767, 12768], "Untagged": 12766,
+                                              'IsNicBonded': True},
+                                             {"ComponentId": 2301, "Tagged": [12765, 12766], "Untagged": 12767,
+                                              'IsNicBonded': False}]
 
     def test_validate_vlans(self, mocker, ome_connection_mock_for_template_network_vlan):
         f_module = self.get_module_mock(params={"tagged_networks": [
@@ -203,7 +205,7 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
                 {"port": 1, "untagged_network_name": "plat"},
                 {"port": 2, "untagged_network_id": 0},
                 {"port": 3, "untagged_network_id": 4}]})
-        mocker.patch(MODULE_PATH + 'ome_template_network_vlan.get_vlan_name_id_map',
+        mocker.patch(MODULE_PATH + 'get_vlan_name_id_map',
                      return_value={"vlan1": 1, "vlan2": 2, "gold": 3, "silver": 4, "plat": 5, "bronze": 6})
         untag_dict, tagged_dict = self.module.validate_vlans(f_module, ome_connection_mock_for_template_network_vlan)
         assert untag_dict == {1: 5, 2: 0, 3: 4}
@@ -245,7 +247,7 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
                               ])
     def test_validate_vlans_failure(self, params, mocker, ome_connection_mock_for_template_network_vlan):
         f_module = self.get_module_mock(params["inp"])
-        mocker.patch(MODULE_PATH + 'ome_template_network_vlan.get_vlan_name_id_map',
+        mocker.patch(MODULE_PATH + 'get_vlan_name_id_map',
                      return_value={"vlan1": 1, "vlan2": 2, "gold": 3, "silver": 4, "plat": 5, "bronze": 6})
         with pytest.raises(Exception) as exc:
             self.module.validate_vlans(f_module, ome_connection_mock_for_template_network_vlan)
@@ -341,17 +343,17 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
             {"port": 2, "tagged_network_ids": [22763], "tagged_network_names": ["gold", "silver"]}]})
         json_str = to_text(json.dumps({"info": "error_details"}))
         if exc_type == URLError:
-            mocker.patch(MODULE_PATH + 'ome_template_network_vlan.validate_vlans',
+            mocker.patch(MODULE_PATH + 'validate_vlans',
                          side_effect=exc_type("TEST"))
             result = self._run_module(ome_default_args)
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + 'ome_template_network_vlan.validate_vlans',
+            mocker.patch(MODULE_PATH + 'validate_vlans',
                          side_effect=exc_type("exception message"))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            mocker.patch(MODULE_PATH + 'ome_template_network_vlan.validate_vlans',
+            mocker.patch(MODULE_PATH + 'validate_vlans',
                          side_effect=exc_type('http://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},

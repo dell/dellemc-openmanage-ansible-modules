@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_application_network_time
 short_description: Updates the network time on OpenManage Enterprise.
-version_added: "2.9"
+version_added: "2.9.10"
 description: This module allows the configuration of network time on OpenManage Enterprise.
 options:
   hostname:
@@ -181,7 +181,7 @@ def get_payload(module):
     backup_params = params.copy()
     remove_keys = ["hostname", "username", "password", "port"]
     remove_unwanted_keys(remove_keys, backup_params)
-    payload = {proxy_payload_map[key]: val for key, val in backup_params.items() if val is not None}
+    payload = dict([(proxy_payload_map[key], val) for key, val in backup_params.items() if val is not None])
     return payload
 
 

@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -103,18 +103,14 @@ class TestConfigServices(FakeAnsibleModule):
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
                                    "discovery_port": 1000, "trap_format": "SNMPv1",
                                    "ipmi_lan": {"community_name": "public"}})
-        message = {"changes_applicable": True, "message": "changes found to commit!", "changed": True,
+        message = {"changes_applicable": True, "message": "changes found to commit!",
                    "Status": "Success"}
         idrac_connection_configure_services_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
         msg, err = self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
-        assert msg == {'changed': True,
-           'failed': False,
-           'msg': {'Status': 'Success',
-                   'changed': True,
-                   'changes_applicable': True,
-                   'message': 'changes found to commit!'}}
+        assert msg == {'changed': True, 'failed': False,
+                       'msg': message}
 
     def test_run_idrac_services_config_success_case03(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):

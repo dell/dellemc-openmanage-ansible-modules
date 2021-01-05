@@ -49,3 +49,13 @@
        reboot: False
        job_wait: True
        catalog_file_name: "Catalog.xml"
+
+  - name: Firmware compliance report using HTTPS repository.
+    idrac_firmare:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password: "{{ idrac_password }}"
+       share_name: "https://downloads.dell.com"
+       reboot: False
+       job_wait: True
+       apply_update: False

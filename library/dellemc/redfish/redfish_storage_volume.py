@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
+# Version 2.1.5
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: redfish_storage_volume
 short_description: Manages the storage volume configuration.
-version_added: "2.9"
+version_added: "2.9.10"
 description:
    - This module allows to create, modify, initialize, or delete a single storage volume.
 options:
@@ -102,6 +102,7 @@ options:
       - For example- Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1.
       - Only applicable when I(state) is C(present) when creating a new volume.
     type: list
+    elements: str
     required: False
   block_size_bytes:
     description:
@@ -322,7 +323,7 @@ def volume_payload(module):
         "OptimumIOSizeBytes": params.get("optimum_io_size_bytes"),
         "Drives": physical_disks
     }
-    raid_payload = {k: v for k, v in raid_mapper.items() if v}
+    raid_payload = dict([(k, v) for k, v in raid_mapper.items() if v])
     if oem:
         raid_payload.update(params.get("oem"))
     if encrypted is not None:
