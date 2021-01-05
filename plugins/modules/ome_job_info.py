@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -147,7 +147,7 @@ def _get_query_parameters(module_params):
     system_query_options_param = module_params.get("system_query_options")
     query_parameter = {}
     if system_query_options_param:
-        query_parameter = {'$' + k: v for k, v in system_query_options_param.items() if v is not None}
+        query_parameter = dict([("$" + k, v) for k, v in system_query_options_param.items() if v is not None])
     return query_parameter
 
 

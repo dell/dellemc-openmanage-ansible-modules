@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 2.1.5
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -196,7 +196,7 @@ def get_dev_ids(module, rest_obj, param, devkey):
     targets = []
     if resp.success:
         devlist = resp.json_data['value']
-        device_resp = {device[devkey]: device for device in devlist}
+        device_resp = dict([(device[devkey], device) for device in devlist])
         for st in paramlist:
             if st in device_resp:
                 djson = device_resp[st]
@@ -219,7 +219,7 @@ def get_group_ids(module, rest_obj):
     targets = []
     if resp.success:
         grplist = resp.json_data['value']
-        device_resp = {str(grp['Name']): grp for grp in grplist}
+        device_resp = dict([(str(grp['Name']), grp) for grp in grplist])
         for st in grp_name_list:
             if st in device_resp:
                 djson = device_resp[st]

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 2.1.5
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,7 +21,7 @@ DOCUMENTATION = """
 ---
 module: dellemc_get_firmware_inventory
 short_description: Get Firmware Inventory.
-version_added: "2.3"
+version_added: "2.3.0"
 description: Get Firmware Inventory.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
@@ -42,7 +42,7 @@ EXAMPLES = """
       idrac_password:  "xxxxxxxx"
 """
 
-RETURN = """
+RETURNS = """
 dest:
     description: Displays components and their firmware versions. Also, list of the firmware
         dictionaries (one dictionary per firmware).
