@@ -4,7 +4,7 @@ Dell EMC OpenManage Ansible Modules allows data center and IT administrators to 
 
 OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
-# 2.1.5 (November 25, 2020)
+# 2.1.5 (January 5, 2020)
 
   * The idrac_firmware module is enhanced to include check mode support and job tracking.
   
@@ -18,7 +18,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 
   * The module ome_smart_fabric allows to create, modify or delete a fabric on OpenManage Enterprise Modular.
 
-  * ​The module ome_smart_fabric_uplink allows to create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular.
+  * The module ome_smart_fabric_uplink allows to create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular.
 
 # 2.1.3 (October 29, 2020)
 
