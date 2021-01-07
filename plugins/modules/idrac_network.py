@@ -21,7 +21,7 @@ DOCUMENTATION = """
 ---
 module: idrac_network
 short_description: Configures the iDRAC network attributes.
-version_added: "2.9.11"
+version_added: "2.10.0"
 description:
     - This module allows to configure iDRAC network settings.
 extends_documentation_fragment:

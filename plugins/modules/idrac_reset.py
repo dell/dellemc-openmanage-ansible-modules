@@ -21,7 +21,7 @@ DOCUMENTATION = """
 ---
 module: idrac_reset
 short_description: Reset iDRAC.
-version_added: "2.9.11"
+version_added: "2.10.0"
 description:
     - This module resets iDRAC.
     - "iDRAC is not accessible for some time after running this module. It is recommended to wait for some time,
