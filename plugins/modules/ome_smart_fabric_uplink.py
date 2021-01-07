@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_smart_fabric_uplink
 short_description: "Create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular."
-version_added: "2.10.3"
+version_added: "2.10.0"
 description: This module allows to create, modify or delete an uplink for a fabric.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
