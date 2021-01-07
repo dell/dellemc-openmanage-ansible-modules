@@ -398,7 +398,7 @@ class TestidracFirmware(FakeAnsibleModule):
         assert exc.value.args[0] == 'catalog_file_name should be an XML file.'
 
     def test_convert_xmltojson_case01(self, mocker, idrac_connection_firmware_mock,
-                                       idrac_default_args, ET_convert_mock):
+                                      idrac_default_args, ET_convert_mock):
         idrac_default_args.update({"PackageList": [{
             "BaseLocation": None,
             "ComponentID": "18981",
@@ -529,8 +529,8 @@ class TestidracFirmware(FakeAnsibleModule):
         assert result[0] == {"InstanceID": "JID_12345678"}
 
     def _test_update_firmware_redfish(self, idrac_connection_firmware_mock, idrac_default_args, re_match_mock,
-                                     mocker, idrac_connection_firmware_redfish_mock,
-                                     fileonshare_idrac_firmware_mock):
+                                      mocker, idrac_connection_firmware_redfish_mock,
+                                      fileonshare_idrac_firmware_mock):
         idrac_default_args.update({"share_name": "192.168.0.1:/share_name", "catalog_file_name": "catalog.xml",
                                    "share_user": "shareuser", "share_password": "sharepswd",
                                    "share_mnt": "sharmnt",
@@ -559,7 +559,7 @@ class TestidracFirmware(FakeAnsibleModule):
         assert result['update_msg'] == "Successfully triggered the job to update the firmware."
 
     def _test_get_job_status(self, idrac_connection_firmware_mock, idrac_default_args,
-                            mocker, idrac_connection_firmware_redfish_mock):
+                             mocker, idrac_connection_firmware_redfish_mock):
         idrac_default_args.update({"share_name": "http://downloads.dell.com", "catalog_file_name": "catalog.xml",
                                    "share_user": "shareuser", "share_password": "sharepswd",
                                    "share_mnt": "sharmnt", "apply_update": False,
