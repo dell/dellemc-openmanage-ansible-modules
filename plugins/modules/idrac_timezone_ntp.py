@@ -21,7 +21,7 @@ DOCUMENTATION = """
 ---
 module: idrac_timezone_ntp
 short_description: Configures time zone and NTP on iDRAC.
-version_added: "2.9.11"
+version_added: "2.10.0"
 description:
     - This module allows to configure time zone and NTP on iDRAC.
 extends_documentation_fragment:

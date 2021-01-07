@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_firmware_catalog
 short_description: Creates a catalog on OpenManage Enterprise.
-version_added: "2.9.10"
+version_added: "2.10.0"
 description: This module triggers the job to create a catalog on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
