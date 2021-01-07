@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_firmware
 short_description: "Firmware update of PowerEdge devices and its components through OpenManage Enterprise."
-version_added: "2.9.10"
+version_added: "2.10.0"
 description: "This module updates the firmware of PowerEdge devices and all its components through
 OpenManage Enterprise."
 extends_documentation_fragment:

@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_powerstate
 short_description: Performs the power management operations on OpenManage Enterprise.
-version_added: "2.9.10"
+version_added: "2.10.0"
 description: This module performs the supported power management operations on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
