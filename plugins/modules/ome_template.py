@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_template
 short_description: Create, modify, deploy, delete, export, import and clone a template on OpenManage Enterprise.
-version_added: "2.9.10"
+version_added: "2.10.0"
 description: "This module creates, modifies, deploys, deletes, exports, imports and clones a template on
 OpenManage Enterprise."
 extends_documentation_fragment:

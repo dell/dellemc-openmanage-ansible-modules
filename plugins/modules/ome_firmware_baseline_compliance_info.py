@@ -21,7 +21,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_firmware_baseline_compliance_info
 short_description: Retrieves baseline compliance details on OpenManage Enterprise.
-version_added: "2.9.10"
+version_added: "2.10.0"
 description:
    - This module allows to retrieve firmware compliance for a list of devices,
      or against a specified baseline on OpenManage Enterprise.
