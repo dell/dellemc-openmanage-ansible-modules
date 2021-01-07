@@ -22,7 +22,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_smart_fabric
 short_description: "Create, modify or delete a fabric on OpenManage Enterprise Modular."
-version_added: "2.10.3"
+version_added: "2.10.0"
 description:
   - This module allows to create a fabric, and modify or delete an existing fabric
    on OpenManage Enterprise Modular.
