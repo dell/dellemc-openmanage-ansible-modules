@@ -18,7 +18,7 @@ class ModuleDocFragment(object):
     DOCUMENTATION = r'''
 options:
   baseuri:
-    description: "IP address of the target out-of-band controller. For example- <ipaddress>:<port>"
+    description: "IP address of the target out-of-band controller. For example- <ipaddress>:<port>."
     type: str
     required: True
   username:

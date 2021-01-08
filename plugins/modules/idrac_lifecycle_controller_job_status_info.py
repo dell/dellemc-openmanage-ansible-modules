@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -12,10 +12,6 @@
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
-
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
 
 DOCUMENTATION = """
 ---
@@ -36,6 +32,8 @@ requirements:
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
 """
 
 EXAMPLES = """
@@ -89,11 +87,11 @@ error_info:
 """
 
 
+import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.basic import AnsibleModule
-import json
 
 
 def main():
@@ -113,6 +111,7 @@ def main():
             msg = idrac.job_mgr.get_job_status(job_id)
             if msg.get('Status') == "Found Fault":
                 failed = True
+                msg = "Job ID is invalid."
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:

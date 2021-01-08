@@ -3,18 +3,14 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
-
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
 
 DOCUMENTATION = r'''
 ---
@@ -41,6 +37,8 @@ options:
 requirements:
     - "python >= 2.7.17"
 author: "Felix Stephen (@felixs88)"
+notes:
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise Modular.
 '''
 
 EXAMPLES = r'''
@@ -176,7 +174,7 @@ def get_port_information(module, rest_obj, device_id):
             interface_id = each["Id"]
             break
     else:
-        module.fail_json(msg="{0} doesn't support port breakout"
+        module.fail_json(msg="{0} does not support port breakout"
                              " or invalid port number entered.".format(target_port))
     return breakout_config, breakout_capability, interface_id
 

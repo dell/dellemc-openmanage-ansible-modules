@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2019-2020 Dell Inc.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -13,10 +13,6 @@
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
-
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
 
 DOCUMENTATION = r'''
 ---
@@ -57,6 +53,8 @@ requirements:
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
 '''
 
 EXAMPLES = r'''
@@ -67,8 +65,6 @@ EXAMPLES = r'''
       idrac_user: "user_name"
       idrac_password: "user_password"
       share_name: "192.168.0.0:/nfsfileshare"
-      share_user: "share_user_name"
-      share_password: "share_user_pwd"
       iso_image:  "unattended_os_image.iso"
       expose_duration: 180
 '''
