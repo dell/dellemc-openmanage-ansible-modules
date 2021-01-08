@@ -17,7 +17,6 @@ env:
   COLLECTION_NAME: openmanage 
 
 jobs:
-
 ###
 # Sanity tests (REQUIRED)
 #
@@ -74,6 +73,7 @@ jobs:
       # As soon as the first unit test fails, cancel the others to free up the CI queue
       fail-fast: true
       matrix:
+        python-version: [2.7, 3.6, 3.8]
         ansible:
           # - stable-2.9 # Only if your collection supports Ansible 2.9
           - stable-2.10
@@ -97,12 +97,20 @@ jobs:
 
       # OPTIONAL If your unit test requires Python libraries from other collections
       # Install them like this
-      - name: Install collection dependencies
-        run: ansible-galaxy collection install ansible.netcommon ansible.utils -p .
+#      - name: Install collection dependencies
+#        run: ansible-galaxy collection install ansible.netcommon ansible.utils -p .
+
+      - name: Setup Unit test Pre-requisites
+        run: |
+          git clone https://github.com/ansible/ansible.git
+          cp -rf ansible/test/units/compat /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/
+          cp -rf ansible/test/units/modules/utils.py /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/
+          sed -i 's/units/ansible_collections.dellemc.openmanage.tests.unit/' /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/utils.py
+          if [ -f /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt ]; then pip install -r /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt; fi
 
       # Run the unit tests
       - name: Run unit test
-        run: ansible-test units -v --color --docker --coverage
+        run: ansible-test units -v --color --python ${{ matrix.python-version }} --coverage
         working-directory: ./ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}
 
         # ansible-test support producing code coverage date
