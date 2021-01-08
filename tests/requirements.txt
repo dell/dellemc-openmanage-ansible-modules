@@ -1,3 +1,6 @@
 omsdk
 pytest
+pytest-xdist
+mock
+pytest-cov
 coverage
