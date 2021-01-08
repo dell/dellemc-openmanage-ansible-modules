@@ -22,6 +22,34 @@ jobs:
 #
 # https://docs.ansible.com/ansible/latest/dev_guide/testing_sanity.html
 
+  build:
+    name: Build collection
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible-version: [stable-2.10]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.6
+
+      - name: Install ansible (${{ matrix.ansible-version }})
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+
+      - name: Build a collection tarball
+        run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
+
+      - name: Store migrated collection artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: collection
+          path: .cache/collection-tarballs
+
   sanity:
     name: Sanity (Ⓐ${{ matrix.ansible }})
     strategy:
@@ -80,10 +108,10 @@ jobs:
           - devel
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-        with:
-          path: ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}
+#      - name: Check out code
+#        uses: actions/checkout@v2
+#        with:
+#          path: ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -100,8 +128,15 @@ jobs:
 #      - name: Install collection dependencies
 #        run: ansible-galaxy collection install ansible.netcommon ansible.utils -p .
 
+      - name: Download migrated collection artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: collection
+          path: .cache/collection-tarballs
+
       - name: Setup Unit test Pre-requisites
         run: |
+          ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
           git clone https://github.com/ansible/ansible.git
           cp -rf ansible/test/units/compat /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/
           cp -rf ansible/test/units/modules/utils.py /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/
