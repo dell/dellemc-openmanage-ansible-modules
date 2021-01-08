@@ -1,27 +1,13 @@
-# README FIRST
-# 1. replace "NAMESPACE" and "COLLECTION_NAME" with the correct name in the env section (e.g. with 'community' and 'mycollection')
-# 2. If you don't have unit tests remove that section
-# 3. If your collection depends on other collections ensure they are installed, see "Install collection dependencies"
-# If you need help please ask in #ansible-devel on Freenode IRC
+name: DellEMC OpenManage Ansble Continuous Integration
 
-name: CI
 on:
-  # Run CI against all pushes (direct commits, also merged PRs), Pull Requests
   push:
+    branches: [ collections ]
   pull_request:
-  # Uncomment the following two lines to run CI once per day (at 06:00 UTC)
-  # schedule:
-  #   - cron: '0 6 * * *'
-env:
-  NAMESPACE: dellemc
-  COLLECTION_NAME: openmanage 
+    branches: [ collections ]
+  workflow_dispatch:
 
 jobs:
-###
-# Sanity tests (REQUIRED)
-#
-# https://docs.ansible.com/ansible/latest/dev_guide/testing_sanity.html
-
   build:
     name: Build collection
     runs-on: ubuntu-latest
@@ -39,7 +25,7 @@ jobs:
           python-version: 3.6
 
       - name: Install ansible (${{ matrix.ansible-version }})
-        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+        run: pip install pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
 
       - name: Build a collection tarball
         run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
@@ -50,83 +36,24 @@ jobs:
           name: collection
           path: .cache/collection-tarballs
 
-  sanity:
-    name: Sanity (Ⓐ${{ matrix.ansible }})
-    strategy:
-      matrix:
-        ansible:
-          # It's important that Sanity is tested against all stable-X.Y branches
-          # Testing against `devel` may fail as new tests are added.
-        # - stable-2.9 # Only if your collection supports Ansible 2.9
-          - stable-2.10
-          - devel
+  unit:
+    name: Unit Tests
+    needs: [build]
     runs-on: ubuntu-latest
-    steps:
-
-      # ansible-test requires the collection to be in a directory in the form
-      # .../ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}/
-
-      - name: Check out code
-        uses: actions/checkout@v2
-        with:
-          path: ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          # it is just required to run that once as "ansible-test sanity" in the docker image
-          # will run on all python versions it supports.
-          python-version: 3.8
-
-      # Install the head of the given branch (devel, stable-2.10)
-      - name: Install ansible-base (${{ matrix.ansible }})
-        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz --disable-pip-version-check
-
-      # run ansible-test sanity inside of Docker.
-      # The docker container has all the pinned dependencies that are required
-      # and all python versions ansible supports.
-      - name: Run sanity tests
-        run: ansible-test sanity --docker -v --color
-        working-directory: ./ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}
-
-###
-# Unit tests (OPTIONAL)
-#
-# https://docs.ansible.com/ansible/latest/dev_guide/testing_units.html
-
-  units:
-    runs-on: ubuntu-latest
-    name: Units (Ⓐ${{ matrix.ansible }})
     strategy:
-      # As soon as the first unit test fails, cancel the others to free up the CI queue
-      fail-fast: true
+      fail-fast: false
       matrix:
         python-version: [2.7, 3.6, 3.8]
-        ansible:
-          # - stable-2.9 # Only if your collection supports Ansible 2.9
-          - stable-2.10
-          - devel
+        ansible-version: [stable-2.10, devel]
 
     steps:
-#      - name: Check out code
-#        uses: actions/checkout@v2
-#        with:
-#          path: ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
         with:
-          # it is just required to run that once as "ansible-test units" in the docker image
-          # will run on all python versions it supports.
-          python-version: 3.8
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install ansible-base (${{ matrix.ansible }})
-        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz --disable-pip-version-check
-
-      # OPTIONAL If your unit test requires Python libraries from other collections
-      # Install them like this
-#      - name: Install collection dependencies
-#        run: ansible-galaxy collection install ansible.netcommon ansible.utils -p .
+      - name: Install ansible (${{ matrix.ansible-version }}) version
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
 
       - name: Download migrated collection artifacts
         uses: actions/download-artifact@v1
@@ -143,17 +70,53 @@ jobs:
           sed -i 's/units/ansible_collections.dellemc.openmanage.tests.unit/' /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/utils.py
           if [ -f /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt ]; then pip install -r /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt; fi
 
-      # Run the unit tests
-      - name: Run unit test
+
+      - name: Run Unit tests using ansible-test
+        continue-on-error: true
         run: ansible-test units -v --color --python ${{ matrix.python-version }} --coverage
-        working-directory: ./ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}
+        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-        # ansible-test support producing code coverage date
       - name: Generate coverage report
-        run: ansible-test coverage xml -v --requirements --group-by command --group-by version
-        working-directory: ./ansible_collections/${{env.NAMESPACE}}/${{env.COLLECTION_NAME}}
+        continue-on-error: true
+        run: ansible-test coverage xml -v --group-by command --group-by version
+        working-directory: ./home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-      # See the reports at https://codecov.io/gh/GITHUBORG/REPONAME
-      - uses: codecov/codecov-action@v1
+#      # See the reports at https://codecov.io/gh/GITHUBORG/REPONAME
+#      - uses: codecov/codecov-action@v1
+#        with:
+#          fail_ci_if_error: false
+
+#      - name: Generate coverage report using pytest
+#        run: pytest -v --cov-config=tests/unit/plugins/.coveragerc --cov=plugins/ --cov-report=term-missing  --cov-fail-under=90 --cov-branch
+#        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+
+
+  sanity:
+    name: Sanity Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    strategy:
+      matrix:
+        ansible-version: [stable-2.10, devel]
+
+    steps:
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
         with:
-          fail_ci_if_error: false
+          python-version: 3.8
+
+      - name: Install ansible (${{ matrix.ansible-version }}) version
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+
+      - name: Download migrated collection artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: collection
+          path: .cache/collection-tarballs
+
+      - name: Setup Sanity test Pre-requisites
+        run: ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
+
+      - name: Run sanity tests
+        run: ansible-test sanity --docker -v --color
+        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
