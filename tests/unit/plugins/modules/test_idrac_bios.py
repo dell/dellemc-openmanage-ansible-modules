@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 3.0.0
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -205,7 +205,7 @@ class TestConfigBios(FakeAnsibleModule):
                                    "attributes": {"boot_mode": "BootMode", "nvme_mode": "NvmeMode"}})
         message = {'Status': 'Successs', 'Message': 'message of validate params'}
         mocker.patch(MODULE_PATH +
-                     'idrac_bios._validate_params', return_value=(False, "Error didn't occurs"))
+                     'idrac_bios._validate_params', return_value=(False, "Error did not occurs"))
         idrac_connection_configure_bios_mock.config_mgr.configure_bios.return_value = message
         idrac_connection_configure_bios_mock.config_mgr.configure_boot_sources.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
