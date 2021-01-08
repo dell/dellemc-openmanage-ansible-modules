@@ -114,7 +114,7 @@ author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
-    - Run this module from a system that has direct access to DellEMC iDRAC. 
+    - Run this module from a system that has direct access to DellEMC iDRAC.
 """
 
 
