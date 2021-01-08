@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 3.0.0
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -87,7 +87,7 @@ class TestOMEPortBreakout(FakeAnsibleModule):
                                                                                        {"Type": "HardwareDefault"}]}]}
         with pytest.raises(Exception) as exc:
             self.module.get_port_information(f_module, ome_connection_breakout_mock, 25017)
-        assert exc.value.args[0] == "2HB7NX2:phy-port1/1/11 doesn't support port breakout" \
+        assert exc.value.args[0] == "2HB7NX2:phy-port1/1/11 does not support port breakout" \
                                     " or invalid port number entered."
 
     def test_set_breakout_port(self, ome_connection_breakout_mock, ome_response_mock, ome_default_args, mocker):
