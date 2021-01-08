@@ -1,2 +1,3 @@
 omsdk
+pytest
 coverage
