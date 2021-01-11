@@ -17,7 +17,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: dellemc_configure_idrac_eventing
-short_description: Configures the iDRAC eventing attributes.
+short_description: Configures the iDRAC eventing attributes
 version_added: "2.3.0"
 description:
     - This module is responsible for configuring the iDRAC eventing attributes.

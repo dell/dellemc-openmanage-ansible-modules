@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_application_certificate
-short_description: This module allows to generate a CSR and upload the certificate.
+short_description: This module allows to generate a CSR and upload the certificate
 version_added: "2.10.0"
 description:
   - This module allows the generation a new certificate signing request (CSR) and to upload the certificate

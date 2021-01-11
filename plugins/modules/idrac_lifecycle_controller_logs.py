@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_lifecycle_controller_logs
-short_description: Export Lifecycle Controller logs to a network share.
+short_description: Export Lifecycle Controller logs to a network share
 version_added: "2.10.0"
 description:
     - Export Lifecycle Controller logs  to a given network share.

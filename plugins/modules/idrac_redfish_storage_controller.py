@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: idrac_redfish_storage_controller
-short_description: Configures the storage controller settings.
+short_description: Configures the storage controller settings
 version_added: "2.10.0"
 description:
   - This module configures the settings of the storage controller using Redfish.

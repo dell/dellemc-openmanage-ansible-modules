@@ -38,7 +38,10 @@ Latest sample playbooks and examples are available at [playbooks](https://github
 This project is licensed under GPL-3.0 License. See the [COPYING](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/COPYING.md) for more information.
 
 ## Contributing
-We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/devel/CODING_GUIDELINES.md) for more details.
+We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](
+https://github.com/dell/dellemc-openmanage-ansible-modules/blob/devel/CODING_GUIDELINES.md) for more details.
+You can refer our [Code of Conduct](
+https://github.com/dell/dellemc-openmanage-ansible-modules/blob/devel/CODE_OF_CONDUCT.md) here.
 
 ## Testing
 See [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/tests/README.md) for further information on testing.

@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_template
-short_description: Create, modify, deploy, delete, export, import and clone a template on OpenManage Enterprise.
+short_description: Create, modify, deploy, delete, export, import and clone a template on OpenManage Enterprise
 version_added: "2.10.0"
 description: "This module creates, modifies, deploys, deletes, exports, imports and clones a template on
 OpenManage Enterprise."
@@ -297,7 +297,7 @@ install OS using its image."
   register: result
   tags:
     - export_xml_to_file
-- copy:
+- ansible.builtin.copy:
     content: "{{ result.Content}}"
     dest: "/path/to/exported_template.xml"
   tags:
@@ -342,7 +342,7 @@ install OS using its image."
     attributes:
       Name: "Imported Template Name"
       Type: 2
-      Content: "{{ lookup('file', '/path/to/xmlfile') }}"
+      Content: "{{ lookup('ansible.builtin.file.', '/path/to/xmlfile') }}"
 '''
 
 RETURN = r'''
