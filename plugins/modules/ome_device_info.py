@@ -18,7 +18,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_device_info
-short_description: Retrieves the information of devices inventoried by OpenManage Enterprise.
+short_description: Retrieves the information of devices inventoried by OpenManage Enterprise
 version_added: "2.10.0"
 description:
    - This module retrieves the list of devices in the inventory of OpenManage Enterprise along with the details of each device.

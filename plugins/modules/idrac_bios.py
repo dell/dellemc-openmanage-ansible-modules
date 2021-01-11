@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_bios
-short_description: Configure the BIOS attributes.
+short_description: Configure the BIOS attributes
 version_added: "2.10.0"
 description:
     - This module allows to configure the BIOS attributes.

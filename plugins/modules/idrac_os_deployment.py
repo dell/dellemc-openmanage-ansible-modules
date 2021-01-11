@@ -17,7 +17,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: idrac_os_deployment
-short_description: Boot to a network ISO image.
+short_description: Boot to a network ISO image
 version_added: "2.10.0"
 description: Boot to a network ISO image.
 extends_documentation_fragment:

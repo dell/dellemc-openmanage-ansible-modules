@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_application_network_webserver
-short_description: Updates the Web server configuration on OpenManage Enterprise.
+short_description: Updates the Web server configuration on OpenManage Enterprise
 version_added: "2.10.0"
 description: This module allows to configure a network web server on OpenManage Enterprise.
 extends_documentation_fragment:

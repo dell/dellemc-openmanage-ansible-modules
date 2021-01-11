@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_application_network_time
-short_description: Updates the network time on OpenManage Enterprise.
+short_description: Updates the network time on OpenManage Enterprise
 version_added: "2.10.0"
 description: This module allows the configuration of network time on OpenManage Enterprise.
 extends_documentation_fragment:

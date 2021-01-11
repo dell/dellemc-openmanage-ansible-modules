@@ -17,7 +17,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_application_network_address
-short_description: Updates the network configuration on OpenManage Enterprise.
+short_description: Updates the network configuration on OpenManage Enterprise
 version_added: "2.10.0"
 description:
   - This module allows the configuration of a DNS and an IPV4 or IPV6 network on OpenManage Enterprise.

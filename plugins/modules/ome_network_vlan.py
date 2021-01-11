@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_network_vlan
-short_description: "Create, modify & delete a VLAN."
+short_description: Create, modify & delete a VLAN
 version_added: "2.10.0"
 description:
   - "This module allows to:"

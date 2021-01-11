@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_lifecycle_controller_job_status_info
-short_description: Get the status of a Lifecycle Controller job.
+short_description: Get the status of a Lifecycle Controller job
 version_added: "2.10.0"
 description: This module shows the status of a specific Lifecycle Controller job using its job ID.
 extends_documentation_fragment:

@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_firmware_baseline_info
-short_description: Retrieves baseline details from OpenManage Enterprise.
+short_description: Retrieves baseline details from OpenManage Enterprise
 version_added: "2.10.0"
 description:
    - This module retrieves the list and details of all the baselines on OpenManage Enterprise.
