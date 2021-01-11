@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 3.0.0
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -190,7 +190,7 @@ def get_port_information(module, rest_obj, device_id):
             interface_id = each["Id"]
             break
     else:
-        module.fail_json(msg="{0} doesn't support port breakout"
+        module.fail_json(msg="{0} does not support port breakout"
                              " or invalid port number entered.".format(target_port))
     return breakout_config, breakout_capability, interface_id
 

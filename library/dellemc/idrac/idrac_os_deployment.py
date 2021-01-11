@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
+# Version 3.0.0
 # Copyright (C) 2019 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -83,8 +83,6 @@ EXAMPLES = r'''
       idrac_user: "user_name"
       idrac_password: "user_password"
       share_name: "192.168.0.0:/nfsfileshare"
-      share_user: "share_user_name"
-      share_password: "share_user_pwd"
       iso_image:  "unattended_os_image.iso"
       expose_duration: 180
 '''

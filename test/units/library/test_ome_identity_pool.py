@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 3.0.0
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -758,7 +758,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         assert payload["FcoeSettings"]["Mac"]["StartingMacAddress"] == "cHBwcHAA"
 
     def test_get_updated_modify_payload_case_02(self):
-        """when setting exists in current requested payload, don't
+        """when setting exists in current requested payload, do not
          update payload from existing setting value if exists"""
         payload = {"Name": "pool1", "EthernetSettings": {"Mac": {"IdentityCount": 55, "StartingMacAddress": "abcd"}},
                    "FcoeSettings": {"Mac": {"IdentityCount": 65, "StartingMacAddress": "xyz"}}}

@@ -60,7 +60,8 @@ This project is licensed under GPL-3.0 License. Please see the [COPYING](
 
 
 ## Contributing
-We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](./CODING_GUIDELINES.md) for more details.
+We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](
+./CODING_GUIDELINES.md) for more details. You can refer our [Code of Conduct](./CODE_OF_CONDUCT.md) here.
 
 ## Testing
 See [here](test/README.md) for further information on testing.
