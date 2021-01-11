@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 module: redfish_firmware
-short_description: To perform a component firmware update using the image file available on the local or remote system.
+short_description: To perform a component firmware update using the image file available on the local or remote system
 version_added: "2.10.0"
 description:
     - This module allows the firmware update of only one component at a time.

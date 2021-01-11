@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_network
-short_description: Configures the iDRAC network attributes.
+short_description: Configures the iDRAC network attributes
 version_added: "2.10.0"
 description:
     - This module allows to configure iDRAC network settings.

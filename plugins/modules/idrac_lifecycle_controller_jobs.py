@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_lifecycle_controller_jobs
-short_description: Delete the Lifecycle Controller Jobs.
+short_description: Delete the Lifecycle Controller Jobs
 version_added: "2.10.0"
 description:
     - Delete a Lifecycle Controller job using its job ID or delete all jobs.

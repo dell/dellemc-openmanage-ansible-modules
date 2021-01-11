@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_reset
-short_description: Reset iDRAC.
+short_description: Reset iDRAC
 version_added: "2.10.0"
 description:
     - This module resets iDRAC.

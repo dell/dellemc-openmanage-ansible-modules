@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: redfish_powerstate
-short_description: Manage device power state.
+short_description: Manage device power state
 version_added: "2.10.0"
 description:
   - This module allows to manage the different power states of the specified device.

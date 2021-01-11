@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: dellemc_get_firmware_inventory
-short_description: Get Firmware Inventory.
+short_description: Get Firmware Inventory
 version_added: "2.3.0"
 description: Get Firmware Inventory.
 extends_documentation_fragment:

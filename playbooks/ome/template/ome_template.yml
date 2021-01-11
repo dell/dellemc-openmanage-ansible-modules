@@ -184,7 +184,7 @@
       register: result
       tags:
         - export_xml_to_file
-    - copy:
+    - ansible.builtin.copy:
         content: "{{ result.Content}}"
         dest: "/path/to/exported_template.xml"
       tags:
@@ -229,4 +229,4 @@
         attributes:
           Name: "Imported Template Name"
           Type: 2
-          Content: "{{ lookup('file', '/path/to/xmlfile') }}"
+          Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"

@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: dellemc_system_lockdown_mode
-short_description: Check system lockdown mode.
+short_description: Check system lockdown mode
 version_added: "2.3.0"
 description:
     - Enabling or Disabling System lockdown Mode.
