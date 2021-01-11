@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: idrac_server_config_profile
-short_description: Export or Import iDRAC Server Configuration Profile (SCP).
+short_description: Export or Import iDRAC Server Configuration Profile (SCP)
 version_added: "2.10.0"
 description:
   - Export the Server Configuration Profile (SCP) from the iDRAC or Import from a network share or a local file.

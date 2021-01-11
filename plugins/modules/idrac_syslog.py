@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_syslog
-short_description: Enable or disable the syslog on iDRAC.
+short_description: Enable or disable the syslog on iDRAC
 version_added: "2.10.0"
 description:
   - This module allows to enable or disable the iDRAC syslog.

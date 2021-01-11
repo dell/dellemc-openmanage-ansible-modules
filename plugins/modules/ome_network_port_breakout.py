@@ -15,7 +15,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_network_port_breakout
-short_description: This module allows to automate the port portioning or port breakout to logical sub ports.
+short_description: This module allows to automate the port portioning or port breakout to logical sub ports
 version_added: "2.10.0"
 description:
   - This module allows to automate breaking out of IOMs in fabric mode into logical sub ports.

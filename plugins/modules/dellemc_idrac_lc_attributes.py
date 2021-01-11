@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: dellemc_idrac_lc_attributes
-short_description: Enable or disable Collect System Inventory on Restart (CSIOR) property for all iDRAC/LC jobs.
+short_description: Enable or disable Collect System Inventory on Restart (CSIOR) property for all iDRAC/LC jobs
 version_added: "2.3.0"
 description:
     -  This module is responsible for enabling or disabling of Collect System Inventory on Restart (CSIOR)

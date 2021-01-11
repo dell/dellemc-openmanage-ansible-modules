@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_firmware_baseline
-short_description: Create a firmware baseline on OpenManage Enterprise.
+short_description: Create a firmware baseline on OpenManage Enterprise
 version_added: "2.10.0"
 description: This module creates a baseline on OpenManage Enterprise.
 extends_documentation_fragment:

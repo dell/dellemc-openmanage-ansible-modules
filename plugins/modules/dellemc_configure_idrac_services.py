@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: dellemc_configure_idrac_services
-short_description: Configures the iDRAC services attributes.
+short_description: Configures the iDRAC services attributes
 version_added: "2.3.0"
 description:
     - This module is responsible for configuring the iDRAC services attributes.

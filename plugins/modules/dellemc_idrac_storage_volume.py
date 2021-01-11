@@ -16,7 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: dellemc_idrac_storage_volume
-short_description: Configures the RAID configuration attributes.
+short_description: Configures the RAID configuration attributes
 version_added: "2.9.0"
 description:
   - This module is responsible for configuring the RAID attributes.
