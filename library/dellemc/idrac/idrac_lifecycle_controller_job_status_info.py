@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 3.0.0
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -49,7 +49,7 @@ options:
 requirements:
     - "omsdk"
     - "python >= 2.7.5"
-author: 
+author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
 """
@@ -129,6 +129,7 @@ def main():
             msg = idrac.job_mgr.get_job_status(job_id)
             if msg.get('Status') == "Found Fault":
                 failed = True
+                msg = "Job ID is invalid."
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:

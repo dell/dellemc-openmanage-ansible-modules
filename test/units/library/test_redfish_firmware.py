@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 3.0.0
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -190,7 +190,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         }
         with pytest.raises(Exception) as ex:
             self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
-        assert ex.value.args[0] == "Target firmware version doesn't support redfish firmware update."
+        assert ex.value.args[0] == "Target firmware version does not support redfish firmware update."
 
     def test_get_update_service_target_failed_case(self, redfish_default_args, redfish_firmware_connection_mock,
                                                    redfish_response_mock):
@@ -212,7 +212,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         }
         with pytest.raises(Exception) as ex:
             self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
-        assert ex.value.args[0] == "Target firmware version doesn't support {0} protocol.".format("HTTP")
+        assert ex.value.args[0] == "Target firmware version does not support {0} protocol.".format("HTTP")
 
     def test_firmware_update_success_case01(self, redfish_default_args, redfish_firmware_connection_mock,
                                             redfish_response_mock, mocker):

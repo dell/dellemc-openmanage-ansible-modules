@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.5
+# Version 3.0.0
 # Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -162,9 +162,9 @@ def _get_update_service_target(obj, module):
         if isinstance(proto, list) and protocol in proto and 'target' in update_service:
             update_uri = update_service.get('target')
         else:
-            module.fail_json(msg="Target firmware version doesn't support {0} protocol.".format(protocol))
+            module.fail_json(msg="Target firmware version does not support {0} protocol.".format(protocol))
     if update_uri is None or push_uri is None or inventory_uri is None:
-        module.fail_json(msg="Target firmware version doesn't support redfish firmware update.")
+        module.fail_json(msg="Target firmware version does not support redfish firmware update.")
     return str(inventory_uri), str(push_uri), str(update_uri)
 
 
