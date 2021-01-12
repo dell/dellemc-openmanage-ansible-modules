@@ -65,6 +65,7 @@ requirements:
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -381,7 +382,7 @@ def main():
         },
         mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'device_group_names']],
         required_one_of=[['device_ids', 'device_service_tags', 'device_group_names', 'baseline_name']],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     try:
         validate_inputs(module)

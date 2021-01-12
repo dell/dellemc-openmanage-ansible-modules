@@ -16,10 +16,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: dellemc_system_lockdown_mode
-short_description: Check system lockdown mode
+short_description: Configures system lockdown mode for iDRAC
 version_added: "2.3.0"
 description:
-    - Enabling or Disabling System lockdown Mode.
+    - This module is allows to Enable or Disable System lockdown Mode.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
@@ -53,27 +53,27 @@ requirements:
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module does not support C(check_mode).
 """
 
 EXAMPLES = """
 ---
 - name: Check System  Lockdown Mode
   dellemc.openmanage.dellemc_system_lockdown_mode:
-       idrac_ip:   "xx.xx.xx.xx"
-       idrac_user: "xxxx"
-       idrac_password:  "xxxxxxxx"
-       share_name: "xx.xx.xx.xx:/share"
-       share_password:  "xxxxxxxx"
-       share_user: "xxxx"
+       idrac_ip:   "192.168.0.1"
+       idrac_user: "user_name"
+       idrac_password:  "user_password"
+       share_name: "192.168.0.1:/share"
        share_mnt: "/mnt/share"
-       lockdown_mode: "xxxxxxx"
+       lockdown_mode: "Disabled"
 """
 
 RETURNS = """
-dest:
-    description: Lockdown mode of the system is configured.
-    returned: success
+msg:
+    description: "Lockdown mode of the system is configured."
+    returned: always
     type: string
+    sample:"Successfully completed the lockdown mode operations"
 """
 
 

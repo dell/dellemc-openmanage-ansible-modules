@@ -46,6 +46,12 @@ https://github.com/dell/dellemc-openmanage-ansible-modules/blob/devel/CODE_OF_CO
 ## Testing
 See [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/tests/README.md) for further information on testing.
 
+## Maintenance
+  * OpenManage Ansible Modules releases follows a monthly release cycle. On the last week of every month, 
+  the updated modules are posted to this repository.
+  * OpenManage Ansible Modules releases follow [semantic versioning](https://semver.org/).
+  * OpenManage Ansible Modules deprecation cycle is aligned with [Ansible](https://docs.ansible.com/ansible/latest/dev_guide/module_lifecycle.html).
+
 ## Support
   * To report any issue, create an issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).
   * If any requirements have not been addressed, then create an issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).

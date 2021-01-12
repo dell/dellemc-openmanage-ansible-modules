@@ -38,6 +38,7 @@ requirements:
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -157,6 +158,7 @@ def main():
             "template_name": {"required": True, "type": "str"},
             "identity_pool_name": {"required": False, "type": "str"},
         },
+        supports_check_mode=False
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
