@@ -41,6 +41,7 @@ requirements:
 author: "Deepak Joshi(@deepakjoshishri)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = """
@@ -218,7 +219,7 @@ def main():
             "name": {"required": False, "type": 'str'}
         },
         mutually_exclusive=[["id", "name"]],
-        supports_check_mode=False)
+        supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             # Form URI to fetch network VLAN information

@@ -66,6 +66,7 @@ requirements:
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = """
@@ -376,7 +377,7 @@ def main():
         },
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],
                      ['fact_subset', 'subsystem_health', ['system_query_options']], ],
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         _validate_inputs(module.params)

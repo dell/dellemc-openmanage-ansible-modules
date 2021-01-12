@@ -24,6 +24,7 @@ description:
 notes:
   - The configuration changes can only be applied to one interface at a time.
   - The system management consoles might be unreachable for some time after the configuration changes are applied.
+  - This module does not support C(check_mode).
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
@@ -714,6 +715,7 @@ def main():
             ["enable_nic", True,
              ("ipv4_configuration", "ipv6_configuration", "dns_configuration", "management_vlan"), True]
         ],
+        supports_check_mode=False
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:

@@ -117,7 +117,7 @@ class RestOME(object):
     def invoke_request(self, method, path, data=None, query_param=None, headers=None,
                        api_timeout=30, dump=True):
         """
-        Sends a request via open_url
+        Sends a request through open_url
         Returns :class:`OpenURLResponse` object.
         :arg method: HTTP verb to use for the request
         :arg path: path to request without query parameter

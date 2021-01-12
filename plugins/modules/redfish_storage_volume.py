@@ -145,6 +145,7 @@ requirements:
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''

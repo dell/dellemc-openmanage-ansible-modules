@@ -54,6 +54,7 @@ author:
     - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """

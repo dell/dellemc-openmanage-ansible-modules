@@ -28,23 +28,54 @@ requirements:
 author: "Rajeev Arakkal (@rajeevarakkal)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
 ---
 - name: Get Installed Firmware Inventory
   dellemc.openmanage.dellemc_get_firmware_inventory:
-      idrac_ip:   "xx.xx.xx.xx"
-      idrac_user: "xxxx"
-      idrac_password:  "xxxxxxxx"
+      idrac_ip:   "192.168.0.1"
+      idrac_user: "user_name"
+      idrac_password:  "user_password"
 """
 
 RETURNS = """
-dest:
+ansible_facts:
     description: Displays components and their firmware versions. Also, list of the firmware
         dictionaries (one dictionary per firmware).
     returned: success
-    type: string
+    type: complex
+    sample: {
+        [
+            {
+                "BuildNumber": "0",
+                "Classifications": "10",
+                "ComponentID": "101100",
+                "ComponentType": "FRMW",
+                "DeviceID": null,
+                "ElementName": "Power Supply.Slot.1",
+                "FQDD": "PSU.Slot.1",
+                "IdentityInfoType": "OrgID:ComponentType:ComponentID",
+                "IdentityInfoValue": "DCIM:firmware:101100",
+                "InstallationDate": "2018-01-18T07:25:08Z",
+                "InstanceID": "DCIM:INSTALLED#0x15__PSU.Slot.1",
+                "IsEntity": "true",
+                "Key": "DCIM:INSTALLED#0x15__PSU.Slot.1",
+                "MajorVersion": "0",
+                "MinorVersion": "1",
+                "RevisionNumber": "7",
+                "RevisionString": null,
+                "Status": "Installed",
+                "SubDeviceID": null,
+                "SubVendorID": null,
+                "Updateable": "true",
+                "VendorID": null,
+                "VersionString": "00.1D.7D",
+                "impactsTPMmeasurements": "false"
+            }
+        ]
+    }
 """
 
 
@@ -102,7 +133,7 @@ def main():
             idrac_port=dict(required=False, default=443, type='int'),
         ),
 
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         with iDRACConnection(module.params) as idrac:

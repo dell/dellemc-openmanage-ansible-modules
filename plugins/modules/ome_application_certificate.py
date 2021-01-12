@@ -23,6 +23,7 @@ description:
     on OpenManage Enterprise.
 notes:
   - If a certificate is uploaded, which is identical to an already existing certificate, it is accepted by the module.
+  - This module does not support C(check_mode).
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
