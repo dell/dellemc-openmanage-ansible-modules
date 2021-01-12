@@ -16,10 +16,10 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: dellemc_configure_idrac_services
-short_description: Configures the iDRAC services attributes
+short_description: Configures the iDRAC services related attributes
 version_added: "2.3.0"
 description:
-    - This module is responsible for configuring the iDRAC services attributes.
+    - This module is allows to configure the iDRAC services related attributes.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
@@ -117,18 +117,17 @@ requirements:
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
 ---
 - name: Configure the iDRAC services attributes.
   dellemc.openmanage.dellemc_configure_idrac_services:
-       idrac_ip:   "xx.xx.xx.xx"
-       idrac_user: "xxxx"
-       idrac_password:  "xxxxxxxx"
-       share_name: "xx.xx.xx.xx:/share"
-       share_password:  "xxxxxxxx"
-       share_user: "xxxx"
+       idrac_ip:   "192.168.0.1"
+       idrac_user: "user_name"
+       idrac_password:  "user_password"
+       share_name: "192.168.0.1:/share"
        share_mnt: "/mnt/share"
        enable_web_server: "Enabled"
        http_port: 80
@@ -147,10 +146,27 @@ EXAMPLES = """
 """
 
 RETURNS = """
-dest:
+msg:
     description: Configures the iDRAC services attributes.
-    returned: success
-    type: string
+    returned: always
+    type: dict
+    sample: {
+        "CompletionTime": "2020-04-02T02:43:28",
+        "Description": "Job Instance",
+        "EndTime": null,
+        "Id": "JID_12345123456",
+        "JobState": "Completed",
+        "JobType": "ImportConfiguration",
+        "Message": "Successfully imported and applied Server Configuration Profile.",
+        "MessageArgs": [],
+        "MessageId": "SYS053",
+        "Name": "Import Configuration",
+        "PercentComplete": 100,
+        "StartTime": "TIME_NOW",
+        "Status": "Success",
+        "TargetSettingsURI": null,
+        "retval": true
+}
 """
 
 

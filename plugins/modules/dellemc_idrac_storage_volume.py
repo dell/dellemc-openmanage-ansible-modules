@@ -81,7 +81,7 @@ options:
     type: str
     description:
       - >-
-        Fully Qualified Device Descriptor (FQDD) of the storage controller, for e.g. 'RAID.Integrated.1-1'.
+        Fully Qualified Device Descriptor (FQDD) of the storage controller, for example 'RAID.Integrated.1-1'.
         Controller FQDD is required for C(create) RAID configuration.
   media_type:
     required:  False
@@ -98,7 +98,7 @@ options:
     type: str
     description:
       - >-
-        Fully Qualified Device Descriptor (FQDD) of the virtual disk, for e.g. 'Disk.virtual.0:RAID.Slot.1-1'.
+        Fully Qualified Device Descriptor (FQDD) of the virtual disk, for example 'Disk.virtual.0:RAID.Slot.1-1'.
         This option is used to get the virtual disk information.
   volumes:
     required: False
@@ -140,6 +140,7 @@ requirements:
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''

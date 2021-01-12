@@ -85,6 +85,7 @@ author:
     - "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = """
@@ -272,6 +273,10 @@ def get_job_status(module, each_comp, idrac):
     if each_comp.get("JobID") is not None:
         if idrac:
             resp = idrac.job_mgr.job_wait(each_comp.get("JobID"))
+            while reboot and apply_update:
+                resp = idrac.job_mgr.job_wait(each_comp.get("JobID"))
+                if resp.get("JobStatus") is not None and (not resp.get('JobStatus') == "Scheduled"):
+                    break
             # module.warn("omsdk job wait 315: "+json.dumps(resp))
             each_comp['Message'] = resp.get('Message')
             each_comp['JobStatus'] = "OK"

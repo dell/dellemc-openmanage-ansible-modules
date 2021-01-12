@@ -153,6 +153,7 @@ author:
     - "Deepak Joshi(@Dell-Deepak-Joshi))"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -594,6 +595,7 @@ def main():
                                "options": iscsi_specific_settings},
             "fc_settings": {"required": False, "type": "dict", "options": fc_settings},
         },
+        supports_check_mode=False
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:

@@ -68,6 +68,7 @@ author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''

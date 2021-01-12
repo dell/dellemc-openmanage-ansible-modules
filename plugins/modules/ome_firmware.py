@@ -63,6 +63,7 @@ author:
     - "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -462,6 +463,7 @@ def main():
                             ["baseline_name", "device_id"],
                             ["baseline_name", "device_service_tag"],
                             ["baseline_name", "device_group_names"]],
+        supports_check_mode=False
     )
     validate_inputs(module)
     update_status, baseline_details = {}, None
