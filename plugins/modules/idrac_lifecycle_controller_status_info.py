@@ -31,6 +31,7 @@ author:
     - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
@@ -91,7 +92,7 @@ def main():
             "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
         },
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         with iDRACConnection(module.params) as idrac:

@@ -63,6 +63,7 @@ author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -212,6 +213,7 @@ def main():
         },
         required_if=[['enable_proxy', True, ['ip_address', 'proxy_port']],
                      ['enable_authentication', True, ['proxy_username', 'proxy_password']], ],
+        supports_check_mode=False
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:

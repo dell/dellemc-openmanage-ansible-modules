@@ -42,6 +42,7 @@ requirements:
 author: "Jagadeesh N V(@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -162,7 +163,7 @@ def main():
                 "filter": {"type": 'str', "required": False},
             }},
         },
-        supports_check_mode=False
+        supports_check_mode=True
     )
 
     try:

@@ -98,6 +98,7 @@ requirements:
 author: "Jagadeesh N V(@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''

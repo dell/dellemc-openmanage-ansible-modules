@@ -56,27 +56,44 @@ requirements:
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
 ---
 - name: Set up iDRAC LC Attributes
   dellemc.openmanage.dellemc_idrac_lc_attributes:
-       idrac_ip:   "xx.xx.xx.xx"
-       idrac_user: "xxxx"
-       idrac_password:  "xxxxxxxx"
-       share_name: "xx.xx.xx.xx:/share"
-       share_password:  "xxxxxxxx"
-       share_user: "xxxx"
+       idrac_ip:   "192.168.0.1"
+       idrac_user: "user_name"
+       idrac_password:  "user_password"
+       share_name: "192.168.0.1:/share"
        share_mnt: "/mnt/share"
-       csior: "xxxxxxx"
+       csior: "Enabled"
 """
 
 RETURNS = """
-dest:
+msg:
     description: Collect System Inventory on Restart (CSIOR) property for all iDRAC/LC jobs is configured.
-    returned: success
-    type: string
+    returned: always
+    type: dict
+    sample: {
+        "CompletionTime": "2020-03-30T00:06:53",
+        "Description": "Job Instance",
+        "EndTime": null,
+        "Id": "JID_1234512345",
+        "JobState": "Completed",
+        "JobType": "ImportConfiguration",
+        "Message": "Successfully imported and applied Server Configuration Profile.",
+        "MessageArgs": [],
+        "MessageArgs@odata.count": 0,
+        "MessageId": "SYS053",
+        "Name": "Import Configuration",
+        "PercentComplete": 100,
+        "StartTime": "TIME_NOW",
+        "Status": "Success",
+        "TargetSettingsURI": null,
+        "retval": true
+    }
 """
 
 

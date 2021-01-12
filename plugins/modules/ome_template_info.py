@@ -38,6 +38,7 @@ requirements:
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 
 '''
 
@@ -132,7 +133,7 @@ def main():
                                      },
         },
         mutually_exclusive=[['template_id', 'system_query_options']],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     template_uri = "TemplateService/Templates"
     try:
