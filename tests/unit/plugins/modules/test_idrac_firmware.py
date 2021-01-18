@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
+# Version 3.0.0
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -387,7 +387,7 @@ class TestidracFirmware(FakeAnsibleModule):
             "Status": "Failed"}
         with pytest.raises(Exception) as ex:
             self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
-        # assert "Failed to update firmware." == ex.value.args[0]
+        assert "Firmware update failed." == ex.value.args[0]
 
     def test__validate_catalog_file_case01(self, idrac_connection_firmware_mock, idrac_default_args):
         idrac_default_args.update({"catalog_file_name": ""})
@@ -622,4 +622,4 @@ class TestidracFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson", return_value=({}, True, True))
         f_module = self.get_module_mock(params=idrac_default_args)
         result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
-        # assert result['update_msg'] == "Successfully updated the firmware with error(s)."
+        assert result['update_msg'] == "Firmware update failed."
