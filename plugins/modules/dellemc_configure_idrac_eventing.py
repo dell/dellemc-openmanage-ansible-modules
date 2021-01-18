@@ -18,9 +18,9 @@ DOCUMENTATION = """
 ---
 module: dellemc_configure_idrac_eventing
 short_description: Configures the iDRAC eventing related attributes
-version_added: "2.3.0"
+version_added: "1.0.0"
 description:
-    - This module is allows to configure the iDRAC eventing related attributes.
+    - This module allows to configure the iDRAC eventing related attributes.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:

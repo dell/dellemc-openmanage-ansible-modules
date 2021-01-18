@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_firmware_baseline
 short_description: Create a firmware baseline on OpenManage Enterprise
-version_added: "2.10.0"
+version_added: "2.0.0"
 description: This module creates a baseline on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options

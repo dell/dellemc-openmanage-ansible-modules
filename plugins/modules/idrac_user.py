@@ -17,7 +17,7 @@ DOCUMENTATION = """
 ---
 module: idrac_user
 short_description: Configure settings for user accounts
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
   - This module allows to perform the following,
   - Add a new user account.

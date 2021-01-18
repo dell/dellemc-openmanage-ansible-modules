@@ -17,7 +17,7 @@ DOCUMENTATION = """
 ---
 module: idrac_bios
 short_description: Configure the BIOS attributes
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
     - This module allows to configure the BIOS attributes.
 extends_documentation_fragment:

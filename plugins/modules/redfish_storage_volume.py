@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: redfish_storage_volume
 short_description: Manages the storage volume configuration
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
    - This module allows to create, modify, initialize, or delete a single storage volume.
 extends_documentation_fragment:
