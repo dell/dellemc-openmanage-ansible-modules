@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_user
 short_description: Create, modify or delete a user on OpenManage Enterprise
-version_added: "2.10.0"
+version_added: "2.0.0"
 description: This module creates, modifies or deletes a user on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options

@@ -17,7 +17,7 @@ DOCUMENTATION = """
 ---
 module: idrac_lifecycle_controller_status_info
 short_description: Get the status of the Lifecycle Controller
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
     - This module shows the status of the Lifecycle Controller on a Dell EMC PowerEdge server.
 extends_documentation_fragment:

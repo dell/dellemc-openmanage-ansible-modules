@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_template_info
 short_description: Retrieves template details from OpenManage Enterprise
-version_added: "2.10.0"
+version_added: "2.0.0"
 description:
    - This module retrieves the list and details of all the templates on OpenManage Enterprise.
 extends_documentation_fragment:

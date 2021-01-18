@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_application_network_proxy
 short_description: Updates the proxy configuration on OpenManage Enterprise
-version_added: "2.10.0"
+version_added: "2.1.0"
 description: This module allows to configure a network proxy on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
