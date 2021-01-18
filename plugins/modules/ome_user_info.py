@@ -16,7 +16,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_user_info
 short_description: Retrieves details of all accounts or a specific account on OpenManage Enterprise
-version_added: "2.10.0"
+version_added: "2.0.0"
 description:
    - "This module retrieves the list and basic details of all accounts or details of a specific account on
    OpenManage Enterprise."

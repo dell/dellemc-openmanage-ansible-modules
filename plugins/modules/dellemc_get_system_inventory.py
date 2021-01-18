@@ -17,7 +17,7 @@ DOCUMENTATION = """
 ---
 module: dellemc_get_system_inventory
 short_description: Get the PowerEdge Server System Inventory
-version_added: "2.3.0"
+version_added: "1.0.0"
 description:
     - Get the PowerEdge Server System Inventory.
 extends_documentation_fragment:

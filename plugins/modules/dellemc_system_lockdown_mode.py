@@ -17,7 +17,7 @@ DOCUMENTATION = """
 ---
 module: dellemc_system_lockdown_mode
 short_description: Configures system lockdown mode for iDRAC
-version_added: "2.3.0"
+version_added: "1.0.0"
 description:
     - This module is allows to Enable or Disable System lockdown Mode.
 extends_documentation_fragment:

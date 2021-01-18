@@ -17,7 +17,7 @@ DOCUMENTATION = r"""
 ---
 module: redfish_firmware
 short_description: To perform a component firmware update using the image file available on the local or remote system
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
     - This module allows the firmware update of only one component at a time.
       If the module is run for more than one component, an error message is returned.

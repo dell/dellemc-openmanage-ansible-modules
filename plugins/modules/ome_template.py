@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_template
 short_description: Create, modify, deploy, delete, export, import and clone a template on OpenManage Enterprise
-version_added: "2.10.0"
+version_added: "2.0.0"
 description: "This module creates, modifies, deploys, deletes, exports, imports and clones a template on
 OpenManage Enterprise."
 extends_documentation_fragment:
@@ -296,13 +296,9 @@ install OS using its image."
     command: "export"
     template_name: "my_template"
   register: result
-  tags:
-    - export_xml_to_file
 - ansible.builtin.copy:
     content: "{{ result.Content}}"
     dest: "/path/to/exported_template.xml"
-  tags:
-    - export_xml_to_file
 # End of example to export template to a local xml file
 
 - name: "clone a template"
@@ -639,12 +635,17 @@ def exit_module(module, response):
     if command in ["create", "modify", "deploy", "import", "clone"]:
         result["return_id"] = response.json_data
         resp = result["return_id"]
+        if command == 'deploy' and result["return_id"] == 0:
+            result["failed"] = True
+            command = 'deploy_fail'
+            my_change = False
     if command == 'export':
         my_change = False
         result = response.json_data
     msg_dict = {'create': "Successfully created a template with ID {0}".format(resp),
                 'modify': "Successfully modified the template with ID {0}".format(resp),
                 'deploy': "Successfully created the template-deployment job with ID {0}".format(resp),
+                'deploy_fail': 'Failed to deploy template.',
                 'delete': "Deleted successfully",
                 'export': "Exported successfully",
                 'import': "Imported successfully",
