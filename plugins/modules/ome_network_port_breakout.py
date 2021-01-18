@@ -16,7 +16,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_network_port_breakout
 short_description: This module allows to automate the port portioning or port breakout to logical sub ports
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
   - This module allows to automate breaking out of IOMs in fabric mode into logical sub ports.
   - The port breakout operation is only supported in OpenManage Enterprise Modular.

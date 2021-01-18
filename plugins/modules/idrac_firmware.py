@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: idrac_firmware
 short_description: Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP)
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
     - Update the Firmware by connecting to a network share (CIFS, NFS, HTTP, HTTPS, FTP) that contains a catalog of
         available updates.

@@ -16,7 +16,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_job_info
 short_description: Get job details for a given job ID or an entire job queue on OpenMange Enterprise
-version_added: "2.10.0"
+version_added: "2.0.0"
 description: This module retrieves job details for a given job ID or an entire job queue on OpenMange Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options

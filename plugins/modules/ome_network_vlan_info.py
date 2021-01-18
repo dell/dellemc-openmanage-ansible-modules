@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_network_vlan_info
 short_description: Retrieves the information about networks VLAN(s) present in OpenManage Enterprise
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
     This module allows to retrieve the following
     - A list of all the network VLANs with their detailed information.

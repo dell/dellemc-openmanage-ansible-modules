@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_smart_fabric
 short_description: Create, modify or delete a fabric on OpenManage Enterprise Modular
-version_added: "2.10.0"
+version_added: "2.1.0"
 description:
   - This module allows to create a fabric, and modify or delete an existing fabric
    on OpenManage Enterprise Modular.
@@ -211,6 +211,33 @@ SECONDARY_SWITCH_OVERLAP_MSG = "The switch details of the secondary switch overl
                                " switch details."
 
 
+def get_service_tag_with_fqdn(rest_obj, module):
+    """
+    get the service tag, if hostname is dnsname
+    """
+    hostname = module.params["hostname"]
+    service_tag = None
+    device_details = rest_obj.get_all_items_with_pagination(DEVICE_URI)
+    for each_device in device_details["value"]:
+        for item in each_device["DeviceManagement"]:
+            if item["DnsName"] == hostname:
+                return each_device["DeviceServiceTag"]
+    return service_tag
+
+
+def validate_lead_msm_version(each_domain, module, fabric_design=None):
+    """
+    validate lead chassis for design type
+    and find the msm version of the domain
+    """
+    role_type = each_domain["DomainRoleTypeValue"].upper()
+    if fabric_design and fabric_design == "2xMX9116n_Fabric_Switching_Engines_in_different_chassis" and \
+            role_type != "LEAD":
+        module.fail_json(msg=LEAD_CHASSIS_ERROR_MSG.format(fabric_design))
+    msm_version = each_domain["Version"]
+    return msm_version
+
+
 def get_msm_device_details(rest_obj, module):
     """
     Get msm details
@@ -223,15 +250,14 @@ def get_msm_device_details(rest_obj, module):
     hostname = module.params["hostname"]
     fabric_design = module.params.get("fabric_design")
     msm_version = ""
-    service_tag = None
+    service_tag = get_service_tag_with_fqdn(rest_obj, module)
     domain_details = rest_obj.get_all_items_with_pagination(DOMAIN_URI)
     for each_domain in domain_details["value"]:
+        if service_tag and service_tag == each_domain["Identifier"]:
+            msm_version = validate_lead_msm_version(each_domain, module, fabric_design)
+            break
         if hostname in each_domain["PublicAddress"]:
-            role_type = each_domain["DomainRoleTypeValue"].upper()
-            if fabric_design and fabric_design == "2xMX9116n_Fabric_Switching_Engines_in_different_chassis" and \
-                    role_type != "LEAD":
-                module.fail_json(msg=LEAD_CHASSIS_ERROR_MSG.format(fabric_design))
-            msm_version = each_domain["Version"]
+            msm_version = validate_lead_msm_version(each_domain, module, fabric_design)
             service_tag = each_domain["Identifier"]
             break
     else:

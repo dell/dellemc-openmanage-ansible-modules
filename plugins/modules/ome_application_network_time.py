@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_application_network_time
 short_description: Updates the network time on OpenManage Enterprise
-version_added: "2.10.0"
+version_added: "2.1.0"
 description: This module allows the configuration of network time on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
