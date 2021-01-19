@@ -122,7 +122,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: "Create a template from a reference device."
+- name: Create a template from a reference device
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -132,7 +132,7 @@ EXAMPLES = r'''
       Name: "New Template"
       Description: "New Template description"
 
-- name: "Modify template name, description, and attribute value."
+- name: Modify template name, description, and attribute value
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -150,7 +150,7 @@ EXAMPLES = r'''
           Value: "Test Attribute"
           IsIgnored: false
 
-- name: "Deploy template on multiple devices "
+- name: Deploy template on multiple devices
   dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
@@ -164,7 +164,7 @@ EXAMPLES = r'''
       - 'SVTG123'
       - 'SVTG456'
 
-- name: "Deploy template on multiple devices along with the attributes values to be modified on the target devices."
+- name: Deploy template on multiple devices along with the attributes values to be modified on the target devices
   dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
@@ -195,7 +195,7 @@ EXAMPLES = r'''
               Value : "hostname-1"
               IsIgnored : false
 
-- name: "Deploy template and Operating System (OS) on multiple devices"
+- name: Deploy template and Operating System (OS) on multiple devices
   dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
@@ -228,7 +228,7 @@ EXAMPLES = r'''
         RunNow: false
 
 - name: "Deploy template on multiple devices and changes the device-level attributes. After the template is deployed,
-install OS using its image."
+install OS using its image"
   dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
@@ -271,7 +271,7 @@ install OS using its image."
         RunLater: true
         RunNow: false
 
-- name: "delete template"
+- name: Delete template
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -279,7 +279,7 @@ install OS using its image."
     command: "delete"
     template_id: 12
 
-- name: "export a template"
+- name: Export a template
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -288,7 +288,7 @@ install OS using its image."
     template_id: 12
 
 # Start of example to export template to a local xml file
-- name: "export template to a local xml file"
+- name: Export template to a local xml file
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -301,7 +301,7 @@ install OS using its image."
     dest: "/path/to/exported_template.xml"
 # End of example to export template to a local xml file
 
-- name: "clone a template"
+- name: Clone a template
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -311,7 +311,7 @@ install OS using its image."
     attributes:
       Name: "New Cloned Template Name"
 
-- name: "import template from XML content"
+- name: Import template from XML content
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
@@ -330,7 +330,7 @@ install OS using its image."
       <Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready</Attribute>\n
       <Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>\n"
 
-- name: "import template from local XML file"
+- name: Import template from local XML file
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"

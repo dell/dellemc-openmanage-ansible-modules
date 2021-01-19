@@ -71,6 +71,11 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
+  type: str
+  description: Status of the export lifecycle controller logs job.
+  returned: always
+  sample: "Successfully exported the lifecycle controller logs."
+lc_logs_status:
   description: status of the export operation.
   returned: success
   type: dict
@@ -179,7 +184,7 @@ def main():
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
 
-    module.exit_json(msg=msg)
+    module.exit_json(msg="Successfully exported the lifecycle controller logs.", lc_logs_status=msg)
 
 
 if __name__ == '__main__':
