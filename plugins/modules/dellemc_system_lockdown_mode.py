@@ -73,7 +73,7 @@ RETURN = r'''
 msg:
     description: "Lockdown mode of the system is configured."
     returned: always
-    type: string
+    type: str
     sample:"Successfully completed the lockdown mode operations"
 '''
 
