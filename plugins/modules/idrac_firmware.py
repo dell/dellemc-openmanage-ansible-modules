@@ -149,7 +149,7 @@ RETURN = """
 ---
 msg:
   type: str
-  description: Over all firmware update status.
+  description: Overall firmware update status.
   returned: always
   sample: "Successfully updated the firmware."
 update_status:

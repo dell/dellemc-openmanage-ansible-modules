@@ -234,7 +234,7 @@ def main():
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
     module.exit_json(msg="Successfully configured the idrac time settings.",
-                      timezone_ntp_status=msg, changed=changed)
+                     timezone_ntp_status=msg, changed=changed)
 
 
 if __name__ == '__main__':
