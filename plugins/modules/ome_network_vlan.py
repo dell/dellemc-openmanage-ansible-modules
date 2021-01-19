@@ -73,7 +73,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: "Create a VLAN range"
+- name: Create a VLAN range
   dellemc.openmanage.ome_network_vlan:
     hostname: "{{hostname}}"
     username: "{{username}}"
@@ -86,7 +86,7 @@ EXAMPLES = r'''
     vlan_maximum: 40
   tags: create_vlan_range
 
-- name: "Create a VLAN with a single value"
+- name: Create a VLAN with a single value
   dellemc.openmanage.ome_network_vlan:
     hostname: "{{hostname}}"
     username: "{{username}}"
@@ -99,7 +99,7 @@ EXAMPLES = r'''
     vlan_maximum: 127
   tags: create_vlan_single
 
-- name: "Modify a VLAN"
+- name: Modify a VLAN
   dellemc.openmanage.ome_network_vlan:
     hostname: "{{hostname}}"
     username: "{{username}}"
@@ -113,7 +113,7 @@ EXAMPLES = r'''
     vlan_maximum: 50
   tags: modify_vlan
 
-- name: "Delete a VLAN"
+- name: Delete a VLAN
   dellemc.openmanage.ome_network_vlan:
     hostname: "{{hostname}}"
     username: "{{username}}"

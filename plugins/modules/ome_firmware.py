@@ -68,7 +68,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: "Update firmware from DUP file using device ids."
+- name: Update firmware from DUP file using device ids
   dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
@@ -78,7 +78,7 @@ EXAMPLES = r'''
       - 22222
     dup_file: "/path/Chassis-System-Management_Firmware_6N9WN_WN64_1.00.01_A00.EXE"
 
-- name: "Update firmware from a DUP file using a device service tags."
+- name: Update firmware from a DUP file using a device service tags
   dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
@@ -88,7 +88,7 @@ EXAMPLES = r'''
       - KLBR222
     dup_file: "/path/Network_Firmware_NTRW0_WN64_14.07.07_A00-00_01.EXE"
 
-- name: "Update firmware from a DUP file using a device group names."
+- name: Update firmware from a DUP file using a device group names
   dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
@@ -97,14 +97,14 @@ EXAMPLES = r'''
       - servers
     dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
 
-- name: "Update firmware using baseline name."
+- name: Update firmware using baseline name
   dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     baseline_name: baseline_devices
 
-- name: "Update firmware from a DUP file using a baseline names."
+- name: Update firmware from a DUP file using a baseline names
   dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"

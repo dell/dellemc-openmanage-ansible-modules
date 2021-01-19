@@ -202,10 +202,9 @@ class iDRACRedfishAPI(object):
             if response.json_data.get("PercentComplete") == 100 and \
                     response.json_data.get("JobState") == "Completed":
                 break
-            elif response.json_data.get("JobState") == "Starting" and not reboot and apply_update:
+            if response.json_data.get("JobState") == "Starting" and not reboot and apply_update:
                 break
-            else:
-                time.sleep(30)
+            time.sleep(30)
         return response
 
     def export_scp(self, export_format=None, export_use=None, target=None, job_wait=False):

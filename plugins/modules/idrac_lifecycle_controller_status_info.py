@@ -46,6 +46,11 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
+  description: Overall status of fetching lifecycle controller status.
+  returned: always
+  type: str
+  sample: "Successfully fetched the lifecycle controller status."
+lc_status_info:
   description: Displays the status of the Lifecycle Controller on a Dell EMC PowerEdge server.
   returned: success
   type: dict
@@ -106,7 +111,8 @@ def main():
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
-    module.exit_json(msg={'LCReady': lcready, 'LCStatus': lcstatus})
+    module.exit_json(msg="Successfully fetched the lifecycle controller status.",
+                     lc_status_info={'LCReady': lcready, 'LCStatus': lcstatus})
 
 
 if __name__ == '__main__':

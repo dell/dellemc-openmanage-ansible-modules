@@ -180,6 +180,11 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
+  description: Successfully configured the idrac network settings.
+  returned: always
+  type: str
+  sample: "Successfully configured the idrac network settings."
+network_status:
   description: Status of the Network settings operation job.
   returned: success
   type: dict
@@ -431,7 +436,8 @@ def main():
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
-    module.exit_json(msg=msg, changed=changed, failed=failed)
+    module.exit_json(msg="Successfully configured the idrac network settings.",
+                     network_status=msg, changed=changed, failed=failed)
 
 
 if __name__ == '__main__':

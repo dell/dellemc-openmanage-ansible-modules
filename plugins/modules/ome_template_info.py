@@ -70,7 +70,7 @@ RETURN = r'''
 ---
 msg:
   type: str
-  description: Over all template facts status.
+  description: Overall template facts status.
   returned: on error
   sample: "Failed to fetch the template facts"
 template_info:
