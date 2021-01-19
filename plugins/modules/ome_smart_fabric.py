@@ -88,7 +88,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: "Create a fabric"
+- name: Create a fabric
   dellemc.openmanage.ome_smart_fabric:
     hostname: "192.168.0.1"
     username: "username"
@@ -101,7 +101,7 @@ EXAMPLES = r'''
     secondary_switch_service_tag: "PXYT456"
     override_LLDP_configuration: "Enabled"
 
-- name: "Modify a fabric"
+- name: Modify a fabric
   dellemc.openmanage.ome_smart_fabric:
     hostname: "192.168.0.1"
     username: "username"
@@ -111,7 +111,7 @@ EXAMPLES = r'''
     new_name: "fabric_gold1"
     description: "new description"
 
-- name: "Delete a fabric"
+- name: Delete a fabric
   dellemc.openmanage.ome_smart_fabric:
     hostname: "192.168.0.1"
     username: "username"

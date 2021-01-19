@@ -50,6 +50,11 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
+  description: Overall status of the job facts operation.
+  returned: always
+  type: str
+  sample: "Successfully fetched the job info."
+job_info:
   description: Displays the status of a Lifecycle Controller job.
   returned: success
   type: dict
@@ -112,8 +117,7 @@ def main():
             job_id, msg, failed = module.params.get('job_id'), {}, False
             msg = idrac.job_mgr.get_job_status(job_id)
             if msg.get('Status') == "Found Fault":
-                failed = True
-                msg = "Job ID is invalid."
+                module.fail_json(msg="Job ID is invalid.")
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
@@ -121,7 +125,7 @@ def main():
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
-    module.exit_json(msg=msg, failed=failed)
+    module.exit_json(msg="Successfully fetched the job info", job_info=msg)
 
 
 if __name__ == '__main__':
