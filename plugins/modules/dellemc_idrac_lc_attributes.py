@@ -71,7 +71,8 @@ EXAMPLES = """
        csior: "Enabled"
 """
 
-RETURNS = """
+RETURN = r'''
+---
 msg:
     description: Collect System Inventory on Restart (CSIOR) property for all iDRAC/LC jobs is configured.
     returned: always
@@ -94,7 +95,7 @@ msg:
         "TargetSettingsURI": null,
         "retval": true
     }
-"""
+'''
 
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection

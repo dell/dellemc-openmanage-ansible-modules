@@ -153,7 +153,8 @@ EXAMPLES = """
     user_name: user_name
 """
 
-RETURNS = """
+RETURN = r'''
+---
 msg:
   description: Status of the iDRAC user configuration.
   returned: always
@@ -203,7 +204,7 @@ error_info:
       ]
     }
   }
-"""
+'''
 
 
 import json
