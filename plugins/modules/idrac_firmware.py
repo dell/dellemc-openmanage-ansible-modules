@@ -238,11 +238,10 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
         else:
             if response.json_data.get("PercentComplete") == 100 and job_state == "Completed":  # apply now
                 break
-            elif job_state in ["Starting", "Running", "Pending", "New"] and not reboot and apply_update:  # apply on
+            if job_state in ["Starting", "Running", "Pending", "New"] and not reboot and apply_update:  # apply on
                 break
-            else:
-                track_counter += 1
-                time.sleep(INTERVAL)
+            track_counter += 1
+            time.sleep(INTERVAL)
     if track_counter > WAIT_COUNT:
         # TIMED OUT
         msg = JOB_WAIT_MSG.format((WAIT_COUNT * INTERVAL) / 60)
