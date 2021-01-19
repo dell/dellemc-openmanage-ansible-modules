@@ -74,7 +74,7 @@ msg:
     description: "Lockdown mode of the system is configured."
     returned: always
     type: str
-    sample:"Successfully completed the lockdown mode operations"
+    sample: "Successfully completed the lockdown mode operations"
 '''
 
 
