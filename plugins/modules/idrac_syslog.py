@@ -68,6 +68,11 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
+  description: Overall status of the syslog export operation.
+  returned: always
+  type: str
+  sample: "Successfully fetch the syslogs."
+syslog_status:
     description: Job details of the syslog operation.
     returned: success
     type: dict
@@ -181,7 +186,8 @@ def main():
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
-    module.exit_json(msg=msg, changed=changed)
+    module.exit_json(msg="Successfully fetch the syslogs.",
+                     syslog_status=msg, changed=changed)
 
 
 if __name__ == '__main__':

@@ -69,7 +69,13 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
+---
 msg:
+  type: str
+  description: Over all device information status.
+  returned: on error
+  sample: "Failed to boot to network iso"
+boot_status:
     description: details of the boot to network ISO image operation.
     returned: always
     type: dict
@@ -154,7 +160,7 @@ def main():
     try:
         with iDRACConnection(module.params) as idrac:
             boot_status = run_boot_to_network_iso(idrac, module)
-            module.exit_json(changed=True, msg=boot_status)
+            module.exit_json(changed=True, boot_status=boot_status)
     except (ImportError, ValueError, RuntimeError) as e:
         module.fail_json(msg=str(e))
 

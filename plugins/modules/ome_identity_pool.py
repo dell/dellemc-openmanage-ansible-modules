@@ -213,7 +213,7 @@ EXAMPLES = r'''
         starting_mac_address: "aabb.ccdd.5050"
         identity_count: 77
 
-- name: "Modify an identity pool using iSCSI and FC settings."
+- name: Modify an identity pool using iSCSI and FC settings
   dellemc.openmanage.ome_identity_pool:
     hostname: "{{hostname}}"
     username: "{{username}}"
