@@ -18,6 +18,11 @@ DOCUMENTATION = """
 module: dellemc_get_system_inventory
 short_description: Get the PowerEdge Server System Inventory
 version_added: "1.0.0"
+deprecated:
+  removed_at_date: "2023-01-15"
+  why: Replaced with M(dellemc.openmanage.idrac_system_info).
+  alternative: Use M(dellemc.openmanage.idrac_system_info) instead.
+  removed_from_collection: dellemc.openmanage
 description:
     - Get the PowerEdge Server System Inventory.
 extends_documentation_fragment:
