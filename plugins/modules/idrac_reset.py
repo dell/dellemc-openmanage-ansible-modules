@@ -46,7 +46,8 @@ EXAMPLES = """
        idrac_port: 443
 """
 
-RETURNS = """
+RETURN = r'''
+---
 msg:
     description: iDRAC reset operation status.
     returned: always
@@ -82,7 +83,7 @@ error_info:
       ]
     }
   }
-"""
+'''
 
 
 import json

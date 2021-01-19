@@ -47,7 +47,8 @@ EXAMPLES = """
        job_id:  "JID_1234567890"
 """
 
-RETURNS = """
+RETURN = r'''
+---
 msg:
   description: Displays the status of a Lifecycle Controller job.
   returned: success
@@ -85,7 +86,7 @@ error_info:
       ]
     }
   }
-"""
+'''
 
 
 import json

@@ -190,7 +190,8 @@ EXAMPLES = """
 """
 
 
-RETURNS = """
+RETURN = r'''
+---
 msg:
     description: Configures the BIOS configuration attributes.
     returned: success
@@ -235,7 +236,7 @@ error_info:
       ]
     }
   }
-"""
+'''
 
 
 import os

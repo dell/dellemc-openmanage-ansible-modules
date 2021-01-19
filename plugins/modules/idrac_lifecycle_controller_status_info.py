@@ -43,7 +43,8 @@ EXAMPLES = """
     idrac_password: "user_password"
 """
 
-RETURNS = """
+RETURN = r'''
+---
 msg:
   description: Displays the status of the Lifecycle Controller on a Dell EMC PowerEdge server.
   returned: success
@@ -74,7 +75,7 @@ error_info:
       ]
     }
   }
-"""
+'''
 
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection

@@ -77,7 +77,7 @@ EXAMPLES = r'''
        resource_id: "System.Embedded.1"
 '''
 
-RETURNS = r'''
+RETURN = r'''
 ---
 msg:
   description: Overall status of the reset operation
