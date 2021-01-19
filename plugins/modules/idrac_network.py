@@ -177,7 +177,8 @@ EXAMPLES = """
        static_net_mask: None
 """
 
-RETURNS = """
+RETURN = r'''
+---
 msg:
   description: Status of the Network settings operation job.
   returned: success
@@ -223,7 +224,7 @@ error_info:
       ]
     }
   }
-"""
+'''
 
 import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError

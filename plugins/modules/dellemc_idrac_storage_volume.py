@@ -227,7 +227,7 @@ EXAMPLES = r'''
       - name: "volume_2"
 '''
 
-RETURNS = r'''
+RETURN = r'''
 ---
 msg:
   type: str

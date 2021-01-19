@@ -68,13 +68,14 @@ EXAMPLES = """
        lockdown_mode: "Disabled"
 """
 
-RETURNS = """
+RETURN = r'''
+---
 msg:
     description: "Lockdown mode of the system is configured."
     returned: always
     type: string
     sample:"Successfully completed the lockdown mode operations"
-"""
+'''
 
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
