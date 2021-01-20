@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.4
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -56,23 +56,26 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
                                                       idrac_file_manager_system_lockdown_mock, idrac_default_args):
         idrac_default_args.update({"share_name": "dummy_share_name", "share_password": "dummy_share_password",
                                    "lockdown_mode": "Enabled"})
-        message = {"Status": "Success"}
+        message = {"Status": "Success", "msg": "Lockdown mode of the system is configured.",
+                   "changed": True, "system_lockdown_status": {"Status": "Success"}}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_system_lockdown_mode.run_system_lockdown_mode',
-                     return_value=(message, False))
-        idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = {"Status": "Success"}
+                     return_value=message)
+        idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = message
         result = self._run_module(idrac_default_args)
-        assert result == {'Status': 'Success', 'changed': False}
+        assert result["msg"] == "Lockdown mode of the system is configured."
 
     def test_main_system_lockdown_mode_fail_case(self, idrac_connection_system_lockdown_mode_mock, mocker,
                                                  idrac_file_manager_system_lockdown_mock, idrac_default_args):
         idrac_default_args.update({"share_name": "dummy_share_name", "share_password": "dummy_share_password",
                                    "lockdown_mode": "Enabled"})
-        message = {"Status": "Failed"}
+        message = {"Status": "Failed", "msg": "Failed to complete the lockdown mode operations.",
+                   "system_lockdown_status": {}, "failed": True, "changed": False}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_system_lockdown_mode.run_system_lockdown_mode',
-                     return_value=(message, True))
-        idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = {"Status": "Failed"}
-        result = self._run_module_with_fail_json(idrac_default_args)
-        assert result == {'Status': 'Failed', 'failed': True}
+                     return_value=message)
+        idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = message
+        with pytest.raises(Exception) as ex:
+            self._run_module_with_fail_json(idrac_default_args)
+        assert ex.value.args[0]['msg'] == "Failed to complete the lockdown mode operations."
 
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_exception_handling_case(self, exc_type, mocker, idrac_connection_system_lockdown_mode_mock,
@@ -90,13 +93,13 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
                                                      idrac_file_manager_system_lockdown_mock, idrac_default_args):
         idrac_default_args.update({"share_name": "dummy_share_name", "share_password": "dummy_share_password",
                                    "lockdown_mode": "Enabled", "share_mnt": "sharemnt", "share_user": "sharuser"})
-        message = {"Status": "Success"}
+        message = {"Status": "Success", "msg": "Lockdown mode of the system is configured.",
+                   "changed": True, "system_lockdown_status": {"Status": "Success"}}
         idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = message
         idrac_connection_system_lockdown_mode_mock.config_mgr.enable_system_lockdown.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
-        msg, err = self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success'}, 'failed': False, 'changed': True}
-        assert err is False
+        msg = self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
+        assert msg['msg'] == "Successfully completed the lockdown mode operations."
 
     def test_run_system_lockdown_mode_failed_case01(self, idrac_connection_system_lockdown_mode_mock, mocker,
                                                     idrac_file_manager_system_lockdown_mock, idrac_default_args):
@@ -106,8 +109,9 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
         idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = message
         idrac_connection_system_lockdown_mode_mock.config_mgr.disable_system_lockdown.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
-        msg, err = self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
-        assert msg == {'changed': False, 'failed': True, 'msg': {'Status': 'failed'}}
+        with pytest.raises(Exception) as ex:
+            self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
+        assert ex.value.args[0] == 'Failed to complete the lockdown mode operations.'
 
     def test_run_system_lockdown_mode_failed_case02(self, idrac_connection_system_lockdown_mode_mock, mocker,
                                                     idrac_file_manager_system_lockdown_mock, idrac_default_args):
@@ -117,19 +121,6 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
         idrac_connection_system_lockdown_mode_mock.config_mgr.set_liason_share.return_value = message
         idrac_connection_system_lockdown_mode_mock.config_mgr.enable_system_lockdown.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
-        msg, err = self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
-        assert msg == {'changed': False, 'failed': True, 'msg': 'message inside data'}
-        assert err is True
-
-    def test_run_system_lock_down_mode_exception_case01(self, idrac_connection_system_lockdown_mode_mock,
-                                                        idrac_default_args, idrac_file_manager_system_lockdown_mock):
-        idrac_default_args.update({"share_name": "dummy_share_name", "share_password": "dummy_share_password",
-                                   "lockdown_mode": "Enabled", "share_mnt": "sharemnt", "share_user": "sharuser"})
-        error_msg = "Error in Runtime"
-        obj2 = MagicMock()
-        idrac_connection_system_lockdown_mode_mock.config_mgr = obj2
-        type(obj2).set_liason_share = Mock(side_effect=Exception(error_msg))
-        f_module = self.get_module_mock(params=idrac_default_args)
-        result, err = self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
-        assert result['failed'] is True
-        assert result['msg'] == "Error: {0}".format(error_msg)
+        with pytest.raises(Exception) as ex:
+            self.module.run_system_lockdown_mode(idrac_connection_system_lockdown_mode_mock, f_module)
+        assert ex.value.args[0] == "message inside data"

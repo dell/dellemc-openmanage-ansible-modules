@@ -60,9 +60,10 @@ class TestLcAttributes(FakeAnsibleModule):
                                    'csior': 'Enabled', 'share_mnt': None, 'share_user': None})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
-                     return_value=(message, False))
-        result = self._run_module(idrac_default_args)
-        assert result == {'changed': False, 'msg': {'Status': 'Success', "message": "No changes found to commit!"}}
+                     return_value=message)
+        with pytest.raises(Exception) as ex:
+            self._run_module(idrac_default_args)
+        assert ex.value.args[0]['msg'] == "Failed to configure the iDRAC LC attributes."
 
     def test_run_setup_idrac_csior_success_case01(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
@@ -71,11 +72,9 @@ class TestLcAttributes(FakeAnsibleModule):
         message = {"changes_applicable": True, "message": "changes are applicable"}
         idrac_connection_lc_attribute_mock.config_mgr.is_change_applicable.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        msg, err = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
-        assert msg == {"changed": True, "failed": False, "msg": {"changes_applicable": True,
-                                                                 "message": "changes are applicable"}}
-        assert msg['changed'] is True
-        assert msg['failed'] is False
+        with pytest.raises(Exception) as ex:
+            self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
+        assert ex.value.args[0] == "Changes found to commit!"
 
     def test_run_setup_idrac_csior_success_case02(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
@@ -86,12 +85,9 @@ class TestLcAttributes(FakeAnsibleModule):
         idrac_connection_lc_attribute_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
-        assert msg == {"changed": True, "failed": False, "msg": {"changes_applicable": True,
-                                                                 "message": "changes found to commit!",
-                                                                 "changed": True, "Status": "Success"}}
-        assert msg['changed'] is True
-        assert msg['failed'] is False
+        msg = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
+        assert msg == {'changes_applicable': True, 'message': 'changes found to commit!',
+                       'changed': True, 'Status': 'Success'}
 
     def test_run_setup_idrac_csior_success_case03(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
@@ -102,40 +98,37 @@ class TestLcAttributes(FakeAnsibleModule):
         idrac_connection_lc_attribute_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
-        assert msg == {"changed": False, "failed": False, "msg": {"changes_applicable": True,
-                                                                  "Message": "No changes found to commit!",
-                                                                  "changed": False, "Status": "Success"}}
-        assert msg['changed'] is False
-        assert msg['failed'] is False
+        msg = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
+        assert msg == {'changes_applicable': True, 'Message': 'No changes found to commit!',
+                       'changed': False, 'Status': 'Success'}
 
     def test_run_setup_csior_disable_case(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                           idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "csior": 'Disabled'})
-        message = "Disabled"
+        message = {"changes_applicable": True}
         obj = MagicMock()
         idrac_connection_lc_attribute_mock.config_mgr = obj
         type(obj).disable_csior = Mock(return_value=message)
         idrac_connection_lc_attribute_mock.config_mgr.is_change_applicable.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        msg, err = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
-        assert msg == {'changed': False, 'failed': False, 'msg': 'Disabled'}
-        assert err is False
+        with pytest.raises(Exception) as ex:
+            self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
+        assert ex.value.args[0] == "Changes found to commit!"
 
     def test_run_setup_csior_enable_case(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                          idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "csior": 'Enabled'})
-        message = "Enabled"
+        message = {"changes_applicable": True}
         obj = MagicMock()
         idrac_connection_lc_attribute_mock.config_mgr = obj
         type(obj).enable_csior = Mock(return_value='Enabled')
         idrac_connection_lc_attribute_mock.config_mgr.is_change_applicable.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        msg, err = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
-        assert msg == {'changed': False, 'failed': False, 'msg': 'Enabled'}
-        assert err is False
+        with pytest.raises(Exception) as ex:
+            self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
+        assert ex.value.args[0] == "Changes found to commit!"
 
     def test_run_setup_csior_failed_case01(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                            idrac_file_manager_lc_attribute_mock):
@@ -145,37 +138,24 @@ class TestLcAttributes(FakeAnsibleModule):
         idrac_connection_lc_attribute_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
         idrac_connection_lc_attribute_mock.config_mgr.set_liason_share.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
-        result, err = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
-        assert result == {'changed': False, 'failed': True, 'msg': 'status failed in checking Data'}
+        with pytest.raises(Exception) as ex:
+            self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
+        assert ex.value.args[0] == "status failed in checking Data"
 
     def test_run_setup_idrac_csior_failed_case03(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                  idrac_file_manager_lc_attribute_mock):
         idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
                                    "share_password": "sharepassword", "csior": "scr"})
         message = {"changes_applicable": False, "Message": "Failed to found changes", "changed": False,
-                   "Status": "Failed"}
+                   "Status": "Failed", "failed": True}
         idrac_connection_lc_attribute_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
-        assert msg == {"changed": False, "failed": True, "msg": {"changes_applicable": False,
-                                                                 "Message": "Failed to found changes",
-                                                                 "changed": False, "Status": "Failed"}}
+        msg = self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
+        assert msg == {'changes_applicable': False, 'Message': 'Failed to found changes',
+                       'changed': False, 'Status': 'Failed', "failed": True}
         assert msg['changed'] is False
         assert msg['failed'] is True
-
-    def test_main_lc_attributes_failure_case(self, idrac_connection_lc_attribute_mock, idrac_default_args,
-                                             idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename"})
-        error_msg = "Error in Runtime"
-        obj2 = MagicMock()
-        idrac_connection_lc_attribute_mock.file_share_manager = obj2
-        idrac_connection_lc_attribute_mock.config_mgr = obj2
-        type(obj2).create_share_obj = Mock(side_effect=Exception(error_msg))
-        type(obj2).set_liason_share = Mock(side_effect=Exception(error_msg))
-        msg = self._run_module_with_fail_json(idrac_default_args)
-        assert msg['failed'] is True
-        assert msg['msg'] == "Error: {0}".format(error_msg)
 
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_lc_attribute_exception_handling_case(self, exc_type, mocker, idrac_connection_lc_attribute_mock,
