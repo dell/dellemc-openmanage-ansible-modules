@@ -62,7 +62,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: create user with required parameters.
+- name: Create user with required parameters
   dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
@@ -73,7 +73,7 @@ EXAMPLES = r'''
       RoleId: "10"
       Enabled: True
 
-- name: create user with all parameters.
+- name: Create user with all parameters
   dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
@@ -89,7 +89,7 @@ EXAMPLES = r'''
       Locked: False
       Name: "user2"
 
-- name: modify existing user.
+- name: Modify existing user
   dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
@@ -101,7 +101,7 @@ EXAMPLES = r'''
       Enabled: True
       Description: "Modify user Description"
 
-- name: delete existing user using id.
+- name: Delete existing user using id
   dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
@@ -109,7 +109,7 @@ EXAMPLES = r'''
     state: "absent"
     user_id: 1234
 
-- name: delete existing user using name.
+- name: Delete existing user using name
   dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"

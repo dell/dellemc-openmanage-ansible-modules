@@ -117,7 +117,7 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Configure a new iDRAC user.
+- name: Configure a new iDRAC user
   dellemc.openmanage.idrac_user:
     idrac_ip: 198.162.0.1
     idrac_user: idrac_user
@@ -134,7 +134,7 @@ EXAMPLES = """
     authentication_protocol: SHA
     privacy_protocol: AES
 
-- name: Modify existing iDRAC user username and password.
+- name: Modify existing iDRAC user username and password
   dellemc.openmanage.idrac_user:
     idrac_ip: 198.162.0.1
     idrac_user: idrac_user
@@ -144,7 +144,7 @@ EXAMPLES = """
     new_user_name: new_user_name
     user_password: user_password
 
-- name: Delete existing iDRAC user account.
+- name: Delete existing iDRAC user account
   dellemc.openmanage.idrac_user:
     idrac_ip: 198.162.0.1
     idrac_user: idrac_user

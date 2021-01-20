@@ -43,20 +43,20 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Retrieve basic details of all accounts.
+- name: Retrieve basic details of all accounts
   dellemc.openmanage.ome_user_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
-- name: Retrieve details of a specific account identified by its account ID.
+- name: Retrieve details of a specific account identified by its account ID
   dellemc.openmanage.ome_user_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     account_id: 1
 
-- name: Get filtered user info based on user name.
+- name: Get filtered user info based on user name
   dellemc.openmanage.ome_user_info:
     hostname: "192.168.0.1"
     username: "username"

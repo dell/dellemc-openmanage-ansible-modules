@@ -39,7 +39,7 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Show status of a Lifecycle Control job.
+- name: Show status of a Lifecycle Control job
   dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
        idrac_ip:  "192.168.0.1"
        idrac_user:  "user_name"

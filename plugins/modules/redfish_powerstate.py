@@ -61,14 +61,14 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Manage power state of the first device.
+- name: Manage power state of the first device
   dellemc.openmanage.redfish_powerstate:
        baseuri: "192.168.0.1"
        username: "username"
        password: "password"
        reset_type: "On"
 
-- name: Manage power state of a specified device.
+- name: Manage power state of a specified device
   dellemc.openmanage.redfish_powerstate:
        baseuri: "192.168.0.1"
        username: "username"

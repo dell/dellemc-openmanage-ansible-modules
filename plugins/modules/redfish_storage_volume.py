@@ -150,7 +150,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Create a volume with supported options.
+- name: Create a volume with supported options
   dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
@@ -168,7 +168,7 @@ EXAMPLES = r'''
     encryption_types: NativeDriveEncryption
     encrypted: true
 
-- name: Create a volume with minimum options.
+- name: Create a volume with minimum options
   dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
@@ -179,7 +179,7 @@ EXAMPLES = r'''
     drives:
        - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
 
-- name: Modify a volume's encryption type settings.
+- name: Modify a volume's encryption type settings
   dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
@@ -189,7 +189,7 @@ EXAMPLES = r'''
     encryption_types: "ControllerAssisted"
     encrypted: true
 
-- name: Delete an existing volume.
+- name: Delete an existing volume
   dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
@@ -197,7 +197,7 @@ EXAMPLES = r'''
     state: "absent"
     volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
 
-- name: Initialize an existing volume.
+- name: Initialize an existing volume
   dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
