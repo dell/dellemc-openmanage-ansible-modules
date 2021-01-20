@@ -11,6 +11,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 DOCUMENTATION = """
@@ -74,8 +75,13 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
+  description: Overall status of iDRAC LC attributes configuration.
+  returned: always
+  type: str
+  sample: Successfully configured the iDRAC LC attributes.
+lc_attribute_status:
     description: Collect System Inventory on Restart (CSIOR) property for all iDRAC/LC jobs is configured.
-    returned: always
+    returned: success
     type: dict
     sample: {
         "CompletionTime": "2020-03-30T00:06:53",
@@ -95,11 +101,34 @@ msg:
         "TargetSettingsURI": null,
         "retval": true
     }
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
 '''
 
-
+import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+
 try:
     from omsdk.sdkfile import file_share_manager
     from omsdk.sdkcreds import UserCredentials
@@ -116,59 +145,37 @@ def run_setup_idrac_csior(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    msg = {}
-    msg['changed'] = False
-    msg['failed'] = False
-    # msg['msg'] = {}
-    err = False
+    idrac.use_redfish = True
+    upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
+                                                    mount_point=module.params['share_mnt'],
+                                                    isFolder=True,
+                                                    creds=UserCredentials(
+                                                        module.params['share_user'],
+                                                        module.params['share_password'])
+                                                    )
 
-    try:
+    set_liason = idrac.config_mgr.set_liason_share(upd_share)
+    if set_liason['Status'] == "Failed":
+        try:
+            message = set_liason['Data']['Message']
+        except (IndexError, KeyError):
+            message = set_liason['Message']
+        module.fail_json(msg=message)
+    if module.params['csior'] == 'Enabled':
+        # Enable csior
+        idrac.config_mgr.enable_csior()
+    elif module.params['csior'] == 'Disabled':
+        # Disable csior
+        idrac.config_mgr.disable_csior()
 
-        idrac.use_redfish = True
-        upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                        mount_point=module.params['share_mnt'],
-                                                        isFolder=True,
-                                                        creds=UserCredentials(
-                                                            module.params['share_user'],
-                                                            module.params['share_password'])
-                                                        )
-
-        set_liason = idrac.config_mgr.set_liason_share(upd_share)
-        if set_liason['Status'] == "Failed":
-            try:
-                message = set_liason['Data']['Message']
-            except (IndexError, KeyError):
-                message = set_liason['Message']
-            err = True
-            msg['msg'] = "{0}".format(message)
-            msg['failed'] = True
-            return msg, err
-
-        if module.params['csior'] == 'Enabled':
-            # Enable csior
-            idrac.config_mgr.enable_csior()
-        elif module.params['csior'] == 'Disabled':
-            # Disable csior
-            idrac.config_mgr.disable_csior()
-        if module.check_mode:
-            msg['msg'] = idrac.config_mgr.is_change_applicable()
-            if 'changes_applicable' in msg['msg']:
-                msg['changed'] = msg['msg']['changes_applicable']
+    if module.check_mode:
+        status = idrac.config_mgr.is_change_applicable()
+        if status.get("changes_applicable"):
+            module.exit_json(msg="Changes found to commit!", changed=True)
         else:
-            msg['msg'] = idrac.config_mgr.apply_changes(reboot=True)
-            if "Status" in msg['msg']:
-                if msg['msg']['Status'] == "Success":
-                    msg['changed'] = True
-                    if "Message" in msg['msg']:
-                        if msg['msg']['Message'] == "No changes found to commit!":
-                            msg['changed'] = False
-                else:
-                    msg['failed'] = True
-    except Exception as e:
-        err = True
-        msg['msg'] = "Error: %s" % str(e)
-        msg['failed'] = True
-    return msg, err
+            module.exit_json(msg="No changes found to commit!")
+    else:
+        return idrac.config_mgr.apply_changes(reboot=False)
 
 
 # Main
@@ -194,13 +201,25 @@ def main():
 
     try:
         with iDRACConnection(module.params) as idrac:
-            msg, err = run_setup_idrac_csior(idrac, module)
-    except (ImportError, ValueError, RuntimeError) as e:
+            status = run_setup_idrac_csior(idrac, module)
+            if status.get('Status') == "Success":
+                changed = True
+                msg = "Successfully configured the iDRAC LC attributes."
+                if status.get('Message') and (status.get('Message') == "No changes found to commit!" or
+                                              "No changes were applied" in status.get('Message')):
+                    msg = status.get('Message')
+                    changed = False
+                elif status.get('Status') == "Failed":
+                    module.fail_json(msg="Failed to configure the iDRAC LC attributes.")
+                module.exit_json(msg=msg, lc_attribute_status=status, changed=changed)
+            else:
+                module.fail_json(msg="Failed to configure the iDRAC LC attributes.")
+    except HTTPError as err:
+        module.fail_json(msg=str(err), error_info=json.load(err))
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (RuntimeError, ImportError, SSLValidationError, IOError, ValueError, TypeError, ConnectionError) as e:
         module.fail_json(msg=str(e))
-
-    if err:
-        module.fail_json(**msg)
-    module.exit_json(**msg)
 
 
 if __name__ == '__main__':

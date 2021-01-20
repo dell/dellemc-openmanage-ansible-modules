@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.4
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -69,11 +69,13 @@ class TestConfigureEventing(FakeAnsibleModule):
                                                     mocker, idrac_file_manager_config_eventing_mock):
         idrac_default_args.update({"share_name": "sharename", 'share_password': None, "destination_number": 1,
                                    "destination": "1.1.1.1", 'share_mnt': None, 'share_user': None})
-        message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
+        message = {'msg': 'Successfully configured the idrac eventing settings.',
+                   'eventing_status': {"Id": "JID_12345123456", "JobState": "Completed"},
+                   'changed': True}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
-                     'dellemc_configure_idrac_eventing.run_idrac_eventing_config', return_value=(message, False))
+                     'dellemc_configure_idrac_eventing.run_idrac_eventing_config', return_value=message)
         result = self._run_module(idrac_default_args)
-        assert result == {'changed': False, 'msg': {'Status': 'Success', "message": "No changes found to commit!"}}
+        assert result["msg"] == "Successfully configured the iDRAC eventing settings."
 
     def test_run_idrac_eventing_config_success_case01(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args,
@@ -85,12 +87,12 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
                                    "smtp_ip_address": "192.168.0.1", "smtp_port": 443, "username": "uname",
                                    "password": "pwd"})
-        message = {"changes_applicable": True, "message": "changes are applicable"}
+        message = {"changes_applicable": True, "message": "Changes found to commit!"}
         idrac_connection_configure_eventing_mock.config_mgr.is_change_applicable.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        msg, err = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
-        assert msg == {'changed': True, 'failed': False, 'msg': {'changes_applicable': True,
-                                                                 'message': 'changes are applicable'}}
+        with pytest.raises(Exception) as ex:
+            self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
+        assert "Changes found to commit!" == ex.value.args[0]
 
     def test_run_idrac_eventing_config_success_case02(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
@@ -106,11 +108,8 @@ class TestConfigureEventing(FakeAnsibleModule):
         idrac_connection_configure_eventing_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success', 'message': 'changes found to commit!', 'changed': True,
-                               'changes_applicable': True}, 'failed': False, 'changed': True}
-        assert msg['changed'] is True
-        assert msg['failed'] is False
+        result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
+        assert result['message'] == 'changes found to commit!'
 
     def test_run_idrac_eventing_config_success_case03(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
@@ -126,11 +125,8 @@ class TestConfigureEventing(FakeAnsibleModule):
         idrac_connection_configure_eventing_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success', 'Message': 'No changes found to commit!', 'changed': False,
-                               'changes_applicable': False}, 'failed': False, 'changed': False}
-        assert msg['changed'] is False
-        assert msg['failed'] is False
+        result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
+        assert result["Message"] == 'No changes found to commit!'
 
     def test_run_idrac_eventing_config_success_case04(self, idrac_connection_configure_eventing_mock,
                                                       idrac_default_args, idrac_file_manager_config_eventing_mock):
@@ -146,11 +142,8 @@ class TestConfigureEventing(FakeAnsibleModule):
         idrac_connection_configure_eventing_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success', 'Message': 'No changes were applied', 'changed': False,
-                               'changes_applicable': False}, 'failed': False, 'changed': False}
-        assert msg['changed'] is False
-        assert msg['failed'] is False
+        result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
+        assert result['Message'] == 'No changes were applied'
 
     def test_run_idrac_eventing_config_success_case05(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
@@ -172,11 +165,8 @@ class TestConfigureEventing(FakeAnsibleModule):
         idrac_connection_configure_eventing_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
-        assert msg == {'msg': {'Status': 'Success', 'Message': 'No changes were applied', 'changed': False,
-                               'changes_applicable': False}, 'failed': False, 'changed': False}
-        assert msg['changed'] is False
-        assert msg['failed'] is False
+        result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
+        assert result['Message'] == 'No changes were applied'
 
     def test_run_idrac_eventing_config_failed_case01(self, idrac_connection_configure_eventing_mock,
                                                      idrac_file_manager_config_eventing_mock, idrac_default_args):
@@ -191,9 +181,9 @@ class TestConfigureEventing(FakeAnsibleModule):
         idrac_connection_configure_eventing_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
         idrac_connection_configure_eventing_mock.config_mgr.set_liason_share.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
-        result, err = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
-        assert result == {'msg': 'status failed in checking Data', 'failed': True, 'changed': False}
-        assert err is True
+        with pytest.raises(Exception) as ex:
+            self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
+        assert ex.value.args[0] == 'status failed in checking Data'
 
     def test_run_idrac_eventing_config_failed_case02(self, idrac_connection_configure_eventing_mock,
                                                      idrac_default_args, idrac_file_manager_config_eventing_mock):
@@ -209,11 +199,8 @@ class TestConfigureEventing(FakeAnsibleModule):
         idrac_connection_configure_eventing_mock.config_mgr.apply_changes.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
-        msg, err = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
-        assert msg == {'msg': {'Status': 'failed', 'Message': 'No changes were applied', 'changed': False,
-                               'changes_applicable': False}, 'failed': True, 'changed': False}
-        assert msg['changed'] is False
-        assert msg['failed'] is True
+        result = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
+        assert result['Message'] == 'No changes were applied'
 
     def test_run_idrac_eventing_config_failed_case03(self, idrac_connection_configure_eventing_mock,
                                                      idrac_default_args, idrac_file_manager_config_eventing_mock):
@@ -228,24 +215,9 @@ class TestConfigureEventing(FakeAnsibleModule):
         idrac_connection_configure_eventing_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
         idrac_connection_configure_eventing_mock.config_mgr.set_liason_share.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args)
-        msg, err = self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
-        assert msg == {'changed': False, 'failed': True, 'msg': 'Failed to found changes'}
-        assert msg['changed'] is False
-        assert msg['failed'] is True
-        assert err is True
-
-    def test_main_configure_eventing_failure_case(self, idrac_connection_configure_eventing_mock, idrac_default_args,
-                                                  idrac_file_manager_config_eventing_mock):
-        idrac_default_args.update({"share_name": "sharename"})
-        error_msg = "Error in Runtime"
-        obj2 = MagicMock()
-        idrac_connection_configure_eventing_mock.file_share_manager = obj2
-        idrac_connection_configure_eventing_mock.config_mgr = obj2
-        type(obj2).create_share_obj = PropertyMock(side_effect=Exception(error_msg))
-        type(obj2).set_liason_share = PropertyMock(side_effect=Exception(error_msg))
-        msg = self._run_module_with_fail_json(idrac_default_args)
-        assert msg['failed'] is True
-        assert msg['msg'] == "Error: {0}".format(error_msg)
+        with pytest.raises(Exception) as ex:
+            self.module.run_idrac_eventing_config(idrac_connection_configure_eventing_mock, f_module)
+        assert ex.value.args[0] == 'Failed to found changes'
 
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_configure_eventing_exception_handling_case(self, exc_type, mocker, idrac_default_args,

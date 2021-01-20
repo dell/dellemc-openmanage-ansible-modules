@@ -11,6 +11,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 DOCUMENTATION = """
@@ -148,8 +149,13 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
-    description: Configures the iDRAC services attributes.
-    returned: always
+  description: Overall status of iDRAC service attributes configuration.
+  returned: always
+  type: str
+  sample: Successfully configured the iDRAC services settings.
+service_status:
+    description: Details of iDRAC services attributes configuration.
+    returned: success
     type: dict
     sample: {
         "CompletionTime": "2020-04-02T02:43:28",
@@ -168,11 +174,34 @@ msg:
         "TargetSettingsURI": null,
         "retval": true
 }
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
 '''
 
-
+import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+
 try:
     from omdrivers.enums.iDRAC.iDRAC import (Enable_WebServerTypes,
                                              SSLEncryptionBitLength_WebServerTypes,
@@ -193,108 +222,86 @@ def run_idrac_services_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    msg = {}
-    msg['changed'] = False
-    msg['failed'] = False
-    msg['msg'] = {}
-    err = False
+    idrac.use_redfish = True
+    upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
+                                                    mount_point=module.params['share_mnt'],
+                                                    isFolder=True,
+                                                    creds=UserCredentials(
+                                                        module.params['share_user'],
+                                                        module.params['share_password'])
+                                                    )
 
-    try:
+    set_liason = idrac.config_mgr.set_liason_share(upd_share)
+    if set_liason['Status'] == "Failed":
+        try:
+            message = set_liason['Data']['Message']
+        except (IndexError, KeyError):
+            message = set_liason['Message']
+        module.fail_json(msg=message)
 
-        idrac.use_redfish = True
-        upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                        mount_point=module.params['share_mnt'],
-                                                        isFolder=True,
-                                                        creds=UserCredentials(
-                                                            module.params['share_user'],
-                                                            module.params['share_password'])
-                                                        )
+    if module.params['enable_web_server'] is not None:
+        idrac.config_mgr.configure_web_server(
+            enable_web_server=Enable_WebServerTypes[module.params['enable_web_server']]
+        )
+    if module.params['http_port'] is not None:
+        idrac.config_mgr.configure_web_server(
+            http_port=module.params['http_port']
+        )
+    if module.params['https_port'] is not None:
+        idrac.config_mgr.configure_web_server(
+            https_port=module.params['https_port']
+        )
+    if module.params['timeout'] is not None:
+        idrac.config_mgr.configure_web_server(
+            timeout=module.params['timeout']
+        )
+    if module.params['ssl_encryption'] is not None:
+        idrac.config_mgr.configure_web_server(
+            ssl_encryption=SSLEncryptionBitLength_WebServerTypes[module.params['ssl_encryption']]
+        )
+    if module.params['tls_protocol'] is not None:
+        idrac.config_mgr.configure_web_server(
+            tls_protocol=TLSProtocol_WebServerTypes[module.params['tls_protocol']]
+        )
 
-        set_liason = idrac.config_mgr.set_liason_share(upd_share)
-        if set_liason['Status'] == "Failed":
-            try:
-                message = set_liason['Data']['Message']
-            except (IndexError, KeyError):
-                message = set_liason['Message']
-            err = True
-            msg['msg'] = "{0}".format(message)
-            msg['failed'] = True
-            return msg, err
+    if module.params['snmp_enable'] is not None:
+        idrac.config_mgr.configure_snmp(
+            snmp_enable=AgentEnable_SNMPTypes[module.params['snmp_enable']]
+        )
+    if module.params['community_name'] is not None:
+        idrac.config_mgr.configure_snmp(
+            community_name=module.params['community_name']
+        )
+    if module.params['snmp_protocol'] is not None:
+        idrac.config_mgr.configure_snmp(
+            snmp_protocol=SNMPProtocol_SNMPTypes[module.params['snmp_protocol']]
+        )
+    if module.params['alert_port'] is not None:
+        idrac.config_mgr.configure_snmp(
+            alert_port=module.params['alert_port']
+        )
+    if module.params['discovery_port'] is not None:
+        idrac.config_mgr.configure_snmp(
+            discovery_port=module.params['discovery_port']
+        )
+    if module.params['trap_format'] is not None:
+        idrac.config_mgr.configure_snmp(
+            trap_format=module.params['trap_format']
+        )
+    if module.params['ipmi_lan'] is not None:
+        ipmi_option = module.params.get('ipmi_lan')
+        community_name = ipmi_option.get('community_name')
+        if community_name is not None:
+            idrac.config_mgr.configure_snmp(ipmi_community=community_name)
 
-        if module.params['enable_web_server'] is not None:
-            idrac.config_mgr.configure_web_server(
-                enable_web_server=Enable_WebServerTypes[module.params['enable_web_server']]
-            )
-        if module.params['http_port'] is not None:
-            idrac.config_mgr.configure_web_server(
-                http_port=module.params['http_port']
-            )
-        if module.params['https_port'] is not None:
-            idrac.config_mgr.configure_web_server(
-                https_port=module.params['https_port']
-            )
-        if module.params['timeout'] is not None:
-            idrac.config_mgr.configure_web_server(
-                timeout=module.params['timeout']
-            )
-        if module.params['ssl_encryption'] is not None:
-            idrac.config_mgr.configure_web_server(
-                ssl_encryption=SSLEncryptionBitLength_WebServerTypes[module.params['ssl_encryption']]
-            )
-        if module.params['tls_protocol'] is not None:
-            idrac.config_mgr.configure_web_server(
-                tls_protocol=TLSProtocol_WebServerTypes[module.params['tls_protocol']]
-            )
-
-        if module.params['snmp_enable'] is not None:
-            idrac.config_mgr.configure_snmp(
-                snmp_enable=AgentEnable_SNMPTypes[module.params['snmp_enable']]
-            )
-        if module.params['community_name'] is not None:
-            idrac.config_mgr.configure_snmp(
-                community_name=module.params['community_name']
-            )
-        if module.params['snmp_protocol'] is not None:
-            idrac.config_mgr.configure_snmp(
-                snmp_protocol=SNMPProtocol_SNMPTypes[module.params['snmp_protocol']]
-            )
-        if module.params['alert_port'] is not None:
-            idrac.config_mgr.configure_snmp(
-                alert_port=module.params['alert_port']
-            )
-        if module.params['discovery_port'] is not None:
-            idrac.config_mgr.configure_snmp(
-                discovery_port=module.params['discovery_port']
-            )
-        if module.params['trap_format'] is not None:
-            idrac.config_mgr.configure_snmp(
-                trap_format=module.params['trap_format']
-            )
-        if module.params['ipmi_lan'] is not None:
-            ipmi_option = module.params.get('ipmi_lan')
-            community_name = ipmi_option.get('community_name')
-            if community_name is not None:
-                idrac.config_mgr.configure_snmp(ipmi_community=community_name)
-
-        if module.check_mode:
-            msg['msg'] = idrac.config_mgr.is_change_applicable()
-            if 'changes_applicable' in msg['msg']:
-                msg['changed'] = msg['msg']['changes_applicable']
+    if module.check_mode:
+        status = idrac.config_mgr.is_change_applicable()
+        if status.get('changes_applicable'):
+            module.exit_json(msg="Changes found to commit!", changed=True)
         else:
-            msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
-            if "Status" in msg['msg']:
-                if msg['msg']['Status'] == "Success":
-                    msg['changed'] = True
-                    if "Message" in msg['msg']:
-                        if msg['msg']['Message'] == "No changes found to commit!":
-                            msg['changed'] = False
-                else:
-                    msg['failed'] = True
-    except Exception as e:
-        err = True
-        msg['msg'] = "Error: %s" % str(e)
-        msg['failed'] = True
-    return msg, err
+            module.exit_json(msg="No changes found to commit!")
+    else:
+        return idrac.config_mgr.apply_changes(reboot=False)
 
 
 # Main
@@ -342,13 +349,25 @@ def main():
 
     try:
         with iDRACConnection(module.params) as idrac:
-            msg, err = run_idrac_services_config(idrac, module)
-    except (ImportError, ValueError, RuntimeError) as e:
+            status = run_idrac_services_config(idrac, module)
+            if status.get('Status') == "Success":
+                changed = True
+                msg = "Successfully configured the iDRAC services settings."
+                if status.get('Message') and (status.get('Message') == "No changes found to commit!" or
+                                              "No changes were applied" in status.get('Message')):
+                    msg = status.get('Message')
+                    changed = False
+                elif status.get('Status') == "Failed":
+                    module.fail_json(msg="Failed to configure the iDRAC services.")
+                module.exit_json(msg=msg, service_status=status, changed=changed)
+            else:
+                module.fail_json(msg="Failed to configure the iDRAC services.")
+    except HTTPError as err:
+        module.fail_json(msg=str(err), error_info=json.load(err))
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (RuntimeError, ImportError, SSLValidationError, IOError, ValueError, TypeError, ConnectionError) as e:
         module.fail_json(msg=str(e))
-
-    if err:
-        module.fail_json(**msg)
-    module.exit_json(**msg)
 
 
 if __name__ == '__main__':

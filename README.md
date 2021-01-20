@@ -20,19 +20,22 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 ## Installation
 
 * From [galaxy](https://galaxy.ansible.com/dellemc/openmanage):  
-Download the tar build and follow the below command to install the collection
-```
-ansible-galaxy collection install dellemc-openmanage-2.1.5.tar.gz
-```
+```ansible-galaxy collection install dellemc.openmanage```
+
+    - For offline installation on the Ansible control machine, download the required tar archive version of the collection from [Dell EMC OpenManage collection](https://galaxy.ansible.com/dellemc/openmanage) and run the command given below:  
+      ```ansible-galaxy collection install dellemc-openmanage-<version>.tar.gz```
 
 * From [github](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections):  
-Install the collection from the github repository using the latest commit on the branch 'collections'
-```
-ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections
-```
+Install the collection from the github repository using the latest commit on the branch 'collections'  
+```ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections```
 
 ## Playbooks
 Latest sample playbooks and examples are available at [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
+
+## Documentation
+Use `ansible-doc` to view the documentation of each module and plugin.  
+For example-```ansible-doc dellemc.openmanage.<module_name>```  
+For detailed information on Dell EMC OpenManage Ansible Modules refer the guides [here.](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/devel/guides)
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. See the [COPYING](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/COPYING.md) for more information.

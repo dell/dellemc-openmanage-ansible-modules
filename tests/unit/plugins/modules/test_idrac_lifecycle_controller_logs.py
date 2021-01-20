@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -66,7 +66,8 @@ class TestExportLcLogs(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs', return_value=(message, False))
         idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "Success"}
         result = self._run_module(idrac_default_args)
-        # assert result == {'changed': False, 'msg': ({'Status': 'Success'}, False)}
+        assert result == {'msg': 'Successfully exported the lifecycle controller logs.',
+                          'lc_logs_status': ({'Status': 'Success'}, False), 'changed': False}
 
     def test_run_export_lc_logs_success_case01(self, idrac_connection_export_lc_logs_mock, idrac_default_args,
                                                idrac_file_manager_export_lc_logs_mock):
