@@ -119,7 +119,7 @@ options:
   volumes:
     required: False
     type: list
-    elements: str
+    elements: dict
     description:
       - >-
         A list of virtual disk specific iDRAC attributes. This is applicable for C(create) and C(delete) operations.
@@ -475,7 +475,7 @@ def main():
             "state": {"required": False,
                       "choices": ['create', 'delete', 'view'], "default": 'view'},
             "volume_id": {"required": False, "type": 'str'},
-            "volumes": {"required": False, "type": 'list', "elements": 'str'},
+            "volumes": {"required": False, "type": 'list', "elements": 'dict'},
             "span_depth": {"required": False, "type": 'int', "default": 1},
             "span_length": {"required": False, "type": 'int', "default": 1},
             "number_dedicated_hot_spare": {"required": False, "type": 'int', "default": 0},
