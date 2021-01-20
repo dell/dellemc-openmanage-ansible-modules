@@ -70,7 +70,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Retrieves device based compliance report for specified device IDs.
+- name: Retrieves device based compliance report for specified device IDs
   dellemc.openmanage.ome_firmware_baseline_compliance_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -88,7 +88,7 @@ EXAMPLES = r'''
         - MXL1234
         - MXL4567
 
-- name: Retrieves device based compliance report for specified group names.
+- name: Retrieves device based compliance report for specified group names
   dellemc.openmanage.ome_firmware_baseline_compliance_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -97,7 +97,7 @@ EXAMPLES = r'''
         - "group1"
         - "group2"
 
-- name: Retrieves device compliance report for a specified baseline.
+- name: Retrieves device compliance report for a specified baseline
   dellemc.openmanage.ome_firmware_baseline_compliance_info:
     hostname: "192.168.0.1"
     username: "username"

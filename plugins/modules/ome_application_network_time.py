@@ -68,7 +68,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Configure system time.
+- name: Configure system time
   dellemc.openmanage.ome_application_network_time:
     hostname: "192.168.0.1"
     username: "username"
@@ -77,7 +77,7 @@ EXAMPLES = r'''
     system_time: "2020-03-31 21:35:18"
     time_zone: "TZ_ID_11"
 
-- name: Configure NTP server for time synchronization.
+- name: Configure NTP server for time synchronization
   dellemc.openmanage.ome_application_network_time:
     hostname: "192.168.0.1"
     username: "username"

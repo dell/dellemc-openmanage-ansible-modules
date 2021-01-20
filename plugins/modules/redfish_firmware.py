@@ -48,7 +48,7 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Update the firmware from a single executable file available in a HTTP protocol.
+- name: Update the firmware from a single executable file available in a HTTP protocol
   dellemc.openmanage.redfish_firmware:
     baseuri: "192.168.0.1"
     username: "user_name"
@@ -56,7 +56,7 @@ EXAMPLES = """
     image_uri: "http://192.168.0.2/firmware_repo/component.exe"
     transfer_protocol: "HTTP"
 
-- name: Update the firmware from a single executable file available in a local path.
+- name: Update the firmware from a single executable file available in a local path
   dellemc.openmanage.redfish_firmware:
     baseuri: "192.168.0.1"
     username: "user_name"

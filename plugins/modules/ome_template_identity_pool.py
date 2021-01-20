@@ -43,7 +43,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Attach an identity pool to a template.
+- name: Attach an identity pool to a template
   dellemc.openmanage.ome_template_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
@@ -51,7 +51,7 @@ EXAMPLES = r'''
     template_name: template_name
     identity_pool_name: identity_pool_name
 
-- name: Detach an identity pool from a template.
+- name: Detach an identity pool from a template
   dellemc.openmanage.ome_template_identity_pool:
     hostname: "192.168.0.1"
     username: "username"

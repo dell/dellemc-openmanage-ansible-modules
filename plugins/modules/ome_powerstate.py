@@ -47,7 +47,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Power state operation based on device id.
+- name: Power state operation based on device id
   dellemc.openmanage.ome_powerstate:
     hostname: "192.168.0.1"
     username: "username"
@@ -55,7 +55,7 @@ EXAMPLES = r'''
     device_id: 11111
     power_state: "off"
 
-- name: Power state operation based on device service tag.
+- name: Power state operation based on device service tag
   dellemc.openmanage.ome_powerstate:
     hostname: "192.168.0.1"
     username: "username"
@@ -63,7 +63,7 @@ EXAMPLES = r'''
     device_service_tag: "KLBR111"
     power_state: "on"
 
-- name: Power state operation based on list of device ids.
+- name: Power state operation based on list of device ids
   dellemc.openmanage.ome_powerstate:
     hostname: "192.168.0.1"
     username: "username"
@@ -74,7 +74,7 @@ EXAMPLES = r'''
     - { "device_id": 11111, "state": "on" }
     - { "device_id": 22222, "state": "off" }
 
-- name: Power state operation based on list of device service tags.
+- name: Power state operation based on list of device service tags
   dellemc.openmanage.ome_powerstate:
     hostname: "192.168.0.1"
     username: "username"
@@ -182,7 +182,7 @@ def build_power_state_payload(device_id, device_type, valid_option):
         "JobType": {"Id": 3, "Name": "DeviceAction_Task"},
         "Params": [{"Key": "operationName", "Value": "POWER_CONTROL"},
                    {"Key": "powerState", "Value": str(valid_option)}],
-        "Targets": [{"Id": device_id, "Data": "",
+        "Targets": [{"Id": int(device_id), "Data": "",
                      "TargetType": {"Id": device_type, "Name": "DEVICE"}}],
     }
     return payload
@@ -192,7 +192,7 @@ def get_device_state(module, resp, device_id):
     """Get the current state and device type from response."""
     current_state, device_type, invalid_device = None, None, True
     for device in resp.json_data['value']:
-        if device['Id'] == device_id:
+        if device['Id'] == int(device_id):
             current_state = device.get('PowerState', None)
             device_type = device['Type']
             invalid_device = False

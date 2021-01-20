@@ -44,7 +44,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Retrieve basic details of all templates.
+- name: Retrieve basic details of all templates
   dellemc.openmanage.ome_template_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -57,7 +57,7 @@ EXAMPLES = r'''
     password: "password"
     template_id: 1
 
-- name: Get filtered template info based on name.
+- name: Get filtered template info based on name
   dellemc.openmanage.ome_template_info:
     hostname: "192.168.0.1"
     username: "username"

@@ -71,13 +71,13 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Retrieve basic inventory of all devices.
+- name: Retrieve basic inventory of all devices
   dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
-- name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering.
+- name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering
   dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -86,7 +86,7 @@ EXAMPLES = """
     system_query_options:
       filter: "Id eq 33333 or Id eq 11111"
 
-- name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222.
+- name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222
   dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -97,7 +97,7 @@ EXAMPLES = """
         - 11111
         - 22222
 
-- name: Retrieve inventory details of specified devices identified by service tags MXL1234 and MXL4567.
+- name: Retrieve inventory details of specified devices identified by service tags MXL1234 and MXL4567
   dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -108,7 +108,7 @@ EXAMPLES = """
         - MXL1234
         - MXL4567
 
-- name: Retrieve details of specified inventory type of specified devices identified by ID and service tags.
+- name: Retrieve details of specified inventory type of specified devices identified by ID and service tags
   dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -122,7 +122,7 @@ EXAMPLES = """
         - MXL4567
       inventory_type: "serverDeviceCards"
 
-- name: Retrieve subsystem health of specified devices identified by service tags.
+- name: Retrieve subsystem health of specified devices identified by service tags
   dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
