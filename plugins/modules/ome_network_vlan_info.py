@@ -46,13 +46,13 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Retrieve information about all network VLANs(s) available in the device.
+- name: Retrieve information about all network VLANs(s) available in the device
   dellemc.openmanage.ome_network_vlan_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
-- name: Retrieve information about a network VLAN using the VLAN ID.
+- name: Retrieve information about a network VLAN using the VLAN ID
   dellemc.openmanage.ome_network_vlan_info:
     hostname: "192.168.0.1"
     username: "username"

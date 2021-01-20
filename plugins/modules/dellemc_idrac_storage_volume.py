@@ -145,7 +145,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Create single volume.
+- name: Create single volume
   dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
@@ -156,7 +156,7 @@ EXAMPLES = r'''
       - drives:
         location: [5]
 
-- name: Create multiple volume.
+- name: Create multiple volume
   dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
@@ -191,14 +191,14 @@ EXAMPLES = r'''
         capacity: "200"
         raid_init_operation: "None"
 
-- name: View all volume details.
+- name: View all volume details
   dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
     state: "view"
 
-- name: View specific volume details.
+- name: View specific volume details
   dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
@@ -207,7 +207,7 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
 
-- name: Delete single volume.
+- name: Delete single volume
   dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
@@ -216,7 +216,7 @@ EXAMPLES = r'''
     volumes:
       - name: "volume_1"
 
-- name: Delete multiple volume.
+- name: Delete multiple volume
   dellemc.openmanage.dellemc_idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"

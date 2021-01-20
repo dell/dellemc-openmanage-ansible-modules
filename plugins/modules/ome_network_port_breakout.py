@@ -44,7 +44,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Port breakout configuration.
+- name: Port breakout configuration
   dellemc.openmanage.ome_network_port_breakout:
     hostname: "192.168.0.1"
     username: "username"
@@ -52,7 +52,7 @@ EXAMPLES = r'''
     target_port: "2HB7NX2:phy-port1/1/11"
     breakout_type: "1X40GE"
 
-- name: Revoke the default breakout configuration.
+- name: Revoke the default breakout configuration
   dellemc.openmanage.ome_network_port_breakout:
     hostname: "192.168.0.1"
     username: "username"

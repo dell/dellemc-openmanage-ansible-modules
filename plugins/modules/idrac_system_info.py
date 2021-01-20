@@ -17,7 +17,7 @@ DOCUMENTATION = """
 ---
 module: idrac_system_info
 short_description: Get the PowerEdge Server System Inventory
-version_added: "2.1.0"
+version_added: "3.0.0"
 description:
     - Get the PowerEdge Server System Inventory.
 extends_documentation_fragment:

@@ -68,7 +68,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Update proxy configuration and enable authentication.
+- name: Update proxy configuration and enable authentication
   dellemc.openmanage.ome_application_network_proxy:
     hostname: "192.168.0.1"
     username: "username"
@@ -80,7 +80,7 @@ EXAMPLES = r'''
     proxy_username: "proxy_username"
     proxy_password: "proxy_password"
 
-- name: Reset proxy authentication.
+- name: Reset proxy authentication
   dellemc.openmanage.ome_application_network_proxy:
     hostname: "192.168.0.1"
     username: "username"
@@ -90,7 +90,7 @@ EXAMPLES = r'''
     proxy_port: 444
     enable_authentication: false
 
-- name: Reset proxy configuration.
+- name: Reset proxy configuration
   dellemc.openmanage.ome_application_network_proxy:
     hostname: "192.168.0.1"
     username: "username"

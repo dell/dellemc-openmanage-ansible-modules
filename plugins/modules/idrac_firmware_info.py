@@ -17,7 +17,7 @@ DOCUMENTATION = """
 ---
 module: idrac_firmware_info
 short_description: Get Firmware Inventory
-version_added: "2.1.0"
+version_added: "3.0.0"
 description: Get Firmware Inventory.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options

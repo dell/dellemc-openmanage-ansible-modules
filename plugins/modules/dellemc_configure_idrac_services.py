@@ -122,7 +122,7 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Configure the iDRAC services attributes.
+- name: Configure the iDRAC services attributes
   dellemc.openmanage.dellemc_configure_idrac_services:
        idrac_ip:   "192.168.0.1"
        idrac_user: "user_name"

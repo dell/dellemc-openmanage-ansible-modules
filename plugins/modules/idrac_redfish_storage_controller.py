@@ -102,7 +102,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Assign dedicated hot spare.
+- name: Assign dedicated hot spare
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
@@ -113,7 +113,7 @@ EXAMPLES = r'''
   tags:
     - assign_dedicated_hot_spare
 
-- name: Assign global hot spare.
+- name: Assign global hot spare
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
@@ -122,7 +122,7 @@ EXAMPLES = r'''
   tags:
     - assign_global_hot_spare
 
-- name: Set controller encryption key.
+- name: Set controller encryption key
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
@@ -134,7 +134,7 @@ EXAMPLES = r'''
   tags:
     - set_controller_key
 
-- name: Rekey in LKM mode.
+- name: Rekey in LKM mode
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
@@ -147,7 +147,7 @@ EXAMPLES = r'''
   tags:
     - rekey_lkm
 
-- name: Rekey in SEKM mode.
+- name: Rekey in SEKM mode
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
@@ -158,7 +158,7 @@ EXAMPLES = r'''
   tags:
     - rekey_sekm
 
-- name: Remove controller key.
+- name: Remove controller key
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
@@ -168,7 +168,7 @@ EXAMPLES = r'''
   tags:
     - remove_controller_key
 
-- name: Reset controller configuration.
+- name: Reset controller configuration
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"

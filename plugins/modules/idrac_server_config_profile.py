@@ -103,7 +103,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Import SCP from a network share and wait for this job to get completed.
+- name: Import SCP from a network share and wait for this job to get completed
   dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
@@ -116,7 +116,7 @@ EXAMPLES = r'''
     scp_components: "ALL"
     job_wait: True
 
-- name: Import SCP from a local path and wait for this job to get completed.
+- name: Import SCP from a local path and wait for this job to get completed
   dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
@@ -145,7 +145,7 @@ EXAMPLES = r'''
     share_name: "/scp_folder"
     job_wait: False
 
-- name: Export SCP to a local path with a specified name for the file.
+- name: Export SCP to a local path with a specified name for the file
   dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"

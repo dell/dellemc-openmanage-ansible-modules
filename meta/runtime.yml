@@ -6,9 +6,7 @@ plugin_routing:
       deprecation:
         removal_date: "2023-01-15"
         warning_text: dellemc_get_firmware_inventory will be removed in a future release of this collection. Use dellemc.openmanage.idrac_firmware_info instead.
-      redirect: dellemc.openmanage.idrac_firmware_info
     dellemc_get_system_inventory:
       deprecation:
         removal_date: "2023-01-15"
         warning_text: dellemc_get_system_inventory will be removed in a future release of this collection. Use dellemc.openmanage.idrac_system_info instead.
-      redirect: dellemc.openmanage.idrac_system_info

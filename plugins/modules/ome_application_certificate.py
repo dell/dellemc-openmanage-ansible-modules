@@ -64,7 +64,7 @@ author: "Felix Stephen (@felixs88)"
 
 EXAMPLES = r'''
 ---
-- name: Generate a certificate signing request.
+- name: Generate a certificate signing request
   dellemc.openmanage.ome_application_certificate:
     hostname: "192.168.0.1"
     username: "username"
@@ -78,7 +78,7 @@ EXAMPLES = r'''
     country: "US"
     email: "support@dell.com"
 
-- name: upload the certificate.
+- name: Upload the certificate
   dellemc.openmanage.ome_application_certificate:
     hostname: "192.168.0.1"
     username: "username"
