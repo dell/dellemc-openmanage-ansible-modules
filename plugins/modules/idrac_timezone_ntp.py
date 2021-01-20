@@ -81,7 +81,7 @@ msg:
   description: Overall status of the timezone and ntp configuration.
   returned: always
   type: str
-  sample: "Successfully configured the idrac time settings."
+  sample: "Successfully configured the iDRAC time settings."
 timezone_ntp_status:
     description: job details of the time zone setting operation.
     returned: success
@@ -233,7 +233,7 @@ def main():
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
-    module.exit_json(msg="Successfully configured the idrac time settings.",
+    module.exit_json(msg="Successfully configured the iDRAC time settings.",
                      timezone_ntp_status=msg, changed=changed)
 
 

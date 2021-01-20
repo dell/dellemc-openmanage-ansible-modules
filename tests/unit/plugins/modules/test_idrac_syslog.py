@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -67,9 +67,11 @@ class TestSetupSyslog(FakeAnsibleModule):
                      'idrac_syslog.run_setup_idrac_syslog',
                      return_value=message)
         result = self._run_module(idrac_default_args)
-        # assert result == {
-        #     'msg': {'changed': False, 'msg': {'Status': 'Success', 'message': 'No changes found to commit!'}},
-        #     'changed': False}
+        assert result == {'msg': 'Successfully fetch the syslogs.',
+                          'syslog_status': {
+                              'changed': False,
+                              'msg': {'Status': 'Success', 'message': 'No changes found to commit!'}},
+                          'changed': False}
 
     def test_run_setup_idrac_syslog_success_case01(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                    idrac_file_manager_mock):

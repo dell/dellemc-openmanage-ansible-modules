@@ -49,10 +49,10 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
-  description: Status of the idrac reset operation.
+  description: Status of the iDRAC reset operation.
   returned: always
   type: str
-  sample: "Successfully performed idrac reset."
+  sample: "Successfully performed iDRAC reset."
 reset_status:
     description: iDRAC reset operation status.
     returned: always
@@ -127,7 +127,7 @@ def main():
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
-    module.exit_json(msg="Successfully performed idrac reset.", reset_status=msg)
+    module.exit_json(msg="Successfully performed iDRAC reset.", reset_status=msg)
 
 
 if __name__ == '__main__':

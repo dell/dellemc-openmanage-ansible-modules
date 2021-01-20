@@ -142,30 +142,58 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
-    description: Configures the iDRAC eventing attributes.
-    returned: always
-    type: dict
-    sample: {
-        "CompletionTime": "2020-04-02T02:43:28",
-        "Description": "Job Instance",
-        "EndTime": null,
-        "Id": "JID_12345123456",
-        "JobState": "Completed",
-        "JobType": "ImportConfiguration",
-        "Message": "Successfully imported and applied Server Configuration Profile.",
-        "MessageArgs": [],
-        "MessageId": "SYS053",
-        "Name": "Import Configuration",
-        "PercentComplete": 100,
-        "StartTime": "TIME_NOW",
-        "Status": "Success",
-        "TargetSettingsURI": null,
-        "retval": true
-}
+  description: Successfully configured the iDRAC eventing settings.
+  returned: always
+  type: str
+  sample: Successfully configured the iDRAC eventing settings.
+eventing_status:
+  description: Configures the iDRAC eventing attributes.
+  returned: success
+  type: dict
+  sample: {
+    "CompletionTime": "2020-04-02T02:43:28",
+    "Description": "Job Instance",
+    "EndTime": null,
+    "Id": "JID_12345123456",
+    "JobState": "Completed",
+    "JobType": "ImportConfiguration",
+    "Message": "Successfully imported and applied Server Configuration Profile.",
+    "MessageArgs": [],
+    "MessageId": "SYS053",
+    "Name": "Import Configuration",
+    "PercentComplete": 100,
+    "StartTime": "TIME_NOW",
+    "Status": "Success",
+    "TargetSettingsURI": null,
+    "retval": true
+  }
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
 '''
 
+import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 try:
     from omdrivers.enums.iDRAC.iDRAC import (State_SNMPAlertTypes, Enable_EmailAlertTypes,
                                              AlertEnable_IPMILanTypes,
@@ -184,113 +212,89 @@ def run_idrac_eventing_config(idrac, module):
     idrac  -- iDRAC handle
     module -- Ansible module
     """
-    msg = {}
-    msg['changed'] = False
-    msg['failed'] = False
-    msg['msg'] = {}
-    err = False
+    idrac.use_redfish = True
+    upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
+                                                    mount_point=module.params['share_mnt'],
+                                                    isFolder=True,
+                                                    creds=UserCredentials(
+                                                        module.params['share_user'],
+                                                        module.params['share_password']))
 
-    try:
+    set_liason = idrac.config_mgr.set_liason_share(upd_share)
+    if set_liason['Status'] == "Failed":
+        try:
+            message = set_liason['Data']['Message']
+        except (IndexError, KeyError):
+            message = set_liason['Message']
+        module.fail_json(msg=message)
 
-        idrac.use_redfish = True
-        upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                        mount_point=module.params['share_mnt'],
-                                                        isFolder=True,
-                                                        creds=UserCredentials(
-                                                            module.params['share_user'],
-                                                            module.params['share_password'])
-                                                        )
-
-        set_liason = idrac.config_mgr.set_liason_share(upd_share)
-        if set_liason['Status'] == "Failed":
-            try:
-                message = set_liason['Data']['Message']
-            except (IndexError, KeyError):
-                message = set_liason['Message']
-            err = True
-            msg['msg'] = "{0}".format(message)
-            msg['failed'] = True
-            return msg, err
-
-        if module.params["destination_number"] is not None:
-            if module.params["destination"] is not None:
-                idrac.config_mgr.configure_snmp_trap_destination(
-                    destination=module.params["destination"],
-                    destination_number=module.params["destination_number"]
-                )
-            if module.params["snmp_v3_username"] is not None:
-                idrac.config_mgr.configure_snmp_trap_destination(
-                    snmp_v3_username=module.params["snmp_v3_username"],
-                    destination_number=module.params["destination_number"]
-                )
-            if module.params["snmp_trap_state"] is not None:
-                idrac.config_mgr.configure_snmp_trap_destination(
-                    state=State_SNMPAlertTypes[module.params["snmp_trap_state"]],
-                    destination_number=module.params["destination_number"]
-                )
-
-        if module.params["alert_number"] is not None:
-            if module.params["email_alert_state"] is not None:
-                idrac.config_mgr.configure_email_alerts(
-                    state=Enable_EmailAlertTypes[module.params["email_alert_state"]],
-                    alert_number=module.params["alert_number"]
-                )
-            if module.params["address"] is not None:
-                idrac.config_mgr.configure_email_alerts(
-                    address=module.params["address"],
-                    alert_number=module.params["alert_number"]
-                )
-            if module.params["custom_message"] is not None:
-                idrac.config_mgr.configure_email_alerts(
-                    custom_message=module.params["custom_message"],
-                    alert_number=module.params["alert_number"]
-                )
-
-        if module.params["enable_alerts"] is not None:
-            idrac.config_mgr.configure_idrac_alerts(
-                enable_alerts=AlertEnable_IPMILanTypes[module.params["enable_alerts"]],
+    if module.params["destination_number"] is not None:
+        if module.params["destination"] is not None:
+            idrac.config_mgr.configure_snmp_trap_destination(
+                destination=module.params["destination"],
+                destination_number=module.params["destination_number"]
+            )
+        if module.params["snmp_v3_username"] is not None:
+            idrac.config_mgr.configure_snmp_trap_destination(
+                snmp_v3_username=module.params["snmp_v3_username"],
+                destination_number=module.params["destination_number"]
+            )
+        if module.params["snmp_trap_state"] is not None:
+            idrac.config_mgr.configure_snmp_trap_destination(
+                state=State_SNMPAlertTypes[module.params["snmp_trap_state"]],
+                destination_number=module.params["destination_number"]
             )
 
-        if module.params['authentication'] is not None:
-            idrac.config_mgr.configure_smtp_server_settings(
-                authentication=SMTPAuthentication_RemoteHostsTypes[module.params['authentication']])
-        if module.params['smtp_ip_address'] is not None:
-            idrac.config_mgr.configure_smtp_server_settings(
-                smtp_ip_address=module.params['smtp_ip_address'])
-        if module.params['smtp_port'] is not None:
-            idrac.config_mgr.configure_smtp_server_settings(
-                smtp_port=module.params['smtp_port'])
-        if module.params['username'] is not None:
-            idrac.config_mgr.configure_smtp_server_settings(
-                username=module.params['username'])
-        if module.params['password'] is not None:
-            idrac.config_mgr.configure_smtp_server_settings(
-                password=module.params['password'])
+    if module.params["alert_number"] is not None:
+        if module.params["email_alert_state"] is not None:
+            idrac.config_mgr.configure_email_alerts(
+                state=Enable_EmailAlertTypes[module.params["email_alert_state"]],
+                alert_number=module.params["alert_number"]
+            )
+        if module.params["address"] is not None:
+            idrac.config_mgr.configure_email_alerts(
+                address=module.params["address"],
+                alert_number=module.params["alert_number"]
+            )
+        if module.params["custom_message"] is not None:
+            idrac.config_mgr.configure_email_alerts(
+                custom_message=module.params["custom_message"],
+                alert_number=module.params["alert_number"]
+            )
 
-        if module.check_mode:
-            msg['msg'] = idrac.config_mgr.is_change_applicable()
-            if 'changes_applicable' in msg['msg']:
-                msg['changed'] = msg['msg']['changes_applicable']
+    if module.params["enable_alerts"] is not None:
+        idrac.config_mgr.configure_idrac_alerts(
+            enable_alerts=AlertEnable_IPMILanTypes[module.params["enable_alerts"]],
+        )
+
+    if module.params['authentication'] is not None:
+        idrac.config_mgr.configure_smtp_server_settings(
+            authentication=SMTPAuthentication_RemoteHostsTypes[module.params['authentication']])
+    if module.params['smtp_ip_address'] is not None:
+        idrac.config_mgr.configure_smtp_server_settings(
+            smtp_ip_address=module.params['smtp_ip_address'])
+    if module.params['smtp_port'] is not None:
+        idrac.config_mgr.configure_smtp_server_settings(
+            smtp_port=module.params['smtp_port'])
+    if module.params['username'] is not None:
+        idrac.config_mgr.configure_smtp_server_settings(
+            username=module.params['username'])
+    if module.params['password'] is not None:
+        idrac.config_mgr.configure_smtp_server_settings(
+            password=module.params['password'])
+
+    if module.check_mode:
+        status = idrac.config_mgr.is_change_applicable()
+        if status.get("changes_applicable"):
+            module.exit_json(msg="Changes found to commit!", changed=True)
         else:
-            msg['msg'] = idrac.config_mgr.apply_changes(reboot=False)
-            if "Status" in msg['msg']:
-                if msg['msg']['Status'] == "Success":
-                    msg['changed'] = True
-                    if "Message" in msg['msg']:
-                        if msg['msg']['Message'] == "No changes found to commit!":
-                            msg['changed'] = False
-                        if "No changes were applied" in msg['msg']['Message']:
-                            msg['changed'] = False
-                else:
-                    msg['failed'] = True
-    except Exception as e:
-        err = True
-        msg['msg'] = "Error: %s" % str(e)
-        msg['failed'] = True
-    return msg, err
+            module.exit_json(msg="No changes found to commit!")
+    else:
+        status = idrac.config_mgr.apply_changes(reboot=False)
+
+    return status
 
 
-# Main
 def main():
     module = AnsibleModule(
         argument_spec=dict(
@@ -328,20 +332,28 @@ def main():
             smtp_port=dict(required=False, type='str'),
             username=dict(required=False, type="str"),
             password=dict(required=False, type="str", no_log=True),
-
         ),
 
         supports_check_mode=True)
 
     try:
         with iDRACConnection(module.params) as idrac:
-            msg, err = run_idrac_eventing_config(idrac, module)
-    except (ImportError, ValueError, RuntimeError) as e:
+            status = run_idrac_eventing_config(idrac, module)
+            msg, changed = "Successfully configured the iDRAC eventing settings.", True
+            if status.get('Status') == "Success":
+                if (status.get('Message') == "No changes found to commit!") or \
+                        ("No changes were applied" in status.get('Message')):
+                    msg = status.get('Message')
+                    changed = False
+            elif status.get('Status') == "Failed":
+                module.fail_json(msg="Failed to configure the iDRAC eventing settings")
+            module.exit_json(msg=msg, eventing_status=status, changed=changed)
+    except HTTPError as err:
+        module.fail_json(msg=str(err), error_info=json.load(err))
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (RuntimeError, ImportError, SSLValidationError, IOError, ValueError, TypeError, ConnectionError) as e:
         module.fail_json(msg=str(e))
-
-    if err:
-        module.fail_json(**msg)
-    module.exit_json(**msg)
 
 
 if __name__ == '__main__':
