@@ -44,7 +44,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Update web server port and session time out.
+- name: Update web server port and session time out
   dellemc.openmanage.ome_application_network_webserver:
     hostname: "192.168.0.1"
     username: "username"
@@ -59,7 +59,7 @@ EXAMPLES = r'''
     password: "password"
     webserver_timeout: 30
 
-- name: Update web server port.
+- name: Update web server port
   dellemc.openmanage.ome_application_network_webserver:
     hostname: "192.168.0.1"
     username: "username"

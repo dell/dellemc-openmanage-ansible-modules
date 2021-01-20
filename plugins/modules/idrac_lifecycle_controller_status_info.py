@@ -36,7 +36,7 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Show status of the Lifecycle Controller.
+- name: Show status of the Lifecycle Controller
   dellemc.openmanage.idrac_lifecycle_controller_status_info:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"

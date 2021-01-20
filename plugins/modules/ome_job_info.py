@@ -47,20 +47,20 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Get all jobs details.
+- name: Get all jobs details
   dellemc.openmanage.ome_job_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
-- name: Get job details for id.
+- name: Get job details for id
   dellemc.openmanage.ome_job_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     job_id: 12345
 
-- name: Get filtered job details.
+- name: Get filtered job details
   dellemc.openmanage.ome_job_info:
     hostname: "192.168.0.1"
     username: "username"

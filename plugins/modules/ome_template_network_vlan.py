@@ -94,7 +94,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Add tagged or untagged VLANs to a template using VLAN ID and name.
+- name: Add tagged or untagged VLANs to a template using VLAN ID and name
   dellemc.openmanage.ome_template_network_vlan:
     hostname: "192.168.0.1"
     username: "username"
@@ -122,7 +122,7 @@ EXAMPLES = r'''
           - vlan4
           - vlan1
 
-- name: Clear the tagged and untagged VLANs from a template.
+- name: Clear the tagged and untagged VLANs from a template
   dellemc.openmanage.ome_template_network_vlan:
     hostname: "192.168.0.1"
     username: "username"

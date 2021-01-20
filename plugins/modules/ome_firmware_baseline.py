@@ -73,7 +73,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: create baseline for device Ids.
+- name: Create baseline for device Ids
   dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"
@@ -85,7 +85,7 @@ EXAMPLES = r'''
       - 1010
       - 2020
 
-- name: create baseline for servicetags.
+- name: Create baseline for servicetags
   dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"
@@ -97,7 +97,7 @@ EXAMPLES = r'''
       - "SVCTAG1"
       - "SVCTAG2"
 
-- name: create baseline for device groups.
+- name: Create baseline for device groups
   dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
     username: "username"

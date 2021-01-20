@@ -114,7 +114,7 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Configure the iDRAC eventing attributes.
+- name: Configure the iDRAC eventing attributes
   dellemc.openmanage.dellemc_configure_idrac_eventing:
        idrac_ip:   "192.168.0.1"
        idrac_user: "user_name"

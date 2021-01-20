@@ -37,13 +37,13 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Retrieve details of all the available firmware baselines.
+- name: Retrieve details of all the available firmware baselines
   dellemc.openmanage.ome_firmware_baseline_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
 
-- name: Retrieve details of a specific firmware baseline identified by its baseline name.
+- name: Retrieve details of a specific firmware baseline identified by its baseline name
   dellemc.openmanage.ome_firmware_baseline_info:
     hostname: "192.168.0.1"
     username: "username"

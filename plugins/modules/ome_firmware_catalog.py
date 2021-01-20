@@ -79,7 +79,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: create catalog from repository on a HTTPS.
+- name: Create catalog from repository on a HTTPS
   dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
@@ -91,7 +91,7 @@ EXAMPLES = r'''
     file_name: "catalog.gz"
     check_certificate: True
 
-- name: create catalog from repository on a HTTP.
+- name: Create catalog from repository on a HTTP
   dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
@@ -102,7 +102,7 @@ EXAMPLES = r'''
     source_path: "catalog"
     file_name: "catalog.gz"
 
-- name: create catalog from CIFS network share.
+- name: Create catalog from CIFS network share
   dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
@@ -116,7 +116,7 @@ EXAMPLES = r'''
     repository_password: "repository_password"
     repository_domain: "repository_domain"
 
-- name: create catalog from NFS network share.
+- name: Create catalog from NFS network share
   dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
