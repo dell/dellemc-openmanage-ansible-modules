@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -90,7 +90,7 @@ class TestOsDeployment(FakeAnsibleModule):
                   }
         set_module_args(params)
         result = self._run_module(params)
-        # assert result == {'changed': True, 'msg': {'Status': 'Success'}}
+        assert result == {'changed': True, 'boot_status': {'Status': 'Success'}}
 
     def test_main_run_boot_to_network_iso_success_case02(self, idrac_connection_mock, idrac_mock, module_mock,
                                                          fileonshare_mock, omsdk_mock, minutes_to_cim_format_mock):
@@ -103,7 +103,7 @@ class TestOsDeployment(FakeAnsibleModule):
                   }
         set_module_args(params)
         result = self._run_module(params)
-        # assert result == {'changed': True, 'msg': {'Status': 'Success'}}
+        assert result == {'changed': True, 'boot_status': {'Status': 'Success'}}
 
     def test_main_run_boot_to_network_iso_fleonshare_failure_case(self, idrac_connection_mock, idrac_mock, module_mock,
                                                                   fileonshare_mock, omsdk_mock,

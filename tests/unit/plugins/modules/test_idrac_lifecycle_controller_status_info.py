@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -54,8 +54,8 @@ class TestLcStatus(FakeAnsibleModule):
         type(obj2).LCStatus = PropertyMock(return_value="lcstatus")
         type(obj2).LCReady = PropertyMock(return_value="lcready")
         result = self._run_module(idrac_default_args)
-        # assert result['msg']['LCReady'] == "lcready"
-        # assert result['msg']['LCStatus'] == "lcstatus"
+        assert result['lc_status_info']['LCReady'] == "lcready"
+        assert result['lc_status_info']['LCStatus'] == "lcstatus"
 
     @pytest.mark.parametrize("exc_type", [RuntimeError, SSLValidationError, ConnectionError, KeyError,
                                           ImportError, ValueError, TypeError, HTTPError, URLError])
