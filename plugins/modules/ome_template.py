@@ -61,7 +61,7 @@ options:
     description:
       - >-
         Specify the list of targeted device service tags when I (command) is C(deploy). When I(Command) is C(create),
-        specify the service tag of a single device
+        specify the service tag of a single device.
       - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
     type: list
     elements: str
@@ -296,7 +296,8 @@ install OS using its image"
     command: "export"
     template_name: "my_template"
   register: result
-- ansible.builtin.copy:
+- name: Save template into a file
+  ansible.builtin.copy:
     content: "{{ result.Content}}"
     dest: "/path/to/exported_template.xml"
 # End of example to export template to a local xml file
