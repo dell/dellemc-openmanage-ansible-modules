@@ -26,7 +26,6 @@ options:
         description: CIFS or NFS Network share.
         type: str
     share_user:
-        required: False
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
         type: str
