@@ -50,7 +50,7 @@ EXAMPLES = r'''
     username: "username"
     password: "password"
 
-- name: Retrieve details of a specific template identified by its template ID.
+- name: Retrieve details of a specific template identified by its template ID
   dellemc.openmanage.ome_template_info:
     hostname: "192.168.0.1"
     username: "username"

@@ -28,7 +28,6 @@ extends_documentation_fragment:
 options:
   state:
     type: str
-    required: False
     description:
       - Select C(present) to create or modify a user account.
       - Select C(absent) to remove a user account.
@@ -42,20 +41,17 @@ options:
     description: Provide the I(user_name) of the account to be created, deleted or modified.
   user_password:
     type: str
-    required: False
     description:
       - Provide the password for the user account. The password can be changed when the user account is modified.
       - To ensure security, the I(user_password) must be at least eight characters long and must contain
         lowercase and upper-case characters, numbers, and special characters.
   new_user_name:
     type: str
-    required: False
     description: Provide the I(user_name) for the account to be modified.
   privilege:
     type: str
-    required: False
     description:
-      - Following are the role-based privileges,
+      - Following are the role-based privileges.
       - A user with C(Administrator) privilege can log in to iDRAC, and then configure iDRAC, configure users,
         clear logs, control and configure system, access virtual console, access virtual media, test alerts,
         and execute debug commands.
@@ -66,41 +62,34 @@ options:
     choices: [Administrator, ReadOnly, Operator, None]
   ipmi_lan_privilege:
     type: str
-    required: False
     description: The Intelligent Platform Management Interface LAN privilege level assigned to the user.
     choices: [Administrator, Operator, User, No Access]
   ipmi_serial_privilege:
     type: str
-    required: False
     description:
       - The Intelligent Platform Management Interface Serial Port privilege level assigned to the user.
       - This option is only applicable for rack and tower servers.
     choices: [Administrator, Operator, User, No Access]
   enable:
     type: bool
-    required: False
     description: Provide the option to enable or disable a user from logging in to iDRAC.
   sol_enable:
     type: bool
-    required: False
     description: Enables Serial Over Lan (SOL) for an iDRAC user.
   protocol_enable:
     type: bool
-    required: False
     description: Enables protocol for the iDRAC user.
   authentication_protocol:
     type: str
-    required: False
     description:
       - This option allows to configure one of the following authentication protocol
         types to authenticate the iDRAC user.
-      - Secure Hash Algorithm C(SHA)
-      - Message Digest 5 C(MD5)
+      - Secure Hash Algorithm C(SHA).
+      - Message Digest 5 C(MD5).
       - An authentication protocol is not configured if C(None) is selected.
     choices: [None, SHA, MD5]
   privacy_protocol:
     type: str
-    required: False
     description:
       - This option allows to configure one of the following privacy encryption protocols for the iDRAC user.
       - Data Encryption Standard C(DES).

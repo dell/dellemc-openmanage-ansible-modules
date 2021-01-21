@@ -22,10 +22,10 @@ extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
   job_id:
-    description: Unique ID of the job
+    description: Unique ID of the job.
     type: int
   system_query_options:
-    description: Options for pagination of the output
+    description: Options for pagination of the output.
     type: dict
     suboptions:
       top:
@@ -78,6 +78,7 @@ msg:
   description: Overall status of the job facts operation.
   returned: always
   type: str
+  sample: "Successfully fetched the job info"
 job_info:
   description: Details of the OpenManage Enterprise jobs.
   returned: success

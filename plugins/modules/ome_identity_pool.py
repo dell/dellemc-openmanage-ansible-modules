@@ -28,7 +28,6 @@ options:
        it creates an identity pool.
        - C(absent) deletes an existing identity pool.
     type: str
-    required: False
     default: present
     choices: [present, absent]
   pool_name:
@@ -38,18 +37,15 @@ options:
       - This option is mandatory for I(state) when creating, modifying and deleting an identity pool.
   new_pool_name:
     type: str
-    required: False
     description:
       - After creating an identity pool, I(pool_name) can be changed to I(new_pool_name).
       - This option is ignored when creating an identity pool.
   pool_description:
     type: str
-    required: False
     description:
       - Description of the identity pool.
   ethernet_settings:
     type: dict
-    required: False
     description:
       - Applicable for creating and modifying an identity pool using Ethernet settings.
       - I(starting_mac_address) and I(identity_count) are required to create an identity pool.
@@ -57,14 +53,11 @@ options:
       starting_mac_address:
         description: Starting MAC address of the ethernet setting.
         type: str
-        required: False
       identity_count:
         description: Number of MAC addresses.
         type: int
-        required: False
   fcoe_settings:
     type: dict
-    required: False
     description:
        - Applicable for creating and modifying an identity pool using FCoE settings.
        - I(starting_mac_address) and I(identity_count) are required to create an identity pool.
@@ -72,14 +65,11 @@ options:
       starting_mac_address:
         description: Starting MAC Address of the FCoE setting.
         type: str
-        required: False
       identity_count:
         description: Number of MAC addresses.
         type: int
-        required: False
   iscsi_settings:
     type: dict
-    required: False
     description:
       - Applicable for creating and modifying an identity pool using ISCSI settings.
       - I(starting_mac_address), I(identity_count), I(iqn_prefix), I(ip_range) and I(subnet_mask) are
@@ -88,50 +78,39 @@ options:
       starting_mac_address:
         description: Starting MAC address of the iSCSI setting.This is required option for iSCSI setting.
         type: str
-        required: False
       identity_count:
         description: Number of MAC addresses.
         type: int
-        required: False
       initiator_config:
         type: dict
-        required: False
         description:
           - Applicable for creating and modifying an identity pool using iSCSI Initiator settings.
         suboptions:
           iqn_prefix:
             description: IQN prefix addresses.
             type: str
-            required: False
       initiator_ip_pool_settings:
         type: dict
-        required: False
         description:
            - Applicable for creating and modifying an identity pool using ISCSI Initiator IP pool settings.
         suboptions:
           ip_range:
             description: Range of non-multicast IP addresses.
             type: str
-            required: False
           subnet_mask:
             description: Subnet mask for I(ip_range).
             type: str
-            required: False
           gateway:
             description: IP address of gateway.
             type: str
-            required: False
           primary_dns_server:
             description: IP address of the primary DNS server.
             type: str
-            required: False
           secondary_dns_server:
             description: IP address of the secondary DNS server.
             type: str
-            required: False
   fc_settings:
     type: dict
-    required: False
     description:
        - Applicable for creating and modifying an identity pool using fibre channel(FC) settings.
        - This option allows OpenManage Enterprise to generate a Worldwide port name (WWPN) and Worldwide node name (WWNN) address.
@@ -141,11 +120,9 @@ options:
       starting_address:
         description: Starting MAC Address of FC setting.I(starting_address) is required to option to create FC settings.
         type: str
-        required: False
       identity_count:
         description: Number of MAC addresses.I(identity_count) is required to option to create FC settings.
         type: int
-        required: False
 requirements:
     - "python >= 2.7.5"
 author:
@@ -158,7 +135,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Create an identity pool using ethernet, FCoE, iSCSI and FC settings.
+- name: Create an identity pool using ethernet, FCoE, iSCSI and FC settings
   dellemc.openmanage.ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
@@ -187,7 +164,7 @@ EXAMPLES = r'''
         starting_address: "30:30:30:30:30:00"
         identity_count: 45
 
-- name: Create an identity pool using only ethernet settings.
+- name: Create an identity pool using only ethernet settings
   dellemc.openmanage.ome_identity_pool:
     hostname: "192.168.0.1"
     username: "username"
@@ -244,7 +221,7 @@ RETURN = r'''
 ---
 msg:
   type: str
-  description: "Overall status of the identity pool operation"
+  description: Overall status of the identity pool operation.
   returned: always
   sample: "Successfully created an identity pool."
 pool_status:

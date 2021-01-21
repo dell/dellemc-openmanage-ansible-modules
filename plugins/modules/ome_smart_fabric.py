@@ -45,7 +45,6 @@ options:
     description: Provide a short description of the fabric to be created or modified.
   fabric_design:
     type: str
-    required: False
     description:
       - "Specify the fabric topology.See the use API
       U(https://www.dell.com/support/manuals/en-in/poweredge-mx7000/omem_1_20_10_ug/smartfabric-network-topologies)
@@ -56,21 +55,18 @@ options:
     2xMX9116n_Fabric_Switching_Engines_in_different_chassis]
   primary_switch_service_tag:
     type: str
-    required: False
     description:
       - Service tag of the first switch.
       - I(primary_switch_service_tag) is mandatory for fabric creation.
       - I(primary_switch_service_tag) must belong to the model selected in I(fabric_design).
   secondary_switch_service_tag:
     type: str
-    required: False
     description:
       - Service tag of the second switch.
       - I(secondary_switch_service_tag) is mandatory for fabric creation.
       - I(secondary_switch_service_tag) must belong to the model selected in I(fabric_design).
   override_LLDP_configuration:
     type: str
-    required: False
     description:
       - Enable this configuration to allow Fabric Management Address to be included in LLDP messages.
       - "Notes: OpenManage Enterprise Modular 1.0 does not support this option.
@@ -507,7 +503,7 @@ def validate_device_type(device_type_name, identifier, device_details, module):
 def validate_service_tag(device_service_tag, identifier, device_type_map, rest_obj, module):
     """
     Validate the service tag and device type of device
-    :param identifier: identifier options which required find service tag from module params i.e
+    :param identifier: identifier options which required find service tag from module params
     primary_switch_service_tag, secondary_switch_service_tag, hostname
     :param device_service_tag: device service tag
     :param device_type_map: map to get the
@@ -556,7 +552,7 @@ def required_field_check_for_create(fabric_id, module):
 
 def process_output(name, fabric_resp, msg, fabric_id, rest_obj, module):
     """
-    fabric management actions i.e creation/update of smart fabric output details processing
+    fabric management actions creation/update of smart fabric output details processing
     :param name: fabric name specified
     :param fabric_resp: json response from ome
     :param msg: specific message of create and modify operation
@@ -579,7 +575,7 @@ def process_output(name, fabric_resp, msg, fabric_id, rest_obj, module):
 
 def create_modify_fabric(name, all_fabric, rest_obj, module):
     """
-    fabric management actions i.e creation/update of smart fabric
+    fabric management actions creation/update of smart fabric
     :param all_fabric: all available fabrics in system
     :param rest_obj: current session object
     :param module: ansible module object
