@@ -4,9 +4,9 @@ on:
   # Run CI against all pushes (direct commits, also merged PRs), Pull Requests
   push:
   pull_request:
-  # Runs CI on every sunday (at 06:00 UTC)
+  # Runs CI on every day (at 06:00 UTC)
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '0 6 * * *'
 
 jobs:
   build:
@@ -51,6 +51,9 @@ jobs:
       matrix:
         python-version: [2.7, 3.6, 3.8]
         ansible-version: [stable-2.10, devel]
+        exclude:
+          - ansible-version: devel
+            python-version: 2.7
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
