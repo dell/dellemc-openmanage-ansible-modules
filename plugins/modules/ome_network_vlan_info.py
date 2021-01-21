@@ -19,7 +19,7 @@ module: ome_network_vlan_info
 short_description: Retrieves the information about networks VLAN(s) present in OpenManage Enterprise
 version_added: "2.1.0"
 description:
-    This module allows to retrieve the following
+    This module allows to retrieve the following.
     - A list of all the network VLANs with their detailed information.
     - Information about a specific network VLAN using VLAN I(id) or VLAN I(name).
 extends_documentation_fragment:
@@ -27,7 +27,7 @@ extends_documentation_fragment:
 options:
     id:
         description:
-            - A unique identifier of the network VLAN available in the device,
+            - A unique identifier of the network VLAN available in the device.
             - I(id) and I(name) are mutually exclusive.
         type: int
     name:
@@ -59,7 +59,7 @@ EXAMPLES = """
     password: "password"
     id: 12345
 
-- name: Retrieve information about a network VLAN using the VLAN name.
+- name: Retrieve information about a network VLAN using the VLAN name
   dellemc.openmanage.ome_network_vlan_info:
     hostname: "192.168.0.1"
     username: "username"

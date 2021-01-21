@@ -44,13 +44,11 @@ options:
           - Local mount path of the network share with read-write permission for ansible user.
           - This option is not applicable for HTTP, HTTPS, and FTP shares.
         type: str
-        required: False
     job_wait:
         description: Whether to wait for job completion or not.
         type: bool
         default: True
     catalog_file_name:
-        required: False
         description: Catalog file name relative to the I(share_name).
         type: str
         default: 'Catalog.xml'
@@ -61,7 +59,6 @@ options:
         type: bool
         default: True
     apply_update:
-        required: False
         description:
           - If I(apply_update) is set to C(True), then the packages are applied.
           - If I(apply_update) is set to C(False), no updates are applied, and a catalog report

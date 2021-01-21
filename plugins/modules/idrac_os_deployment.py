@@ -31,7 +31,6 @@ options:
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
         type: str
     share_password:
-        required: False
         description: Network share user password. This option is mandatory for CIFS Network Share.
         type: str
         aliases: ['share_pwd']
@@ -40,7 +39,6 @@ options:
         description: Network ISO name.
         type: str
     expose_duration:
-        required: False
         description: It is the time taken in minutes for the ISO image file to be exposed as a local CD-ROM device to
             the host server. When the time expires, the ISO image gets automatically detached.
         type: int
@@ -76,7 +74,7 @@ msg:
   returned: on error
   sample: "Failed to boot to network iso"
 boot_status:
-    description: details of the boot to network ISO image operation.
+    description: Details of the boot to network ISO image operation.
     returned: always
     type: dict
     sample: {

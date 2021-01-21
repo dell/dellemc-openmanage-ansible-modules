@@ -138,7 +138,7 @@ options:
   management_vlan:
     description:
       - vLAN configuration.
-      - These settings are applicable for OpenManage Enterprise Modular
+      - These settings are applicable for OpenManage Enterprise Modular.
     type: dict
     suboptions:
       enable_vlan:
@@ -338,7 +338,7 @@ network_configuration:
     }
   }
 job_info:
-  description: Details of the job to update in case OME version is >= 3.3
+  description: Details of the job to update in case OME version is >= 3.3.
   returned: on success
   type: dict
   sample: {

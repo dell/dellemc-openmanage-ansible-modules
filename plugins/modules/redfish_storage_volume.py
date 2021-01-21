@@ -29,7 +29,6 @@ options:
       - For example- RAID.Slot.1-1.
       - This option is mandatory when I(state) is C(present) while creating a volume.
     type: str
-    required: False
   volume_id:
     description:
       - FQDD of existing volume.
@@ -42,22 +41,19 @@ options:
       - >-
         I(command) is C(initialize), when initializing a volume.
     type: str
-    required: False
   state:
     description:
       - >-
         C(present) creates a storage volume for the specified I (controller_id), or modifies the storage volume for the
         specified I (volume_id).
-        "Note: Modification of an existing volume properties depends on drive and controller capabilities."
+        "Note: Modification of an existing volume properties depends on drive and controller capabilities".
       - C(absent) deletes the volume for the specified I(volume_id).
     type: str
-    required: False
     choices: [present, absent]
   command:
     description:
       - C(initialize) initializes an existing storage volume for a specified I(volume_id).
     type: str
-    required: False
     choices: [initialize]
   volume_type:
     description:
@@ -74,14 +70,12 @@ options:
       - >-
         C(StripedWithParity) The volume is a device which uses parity to retain redundant information.
     type: str
-    required: False
     choices: [NonRedundant, Mirrored, StripedWithParity, SpannedMirrors, SpannedStripesWithParity]
   name:
     description:
       - Name of the volume to be created.
       - Only applicable when I(state) is C(present).
     type: str
-    required: False
   drives:
     description:
       - FQDD of the Physical disks.
@@ -89,24 +83,20 @@ options:
       - Only applicable when I(state) is C(present) when creating a new volume.
     type: list
     elements: str
-    required: False
   block_size_bytes:
     description:
       - Block size in bytes.Only applicable when I(state) is C(present).
     type: int
-    required: False
   capacity_bytes:
     description:
       - Volume size in bytes.
       - Only applicable when I(state) is C(present).
     type: str
-    required: False
   optimum_io_size_bytes:
     description:
       - Stripe size value must be in multiples of 64 * 1024.
       - Only applicable when I(state) is C(present).
     type: int
-    required: False
   encryption_types:
     description:
       - The following encryption types can be selected.
@@ -117,26 +107,22 @@ options:
        on the system or the operating system.
       - Only applicable when I(state) is C(present).
     type: str
-    required: False
     choices: [NativeDriveEncryption, ControllerAssisted, SoftwareAssisted]
   encrypted:
     description:
       - Indicates whether volume is currently utilizing encryption or not.
-      - Only applicable when I(state) is C(present)
+      - Only applicable when I(state) is C(present).
     type: bool
-    required: False
   oem:
     description:
       - Includes OEM extended payloads.
       - Only applicable when I(state) is I(present).
     type: dict
-    required: False
   initialize_type:
     description:
       - Initialization type of existing volume.
       - Only applicable when I(command) is C(initialize).
     type: str
-    required: False
     choices: [Fast, Slow]
     default: Fast
 

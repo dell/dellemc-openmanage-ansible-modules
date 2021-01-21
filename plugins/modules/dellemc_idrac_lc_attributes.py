@@ -30,22 +30,18 @@ options:
         type: str
         description: Network share or a local path.
     share_user:
-        required: False
         type: str
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_password:
-        required: False
         type: str
         description: Network share user password. This option is mandatory for CIFS Network Share.
         aliases: ['share_pwd']
     share_mnt:
-        required: False
         type: str
         description: Local mount path of the network share with read-write permission for ansible user.
             This option is mandatory for Network Share.
     csior:
-        required:  False
         type: str
         description: Whether to Enable or Disable Collect System Inventory on Restart (CSIOR)
             property for all iDRAC/LC jobs.

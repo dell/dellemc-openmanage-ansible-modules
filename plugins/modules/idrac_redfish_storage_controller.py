@@ -36,14 +36,12 @@ options:
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey]
     default: AssignSpare
     type: str
-    required: False
   target:
     description:
       - Fully Qualified Device Descriptor (FQDD) of the target physical drive that is assigned as a spare.
-      - This is mandatory when I(command) is C(AssignSpare)
+      - This is mandatory when I(command) is C(AssignSpare).
       - If I(volume_id) is not specified or empty, this physical drive will be assigned as a global hot spare.
     type: str
-    required: False
   volume_id:
     description:
       - FQDD of the volumes to which a hot spare is assigned.
@@ -51,7 +49,6 @@ options:
       - To know the number of volumes to which a hot spare can be assigned, refer iDRAC Redfish API guide.
     type: list
     elements: str
-    required: False
   controller_id:
     description:
       - FQDD of the storage controller. For example- 'RAID.Slot.1-1'.
@@ -59,7 +56,6 @@ options:
         This option is mandatory when I(command) is C(ResetConfig), C(SetControllerKey), C(RemoveControllerKey) and
         C(ReKey).
     type: str
-    required: False
   key:
     description:
       - >-
@@ -68,19 +64,16 @@ options:
         encryption key can be created for each controller.
       - This is mandatory when I(command) is C(SetControllerKey) or C(ReKey), and when I(mode) is C(LKM).
     type: str
-    required: False
   key_id:
     description:
       - This is a user supplied text label associated with the passphrase.
       - This is mandatory when I(command) is C(SetControllerKey) or C(ReKey), and when I(mode) is C(LKM).
     type: str
-    required: False
   old_key:
     description:
       - Security key passphrase used by the encryption-capable controller..
       - This option is mandatory when I(command) is C(ReKey) and I(mode) is C(LKM).
     type: str
-    required: False
   mode:
     description:
       - >-
@@ -91,7 +84,6 @@ options:
     choices: [LKM, SEKM]
     default: LKM
     type: str
-    required: False
 requirements:
   - "python >= 2.7.5"
 author: "Jagadeesh N V (@jagadeeshnv)"

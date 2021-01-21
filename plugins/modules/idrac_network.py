@@ -25,109 +25,86 @@ extends_documentation_fragment:
   - dellemc.openmanage.network_share_options
 options:
     setup_idrac_nic_vlan:
-        required: False
         type: str
         description: Allows to configure VLAN on iDRAC.
         choices: [Enabled, Disabled]
     register_idrac_on_dns:
-        required: False
         type: str
         description: Registers iDRAC on a Domain Name System (DNS).
         choices: [Enabled, Disabled]
     dns_idrac_name:
-        required: False
         type: str
         description: Name of the DNS to register iDRAC.
     auto_config:
-        required: False
         type: str
         description: Allows to enable or disable auto-provisioning to automatically acquire domain name from DHCP.
         choices: [Enabled, Disabled]
     static_dns:
-        required: False
         type: str
         description: Enter the static DNS domain name.
     vlan_id:
-        required: False
         type: int
         description: Enter the VLAN ID.  The VLAN ID must be a number from 1 through 4094.
     vlan_priority:
-        required: False
         type: int
         description: Enter the priority for the VLAN ID. The priority value must be a number from 0 through 7.
     enable_nic:
-        required: False
         type: str
         description: Allows to enable or disable the Network Interface Controller (NIC) used by iDRAC.
         choices: [Enabled, Disabled]
     nic_selection:
-        required: False
         type: str
         description: Select one of the available NICs.
         choices: [Dedicated, LOM1, LOM2, LOM3, LOM4]
     failover_network:
-        required: False
         type: str
         description: "Select one of the remaining LOMs. If a network fails, the traffic is routed through the failover
         network."
         choices: [ALL, LOM1, LOM2, LOM3, LOM4, T_None]
     auto_detect:
-        required: False
         type: str
         description: Allows to auto detect the available NIC types used by iDRAC.
         choices: [Enabled, Disabled]
     auto_negotiation:
-        required: False
         type: str
         description: Allows iDRAC to automatically set the duplex mode and network speed.
         choices: [Enabled, Disabled]
     network_speed:
-        required: False
         type: str
         description: Select the network speed for the selected NIC.
         choices: [T_10, T_100, T_1000]
     duplex_mode:
-        required: False
         type: str
         description: Select the type of data transmission for the NIC.
         choices: [Full, Half]
     nic_mtu:
-        required: False
         type: int
         description: Maximum Transmission Unit of the NIC.
     ip_address:
-        required: False
         type: str
         description: Enter a valid iDRAC static IPv4 address.
     enable_dhcp:
-        required: False
         type: str
         description: Allows to enable or disable Dynamic Host Configuration Protocol (DHCP) in iDRAC.
         choices: [Enabled, Disabled]
     enable_ipv4:
-        required: False
         type: str
         description: Allows to enable or disable IPv4 configuration.
         choices: [Enabled, Disabled]
     dns_from_dhcp:
-        required: False
         type: str
         description: Allows to enable DHCP to obtain DNS server address.
         choices: [Enabled, Disabled]
     static_dns_1:
-        required: False
         type: str
         description: Enter the preferred static DNS server IPv4 address.
     static_dns_2:
-        required: False
         type: str
         description: Enter the preferred static DNS server IPv4 address.
     static_gateway:
-        required: False
         type: str
         description: Enter the static IPv4 gateway address to iDRAC.
     static_net_mask:
-        required: False
         type: str
         description: Enter the static IP subnet mask to iDRAC.
 requirements:

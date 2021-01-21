@@ -25,24 +25,19 @@ extends_documentation_fragment:
   - dellemc.openmanage.network_share_options
 options:
     setup_idrac_timezone:
-        required: False
         type: str
         description: Allows to configure time zone on iDRAC.
     enable_ntp:
-        required: False
         type: str
         description: Allows to enable or disable NTP on iDRAC.
         choices: [Enabled, Disabled]
     ntp_server_1:
-        required: False
         type: str
         description: The IP address of the NTP server 1.
     ntp_server_2:
-        required: False
         type: str
         description: The IP address of the NTP server 2.
     ntp_server_3:
-        required: False
         type: str
         description: The IP address of the NTP server 3.
 
@@ -83,7 +78,7 @@ msg:
   type: str
   sample: "Successfully configured the iDRAC time settings."
 timezone_ntp_status:
-    description: job details of the time zone setting operation.
+    description: Job details of the time zone setting operation.
     returned: success
     type: dict
     sample: {

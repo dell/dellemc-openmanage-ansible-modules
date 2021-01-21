@@ -43,17 +43,14 @@ options:
   new_name:
     type: str
     description: Provide the I(name) of the uplink to be modified.
-    required: false
   description:
     type: str
     description: Provide a short description for the uplink to be created or modified.
-    required: false
   uplink_type:
     description:
       - Specify the uplink type.
       - I(NOTE) The uplink type cannot be changed for an existing uplink.
     choices: ['Ethernet', 'FCoE', 'FC Gateway', 'FC Direct Attach', 'Ethernet - No Spanning Tree']
-    required: false
     type: str
   ufd_enable:
     description:
@@ -65,37 +62,30 @@ options:
       feature. If not, uplink creation will be successful with an appropriate error message in response."
     choices: ['Enabled', 'Disabled']
     type: str
-    required: false
   primary_switch_service_tag:
     description: Service tag of the primary switch.
-    required: false
     type: str
   primary_switch_ports:
     description:
       - The IOM slots to be connected to the primary switch.
       - I(primary_switch_service_tag) is mandatory for this option.
-    required: false
     type: list
     elements: str
   secondary_switch_service_tag:
     description: Service tag of the secondary switch.
-    required: false
     type: str
   secondary_switch_ports:
     description:
       - The IOM slots to be connected to the secondary switch.
       - I(secondary_switch_service_tag) is mandatory for this option.
-    required: false
     type: list
     elements: str
   tagged_networks:
     description: VLANs to be associated with the uplink I(name).
-    required: false
     type: list
     elements: str
   untagged_network:
     description: Specify the name of the VLAN to be added as untagged to the uplink.
-    required: false
     type: str
 requirements:
     - "python >= 2.7.17"
@@ -222,7 +212,7 @@ msg:
   sample: "Successfully modified the uplink."
 uplink_id:
   type: str
-  description: Returns the ID when an uplink is created or modified
+  description: Returns the ID when an uplink is created or modified.
   returned: when I(state=present)
   sample: "ddc3d260-fd71-46a1-97f9-708e12345678"
 additional_info:

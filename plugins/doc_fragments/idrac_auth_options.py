@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -31,7 +31,6 @@ options:
     description: iDRAC user password.
     aliases: ['idrac_pwd']
   idrac_port:
-    required: False
     type: int
     description: iDRAC port.
     default: 443
