@@ -5,6 +5,44 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v3.0.0
+======
+
+Release Summary
+---------------
+
+Deprecations, issue fixes, and standardization of modules as per ansible guidelines.
+
+Major Changes
+-------------
+
+- Removed the existing deprecated modules.
+
+Minor Changes
+-------------
+
+- The modules are standardized as per ansible guidelines.
+
+Deprecated Features
+-------------------
+
+- The ``dellemc_get_firmware_inventory`` module is deprecated and replaced with ``idrac_firmware_info``.
+- The ``dellemc_get_system_inventory`` module is deprecated and replaced with ``idrac_system_info``.
+
+Bugfixes
+--------
+
+- GitHub issue fix - Module dellemc_idrac_storage_volume.py broken. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/212)
+- GitHub issue fix - ome_smart_fabric Fabric management is not supported on the specified system. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/179)
+- Known issue fix #187956: If an invalid job_id is provided, the idrac_lifecycle_controller_job_status_info module returns an error message with the description of the issue.
+- Known issue fix #188267: No error message is displayed when the target iDRAC with firmware version less than 3.30.30.30 is updated.
+- Sanity fixes as per ansible guidelines to all modules.
+
+Known Issues
+------------
+
+- Issue 1(186024): ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
 v2.1.5
 ======
 
