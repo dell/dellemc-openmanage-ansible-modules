@@ -20,7 +20,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 ## Installation
 
 * From [galaxy](https://galaxy.ansible.com/dellemc/openmanage):  
-```ansible-galaxy collection install dellemc.openmanage```
+```ansible-galaxy collection install dellemc.openmanage -f```
 
     - For offline installation on the Ansible control machine, download the required tar archive version of the collection from [Dell EMC OpenManage collection](https://galaxy.ansible.com/dellemc/openmanage) and run the command given below:  
       ```ansible-galaxy collection install dellemc-openmanage-<version>.tar.gz```
