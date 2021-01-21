@@ -1,14 +1,12 @@
 name: CI
 
 on:
+  # Run CI against all pushes (direct commits, also merged PRs), Pull Requests
   push:
-    branches: [ collections ]
   pull_request:
-    branches: [ collections ]
   # Runs CI on every sunday (at 06:00 UTC)
   schedule:
     - cron: '*/10 * * * *'
-  workflow_dispatch:
 
 jobs:
   build:
@@ -38,6 +36,11 @@ jobs:
         with:
           name: collection
           path: .cache/collection-tarballs
+
+###
+# Unit tests (OPTIONAL)
+#
+# https://docs.ansible.com/ansible/latest/dev_guide/testing_units.html
 
   unit:
     name: Unit Tests
@@ -82,6 +85,10 @@ jobs:
         run: ansible-test coverage xml -v --group-by command --group-by version
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
+###
+# Sanity tests (REQUIRED)
+#
+# https://docs.ansible.com/ansible/latest/dev_guide/testing_sanity.html
 
   sanity:
     name: Sanity Tests
@@ -95,6 +102,8 @@ jobs:
       - name: Set up Python 3.8
         uses: actions/setup-python@v1
         with:
+          # it is just required to run that once as "ansible-test sanity" in the docker image
+          # will run on all python versions it supports.
           python-version: 3.8
 
       - name: Install ansible (${{ matrix.ansible-version }}) version
@@ -109,6 +118,9 @@ jobs:
       - name: Setup Sanity test Pre-requisites
         run: ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
 
+      # run ansible-test sanity inside of Docker.
+      # The docker container has all the pinned dependencies that are required
+      # and all python versions ansible supports.
       - name: Run sanity tests
         run: ansible-test sanity --docker -v --color
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
