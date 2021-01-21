@@ -46,7 +46,7 @@ options:
   repository_type:
     type: str
     description:
-      - Type of Repository. The type supported are HTTP, NFS, CIFS, HTTPS
+      - Type of Repository. The type supported are HTTP, NFS, CIFS, HTTPS.
     choices: ["HTTP", "NFS", "CIFS", "HTTPS"]
     default: "HTTPS"
   repository_username:
@@ -133,7 +133,7 @@ EXAMPLES = r'''
 RETURN = r'''
 ---
 msg:
-  description: Overall status of the firmware catalog creation
+  description: Overall status of the firmware catalog creation.
   returned: always
   type: str
   sample: "Successfully triggered the job to create a catalog with Task Id : 10094"

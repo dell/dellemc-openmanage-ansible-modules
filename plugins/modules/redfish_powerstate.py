@@ -28,7 +28,7 @@ options:
       - The unique identifier of the device being managed.
        For example- U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).
       - This option is mandatory for I(base_uri) with multiple devices.
-      - To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems)
+      - To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems).
     required:  False
     type: str
   reset_type:
@@ -80,7 +80,7 @@ EXAMPLES = r'''
 RETURN = r'''
 ---
 msg:
-  description: Overall status of the reset operation
+  description: Overall status of the reset operation.
   returned: always
   type: str
   sample: "Successfully performed the reset type operation 'On'."

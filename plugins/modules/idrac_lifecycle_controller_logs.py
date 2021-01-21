@@ -28,17 +28,14 @@ options:
         type: str
         description: Network share path.
     share_user:
-        required: False
         type: str
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_password:
-        required: False
         type: str
         description: Network share user password. This option is mandatory for CIFS Network Share.
         aliases: ['share_pwd']
     job_wait:
-        required: False
         description: Whether to wait for the running job completion or not.
         type: bool
         default: True
@@ -76,7 +73,7 @@ msg:
   returned: always
   sample: "Successfully exported the lifecycle controller logs."
 lc_logs_status:
-  description: status of the export operation.
+  description: Status of the export operation.
   returned: success
   type: dict
   sample: {

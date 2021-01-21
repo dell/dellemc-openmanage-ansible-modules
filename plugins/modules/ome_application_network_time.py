@@ -32,7 +32,7 @@ options:
     description:
       - Time in the current system.
       - This option is only applicable when I(enable_ntp) is false.
-      - This option must be provided in following format 'yyyy-mm-dd hh:mm:ss'
+      - This option must be provided in following format 'yyyy-mm-dd hh:mm:ss'.
     type: str
   time_zone:
     description:
@@ -43,19 +43,16 @@ options:
     description:
       - The primary NTP address.
       - This option is applicable when I(enable_ntp) is true.
-    required: false
     type: str
   secondary_ntp_address1:
     description:
       - The first secondary NTP address.
       - This option is applicable when I(enable_ntp) is true.
-    required: false
     type: str
   secondary_ntp_address2:
     description:
       - The second secondary NTP address.
       - This option is applicable when I(enable_ntp) is true.
-    required: false
     type: str
 requirements:
     - "python >= 2.7.5"

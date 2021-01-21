@@ -19,9 +19,9 @@ module: ome_network_vlan
 short_description: Create, modify & delete a VLAN
 version_added: "2.1.0"
 description:
-  - "This module allows to:"
-  - Create a VLAN on OpenManage Enterprise
-  - Modify or delete an existing VLAN on OpenManage Enterprise
+  - This module allows to,
+  - Create a VLAN on OpenManage Enterprise.
+  - Modify or delete an existing VLAN on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
@@ -42,7 +42,7 @@ options:
     description: Provide the I(name) of the VLAN to be modified.
   description:
     type: str
-    description: short description of the VLAN to be created or modified.
+    description: Short description of the VLAN to be created or modified.
   vlan_minimum:
     type: int
     description:

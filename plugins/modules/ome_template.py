@@ -350,7 +350,7 @@ msg:
   type: str
   sample: "Successfully created a template with ID 23"
 return_id:
-  description: ID of the template for C(create), C(modify), C(import) and C(clone) or task created in case of C(deploy)
+  description: ID of the template for C(create), C(modify), C(import) and C(clone) or task created in case of C(deploy).
   returned: success, when I(command) is C(create), C(modify), C(import), C(clone) and C(deploy)
   type: int
   sample: 12

@@ -54,7 +54,7 @@ msg:
   type: str
   sample: "Successfully performed iDRAC reset."
 reset_status:
-    description: iDRAC reset operation status.
+    description: Details of iDRAC reset operation.
     returned: always
     type: dict
     sample: {

@@ -43,19 +43,16 @@ options:
       - Enable or disable proxy authentication.
       - If I(enable_authentication) is true, I(proxy_username) and I(proxy_password) must be provided.
       - If I(enable_authentication) is false, the proxy username and password are set to its default values.
-    required: false
     type: bool
   proxy_username:
     description:
       - Proxy server username.
       - This option is mandatory when I(enable_authentication) is true.
-    required: false
     type: str
   proxy_password:
     description:
       - Proxy server password.
       - This option is mandatory when I(enable_authentication) is true.
-    required: false
     type: str
 requirements:
     - "python >= 2.7.5"

@@ -26,19 +26,19 @@ options:
   template_name:
     description:
       - Name of the template.
-      - It is mutually exclusive with I(template_id)
+      - It is mutually exclusive with I(template_id).
     type: str
   template_id:
     description:
       - Id of the template.
-      - It is mutually exclusive with I(template_name)
+      - It is mutually exclusive with I(template_name).
     type: int
   nic_identifier:
     description: Display name of NIC port in the template for VLAN configuration.
     required: true
     type: str
   untagged_networks:
-    description: List of untagged networks and their corresponding NIC ports
+    description: List of untagged networks and their corresponding NIC ports.
     elements: dict
     type: list
     suboptions:

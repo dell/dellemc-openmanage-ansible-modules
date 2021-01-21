@@ -24,7 +24,6 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
   state:
-    required: False
     type: str
     description:
       - C(create), performs create volume operation.
@@ -33,75 +32,62 @@ options:
     choices: ['create', 'delete', 'view']
     default: 'view'
   span_depth:
-    required: False
     type: int
     description: Span Depth.
     default: 1
   span_length:
-    required: False
     type: int
     description: Span Length.
     default: 1
   number_dedicated_hot_spare:
-    required: False
     type: int
     description: Number of Dedicated Hot Spare.
     default: 0
   volume_type:
-    required: False
     type: str
     description: Provide the the required RAID level.
     choices: ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60']
     default: 'RAID 0'
   disk_cache_policy:
-    required: False
     type: str
     description: Disk Cache Policy.
     choices: ["Default", "Enabled", "Disabled"]
     default: "Default"
   write_cache_policy:
-    required: False
     type: str
     description: Write cache policy.
     choices: ["WriteThrough", "WriteBack", "WriteBackForce"]
     default: "WriteThrough"
   read_cache_policy:
-    required: False
     type: str
     description: Read cache policy.
     choices: ["NoReadAhead", "ReadAhead", "AdaptiveReadAhead"]
     default: "NoReadAhead"
   stripe_size:
-    required: False
     type: int
     description: Stripe size value to be provided in multiples of 64 * 1024.
     default: 65536
   controller_id:
-    required: False
     type: str
     description:
       - >-
         Fully Qualified Device Descriptor (FQDD) of the storage controller, for example 'RAID.Integrated.1-1'.
         Controller FQDD is required for C(create) RAID configuration.
   media_type:
-    required:  False
     type: str
     description: Media type.
     choices: ['HDD', 'SSD']
   protocol:
-    required:  False
     type: str
     description: Bus protocol.
     choices: ['SAS', 'SATA']
   volume_id:
-    required: False
     type: str
     description:
       - >-
         Fully Qualified Device Descriptor (FQDD) of the virtual disk, for example 'Disk.virtual.0:RAID.Slot.1-1'.
         This option is used to get the virtual disk information.
   volumes:
-    required: False
     type: list
     elements: dict
     description:
@@ -116,11 +102,9 @@ options:
         For C(delete) operation, only name option is applicable.
       - See the examples for more details.
   capacity:
-    required: False
     type: float
     description: Virtual disk size in GB.
   raid_reset_config:
-    required: False
     type: str
     description:
       - >-
@@ -129,7 +113,6 @@ options:
     choices: [True, False]
     default: False
   raid_init_operation:
-    required: False
     type: str
     description: This option represents initialization configuration operation to be performed on the virtual disk.
     choices: [None, Fast]

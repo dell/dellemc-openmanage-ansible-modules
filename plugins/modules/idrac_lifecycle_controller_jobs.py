@@ -24,7 +24,6 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
     job_id:
-        required: False
         type: str
         description:
            - Job ID of the specific job to be deleted.
@@ -66,7 +65,7 @@ msg:
   sample: 'Successfully deleted the job.'
 status:
   type: dict
-  description: details of the delete operation.
+  description: Details of the delete operation.
   returned: success
   sample: {
         'Message': 'The specified job was deleted',

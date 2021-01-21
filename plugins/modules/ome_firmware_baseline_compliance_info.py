@@ -79,7 +79,7 @@ EXAMPLES = r'''
         - 11111
         - 22222
 
-- name: Retrieves device based compliance report for specified service Tags.
+- name: Retrieves device based compliance report for specified service Tags
   dellemc.openmanage.ome_firmware_baseline_compliance_info:
     hostname: "192.168.0.1"
     username: "username"

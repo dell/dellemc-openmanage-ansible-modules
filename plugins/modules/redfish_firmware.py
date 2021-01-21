@@ -28,7 +28,7 @@ options:
     image_uri:
         description:
             - Firmware Image location URI or local path.
-            - For example- U(http://<web_address>/components.exe) or /home/firmware_repo/component.exe
+            - For example- U(http://<web_address>/components.exe) or /home/firmware_repo/component.exe.
         type: str
         required: True
     transfer_protocol:
