@@ -53,7 +53,6 @@ options:
         type: str
         default: 'Catalog.xml'
     ignore_cert_warning:
-        required: False
         description: Specifies if certificate warnings are ignored when HTTPS share is used.
             If C(True) option is set, then the certificate warnings are ignored.
         type: bool
