@@ -29,86 +29,69 @@ options:
         type: str
         description: Network share or a local path.
     share_user:
-        required: False
         type: str
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
     share_password:
-        required: False
         type: str
         description: Network share user password. This option is mandatory for CIFS Network Share.
         aliases: ['share_pwd']
     share_mnt:
-        required: False
         type: str
         description: Local mount path of the network share with read-write permission for ansible user.
             This option is mandatory for Network Share.
     enable_web_server:
-        required: False
         type: str
         description: Whether to Enable or Disable webserver configuration for iDRAC.
         choices: [Enabled, Disabled]
     ssl_encryption:
-        required: False
         type: str
         description: Secure Socket Layer encryption for webserver.
         choices: [Auto_Negotiate, T_128_Bit_or_higher, T_168_Bit_or_higher, T_256_Bit_or_higher]
     tls_protocol:
-        required: False
         type: str
         description: Transport Layer Security for webserver.
         choices: [TLS_1_0_and_Higher, TLS_1_1_and_Higher, TLS_1_2_Only]
     https_port:
-        required: False
         type: int
         description: HTTPS access port.
     http_port:
-        required: False
         type: int
         description: HTTP access port.
     timeout:
-        required: False
         type: str
         description: Timeout value.
     snmp_enable:
-        required: False
         type: str
         description: Whether to Enable or Disable SNMP protocol for iDRAC.
         choices: [Enabled, Disabled]
     snmp_protocol:
-        required: False
         type: str
         description: Type of the SNMP protocol.
         choices: [All, SNMPv3]
     community_name:
-        required: False
         type: str
         description: SNMP community name for iDRAC. It is used by iDRAC to validate SNMP queries
             received from remote systems requesting SNMP data access.
     alert_port:
-        required: False
         type: int
         description: The iDRAC port number that must be used for SNMP traps.
             The default value is 162, and the acceptable range is between 1 to 65535.
         default: 162
     discovery_port:
-        required: False
         type: int
         description: The SNMP agent port on the iDRAC. The default value is 161,
             and the acceptable range is between 1 to 65535.
         default: 161
     trap_format:
-        required: False
         type: str
         description: SNMP trap format for iDRAC.
         choices: [SNMPv1, SNMPv2, SNMPv3]
     ipmi_lan:
-        required: False
         type: dict
         description: Community name set on iDRAC for SNMP settings.
         suboptions:
             community_name:
-                required: False
                 type: str
                 description: This option is used by iDRAC when it sends out SNMP and IPMI traps.
                     The community name is checked by the remote system to which the traps are sent.

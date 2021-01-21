@@ -49,19 +49,19 @@ options:
     type: list
     elements: int
     description:
-      - list of device ids
+      - List of device ids.
       - I(device_ids) is mutually exclusive with I(device_service_tags) and I(device_group_names).
   device_service_tags:
     type: list
     elements: str
     description:
-      - list of service tags
+      - List of service tags.
       - I(device_service_tags) is mutually exclusive with I(device_ids) and I(device_group_names).
   device_group_names:
     type: list
     elements: str
     description:
-      - list of group names
+      - List of group names.
       - I(device_group_names) is mutually exclusive with I(device_ids) and I(device_service_tags).
 requirements:
     - "python >= 2.7.5"
@@ -113,7 +113,7 @@ EXAMPLES = r'''
 RETURN = r'''
 ---
 msg:
-  description: Overall status of the firmware baseline creation
+  description: Overall status of the firmware baseline creation.
   returned: always
   type: str
   sample: "Successfully created task for creating Baseline"
@@ -254,7 +254,6 @@ def _get_baseline_payload(module, rest_obj):
     targets = get_target_list(module, rest_obj)
     if targets is None:
         module.fail_json(msg="No Targets specified")
-    # baseline_desc = module.params.get("baseline_description", modify_baseline.get("Description"))
     baseline_name = module.params.get("baseline_name")  # + time.strftime(":%Y:%m:%d-%H:%M:%S")#DEBUG
     baseline_payload = {
         "Name": baseline_name,

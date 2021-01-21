@@ -49,9 +49,9 @@ options:
   scp_file:
     description:
       - Name of the server configuration profile (SCP) file.
-      - This option is mandatory if I(command) is C(import)
-      - The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used if this option is not specified for C(import)
-      - I(export_format) is used if the valid extension file is not provided for C(import)
+      - This option is mandatory if I(command) is C(import).
+      - The default format <idrac_ip>_YYmmdd_HHMMSS_scp is used if this option is not specified for C(import).
+      - I(export_format) is used if the valid extension file is not provided for C(import).
     type: str
   scp_components:
     description:

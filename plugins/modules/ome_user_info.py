@@ -24,10 +24,10 @@ extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
   account_id:
-    description: Unique Id of the account
+    description: Unique Id of the account.
     type: int
   system_query_options:
-    description: Options for filtering the output
+    description: Options for filtering the output.
     type: dict
     suboptions:
       filter:

@@ -55,7 +55,6 @@ options:
     type: str
   dup_file:
     description: "Executable file to apply on the targets."
-    required: false
     type: str
 requirements:
     - "python >= 2.7.5"

@@ -24,26 +24,21 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
     share_name:
-        required: False
         type: str
         description: Network share or a local path.
     share_user:
-        required: False
         type: str
         description: Network share user name. Use the format 'user@domain' or 'domain\\user' if user is part of a domain.
             This option is mandatory for CIFS share.
     share_password:
-        required: False
         type: str
         description: Network share user password. This option is mandatory for CIFS share.
         aliases: ['share_pwd']
     share_mnt:
-        required: False
         type: str
         description: Local mount path of the network share with read-write permission for ansible user.
             This option is mandatory for network shares.
     boot_mode:
-        required: False
         type: str
         description:
         - (deprecated)Sets boot mode to BIOS or UEFI.
@@ -52,7 +47,6 @@ options:
         - I(boot_mode) is mutually exclusive with I(boot_sources).
         choices: [Bios, Uefi]
     nvme_mode:
-        required: False
         type: str
         description:
         - (deprecated)Configures the NVME mode in the iDRAC 9 based PowerEdge Servers.
@@ -61,7 +55,6 @@ options:
         - I(nvme_mode) is mutually exclusive with I(boot_sources).
         choices: [NonRaid, Raid]
     secure_boot_mode:
-        required: False
         type: str
         description:
         - (deprecated)Configures how the BIOS uses the Secure Boot Policy Objects in iDRAC 9 based PowerEdge Servers.
@@ -70,7 +63,6 @@ options:
         - I(secure_boot_mode) is mutually exclusive with I(boot_sources).
         choices: [AuditMode, DeployedMode, SetupMode, UserMode]
     onetime_boot_mode:
-        required: False
         type: str
         description:
         - (deprecated)Configures the one time boot mode setting.
@@ -80,7 +72,6 @@ options:
         choices: [Disabled, OneTimeBootSeq, OneTimeCustomBootSeqStr, OneTimeCustomHddSeqStr,
             OneTimeCustomUefiBootSeqStr, OneTimeHddSeq, OneTimeUefiBootSeq]
     boot_sequence:
-        required: False
         type: str
         description:
         - "(deprecated)Allows to set the boot sequence in  BIOS boot mode or Secure UEFI boot mode by rearranging the
@@ -89,7 +80,6 @@ options:
             for configuring the BIOS attributes.
         - I(boot_sequence) is mutually exclusive with I(boot_sources).
     attributes:
-        required: False
         type: dict
         description:
         - Dictionary of BIOS attributes and value pair. Attributes should be
@@ -99,7 +89,6 @@ options:
             take precedence.
         - I(attributes) is mutually exclusive with I(boot_sources).
     boot_sources:
-        required: False
         type: list
         elements: str
         description:

@@ -96,7 +96,7 @@ msg:
   sample: "Successfully generated certificate signing request."
 csr_status:
   type: dict
-  description: details of the generated certificate.
+  description: Details of the generated certificate.
   returned: on success
   sample:
     {"CertificateData": "-----BEGIN CERTIFICATE REQUEST-----GHFSUEKLELE
