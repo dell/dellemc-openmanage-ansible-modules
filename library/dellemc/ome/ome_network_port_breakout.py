@@ -4,7 +4,7 @@
 #
 # Dell EMC OpenManage Ansible Modules
 # Version 3.0.0
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -19,7 +19,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_network_port_breakout
-short_description: This module allows to automate the port portioning or port breakout to logical sub ports.
+short_description: This module allows to automate the port portioning or port breakout to logical sub ports
 version_added: "2.9.14"
 description:
   - This module allows to automate breaking out of IOMs in fabric mode into logical sub ports.
@@ -55,6 +55,9 @@ options:
 requirements:
     - "python >= 2.7.17"
 author: "Felix Stephen (@felixs88)"
+notes:
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise Modular.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''

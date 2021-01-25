@@ -120,4 +120,3 @@
           - Id: "{{ lcdconfigattrid }}"
             Value: "User Defined"
             IsIgnored: false
-

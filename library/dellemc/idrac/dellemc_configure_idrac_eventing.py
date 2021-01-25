@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,10 +21,10 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: dellemc_configure_idrac_eventing
-short_description: Configures the iDRAC eventing attributes.
+short_description: Configures the iDRAC eventing related attributes
 version_added: "2.3.0"
 description:
-    - This module is responsible for configuring the iDRAC eventing attributes.
+    - This module allows to configure the iDRAC eventing related attributes.
 options:
     idrac_ip:
         required: True
@@ -123,41 +123,60 @@ requirements:
     - "omsdk"
     - "python >= 2.7.5"
 author: "Felix Stephen (@felixs88)"
-
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
 ---
 - name: Configure the iDRAC eventing attributes.
   dellemc_configure_idrac_eventing:
-       idrac_ip:   "xx.xx.xx.xx"
-       idrac_user: "xxxx"
-       idrac_password:  "xxxxxxxx"
-       share_name: "xx.xx.xx.xx:/share"
-       share_password:  "xxxxxxxx"
-       share_user: "xxxx"
+       idrac_ip:   "192.168.0.1"
+       idrac_user: "user_name"
+       idrac_password:  "user_password"
+       share_name: "192.168.0.1:/share"
+       share_password:  "share_user"
+       share_user: "share_password"
        share_mnt: "/mnt/share"
-       destination_number: xxxx
-       destination: xxxx
-       snmp_v3_username: xxxx
-       snmp_trap_state: xxxx
-       email_alert_state: xxxx
-       alert_number: xxxx
-       address: "xxxxxxxx"
-       custom_message: "xxxx"
-       enable_alerts: xxxx
-       authentication: xxxx
-       smtp_ip_address: "x.x.x.x"
-       smtp_port: xxxx
-       username: "xxxx"
-       password: "xxxxxxxx"
+       destination_number: "2"
+       destination: "1.1.1.1"
+       snmp_v3_username: "None"
+       snmp_trap_state: "Enabled"
+       email_alert_state: "Disabled"
+       alert_number: "1"
+       address: "alert_email@company.com"
+       custom_message: "Custom Message"
+       enable_alerts: "Disabled"
+       authentication: "Enabled"
+       smtp_ip_address: "192.168.0.1"
+       smtp_port: "25"
+       username: "username"
+       password: "password"
 """
 
 RETURNS = """
-dest:
+msg:
     description: Configures the iDRAC eventing attributes.
-    returned: success
-    type: string
+    returned: always
+    type: dict
+    sample: {
+        "CompletionTime": "2020-04-02T02:43:28",
+        "Description": "Job Instance",
+        "EndTime": null,
+        "Id": "JID_12345123456",
+        "JobState": "Completed",
+        "JobType": "ImportConfiguration",
+        "Message": "Successfully imported and applied Server Configuration Profile.",
+        "MessageArgs": [],
+        "MessageId": "SYS053",
+        "Name": "Import Configuration",
+        "PercentComplete": 100,
+        "StartTime": "TIME_NOW",
+        "Status": "Success",
+        "TargetSettingsURI": null,
+        "retval": true
+}
 """
 
 from ansible.module_utils.remote_management.dellemc.dellemc_idrac import iDRACConnection

@@ -4,6 +4,20 @@ Dell EMC OpenManage Ansible Modules allows data center and IT administrators to 
 
 OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
+# 3.0.0 (January 25, 2021)
+
+  * A security configuration guide is available for OpenManage Ansible Modules version 3.0.0.
+  
+  * The modules are standardized as per ansible guidelines.
+  
+  * Known issues fixed
+    - Issue #187956: If an invalid job_id is provided, the idrac_lifecycle_controller_job_status_info module returns an error message with the description of the issue.
+    - Issue #188267: No error message is displayed when the target iDRAC with firmware version less than 3.30.30.30 is updated.
+
+  * GitHub Issues fixed
+    - ome_smart_fabric Fabric management is not supported on the specified system. [#179](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/179)
+    - Module dellemc_idrac_storage_volume.py broken. [#212](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/212)
+    
 # 2.1.5 (January 5, 2020)
 
   * The idrac_firmware module is enhanced to include check mode support and job tracking.

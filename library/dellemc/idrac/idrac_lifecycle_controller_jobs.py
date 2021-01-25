@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -56,6 +56,9 @@ requirements:
 author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module does not support C(check_mode).
 """
 EXAMPLES = """
 ---

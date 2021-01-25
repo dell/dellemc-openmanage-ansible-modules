@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 1.2
-# Copyright (C) 2019 Dell Inc.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -22,7 +22,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_device_info
-short_description: Retrieves the information of devices inventoried by OpenManage Enterprise.
+short_description: Retrieves the information of devices inventoried by OpenManage Enterprise
 version_added: "2.9"
 description:
    - This module retrieves the list of devices in the inventory of OpenManage Enterprise along with the details of each device.
@@ -66,11 +66,13 @@ options:
                     - A list of unique identifier is applicable
                       for C(detailed_inventory) and C(subsystem_health).
                  type: list
+                 elements: int
             device_service_tag:
                  description:
                     - A list of service tags are applicable for C(detailed_inventory)
                       and C(subsystem_health).
                  type: list
+                 elements: str
             inventory_type:
                 description:
                     - For C(detailed_inventory), it returns details of the specified inventory type.
@@ -84,6 +86,9 @@ options:
 requirements:
     - "python >= 2.7.5"
 author: "Sajna Shetty(@Sajna-Shetty)"
+notes:
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = """
@@ -376,8 +381,8 @@ def _validate_inputs(module_params):
 
 def main():
     system_query_options = {"type": 'dict', "required": False, "options": {
-        "device_id": {"type": 'list'},
-        "device_service_tag": {"type": 'list'},
+        "device_id": {"type": 'list', "elements": 'int'},
+        "device_service_tag": {"type": 'list', "elements": 'str'},
         "inventory_type": {"type": 'str'},
         "filter": {"type": 'str', "required": False},
     }}
@@ -394,7 +399,7 @@ def main():
         },
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],
                      ['fact_subset', 'subsystem_health', ['system_query_options']], ],
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         _validate_inputs(module.params)

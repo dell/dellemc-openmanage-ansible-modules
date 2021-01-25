@@ -6,7 +6,7 @@
   tasks:
   - name: get template with filter option.
     register: result
-    failed_when: "'template_info' not in result or result.template_info["{{hostname}}"]['@odata.count'] == 0"
+    failed_when: "'template_info' not in result or result.template_info['{{hostname}}']['@odata.count'] == 0"
     ome_template_info:
         hostname: "{{hostname}}"
         username: "{{username}}"

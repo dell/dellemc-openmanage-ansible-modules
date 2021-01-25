@@ -4,11 +4,9 @@
 #
 # Dell EMC OpenManage Ansible Modules
 # Version 3.0.0
-# Copyright (C) 2019 Dell Inc.
+# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
 
 from __future__ import (absolute_import, division, print_function)
@@ -21,7 +19,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: idrac_os_deployment
-short_description: Boot to a network ISO image.
+short_description: Boot to a network ISO image
 version_added: "2.9"
 description: Boot to a network ISO image.
 options:
@@ -73,6 +71,9 @@ requirements:
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''

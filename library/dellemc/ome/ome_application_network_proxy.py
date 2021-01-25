@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_application_network_proxy
-short_description: Updates the proxy configuration on OpenManage Enterprise.
+short_description: Updates the proxy configuration on OpenManage Enterprise
 version_added: "2.9.10"
 description: This module allows to configure a network proxy on OpenManage Enterprise.
 options:
@@ -79,6 +79,9 @@ requirements:
     - "python >= 2.7.5"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
+notes:
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -228,6 +231,7 @@ def main():
         },
         required_if=[['enable_proxy', True, ['ip_address', 'proxy_port']],
                      ['enable_authentication', True, ['proxy_username', 'proxy_password']], ],
+        supports_check_mode=False
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:

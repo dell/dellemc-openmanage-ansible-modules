@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_template_info
-short_description: Retrieves template details from OpenManage Enterprise.
+short_description: Retrieves template details from OpenManage Enterprise
 version_added: "2.9"
 description:
    - This module retrieves the list and details of all the templates on OpenManage Enterprise.
@@ -54,6 +54,9 @@ options:
 requirements:
     - "python >= 2.7.5"
 author: "Sajna Shetty(@Sajna-Shetty)"
+notes:
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 
 '''
 
@@ -148,7 +151,7 @@ def main():
                                      },
         },
         mutually_exclusive=[['template_id', 'system_query_options']],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     template_uri = "TemplateService/Templates"
     try:
