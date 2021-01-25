@@ -60,11 +60,18 @@ This project is licensed under GPL-3.0 License. Please see the [COPYING](
 
 
 ## Contributing
-We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](
-./CODING_GUIDELINES.md) for more details. You can refer our [Code of Conduct](./CODE_OF_CONDUCT.md) here.
+We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](./CODING_GUIDELINES.md) for more details.
+You can refer our [Code of Conduct](./CODE_OF_CONDUCT.md) here.
 
 ## Testing
 See [here](test/README.md) for further information on testing.
+
+## Maintenance
+  * OpenManage Ansible Modules releases follows a monthly release cycle. On the last week of every month, 
+  the updated modules are posted to this repository.
+  * OpenManage Ansible Modules releases follow [semantic versioning](https://semver.org/).
+  * OpenManage Ansible Modules deprecation cycle is aligned with [Ansible](https://docs.ansible.com/ansible/latest/dev_guide/module_lifecycle.html).
+
 
 ## Support
   * This devel branch corresponds to the release actively under development.

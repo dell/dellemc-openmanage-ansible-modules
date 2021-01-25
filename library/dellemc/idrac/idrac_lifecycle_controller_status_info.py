@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: idrac_lifecycle_controller_status_info
-short_description: Get the status of the Lifecycle Controller.
+short_description: Get the status of the Lifecycle Controller
 version_added: "2.9"
 description:
     - This module shows the status of the Lifecycle Controller on a Dell EMC PowerEdge server.
@@ -50,6 +50,9 @@ requirements:
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
@@ -110,7 +113,7 @@ def main():
             "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
         },
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         with iDRACConnection(module.params) as idrac:

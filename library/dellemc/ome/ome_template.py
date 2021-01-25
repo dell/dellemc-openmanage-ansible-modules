@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_template
-short_description: Create, modify, deploy, delete, export, import and clone a template on OpenManage Enterprise.
+short_description: Create, modify, deploy, delete, export, import and clone a template on OpenManage Enterprise
 version_added: "2.8"
 description: "This module creates, modifies, deploys, deletes, exports, imports and clones a template on
 OpenManage Enterprise."
@@ -133,6 +133,9 @@ options:
 requirements:
     - "python >= 2.7.5"
 author: "Jagadeesh N V (@jagadeeshnv)"
+notes:
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -311,13 +314,9 @@ install OS using its image."
     command: "export"
     template_name: "my_template"
   register: result
-  tags:
-    - export_xml_to_file
 - copy:
     content: "{{ result.Content}}"
     dest: "/path/to/exported_template.xml"
-  tags:
-    - export_xml_to_file
 # End of example to export template to a local xml file
 
 - name: "clone a template"
@@ -654,12 +653,17 @@ def exit_module(module, response):
     if command in ["create", "modify", "deploy", "import", "clone"]:
         result["return_id"] = response.json_data
         resp = result["return_id"]
+        if command == 'deploy' and result["return_id"] == 0:
+            result["failed"] = True
+            command = 'deploy_fail'
+            my_change = False
     if command == 'export':
         my_change = False
         result = response.json_data
     msg_dict = {'create': "Successfully created a template with ID {0}".format(resp),
                 'modify': "Successfully modified the template with ID {0}".format(resp),
                 'deploy': "Successfully created the template-deployment job with ID {0}".format(resp),
+                'deploy_fail': 'Failed to deploy template.',
                 'delete': "Deleted successfully",
                 'export': "Exported successfully",
                 'import': "Imported successfully",

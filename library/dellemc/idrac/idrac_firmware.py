@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
+# Version 3.0.0
 # Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: idrac_firmware
-short_description: Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP).
+short_description: Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP)
 version_added: "2.8.0"
 description:
     - Update the Firmware by connecting to a network share (CIFS, NFS, HTTP, HTTPS, FTP) that contains a catalog of
@@ -102,6 +102,9 @@ requirements:
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Felix Stephen (@felixs88)"
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = """
@@ -289,6 +292,10 @@ def get_job_status(module, each_comp, idrac):
     if each_comp.get("JobID") is not None:
         if idrac:
             resp = idrac.job_mgr.job_wait(each_comp.get("JobID"))
+            while reboot and apply_update:
+                resp = idrac.job_mgr.job_wait(each_comp.get("JobID"))
+                if resp.get("JobStatus") is not None and (not resp.get('JobStatus') == "Scheduled"):
+                    break
             # module.warn("omsdk job wait 315: "+json.dumps(resp))
             each_comp['Message'] = resp.get('Message')
             each_comp['JobStatus'] = "OK"

@@ -19,61 +19,95 @@ Infrastructure-as-Code (IaC) principles.
 
 
 *******************************************************************************
-Version: 2.1.5
+Version: 3.0.0
 
 *******************************************************************************
-Release Date: January 2020
+Release Date: January 2021
 
 *******************************************************************************
-Previous Version: 2.1.4
+Previous Version: 2.1.0
 
 *******************************************************************************
 Importance
 ----------
 
-OPTIONAL: Dell EMC recommends the customer review specifics about the update to
-determine if it applies to your system. The update contains changes that impact
-only certain configurations, or provides new features that may or may not
-apply to your environment.
+Recommended: Dell EMC recommends the customer review specifics about the update
+ to determine if it applies to your system. The update contains changes that
+ impact only certain configurations, or provides new features that may or may
+ not apply to your environment.
 
 *******************************************************************************
 Platform(s) Affected
 --------------------
 
 For the list of supported platforms, see the section "Support Matrix" in the 
-"Dell EMC OpenManage Ansible Modules version 2.1.5 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 3.0.0 Installation Guide".
 
 *******************************************************************************
 What is Supported
 -----------------
 
 For information on the hardware and software requirements, see 
-"Dell EMC OpenManage Ansible Modules version 2.1.5 Installation Guide".
+"Dell EMC OpenManage Ansible Modules version 3.0.0 Installation Guide".
 
 *******************************************************************************
 What’s New
 ----------
-
-* The idrac_firmware module is enhanced to include check mode support and
- job tracking.
-
-* The idrac_server_config_profile module supports IPv6 address format.
-
-* 2 GitHub issues fixed.
+ * Support for OpenManage Enterprise-Modular.
+ * Support for creating docker image of OpenManage Ansible modules.
+ * 'examples' and 'samples' directories are renamed to 'playbooks' and 'output'
+  respectively.
+ * A security configuration guide is available for OpenManage Ansible Modules
+ version 3.0.0.
+ * The ome_network_vlan module allows to create, modify, or delete a VLAN.
+ * The ome_network_vlan_info module retrieves the information about the network
+  VLANs present in OpenManage Enterprise.
+ * The ome_network_port_breakout allows to automate the breaking out of IOMs
+ in fabric mode into logical sub ports.
+ * The ome_smart_fabric module allows to create, modify, or delete a fabric on
+ OpenManage Enterprise Modular.
+ * The ome_smart_fabric_uplink module allows to create, modify, or delete an
+ uplink for a fabric on OpenManage Enterprise Modular.
+ * The idrac_server_config_profile module supports a user provided file name
+ for an export operation.
+ * The idrac_firmware module is enhanced to include check mode support and job
+  tracking.
+ * The idrac_server_config_profile module supports IPv6 address format.
+ * The dellemc_idrac_reset module is deprecated and replaced with the
+  idrac_reset module.
+ * The dellemc_setup_idrac_syslog module is deprecated and replaced with the
+  idrac_syslog module.
+ * The dellemc_get_lcstatus module is deprecated and replaced with the
+  idrac_lifecycle_controller_status_info module.
+ * The dellemc_get_lc_job_status module is deprecated and replaced with the
+ idrac_lifecycle_controller_job_status_info module.
+ * The dellemc_export_lc_logs module is deprecated and replaced with the
+ idrac_lifecycle_controller_logs module.
+ * The dellemc_configure_idrac_timezone module is deprecated and replaced with
+ the idrac_timezone_ntp module.
+ * The dellemc_configure_bios module is deprecated and replaced with the
+ idrac_bios module.
+ * The dellemc_configure_idrac_network module is deprecated and replaced with
+ the idrac_network module.
+ * The dellemc_delete_lc_job and dellemc_delete_lc_job_queue modules are
+ deprecated and replaced with the idrac_lifecycle_controller_jobs module.
+ * The dellemc_change_power_state module is deprecated and replaced with the
+ redfish_powerstate module.
+ * The dellemc_configure_idrac_users module is deprecated and replaced with the
+  idrac_user module.
 
 *******************************************************************************
 Fixes
 -----
 
-* Issue 1(126402):
-  Description: Creation of a template using the "ome_template" module may fail
-  on OpenManage Enterprise version 3.1 if no template is created within 24
-  hours (approximately) of its installation and setup.
+* Issue 1(134624):
+  Description: If an invalid job_id is provided,
+  the idrac_lifecycle_controller_job_status_info module returns an error
+  message with the description of the issue.
 
-  Workaround: A script is provided to fix the issue in OpenManage Enterprise
-  3.1 through PSQN which creates a folder in CIFS share. See
-  https://kb.dell.com/infocenter/index?page=content&id=SLN316882 for more
-  details.
+* Issue 2(188267):
+  Description: No error message is displayed when the target iDRAC with
+  firmware version less than 3.30.30.30 is updated.
 
 *******************************************************************************
 Known Issues
@@ -82,7 +116,9 @@ Known Issues
 * Issue 1(154815):
   Description: Firmware update may fail if multiple DUPs are uploaded.
   Local DUPs are stored in a temporary folder created by a scratch-pad.
-  The capacity of this folder is only 300MB.
+  The capacity of this folder is only 300 MB.
+  Resolution: Ensure that the combined size of all of the DUPs is less
+  than 300 MB.
 
 * Issue 2(155034):
   Description: If the controller does not support updating the
@@ -93,56 +129,45 @@ Known Issues
 * Issue 3(155043):
   Description: Redfish Storage Volume operations sometime returns a operation
   progress percentage different than the actual job status.
+  Resolution: It is recommended to wait for a few seconds to allow the job
+  to reflect the actual status.
 
 * Issue 4(186024):
   Description: ome_smart_fabric_uplink module does not allow the creation of
   multiple uplinks of the same name even though this is supported by OpenManage
-  Enterprise Modular. If an uplink is created using the same name as an
+  Enterprise Modular. If an uplink is created of the same name as an
   existing uplink, the existing uplink is modified.
-
-* Issue 5(187956):
-  Description: If an invalid job_id is provided,
-  idrac_lifecycle_controller_job_status_info returns an error message. This
-  error message does not contain information about the exact issue with the
-  invalid job_id.
-
-* Issue 6(188267):
-  Description: While updating the iDRAC firmware, the idrac_firmware module
-  completes execution before the firmware update job is completed. An incorrect
-   message is displayed in the task output as "DRAC WSMAN endpoint returned
-   HTTP code '400' Reason 'Bad Request'". This issue may occur if the target
-   iDRAC firmware version is less than 3.30.30.30.
+  Resolution: It is recommended to use a unique name for each uplink.
 
 *******************************************************************************
 Limitations
 -----------
-* "GracefulShutdown" choice of "change_power" option for
-  "dellemc_change_power_state" module is supported only on iDRAC firmware
-   versions 3.18.18.18 and above.
+* The graceful shutdown option of the "dellemc_change_power_state" module is
+  only supported on systems with iDRAC firmware versions 3.18.18.18 and later.
 
-* "ipmiserialprivilege_users" option of "dellemc_configure_idrac_users"
-   module is not supported for Modular servers.
+* The "ipmiserialprivilege_users" parameter of the
+  "dellemc_configure_idrac_users" module is not supported on modular servers.
 
-*  "secure_boot_mode" option of "dellemc_configure_bios" is supported only
-   on iDRAC 9 based Dell EMC PowerEdge servers.
+* The "secure_boot_mode" parameter of the "dellemc_configure_bios module" is
+  only supported on iDRAC 9 based Dell EMC PowerEdge servers.
 
 *******************************************************************************
 Installation Prerequisites
 --------------------------
 For installation prerequisites, see "Dell EMC OpenManage Ansible Modules
-Version 2.1.5 Installation Guide".
+Version 3.0.0 Installation Guide".
 
 Software Requirements
 ---------------------
 
 * For information on the hardware and software requirements, see
-"Dell EMC OpenManage Ansible Modules Version 2.1.5 Installation Guide".
+  "Dell EMC OpenManage Ansible Modules Version 3.0.0 Installation Guide".
 
 Installation Procedure
 -------------------------
 
 For the installation instructions, see "Dell EMC OpenManage Ansible Modules
-Version 2.1.5 Installation Guide".
+Version 3.0.0 Installation Guide".
 
 *******************************************************************************
 Accessing Documents from Dell Support Site
@@ -210,8 +235,8 @@ technical support, or customer service issues:
 
 
 Dell EMC OpenManage Ansible Modules
-Version 2.1.5
-Copyright (C) 2020   Dell Inc.
+Version 3.0.0
+Copyright (C) 2018-2021 Dell Inc.
 
 GNU General Public License v3.0+
 (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)

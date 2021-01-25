@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,13 +21,16 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_application_network_address
-short_description: Updates the network configuration on OpenManage Enterprise.
+short_description: Updates the network configuration on OpenManage Enterprise
 version_added: "2.9.10"
 description:
   - This module allows the configuration of a DNS and an IPV4 or IPV6 network on OpenManage Enterprise.
 notes:
   - The configuration changes can only be applied to one interface at a time.
   - The system management consoles might be unreachable for some time after the configuration changes are applied.
+  - This module does not support C(check_mode).
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
   hostname:
     description: Target IP Address or hostname.
@@ -732,6 +735,7 @@ def main():
             ["enable_nic", True,
              ("ipv4_configuration", "ipv6_configuration", "dns_configuration", "management_vlan"), True]
         ],
+        supports_check_mode=False
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:

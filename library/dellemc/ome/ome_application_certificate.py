@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.14
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,13 +20,16 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_application_certificate
-short_description: This module allows to generate a CSR and upload the certificate.
+short_description: This module allows to generate a CSR and upload the certificate
 version_added: "2.9"
 description:
   - This module allows the generation a new certificate signing request (CSR) and to upload the certificate
     on OpenManage Enterprise.
 notes:
   - If a certificate is uploaded, which is identical to an already existing certificate, it is accepted by the module.
+  - This module does not support C(check_mode).
+extends_documentation_fragment:
+  - dellemc.openmanage.ome_auth_options
 options:
   hostname:
     description: Target IP address or hostname.
@@ -116,20 +119,12 @@ csr_status:
   description: details of the generated certificate.
   returned: on success
   sample:
-    {"CertificateData": "-----BEGIN CERTIFICATE REQUEST-----MIIFFjCCAv4
-      CAQAwgZ8xCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVUZXhhczETMBEGA1UEBwwKUm91
-      bmQgUm9jazESMBAGA1UECgwJRGVsbCBJbmMuMRwwGgYDVQQLDBNSZW1vdGUgQWNjZ
-      XNzIEdyb3VwMRwwGgYDVQQDDBNob3N0bmN8Mq6gnvxVmucGbUGmRyrXizGcpTCj5p
-      Uv7cALZWqoHblPirAgjmJ8PipTkV93bWr0i34tUJgEb9g/aHOJ6nV4zAyc3zhfqjt
-      p4PHAaBqIXPe0tbiqj7WZwE6GPPaW5seRGvzAIPuwn4kod4tXB0DQt4kSIh9TyCSG
-      mh5mBAMdOD7Wd0ddXxmeoFJPa/sYQJZarJ/TPr2JAJAAKdxz2XLPokLHmjG02Xje3
-      RWQDNm+ngR/UTdXs/51kLrSwlU2LXFaQeBdcrwMdiZCOJPsfl6kf9fxobvqScdRYl
-      gjJO7S5UcjJkBkeNURc080N9DCknV4bO1lo9BOA4aEhjo9gFFIUNk8iscMJJqyvHh
-      BhzRSWH6fx7u9NGhnlDEOoyJnjceuI7zDS3CT/7pByuCoDc+dK2DezansSJHV4xYC
-      eBmO14MpukxfoMxbSXZUdfkQgZZ1LmJGTYH0omGIm0KC+7g2ITZf1FrR8HcjEbKgV
-      ZopugdSPXGp4P7eLRA/xIIp3GbrRXbSAumAO5fNefVsIzxZ34fw5O+msj/IH/IAJy
-      EP3fq8iflVyV3hQjlUPSq/ZGYy7vPvwZHGhPPDXjvNVgyyD7zKSOkKZIyOL2Xvpom
-      1cuJ1veYniuZkVvENkRNxzTmKlzUlYk4326Xauw==-----END CERTIFICATE REQUEST-----"
+    {"CertificateData": "-----BEGIN CERTIFICATE REQUEST-----GHFSUEKLELE
+      af3u4h2rkdkfjasczjfefhkrr/frjrfrjfrxnvzklf/nbcvxmzvndlskmcvbmzkdk
+      kafhaksksvklhfdjtrhhffgeth/tashdrfstkm@kdjFGD/sdlefrujjfvvsfeikdf
+      yeufghdkatbavfdomehtdnske/tahndfavdtdfgeikjlagmdfbandfvfcrfgdtwxc
+      qwgfrteyupojmnsbajdkdbfs/ujdfgthedsygtamnsuhakmanfuarweyuiwruefjr
+      etwuwurefefgfgurkjkdmbvfmvfvfk==-----END CERTIFICATE REQUEST-----"
     }
 error_info:
   description: Details of the HTTP error.

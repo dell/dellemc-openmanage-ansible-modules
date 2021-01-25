@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2018-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -44,23 +44,68 @@ requirements:
     - "omsdk"
     - "python >= 2.7.5"
 author: "Rajeev Arakkal (@rajeevarakkal)"
-
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
 ---
 - name: Get System Inventory
   dellemc_get_system_inventory:
-    idrac_ip: "xx.xx.xx.xx"
-    idrac_user: "xxxx"
-    idrac_password: "xxxxxxxx"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
 """
 
 RETURNS = """
-dest:
+ansible_facts:
     description: Displays the Dell EMC PowerEdge Server System Inventory.
     returned: success
-    type: string
+    type: complex
+    sample: {
+       "SystemInventory": {
+            "BIOS": [
+            {
+                "BIOSReleaseDate": "10/19/2017",
+                "FQDD": "BIOS.Setup.1-1",
+                "InstanceID": "DCIM:INSTALLED#741__BIOS.Setup.00",
+                "Key": "DCIM:INSTALLED#741__BIOS.Setup.00",
+                "SMBIOSPresent": "True",
+                "VersionString": "1.2.11"
+            }
+        ],
+        "CPU": [
+            {
+                "CPUFamily": "Intel(R) Xeon(TM)",
+                "Characteristics": "64-bit capable",
+                "CurrentClockSpeed": "2.3 GHz",
+                "DeviceDescription": "CPU 1",
+                "ExecuteDisabledCapable": "Yes",
+            }
+        ]
+    }
+}
+msg:
+  description: Details of the Error occurred.
+  returned: on error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
 """
 
 
@@ -97,7 +142,7 @@ def main():
             idrac_password=dict(required=True, type='str', aliases=['idrac_pwd'], no_log=True),
             idrac_port=dict(required=False, type='int', default=443)
         ),
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         with iDRACConnection(module.params) as idrac:

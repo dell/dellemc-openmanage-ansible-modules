@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -187,7 +187,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
                         ome_default_args["hostname"],
                         "1000:mock_val"
                     ],
-                    "Identifier": "FKMLRZ2",
+                    "Identifier": Constants.service_tag1,
                     "DomainRoleTypeValue": "LEAD",
                     "Version": "1.20.00",
                 },
@@ -198,7 +198,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
                         Constants.hostname2,
                         "1000:mocked_val"
                     ],
-                    "Identifier": "FPTN6Z2",
+                    "Identifier": Constants.service_tag2,
                     "DomainTypeValue": "MSM",
                     "DomainRoleTypeValue": "MEMBER",
                     "Version": "1.20.00",
@@ -206,9 +206,162 @@ class TestOmeSmartFabric(FakeAnsibleModule):
             ]
         }
         ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_service_tag_with_fqdn',
+                     return_value=None)
         service_tag, msm_version = self.module.get_msm_device_details(ome_connection_mock_for_smart_fabric, f_module)
-        assert service_tag == "FKMLRZ2"
+        assert service_tag == Constants.service_tag1
         assert msm_version == "1.20.00"
+
+    def test_get_msm_device_details_fqdn_success_case1(self, ome_connection_mock_for_smart_fabric, ome_default_args,
+                                                       mocker):
+        """
+        when hostname provided is fqdn and
+        success case: when provided design type and role type matches return the service tag and msm details
+        """
+        ome_default_args.update(
+            {"hostname": "XX-XXXX.yyy.lab", "fabric_design": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"})
+        f_module = self.get_module_mock(params=ome_default_args)
+        resp_data = {
+            "Id": Constants.device_id1,
+            "value": [
+                {
+                    "Id": 10086,
+                    "DeviceId": 10061,
+                    "PublicAddress": [
+                        ome_default_args["hostname"],
+                        "1000:mock_val"
+                    ],
+                    "Identifier": Constants.service_tag1,
+                    "DomainRoleTypeValue": "LEAD",
+                    "Version": "1.20.00",
+                },
+                {
+                    "Id": 13341,
+                    "DeviceId": 13294,
+                    "PublicAddress": [
+                        Constants.hostname2,
+                        "1000:mocked_val"
+                    ],
+                    "Identifier": Constants.service_tag2,
+                    "DomainTypeValue": "MSM",
+                    "DomainRoleTypeValue": "MEMBER",
+                    "Version": "1.20.00",
+                }
+            ]
+        }
+        ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_service_tag_with_fqdn',
+                     return_value="FKMLRZ2")
+        service_tag, msm_version = self.module.get_msm_device_details(ome_connection_mock_for_smart_fabric, f_module)
+        assert service_tag == Constants.service_tag1
+        assert msm_version == "1.20.00"
+
+    def test_get_msm_device_details_fqdn_success_case2(self, ome_connection_mock_for_smart_fabric, ome_default_args,
+                                                       mocker):
+        """
+        when hostname provided is fqdn and
+        success case: when provided design type is same and fqdn is not of lead type
+        """
+        ome_default_args.update(
+            {"hostname": "XX-XXXX.yyy.lab", "fabric_design": "2xMX5108n_Ethernet_Switches_in_same_chassis"})
+        f_module = self.get_module_mock(params=ome_default_args)
+        resp_data = {
+            "Id": Constants.device_id1,
+            "value": [
+                {
+                    "Id": 10086,
+                    "DeviceId": 10061,
+                    "PublicAddress": [
+                        Constants.hostname1,
+                        "1000:mock_ipv6"
+                    ],
+                    "Identifier": Constants.service_tag1,
+                    "DomainRoleTypeValue": "LEAD",
+                    "Version": "1.20.00",
+                },
+                {
+                    "Id": 13341,
+                    "DeviceId": 13294,
+                    "PublicAddress": [
+                        Constants.hostname2,
+                        "1001:mocked_ippv6"
+                    ],
+                    "Identifier": Constants.service_tag2,
+                    "DomainTypeValue": "MSM",
+                    "DomainRoleTypeValue": "MEMBER",
+                    "Version": "1.20.10",
+                }
+            ]
+        }
+        ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_service_tag_with_fqdn',
+                     return_value=Constants.service_tag2)
+        service_tag, msm_version = self.module.get_msm_device_details(ome_connection_mock_for_smart_fabric, f_module)
+        assert service_tag == Constants.service_tag2
+        assert msm_version == "1.20.10"
+
+    def test_get_msm_device_details_fqdn_failure_case1(self, ome_connection_mock_for_smart_fabric, ome_default_args,
+                                                       mocker):
+        """
+        when hostname provided is fqdn and
+        failure case: when provided design type is 2xMX9116n_Fabric_Switching_Engines_in_different_chassis
+         but fqdn is not of lead type
+        """
+        ome_default_args.update(
+            {"hostname": "XX-XXXX.yyy.lab", "fabric_design": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"})
+        f_module = self.get_module_mock(params=ome_default_args)
+        resp_data = {
+            "Id": Constants.device_id1,
+            "value": [
+                {
+                    "Id": 10086,
+                    "DeviceId": 10061,
+                    "PublicAddress": [
+                        Constants.hostname1,
+                        "1000:mock_val"
+                    ],
+                    "Identifier": Constants.service_tag1,
+                    "DomainRoleTypeValue": "LEAD",
+                    "Version": "1.20.00",
+                },
+                {
+                    "Id": 13341,
+                    "DeviceId": 13294,
+                    "PublicAddress": [
+                        Constants.hostname2,
+                        "1000:mocked_val"
+                    ],
+                    "Identifier": Constants.service_tag2,
+                    "DomainTypeValue": "MSM",
+                    "DomainRoleTypeValue": "MEMBER",
+                    "Version": "1.20.00",
+                }
+            ]
+        }
+        ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_service_tag_with_fqdn',
+                     return_value=Constants.service_tag2)
+        with pytest.raises(Exception, match=LEAD_CHASSIS_ERROR_MSG.format(ome_default_args["fabric_design"])) as ex:
+            self.module.get_msm_device_details(ome_connection_mock_for_smart_fabric, f_module)
+
+    def test_get_msm_device_details_fqdn_failure_case2(self, ome_connection_mock_for_smart_fabric, ome_default_args,
+                                                       mocker):
+        """
+        when hostname provided is fqdn and
+        failure case: when provided fqdn not available in domain list should throw an error
+        """
+        ome_default_args.update(
+            {"hostname": "XX-XXXX.yyy.lab", "fabric_design": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"})
+        f_module = self.get_module_mock(params=ome_default_args)
+        resp_data = {
+            "value": [
+            ]
+        }
+        ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_service_tag_with_fqdn',
+                     return_value="FPTN6Z2")
+        with pytest.raises(Exception, match=SYSTEM_NOT_SUPPORTED_ERROR_MSG):
+            self.module.get_msm_device_details(ome_connection_mock_for_smart_fabric, f_module)
 
     def test_get_msm_device_details_failure_case_01(self, ome_connection_mock_for_smart_fabric, ome_default_args,
                                                     mocker):
@@ -242,6 +395,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
             }
         ]}
         ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_service_tag_with_fqdn',
+                     return_value=None)
         with pytest.raises(Exception, match=LEAD_CHASSIS_ERROR_MSG.format(ome_default_args["fabric_design"])) as ex:
             self.module.get_msm_device_details(ome_connection_mock_for_smart_fabric, f_module)
 
@@ -255,6 +410,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         resp_data = {"Id": None, "value": [
         ]}
         ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_service_tag_with_fqdn',
+                     return_value=None)
         with pytest.raises(Exception, match=SYSTEM_NOT_SUPPORTED_ERROR_MSG):
             self.module.get_msm_device_details(ome_connection_mock_for_smart_fabric, f_module)
 
@@ -1222,3 +1379,315 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
         self.module.fabric_actions(ome_connection_mock_for_smart_fabric, f_module)
         assert create_modify_fabric.called
+
+    def test_get_service_tag_with_fqdn_success_case(self, ome_default_args, ome_connection_mock_for_smart_fabric):
+        ome_default_args.update({"hostname": "M-YYYY.abcd.lab"})
+        resp_data = {
+            "@odata.context": "/api/$metadata#Collection(DeviceService.Device)",
+            "@odata.count": 2,
+            "value": [
+                {
+                    "@odata.type": "#DeviceService.Device",
+                    "@odata.id": "/api/DeviceService/Devices(Constants.device_id1)",
+                    "Id": Constants.device_id1,
+                    "Type": 2000,
+                    "Identifier": Constants.service_tag1,
+                    "DeviceServiceTag": Constants.service_tag1,
+                    "ChassisServiceTag": None,
+                    "Model": "PowerEdge MX7000",
+                    "PowerState": 17,
+                    "ManagedState": 3000,
+                    "Status": 4000,
+                    "ConnectionState": True,
+                    "AssetTag": None,
+                    "SystemId": 2031,
+                    "DeviceName": "MX-Constants.service_tag1",
+                    "LastInventoryTime": "2020-07-11 17:00:18.925",
+                    "LastStatusTime": "2020-07-11 09:00:07.444",
+                    "DeviceSubscription": None,
+                    "DeviceCapabilities": [
+                        18,
+                        8,
+                        201,
+                        202
+                    ],
+                    "SlotConfiguration": {
+                        "ChassisName": None
+                    },
+                    "DeviceManagement": [
+                        {
+                            "ManagementId": 111111,
+                            "NetworkAddress": ome_default_args["hostname"],
+                            "MacAddress": "xx:yy:zz:x1x1",
+                            "ManagementType": 2,
+                            "InstrumentationName": "MX-Constants.service_tag1",
+                            "DnsName": "M-YYYY.abcd.lab",
+                            "ManagementProfile": [
+                                {
+                                    "ManagementProfileId": 111111,
+                                    "ProfileId": "MSM_BASE",
+                                    "ManagementId": 111111,
+                                    "ManagementURL": "https://" + ome_default_args["hostname"] + ":443",
+                                    "HasCreds": 0,
+                                    "Status": 1000,
+                                    "StatusDateTime": "2020-07-11 17:00:18.925"
+                                }
+                            ]
+                        },
+                        {
+                            "ManagementId": 33333,
+                            "NetworkAddress": "[1234.abcd:5678:345]",
+                            "MacAddress": "22:xx:yy:11",
+                            "ManagementType": 2,
+                            "InstrumentationName": "MX-Constants.service_tag1",
+                            "DnsName": "M-YYYY.abcd.lab",
+                            "ManagementProfile": [
+                                {
+                                    "ManagementProfileId": 33333,
+                                    "ProfileId": "MSM_BASE",
+                                    "ManagementId": 33333,
+                                    "ManagementURL": "https://[1234:abcd:567:xyzs]:443",
+                                    "HasCreds": 0,
+                                    "Status": 1000,
+                                    "StatusDateTime": "2020-07-11 17:00:18.925"
+                                }
+                            ]
+                        }
+                    ],
+                    "Actions": None
+                },
+                {
+                    "@odata.type": "#DeviceService.Device",
+                    "@odata.id": "/api/DeviceService/Devices(Constants.device_id1)",
+                    "Id": Constants.device_id1,
+                    "Type": 2000,
+                    "Identifier": Constants.service_tag2,
+                    "DeviceServiceTag": Constants.service_tag2,
+                    "ChassisServiceTag": None,
+                    "Model": "PowerEdge MX7000",
+                    "PowerState": 17,
+                    "ManagedState": 3000,
+                    "Status": 4000,
+                    "ConnectionState": True,
+                    "AssetTag": None,
+                    "SystemId": 2031,
+                    "DeviceName": "MX-Constants.service_tag2",
+                    "LastInventoryTime": "2020-07-11 17:00:18.925",
+                    "LastStatusTime": "2020-07-11 09:00:07.444",
+                    "DeviceSubscription": None,
+                    "DeviceCapabilities": [
+                        18,
+                        8,
+                        201,
+                        202
+                    ],
+                    "SlotConfiguration": {
+                        "ChassisName": None
+                    },
+                    "DeviceManagement": [
+                        {
+                            "ManagementId": 111111,
+                            "NetworkAddress": ome_default_args["hostname"],
+                            "MacAddress": "xx:yy:zz:x1x1",
+                            "ManagementType": 2,
+                            "InstrumentationName": "MX-Constants.service_tag2",
+                            "DnsName": "M-XXXX.abcd.lab",
+                            "ManagementProfile": [
+                                {
+                                    "ManagementProfileId": 111111,
+                                    "ProfileId": "MSM_BASE",
+                                    "ManagementId": 111111,
+                                    "ManagementURL": "https://" + ome_default_args["hostname"] + ":443",
+                                    "HasCreds": 0,
+                                    "Status": 1000,
+                                    "StatusDateTime": "2020-07-11 17:00:18.925"
+                                }
+                            ]
+                        },
+                        {
+                            "ManagementId": 22222,
+                            "NetworkAddress": "[1234.abcd:5678:345]",
+                            "MacAddress": "22:xx:yy:11",
+                            "ManagementType": 2,
+                            "InstrumentationName": "MX-Constants.service_tag2",
+                            "DnsName": "M-XXXX.abcd.lab",
+                            "ManagementProfile": [{
+                                "ManagementProfileId": 22222,
+                                "ProfileId": "MSM_BASE",
+                                "ManagementId": 22222,
+                                "ManagementURL": "https://[1234:abcd:567:xyzs]:443",
+                                "HasCreds": 0,
+                                "Status": 1000,
+                                "StatusDateTime": "2020-07-11 17:00:18.925"
+                            }]
+                        }
+                    ],
+                    "Actions": None
+                }
+            ]
+        }
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        service_tag = self.module.get_service_tag_with_fqdn(ome_connection_mock_for_smart_fabric, f_module)
+        assert service_tag == Constants.service_tag1
+
+    def test_get_service_tag_with_fqdn_success_case2(self, ome_default_args, ome_connection_mock_for_smart_fabric):
+        ome_default_args.update({"hostname": Constants.hostname1})
+        resp_data = {
+            "@odata.context": "/api/$metadata#Collection(DeviceService.Device)",
+            "@odata.count": 2,
+            "value": [
+                {
+                    "@odata.type": "#DeviceService.Device",
+                    "@odata.id": "/api/DeviceService/Devices(Constants.device_id1)",
+                    "Id": Constants.device_id1,
+                    "Type": 2000,
+                    "Identifier": Constants.service_tag1,
+                    "DeviceServiceTag": Constants.service_tag1,
+                    "ChassisServiceTag": None,
+                    "Model": "PowerEdge MX7000",
+                    "PowerState": 17,
+                    "ManagedState": 3000,
+                    "Status": 4000,
+                    "ConnectionState": True,
+                    "AssetTag": None,
+                    "SystemId": 2031,
+                    "DeviceName": "MX-Constants.service_tag1",
+                    "LastInventoryTime": "2020-07-11 17:00:18.925",
+                    "LastStatusTime": "2020-07-11 09:00:07.444",
+                    "DeviceSubscription": None,
+                    "DeviceCapabilities": [
+                        18,
+                        8,
+                        201,
+                        202
+                    ],
+                    "SlotConfiguration": {
+                        "ChassisName": None
+                    },
+                    "DeviceManagement": [
+                        {
+                            "ManagementId": 111111,
+                            "NetworkAddress": ome_default_args["hostname"],
+                            "MacAddress": "xx:yy:zz:x1x1",
+                            "ManagementType": 2,
+                            "InstrumentationName": "MX-Constants.service_tag1",
+                            "DnsName": "M-YYYY.abcd.lab",
+                            "ManagementProfile": [
+                                {
+                                    "ManagementProfileId": 111111,
+                                    "ProfileId": "MSM_BASE",
+                                    "ManagementId": 111111,
+                                    "ManagementURL": "https://" + ome_default_args["hostname"] + ":443",
+                                    "HasCreds": 0,
+                                    "Status": 1000,
+                                    "StatusDateTime": "2020-07-11 17:00:18.925"
+                                }
+                            ]
+                        },
+                        {
+                            "ManagementId": 33333,
+                            "NetworkAddress": "[1234.abcd:5678:345]",
+                            "MacAddress": "22:xx:yy:11",
+                            "ManagementType": 2,
+                            "InstrumentationName": "MX-Constants.service_tag1",
+                            "DnsName": "M-YYYY.abcd.lab",
+                            "ManagementProfile": [
+                                {
+                                    "ManagementProfileId": 33333,
+                                    "ProfileId": "MSM_BASE",
+                                    "ManagementId": 33333,
+                                    "ManagementURL": "https://[1234:abcd:567:xyzs]:443",
+                                    "HasCreds": 0,
+                                    "Status": 1000,
+                                    "StatusDateTime": "2020-07-11 17:00:18.925"
+                                }
+                            ]
+                        }
+                    ],
+                    "Actions": None
+                },
+                {
+                    "@odata.type": "#DeviceService.Device",
+                    "@odata.id": "/api/DeviceService/Devices(Constants.device_id1)",
+                    "Id": Constants.device_id1,
+                    "Type": 2000,
+                    "Identifier": Constants.service_tag2,
+                    "DeviceServiceTag": Constants.service_tag2,
+                    "ChassisServiceTag": None,
+                    "Model": "PowerEdge MX7000",
+                    "PowerState": 17,
+                    "ManagedState": 3000,
+                    "Status": 4000,
+                    "ConnectionState": True,
+                    "AssetTag": None,
+                    "SystemId": 2031,
+                    "DeviceName": "MX-Constants.service_tag2",
+                    "LastInventoryTime": "2020-07-11 17:00:18.925",
+                    "LastStatusTime": "2020-07-11 09:00:07.444",
+                    "DeviceSubscription": None,
+                    "DeviceCapabilities": [
+                        18,
+                        8,
+                        201,
+                        202
+                    ],
+                    "SlotConfiguration": {
+                        "ChassisName": None
+                    },
+                    "DeviceManagement": [
+                        {
+                            "ManagementId": 111111,
+                            "NetworkAddress": ome_default_args["hostname"],
+                            "MacAddress": "xx:yy:zz:x1x1",
+                            "ManagementType": 2,
+                            "InstrumentationName": "MX-Constants.service_tag2",
+                            "DnsName": "M-XXXX.abcd.lab",
+                            "ManagementProfile": [
+                                {
+                                    "ManagementProfileId": 111111,
+                                    "ProfileId": "MSM_BASE",
+                                    "ManagementId": 111111,
+                                    "ManagementURL": "https://" + ome_default_args["hostname"] + ":443",
+                                    "HasCreds": 0,
+                                    "Status": 1000,
+                                    "StatusDateTime": "2020-07-11 17:00:18.925"
+                                }
+                            ]
+                        },
+                        {
+                            "ManagementId": 22222,
+                            "NetworkAddress": "[1234.abcd:5678:345]",
+                            "MacAddress": "22:xx:yy:11",
+                            "ManagementType": 2,
+                            "InstrumentationName": "MX-Constants.service_tag2",
+                            "DnsName": "M-XXXX.abcd.lab",
+                            "ManagementProfile": [
+                                {
+                                    "ManagementProfileId": 22222,
+                                    "ProfileId": "MSM_BASE",
+                                    "ManagementId": 22222,
+                                    "ManagementURL": "https://[1234:abcd:567:xyzs]:443",
+                                    "HasCreds": 0,
+                                    "Status": 1000,
+                                    "StatusDateTime": "2020-07-11 17:00:18.925"
+                                }
+                            ]
+                        }
+                    ],
+                    "Actions": None
+                }
+            ]
+        }
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        service_tag = self.module.get_service_tag_with_fqdn(ome_connection_mock_for_smart_fabric, f_module)
+        assert service_tag is None
+
+    def test_get_service_tag_with_fqdn_success_case3(self, ome_default_args, ome_connection_mock_for_smart_fabric):
+        ome_default_args.update({"hostname": Constants.hostname1})
+        resp_data = {"value": []}
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
+        service_tag = self.module.get_service_tag_with_fqdn(ome_connection_mock_for_smart_fabric, f_module)
+        assert service_tag is None

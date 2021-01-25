@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: idrac_redfish_storage_controller
-short_description: Configures the storage controller settings.
+short_description: Configures the storage controller settings
 version_added: "2.9"
 description:
   - This module configures the settings of the storage controller using Redfish.
@@ -108,6 +108,9 @@ options:
 requirements:
   - "python >= 2.7.5"
 author: "Jagadeesh N V (@jagadeeshnv)"
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''

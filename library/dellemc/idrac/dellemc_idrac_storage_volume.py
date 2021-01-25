@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: dellemc_idrac_storage_volume
-short_description: Configures the RAID configuration attributes.
+short_description: Configures the RAID configuration attributes
 version_added: "2.9.0"
 description:
   - This module is responsible for configuring the RAID attributes.
@@ -97,7 +97,7 @@ options:
     type: str
     description:
       - >-
-        Fully Qualified Device Descriptor (FQDD) of the storage controller, for e.g. 'RAID.Integrated.1-1'.
+        Fully Qualified Device Descriptor (FQDD) of the storage controller, for example 'RAID.Integrated.1-1'.
         Controller FQDD is required for C(create) RAID configuration.
   media_type:
     required:  False
@@ -114,7 +114,7 @@ options:
     type: str
     description:
       - >-
-        Fully Qualified Device Descriptor (FQDD) of the virtual disk, for e.g. 'Disk.virtual.0:RAID.Slot.1-1'.
+        Fully Qualified Device Descriptor (FQDD) of the virtual disk, for example 'Disk.virtual.0:RAID.Slot.1-1'.
         This option is used to get the virtual disk information.
   volumes:
     required: False
@@ -154,7 +154,9 @@ requirements:
   - "omsdk"
   - "python >= 2.7.5"
 author: "Felix Stephen (@felixs88)"
-
+notes:
+    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''

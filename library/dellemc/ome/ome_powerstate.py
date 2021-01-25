@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_powerstate
-short_description: Performs the power management operations on OpenManage Enterprise.
+short_description: Performs the power management operations on OpenManage Enterprise
 version_added: "2.9.10"
 description: This module performs the supported power management operations on OpenManage Enterprise.
 options:
@@ -58,6 +58,9 @@ options:
 requirements:
     - "python >= 2.7.5"
 author: "Felix Stephen (@felixs88)"
+notes:
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -197,7 +200,7 @@ def build_power_state_payload(device_id, device_type, valid_option):
         "JobType": {"Id": 3, "Name": "DeviceAction_Task"},
         "Params": [{"Key": "operationName", "Value": "POWER_CONTROL"},
                    {"Key": "powerState", "Value": str(valid_option)}],
-        "Targets": [{"Id": device_id, "Data": "",
+        "Targets": [{"Id": int(device_id), "Data": "",
                      "TargetType": {"Id": device_type, "Name": "DEVICE"}}],
     }
     return payload
@@ -207,7 +210,7 @@ def get_device_state(module, resp, device_id):
     """Get the current state and device type from response."""
     current_state, device_type, invalid_device = None, None, True
     for device in resp.json_data['value']:
-        if device['Id'] == device_id:
+        if device['Id'] == int(device_id):
             current_state = device.get('PowerState', None)
             device_type = device['Type']
             invalid_device = False

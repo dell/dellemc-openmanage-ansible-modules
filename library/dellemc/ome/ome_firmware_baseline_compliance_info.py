@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.0.12
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.0.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = r'''
 ---
 module: ome_firmware_baseline_compliance_info
-short_description: Retrieves baseline compliance details on OpenManage Enterprise.
+short_description: Retrieves baseline compliance details on OpenManage Enterprise
 version_added: "2.9"
 description:
    - This module allows to retrieve firmware compliance for a list of devices,
@@ -57,6 +57,7 @@ options:
           I(device_group_names) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
+    elements: int
   device_service_tags:
     description:
         - A list of service tags for device based compliance report.
@@ -66,6 +67,7 @@ options:
           I(device_group_names) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
+    elements: str
   device_group_names:
     description:
         - A list of group names for device based compliance report.
@@ -75,10 +77,13 @@ options:
           I(device_service_tags) and I(baseline_name).
         - Devices without reports are ignored.
     type: list
+    elements: str
 requirements:
     - "python >= 2.7.5"
 author: "Sajna Shetty(@Sajna-Shetty)"
-
+notes:
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -389,13 +394,13 @@ def main():
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "type": 'int', "default": 443},
             "baseline_name": {"type": 'str', "required": False},
-            "device_service_tags": {"required": False, "type": "list"},
-            "device_ids": {"required": False, "type": "list"},
-            "device_group_names": {"required": False, "type": "list"},
+            "device_service_tags": {"required": False, "type": "list", "elements": 'str'},
+            "device_ids": {"required": False, "type": "list", "elements": 'int'},
+            "device_group_names": {"required": False, "type": "list", "elements": 'str'},
         },
         mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'device_group_names']],
         required_one_of=[['device_ids', 'device_service_tags', 'device_group_names', 'baseline_name']],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     try:
         validate_inputs(module)
