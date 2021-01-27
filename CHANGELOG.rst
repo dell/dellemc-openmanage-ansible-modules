@@ -21,6 +21,7 @@ Major Changes
 Minor Changes
 -------------
 
+- Coding Guidelines, Contributor Agreement, and Code of Conduct files are added to the collection.
 - New deprecation changes for ``dellemc_get_system_inventory`` and ``dellemc_get_firmware_inventory`` ignored for ansible 2.9 sanity test.
 - The modules are standardized as per ansible guidelines.
 
