@@ -1,0 +1,4 @@
+plugins/modules/dellemc_get_firmware_inventory.py validate-modules:deprecation-mismatch
+plugins/modules/dellemc_get_firmware_inventory.py validate-modules:invalid-documentation
+plugins/modules/dellemc_get_system_inventory.py validate-modules:deprecation-mismatch
+plugins/modules/dellemc_get_system_inventory.py validate-modules:invalid-documentation
