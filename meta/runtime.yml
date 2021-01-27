@@ -1,5 +1,5 @@
 ---
-requires_ansible: '>=2.10.3'
+requires_ansible: '>=2.10.0'
 plugin_routing:
   modules:
     dellemc_get_firmware_inventory:
