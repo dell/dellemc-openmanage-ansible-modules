@@ -99,7 +99,7 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        ansible-version: [stable-2.10, devel]
+        ansible-version: [stable-2.9, stable-2.10, devel]
 
     steps:
       - name: Set up Python 3.8

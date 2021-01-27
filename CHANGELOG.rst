@@ -21,6 +21,7 @@ Major Changes
 Minor Changes
 -------------
 
+- New deprecation changes for ``dellemc_get_system_inventory`` and ``dellemc_get_firmware_inventory`` ignored for ansible 2.9 sanity test.
 - The modules are standardized as per ansible guidelines.
 
 Deprecated Features
