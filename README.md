@@ -38,13 +38,11 @@ For example-```ansible-doc dellemc.openmanage.<module_name>```
 For detailed information on Dell EMC OpenManage Ansible Modules refer the guides [here.](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/devel/guides)
 
 ## LICENSE
-This project is licensed under GPL-3.0 License. See the [COPYING](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/COPYING.md) for more information.
+This project is licensed under GPL-3.0 License. See the [COPYING](./COPYING.md) for more information.
 
 ## Contributing
-We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](
-https://github.com/dell/dellemc-openmanage-ansible-modules/blob/devel/CODING_GUIDELINES.md) for more details.
-You can refer our [Code of Conduct](
-https://github.com/dell/dellemc-openmanage-ansible-modules/blob/devel/CODE_OF_CONDUCT.md) here.
+We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](./CODING_GUIDELINES.md) for more details.
+You can refer our [Code of Conduct](./CODE_OF_CONDUCT.md) here.
 
 ## Testing
 See [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/tests/README.md) for further information on testing.
@@ -56,6 +54,7 @@ See [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/colle
   * OpenManage Ansible Modules deprecation cycle is aligned with [Ansible](https://docs.ansible.com/ansible/latest/dev_guide/module_lifecycle.html).
 
 ## Support
+  * This branch corresponds to the release actively under development.
   * To report any issue, create an issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).
   * If any requirements have not been addressed, then create an issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).
   * To provide feedback to the development team, send an email to **OpenManageAnsible@Dell.com**.
