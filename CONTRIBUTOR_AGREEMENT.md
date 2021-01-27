@@ -1,8 +1,8 @@
 ### Contributor Agreement
-All contributions shall be made under the Developer Certification of Origin (“DCO”) (see http://elinux.org/Developer_Certificate_Of_Origin) which is reproduced below. Specifically, the Git commit message for the contribution should contain the following tag information signifying use of the DCO:
+All contributions shall be made under the Developer Certification of Origin ("DCO") (see http://elinux.org/Developer_Certificate_Of_Origin) which is reproduced below. Specifically, the Git commit message for the contribution should contain the following tag information signifying use of the DCO:
 
 
-“Signed-off-by: [Your Name] [youremail@company.com]”
+"Signed-off-by: [Your Name] [youremail@company.com]"
 
 
 ________________________________________
