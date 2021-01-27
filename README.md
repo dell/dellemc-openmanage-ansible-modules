@@ -38,11 +38,11 @@ For example-```ansible-doc dellemc.openmanage.<module_name>```
 For detailed information on Dell EMC OpenManage Ansible Modules refer the guides [here.](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/devel/guides)
 
 ## LICENSE
-This project is licensed under GPL-3.0 License. See the [COPYING](./COPYING.md) for more information.
+This project is licensed under GPL-3.0 License. See the [COPYING](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/COPYING.md) for more information.
 
 ## Contributing
-We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](./CODING_GUIDELINES.md) for more details.
-You can refer our [Code of Conduct](./CODE_OF_CONDUCT.md) here.
+We welcome your contributions to OpenManage Ansible Modules. See [Coding Guidelines](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/CODING_GUIDELINES.md) for more details.
+You can refer our [Code of Conduct](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/CODE_OF_CONDUCT.md) here.
 
 ## Testing
 See [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/tests/README.md) for further information on testing.
