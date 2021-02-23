@@ -1,0 +1,45 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell EMC OpenManage Ansible profile operations.
+  gather_facts: False
+  vars:
+    retries_count: 120
+    polling_interval: 30 # 30 seconds x 120 times = 1 hour
+    failed_states: ['Failed', 'Warning', 'Aborted', 'Paused', 'Stopped',
+                    'Canceled']
+    completed_states: ['Completed', 'Failed', 'Warning', 'Aborted', 'Paused',
+                       'Stopped', 'Canceled']
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Assign a profile to target
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "assign"
+        name: "Profile 00001"
+        device_id: 12456
+      register: result
+
+    - name: End play when no job_id in result
+      meta: end_play
+      when:
+        - result.changed == false
+        - "'job_id' not in result"
+
+    - name: Get job details using job id
+      ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        job_id: "{{ result.job_id }}"
+      register: job_result
+      failed_when: job_result.job_info.LastRunStatus.Name in "{{ failed_states }}"
+      changed_when: job_result.job_info.LastRunStatus.Name == 'Completed'
+      until: job_result.job_info.LastRunStatus.Name in "{{ completed_states }}"
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"

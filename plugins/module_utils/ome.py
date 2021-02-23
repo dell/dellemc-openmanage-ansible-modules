@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.1.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -231,11 +231,12 @@ class RestOME(object):
             data = resp.json_data
             total_items = data.get("value", [])
             total_count = data.get('@odata.count', 0)
-            next_link = data.get('@odata.nextLink', "")
+            next_link = data.get('@odata.nextLink', '')
             while next_link:
-                resp = self.invoke_request('GET', uri)
+                resp = self.invoke_request('GET', next_link.split('/api')[-1])
                 data = resp.json_data
                 value = data["value"]
+                next_link = data.get('@odata.nextLink', '')
                 total_items.extend(value)
             return {"total_count": total_count, "value": total_items}
         except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
