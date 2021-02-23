@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.1.0
 # Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -147,10 +147,26 @@ from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationEr
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 PROXY_CONFIG = "ApplicationService/Network/ProxyConfiguration"
+CHECK_MODE_CHANGE_FOUND_MSG = "Changes found to be applied."
+CHECK_MODE_CHANGE_NOT_FOUND_MSG = "No Changes found to be applied."
 
 
 def remove_unwanted_keys(key_list, payload):
     [payload.pop(key) for key in key_list if key in payload]
+
+
+def validate_check_mode_for_network_proxy(payload_diff, module):
+    """
+    check mode support validation
+    :param payload_diff: payload difference
+    :param module: ansible module object
+    :return: None
+    """
+    if module.check_mode:
+        if payload_diff:
+            module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True)
+        else:
+            module.exit_json(msg=CHECK_MODE_CHANGE_NOT_FOUND_MSG, changed=False)
 
 
 def get_payload(module):
@@ -187,8 +203,10 @@ def get_updated_payload(rest_obj, module, payload):
         current_setting = resp.json_data
         remove_unwanted_keys(remove_keys, current_setting)
         diff = any(key in current_setting and val != current_setting[key] for key, val in payload.items())
+        validate_check_mode_for_network_proxy(diff, module)
         if not diff:
-            module.exit_json(msg="No changes made to proxy configuration as entered values are the same as current configuration values.")
+            module.exit_json(msg="No changes made to proxy configuration as entered values are the same as current "
+                                 "configuration values.")
         else:
             current_setting.update(payload)
     return current_setting
@@ -210,7 +228,7 @@ def main():
         },
         required_if=[['enable_proxy', True, ['ip_address', 'proxy_port']],
                      ['enable_authentication', True, ['proxy_username', 'proxy_password']], ],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
