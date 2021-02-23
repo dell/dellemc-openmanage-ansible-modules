@@ -5,6 +5,31 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v3.1.0
+======
+
+Release Summary
+---------------
+
+OpenManage Enterprise profiles management support added.
+
+Bugfixes
+--------
+
+- ome_firmware_baseline_compliance_info - OMEnt firmware baseline compliance info pagination support added (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/171)
+- ome_network_proxy - OMEnt network proxy check mode support added (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/187)
+
+Known Issues
+------------
+
+- ome_smart_fabric - Issue(185322) Only three design types are supported by OpenManage Enterprise Modular but the module successfully creates a fabric when the design type is not supported.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_profile - Create, modify, delete, assign, unassign and migrate a profile on OpenManage Enterprise
+
 v3.0.0
 ======
 

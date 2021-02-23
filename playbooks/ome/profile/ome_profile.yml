@@ -1,0 +1,197 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell EMC OpenManage Ansible profile operations.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Create two profiles from a template
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: create
+        template_name: "template 1"
+        name_prefix: "omam_profile"
+        number_of_profiles: 2
+      tags:
+        - create_profile
+
+    - name: Create profile with NFS share
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: create
+        template_name: "template 1"
+        name_prefix: "omam_profile"
+        number_of_profiles: 1
+        boot_to_network_iso:
+          boot_to_network: True
+          share_type: "NFS"
+          share_ip: "192.168.0.1"
+          iso_path: "/path/to/my_iso.iso"
+          iso_timeout: 8
+      tags:
+        - create_profile_nfs
+
+    - name: Create profile with CIFS share
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: create
+        template_name: "template 1"
+        name_prefix: "omam_profile"
+        number_of_profiles: 1
+        boot_to_network_iso:
+          boot_to_network: True
+          share_type: CIFS
+          share_ip: "192.168.0.2"
+          share_user: "username"
+          share_password: "password"
+          workgroup: "workgroup"
+          iso_path: "\\path\\to\\my_iso.iso"
+          iso_timeout: 8
+      tags:
+        - create_profile_cifs
+
+    - name: Modify profile name with NFS share and attributes
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: modify
+        name: "Profile 00001"
+        new_name: "modified profile"
+        description: "new description"
+        boot_to_network_iso:
+          boot_to_network: True
+          share_type: NFS
+          share_ip: "192.168.0.1"
+          iso_path: "/path/to/my_iso.iso"
+          iso_timeout: 8
+        attributes:
+          Attributes:
+            - Id: 4506
+              Value: "server attr 1"
+              IsIgnored: true
+            - Id: 4507
+              Value: "server attr 2"
+              IsIgnored: true
+      tags:
+        - modify_profile
+
+    - name: Delete using profile name
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "delete"
+        name: "Profile 00003"
+      tags:
+        - delete_profile_name
+
+    - name: Delete using filter
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "delete"
+        filters:
+          SelectAll: True
+          Filters: =contains(ProfileName,'Profile 00002')
+      tags:
+        - delete_filter
+
+    - name: Delete using profile list filter
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "delete"
+        filters:
+          ProfileIds:
+            - 17123
+            - 12124
+      tags:
+        - delete_profile_ids
+
+    - name: Assign profile name with network share
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: assign
+        name: "Profile 00001"
+        device_id: 12456
+        boot_to_network_iso:
+          boot_to_network: True
+          share_type: NFS
+          share_ip: "192.168.0.1"
+          iso_path: "/path/to/my_iso.iso"
+          iso_timeout: 8
+        attributes:
+          Attributes:
+            - Id: 4506
+              Value: "server attr 1"
+              IsIgnored: true
+          Options:
+            ShutdownType: 0
+            TimeToWaitBeforeShutdown: 300
+            EndHostPowerState: 1
+            StrictCheckingVlan: True
+          Schedule:
+            RunNow: True
+            RunLater: False
+      tags:
+        - assign_profile
+
+    - name: Unassign using profile name
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "unassign"
+        name: "Profile 00003"
+      tags:
+        - unassign_profile_name
+
+    - name: "Unassign using filters"
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "unassign"
+        filters:
+          SelectAll: True
+          Filters: =contains(ProfileName,'Profile 00003')
+      tags:
+        - unassign_filter
+
+    - name: Unassign using filter
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "unassign"
+        filters:
+          ProfileIds:
+            - 17123
+            - 16123
+      tags:
+        - unassign_profile_list
+
+    - name: Migrate profile
+      ome_profile:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "migrate"
+        name: "Profile 0001"
+        device_id: 12456
+      tags:
+        - migrate_profile

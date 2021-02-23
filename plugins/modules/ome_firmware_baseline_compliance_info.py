@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.1.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -242,9 +242,9 @@ def _get_device_id_from_service_tags(service_tags, rest_obj, module):
     :returns: dict eg: {1345:"MXL1245"}
     """
     try:
-        resp = rest_obj.invoke_request('GET', device_is_list_path)
-        if resp.success:
-            devices_list = resp.json_data["value"]
+        resp = rest_obj.get_all_report_details("DeviceService/Devices")
+        devices_list = resp["report_list"]
+        if devices_list:
             service_tag_dict = {}
             for item in devices_list:
                 if item["DeviceServiceTag"] in service_tags:
@@ -261,13 +261,13 @@ def get_device_ids_from_group_ids(module, grou_id_list, rest_obj):
         device_id_list = []
         for group_id in grou_id_list:
             group_id_path = group_service_path + "({group_id})/Devices".format(group_id=group_id)
-            resp = rest_obj.invoke_request('GET', group_id_path)
-            if resp.success:
-                grp_list_value = resp.json_data['value']
+            resp_val = rest_obj.get_all_items_with_pagination(group_id_path)
+            grp_list_value = resp_val["value"]
+            if grp_list_value:
                 for device_item in grp_list_value:
                     device_id_list.append(device_item["Id"])
-            else:
-                module.fail_json(msg="Failed to fetch the device ids from specified I(device_group_names).")
+        if len(device_id_list) == 0:
+            module.fail_json(msg="Failed to fetch the device ids from specified I(device_group_names).")
         return device_id_list
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
@@ -276,10 +276,10 @@ def get_device_ids_from_group_ids(module, grou_id_list, rest_obj):
 def get_device_ids_from_group_names(module, rest_obj):
     try:
         grp_name_list = module.params.get("device_group_names")
-        resp = rest_obj.invoke_request('GET', group_service_path)
+        resp = rest_obj.get_all_report_details(group_service_path)
         group_id_list = []
-        if resp.success:
-            grp_list_resp = resp.json_data['value']
+        grp_list_resp = resp["report_list"]
+        if grp_list_resp:
             for name in grp_name_list:
                 for group in grp_list_resp:
                     if group["Name"] == name:
@@ -308,18 +308,17 @@ def get_baseline_id_from_name(rest_obj, module):
         baseline_name = module.params.get("baseline_name")
         baseline_id = 0
         if baseline_name is not None:
-            resp = rest_obj.invoke_request('GET', base_line_path)
-            if resp.success:
-                baseline_list = resp.json_data["value"]
-                if len(baseline_list) > 0:
-                    for baseline in baseline_list:
-                        if baseline["Name"] == baseline_name:
-                            baseline_id = baseline["Id"]
-                            break
-                    else:
-                        module.fail_json(msg="Specified I(baseline_name) does not exist in the system.")
+            resp_val = rest_obj.get_all_items_with_pagination(base_line_path)
+            baseline_list = resp_val["value"]
+            if baseline_list:
+                for baseline in baseline_list:
+                    if baseline["Name"] == baseline_name:
+                        baseline_id = baseline["Id"]
+                        break
                 else:
-                    module.fail_json(msg="No baseline exists in the system.")
+                    module.fail_json(msg="Specified I(baseline_name) does not exist in the system.")
+            else:
+                module.fail_json(msg="No baseline exists in the system.")
         else:
             module.fail_json(msg="I(baseline_name) is a mandatory option.")
         return baseline_id
@@ -348,10 +347,8 @@ def get_baseline_compliance_reports(rest_obj, module):
     try:
         baseline_id = get_baseline_id_from_name(rest_obj, module)
         path = baselines_compliance_report_path.format(Id=baseline_id)
-        resp = rest_obj.invoke_request('GET', path)
-        resp_data = []
-        if resp.success:
-            resp_data = resp.json_data["value"]
+        resp_val = rest_obj.get_all_items_with_pagination(path)
+        resp_data = resp_val["value"]
         return resp_data
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
