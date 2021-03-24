@@ -505,7 +505,7 @@ class TestOmeFirmware(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.get_baseline_ids(ome_connection_firmware_mock, f_module)
         assert exc.value.args[0] == "Unable to complete the operation because" \
-                                    " the enteredtarget baseline name does not exist."
+                                    " the entered target baseline name does not exist."
 
     def test_get_dup_baseline_case_01(self, ome_connection_firmware_mock):
         baseline = "baseline_name1,baseline_name2,baseline_name3"
@@ -534,7 +534,7 @@ class TestOmeFirmware(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.get_dup_baseline(ome_connection_firmware_mock, f_module)
         assert exc.value.args[0] == "Unable to complete the operation because the" \
-                                    " enteredtarget baseline name(s) does not exists."
+                                    " entered target baseline name(s) does not exists."
 
     def test_baseline_based_update_exception_case_01(self, ome_connection_firmware_mock):
         ome_connection_firmware_mock.get_all_report_details.return_value = {"report_list": []}
