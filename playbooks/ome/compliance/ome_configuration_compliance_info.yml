@@ -1,0 +1,32 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OpenManage Ansible Module for Device compliance information
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+  - name: Retrieve the compliance report of all of the devices in the specified configuration compliance baseline.
+    ome_configuration_compliance_info:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      baseline: baseline_name
+
+  - name: Retrieve the compliance report for a specific device associated with the baseline using the device ID.
+    ome_configuration_compliance_info:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      baseline: baseline_name
+      device_id: 10001
+
+  - name: Retrieve the compliance report for a specific device associated with the baseline using the device service tag.
+    ome_configuration_compliance_info:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      baseline: baseline_name
+      device_service_tag: 2HFGH3

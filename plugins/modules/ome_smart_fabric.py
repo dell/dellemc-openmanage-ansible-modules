@@ -11,6 +11,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -174,6 +175,7 @@ error_info:
 '''
 
 import json
+import re
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -329,12 +331,18 @@ def validate_switches_overlap(current_dict, modify_dict, module):
     current_secondary_switch = current_dict.get("PhysicalNode2")
     modify_secondary_switch = modify_dict.get("PhysicalNode2")
     current_primary_switch = current_dict.get("PhysicalNode1")
+    if modify_primary_switch and current_primary_switch != modify_primary_switch:
+        module.fail_json(msg="The modify operation does not support primary_switch_service_tag update.")
+    if modify_secondary_switch and current_secondary_switch != modify_secondary_switch:
+        module.fail_json(msg="The modify operation does not support secondary_switch_service_tag update.")
     flag = all([modify_primary_switch, modify_secondary_switch, current_primary_switch,
                 current_secondary_switch]) and (modify_primary_switch == current_secondary_switch and
                                                 modify_secondary_switch == current_primary_switch)
-    if not flag and modify_primary_switch == current_secondary_switch:
+    if not flag and modify_primary_switch is not None and current_secondary_switch is not None and\
+            modify_primary_switch == current_secondary_switch:
         module.fail_json(PRIMARY_SWITCH_OVERLAP_MSG)
-    if not flag and modify_secondary_switch == current_primary_switch:
+    if not flag and modify_secondary_switch is not None and current_primary_switch is not None and\
+            modify_secondary_switch == current_primary_switch:
         module.fail_json(SECONDARY_SWITCH_OVERLAP_MSG)
 
 
@@ -402,7 +410,7 @@ def get_current_payload(fabric_details, rest_obj):
     :param fabric_details: dict - specified fabric details
     :return: dict
     """
-    if fabric_details.get("OverrideLLDPConfiguration") and fabric_details.get("OverrideLLDPConfiguration") not in\
+    if fabric_details.get("OverrideLLDPConfiguration") and fabric_details.get("OverrideLLDPConfiguration") not in \
             ["Enabled", "Disabled"]:
         fabric_details.pop("OverrideLLDPConfiguration", None)
     payload = {
@@ -530,8 +538,6 @@ def validate_devices(host_service_tag, rest_obj, module):
     """
     primary = module.params.get("primary_switch_service_tag")
     secondary = module.params.get("secondary_switch_service_tag")
-    if primary and secondary and primary == secondary:
-        module.fail_json(msg=DUPLICATE_TAGS)
     device_type_map = rest_obj.get_device_type()
     validate_service_tag(host_service_tag, "hostname", device_type_map, rest_obj, module)
     validate_service_tag(primary,
@@ -573,6 +579,13 @@ def process_output(name, fabric_resp, msg, fabric_id, rest_obj, module):
     module.exit_json(msg=msg, fabric_id=identifier, changed=True)
 
 
+def validate_modify(module, current_payload):
+    """Fabric modification does not support fabric design type modification"""
+    if module.params.get("fabric_design") and current_payload["FabricDesign"]["Name"] and\
+            (module.params.get("fabric_design") != current_payload["FabricDesign"]["Name"]):
+        module.fail_json(msg="The modify operation does not support fabric_design update.")
+
+
 def create_modify_fabric(name, all_fabric, rest_obj, module):
     """
     fabric management actions creation/update of smart fabric
@@ -594,6 +607,7 @@ def create_modify_fabric(name, all_fabric, rest_obj, module):
     current_payload = {}
     if fabric_id:
         current_payload = get_current_payload(current_fabric_details, rest_obj)
+        validate_modify(module, current_payload)
         method = "PUT"
         msg = "Fabric modification operation is initiated."
         uri = FABRIC_ID_URI.format(fabric_id=fabric_id)

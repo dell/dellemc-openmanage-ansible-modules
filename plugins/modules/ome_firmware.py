@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.2.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -340,7 +340,7 @@ def get_dup_baseline(rest_obj, module):
                 msg="Unable to complete the operation because the entered target baseline name(s)"
                     " '{0}' are invalid.".format(",".join(set(baseline))))
     else:
-        module.fail_json(msg="Unable to complete the operation because the entered"
+        module.fail_json(msg="Unable to complete the operation because the entered "
                              "target baseline name(s) does not exists.")
     return baseline_ids
 
@@ -373,7 +373,7 @@ def get_baseline_ids(rest_obj, module):
                 msg="Unable to complete the operation because the entered target baseline name"
                     " '{0}' is invalid.".format(baseline))
     else:
-        module.fail_json(msg="Unable to complete the operation because the entered"
+        module.fail_json(msg="Unable to complete the operation because the entered "
                              "target baseline name does not exist.")
     return baseline_details
 
