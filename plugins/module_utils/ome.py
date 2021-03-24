@@ -10,9 +10,11 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 import json
+import time
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
@@ -21,6 +23,8 @@ SESSION_RESOURCE_COLLECTION = {
     "SESSION": "SessionService/Sessions",
     "SESSION_ID": "SessionService/Sessions('{Id}')",
 }
+
+JOB_URI = "JobService/Jobs({job_id})"
 
 
 class OpenURLResponse(object):
@@ -181,7 +185,8 @@ class RestOME(object):
             remaining_count = total_count - len(report_list)
             first_page_count = len(report_list)
             while remaining_count > 0:
-                resp = self.invoke_request('GET', uri, query_param={"$top": first_page_count, "$skip": len(report_list)})
+                resp = self.invoke_request('GET', uri,
+                                           query_param={"$top": first_page_count, "$skip": len(report_list)})
                 data = resp.json_data
                 value = data["value"]
                 report_list.extend(value)
@@ -253,3 +258,52 @@ class RestOME(object):
         if response.json_data.get("value"):
             device_map = dict([(item["DeviceType"], item["Name"]) for item in response.json_data["value"]])
         return device_map
+
+    def get_job_info(self, job_id):
+        try:
+            job_status_map = {
+                2020: "Scheduled", 2030: "Queued", 2040: "Starting", 2050: "Running", 2060: "Completed",
+                2070: "Failed", 2090: "Warning", 2080: "New", 2100: "Aborted", 2101: "Paused", 2102: "Stopped",
+                2103: "Canceled"
+            }
+            failed_job_status = [2070, 2090, 2100, 2101, 2102, 2103]
+            job_url = JOB_URI.format(job_id=job_id)
+            job_resp = self.invoke_request('GET', job_url)
+            job_dict = job_resp.json_data
+            job_status = job_dict['LastRunStatus']['Id']
+            if job_status in [2060, 2020]:
+                job_failed = False
+                message = "Job {0} successfully.".format(job_status_map[job_status])
+                exit_poll = True
+                return exit_poll, job_failed, message
+            elif job_status in failed_job_status:
+                exit_poll = True
+                job_failed = True
+                message = "Job is in {0} state, and is not completed.".format(job_status_map[job_status])
+                return exit_poll, job_failed, message
+            return False, False, None
+        except HTTPError:
+            job_failed = True
+            message = "Unable to track the job status of {0}.".format(job_id)
+            exit_poll = True
+            return exit_poll, job_failed, message
+
+    def job_tracking(self, job_id, job_wait_sec=600, sleep_time=60):
+        """
+        job_id: job id
+        job_wait_sec: Maximum time to wait to fetch the final job details in seconds
+        sleep_time: Maximum time to sleep in seconds in each job details fetch
+        """
+        max_sleep_time = job_wait_sec
+        sleep_interval = sleep_time
+        while max_sleep_time:
+            if max_sleep_time > sleep_interval:
+                max_sleep_time = max_sleep_time - sleep_interval
+            else:
+                sleep_interval = max_sleep_time
+                max_sleep_time = 0
+            time.sleep(sleep_interval)
+            exit_poll, job_failed, job_message = self.get_job_info(job_id)
+            if exit_poll is True:
+                return job_failed, job_message
+        return True, "The job is not complete after {0} seconds.".format(job_wait_sec)

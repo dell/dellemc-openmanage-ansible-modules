@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.1.0
+# Version 3.2.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -51,7 +51,7 @@ options:
   device_id:
     description:
       - >-
-        Specify the list of targeted device ID(s) when I(command) is C(deploy). When I (Command) is C(create),
+        Specify the list of targeted device ID(s) when I(command) is C(deploy). When I (command) is C(create),
         specify the ID of a single device.
       - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
     type: list
@@ -60,9 +60,16 @@ options:
   device_service_tag:
     description:
       - >-
-        Specify the list of targeted device service tags when I (command) is C(deploy). When I(Command) is C(create),
+        Specify the list of targeted device service tags when I (command) is C(deploy). When I(command) is C(create),
         specify the service tag of a single device.
       - Either I(device_id) or I(device_service_tag) is mandatory or both can be applicable.
+    type: list
+    elements: str
+    default: []
+  device_group_names:
+    description:
+      - Specify the list of groups when I (command) is C(deploy).
+      - Provide at least one of the mandatory options I(device_id), I(device_service_tag), or I(device_group_names).
     type: list
     elements: str
     default: []
@@ -81,7 +88,7 @@ options:
         C(modify), C(deploy), C(import), and C(clone) operations. It takes the following attributes.
       - >-
         Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is
-        applicable when I(command) is C(deploy) and C(modify.
+        applicable when I(command) is C(deploy) and C(modify).
       - >-
         Name: Name of the template. This is mandatory when I(command) is C(create), C(import), C(clone), and
         optional when I(command) is C(modify).
@@ -162,6 +169,17 @@ EXAMPLES = r'''
     device_service_tag:
       - 'SVTG123'
       - 'SVTG456'
+
+- name: Deploy template on groups
+  dellemc.openmanage.ome_template:
+    hostname:  "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "deploy"
+    template_id: 12
+    device_group_names:
+      - server_group_1
+      - server_group_2
 
 - name: Deploy template on multiple devices along with the attributes values to be modified on the target devices
   dellemc.openmanage.ome_template:
@@ -392,6 +410,7 @@ error_info:
 '''
 
 import json
+from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -402,37 +421,63 @@ TEMPLATES_URI = "TemplateService/Templates"
 TEMPLATE_PATH = "TemplateService/Templates({template_id})"
 TEMPALTE_ACTION = "TemplateService/Actions/TemplateService.{op}"
 DEVICE_URI = "DeviceService/Devices"
+GROUP_URI = "GroupService/Groups"
+
+
+def get_group_devices_all(rest_obj, uri):
+    total_items = []
+    next_link = uri
+    while next_link:
+        resp = rest_obj.invoke_request('GET', next_link)
+        data = resp.json_data
+        total_items.extend(data.get("value", []))
+        next_link = str(data.get('@odata.nextLink', '')).split('/api')[-1]
+    return total_items
+
+
+def get_group(rest_obj, module, group_name):
+    query_param = {"$filter": "Name eq '{0}'".format(group_name)}
+    group_req = rest_obj.invoke_request("GET", GROUP_URI, query_param=query_param)
+    for grp in group_req.json_data.get('value'):
+        if grp['Name'] == group_name:
+            return grp
+    module.fail_json(msg="Group name '{0}' is invalid. Please provide a valid group name.".format(group_name))
+
+
+def get_group_details(rest_obj, module):
+    group_name_list = module.params.get('device_group_names')
+    device_ids = []
+    for group_name in group_name_list:
+        group = get_group(rest_obj, module, group_name)
+        group_uri = GROUP_URI + "({0})/Devices".format(group['Id'])
+        group_device_list = get_group_devices_all(rest_obj, group_uri)
+        device_ids.extend([dev['Id'] for dev in group_device_list])
+    return device_ids
 
 
 def get_device_ids(module, rest_obj):
     """Getting the list of device ids filtered from the device inventory."""
-    device_id = list(map(str, module.params.get('device_id')))
-    for devid in device_id:
-        if not devid.isdigit():
-            fail_module(module, msg="Invalid device id {0} found. Please provide a valid number".format(devid))
-    service_tags = module.params.get('device_service_tag')
-    if not service_tags:
-        return list(set(device_id))
-    device_list = rest_obj.get_all_report_details(DEVICE_URI)["report_list"]
-    if device_list:
-        device_resp = dict([(device.get('DeviceServiceTag'), str(device.get('Id'))) for device in device_list])
-        device_tags = list(map(str, service_tags))
-        invalid_tags = []
-        for tag in device_tags:
-            if device_resp.get(tag):
-                device_id.append(device_resp.get(tag))
-            else:
-                invalid_tags.append(tag)
+    target_ids = []
+    if module.params.get('device_service_tag') or module.params.get('device_id'):
+        # device_list = get_group_devices_all(rest_obj, DEVICE_URI)
+        device_list = rest_obj.get_all_report_details(DEVICE_URI)['report_list']
+        device_tag_id_map = dict([(device.get('DeviceServiceTag'), device.get('Id')) for device in device_list])
+        device_id = module.params.get('device_id')
+        invalid_ids = set(device_id) - set(device_tag_id_map.values())
+        if invalid_ids:
+            fail_module(module, msg="Unable to complete the operation because the entered target device"
+                                    " id(s) '{0}' are invalid.".format(",".join(list(map(str, set(invalid_ids))))))
+        target_ids.extend(device_id)
+        service_tags = module.params.get('device_service_tag')
+        invalid_tags = set(service_tags) - set(device_tag_id_map.keys())
         if invalid_tags:
             fail_module(module, msg="Unable to complete the operation because the entered target service"
                                     " tag(s) '{0}' are invalid.".format(",".join(set(invalid_tags))))
-    else:
-        fail_module(module, msg="Failed to fetch the device ids.")
-    invalid_ids = set(device_id) - set(device_resp.values())
-    if invalid_ids:
-        fail_module(module, msg="Unable to complete the operation because the entered target device"
-                                " id(s) '{0}' are invalid.".format(",".join(list(map(str, set(invalid_ids))))))
-    return list(map(int, set(device_id)))
+        for tag in service_tags:  # append ids for service tags
+            target_ids.append(device_tag_id_map.get(tag))
+    if module.params.get('device_group_names'):
+        target_ids.extend(get_group_details(rest_obj, module))
+    return list(set(target_ids))  # set to eliminate duplicates
 
 
 def get_view_id(rest_obj, viewstr):
@@ -580,6 +625,8 @@ def _get_resource_parameters(module, rest_obj):
         payload = {'TemplateId': template_id}
     elif command == "deploy":
         devid_list = get_device_ids(module, rest_obj)
+        if not devid_list:
+            fail_module(module, msg="There are no devices provided for deploy operation")
         path = TEMPALTE_ACTION.format(op="Deploy")
         payload = get_deploy_payload(module.params, devid_list, template_id)
     elif command == "clone":
@@ -668,13 +715,19 @@ def main():
                                    "choices": ['Deployment', 'Compliance', 'Inventory', 'Sample', 'None']},
             "device_id": {"required": False, "type": 'list', "default": [], "elements": 'int'},
             "device_service_tag": {"required": False, "type": 'list', "default": [], "elements": 'str'},
+            "device_group_names": {"required": False, "type": 'list', "default": [], "elements": 'str'},
             "attributes": {"required": False, "type": 'dict'},
         },
         required_if=[
             ['command', 'create', ['attributes']],
             ['command', 'modify', ['attributes']],
             ['command', 'import', ['attributes']],
-            ['command', 'clone', ['attributes']]
+            ['command', 'modify', ['template_id', 'template_name'], True],
+            ['command', 'delete', ['template_id', 'template_name'], True],
+            ['command', 'export', ['template_id', 'template_name'], True],
+            ['command', 'clone', ['template_id', 'template_name'], True],
+            ['command', 'deploy', ['template_id', 'template_name'], True],
+            ['command', 'deploy', ['device_id', 'device_service_tag', 'device_group_names'], True],
         ],
         mutually_exclusive=[["template_id", "template_name"]],
         supports_check_mode=False)
@@ -691,7 +744,7 @@ def main():
     except URLError as err:
         password_no_log(module.params.get("attributes"))
         module.exit_json(msg=str(err), unreachable=True)
-    except (SSLValidationError, ConnectionError, TypeError, ValueError, KeyError) as err:
+    except (IOError, SSLError, SSLValidationError, ConnectionError, TypeError, ValueError, KeyError) as err:
         fail_module(module, msg=str(err))
 
 

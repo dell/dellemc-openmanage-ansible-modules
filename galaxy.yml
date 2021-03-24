@@ -1,6 +1,6 @@
 namespace: dellemc
 name: openmanage
-version: 3.1.0
+version: 3.2.0
 readme: README.md
 authors:
 - Rajeev Arakkal <Rajeev_Arakkal@Dell.com>
@@ -28,4 +28,3 @@ repository: https://github.com/dell/dellemc-openmanage-ansible-modules/tree/coll
 homepage: https://github.com/dell/dellemc-openmanage-ansible-modules
 
 issues: https://github.com/dell/dellemc-openmanage-ansible-modules/issues
-

@@ -5,6 +5,32 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v3.2.0
+======
+
+Release Summary
+---------------
+
+Configuration compliance related modules added
+
+Minor Changes
+-------------
+
+- ome_template - Allows to deploy a template on device groups.
+
+Known Issues
+------------
+
+- ome_smart_fabric - Issue(185322) Only three design types are supported by OpenManage Enterprise Modular but the module successfully creates a fabric when the design type is not supported.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+- ome_configuration_compliance_info - Issue(195592) Module may error out with the message "unable to process the request because an error occurred". If the issue persists, report it to the system administrator.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_configuration_compliance_baseline - Create, modify, delete and remediate a compliance configuration baseline on OpenManage Enterprise
+- dellemc.openmanage.ome_configuration_compliance_info - Device compliance report for devices managed in OpenManage Enterprise
+
 v3.1.0
 ======
 

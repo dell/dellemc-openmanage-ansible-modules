@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.2.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -90,7 +90,7 @@ options:
         - I(attributes) is mutually exclusive with I(boot_sources).
     boot_sources:
         type: list
-        elements: str
+        elements: raw
         description:
         - List of boot devices to set the boot sources settings.
         - I(boot_sources) is mutually exclusive with I(attributes), I(boot_sequence),
@@ -389,7 +389,7 @@ def main():
                                                                  'OneTimeUefiBootSeq']},
             "boot_sequence": {"required": False, "type": "str"},
             "attributes": {"required": False, "type": 'dict'},
-            "boot_sources": {"required": False, "type": 'list', "elements": "str"}
+            "boot_sources": {"required": False, "type": 'list', 'elements': 'raw'}
         },
         mutually_exclusive=mutual_exclusive_args,
         supports_check_mode=True

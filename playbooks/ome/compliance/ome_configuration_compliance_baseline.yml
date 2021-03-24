@@ -1,0 +1,111 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell EMC OpenManage Ansible configuration compliance baseline.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Create a configuration compliance baseline using device IDs
+      ome_configuration_compliance_baseline:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: create
+        template_name: "template 1"
+        description: "description of baseline"
+        names: "baseline1"
+        device_ids:
+          - 1111
+          - 2222
+      tags:
+        - create_compliance_baseline_device_id
+
+    - name: Create a configuration compliance baseline using device service tags
+      ome_configuration_compliance_baseline:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: create
+        template_name: "template 1"
+        names: "baseline1"
+        description: "description of baseline"
+        device_service_tags:
+          - "SVCTAG1"
+          - "SVCTAG2"
+      tags:
+        - create_compliance_baseline_tags
+
+    - name: Create a configuration compliance baseline using group names
+      ome_configuration_compliance_baseline:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: create
+        template_name: "template 1"
+        job_wait_timeout: 1000
+        names: "baseline1"
+        description: "description of baseline"
+        device_group_names:
+          - "Group1"
+          - "Group2"
+      tags:
+        - create_compliance_baseline_group_id
+
+    - name: Delete the configuration compliance baselines
+      ome_configuration_compliance_baseline:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: delete
+        names:
+          - baseline1
+          - baseline2
+      tags:
+        - delete_compliance_baseline
+
+    - name: Modify a configuration compliance baseline using group names
+      ome_configuration_compliance_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        names: "baseline1"
+        new_name: "baseline_update"
+        template_name: "template2"
+        description: "new description of baseline"
+        job_wait_timeout: 1000
+        device_group_names:
+          - Group1
+
+    - name: Remediate specific non-compliant devices to a configuration compliance baseline using device IDs
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        command: "remediate"
+        names: "baseline1"
+        device_ids:
+          - 1111
+
+    - name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags
+      ome_configuration_compliance_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        command: "remediate"
+        names: "baseline1"
+        job_wait_timeout: 2000
+        device_service_tags:
+          - "SVCTAG1"
+          - "SVCTAG2"
+
+    - name: Remediate all the non-compliant devices to a configuration compliance baseline
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        command: "remediate"
+        job_wait_timeout: 2000
+        names: "baseline1"
