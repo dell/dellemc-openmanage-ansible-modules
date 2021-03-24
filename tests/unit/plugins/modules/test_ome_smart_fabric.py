@@ -626,10 +626,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
     @pytest.mark.parametrize("modify_payload", [
         {
             'PhysicalNode1': Constants.service_tag2,
-            'PhysicalNode2': "XYZ"
-        },
-        {
-            'PhysicalNode1': Constants.service_tag2,
+            'PhysicalNode2': Constants.service_tag1
         }
     ])
     def test_validate_switches_overlap_case_01(self, modify_payload):
@@ -639,31 +636,27 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         }
         modify_dict = modify_payload
         f_module = self.get_module_mock(params={"primary_switch_service_tag": Constants.service_tag2,
-                                                "secondary_switch_service_tag": "XYZ"
+                                                "secondary_switch_service_tag": Constants.service_tag1
                                                 })
-        with pytest.raises(Exception, match=PRIMARY_SWITCH_OVERLAP_MSG):
+        with pytest.raises(Exception, match="The modify operation does not support primary_switch_service_tag update."):
             self.module.validate_switches_overlap(current_dict, modify_dict, f_module)
 
     @pytest.mark.parametrize("modify_payload", [
         {
-            'PhysicalNode1': "XYZ",
-            'PhysicalNode2': Constants.service_tag1
-        },
-        {
+            'PhysicalNode1': Constants.service_tag2,
             'PhysicalNode2': Constants.service_tag1
         }
     ])
     def test_validate_switches_overlap_case_02(self, modify_payload):
         current_dict = {
-            'PhysicalNode1': Constants.service_tag1,
-            'PhysicalNode2': Constants.service_tag2
+            'PhysicalNode1': Constants.service_tag2,
+            'PhysicalNode2': Constants.service_tag1
         }
         modify_dict = modify_payload
-        f_module = self.get_module_mock(params={"primary_switch_service_tag": "XYZ",
+        f_module = self.get_module_mock(params={"primary_switch_service_tag": Constants.service_tag2,
                                                 "secondary_switch_service_tag": Constants.service_tag1
                                                 })
-        with pytest.raises(Exception, match=SECONDARY_SWITCH_OVERLAP_MSG):
-            self.module.validate_switches_overlap(current_dict, modify_dict, f_module)
+        self.module.validate_switches_overlap(current_dict, modify_dict, f_module)
 
     def test_validate_switches_overlap_case_03(self):
         """
@@ -674,11 +667,11 @@ class TestOmeSmartFabric(FakeAnsibleModule):
             'PhysicalNode2': Constants.service_tag2
         }
         modify_dict = {
-            'PhysicalNode1': Constants.service_tag2,
-            'PhysicalNode2': Constants.service_tag1
+            'PhysicalNode1': Constants.service_tag1,
+            'PhysicalNode2': Constants.service_tag2
         }
-        f_module = self.get_module_mock(params={"primary_switch_service_tag": Constants.service_tag2,
-                                                "secondary_switch_service_tag": Constants.service_tag1
+        f_module = self.get_module_mock(params={"primary_switch_service_tag": Constants.service_tag1,
+                                                "secondary_switch_service_tag": Constants.service_tag2
                                                 })
         self.module.validate_switches_overlap(current_dict, modify_dict, f_module)
 
@@ -787,7 +780,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
             "FabricDesignMapping": [
                 {
                     "DesignNode": "Switch-A",
-                    "PhysicalNode": "XYZ123"
+                    "PhysicalNode": Constants.service_tag1
                 }],
             "FabricDesign": {
                 "Name": "2xMX9116n_Fabric_Switching_Engines_in_same_chassis"
@@ -820,7 +813,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         assert payload["FabricDesignMapping"] == [
             {
                 "DesignNode": "Switch-A",
-                "PhysicalNode": "XYZ123"
+                "PhysicalNode": Constants.service_tag1
             },
             {
                 "DesignNode": "Switch-B",
@@ -832,6 +825,13 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         modify_payload = {
             "Name": "new_name",
             "Id": "8f25f714-9ea8-48e9-8eac-162d5d842e9f",
+            "FabricDesign": {
+                "Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"
+            }
+        }
+        current_payload = {
+            "Id": "8f25f714-9ea8-48e9-8eac-162d5d842e9f",
+            "Name": "Fabric-1",
             "FabricDesignMapping": [
                 {
                     "DesignNode": "Switch-A",
@@ -842,13 +842,6 @@ class TestOmeSmartFabric(FakeAnsibleModule):
                     "PhysicalNode": Constants.service_tag2
                 }
             ],
-            "FabricDesign": {
-                "Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"
-            }
-        }
-        current_payload = {
-            "Id": "8f25f714-9ea8-48e9-8eac-162d5d842e9f",
-            "Name": "Fabric-1",
             "Description": "This is a fabric."
         }
         f_module = self.get_module_mock(params={})
@@ -857,7 +850,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         assert payload["Id"] == modify_payload["Id"]
         assert payload["Description"] == current_payload["Description"]
         assert payload["FabricDesign"] == modify_payload["FabricDesign"]
-        assert payload["FabricDesignMapping"] == modify_payload["FabricDesignMapping"]
+        assert payload["FabricDesignMapping"] == current_payload["FabricDesignMapping"]
 
     def test_get_fabric_design(self, ome_connection_mock_for_smart_fabric, ome_response_mock):
         resp_data = {
@@ -1088,8 +1081,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
                                                                              4000: "NETWORK_IOM",
                                                                              1000: "SERVER",
                                                                              3000: "STORAGE"}
-        with pytest.raises(Exception, match=DUPLICATE_TAGS):
-            self.module.validate_devices(Constants.service_tag1, ome_connection_mock_for_smart_fabric, f_module)
+        self.module.validate_devices(Constants.service_tag1, ome_connection_mock_for_smart_fabric, f_module)
 
     def test_required_field_check_for_create_case_01(self, ome_default_args):
         ome_default_args.update({"primary_switch_service_tag": Constants.service_tag1,
@@ -1206,6 +1198,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_msm_device_details',
                      return_value=(Constants.service_tag1, "1.1"))
         mocker.patch(MODULE_PATH + 'ome_smart_fabric.validate_devices', return_value=None)
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.validate_modify', return_value=None)
         mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_fabric_id_details',
                      return_value=(all_fabric_details[0]["Id"], all_fabric_details[0]))
         mocker.patch(MODULE_PATH + 'ome_smart_fabric.create_modify_payload',
@@ -1691,3 +1684,126 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
         service_tag = self.module.get_service_tag_with_fqdn(ome_connection_mock_for_smart_fabric, f_module)
         assert service_tag is None
+
+    def test_fabric_validate_modify_case01(self, ome_default_args):
+        ome_default_args.update({"fabric_design": "2xMX5108n_Ethernet_Switches_in_same_chassis"})
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        current_payload = {
+            "Id": "1312cceb-c3dd-4348-95c1-d8541a17d776",
+            "Name": "Fabric_",
+            "Description": "create new fabric1",
+            "FabricDesignMapping": [
+                {
+                    "DesignNode": "Switch-A",
+                    "PhysicalNode": "2HB7NX2"
+                },
+                {
+                    "DesignNode": "Switch-B",
+                    "PhysicalNode": "2HBFNX2"
+                }
+            ],
+            "FabricDesign": {"Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}
+        }
+        self.module.validate_modify(f_module, current_payload)
+
+    def test_fabric_validate_modify_case02(self, ome_default_args):
+        ome_default_args.update({"name": "abc"})
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        current_payload = {
+            "Id": "1312cceb-c3dd-4348-95c1-d8541a17d776",
+            "Name": "Fabric_",
+            "Description": "create new fabric1",
+            "FabricDesignMapping": [
+                {
+                    "DesignNode": "Switch-A",
+                    "PhysicalNode": "2HB7NX2"
+                },
+                {
+                    "DesignNode": "Switch-B",
+                    "PhysicalNode": "2HBFNX2"
+                }
+            ],
+            "FabricDesign": {"Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}
+        }
+        self.module.validate_modify(f_module, current_payload)
+
+    def test_fabric_validate_modify_case03(self, ome_default_args):
+        ome_default_args.update({"fabric_design": "2xMX5108n_Ethernet_Switches_in_same_chassis"})
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        current_payload = {
+            "Id": "1312cceb-c3dd-4348-95c1-d8541a17d776",
+            "Name": "Fabric_",
+            "Description": "create new fabric1",
+            "FabricDesign": {"Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"},
+            "FabricDesignMapping": [
+                {
+                    "DesignNode": "Switch-A",
+                    "PhysicalNode": "2HB7NX2"
+                },
+                {
+                    "DesignNode": "Switch-B",
+                    "PhysicalNode": "2HBFNX2"
+                }
+            ],
+        }
+        self.module.validate_modify(f_module, current_payload)
+
+    def test_fabric_validate_modify_case05(self, ome_default_args):
+        ome_default_args.update({"primary_switch_service_tag": "abc"})
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        current_payload = {
+            "Id": "1312cceb-c3dd-4348-95c1-d8541a17d776",
+            "Name": "Fabric_",
+            "Description": "create new fabric1",
+            "FabricDesignMapping": [
+                {
+                    "DesignNode": "Switch-B",
+                    "PhysicalNode": "2HBFNX2"
+                }
+            ],
+            "FabricDesign": {"Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}
+        }
+        self.module.validate_modify(f_module, current_payload)
+
+    def test_fabric_validate_modify_case07(self, ome_default_args):
+        ome_default_args.update({"name": "abc"})
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        current_payload = {
+            "Id": "1312cceb-c3dd-4348-95c1-d8541a17d776",
+            "Name": "Fabric_",
+            "Description": "create new fabric1",
+            "FabricDesignMapping": [
+                {
+                    "DesignNode": "Switch-B",
+                    "PhysicalNode": "2HBFNX2"
+                }
+            ],
+            "FabricDesign": {"Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}
+        }
+        self.module.validate_modify(f_module, current_payload)
+
+    @pytest.mark.parametrize("param", [{"secondary_switch_service_tag": "abc"}, {"primary_switch_service_tag": "abc"}])
+    def test_fabric_validate_modify_case08(self, param, ome_default_args):
+        ome_default_args.update(param)
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        current_payload = {
+            "Id": "1312cceb-c3dd-4348-95c1-d8541a17d776",
+            "Name": "Fabric_",
+            "Description": "create new fabric1",
+            "FabricDesignMapping": [
+            ],
+            "FabricDesign": {"Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}
+        }
+        self.module.validate_modify(f_module, current_payload)
+
+    @pytest.mark.parametrize("param", [{"secondary_switch_service_tag": "abc"}, {"primary_switch_service_tag": "abc"}])
+    def test_fabric_validate_modify_case09(self, param, ome_default_args):
+        ome_default_args.update(param)
+        f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
+        current_payload = {
+            "Id": "1312cceb-c3dd-4348-95c1-d8541a17d776",
+            "Name": "Fabric_",
+            "Description": "create new fabric1",
+            "FabricDesign": {"Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}
+        }
+        self.module.validate_modify(f_module, current_payload)

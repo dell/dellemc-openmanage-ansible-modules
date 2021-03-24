@@ -50,6 +50,17 @@
           - 'SVTG123'
           - 'SVTG456'
 
+    - name: Deploy template on groups
+      ome_template:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "deploy"
+        template_id: 12
+        device_group_names:
+          - server_group_1
+          - server_group_2
+
     - name: "Deploy template on multiple devices along attributes modification for target device"
       ome_template:
         hostname: "{{hostname}}"

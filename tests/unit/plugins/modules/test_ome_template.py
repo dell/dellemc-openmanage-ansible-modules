@@ -14,6 +14,7 @@ __metaclass__ = type
 
 import pytest
 import json
+from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_template
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -22,12 +23,12 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from io import StringIO
 from ansible.module_utils._text import to_text
 
-MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_template.'
 
 
 @pytest.fixture
 def ome_connection_mock_for_template(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch(MODULE_PATH + 'ome_template.RestOME')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     ome_connection_mock_obj.get_all_report_details.return_value = {"report_list": []}
@@ -43,7 +44,7 @@ class TestOmeTemplate(FakeAnsibleModule):
     @pytest.fixture
     def get_template_resource_mock(self, mocker):
         response_class_mock = mocker.patch(
-            MODULE_PATH + 'ome_template._get_resource_parameters')
+            MODULE_PATH + '_get_resource_parameters')
         return response_class_mock
 
     def test_get_service_tags_success_case(self, ome_connection_mock_for_template, ome_response_mock):
@@ -57,19 +58,11 @@ class TestOmeTemplate(FakeAnsibleModule):
     def test_get_device_ids_failure_case01(self, ome_connection_mock_for_template, ome_response_mock, ome_default_args):
         ome_response_mock.json_data = {'value': []}
         ome_response_mock.success = False
-        f_module = self.get_module_mock(params={'device_id': [1111, 2222, "#@!1"]})
+        f_module = self.get_module_mock(params={'device_id': ["#@!1"]})
         with pytest.raises(Exception) as exc:
             self.module.get_device_ids(f_module, ome_connection_mock_for_template)
-        assert exc.value.args[0] == "Invalid device id {0} found. Please provide a valid number".format("#@!1")
-
-    def test_get_device_ids_when_service_tag_empty_success_case01(self, ome_connection_mock_for_template,
-                                                                  ome_response_mock, ome_default_args):
-        ome_response_mock.json_data = {'value': []}
-        ome_response_mock.success = False
-        f_module = self.get_module_mock(params={'device_id': [1111, 2222, "1111"]})
-        device_ids = self.module.get_device_ids(f_module, ome_connection_mock_for_template)
-        list(device_ids).sort(reverse=True)
-        assert '1111' in device_ids and '2222' in device_ids
+        assert exc.value.args[0] == "Unable to complete the operation because the entered target device id(s) " \
+                                    "'{0}' are invalid.".format("#@!1")
 
     def test_get_device_ids_failure_case_02(self, ome_connection_mock_for_template, ome_response_mock,
                                             ome_default_args):
@@ -130,6 +123,14 @@ class TestOmeTemplate(FakeAnsibleModule):
         assert data[0]["Name"] == "test Sample Template import1"
         assert data[0]["Id"] is 24
 
+    def test_get_group_devices_all(self, ome_response_mock, ome_connection_mock_for_template):
+        ome_response_mock.json_data = {'value': [{"Name": "Device1", "Id": 24}]}
+        ome_response_mock.status_code = 200
+        ome_response_mock.success = True
+        f_module = self.get_module_mock()
+        data = self.module.get_group_devices_all(ome_connection_mock_for_template, "uri")
+        assert data == [{"Name": "Device1", "Id": 24}]
+
     def test_get_template_by_name_fail_case(self, ome_response_mock):
         ome_response_mock.json_data = {'value': [{"Name": "template by name for template name", "Id": 12}]}
         ome_response_mock.status_code = 500
@@ -163,11 +164,11 @@ class TestOmeTemplate(FakeAnsibleModule):
     def test__get_resource_parameters_create_success_case(self, mocker, ome_response_mock,
                                                           ome_connection_mock_for_template, params):
         f_module = self.get_module_mock(params=params["inp"])
-        mocker.patch(MODULE_PATH + 'ome_template.get_device_ids',
+        mocker.patch(MODULE_PATH + 'get_device_ids',
                      return_value=[25007])
-        mocker.patch(MODULE_PATH + 'ome_template.get_view_id',
+        mocker.patch(MODULE_PATH + 'get_view_id',
                      return_value=["Deployment"])
-        mocker.patch(MODULE_PATH + 'ome_template.get_create_payload',
+        mocker.patch(MODULE_PATH + 'get_create_payload',
                      return_value=params["mid"])
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == params["out"]
@@ -194,9 +195,9 @@ class TestOmeTemplate(FakeAnsibleModule):
     def test__get_resource_parameters_modify_success_case(self, mocker, ome_response_mock,
                                                           ome_connection_mock_for_template, params):
         f_module = self.get_module_mock(params=params["inp"])
-        mocker.patch(MODULE_PATH + 'ome_template.get_template_by_id',
+        mocker.patch(MODULE_PATH + 'get_template_by_id',
                      return_value={})
-        mocker.patch(MODULE_PATH + 'ome_template.get_modify_payload',
+        mocker.patch(MODULE_PATH + 'get_modify_payload',
                      return_value={})
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == ('TemplateService/Templates(1234)', {}, 'PUT')
@@ -216,9 +217,9 @@ class TestOmeTemplate(FakeAnsibleModule):
     def test__get_resource_parameters_deploy_success_case(self, mocker, ome_response_mock,
                                                           ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "deploy", "template_id": 1234})
-        mocker.patch(MODULE_PATH + 'ome_template.get_device_ids',
+        mocker.patch(MODULE_PATH + 'get_device_ids',
                      return_value=[Constants.device_id1])
-        mocker.patch(MODULE_PATH + 'ome_template.get_deploy_payload',
+        mocker.patch(MODULE_PATH + 'get_deploy_payload',
                      return_value={"deploy_payload": "value"})
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == ('TemplateService/Actions/TemplateService.Deploy', {"deploy_payload": "value"}, 'POST')
@@ -226,9 +227,9 @@ class TestOmeTemplate(FakeAnsibleModule):
     def test__get_resource_parameters_clone_success_case(self, mocker, ome_response_mock,
                                                          ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "clone", "template_id": 1234, "template_view_type": 2})
-        mocker.patch(MODULE_PATH + 'ome_template.get_view_id',
+        mocker.patch(MODULE_PATH + 'get_view_id',
                      return_value=2)
-        mocker.patch(MODULE_PATH + 'ome_template.get_clone_payload',
+        mocker.patch(MODULE_PATH + 'get_clone_payload',
                      return_value={"clone_payload": "value"})
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == ('TemplateService/Actions/TemplateService.Clone', {"clone_payload": "value"}, 'POST')
@@ -236,9 +237,9 @@ class TestOmeTemplate(FakeAnsibleModule):
     def test__get_resource_parameters_import_success_case(self, mocker, ome_response_mock,
                                                           ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "import", "template_id": 1234, "template_view_type": 2})
-        mocker.patch(MODULE_PATH + 'ome_template.get_view_id',
+        mocker.patch(MODULE_PATH + 'get_view_id',
                      return_value=2)
-        mocker.patch(MODULE_PATH + 'ome_template.get_import_payload',
+        mocker.patch(MODULE_PATH + 'get_import_payload',
                      return_value={"import_payload": "value"})
         data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
         assert data == ('TemplateService/Actions/TemplateService.Import', {"import_payload": "value"}, 'POST')
@@ -292,9 +293,9 @@ class TestOmeTemplate(FakeAnsibleModule):
     def test__get_resource_parameters_create_failure_case_02(self, mocker, ome_response_mock,
                                                              ome_connection_mock_for_template):
         f_module = self.get_module_mock({"command": "create", "template_name": "name"})
-        mocker.patch(MODULE_PATH + 'ome_template.get_device_ids',
+        mocker.patch(MODULE_PATH + 'get_device_ids',
                      return_value=[Constants.device_id1, Constants.device_id2])
-        mocker.patch(MODULE_PATH + 'ome_template.get_template_by_name',
+        mocker.patch(MODULE_PATH + 'get_template_by_name',
                      return_value=("template", 1234))
         with pytest.raises(Exception) as exc:
             data = self.module._get_resource_parameters(f_module, ome_connection_mock_for_template)
@@ -310,35 +311,11 @@ class TestOmeTemplate(FakeAnsibleModule):
         ome_default_args.update(
             {"device_id": "1111", "command": "create", "attributes": {"Name": "new 1template name"}})
         ome_response_mock.success = True
-        mocker.patch(MODULE_PATH + 'ome_template._get_resource_parameters',
+        mocker.patch(MODULE_PATH + '_get_resource_parameters',
                      return_value=(TEMPLATE_RESOURCE, "template_payload", "POST"))
         result = self._run_module(ome_default_args)
         assert result['changed'] is True
         assert result['msg'] == "Successfully created a template with ID {0}".format(ome_response_mock.json_data)
-
-    @pytest.mark.parametrize("exc_type",
-                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    def test_main_template_exception_case(self, exc_type, mocker, ome_default_args, ome_connection_mock_for_template,
-                                          get_template_resource_mock, ome_response_mock):
-        get_template_resource_mock.return_value = TEMPLATE_RESOURCE
-        get_template_resource_mock.__enter__.return_value = get_template_resource_mock
-        ome_response_mock.json_data = {"value": []}
-        ome_response_mock.status_code = 400
-        ome_response_mock.success = False
-        json_str = to_text(json.dumps({"data": "out"}))
-
-        if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch(
-                MODULE_PATH + 'ome_template._get_resource_parameters',
-                side_effect=exc_type('test'))
-        else:
-            ome_connection_mock_for_template.invoke_request.side_effect = exc_type('http://testhost.com', 400,
-                                                                                   'http error message', {
-                                                                                       "accept-type": "application/json"},
-                                                                                   StringIO(json_str))
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert 'msg' in result
-        assert result['failed'] is True
 
     @pytest.mark.parametrize("param",
                              [{"attr": {"attributes": {}}, "template_id": 1234,
@@ -385,7 +362,48 @@ class TestOmeTemplate(FakeAnsibleModule):
                               ])
     def test_validate_inputs(self, param, mocker):
         f_module = self.get_module_mock(param["inp"])
-        mocker.patch(MODULE_PATH + 'ome_template.password_no_log')
+        mocker.patch(MODULE_PATH + 'password_no_log')
         with pytest.raises(Exception) as exc:
             self.module._validate_inputs(f_module)
         assert exc.value.args[0] == param["msg"]
+
+    @pytest.mark.parametrize("param", [
+        {"inp": {"command": "deploy", "template_name": "name",
+                 "device_group_names": ["mygroup"]},
+         "group": {'Id': 23, "Name": "mygroup"},
+         "dev_list": [1, 2, 3]}])
+    def test_get_group_details(self, param, ome_connection_mock_for_template, mocker,
+                               ome_response_mock):
+        f_module = self.get_module_mock(param["inp"])
+        ome_response_mock.json_data = {
+            "value": [{'Id': 1, "Name": "mygroup3"}, {'Id': 2, "Name": "mygroup2"}, {'Id': 3, "Name": "mygroup"}]}
+        ome_response_mock.status_code = 200
+        mocker.patch(MODULE_PATH + 'get_group_devices_all', return_value=[{'Id': 1}, {'Id': 2}, {'Id': 3}])
+        dev_list = self.module.get_group_details(ome_connection_mock_for_template, f_module)
+        assert dev_list == param["dev_list"]
+
+    @pytest.mark.parametrize("exc_type",
+                             [IOError, ValueError, TypeError, ConnectionError,
+                              HTTPError, URLError, SSLError])
+    def test_main_template_exception_case(self, exc_type, mocker, ome_default_args,
+                                          ome_connection_mock_for_template, ome_response_mock):
+        ome_default_args.update({"command": "export", "template_name": "t1", 'attributes': {'Attributes': "myattr1"}})
+        ome_response_mock.status_code = 400
+        ome_response_mock.success = False
+        json_str = to_text(json.dumps({"info": "error_details"}))
+        if exc_type == URLError:
+            mocker.patch(MODULE_PATH + 'password_no_log')
+            mocker.patch(MODULE_PATH + '_get_resource_parameters', side_effect=exc_type("url open error"))
+            result = self._run_module(ome_default_args)
+            assert result["unreachable"] is True
+        elif exc_type not in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + '_get_resource_parameters', side_effect=exc_type("exception message"))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+        else:
+            mocker.patch(MODULE_PATH + '_get_resource_parameters',
+                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                              {"accept-type": "application/json"}, StringIO(json_str)))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+        assert 'msg' in result
