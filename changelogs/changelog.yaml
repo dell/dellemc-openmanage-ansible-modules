@@ -1,0 +1,222 @@
+ancestor: null
+releases:
+  2.1.0:
+    changes:
+      release_summary: The `Dell EMC OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_
+        are available on Ansible Galaxy as a collection.
+    release_date: '2020-07-29'
+  2.1.1:
+    changes:
+      deprecated_features:
+      - The dellemc_configure_bios module is deprecated and replaced with the idrac_bios
+        module.
+      - The dellemc_configure_idrac_network module is deprecated and replaced with
+        the idrac_network module.
+      - The dellemc_configure_idrac_timezone module is deprecated and replaced with
+        the idrac_timezone_ntp module.
+      - The dellemc_delete_lc_job and dellemc_delete_lc_job_queue modules are deprecated
+        and replaced with the idrac_lifecycle_controller_jobs module.
+      - The dellemc_export_lc_logs module is deprecated and replaced with the idrac_lifecycle_controller_logs
+        module.
+      - The dellemc_get_lc_job_status module is deprecated and replaced with the idrac_lifecycle_controller_job_status_info
+        module.
+      - The dellemc_get_lcstatus module is deprecated and replaced with the idrac_lifecycle_controller_status_info
+        module.
+      - The dellemc_idrac_reset module is deprecated and replaced with the idrac_reset
+        module.
+      - The dellemc_setup_idrac_syslog module is deprecated and replaced  with the
+        idrac_syslog module.
+      major_changes:
+      - Standardization of ten iDRAC ansible modules based on ansible guidelines.
+      - Support for OpenManage Enterprise Modular.
+      release_summary: Support for OpenManage Enterprise Modular and other enhancements.
+    modules:
+    - description: Configure the BIOS attributes.
+      name: idrac_bios
+      namespace: ''
+    - description: Get the status of a Lifecycle Controller job.
+      name: idrac_lifecycle_controller_job_status_info
+      namespace: ''
+    - description: Delete the Lifecycle Controller Jobs.
+      name: idrac_lifecycle_controller_jobs
+      namespace: ''
+    - description: Export Lifecycle Controller logs to a network share.
+      name: idrac_lifecycle_controller_logs
+      namespace: ''
+    - description: Get the status of the Lifecycle Controller.
+      name: idrac_lifecycle_controller_status_info
+      namespace: ''
+    - description: Configures the iDRAC network attributes.
+      name: idrac_network
+      namespace: ''
+    - description: Reset iDRAC.
+      name: idrac_reset
+      namespace: ''
+    - description: Enable or disable the syslog on iDRAC.
+      name: idrac_syslog
+      namespace: ''
+    - description: Configures time zone and NTP on iDRAC.
+      name: idrac_timezone_ntp
+      namespace: ''
+    release_date: '2020-08-26'
+  2.1.2:
+    changes:
+      bugfixes:
+      - Documentation improvement request `#140 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/140>`_
+      - Executing dellemc_configure_idrac_users twice fails the second attempt `#100
+        <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/100>`_
+      - dellemc_change_power_state fails if host is already on `#132 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/132>`_
+      - dellemc_change_power_state not idempotent `#115 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/115>`_
+      - dellemc_configure_idrac_users error `#26 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/26>`_
+      - dellemc_configure_idrac_users is unreliable - errors `#113 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/113>`_
+      - idrac_server_config_profile improvement requested (request) `#137 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/137>`_
+      - ome_firmware_catalog.yml example errors `#145 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/145>`_
+      deprecated_features:
+      - The dellemc_change_power_state module is deprecated and replaced with the
+        redfish_powerstate module.
+      - The dellemc_configure_idrac_users module is deprecated and replaced with the
+        idrac_user module.
+      minor_changes:
+      - The idrac_server_config_profile module supports a user provided file name
+        for an export operation.
+      release_summary: The dellemc_change_power_state and dellemc_configure_idrac_users
+        modules are standardized as per ansible guidelines. 8 GitHub issues are fixed.
+    modules:
+    - description: Configure settings for user accounts.
+      name: idrac_user
+      namespace: ''
+    - description: Manage device power state.
+      name: redfish_powerstate
+      namespace: ''
+    release_date: '2020-09-23'
+  2.1.3:
+    changes:
+      release_summary: Network configuration service related modules ome_network_vlan,
+        ome_network_port_breakout and ome_network_vlan_info are added.
+    modules:
+    - description: This module allows to automate the port partitioning or breaking
+        out to logical sub ports.
+      name: ome_network_port_breakout
+      namespace: ''
+    - description: Create, modify & delete a VLAN.
+      name: ome_network_vlan
+      namespace: ''
+    - description: Retrieves the information about networks VLAN(s) present in OpenManage
+        Enterprise.
+      name: ome_network_vlan_info
+      namespace: ''
+    release_date: '2020-10-29'
+  2.1.4:
+    changes:
+      known_issues:
+      - 'Issue 1(186024): ome_smart_fabric_uplink module does not allow the creation
+        of multiple uplinks of the same name even though this is supported by OpenManage
+        Enterprise Modular. If an uplink is created using the same name as an existing
+        uplink, the existing uplink is modified.'
+      release_summary: Fabric management related modules ome_smart_fabric and ome_smart_fabric_uplink
+        are added.
+    modules:
+    - description: Create, modify or delete a fabric on OpenManage Enterprise Modular.
+      name: ome_smart_fabric
+      namespace: ''
+    - description: Create, modify or delete a uplink for a fabric on OpenManage Enterprise
+        Modular.
+      name: ome_smart_fabric_uplink
+      namespace: ''
+    release_date: '2020-11-25'
+  2.1.5:
+    changes:
+      bugfixes:
+      - Identity pool does not reset when a network VLAN is added to a template in
+        the ome_template_network_vlan module. `#169 <https://github.com/dell/dellemc-openmanage-ansible-modules/issues
+        /169>`_
+      - Missing parameter added in ome_smart_fabric_uplink module documenation. `#181
+        <https://github.com/dell/dellemc-openmanage-ansible-modules/issues/181>`_
+      known_issues:
+      - 'Issue 1(186024): ome_smart_fabric_uplink module does not allow the creation
+        of multiple uplinks of the same name even though this is supported by OpenManage
+        Enterprise Modular. If an uplink is created using the same name as an existing
+        uplink, the existing uplink is modified.'
+      - 'Issue 2(187956): If an invalid job_id is provided, idrac_lifecycle_controller_job_status_info
+        returns an error message. This error message does not contain information
+        about the exact issue with the invalid job_id.'
+      - 'Issue 3(188267): While updating the iDRAC firmware, the idrac_firmware module
+        completes execution before the firmware update job is completed. An incorrect
+        message is displayed in the task output as ''DRAC WSMAN endpoint returned
+        HTTP code ''400'' Reason ''Bad Request''''. This issue may occur if the target
+        iDRAC firmware version is less than 3.30.30.30'
+      minor_changes:
+      - The idrac_server_config_profile module supports IPv6 address format.
+      release_summary: The idrac_firmware module is enhanced to include checkmode
+        support and job tracking.
+    release_date: '2020-12-30'
+  3.0.0:
+    changes:
+      bugfixes:
+      - GitHub issue fix - Module dellemc_idrac_storage_volume.py broken. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/212)
+      - GitHub issue fix - ome_smart_fabric Fabric management is not supported on
+        the specified system. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/179)
+      - 'Known issue fix #187956: If an invalid job_id is provided, the idrac_lifecycle_controller_job_status_info
+        module returns an error message with the description of the issue.'
+      - 'Known issue fix #188267: No error message is displayed when the target iDRAC
+        with firmware version less than 3.30.30.30 is updated.'
+      - Sanity fixes as per ansible guidelines to all modules.
+      deprecated_features:
+      - The ``dellemc_get_firmware_inventory`` module is deprecated and replaced with
+        ``idrac_firmware_info``.
+      - The ``dellemc_get_system_inventory`` module is deprecated and replaced with
+        ``idrac_system_info``.
+      known_issues:
+      - 'Issue 1(186024): ome_smart_fabric_uplink module does not allow the creation
+        of multiple uplinks of the same name even though this is supported by OpenManage
+        Enterprise Modular. If an uplink is created using the same name as an existing
+        uplink, the existing uplink is modified.'
+      major_changes:
+      - Removed the existing deprecated modules.
+      minor_changes:
+      - Coding Guidelines, Contributor Agreement, and Code of Conduct files are added
+        to the collection.
+      - New deprecation changes for ``dellemc_get_system_inventory`` and ``dellemc_get_firmware_inventory``
+        ignored for ansible 2.9 sanity test.
+      - The modules are standardized as per ansible guidelines.
+      release_summary: Deprecations, issue fixes, and standardization of modules as
+        per ansible guidelines.
+    release_date: '2021-01-25'
+  3.1.0:
+    changes:
+      bugfixes:
+      - ome_firmware_baseline_compliance_info - OMEnt firmware baseline compliance
+        info pagination support added (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/171)
+      - ome_network_proxy - OMEnt network proxy check mode support added (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/187)
+      known_issues:
+      - ome_smart_fabric - Issue(185322) Only three design types are supported by
+        OpenManage Enterprise Modular but the module successfully creates a fabric
+        when the design type is not supported.
+      - ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does
+        not allow the creation of multiple uplinks of the same name even though this
+        is supported by OpenManage Enterprise Modular. If an uplink is created using
+        the same name as an existing uplink, the existing uplink is modified.
+      release_summary: OpenManage Enterprise profiles management support added.
+    modules:
+      - description: Create, modify, delete, assign, unassign and migrate a profile on OpenManage Enterprise
+        name: ome_profile
+        namespace: ''
+    release_date: '2021-02-24'
+  3.2.0:
+    changes:
+      release_summary: Configuration compliance related modules added
+      known_issues:
+        - ome_smart_fabric - Issue(185322) Only three design types are supported by OpenManage Enterprise Modular but the module successfully creates a fabric when the design type is not supported.
+        - ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+        - ome_configuration_compliance_info - Issue(195592) Module may error out with the message ``unable to process the request because an error occurred``. If the issue persists, report it to the system administrator.
+        - idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+      minor_changes:
+        - ome_template - Allows to deploy a template on device groups.
+    modules:
+      - description: Create, modify, delete and remediate a compliance configuration baseline on OpenManage Enterprise
+        name: ome_configuration_compliance_baseline
+        namespace: ''
+      - description: Device compliance report for devices managed in OpenManage Enterprise
+        name: ome_configuration_compliance_info
+        namespace: ''
+    release_date: '2021-03-24'
