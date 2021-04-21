@@ -19,9 +19,9 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = r"""
 ---
-module: idrac_redfish_subscription
+module: redfish_event_subscription
 short_description: Manage Redfish Subscriptions
-version_added: "2.9"
+version_added: "3.3.0"
 description:
     - This module allows you to create or delete Redfish Subscriptions for Metric Reports or Alerts.
     - HTTPS is required for the destination listening server. An example of a listening server is the Logstash HTTP Input Plugin.
@@ -67,7 +67,7 @@ author:
 EXAMPLES = """
 ---
 - name: Create redfish metric subscription
-  idrac_redfish_subscription:
+  redfish_event_subscription:
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
@@ -76,7 +76,7 @@ EXAMPLES = """
     state: present
 
 - name: Create redfish alert subscription
-  idrac_redfish_subscription:
+  redfish_event_subscription:
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
@@ -85,7 +85,7 @@ EXAMPLES = """
     state: present
 
 - name: Delete redfish subscription
-  idrac_redfish_subscription:
+  redfish_event_subscription:
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
