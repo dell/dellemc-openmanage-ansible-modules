@@ -6,7 +6,8 @@
 # Version 3.0.1
 # Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+
+# see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt
 #
 
 
@@ -22,13 +23,13 @@ DOCUMENTATION = r"""
 module: redfish_event_subscription
 short_description: Manage Redfish Subscriptions
 version_added: "3.3.0"
-description:
-    - This module allows you to create or delete Redfish Subscriptions for Metric Reports or Alerts.
-    - HTTPS is required for the destination listening server. An example of a listening server is the Logstash HTTP Input Plugin.
-    - The maximum number of subscriptions a user can create is 2.
+description: >
+    This module allows you to create or delete Redfish Subscriptions.
+    HTTPS is required for the destination listening server. Example: Logstash HTTP Input Plugin.
+    The maximum number of subscriptions a user can create is 2.
 options:
     baseuri:
-        description: "IP Address of the target out-of-band controller. For example- <ipaddress>:<port>."
+        description: "IP Address of the target out-of-band controller."
         type: str
         required: True
     username:
@@ -42,12 +43,12 @@ options:
     destination:
         description:
             - URL of server that is listening for events.
-            - HTTPS is required. An example of a listening server is the Logstash HTTP Input Plugin.
+            - HTTPS is required.
             - The maximum number of subscriptions a user can create is 2.
         type: str
         required: True
     type:
-        description: Type of Redfish subscription to create.  
+        description: Type of Redfish subscription to create.
         type: str
         default: metric
         choices: ["metric", "alert"]
@@ -107,57 +108,57 @@ status:
   sample: {
         "@Message.ExtendedInfo": [
             {
-                "Message": "The resource has been created successfully", 
-                "MessageArgs": [], 
-                "MessageArgs@odata.count": 0, 
-                "MessageId": "Base.1.7.Created", 
-                "RelatedProperties": [], 
-                "RelatedProperties@odata.count": 0, 
-                "Resolution": "None", 
+                "Message": "The resource has been created successfully",
+                "MessageArgs": [],
+                "MessageArgs@odata.count": 0,
+                "MessageId": "Base.1.7.Created",
+                "RelatedProperties": [],
+                "RelatedProperties@odata.count": 0,
+                "Resolution": "None",
                 "Severity": "OK"
-            }, 
+            },
             {
-                "Message": "A new resource is successfully created.", 
-                "MessageArgs": [], 
-                "MessageArgs@odata.count": 0, 
-                "MessageId": "IDRAC.2.2.SYS414", 
-                "RelatedProperties": [], 
-                "RelatedProperties@odata.count": 0, 
-                "Resolution": "No response action is required.", 
+                "Message": "A new resource is successfully created.",
+                "MessageArgs": [],
+                "MessageArgs@odata.count": 0,
+                "MessageId": "IDRAC.2.2.SYS414",
+                "RelatedProperties": [],
+                "RelatedProperties@odata.count": 0,
+                "Resolution": "No response action is required.",
                 "Severity": "Informational"
             }
-        ], 
-        "@odata.context": "/redfish/v1/$metadata#EventDestination.EventDestination", 
-        "@odata.id": "/redfish/v1/EventService/Subscriptions/5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a", 
-        "@odata.type": "#EventDestination.v1_9_0.EventDestination", 
+        ],
+        "@odata.context": "/redfish/v1/$metadata#EventDestination.EventDestination",
+        "@odata.id": "/redfish/v1/EventService/Subscriptions/5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a",
+        "@odata.type": "#EventDestination.v1_9_0.EventDestination",
         "Actions": {
             "#EventDestination.ResumeSubscription": {
                 "target": "/redfish/v1/EventService/Subscriptions/5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a/Actions/EventDestination.ResumeSubscription"
             }
-        }, 
-        "Context": "RedfishEvent", 
-        "DeliveryRetryPolicy": "RetryForever", 
-        "Description": "Event Subscription Details", 
-        "Destination": "https://100.77.11.5:8189", 
-        "EventFormatType": "Event", 
+        },
+        "Context": "RedfishEvent",
+        "DeliveryRetryPolicy": "RetryForever",
+        "Description": "Event Subscription Details",
+        "Destination": "https://100.77.11.5:8189",
+        "EventFormatType": "Event",
         "EventTypes": [
             "Alert"
-        ], 
-        "EventTypes@odata.count": 1, 
-        "HttpHeaders": [], 
-        "HttpHeaders@odata.count": 0, 
-        "Id": "5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a", 
-        "MetricReportDefinitions": [], 
-        "MetricReportDefinitions@odata.count": 0, 
-        "Name": "EventSubscription 5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a", 
-        "OriginResources": [], 
-        "OriginResources@odata.count": 0, 
-        "Protocol": "Redfish", 
+        ],
+        "EventTypes@odata.count": 1,
+        "HttpHeaders": [],
+        "HttpHeaders@odata.count": 0,
+        "Id": "5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a",
+        "MetricReportDefinitions": [],
+        "MetricReportDefinitions@odata.count": 0,
+        "Name": "EventSubscription 5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a",
+        "OriginResources": [],
+        "OriginResources@odata.count": 0,
+        "Protocol": "Redfish",
         "Status": {
-            "Health": "OK", 
-            "HealthRollup": "OK", 
+            "Health": "OK",
+            "HealthRollup": "OK",
             "State": "Enabled"
-        }, 
+        },
         "SubscriptionType": "RedfishEvent"
     }
 error_info:
@@ -188,7 +189,6 @@ error_info:
     }
 """
 
-
 import json
 import os
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
@@ -196,19 +196,21 @@ from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
+
 def get_subscription_payload():
     payload = {
-    "Destination": "https://192.168.1.100:8188",
-    "EventFormatType": "MetricReport",
-    "Context": "RedfishEvent",
-    "Protocol": "Redfish",
-    "EventTypes": ["MetricReport"],
-    "SubscriptionType": "RedfishEvent"
+        "Destination": "https://192.168.1.100:8188",
+        "EventFormatType": "MetricReport",
+        "Context": "RedfishEvent",
+        "Protocol": "Redfish",
+        "EventTypes": ["MetricReport"],
+        "SubscriptionType": "RedfishEvent"
     }
     return payload
 
+
 def get_subscription(obj, destination):
-    url = "{0}{1}".format(obj.root_uri,"EventService/Subscriptions")
+    url = "{0}{1}".format(obj.root_uri, "EventService/Subscriptions")
     list_resp = obj.invoke_request("GET", url)
     list_subscriptions = list_resp.json_data["Members"]
     for list_subscription in list_subscriptions:
@@ -226,14 +228,16 @@ def get_subscription(obj, destination):
             return subscription
     return None
 
+
 def get_subscription_details(obj, id):
-    detail_url = "{0}{1}".format(obj.root_uri, "EventService/Subscriptions/%s" % id) 
+    detail_url = "{0}{1}".format(obj.root_uri, "EventService/Subscriptions/%s" % id)
     detail_resp = obj.invoke_request("GET", detail_url)
     detail_json = detail_resp.json_data
     if detail_resp.success:
         return detail_json
-    else: 
+    else:
         return None
+
 
 def create_subscription(obj, module):
     payload = get_subscription_payload()
@@ -247,9 +251,11 @@ def create_subscription(obj, module):
     resp = obj.invoke_request("POST", "{0}{1}".format(obj.root_uri, "EventService/Subscriptions"), data=payload)
     return resp
 
+
 def delete_subscription(obj, id):
     resp = obj.invoke_request("DELETE", "{0}{1}".format(obj.root_uri, "EventService/Subscriptions/%s" % id))
     return resp
+
 
 def main():
     module = AnsibleModule(
@@ -258,10 +264,15 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "destination": {"required": True, "type": "str"},
-            "type": {"required": False, "type": "str", "default": "metric",
-                                  "choices": ["alert", "metric"]},
-            "state": {"required": False, "default": "present",
-                    "choices": ['present', 'absent']},
+            "type": {
+                "required": False,
+                "type": "str",
+                "default": "metric",
+                "choices": ["alert", "metric"]},
+            "state": {
+                "required": False,
+                "default": "present",
+                "choices": ['present', 'absent']},
         },
         supports_check_mode=False)
     try:
