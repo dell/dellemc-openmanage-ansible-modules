@@ -33,11 +33,11 @@ def redfish_connection_mock(mocker, redfish_response_mock):
     redfish_connection_mock_obj.invoke_request.return_value = redfish_response_mock
     return redfish_connection_mock_obj
 
+
 class TestRedfishSubscription(FakeAnsibleModule):
     module = redfish_event_subscription
 
-    @pytest.mark.parametrize("val", [{"destination": "https://192.168.1.100:8188"},
-                                    {"destination": "https://192.168.1.100:8189"}])
+    @pytest.mark.parametrize("val", [{"destination": "https://192.168.1.100:8188"}, {"destination": "https://192.168.1.100:8189"}])
     def test_function_get_subscription_success(self, mocker, redfish_connection_mock, redfish_response_mock, redfish_default_args, val):
         redfish_default_args.update({"state": "absent"})
         redfish_default_args.update({"destination": val["destination"]})
@@ -124,12 +124,13 @@ class TestRedfishSubscription(FakeAnsibleModule):
         result = self.module.get_subscription(redfish_connection_mock, val["destination"])
         assert result["Destination"] == val["destination"]
 
-    @pytest.mark.parametrize("val", [{"destination": "https://192.168.1.100:8188", "type": "metric", "event_format_type": "MetricReport"},
-                                    {"destination": "https://192.168.1.100:8188", "type": "alert", "event_format_type": "Event"}])
+    @pytest.mark.parametrize("val", [
+        {"destination": "https://192.168.1.100:8188", "type": "metric", "event_format_type": "MetricReport"},
+        {"destination": "https://192.168.1.100:8188", "type": "alert", "event_format_type": "Event"}])
     def test_function_create_subscription(self, mocker, redfish_connection_mock, redfish_response_mock, redfish_default_args, val):
         redfish_default_args.update({"state": "absent"})
         redfish_default_args.update({"destination": val["destination"]})
-        redfish_default_args.update({"type":  val["type"]})
+        redfish_default_args.update({"type": val["type"]})
 
         redfish_response_mock.json_data = {
             "Id": "c6ff37fc-8204-11eb-b08f-2cea7ff7fe80",
@@ -151,8 +152,8 @@ class TestRedfishSubscription(FakeAnsibleModule):
         redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
         redfish_default_args.update({"type": "metric"})
 
-        redfish_connection_mock.patch(MODULE_PATH + 'redfish_event_subscription.get_subscription',
-                     return_value=None)
+        redfish_connection_mock.patch(
+            MODULE_PATH + 'redfish_event_subscription.get_subscription', return_value=None)
         redfish_response_mock.success = True
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "No changes made."
@@ -170,7 +171,7 @@ class TestRedfishSubscription(FakeAnsibleModule):
             "Protocol": "Redfish",
             "EventTypes": ["MetricReport"],
             "SubscriptionType": "RedfishEvent"
-        } 
+        }
         redfish_response_mock.success = True
         mocker.patch(MODULE_PATH + 'redfish_event_subscription.get_subscription', return_value=json_data)
         mocker.patch(MODULE_PATH + 'redfish_event_subscription.delete_subscription', return_value=redfish_response_mock)
@@ -215,11 +216,10 @@ class TestRedfishSubscription(FakeAnsibleModule):
             "Protocol": "Redfish",
             "EventTypes": ["MetricReport"],
             "SubscriptionType": "RedfishEvent"
-        } 
+        }
         mocker.patch(MODULE_PATH + 'redfish_event_subscription.get_subscription', return_value=json_data)
         f_module = self.get_module_mock()
         redfish_response_mock.success = True
         result = self._run_module(redfish_default_args)
         print(result)
         assert result["msg"] == "Subscription exists. No changes made."
-
