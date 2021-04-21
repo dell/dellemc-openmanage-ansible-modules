@@ -14,7 +14,7 @@ __metaclass__ = type
 
 import pytest
 import json
-from ansible_collections.dellemc.openmanage.plugins.modules import idrac_redfish_subscription
+from ansible_collections.dellemc.openmanage.plugins.modules import redfish_event_subscription
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -28,13 +28,13 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
 @pytest.fixture
 def redfish_connection_mock(mocker, redfish_response_mock):
-    connection_class_mock = mocker.patch(MODULE_PATH + 'idrac_redfish_subscription.Redfish')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'redfish_event_subscription.Redfish')
     redfish_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     redfish_connection_mock_obj.invoke_request.return_value = redfish_response_mock
     return redfish_connection_mock_obj
 
 class TestRedfishSubscription(FakeAnsibleModule):
-    module = idrac_redfish_subscription
+    module = redfish_event_subscription
 
     @pytest.mark.parametrize("val", [{"destination": "https://192.168.1.100:8188"},
                                     {"destination": "https://192.168.1.100:8189"}])
@@ -101,7 +101,7 @@ class TestRedfishSubscription(FakeAnsibleModule):
             "SubscriptionType": "RedfishEvent"
         }
 
-        mocker.patch(MODULE_PATH + 'idrac_redfish_subscription.get_subscription_details', side_effect=[json_data1, json_data2])
+        mocker.patch(MODULE_PATH + 'redfish_event_subscription.get_subscription_details', side_effect=[json_data1, json_data2])
 
         redfish_response_mock.json_data = {
             "@odata.context": "/redfish/v1/$metadata#EventDestinationCollection.EventDestinationCollection",
@@ -151,7 +151,7 @@ class TestRedfishSubscription(FakeAnsibleModule):
         redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
         redfish_default_args.update({"type": "metric"})
 
-        redfish_connection_mock.patch(MODULE_PATH + 'idrac_redfish_subscription.get_subscription',
+        redfish_connection_mock.patch(MODULE_PATH + 'redfish_event_subscription.get_subscription',
                      return_value=None)
         redfish_response_mock.success = True
         result = self._run_module(redfish_default_args)
@@ -172,8 +172,8 @@ class TestRedfishSubscription(FakeAnsibleModule):
             "SubscriptionType": "RedfishEvent"
         } 
         redfish_response_mock.success = True
-        mocker.patch(MODULE_PATH + 'idrac_redfish_subscription.get_subscription', return_value=json_data)
-        mocker.patch(MODULE_PATH + 'idrac_redfish_subscription.delete_subscription', return_value=redfish_response_mock)
+        mocker.patch(MODULE_PATH + 'redfish_event_subscription.get_subscription', return_value=json_data)
+        mocker.patch(MODULE_PATH + 'redfish_event_subscription.delete_subscription', return_value=redfish_response_mock)
         f_module = self.get_module_mock()
         result = self._run_module(redfish_default_args)
         print(result)
@@ -192,10 +192,10 @@ class TestRedfishSubscription(FakeAnsibleModule):
             "EventTypes": ["MetricReport"],
             "SubscriptionType": "RedfishEvent"
         }
-        mocker.patch(MODULE_PATH + 'idrac_redfish_subscription.get_subscription', return_value=None)
+        mocker.patch(MODULE_PATH + 'redfish_event_subscription.get_subscription', return_value=None)
         create_subscription_response_mock = redfish_response_mock
         create_subscription_response_mock.json_data = json_data
-        mocker.patch(MODULE_PATH + 'idrac_redfish_subscription.create_subscription', return_value=create_subscription_response_mock)
+        mocker.patch(MODULE_PATH + 'redfish_event_subscription.create_subscription', return_value=create_subscription_response_mock)
         f_module = self.get_module_mock()
         redfish_response_mock.success = True
         result = self._run_module(redfish_default_args)
@@ -216,7 +216,7 @@ class TestRedfishSubscription(FakeAnsibleModule):
             "EventTypes": ["MetricReport"],
             "SubscriptionType": "RedfishEvent"
         } 
-        mocker.patch(MODULE_PATH + 'idrac_redfish_subscription.get_subscription', return_value=json_data)
+        mocker.patch(MODULE_PATH + 'redfish_event_subscription.get_subscription', return_value=json_data)
         f_module = self.get_module_mock()
         redfish_response_mock.success = True
         result = self._run_module(redfish_default_args)
