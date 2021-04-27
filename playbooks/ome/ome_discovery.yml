@@ -1,0 +1,181 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell EMC OpenManage Ansible discovery operations.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Discover servers in a range
+      ome_discovery:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        discovery_job_name: "Discovery_server_1"
+        discovery_config_targets:
+          - network_address_detail:
+              - 192.96.24.1-192.96.24.255
+            device_types:
+              - SERVER
+            wsman:
+              username: user
+              password: password
+      tags:
+        - server_discovery
+
+    - name: Discover chassis in a range
+      ome_discovery:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        discovery_job_name: "Discovery_chassis_1"
+        discovery_config_targets:
+          - network_address_detail:
+              - 192.96.24.1-192.96.24.255
+            device_types:
+              - CHASSIS
+            wsman:
+              username: user
+              password: password
+      tags:
+        - chassis_discovery
+
+    - name: Discover switches in a range
+      ome_discovery:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        discovery_job_name: "Discover_switch_1"
+        discovery_config_targets:
+          - network_address_detail:
+              - 192.96.24.1-192.96.24.255
+            device_types:
+              - NETWORK SWITCH
+            snmp:
+              community: snmp_creds
+      tags:
+        - switch_discovery
+
+    - name: Discover storage in a range
+      ome_discovery:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        discovery_job_name: "Discover_storage_1"
+        discovery_config_targets:
+          - network_address_detail:
+              - 192.96.24.1-192.96.24.255
+            device_types:
+              - STORAGE
+            storage:
+              username: user
+              password: password
+            snmp:
+              community: community_str
+      tags:
+        - storage_discovery
+
+    - name: Delete a discovery job
+      ome_discovery:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: "absent"
+        discovery_job_name: "Discovery-123"
+      tags:
+        - delete_discovery
+
+    - name: Schedule the discovery of multiple devices ignoring partial failure and enable trap to receive alerts
+      ome_discovery:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        state: "present"
+        discovery_job_name: "Discovery-123"
+        discovery_config_targets:
+          - network_address_detail:
+              - 192.96.24.1-192.96.24.255
+              - 192.96.0.0/24
+              - 192.96.26.108
+            device_types:
+              - SERVER
+              - CHASSIS
+              - STORAGE
+              - NETWORK SWITCH
+            wsman:
+              username: wsman_user
+              password: wsman_pwd
+            redfish:
+              username: redfish_user
+              password: redfish_pwd
+            snmp:
+              community: snmp_community
+          - network_address_detail:
+              - 192.96.25.1-192.96.25.255
+              - ipmihost
+              - esxiserver
+              - sshserver
+            device_types:
+              - SERVER
+            ssh:
+              username: ssh_user
+              password: ssh_pwd
+            vmware:
+              username: vm_user
+              password: vmware_pwd
+            ipmi:
+              username: ipmi_user
+              password: ipmi_pwd
+        schedule: RunLater
+        cron: "0 0 9 ? * MON,WED,FRI *"
+        ignore_partial_failure: True
+        trap_destination: True
+        community_string: True
+        email_recipient: test_email@company.com
+      tags:
+        - schedule_discovery
+
+    - name: Discover servers with ca check enabled
+      ome_discovery:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        discovery_job_name: "Discovery_server_ca1"
+        discovery_config_targets:
+          - network_address_detail:
+              - 192.96.24.108
+            device_types:
+              - SERVER
+            wsman:
+              username: user
+              password: password
+              ca_check: True
+              certificate_data: "{{ lookup('ansible.builtin.file', '/path/to/certificate_data_file') }}"
+      tags:
+        - server_ca_check
+
+    - name: Discover chassis with ca check enabled data
+      dellemc.openmanage.ome_discovery:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        discovery_job_name: "Discovery_chassis_ca1"
+        discovery_config_targets:
+          - network_address_detail:
+              - 192.96.24.108
+            device_types:
+              - CHASSIS
+            redfish:
+              username: user
+              password: password
+              ca_check: True
+              certificate_data: "-----BEGIN CERTIFICATE-----\r\n
+              ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
+              ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
+              ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
+              aqwertyuiopasdfghjklzxcvbnmasdasagasvv=\r\n
+              -----END CERTIFICATE-----"
+      tags:
+        - chassis_ca_check_data

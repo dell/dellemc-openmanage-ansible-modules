@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.3.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -113,8 +113,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                                         {"inp": catrepo_param3, "out": catrepo_out3}])
     def test_get_catrepo_ids(self, ome_connection_mock_for_firmware_baseline,
                              ome_response_mock, params):
-        ome_response_mock.success = True
-        ome_response_mock.json_data = {
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
             "value": [
                 {
                     "Id": 22,
@@ -172,9 +171,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_dev_ids(self, ome_connection_mock_for_firmware_baseline,
                          ome_response_mock, params):
         f_module = self.get_module_mock(params=params["inp"])
-        ome_response_mock.success = True
-        ome_response_mock.json_data = {
-            "value":
+        ome_connection_mock_for_firmware_baseline.get_all_report_details.return_value = {
+            "report_list":
                 [
                     {
                         "Id": 12,
@@ -226,7 +224,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                            ome_response_mock, params):
         f_module = self.get_module_mock(params=params["inp"])
         ome_response_mock.success = True
-        ome_response_mock.json_data = {
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
             "value": [
                 {
                     "Id": 12,

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.3.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -180,9 +180,10 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 def get_catrepo_ids(cat_name, rest_obj):
     if cat_name is not None:
-        resp = rest_obj.invoke_request('GET', 'UpdateService/Catalogs')
-        if resp.success:
-            for catalog in resp.json_data.get('value', []):
+        resp_data = rest_obj.get_all_items_with_pagination('UpdateService/Catalogs')
+        values = resp_data["value"]
+        if values:
+            for catalog in values:
                 repo = catalog.get("Repository")
                 if repo.get("Name") == cat_name:
                     return catalog.get("Id"), repo.get("Id")
@@ -191,10 +192,11 @@ def get_catrepo_ids(cat_name, rest_obj):
 
 def get_dev_ids(module, rest_obj, param, devkey):
     paramlist = module.params[param]
-    resp = rest_obj.invoke_request('GET', "DeviceService/Devices")
+    resp_data = rest_obj.get_all_report_details("DeviceService/Devices")
+    values = resp_data["report_list"]
     targets = []
-    if resp.success:
-        devlist = resp.json_data['value']
+    if values:
+        devlist = values
         device_resp = dict([(device[devkey], device) for device in devlist])
         for st in paramlist:
             if st in device_resp:
@@ -214,10 +216,11 @@ def get_dev_ids(module, rest_obj, param, devkey):
 
 def get_group_ids(module, rest_obj):
     grp_name_list = module.params.get("device_group_names")
-    resp = rest_obj.invoke_request('GET', "GroupService/Groups")
+    resp_data = rest_obj.get_all_items_with_pagination("GroupService/Groups")
+    values = resp_data["value"]
     targets = []
-    if resp.success:
-        grplist = resp.json_data['value']
+    if values:
+        grplist = values
         device_resp = dict([(str(grp['Name']), grp) for grp in grplist])
         for st in grp_name_list:
             if st in device_resp:
