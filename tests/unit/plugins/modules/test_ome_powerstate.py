@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.3.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -203,33 +203,31 @@ class TestOmePowerstate(FakeAnsibleModule):
         }
 
     def test_get_device_state_success_case01(self, ome_connection_powerstate_mock, ome_response_mock):
-        ome_response_mock.json_data = {
-            "value": [{"Id": Constants.device_id1, "PowerState": "on", "Type": 1000}]}
+        json_data = {
+            "report_list": [{"Id": Constants.device_id1, "PowerState": "on", "Type": 1000}]}
         ome_response_mock.status_code = 200
         ome_response_mock.success = True
         f_module = self.get_module_mock()
-        data = self.module.get_device_state(f_module, ome_response_mock, Constants.device_id1)
+        data = self.module.get_device_state(f_module, json_data, Constants.device_id1)
         assert data == ("on", 1000)
 
     def test_get_device_state_fail_case01(self, ome_connection_powerstate_mock, ome_response_mock):
-        ome_response_mock.json_data = {
-            "value": [{"Id": Constants.device_id1, "PowerState": "on", "Type": 4000}]}
+        json_data = {
+            "report_list": [{"Id": Constants.device_id1, "PowerState": "on", "Type": 4000}]}
         ome_response_mock.status_code = 500
         ome_response_mock.success = False
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
-            self.module.get_device_state(f_module, ome_response_mock, Constants.device_id1)
+            self.module.get_device_state(f_module, json_data, Constants.device_id1)
         assert exc.value.args[0] == "Unable to complete the operation because power" \
                                     " state supports device type 1000 and 2000."
 
     def test_get_device_state_fail_case02(self, ome_connection_powerstate_mock, ome_response_mock):
-        ome_response_mock.json_data = {
-            "value": [{"Id": 1224, "power_state": "on", "Type": 1000}]}
-        ome_response_mock.status_code = 500
-        ome_response_mock.success = False
+        json_data = {
+            "report_list": [{"Id": 1224, "power_state": "on", "Type": 1000}]}
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
-            self.module.get_device_state(f_module, ome_connection_powerstate_mock, Constants.device_id1)
+            self.module.get_device_state(f_module, json_data, Constants.device_id1)
         assert exc.value.args[0] == "Unable to complete the operation because the entered target" \
                                     " device id '{0}' is invalid.".format(1234)
 
@@ -288,11 +286,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 'Id': 1234,
                                                 'TargetType': {'Id': 'off',
                                                                'Name': 'DEVICE'}}]})
-        ome_response_mock.status_code = 200
-        ome_response_mock.json_data = {
-            'value': [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.service_tag1,
-                       "power_state": "on"}]}
-        ome_response_mock.success = True
+        ome_connection_powerstate_mock.get_all_report_details.return_value = {
+            'report_list': [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.service_tag1,
+                             "power_state": "on"}]}
         f_module = self.get_module_mock(params=ome_default_args)
         f_module.check_mode = False
         data = self.module.get_device_resource(f_module, ome_connection_powerstate_mock)
@@ -325,11 +321,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 'Id': 1234,
                                                 'TargetType': {'Id': 'off',
                                                                'Name': 'DEVICE'}}]})
-        ome_response_mock.status_code = 200
-        ome_response_mock.json_data = {
-            'value': [{"DeviceServiceTag": None, "Id": Constants.service_tag1,
-                       "power_state": "on"}]}
-        ome_response_mock.success = True
+        ome_connection_powerstate_mock.get_all_report_details.return_value = {
+            'report_list': [{"DeviceServiceTag": None, "Id": Constants.service_tag1,
+                             "power_state": "on"}]}
         f_module = self.get_module_mock(params=ome_default_args, check_mode=False)
         with pytest.raises(Exception) as exc:
             self.module.get_device_resource(f_module, ome_connection_powerstate_mock)
@@ -354,10 +348,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 'Id': 1234,
                                                 'TargetType': {'Id': 'off',
                                                                'Name': 'DEVICE'}}]})
-        ome_response_mock.status_code = 200
-        ome_response_mock.json_data = {
-            'value': [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.service_tag1,
-                       "power_state": "coldboot"}]}
+        ome_connection_powerstate_mock.get_all_report_details.return_value = {
+            'report_list': [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.service_tag1,
+                             "power_state": "coldboot"}]}
         ome_response_mock.success = True
         f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
         with pytest.raises(Exception) as exc:
@@ -382,11 +375,13 @@ class TestOmePowerstate(FakeAnsibleModule):
                                                 'Id': 1234,
                                                 'TargetType': {'Id': 'off',
                                                                'Name': 'DEVICE'}}]})
-        ome_response_mock.status_code = 200
-        ome_response_mock.json_data = {
-            'value': [{"DeviceServiceTag": Constants.service_tag1, "Id": Constants.service_tag1,
-                       "power_state": "on"}]}
-        ome_response_mock.success = True
+        ome_connection_powerstate_mock.get_all_report_details.return_value = {
+            'report_list': [
+                {"DeviceServiceTag": Constants.service_tag1,
+                 "Id": Constants.service_tag1, "power_state": "on"
+                 }
+            ]
+        }
         f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
         with pytest.raises(Exception) as exc:
             self.module.get_device_resource(f_module, ome_connection_powerstate_mock)
@@ -398,11 +393,9 @@ class TestOmePowerstate(FakeAnsibleModule):
                                  "device_service_tag": "@#4"})
         mocker.patch(MODULE_PATH + 'ome_powerstate.get_device_state',
                      return_value=('on', 1000))
-        ome_response_mock.status_code = 400
-        ome_response_mock.json_data = {
-            'value': [{"DeviceServiceTag": "@#4", "Id": None,
-                       "power_state": "on"}]}
-        ome_response_mock.success = False
+        ome_connection_powerstate_mock.get_all_report_details.return_value = {
+            'report_list': [{"DeviceServiceTag": "@#4", "Id": None,
+                             "power_state": "on"}]}
         f_module = self.get_module_mock(params=ome_default_args, check_mode=True)
         with pytest.raises(Exception) as exc:
             self.module.get_device_resource(f_module, ome_connection_powerstate_mock)

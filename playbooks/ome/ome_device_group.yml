@@ -1,0 +1,31 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OpenManage Ansible device inventory details.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Adding a set of devices to a group using device ids.
+      ome_device_group:
+        hostname:  "{{ hostname }}"
+        username: "{{ username }}"
+        password:  "{{ password }}"
+        name: "Storage Services"
+        device_ids:
+          - 11111
+          - 11112
+      tags: device-id
+
+    - name: Adding a set of devices to a group using device service tags.
+      ome_device_group:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        name: "Storage Services"
+        device_service_tags:
+          - GHRT2R
+          - KJHDF3
+      tags: device-service-tags
