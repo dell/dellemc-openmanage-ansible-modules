@@ -220,3 +220,21 @@ releases:
         name: ome_configuration_compliance_info
         namespace: ''
     release_date: '2021-03-24'
+  3.3.0:
+    changes:
+      release_summary: OpenManage Enterprise device group and device discovery support added
+      known_issues:
+        - ome_smart_fabric - Issue(185322) Only three design types are supported by OpenManage Enterprise Modular but the module successfully creates a fabric when the design type is not supported.
+        - ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+        - ome_configuration_compliance_info - Issue(195592) Module may error out with the message ``unable to process the request because an error occurred``. If the issue persists, report it to the system administrator.
+        - idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+      minor_changes:
+        - ome_firmware_baseline - Allows to retrieve the device even if it not in the first 50 device IDs
+    modules:
+      - description: Create, modify or delete a discovery job on OpenManage Enterprise
+        name: ome_discovery
+        namespace: ''
+      - description: Manages device group settings on OpenManage Enterprise
+        name: ome_device_group
+        namespace: ''
+    release_date: '2021-04-28'
