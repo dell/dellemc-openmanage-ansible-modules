@@ -214,6 +214,7 @@ class TestOmeProfile(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_target_details', return_value=params.get('target'))
         f_module = self.get_module_mock(params=params["mparams"])
         error_message = params["res"]
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         with pytest.raises(Exception) as err:
             self.module.assign_profile(f_module, ome_connection_mock_for_profile)
         assert err.value.args[0] == error_message
@@ -237,6 +238,7 @@ class TestOmeProfile(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_profile', return_value=params.get('prof'))
         f_module = self.get_module_mock(params=params["mparams"])
         error_message = params["res"]
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         with pytest.raises(Exception) as err:
             self.module.unassign_profile(f_module, ome_connection_mock_for_profile)
         assert err.value.args[0] == error_message
@@ -265,6 +267,7 @@ class TestOmeProfile(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_target_details', return_value=params.get('target'))
         f_module = self.get_module_mock(params=params["mparams"])
         error_message = params["res"]
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         with pytest.raises(Exception) as err:
             self.module.migrate_profile(f_module, ome_connection_mock_for_profile)
         assert err.value.args[0] == error_message

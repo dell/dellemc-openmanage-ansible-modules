@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.3.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -191,7 +191,7 @@ def build_power_state_payload(device_id, device_type, valid_option):
 def get_device_state(module, resp, device_id):
     """Get the current state and device type from response."""
     current_state, device_type, invalid_device = None, None, True
-    for device in resp.json_data['value']:
+    for device in resp['report_list']:
         if device['Id'] == int(device_id):
             current_state = device.get('PowerState', None)
             device_type = device['Type']
@@ -211,15 +211,15 @@ def get_device_resource(module, rest_obj):
     power_state = module.params['power_state']
     device_id = module.params['device_id']
     service_tag = module.params['device_service_tag']
-    resp = rest_obj.invoke_request('GET', "DeviceService/Devices")
-    if resp.success and resp.json_data['value'] and service_tag is not None:
-        device_resp = dict([(device.get('DeviceServiceTag'), str(device.get('Id'))) for device in resp.json_data['value']])
+    resp_data = rest_obj.get_all_report_details("DeviceService/Devices")
+    if resp_data['report_list'] and service_tag is not None:
+        device_resp = dict([(device.get('DeviceServiceTag'), str(device.get('Id'))) for device in resp_data['report_list']])
         if service_tag in device_resp:
             device_id = device_resp[service_tag]
         else:
             module.fail_json(msg="Unable to complete the operation because the entered target"
                                  " device service tag '{0}' is invalid.".format(service_tag))
-    current_state, device_type = get_device_state(module, resp, device_id)
+    current_state, device_type = get_device_state(module, resp_data, device_id)
 
     # For check mode changes.
     valid_option, valid_operation = VALID_OPERATION[power_state], False

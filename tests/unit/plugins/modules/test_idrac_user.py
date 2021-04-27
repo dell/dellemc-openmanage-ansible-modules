@@ -104,6 +104,7 @@ class TestIDRACUser(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         slot_id = 1
         slot_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/{0}/".format(slot_id)
+        mocker.patch(MODULE_PATH + 'idrac_user.time.sleep', return_value=None)
         self.module.remove_user_account(f_module, idrac_connection_user_mock, slot_uri, slot_id)
 
     def test_remove_user_account_check_mode_4(self, idrac_connection_user_mock, idrac_default_args, mocker):
@@ -167,6 +168,7 @@ class TestIDRACUser(FakeAnsibleModule):
         empty_slot_id = 2
         empty_slot_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/{0}/".format(empty_slot_id)
         user_attr = {"User.2#UserName": "test_user"}
+        mocker.patch(MODULE_PATH + 'idrac_user.time.sleep', return_value=None)
         response = self.module.create_or_modify_account(f_module, idrac_connection_user_mock, None, None,
                                                         empty_slot_id, empty_slot_uri, user_attr)
         assert response[1] == "Successfully created user account."
@@ -180,6 +182,7 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idrac_connection_user_mock.get_server_generation = (13, "2.70.70.70")
+        mocker.patch(MODULE_PATH + 'idrac_user.time.sleep', return_value=None)
         mocker.patch(MODULE_PATH + "idrac_user.get_payload", return_value={"Users.2#UserName": "test_user"})
         mocker.patch(MODULE_PATH + "idrac_user.convert_payload_xml",
                      return_value=("<xml-data>", {"Users.1#UserName": "test_user"}))
