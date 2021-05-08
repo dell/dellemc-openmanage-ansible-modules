@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 3.4.0
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -121,7 +121,7 @@ class TestOmeTemplate(FakeAnsibleModule):
         data = self.module.get_template_by_name("test Sample Template import1", f_module,
                                                 ome_connection_mock_for_template)
         assert data[0]["Name"] == "test Sample Template import1"
-        assert data[0]["Id"] is 24
+        assert data[0]["Id"] == 24
 
     def test_get_group_devices_all(self, ome_response_mock, ome_connection_mock_for_template):
         ome_response_mock.json_data = {'value': [{"Name": "Device1", "Id": 24}]}
