@@ -46,6 +46,10 @@ You can refer our [Code of Conduct](https://github.com/dell/dellemc-openmanage-a
 ## Testing
 See [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/tests/README.md) for further information on testing.
 
+## Debugging
+
+See [How to Debug](.github/debug.md)
+
 ## Maintenance
   * OpenManage Ansible Modules releases follows a monthly release cycle. On the last week of every month, 
   the updated modules are posted to this repository.
