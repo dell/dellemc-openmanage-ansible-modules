@@ -45,7 +45,8 @@ class iDRACConnection:
         self.sdk.importPath()
         self.handle = self.sdk.get_driver(self.sdk.driver_enum.iDRAC, self.idrac_ip, self.creds, pOptions=self.pOp)
         if self.handle is None:
-            msg = "Could not find device driver for iDRAC with IP Address: {0}".format(self.idrac_ip)
+            msg = "Unable to communicate with iDRAC %s. This may be due to one of the following: Incorrect username" \
+                  " or password, unreachable iDRAC IP or a failure in TLS/SSL handshake." % self.idrac_ip
             raise RuntimeError(msg)
         return self.handle
 
