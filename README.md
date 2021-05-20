@@ -48,7 +48,7 @@ See [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/colle
 
 ## Debugging
 
-See [How to Debug](.github/debug.md)
+To debug OpenManage Ansible Modules using IDE, see [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/.github/debug.md)
 
 ## Maintenance
   * OpenManage Ansible Modules releases follows a monthly release cycle. On the last week of every month, 
