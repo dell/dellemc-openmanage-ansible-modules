@@ -37,6 +37,13 @@ options:
     description: Display name of NIC port in the template for VLAN configuration.
     required: true
     type: str
+  propagate_vlan:
+    description:
+      - To deploy the modified VLAN settings immediately without rebooting the server.
+      - This option will be applied only when there are changes to the VLAN configuration.
+    default: true
+    type: bool
+    version_added: 3.4.0
   untagged_networks:
     description: List of untagged networks and their corresponding NIC ports.
     elements: dict
@@ -298,6 +305,7 @@ def get_vlan_payload(module, rest_obj, untag_dict, tagged_dict):
     port_id_map, port_untagged_map, port_tagged_map, port_nic_bond_map, nic_bonding_tech =\
         get_template_vlan_info(module, rest_obj, template['Id'])
     payload["BondingTechnology"] = nic_bonding_tech
+    payload["PropagateVlan"] = module.params.get('propagate_vlan')
     untag_equal_dict = compare_nested_dict(untag_dict, port_untagged_map)
     tag_equal_dict = compare_nested_dict(tagged_dict, port_tagged_map)
     if untag_equal_dict and tag_equal_dict:
@@ -420,7 +428,8 @@ def main():
             "nic_identifier": {"required": True, "type": "str"},
             "untagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_untagged_spec,
                                   "mutually_exclusive": [("untagged_network_id", "untagged_network_name")]},
-            "tagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_tagged_spec}
+            "tagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_tagged_spec},
+            "propagate_vlan": {"type": "bool", "default": True}
         },
         required_one_of=[("template_id", "template_name"),
                          ("untagged_networks", "tagged_networks")],
