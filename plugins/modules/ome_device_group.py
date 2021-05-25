@@ -19,7 +19,7 @@ short_description: Manages device group settings on OpenManage Enterprise
 version_added: "3.3.0"
 description: This module allows to add devices to a device group on OpenManage Enterprise.
 extends_documentation_fragment:
-  - dellemc.openmanage.ome_auth_options
+  - dellemc.openmanage.oment_auth_options
 options:
   state:
     type: str
