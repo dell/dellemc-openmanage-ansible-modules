@@ -20,7 +20,7 @@ short_description: Create, modify, or delete a discovery job on OpenManage Enter
 version_added: "3.3.0"
 description: This module allows to create, modify, or delete a discovery job.
 extends_documentation_fragment:
-  - dellemc.openmanage.ome_auth_options
+  - dellemc.openmanage.oment_auth_options
 options:
   state:
     description:

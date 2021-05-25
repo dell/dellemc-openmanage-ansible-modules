@@ -45,8 +45,10 @@ class iDRACConnection:
         self.sdk.importPath()
         self.handle = self.sdk.get_driver(self.sdk.driver_enum.iDRAC, self.idrac_ip, self.creds, pOptions=self.pOp)
         if self.handle is None:
-            msg = "Unable to communicate with iDRAC %s. This may be due to one of the following: Incorrect username" \
-                  " or password, unreachable iDRAC IP or a failure in TLS/SSL handshake." % self.idrac_ip
+            msg = "Unable to communicate with iDRAC {0}. This most often indicates one of the following:\n\n" \
+                  "1. A bad username/password\n" \
+                  "2. The iDRAC IP address is unreachable\n" \
+                  "3. A failure in a TLS/SSL handshake (proxies/firewalls are a common cause of this problem)\n".format(self.idrac_ip)
             raise RuntimeError(msg)
         return self.handle
 
