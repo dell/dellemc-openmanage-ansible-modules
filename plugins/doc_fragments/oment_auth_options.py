@@ -18,19 +18,19 @@ class ModuleDocFragment(object):
     DOCUMENTATION = r'''
 options:
   hostname:
-    description: OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
+    description: OpenManage Enterprise IP address or hostname.
     type: str
     required: True
   username:
-    description: OpenManage Enterprise or OpenManage Enterprise Modular username.
+    description: OpenManage Enterprise username.
     type: str
     required: True
   password:
-    description: OpenManage Enterprise or OpenManage Enterprise Modular password.
+    description: OpenManage Enterprise password.
     type: str
     required: True
   port:
-    description: OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
+    description: OpenManage Enterprise HTTPS port.
     type: int
     default: 443
 '''
