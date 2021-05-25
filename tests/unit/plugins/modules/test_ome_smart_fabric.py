@@ -208,6 +208,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data
         mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_service_tag_with_fqdn',
                      return_value=None)
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_ip_from_host',
+                     return_value=ome_default_args["hostname"])
         service_tag, msm_version = self.module.get_msm_device_details(ome_connection_mock_for_smart_fabric, f_module)
         assert service_tag == Constants.service_tag1
         assert msm_version == "1.20.00"
@@ -221,6 +223,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         ome_default_args.update(
             {"hostname": "XX-XXXX.yyy.lab", "fabric_design": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"})
         f_module = self.get_module_mock(params=ome_default_args)
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_ip_from_host',
+                     return_value=ome_default_args["hostname"])
         resp_data = {
             "Id": Constants.device_id1,
             "value": [
@@ -265,6 +269,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         ome_default_args.update(
             {"hostname": "XX-XXXX.yyy.lab", "fabric_design": "2xMX5108n_Ethernet_Switches_in_same_chassis"})
         f_module = self.get_module_mock(params=ome_default_args)
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_ip_from_host',
+                     return_value=ome_default_args["hostname"])
         resp_data = {
             "Id": Constants.device_id1,
             "value": [
@@ -309,6 +315,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         """
         ome_default_args.update(
             {"hostname": "XX-XXXX.yyy.lab", "fabric_design": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"})
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_ip_from_host',
+                     return_value=ome_default_args["hostname"])
         f_module = self.get_module_mock(params=ome_default_args)
         resp_data = {
             "Id": Constants.device_id1,
@@ -352,6 +360,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         """
         ome_default_args.update(
             {"hostname": "XX-XXXX.yyy.lab", "fabric_design": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"})
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_ip_from_host',
+                     return_value=ome_default_args["hostname"])
         f_module = self.get_module_mock(params=ome_default_args)
         resp_data = {
             "value": [
@@ -370,6 +380,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         """
         ome_default_args.update({"fabric_design": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"})
         f_module = self.get_module_mock(params=ome_default_args)
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_ip_from_host',
+                     return_value=ome_default_args["hostname"])
         resp_data = {"Id": Constants.device_id1, "value": [
             {
                 "@odata.id": "/api/ManagementDomainService/Domains(25038)",
@@ -407,6 +419,8 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         """
         ome_default_args.update({"fabric_design": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"})
         f_module = self.get_module_mock(params=ome_default_args)
+        mocker.patch(MODULE_PATH + 'ome_smart_fabric.get_ip_from_host',
+                     return_value=ome_default_args["hostname"])
         resp_data = {"Id": None, "value": [
         ]}
         ome_connection_mock_for_smart_fabric.get_all_items_with_pagination.return_value = resp_data

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.4.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -512,10 +512,15 @@ def update_firmware_redfish(idrac, module):
                 msg['update_status'] = resp.json_data
             else:
                 msg['update_status'] = mesg
-            repo_based_update_list = idrac.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST", data="{}",
-                                                          dump=False)
-            msg['update_status']['job_details'] = repo_based_update_list.json_data
-
+            try:
+                repo_based_update_list = idrac.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST",
+                                                              data="{}", dump=False)
+                msg['update_status']['job_details'] = repo_based_update_list.json_data
+            except HTTPError as err:
+                err_message = json.load(err)
+                if err_message['error']['@Message.ExtendedInfo'][0]['Message'] == MESSAGE:
+                    module.exit_json(msg=EXIT_MESSAGE)
+                raise err
         json_data, repo_status, failed = msg['update_status']['job_details'], False, False
         if "PackageList" not in json_data:
             job_data = json_data.get('Data')
