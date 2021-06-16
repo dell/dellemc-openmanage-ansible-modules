@@ -124,7 +124,7 @@ import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 try:
     from omsdk.sdkfile import file_share_manager
@@ -141,6 +141,11 @@ def run_setup_idrac_syslog(idrac, module):
                                                     creds=UserCredentials(
                                                         module.params['share_user'],
                                                         module.params['share_password']))
+
+    if not upd_share.IsValid:
+        module.fail_json(msg="Unable to access the share. Ensure that the share name, "
+                             "share mount, and share credentials provided are correct.")
+
     idrac.config_mgr.set_liason_share(upd_share)
     if module.check_mode:
         if module.params['syslog'] == 'Enabled':

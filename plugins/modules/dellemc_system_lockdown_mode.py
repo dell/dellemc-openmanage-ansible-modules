@@ -154,6 +154,10 @@ def run_system_lockdown_mode(idrac, module):
                                                         module.params['share_password'])
                                                     )
 
+    if not upd_share.IsValid:
+        module.fail_json(msg="Unable to access the share. Ensure that the share name, "
+                             "share mount, and share credentials provided are correct.")
+
     set_liason = idrac.config_mgr.set_liason_share(upd_share)
     if set_liason['Status'] == "Failed":
         try:
