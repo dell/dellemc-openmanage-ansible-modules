@@ -412,7 +412,6 @@ def update_firmware_omsdk(idrac, module):
                                     mount_point=module.params['share_mnt'], isFolder=False,
                                     creds=UserCredentials(share_user, share_pwd))
 
-            if not upd_share.IsValid:
                 if not upd_share.IsValid:
                     module.fail_json(msg="Unable to access the share. Ensure that the share name, "
                                          "share mount, and share credentials provided are correct.")
