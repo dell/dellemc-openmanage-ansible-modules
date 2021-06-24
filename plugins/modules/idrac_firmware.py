@@ -411,6 +411,7 @@ def update_firmware_omsdk(idrac, module):
             upd_share = FileOnShare(remote="{0}{1}{2}".format(share_name, os.sep, catalog_file_name),
                                     mount_point=module.params['share_mnt'], isFolder=False,
                                     creds=UserCredentials(share_user, share_pwd))
+            # Invalid share check
             if not upd_share.IsValid:
                 module.fail_json(msg="Unable to access the share. Ensure that the share name, "
                                      "share mount, and share credentials provided are correct.")
