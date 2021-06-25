@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.1.0
+# Version 3.5.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -307,3 +307,11 @@ class RestOME(object):
             if exit_poll is True:
                 return job_failed, job_message
         return True, "The job is not complete after {0} seconds.".format(job_wait_sec)
+
+    def strip_substr_dict(self, odata_dict, chkstr='@odata.'):
+        cp = odata_dict.copy()
+        klist = cp.keys()
+        for k in klist:
+            if chkstr in str(k).lower():
+                odata_dict.pop(k)
+        return odata_dict

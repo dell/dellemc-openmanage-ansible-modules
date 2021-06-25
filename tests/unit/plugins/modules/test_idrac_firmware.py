@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.5.0
+# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -181,7 +181,7 @@ class TestidracFirmware(FakeAnsibleModule):
     def test_update_firmware_omsdk_success_case01(self, idrac_connection_firmware_mock,
                                                   idrac_connection_firmware_redfish_mock, idrac_default_args, mocker,
                                                   re_match_mock):
-        idrac_default_args.update({"share_name": "mhttps://downloads.dell.com", "catalog_file_name": "Catalog.xml",
+        idrac_default_args.update({"share_name": "https://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "shrmnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True,
@@ -189,8 +189,23 @@ class TestidracFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
                      return_value=({"update_status": {"job_details": {"Data": {"StatusCode": 200,
                                                                                "body": {"PackageList": [{}]}}}}},
-                                   {"job_details": {"Data": {"StatusCode": 200, "body": {"PackageList": [{}]}}}}))
+                                   {"Data": {"StatusCode": 200, "body": {"PackageList": [{}]}}}))
 
+        mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson",
+                     return_value=({"BaseLocation": None,
+                                    "ComponentID": "18981",
+                                    "ComponentType": "APAC",
+                                    "Criticality": "3",
+                                    "DisplayName": "Dell OS Driver Pack",
+                                    "JobID": None,
+                                    "PackageName": "Drivers-for-OS-Deployment_Application_X0DW6_WN64"
+                                                   "_19.10.12_A00.EXE",
+                                    "PackagePath": "FOLDER05902898M/1/Drivers-for-"
+                                                   "OS-Deployment_Application_X0DW6_WN64_19.10.12_A00.EXE",
+                                    "PackageVersion": "19.10.12",
+                                    "RebootType": "NONE",
+                                    "Target": "DCIM:INSTALLED#802__DriverPack.Embedded.1:LC.Embedded.1"
+                                    }, True, False))
         f_module = self.get_module_mock(params=idrac_default_args)
         idrac_connection_firmware_mock.match.return_value = "2.70"
         idrac_connection_firmware_redfish_mock.success = True
@@ -201,25 +216,11 @@ class TestidracFirmware(FakeAnsibleModule):
                                      "body": {"PackageList1": [{}]}}}
         }
         result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
-        assert result == {
-            'update_status': {
-                'job_details': {
-                    'Data': {
-                        'body': {
-                            'PackageList1': [{}]
-                        },
-                        "GetRepoBasedUpdateList_OUTPUT": {},
-                        'StatusCode': 200
-                    }
-                }
-            },
-            'changed': False, 'failed': False,
-            'update_msg': 'Successfully triggered the job to update the firmware.'
-        }
+        assert result["update_status"]["job_details"]["Data"]["StatusCode"] == 200
 
     def test_update_firmware_omsdk_success_case02(self, idrac_connection_firmware_mock,
                                                   idrac_connection_firmware_redfish_mock, idrac_default_args, mocker,
-                                                  re_match_mock):
+                                                  re_match_mock, fileonshare_idrac_firmware_mock):
         idrac_default_args.update({"share_name": "mhttps://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "shrmnt",
@@ -229,7 +230,7 @@ class TestidracFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
                                                                                "body": {"PackageList": [{}]}}}}},
-                                   {"job_details": {"Data": {"StatusCode": 200, "body": {"PackageList": [{}]}}}}))
+                                   {"Data": {"StatusCode": 200, "body": {"PackageList": [{}]}}}))
 
         mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson",
                      return_value=({"BaseLocation": None,
@@ -256,13 +257,10 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_connection_firmware_mock.update_mgr.update_from_repo.return_value = {
             "job_details": {"Data": {"StatusCode": 200, "GetRepoBasedUpdateList_OUTPUT": {},
                                      "body": {"PackageList": [{}]}}}}
+        upd_share = fileonshare_idrac_firmware_mock
+        upd_share.IsValid = True
         result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
-        assert result == {
-            'changed': False, 'failed': False,
-            'update_msg': 'Successfully triggered the job to update the firmware.',
-            'update_status': {'job_details': {'Data': {'StatusCode': 200, "GetRepoBasedUpdateList_OUTPUT": {},
-                                                       'body': {'PackageList': "INSTANCENAME"}}}}
-        }
+        assert result["update_status"]["job_details"]["Data"]["StatusCode"] == 200
 
     def test_update_firmware_redfish_success_case03(self, idrac_connection_firmware_mock,
                                                     idrac_connection_firmware_redfish_mock,
@@ -305,7 +303,7 @@ class TestidracFirmware(FakeAnsibleModule):
 
     def test_update_firmware_omsdk_status_success_case01(self, idrac_connection_firmware_mock,
                                                          idrac_connection_firmware_redfish_mock, idrac_default_args,
-                                                         mocker, re_match_mock):
+                                                         mocker, re_match_mock, fileonshare_idrac_firmware_mock):
         idrac_default_args.update({"share_name": "mhttps://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "sharemnt",
@@ -340,6 +338,8 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_connection_firmware_mock.update_mgr.update_from_repo.return_value = {"job_details": {
             "Data": {"StatusCode": 200, "body": {}, "GetRepoBasedUpdateList_OUTPUT": {}}, "Status": "Success"},
             "Status": "Success"}
+        upd_share = fileonshare_idrac_firmware_mock
+        upd_share.IsValid = True
         result = self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
         assert result == {'changed': False, 'failed': False,
                           'update_msg': 'Successfully triggered the job to update the firmware.',
@@ -387,7 +387,8 @@ class TestidracFirmware(FakeAnsibleModule):
             "Status": "Failed"}
         with pytest.raises(Exception) as ex:
             self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
-        assert "Firmware update failed." == ex.value.args[0]
+        assert ex.value.args[0] == "Unable to access the share. Ensure that the share name, " \
+                                   "share mount, and share credentials provided are correct."
 
     def test__validate_catalog_file_case01(self, idrac_connection_firmware_mock, idrac_default_args):
         idrac_default_args.update({"catalog_file_name": ""})

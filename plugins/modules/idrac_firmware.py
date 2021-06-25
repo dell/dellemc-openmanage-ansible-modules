@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.4.0
+# Version 3.5.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -411,6 +411,10 @@ def update_firmware_omsdk(idrac, module):
             upd_share = FileOnShare(remote="{0}{1}{2}".format(share_name, os.sep, catalog_file_name),
                                     mount_point=module.params['share_mnt'], isFolder=False,
                                     creds=UserCredentials(share_user, share_pwd))
+            if not upd_share.IsValid:
+                module.fail_json(msg="Unable to access the share. Ensure that the share name, "
+                                     "share mount, and share credentials provided are correct.")
+
             msg['update_status'] = idrac.update_mgr.update_from_repo(upd_share, apply_update=apply_update,
                                                                      reboot_needed=reboot, job_wait=job_wait)
             get_check_mode_status(msg['update_status'], module)

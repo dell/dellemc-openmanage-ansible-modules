@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.5.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -48,7 +48,8 @@ author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
-    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module requires 'Administrator' privilege for I(idrac_user).
+    - Run this module from a system that has direct access to Dell EMC iDRAC.
     - This module supports C(check_mode).
 """
 
@@ -127,7 +128,7 @@ error_info:
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 import json
 try:
     from omdrivers.enums.iDRAC.iDRAC import NTPEnable_NTPConfigGroupTypes
@@ -152,7 +153,9 @@ def run_idrac_timezone_config(idrac, module):
                                                     creds=UserCredentials(
                                                     module.params['share_user'],
                                                     module.params['share_password']))
-
+    if not upd_share.IsValid:
+        module.fail_json(msg="Unable to access the share. Ensure that the share name, "
+                             "share mount, and share credentials provided are correct.")
     idrac.config_mgr.set_liason_share(upd_share)
 
     if module.params['setup_idrac_timezone'] is not None:
@@ -225,6 +228,10 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
+    except AttributeError as err:
+        if "NoneType" in str(err):
+            module.fail_json(msg="Unable to access the share. Ensure that the share name, "
+                                 "share mount, and share credentials provided are correct.")
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
