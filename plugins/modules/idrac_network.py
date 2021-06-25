@@ -210,7 +210,7 @@ error_info:
 
 import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
@@ -229,6 +229,7 @@ except ImportError:
 
 def run_idrac_network_config(idrac, module):
     idrac.use_redfish = True
+
     upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
                                                     mount_point=module.params['share_mnt'],
                                                     isFolder=True,
@@ -236,6 +237,10 @@ def run_idrac_network_config(idrac, module):
                                                         module.params['share_user'],
                                                         module.params['share_password'])
                                                     )
+
+    if not upd_share.IsValid:
+        module.fail_json(msg="Unable to access the share. Ensure that the share name, "
+                             "share mount, and share credentials provided are correct.")
 
     idrac.config_mgr.set_liason_share(upd_share)
     if module.params['register_idrac_on_dns'] is not None:

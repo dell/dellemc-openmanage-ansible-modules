@@ -232,7 +232,7 @@ import os
 import tempfile
 import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 try:
@@ -259,6 +259,12 @@ def run_server_bios_config(idrac, module):
                                                         module.params['share_user'],
                                                         module.params['share_password'])
                                                     )
+
+    if not upd_share.IsValid:
+        if not upd_share.IsValid:
+            module.fail_json(msg="Unable to access the share. Ensure that the share name, "
+                                 "share mount, and share credentials provided are correct.")
+
     if module.params['boot_sources']:
         _validate_params(module.params['boot_sources'])
         if module.check_mode:
