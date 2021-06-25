@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.5.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -36,7 +36,8 @@ author:
   - "Felix Stephen (@felixs88)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
-    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module requires 'Administrator' privilege for I(idrac_user).
+    - Run this module from a system that has direct access to Dell EMC iDRAC.
     - This module supports C(check_mode).
 """
 
@@ -141,11 +142,9 @@ def run_setup_idrac_syslog(idrac, module):
                                                     creds=UserCredentials(
                                                         module.params['share_user'],
                                                         module.params['share_password']))
-
     if not upd_share.IsValid:
         module.fail_json(msg="Unable to access the share. Ensure that the share name, "
                              "share mount, and share credentials provided are correct.")
-
     idrac.config_mgr.set_liason_share(upd_share)
     if module.check_mode:
         if module.params['syslog'] == 'Enabled':
@@ -188,6 +187,10 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
+    except AttributeError as err:
+        if "NoneType" in str(err):
+            module.fail_json(msg="Unable to access the share. Ensure that the share name, "
+                                 "share mount, and share credentials provided are correct.")
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
