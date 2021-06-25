@@ -5,6 +5,36 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v3.5.0
+======
+
+Release Summary
+---------------
+
+Support for managing static device groups on OpenManage Enterprise.
+
+Major Changes
+-------------
+
+- idrac_server_config_profile - Added support for exporting and importing Server Configuration Profile through HTTP/HTTPS share.
+- ome_device_group - Added support for adding devices to a group using the IP addresses of the devices and group ID.
+
+Bugfixes
+--------
+
+- Handled invalid share and unused imports cleanup for iDRAC modules (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/268)
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_groups - Manages static device groups on OpenManage Enterprise
+
 v3.4.0
 ======
 
