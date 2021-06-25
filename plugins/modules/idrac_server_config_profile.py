@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.5.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -19,7 +19,8 @@ module: idrac_server_config_profile
 short_description: Export or Import iDRAC Server Configuration Profile (SCP)
 version_added: "2.1.0"
 description:
-  - Export the Server Configuration Profile (SCP) from the iDRAC or Import from a network share or a local file.
+  - Export the Server Configuration Profile (SCP) from the iDRAC or import from a
+    network share (CIFS, NFS, HTTP, HTTPS) or a local file.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
@@ -35,7 +36,10 @@ options:
     type: bool
     required: True
   share_name:
-    description: CIFS or NFS Network Share or a local path.
+    description:
+      - Network share or local path.
+      - CIFS, NFS, HTTP, and HTTPS network share types are supported.
+      - OMSDK is not required if HTTP or HTTPS location is used for I(share_name).
     type: str
     required: True
   share_user:
@@ -55,11 +59,11 @@ options:
     type: str
   scp_components:
     description:
-      - If C(ALL), this module will import all components configurations from SCP file.
-      - If C(IDRAC), this module will import iDRAC configuration from SCP file.
-      - If C(BIOS), this module will import BIOS configuration from SCP file.
-      - If C(NIC), this module will import NIC configuration from SCP file.
-      - If C(RAID), this module will import RAID configuration from SCP file.
+      - If C(ALL), this module exports or imports all components configurations from SCP file.
+      - If C(IDRAC), this module exports or imports iDRAC configuration from SCP file.
+      - If C(BIOS), this module exports or imports BIOS configuration from SCP file.
+      - If C(NIC), this module exports or imports NIC configuration from SCP file.
+      - If C(RAID), this module exports or imports RAID configuration from SCP file.
     type: str
     choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
     default: 'ALL'
@@ -97,63 +101,145 @@ requirements:
   - "python >= 2.7.5"
 author: "Jagadeesh N V(@jagadeeshnv)"
 notes:
-    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - This module requires 'Administrator' privilege for I(idrac_user).
+    - Run this module from a system that has direct access to Dell EMC iDRAC.
     - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''
 ---
-- name: Import SCP from a network share and wait for this job to get completed
+- name: Export SCP with IDRAC components in JSON format to a local path
   dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    command: "import"
-    share_name: "192.168.0.2:/share"
-    share_user: "share_user_name"
-    share_password: "share_user_password"
-    scp_file: "scp_filename.xml"
-    scp_components: "ALL"
+    share_name: "/scp_folder"
+    scp_components: IDRAC
+    scp_file: example_file
+    export_format: JSON
+    export_use: Clone
     job_wait: True
 
-- name: Import SCP from a local path and wait for this job to get completed
+- name: Import SCP with IDRAC components in JSON format from a local path
   dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    command: "import"
     share_name: "/scp_folder"
-    scp_file: "scp_filename.xml"
-    scp_components: "ALL"
-    job_wait: True
+    command: import
+    scp_components: "IDRAC"
+    scp_file: example_file.json
+    shutdown_type: Graceful
+    end_host_power_state: "On"
+    job_wait: False
 
-- name: Export SCP to a network share
+- name: Export SCP with BIOS components in XML format to a NFS share path with auto-generated file name
   dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
     share_name: "192.168.0.2:/share"
-    share_user: "share_user_name"
-    share_password: "share_user_password"
-    job_wait: False
+    scp_components: "BIOS"
+    export_format: XML
+    export_use: Default
+    job_wait: True
 
-- name: Export SCP to a local path
+- name: Import SCP with BIOS components in XML format from a NFS share path
   dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    share_name: "/scp_folder"
+    share_name: "192.168.0.2:/share"
+    command: import
+    scp_components: "BIOS"
+    scp_file: 192.168.0.1_20210618_162856.xml
+    shutdown_type: NoReboot
+    end_host_power_state: "Off"
     job_wait: False
 
-- name: Export SCP to a local path with a specified name for the file
+- name: Export SCP with RAID components in XML format to a CIFS share path with share user domain name
   dellemc.openmanage.idrac_server_config_profile:
     idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
-    share_name: "/scp_folder"
-    # extension for filename is considered if provided
-    scp_file: "exported_scp_filename"
-    export_format: "JSON"
+    share_name: "\\\\192.168.0.2\\share"
+    share_user: share_username@domain
+    share_password: share_password
+    share_mnt: /mnt/cifs
+    scp_file: example_file.xml
+    scp_components: "RAID"
+    export_format: XML
+    export_use: Default
+    job_wait: True
+
+- name: Import SCP with RAID components in XML format from a CIFS share path
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    share_name: "\\\\192.168.0.2\\share"
+    share_user: share_username
+    share_password: share_password
+    share_mnt: /mnt/cifs
+    command: import
+    scp_components: "RAID"
+    scp_file: example_file.xml
+    shutdown_type: Forced
+    end_host_power_state: "On"
+    job_wait: True
+
+- name: Export SCP with ALL components in JSON format to a HTTP share path
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    share_name: "http://192.168.0.3/share"
+    share_user: share_username
+    share_password: share_password
+    scp_file: example_file.json
+    scp_components: ALL
+    export_format: JSON
+    job_wait: False
+
+- name: Import SCP with ALL components in JSON format from a HTTP share path
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    command: import
+    share_name: "http://192.168.0.3/share"
+    share_user: share_username
+    share_password: share_password
+    scp_file: example_file.json
+    shutdown_type: Graceful
+    end_host_power_state: "On"
+    job_wait: True
+
+- name: Export SCP with ALL components in XML format to a HTTPS share path without SCP file name
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    share_name: "https://192.168.0.4/share"
+    share_user: share_username
+    share_password: share_password
+    scp_components: ALL
+    export_format: XML
+    export_use: Replace
+    job_wait: True
+
+- name: Import SCP with ALL components in XML format from a HTTPS share path
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    command: import
+    share_name: "https://192.168.0.4/share"
+    share_user: share_username
+    share_password: share_password
+    scp_file: 192.168.0.1_20160618_164647.xml
+    shutdown_type: Graceful
+    end_host_power_state: "On"
     job_wait: False
 '''
 
@@ -183,11 +269,37 @@ scp_status:
       "TargetSettingsURI": null,
       "retval": true
     }
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
 '''
 
 import os
+import json
+from datetime import datetime
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.six.moves.urllib.parse import urlparse
 try:
     from omsdk.sdkfile import file_share_manager
     from omsdk.sdkcreds import UserCredentials
@@ -250,6 +362,77 @@ def run_export_server_config_profile(idrac, module):
     return export_status
 
 
+def response_format_change(response, params, file_name):
+    resp = {}
+    if params["job_wait"]:
+        response = response.json_data
+        response.pop("Description", None)
+        response.pop("Name", None)
+        response.pop("EndTime", None)
+        response.pop("StartTime", None)
+        response.pop("TaskState", None)
+        response.pop("Messages", None)
+        if response.get("Oem") is not None:
+            response.update(response["Oem"]["Dell"])
+            response.pop("Oem", None)
+        if params["command"] == "export":
+            response["file"] = "{0}{1}{2}".format(params["share_name"], os.sep, file_name)
+        response["retval"] = True
+    else:
+        location = response.headers.get("Location")
+        job_id = location.split("/")[-1]
+        resp["Data"] = {"StatusCode": response.status_code, "joburi": job_id, "next_uri": location}
+        resp["Job"] = {"JobId": job_id, "ResourceURI": location}
+        resp["Message"] = "none"
+        resp["Return"] = "JobCreated"
+        resp["Status"] = "Success"
+        resp["StatusCode"] = response.status_code
+        if params["command"] == "export":
+            resp["file"] = "{0}{1}{2}".format(params["share_name"], os.sep, file_name)
+        resp["retval"] = True
+        response = resp
+    return response
+
+
+def run_export_import_scp_http(idrac, module):
+    share_url = urlparse(module.params["share_name"])
+    share = {}
+    scp_file = module.params.get("scp_file")
+    share["share_ip"] = share_url.netloc
+    share["share_name"] = share_url.path.strip('/')
+    share["share_type"] = share_url.scheme.upper()
+    share["file_name"] = scp_file
+    scp_file_name_format = scp_file
+    share["username"] = module.params.get("share_user")
+    share["password"] = module.params.get("share_password")
+    command = module.params["command"]
+    if command == "import":
+        scp_response = idrac.import_scp_share(shutdown_type=module.params["shutdown_type"],
+                                              host_powerstate=module.params["end_host_power_state"],
+                                              job_wait=module.params["job_wait"],
+                                              target=module.params["scp_components"], share=share, )
+    else:
+        if scp_file:
+            if not str(scp_file.lower()).endswith(('.xml', '.json')):
+                scp_file_name_format = "{0}.{1}".format(scp_file, module.params['export_format'].lower())
+        else:
+            d = datetime.now()
+            scp_file_name_format = "{0}_{1}{2}{3}_{4}{5}{6}_scp.{7}".format(
+                module.params["idrac_ip"], d.date().year, d.date().month, d.date().day,
+                d.time().hour, d.time().minute, d.time().second,
+                module.params['export_format'].lower())
+        share["file_name"] = scp_file_name_format
+        scp_response = idrac.export_scp(export_format=module.params["export_format"],
+                                        export_use=module.params["export_use"],
+                                        target=module.params["scp_components"],
+                                        job_wait=module.params["job_wait"], share=share, )
+    scp_response = response_format_change(scp_response, module.params,
+                                          scp_file_name_format)
+    if isinstance(scp_response, dict) and scp_response.get("TaskStatus") == "Critical":
+        module.fail_json(msg="Failed to {0} scp.".format(command), scp_status=scp_response)
+    return scp_response
+
+
 def main():
     module = AnsibleModule(
         argument_spec={
@@ -291,20 +474,43 @@ def main():
 
     try:
         changed = False
-        with iDRACConnection(module.params) as idrac:
+        http_share = module.params["share_name"].lower().startswith(('http://', 'https://'))
+        with iDRACConnection(module.params) if not http_share else iDRACRedfishAPI(module.params) as idrac:
             command = module.params['command']
             if command == 'import':
-                scp_status = run_import_server_config_profile(idrac, module)
-                if "No changes were applied" not in scp_status.get('Message', ""):
-                    changed = True
+                if http_share:
+                    scp_status = run_export_import_scp_http(idrac, module)
+                    if isinstance(scp_status, dict):
+                        if scp_status.get("MessageId") == "SYS069":
+                            changed = False
+                        elif scp_status.get("MessageId") == "SYS053":
+                            changed = True
+                else:
+                    scp_status = run_import_server_config_profile(idrac, module)
+                    if "No changes were applied" not in scp_status.get('Message', ""):
+                        changed = True
+                    elif scp_status.get("MessageId") == "SYS043":
+                        changed = True
+                    elif scp_status.get("MessageId") == "SYS069":
+                        changed = False
             else:
-                scp_status = run_export_server_config_profile(idrac, module)
+                if http_share:
+                    scp_status = run_export_import_scp_http(idrac, module)
+                else:
+                    scp_status = run_export_server_config_profile(idrac, module)
+
         if module.params.get('job_wait'):
             msg = "Successfully {0}ed the Server Configuration Profile."
+            module.exit_json(changed=changed, msg=msg.format(command), scp_status=scp_status)
         else:
             msg = "Successfully triggered the job to {0} the Server Configuration Profile."
-        module.exit_json(changed=changed, msg=msg.format(command), scp_status=scp_status)
-    except (ImportError, ValueError, RuntimeError) as e:
+            module.exit_json(msg=msg.format(command), scp_status=scp_status)
+    except HTTPError as err:
+        module.fail_json(msg=str(err), error_info=json.load(err))
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (ImportError, ValueError, RuntimeError, SSLValidationError,
+            ConnectionError, KeyError, TypeError, IndexError) as e:
         module.fail_json(msg=str(e))
 
 

@@ -107,19 +107,19 @@ options:
         description:
           - "Provide the list of IP addresses, host names, or the range of IP addresses of the devices to be discovered
           or included."
-          - "Sample Valid IP Range Formats
-             192.35.0.0
-             192.36.0.0-10.36.0.255
-             192.37.0.0/24
-             2345:f2b1:f083:135::5500/118
-             2345:f2b1:f083:135::a500-2607:f2b1:f083:135::a600
-             hostname.domain.tld
-             hostname
-             2345:f2b1:f083:139::22a"
-          - "Sample Invalid IP Range Formats
-             192.35.0.*
-             192.36.0.0-255
-             192.35.0.0/255.255.255.0"
+          - "Sample Valid IP Range Formats"
+          - "   192.35.0.0"
+          - "   192.36.0.0-10.36.0.255"
+          - "   192.37.0.0/24"
+          - "   2345:f2b1:f083:135::5500/118"
+          - "   2345:f2b1:f083:135::a500-2607:f2b1:f083:135::a600"
+          - "   hostname.domain.tld"
+          - "   hostname"
+          - "   2345:f2b1:f083:139::22a"
+          - "Sample Invalid IP Range Formats"
+          - "   192.35.0.*"
+          - "   192.36.0.0-255"
+          - "   192.35.0.0/255.255.255.0"
           - C(NOTE) The range size for the number of IP addresses is limited to 16,385 (0x4001).
           - C(NOTE) Both IPv6 and IPv6 CIDR formats are supported.
         type: list

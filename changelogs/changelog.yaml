@@ -251,3 +251,19 @@ releases:
         - ome_firmware_baseline - Module supports check mode, and allows the modification and deletion of firmware baselines.
         - ome_firmware_catalog - Module supports check mode, and allows the modification and deletion of firmware catalogs.
     release_date: '2021-05-26'
+  3.5.0:
+    changes:
+      release_summary: Support for managing static device groups on OpenManage Enterprise.
+      known_issues:
+        - ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+        - idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+      major_changes:
+        - ome_device_group - Added support for adding devices to a group using the IP addresses of the devices and group ID.
+        - idrac_server_config_profile - Added support for exporting and importing Server Configuration Profile through HTTP/HTTPS share.
+      bugfixes:
+        - Handled invalid share and unused imports cleanup for iDRAC modules (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/268)
+    modules:
+      - description: Manages static device groups on OpenManage Enterprise
+        name: ome_groups
+        namespace: ''
+    release_date: '2021-06-28'

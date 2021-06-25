@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.4.0
+# Version 3.5.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -87,6 +87,7 @@ options:
       - Password to access the repository.
       - This option is mandatory when I(repository_type) is CIFS.
       - This option is ignored when I(repository_type) is C(DELL_ONLINE).
+      - C(NOTE) The module always reports the changed status, when this is provided.
   repository_domain:
     type: str
     description:
