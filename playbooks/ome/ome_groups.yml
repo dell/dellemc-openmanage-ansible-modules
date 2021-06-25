@@ -1,0 +1,53 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OpenManage Ansible Group configuration.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Create a new device group
+      ome_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        name: "group 1"
+        description: "Group 1 description"
+        parent: "group parent 1"
+      tags:
+        - create_group
+
+    - name: Modify a device group using the group ID
+      ome_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        group_id: 1234
+        description: "Group description updated"
+        parent: "group parent 2"
+      tags:
+        - modify_group
+
+    - name: Delete a device group using the device group name
+      ome_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        state: absent
+        name: "group 1"
+      tags:
+        - delete_name
+
+    - name: Delete multiple device groups using the group IDs
+      ome_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        state: absent
+        group_id:
+          - 1234
+          - 5678
+      tags:
+        - delete_ids

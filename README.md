@@ -5,9 +5,10 @@ Dell EMC OpenManage Ansible Modules allows data center and IT administrators to 
 OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
 ## Supported Platforms
-  * iDRAC 7 and 8 based Dell EMC PowerEdge Servers with Firmware versions 2.70.70.70 and above.
-  * iDRAC 9 based Dell EMC PowerEdge Servers with Firmware versions 4.32.10.00 and above.
-  * Dell EMC OpenManage Enterprise versions 3.4 and above.
+  * iDRAC 7 based Dell EMC PowerEdge Servers with firmware versions 2.63.60.62 and above.
+  * iDRAC 8 based Dell EMC PowerEdge Servers with firmware versions 2.75.75.75 and above.
+  * iDRAC 9 based Dell EMC PowerEdge Servers with Firmware versions 4.40.40.00 and above.
+  * Dell EMC OpenManage Enterprise versions 3.5 and above.
   * Dell EMC OpenManage Enterprise-Modular versions 1.20.10 and above.
 
 ## Prerequisites
