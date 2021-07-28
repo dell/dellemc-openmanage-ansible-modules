@@ -418,31 +418,31 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
                                                                      'fe80::ffff:ffff:ffff:ffff/24']})
             self.module.get_device_id_from_ip(ip_addresses, device_list, f_module)
 
-    # def test_add_member_to_group_case01(self, ome_connection_mock_for_device_group, ome_response_mock):
-    #     report_list = [{"Id": 3333, "DeviceServiceTag": "device1",
-    #                     "DeviceManagement": [{"NetworkAddress": "192.168.2.10"},
-    #                                          ]},
-    #                    {"Id": 1013, "DeviceServiceTag": "device1",
-    #                     "DeviceManagement": [{"NetworkAddress": "192.168.5.10"},
-    #                                          ]}
-    #                    ]
-    #     ome_connection_mock_for_device_group.get_all_report_details.return_value = {"report_list": report_list}
-    #     f_module = self.get_module_mock(params={"name": "group1",
-    #                                             "ip_addresses": ["::ffff:192.168.2.0/125",
-    #                                                              "192.168.2.10",
-    #                                                              'fe80::ffff:ffff:ffff:ffff',
-    #                                                              '192.168.3.0/24',
-    #                                                              '192.168.4.1-192.168.4.9',
-    #                                                              'fe80::ffff:ffff:ffff:ffff/24']})
-    #     device_id = {3333: "192.168.2.10", 4444: "192.168.3.10",
-    #                  5555: "192.168.4.3",
-    #                  1011: "fe80::de0:b6b3:a764:0"}
-    #     ome_response_mock.status_code = 204
-    #     added_ips_out = ["192.168.3.10", "192.168.4.3", "fe80::de0:b6b3:a764:0"]
-    #     resp, added_ips = self.module.add_member_to_group(f_module, ome_connection_mock_for_device_group, 1, device_id,
-    #                                                       "IPAddresses")
-    #     assert resp.status_code == 204
-    #     assert added_ips == added_ips_out
+    def test_add_member_to_group_case01(self, ome_connection_mock_for_device_group, ome_response_mock):
+        report_list = [{"Id": 3333, "DeviceServiceTag": "device1",
+                        "DeviceManagement": [{"NetworkAddress": "192.168.2.10"},
+                                             ]},
+                       {"Id": 1013, "DeviceServiceTag": "device1",
+                        "DeviceManagement": [{"NetworkAddress": "192.168.5.10"},
+                                             ]}
+                       ]
+        ome_connection_mock_for_device_group.get_all_report_details.return_value = {"report_list": report_list}
+        f_module = self.get_module_mock(params={"name": "group1",
+                                                "ip_addresses": ["::ffff:192.168.2.0/125",
+                                                                 "192.168.2.10",
+                                                                 'fe80::ffff:ffff:ffff:ffff',
+                                                                 '192.168.3.0/24',
+                                                                 '192.168.4.1-192.168.4.9',
+                                                                 'fe80::ffff:ffff:ffff:ffff/24']})
+        device_id = {3333: "192.168.2.10", 4444: "192.168.3.10",
+                     5555: "192.168.4.3",
+                     1011: "fe80::de0:b6b3:a764:0"}
+        ome_response_mock.status_code = 204
+        added_ips_out = ["192.168.3.10", "192.168.4.3", "fe80::de0:b6b3:a764:0"]
+        resp, added_ips = self.module.add_member_to_group(f_module, ome_connection_mock_for_device_group, 1, device_id,
+                                                          "IPAddresses")
+        assert resp.status_code == 204
+        assert added_ips == added_ips_out
 
     def test_add_member_to_group_checkmode_case01(self, ome_connection_mock_for_device_group, ome_response_mock):
         report_list = [{"Id": 3333, "DeviceServiceTag": "device1",
