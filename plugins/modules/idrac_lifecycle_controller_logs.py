@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
+# Version 3.6.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -16,57 +16,72 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: idrac_lifecycle_controller_logs
-short_description: Export Lifecycle Controller logs to a network share
+short_description: Export Lifecycle Controller logs to a network share or local path.
 version_added: "2.1.0"
 description:
-    - Export Lifecycle Controller logs  to a given network share.
+  - Export Lifecycle Controller logs to a given network share or local path.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
-    share_name:
-        required: True
-        type: str
-        description: Network share path.
-    share_user:
-        type: str
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
-            part of a domain else 'user'. This option is mandatory for CIFS Network Share.
-    share_password:
-        type: str
-        description: Network share user password. This option is mandatory for CIFS Network Share.
-        aliases: ['share_pwd']
-    job_wait:
-        description: Whether to wait for the running job completion or not.
-        type: bool
-        default: True
+  share_name:
+    description:
+      - Network share or local path.
+      - CIFS, NFS network share types are supported.
+    type: str
+    required: True
+  share_user:
+    type: str
+    description: Network share user in the format 'user@domain' or 'domain\\user' if user is
+      part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+  share_password:
+    type: str
+    description: Network share user password. This option is mandatory for CIFS Network Share.
+    aliases: ['share_pwd']
+  job_wait:
+    description: Whether to wait for the running job completion or not.
+    type: bool
+    default: True
 
 requirements:
-    - "omsdk"
-    - "python >= 2.7.5"
+  - "omsdk"
+  - "python >= 2.7.5"
 author:
-    - "Rajeev Arakkal (@rajeevarakkal)"
-    - "Anooja Vardhineni (@anooja-vardhineni)"
+  - "Rajeev Arakkal (@rajeevarakkal)"
+  - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
-    - This module requires 'Administrator' privilege for I(idrac_user).
-    - Run this module from a system that has direct access to Dell EMC iDRAC.
-    - This module does not support C(check_mode).
+  - This module requires 'Administrator' privilege for I(idrac_user).
+  - Exporting data to a local share is supported only on iDRAC9-based PowerEdge Servers and later.
+  - Run this module from a system that has direct access to Dell EMC iDRAC.
+  - This module does not support C(check_mode).
 """
 
-EXAMPLES = """
+EXAMPLES = r'''
 ---
-- name: Export Lifecycle Controller Logs
+- name: Export lifecycle controller logs to NFS share.
   dellemc.openmanage.idrac_lifecycle_controller_logs:
-       idrac_ip:   "190.168.0.1"
-       idrac_user: "user_name"
-       idrac_password:  "user_password"
-       idrac_port:  443
-       share_name: "192.168.0.0:/nfsfileshare"
-       share_user: "share_user_name"
-       share_password:  "share_user_pwd"
-       job_wait: True
-"""
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    share_name: "192.168.0.0:/nfsfileshare"
 
-RETURN = r'''
+- name: Export lifecycle controller logs to CIFS share.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    share_name: "\\\\192.168.0.2\\share"
+    share_user: "share_user_name"
+    share_password: "share_user_pwd"
+
+- name: Export lifecycle controller logs to LOCAL path.
+  dellemc.openmanage.idrac_lifecycle_controller_logs:
+    idrac_ip: "190.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    share_name: "/example/export_lc"
+'''
+
+RETURN = """
 ---
 msg:
   type: str
@@ -74,14 +89,23 @@ msg:
   returned: always
   sample: "Successfully exported the lifecycle controller logs."
 lc_logs_status:
-  description: Status of the export operation.
+  description: Status of the export operation along with job details and file path.
   returned: success
   type: dict
   sample: {
-      "msg": {
-        "Message": "File exported successfully!!",
-        "Status": "Success"
-    }
+    "ElapsedTimeSinceCompletion": "0",
+    "InstanceID": "JID_274774785395",
+    "JobStartTime": "NA",
+    "JobStatus": "Completed",
+    "JobUntilTime": "NA",
+    "Message": "LCL Export was successful",
+    "MessageArguments": "NA",
+    "MessageID": "LC022",
+    "Name": "LC Export",
+    "PercentComplete": "100",
+    "Status": "Success",
+    "file": "192.168.0.0:/nfsfileshare/190.168.0.1_20210728_133437_LC_Log.log",
+    "retval": true
   }
 error_info:
   description: Details of the HTTP Error.
@@ -103,7 +127,7 @@ error_info:
       ]
     }
   }
-'''
+"""
 
 
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
@@ -149,9 +173,6 @@ def run_export_lc_logs(idrac, module):
                                                   creds=UserCredentials(module.params['share_user'],
                                                                         module.params['share_password']),
                                                   isFolder=True)
-    if not myshare.IsValid:
-        module.fail_json(msg="Unable to access the share. Ensure that the share name, "
-                             "share mount, and share credentials provided are correct.")
     lc_log_file = myshare.new_file(lclog_file_name_format)
     job_wait = module.params['job_wait']
     msg = idrac.log_mgr.lclog_export(lc_log_file, job_wait)
@@ -177,6 +198,9 @@ def main():
     try:
         with iDRACConnection(module.params) as idrac:
             msg = run_export_lc_logs(idrac, module)
+            if msg.get("Status") in ["Failed", "Failure"] or msg.get("JobStatus") in ["Failed", "Failure"]:
+                msg.pop("file", None)
+                module.fail_json(msg="Unable to export the lifecycle controller logs.", lc_logs_status=msg)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:

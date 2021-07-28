@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
+# Version 3.6.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -25,6 +25,7 @@ SESSION_RESOURCE_COLLECTION = {
 }
 
 JOB_URI = "JobService/Jobs({job_id})"
+JOB_SERVICE_URI = "JobService/Jobs"
 
 
 class OpenURLResponse(object):
@@ -315,3 +316,44 @@ class RestOME(object):
             if chkstr in str(k).lower():
                 odata_dict.pop(k)
         return odata_dict
+
+    def job_submission(self, job_name, job_desc, targets, params, job_type,
+                       schedule="startnow", state="Enabled"):
+        job_payload = {"JobName": job_name, "JobDescription": job_desc,
+                       "Schedule": schedule, "State": state, "Targets": targets,
+                       "Params": params, "JobType": job_type}
+        response = self.invoke_request("POST", JOB_SERVICE_URI, data=job_payload)
+        return response
+
+    def test_network_connection(self, share_address, share_path, share_type,
+                                share_user=None, share_password=None, share_domain=None):
+        job_type = {"Id": 56, "Name": "ValidateNWFileShare_Task"}
+        params = [
+            {"Key": "checkPathOnly", "Value": "false"},
+            {"Key": "shareType", "Value": share_type},
+            {"Key": "ShareNetworkFilePath", "Value": share_path},
+            {"Key": "shareAddress", "Value": share_address},
+            {"Key": "testShareWriteAccess", "Value": "true"}
+        ]
+        if share_user is not None:
+            params.append({"Key": "UserName", "Value": share_user})
+        if share_password is not None:
+            params.append({"Key": "Password", "Value": share_password})
+        if share_domain is not None:
+            params.append({"Key": "domainName", "Value": share_domain})
+        job_response = self.job_submission("Validate Share", "Validate Share", [], params, job_type)
+        return job_response
+
+    def check_existing_job_state(self, job_type_name):
+        query_param = {"$filter": "LastRunStatus/Id eq 2030 or LastRunStatus/Id eq 2040 or LastRunStatus/Id eq 2050"}
+        job_resp = self.invoke_request("GET", JOB_SERVICE_URI, query_param=query_param)
+        job_lst = job_resp.json_data["value"] if job_resp.json_data.get("value") is not None else []
+        for job in job_lst:
+            if job["JobType"]["Name"] == job_type_name:
+                job_allowed = False
+                available_jobs = job
+                break
+        else:
+            job_allowed = True
+            available_jobs = job_lst
+        return job_allowed, available_jobs
