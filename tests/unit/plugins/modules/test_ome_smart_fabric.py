@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.6.0
 # Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -446,6 +446,11 @@ class TestOmeSmartFabric(FakeAnsibleModule):
             "FabricDesign": {
                 "Name": "2xMX9116n_Fabric_Switching_Engines_in_different_chassis"
             }
+        },
+        {
+            "FabricDesignMapping": [
+                {"DesignNode": "Switch-B", "PhysicalNode": Constants.service_tag2},
+                {"DesignNode": "Switch-A", "PhysicalNode": Constants.service_tag1}]
         }
     ])
     def test_compare_payloads_diff_case_01(self, modify_payload):
@@ -565,18 +570,82 @@ class TestOmeSmartFabric(FakeAnsibleModule):
             }
         }
         val = self.module.compare_payloads(modify_payload, current_payload)
-        print(val)
+        # print(val)
         assert val is False
 
-    @pytest.mark.parametrize('val', [(True, CHECK_MODE_CHANGE_FOUND_MSG), (False, CHECK_MODE_CHANGE_NOT_FOUND_MSG)])
+    @pytest.mark.parametrize('val', [{'msg': CHECK_MODE_CHANGE_FOUND_MSG,
+                                      "current_payload": {"Name": "Fabric-1", "Description": "This is a fabric.",
+                                                          "FabricDesignMapping": [{"DesignNode": "Switch-A",
+                                                                                   "PhysicalNode": Constants.service_tag1},
+                                                                                  {"DesignNode": "Switch-B",
+                                                                                   "PhysicalNode": Constants.service_tag2}],
+                                                          "FabricDesign": {
+                                                              "Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}},
+                                      "expected_payload": {"Name": "Fabric-1", "Description": "This is a fabric.",
+                                                           "FabricDesignMapping": [{"DesignNode": "Switch-A",
+                                                                                    "PhysicalNode": Constants.service_tag2},
+                                                                                   {"DesignNode": "Switch-B",
+                                                                                    "PhysicalNode": Constants.service_tag1}],
+                                                           "FabricDesign": {
+                                                               "Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}}},
+                                     {'msg': CHECK_MODE_CHANGE_NOT_FOUND_MSG,
+                                      "current_payload": {"Name": "Fabric-1", "Description": "This is a fabric.",
+                                                          "FabricDesignMapping": [{"DesignNode": "Switch-A",
+                                                                                   "PhysicalNode": Constants.service_tag1},
+                                                                                  {"DesignNode": "Switch-B",
+                                                                                   "PhysicalNode": Constants.service_tag2}],
+                                                          "FabricDesign": {
+                                                              "Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}},
+                                      "expected_payload": {"Name": "Fabric-1", "Description": "This is a fabric.",
+                                                           "FabricDesignMapping": [{"DesignNode": "Switch-A",
+                                                                                    "PhysicalNode": Constants.service_tag1},
+                                                                                   {"DesignNode": "Switch-B",
+                                                                                    "PhysicalNode": Constants.service_tag2}],
+                                                           "FabricDesign": {
+                                                               "Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}}},
+                                     {'msg': CHECK_MODE_CHANGE_NOT_FOUND_MSG, "current_payload": {"Name": "Fabric-1",
+                                                                                                  "Description": "This is list order change case.",
+                                                                                                  "FabricDesignMapping": [
+                                                                                                      {
+                                                                                                          "DesignNode": "Switch-A",
+                                                                                                          "PhysicalNode": Constants.service_tag1},
+                                                                                                      {
+                                                                                                          "DesignNode": "Switch-B",
+                                                                                                          "PhysicalNode": Constants.service_tag2}],
+                                                                                                  "FabricDesign": {
+                                                                                                      "Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}},
+                                      "expected_payload": {"Name": "Fabric-1",
+                                                           "Description": "This is list order change case.",
+                                                           "FabricDesignMapping": [{"DesignNode": "Switch-B",
+                                                                                    "PhysicalNode": Constants.service_tag2},
+                                                                                   {"DesignNode": "Switch-A",
+                                                                                    "PhysicalNode": Constants.service_tag1}],
+                                                           "FabricDesign": {
+                                                               "Name": "2xMX5108n_Ethernet_Switches_in_same_chassis"}}},
+                                     {'msg': CHECK_MODE_CHANGE_NOT_FOUND_MSG,
+                                      "current_payload": {'Id': 'fa9f1b12-c003-4772-8b90-601d0bf87c69',
+                                                          'Name': 'MX9116N', 'OverrideLLDPConfiguration': 'Disabled',
+                                                          'FabricDesignMapping': [
+                                                              {'DesignNode': 'Switch-B', 'PhysicalNode': '6XLVMR2'},
+                                                              {'DesignNode': 'Switch-A', 'PhysicalNode': '6XLTMR2'}],
+                                                          'FabricDesign': {
+                                                              'Name': '2xMX9116n_Fabric_Switching_Engines_in_different_chassis'}},
+                                      "expected_payload": {'Name': 'MX9116N', 'OverrideLLDPConfiguration': 'Disabled',
+                                                           'FabricDesignMapping': [
+                                                               {'DesignNode': 'Switch-A', 'PhysicalNode': '6XLTMR2'},
+                                                               {'DesignNode': 'Switch-B', 'PhysicalNode': '6XLVMR2'}],
+                                                           'FabricDesign': {
+                                                               'Name': '2xMX9116n_Fabric_Switching_Engines_in_different_chassis'},
+                                                           'Id': 'fa9f1b12-c003-4772-8b90-601d0bf87c69'}}
+                                     ])
     def test_idempotency_check_for_state_present_modify_check_mode_case01(self, mocker, val):
         f_module = self.get_module_mock(params={}, check_mode=True)
-        mocker.patch(MODULE_PATH + 'ome_smart_fabric.compare_payloads',
-                     return_value=val[0])
-        with pytest.raises(Exception, match=val[1]):
+        error_message = val["msg"]
+        with pytest.raises(Exception) as err:
             self.module.idempotency_check_for_state_present("8f25f714-9ea8-48e9-8eac-162d5d842e9f",
-                                                            {}, {},
+                                                            val['current_payload'], val['expected_payload'],
                                                             f_module)
+        assert err.value.args[0] == error_message
 
     def test_idempotency_check_for_state_present_modify_non_check_mode_case01(self, mocker):
         f_module = self.get_module_mock(params={}, check_mode=False)
@@ -1575,7 +1644,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
                     "DeviceManagement": [
                         {
                             "ManagementId": 111111,
-                            "NetworkAddress": ome_default_args["hostname"],
+                            "NetworkAddress": "192.168.1.1",
                             "MacAddress": "xx:yy:zz:x1x1",
                             "ManagementType": 2,
                             "InstrumentationName": "MX-Constants.service_tag1",
@@ -1645,7 +1714,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
                     "DeviceManagement": [
                         {
                             "ManagementId": 111111,
-                            "NetworkAddress": ome_default_args["hostname"],
+                            "NetworkAddress": "192.168.1.2",
                             "MacAddress": "xx:yy:zz:x1x1",
                             "ManagementType": 2,
                             "InstrumentationName": "MX-Constants.service_tag2",

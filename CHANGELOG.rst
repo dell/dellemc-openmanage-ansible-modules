@@ -5,6 +5,30 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v3.6.0
+======
+
+Release Summary
+---------------
+
+Support for configuring device slot name and export SupportAssist device collections from OpenManage Enterprise and OpenManage Enterprise Modular.
+
+Bugfixes
+--------
+
+- dellemc_idrac_storage_volume - Module fails if the BlockSize, FreeSize, or Size state of the physical disk is set to "Not Available".
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may fail to complete with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_diagnostics - Manages export of application logs and SupportAssist device collection logs from OpenManage Enterprise Modular and export of SupportAssist device collection logs from OpenManage Enterprise.
+- dellemc.openmanage.ome_chassis_slots - Rename sled slots on OpenManage Enterprise Modular.
+
 v3.5.0
 ======
 
