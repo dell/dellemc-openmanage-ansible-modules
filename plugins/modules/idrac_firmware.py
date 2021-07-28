@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
+# Version 3.6.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -352,6 +352,10 @@ def update_firmware_url_redfish(module, idrac, share_name, catalog_file_name, ap
         err_message = json.load(err)
         if err_message['error']['@Message.ExtendedInfo'][0]['Message'] == MESSAGE:
             module.exit_json(msg=EXIT_MESSAGE)
+        if "SUP029" in err_message['error']['@Message.ExtendedInfo'][0]['MessageId']:
+            module.fail_json(msg=err_message['error']['@Message.ExtendedInfo'][0]['Message'])
+        if "error" in err_message:
+            module.fail_json(msg=err_message)
         raise err
     return status, job_details
 
@@ -524,6 +528,10 @@ def update_firmware_redfish(idrac, module):
                 err_message = json.load(err)
                 if err_message['error']['@Message.ExtendedInfo'][0]['Message'] == MESSAGE:
                     module.exit_json(msg=EXIT_MESSAGE)
+                if "SUP029" in err_message['error']['@Message.ExtendedInfo'][0]['MessageId']:
+                    module.fail_json(msg=err_message['error']['@Message.ExtendedInfo'][0]['Message'])
+                if "error" in err_message:
+                    module.fail_json(msg=err_message)
                 raise err
         json_data, repo_status, failed = msg['update_status']['job_details'], False, False
         if "PackageList" not in json_data:
