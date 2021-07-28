@@ -48,10 +48,10 @@ def ome_connection_mock_for_chassis_slots(mocker, ome_response_mock):
 class TestOmeChassisSlots(FakeAnsibleModule):
     module = ome_chassis_slots
 
-    @pytest.mark.parametrize("params", [{'mparams': {"device_options": [{"slot_name": "t1", "device_id": 1234},
-                                                                        {"slot_name": "t1",
-                                                                         "device_service_tag": "ABCD1234"}]},
-                                         "invalid_list": set(["1234", "ABCD1234"]), "json_data": {
+    @pytest.mark.parametrize("params", [{'mparams': {"device_options": [
+        {"slot_name": "t1",
+         "device_service_tag": "ABCD1234"}]},
+        "invalid_list": set(["ABCD1234"]), "json_data": {
         "value": [{"Id": 10053, "Identifier": "2H5DNX2", "SlotConfiguration": {"ChassisName": None}},
                   {"Id": 10054, "Type": 1000, "Identifier": "2H7HNX2",
                    "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
@@ -61,17 +61,11 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                                         {"slot_name": "s2",
                                             "device_service_tag": "ABCD1234"},
                                         {"slot_name": "s1", "device_id": 10052},
-                                        {"slot_name": "s2", "device_service_tag": "PQRS1234"}, ]},
-         "invalid_list": set(["ABCD1234", "PQRS1234"]),
+                                        ]},
+         "invalid_list": set(["ABCD1234"]),
          "json_data":
          {"value": [{"Id": 10053, "Identifier": "2H5DNX2",
                      "SlotConfiguration": {"ChassisName": None}},
-                    {"Id": 10052, "Type": 1000, "Identifier": "PQRS1234",
-                     "SlotConfiguration": {"DeviceType": "1000",
-                                           "ChassisId": "10053",
-                                           "SlotNumber": "1",
-                                           "SlotName": "my_840c",
-                                           "SlotType": "2000"}},
                     {"Id": 10054, "Type": 1000, "Identifier": "ABCD1234",
                      "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
                                            "SlotName": "my_840c", "SlotType": "2000"}}]}, 'message': DEVICE_REPEATED,
@@ -81,11 +75,9 @@ class TestOmeChassisSlots(FakeAnsibleModule):
                                         "device_service_tag": "ABCD1234"},
                                        {"slot_name": "s2",
                                         "device_service_tag": "ABCD1234"},
-                                       {"slot_name": "s1",
-                                        "device_id": 10054},
                                        {"slot_name": "s2",
                                         "device_service_tag": "PQRS1234"}, ]},
-        "invalid_list": set(["ABCD1234", "10054"]), "json_data": {
+        "invalid_list": set(["ABCD1234"]), "json_data": {
             "value": [{"Id": 10053, "Identifier": "2H5DNX2", "SlotConfiguration": {"ChassisName": None}},
                       {"Id": 10052, "Type": 1000, "Identifier": "PQRS1234",
                        "SlotConfiguration": {"DeviceType": "1000", "ChassisId": "10053", "SlotNumber": "1",
