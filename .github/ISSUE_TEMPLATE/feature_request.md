@@ -1,6 +1,6 @@
 ---
 name: 🚀 Feature Request
-summary: Create a Feature Request
+about: Create a Feature Request
 ---
 
 ##### Description
