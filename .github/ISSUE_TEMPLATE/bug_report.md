@@ -1,6 +1,6 @@
 ---
 name: 🐛 Bug report
-description: Create an issue to help us improve.
+about: Create an issue to help us improve.
 ---
 
 ##### Summary
