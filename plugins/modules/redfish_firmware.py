@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 4.0.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -167,11 +167,13 @@ def firmware_update(obj, module):
         update_status = obj.invoke_request("POST", update_uri, data=payload)
     else:
         resp_inv = obj.invoke_request("GET", inventory_uri)
-        binary_payload = {"file": (image_path.split(os.sep)[-1], open(os.path.join(image_path), "rb"), "multipart/form-data")}
-        data, ctype = _encode_form_data(binary_payload)
+        with open(os.path.join(image_path), "rb") as img_file:
+            binary_payload = {"file": (image_path.split(os.sep)[-1], img_file, "multipart/form-data")}
+            data, ctype = _encode_form_data(binary_payload)
         headers = {"If-Match": resp_inv.headers.get("etag")}
         headers.update({"Content-Type": ctype})
-        upload_status = obj.invoke_request("POST", push_uri, data=data, headers=headers, dump=False, api_timeout=100)
+        upload_status = obj.invoke_request("POST", push_uri, data=data, headers=headers, dump=False,
+                                           api_timeout=100)
         if upload_status.status_code == 201:
             payload = {"ImageURI": upload_status.headers.get("location")}
             update_status = obj.invoke_request("POST", update_uri, data=payload)
