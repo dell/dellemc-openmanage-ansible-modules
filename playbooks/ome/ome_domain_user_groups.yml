@@ -1,0 +1,55 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell EMC OpenManage Ansible AD directory user group operation.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+
+    - name: Create Active Directory user groups.
+      ome_domain_user_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        state: present
+        group_name: account operators
+        directory_name: directory_name
+        role: administrator
+        domain_username: username@domain
+        domain_password: domain_password
+      tags: user-group-add
+
+    - name: Create Active Directory user groups with different domain format.
+      ome_domain_user_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        state: present
+        group_name: account operators
+        directory_name: directory_name
+        role: administrator
+        domain_username: domain\\username
+        domain_password: domain_password
+      tags: user-group-add-domain
+
+    - name: Update Active Directory user groups.
+      ome_domain_user_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        state: present
+        group_name: account operators
+        role: chassis administrator
+      tags: user-group-update
+
+    - name: Remove Active Directory user groups.
+      ome_domain_user_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        state: "absent"
+        group_name: "Administrators"
+      tags: user-group-remove

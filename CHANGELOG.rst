@@ -5,6 +5,26 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v4.0.0
+======
+
+Release Summary
+---------------
+
+Support for configuring active directory user group on OpenManage Enterprise and OpenManage Enterprise Modular.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_active_directory - Configure Active Directory groups to be used with Directory Services on OpenManage Enterprise and OpenManage Enterprise Modular
+- dellemc.openmanage.ome_domain_user_groups - Create, modify, or delete an Active Directory user group on OpenManage Enterprise and OpenManage Enterprise Modular
+
 v3.6.0
 ======
 
@@ -21,13 +41,14 @@ Bugfixes
 Known Issues
 ------------
 
-- idrac_user - Issue(192043) Module may fail to complete with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
 
 New Modules
 -----------
 
-- dellemc.openmanage.ome_diagnostics - Manages export of application logs and SupportAssist device collection logs from OpenManage Enterprise Modular and export of SupportAssist device collection logs from OpenManage Enterprise.
-- dellemc.openmanage.ome_chassis_slots - Rename sled slots on OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_chassis_slots - Rename sled slots on OpenManage Enterprise Modular
+- dellemc.openmanage.ome_diagnostics - Export technical support logs(TSR) to network share location
 
 v3.5.0
 ======
@@ -109,8 +130,8 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.ome_device_group - Manages device group settings on OpenManage Enterprise
-- dellemc.openmanage.ome_discovery - Create, modify or delete a discovery job on OpenManage Enterprise
+- dellemc.openmanage.ome_device_group - Add devices to a static device group on OpenManage Enterprise
+- dellemc.openmanage.ome_discovery - Create, modify, or delete a discovery job on OpenManage Enterprise
 
 v3.2.0
 ======
@@ -136,7 +157,7 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.ome_configuration_compliance_baseline - Create, modify, delete and remediate a compliance configuration baseline on OpenManage Enterprise
+- dellemc.openmanage.ome_configuration_compliance_baseline - Create, modify, and delete a configuration compliance baseline and remediate non-compliant devices on OpenManage Enterprise
 - dellemc.openmanage.ome_configuration_compliance_info - Device compliance report for devices managed in OpenManage Enterprise
 
 v3.1.0
@@ -246,8 +267,8 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.ome_smart_fabric - Create, modify or delete a fabric on OpenManage Enterprise Modular.
-- dellemc.openmanage.ome_smart_fabric_uplink - Create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_smart_fabric - Create, modify or delete a fabric on OpenManage Enterprise Modular
+- dellemc.openmanage.ome_smart_fabric_uplink - Create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular
 
 v2.1.3
 ======
@@ -260,9 +281,9 @@ Network configuration service related modules ome_network_vlan, ome_network_port
 New Modules
 -----------
 
-- dellemc.openmanage.ome_network_port_breakout - This module allows to automate the port partitioning or breaking out to logical sub ports.
-- dellemc.openmanage.ome_network_vlan - Create, modify & delete a VLAN.
-- dellemc.openmanage.ome_network_vlan_info - Retrieves the information about networks VLAN(s) present in OpenManage Enterprise.
+- dellemc.openmanage.ome_network_port_breakout - This module allows to automate the port portioning or port breakout to logical sub ports
+- dellemc.openmanage.ome_network_vlan - Create, modify & delete a VLAN
+- dellemc.openmanage.ome_network_vlan_info - Retrieves the information about networks VLAN(s) present in OpenManage Enterprise
 
 v2.1.2
 ======
@@ -298,8 +319,8 @@ Bugfixes
 New Modules
 -----------
 
-- dellemc.openmanage.idrac_user - Configure settings for user accounts.
-- dellemc.openmanage.redfish_powerstate - Manage device power state.
+- dellemc.openmanage.idrac_user - Configure settings for user accounts
+- dellemc.openmanage.redfish_powerstate - Manage device power state
 
 v2.1.1
 ======
@@ -331,15 +352,15 @@ Deprecated Features
 New Modules
 -----------
 
-- dellemc.openmanage.idrac_bios - Configure the BIOS attributes.
-- dellemc.openmanage.idrac_lifecycle_controller_job_status_info - Get the status of a Lifecycle Controller job.
-- dellemc.openmanage.idrac_lifecycle_controller_jobs - Delete the Lifecycle Controller Jobs.
-- dellemc.openmanage.idrac_lifecycle_controller_logs - Export Lifecycle Controller logs to a network share.
-- dellemc.openmanage.idrac_lifecycle_controller_status_info - Get the status of the Lifecycle Controller.
-- dellemc.openmanage.idrac_network - Configures the iDRAC network attributes.
-- dellemc.openmanage.idrac_reset - Reset iDRAC.
-- dellemc.openmanage.idrac_syslog - Enable or disable the syslog on iDRAC.
-- dellemc.openmanage.idrac_timezone_ntp - Configures time zone and NTP on iDRAC.
+- dellemc.openmanage.idrac_bios - Configure the BIOS attributes
+- dellemc.openmanage.idrac_lifecycle_controller_job_status_info - Get the status of a Lifecycle Controller job
+- dellemc.openmanage.idrac_lifecycle_controller_jobs - Delete the Lifecycle Controller Jobs
+- dellemc.openmanage.idrac_lifecycle_controller_logs - Export Lifecycle Controller logs to a network share or local path.
+- dellemc.openmanage.idrac_lifecycle_controller_status_info - Get the status of the Lifecycle Controller
+- dellemc.openmanage.idrac_network - Configures the iDRAC network attributes
+- dellemc.openmanage.idrac_reset - Reset iDRAC
+- dellemc.openmanage.idrac_syslog - Enable or disable the syslog on iDRAC
+- dellemc.openmanage.idrac_timezone_ntp - Configures time zone and NTP on iDRAC
 
 v2.1.0
 ======

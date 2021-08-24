@@ -9,7 +9,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * iDRAC 8 based Dell EMC PowerEdge Servers with firmware versions 2.75.75.75 and above.
   * iDRAC 9 based Dell EMC PowerEdge Servers with Firmware versions 4.40.40.00 and above.
   * Dell EMC OpenManage Enterprise versions 3.6.1 and above.
-  * Dell EMC OpenManage Enterprise-Modular versions 1.20.10 and above.
+  * Dell EMC OpenManage Enterprise-Modular versions 1.30.00 and above.
 
 ## Prerequisites
   * [Ansible >= 2.10.0](https://github.com/ansible/ansible)
@@ -38,8 +38,11 @@ Install the collection from the github repository using the latest commit on the
 Latest sample playbooks and examples are available at [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
 
 ## Documentation
-Use `ansible-doc` to view the documentation of each module and plugin.  
-For example-```ansible-doc dellemc.openmanage.<module_name>```  
+- For the OpenManage Ansible collection documentation, see [Documentation](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/docs). This documentation page is updated for every major and minor (patch release) and has the latest collection documentation.
+- OpenManage Ansible collection is an Ansible certified collection and also available as part of the Ansible Community Releases version v3.0.0 and later. Consequently, the documentation can also be accessed at [Ansible Collection Documentation](https://docs.ansible.com/ansible/latest/collections/dellemc/openmanage/index.html#plugins-in-dellemc-openmanage).
+> **_NOTE_**: There might be a scenario where the documentation available at [Ansible Collection Documentation](https://docs.ansible.com/ansible/latest/collections/dellemc/openmanage/index.html#plugins-in-dellemc-openmanage) is not the latest version. And, this is due to differences in the release timelines for Ansible community release and OpenManage Ansible collection. 
+- To view the documentation for a module, use the command ```ansible-doc```. For example,
+    ```$ ansible-doc dellemc.openmanage.<module-name>```  
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. See the [COPYING](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/COPYING.md) for more information.

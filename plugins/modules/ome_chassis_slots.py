@@ -83,7 +83,7 @@ notes:
 EXAMPLES = """
 ---
 - name: Rename the slots in multiple chassis using slot number and chassis service tag
-  ome_chassis_slots:
+  dellemc.openmanage.ome_chassis_slots:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
