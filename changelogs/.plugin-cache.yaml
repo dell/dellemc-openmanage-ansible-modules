@@ -1,3 +1,4 @@
+objects: {}
 plugins:
   become: {}
   cache: {}
@@ -44,11 +45,6 @@ plugins:
       name: dellemc_system_lockdown_mode
       namespace: ''
       version_added: 1.0.0
-    discovery_poc:
-      description: null
-      name: discovery_poc
-      namespace: ''
-      version_added: null
     idrac_bios:
       description: Configure the BIOS attributes
       name: idrac_bios
@@ -60,82 +56,23 @@ plugins:
       name: idrac_firmware
       namespace: ''
       version_added: 2.1.0
-    idrac_firmware_1Jan1:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmware_1Jan1
-      namespace: ''
-      version_added: 2.9.10
-    idrac_firmware_flx:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmware_flx
-      namespace: ''
-      version_added: 2.9.10
     idrac_firmware_info:
       description: Get Firmware Inventory
       name: idrac_firmware_info
       namespace: ''
       version_added: 3.0.0
-    idrac_firmware_j1:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmware_j1
-      namespace: ''
-      version_added: 2.9.10
-    idrac_firmware_job_status:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmware_job_status
-      namespace: ''
-      version_added: 2.9.10
-    idrac_firmware_svn:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmware_svn
-      namespace: ''
-      version_added: 2.9.10
-    idrac_firmware_wrkin_warn:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmware_wrkin_warn
-      namespace: ''
-      version_added: 2.9.10
-    idrac_firmwarej2:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmwarej2
-      namespace: ''
-      version_added: 2.9.10
-    idrac_firmwarej3:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmwarej3
-      namespace: ''
-      version_added: 2.9.10
-    idrac_firmwarej4:
-      description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
-      name: idrac_firmwarej4
-      namespace: ''
-      version_added: 2.9.10
     idrac_lifecycle_controller_job_status_info:
       description: Get the status of a Lifecycle Controller job
       name: idrac_lifecycle_controller_job_status_info
       namespace: ''
       version_added: 2.1.0
-    idrac_lifecycle_controller_job_status_info_redfish:
-      description: Get the status of a Lifecycle Controller job.
-      name: idrac_lifecycle_controller_job_status_info_redfish
-      namespace: ''
-      version_added: 2.10.0
     idrac_lifecycle_controller_jobs:
       description: Delete the Lifecycle Controller Jobs
       name: idrac_lifecycle_controller_jobs
       namespace: ''
       version_added: 2.1.0
     idrac_lifecycle_controller_logs:
-      description: Export Lifecycle Controller logs to a network share
+      description: Export Lifecycle Controller logs to a network share or local path.
       name: idrac_lifecycle_controller_logs
       namespace: ''
       version_added: 2.1.0
@@ -189,6 +126,12 @@ plugins:
       name: idrac_user
       namespace: ''
       version_added: 2.1.0
+    ome_active_directory:
+      description: Configure Active Directory groups to be used with Directory Services
+        on OpenManage Enterprise
+      name: ome_active_directory
+      namespace: ''
+      version_added: 4.0.0
     ome_application_certificate:
       description: This module allows to generate a CSR and upload the certificate
       name: ome_application_certificate
@@ -214,18 +157,49 @@ plugins:
       name: ome_application_network_webserver
       namespace: ''
       version_added: 2.1.0
+    ome_chassis_slots:
+      description: Rename sled slots on OpenManage Enterprise Modular
+      name: ome_chassis_slots
+      namespace: ''
+      version_added: 3.6.0
     ome_configuration_compliance_baseline:
-      description: Create, modify, delete and remediate a compliance configuration
-        baseline on OpenManage Enterprise
+      description: Create, modify, and delete a configuration compliance baseline
+        and remediate non-compliant devices on OpenManage Enterprise
       name: ome_configuration_compliance_baseline
       namespace: ''
       version_added: 3.2.0
+    ome_configuration_compliance_info:
+      description: Device compliance report for devices managed in OpenManage Enterprise
+      name: ome_configuration_compliance_info
+      namespace: ''
+      version_added: 3.2.0
+    ome_device_group:
+      description: Add devices to a static device group on OpenManage Enterprise
+      name: ome_device_group
+      namespace: ''
+      version_added: 3.3.0
     ome_device_info:
       description: Retrieves the information of devices inventoried by OpenManage
         Enterprise
       name: ome_device_info
       namespace: ''
       version_added: 2.0.0
+    ome_diagnostics:
+      description: Export technical support logs(TSR) to network share location
+      name: ome_diagnostics
+      namespace: ''
+      version_added: 3.6.0
+    ome_discovery:
+      description: Create, modify, or delete a discovery job on OpenManage Enterprise
+      name: ome_discovery
+      namespace: ''
+      version_added: 3.3.0
+    ome_domain_user_groups:
+      description: Create, modify, or delete an Active Directory user group on OpenManage
+        Enterprise and OpenManage Enterprise Modular.
+      name: ome_domain_user_groups
+      namespace: ''
+      version_added: 4.0.0
     ome_firmware:
       description: Firmware update of PowerEdge devices and its components through
         OpenManage Enterprise
@@ -233,7 +207,8 @@ plugins:
       namespace: ''
       version_added: 2.0.0
     ome_firmware_baseline:
-      description: Create a firmware baseline on OpenManage Enterprise
+      description: Create, modify, or delete a firmware baseline on OpenManage Enterprise
+        or OpenManage Enterprise Modular
       name: ome_firmware_baseline
       namespace: ''
       version_added: 2.0.0
@@ -248,10 +223,16 @@ plugins:
       namespace: ''
       version_added: 2.0.0
     ome_firmware_catalog:
-      description: Creates a catalog on OpenManage Enterprise
+      description: Create, modify, or delete a firmware catalog on OpenManage Enterprise
+        or OpenManage Enterprise Modular
       name: ome_firmware_catalog
       namespace: ''
       version_added: 2.0.0
+    ome_groups:
+      description: Manages static device groups on OpenManage Enterprise
+      name: ome_groups
+      namespace: ''
+      version_added: 3.5.0
     ome_identity_pool:
       description: Manages identity pool settings on OpenManage Enterprise
       name: ome_identity_pool
@@ -291,18 +272,6 @@ plugins:
       name: ome_profile
       namespace: ''
       version_added: 3.1.0
-    ome_profile_job_tracking:
-      description: Create, modify, delete, assign, unassign and migrate a profile
-        on OpenManage Enterprise
-      name: ome_profile_job_tracking
-      namespace: ''
-      version_added: 3.1.0
-    ome_profile_rename:
-      description: Create, modify, delete, assign, unassign and migrate a profile
-        on OpenManage Enterprise
-      name: ome_profile_rename
-      namespace: ''
-      version_added: 3.1.0
     ome_smart_fabric:
       description: Create, modify or delete a fabric on OpenManage Enterprise Modular
       name: ome_smart_fabric
@@ -320,24 +289,12 @@ plugins:
       name: ome_template
       namespace: ''
       version_added: 2.0.0
-    ome_template1:
-      description: Create, modify, deploy, delete, export, import and clone a template
-        on OpenManage Enterprise
-      name: ome_template1
-      namespace: ''
-      version_added: 2.0.0
     ome_template_identity_pool:
       description: Attach or detach an identity pool to a requested template on OpenManage
         Enterprise
       name: ome_template_identity_pool
       namespace: ''
       version_added: 2.0.0
-    ome_template_identity_pool_idem:
-      description: Attach or detach an identity pool to a requested template on OpenManage
-        Enterprise.
-      name: ome_template_identity_pool_idem
-      namespace: ''
-      version_added: 2.9.10
     ome_template_info:
       description: Retrieves template details from OpenManage Enterprise
       name: ome_template_info
@@ -380,4 +337,4 @@ plugins:
   shell: {}
   strategy: {}
   vars: {}
-version: 3.2.0
+version: 4.0.0

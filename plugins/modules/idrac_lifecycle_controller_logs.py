@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.6.0
+# Version 4.0.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -154,8 +154,10 @@ def get_user_credentials(module):
         username_domain = share_username.split("\\")
         work_group = username_domain[0]
         share_username = username_domain[1]
-    creds = UserCredentials(share_username, share_password, work_group=work_group)
-    return creds
+    share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
+                                                creds=UserCredentials(share_username, share_password,
+                                                                      work_group=work_group), isFolder=True)
+    return share
 
 
 def run_export_lc_logs(idrac, module):
@@ -168,11 +170,14 @@ def run_export_lc_logs(idrac, module):
     """
 
     lclog_file_name_format = "%ip_%Y%m%d_%H%M%S_LC_Log.log"
-
-    myshare = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                  creds=UserCredentials(module.params['share_user'],
-                                                                        module.params['share_password']),
-                                                  isFolder=True)
+    share_username = module.params.get('share_user')
+    if (share_username is not None) and ("@" in share_username or "\\" in share_username):
+        myshare = get_user_credentials(module)
+    else:
+        myshare = file_share_manager.create_share_obj(share_path=module.params['share_name'],
+                                                      creds=UserCredentials(module.params['share_user'],
+                                                                            module.params['share_password']),
+                                                      isFolder=True)
     lc_log_file = myshare.new_file(lclog_file_name_format)
     job_wait = module.params['job_wait']
     msg = idrac.log_mgr.lclog_export(lc_log_file, job_wait)
@@ -201,6 +206,10 @@ def main():
             if msg.get("Status") in ["Failed", "Failure"] or msg.get("JobStatus") in ["Failed", "Failure"]:
                 msg.pop("file", None)
                 module.fail_json(msg="Unable to export the lifecycle controller logs.", lc_logs_status=msg)
+            message = "Successfully exported the lifecycle controller logs."
+            if module.params['job_wait'] is False:
+                message = "The export lifecycle controller log job is submitted successfully."
+            module.exit_json(msg=message, lc_logs_status=msg)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
@@ -208,8 +217,6 @@ def main():
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))
-
-    module.exit_json(msg="Successfully exported the lifecycle controller logs.", lc_logs_status=msg)
 
 
 if __name__ == '__main__':
