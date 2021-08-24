@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
+# Version 4.0.0
 # Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -387,8 +387,7 @@ class TestidracFirmware(FakeAnsibleModule):
             "Status": "Failed"}
         with pytest.raises(Exception) as ex:
             self.module.update_firmware_omsdk(idrac_connection_firmware_mock, f_module)
-        assert ex.value.args[0] == "Unable to access the share. Ensure that the share name, " \
-                                   "share mount, and share credentials provided are correct."
+        assert ex.value.args[0] == "Firmware update failed."
 
     def test__validate_catalog_file_case01(self, idrac_connection_firmware_mock, idrac_default_args):
         idrac_default_args.update({"catalog_file_name": ""})
