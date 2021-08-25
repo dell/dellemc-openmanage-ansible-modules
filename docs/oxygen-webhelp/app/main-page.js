@@ -3,11 +3,13 @@
  */
 define(["require", "config"], function() {
     require([
-        'nav-links-loader',
+        'polyfill',
+        'menu',
         'searchAutocomplete',
         'webhelp',
         'search-init',
         'context-help',
-        'template-module-loader'
+        'template-module-loader',
+        'bootstrap'
     ]);
 });

@@ -1,0 +1,226 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: dellemc_get_firmware_inventory Synopsis You can view the firmware inventory of a server using this module. This module displays components of a server and the corresponding firmware versions. ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" /><meta name="DC.relation" scheme="URI" content="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" /><meta name="DC.relation" scheme="URI" content="GUID-72734CAC-35B7-4789-A639-E52B3EDB01EC.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="August 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-2106E96D-EE06-411B-A831-3998C7A5B433" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /><title>View firmware inventory</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container navbar-nav navbar-expand-md navbar-dark">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.0.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem" class="active"><span data-tocid="GUID-2106E96D-EE06-411B-A831-3998C7A5B433" class="topicref" data-id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-2106E96D-EE06-411B-A831-3998C7A5B433.html" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433-link">View firmware inventory</a></span></span></li><li role="treeitem"><span data-tocid="GUID-72734CAC-35B7-4789-A639-E52B3EDB01EC" class="topicref" data-id="GUID-72734CAC-35B7-4789-A639-E52B3EDB01EC" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-72734CAC-35B7-4789-A639-E52B3EDB01EC.html" id="GUID-72734CAC-35B7-4789-A639-E52B3EDB01EC-link">View the system inventory</a></span></span></li></ul></li></ul></div>
+                        </nav>
+                    
+
+                    <div id="wh_topic_body" class="col-lg-7 col-md-9 col-sm-9 col-xs-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <!--  -->
+                                <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433"><span class="title"><a href="GUID-2106E96D-EE06-411B-A831-3998C7A5B433.html">View firmware inventory</a></span></span></li></ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="- topic/link link" href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" title="Deprecated modules" aria-label="Previous topic: Deprecated modules" rel="prev"></a></span>  
+<span class="navnext"><a class="- topic/link link" href="GUID-72734CAC-35B7-4789-A639-E52B3EDB01EC.html" title="View the system inventory" aria-label="Next topic: View the system inventory" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row topic_content_row">
+                                <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__GUID-D28DE2E2-F7B7-49D3-A7A7-3E1C883BF3E0"> 
+  <h1 class="- topic/title title topictitle1" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__GUID-D28DE2E2-F7B7-49D3-A7A7-3E1C883BF3E0">View firmware inventory</h1> 
+  <div class="- topic/body reference/refbody body refbody"> 
+	 <section class="- topic/section section" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__GUID-A7AB991B-6042-48B0-AAA5-E80EE9E999A1"> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Module: dellemc_get_firmware_inventory</span> 
+		</p> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Synopsis</span> 
+		</p> 
+		<p class="- topic/p p">You can view the firmware inventory of a server using this module. This module displays components of a server and the corresponding firmware versions. 
+		</p> 
+		<p class="- topic/p p">Check_mode support: No 
+		</p> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="- topic/table table all pgwide" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A"><caption><span class="table-anchor" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A"></span><span class="tablecap"><span class="table-label">Table 1. </span>dellemc_get_firmware_inventory</span></caption><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="- topic/thead thead"> 
+			 <tr class="- topic/row"> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__1">Parameter/aliases 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__2">Required 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__3">Default 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__4">Choices 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="- topic/tbody tbody"> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__1">idrac_ip 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__2">Yes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__5">iDRAC IP Address 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__1">idrac_username 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__2">Yes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__5">iDRAC username 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__1">idrac_password/idrac_pwd 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__2">Yes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__5">iDRAC user password 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__1">idrac_port 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__3">443 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-2106E96D-EE06-411B-A831-3998C7A5B433__TABLE_7109F9888D824FD489B28E8E69A9311A__entry__5">iDRAC port 
+				</td> 
+			 </tr> 
+		  </tbody></table><span class="ph uicontrol bold">Return Values</span> 
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>ansible_facts:
+    description: Displays components and their firmware versions. Also, list of the firmware
+        dictionaries (one dictionary per firmware).
+    returned: success
+    type: complex
+    sample: {
+        [
+            {
+                "BuildNumber": "0",
+                "Classifications": "10",
+                "ComponentID": "101100",
+                "ComponentType": "FRMW",
+                "DeviceID": null,
+                "ElementName": "Power Supply.Slot.1",
+                "FQDD": "PSU.Slot.1",
+                "IdentityInfoType": "OrgID:ComponentType:ComponentID",
+                "IdentityInfoValue": "DCIM:firmware:101100",
+                "InstallationDate": "2018-01-18T07:25:08Z",
+                "InstanceID": "DCIM:INSTALLED#0x15__PSU.Slot.1",
+                "IsEntity": "true",
+                "Key": "DCIM:INSTALLED#0x15__PSU.Slot.1",
+                "MajorVersion": "0",
+                "MinorVersion": "1",
+                "RevisionNumber": "7",
+                "RevisionString": null,
+                "Status": "Installed",
+                "SubDeviceID": null,
+                "SubVendorID": null,
+                "Updateable": "true",
+                "VendorID": null,
+                "VersionString": "00.1D.7D",
+                "impactsTPMmeasurements": "false"
+            }
+        ]
+    }</code></pre><span class="ph uicontrol bold">Example</span> 
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Get Installed Firmware Inventory
+  dellemc.openmanage.dellemc_get_firmware_inventory:
+      idrac_ip:   "192.168.0.1"
+      idrac_user: "user_name"
+      idrac_password:  "user_password"</code></pre> 
+	 </section> 
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <!--<script src="${oxygen-webhelp-assets-dir}/lib/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>-->
+        
+    </body>
+</html>

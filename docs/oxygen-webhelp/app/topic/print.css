@@ -1,7 +1,7 @@
 /*
 
 Oxygen WebHelp Plugin
-Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
+Copyright (c) 1998-2020 Syncro Soft SRL, Romania.  All rights reserved.
 
 */
 
@@ -24,7 +24,16 @@ Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
    */
   *{
     text-shadow:none !important;
-  }
+   }
+
+    body {
+        font-size: 11.5pt;
+        margin: auto;
+    }
+    .container {
+        width:100%;
+    }
+    *[class^="col-"], *[class^=" col-"] {
+        width: 100%;
+    }
 }
-
-

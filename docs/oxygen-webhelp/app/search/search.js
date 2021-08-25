@@ -2,7 +2,7 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
 
     /*
     	Oxygen WebHelp Plugin
-    	Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
+    	Copyright (c) 1998-2020 Syncro Soft SRL, Romania.  All rights reserved.
     */
 
     var txt_browser_not_supported = "Your browser is not supported. Use of Mozilla Firefox is recommended.";
@@ -51,7 +51,7 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
             searchQuery = util.getParameter('searchQuery');
             searchQuery = decodeURIComponent(searchQuery);
             searchQuery = searchQuery.replace(/\+/g, " ");
-            if (searchQuery!='' && searchQuery!==undefined && searchQuery!='undefined') {
+            if (searchQuery.trim()!='' && searchQuery!==undefined && searchQuery!='undefined') {
                 $('#textToSearch').val(searchQuery);
                 util.debug("Execute search");
                 executeQuery();
@@ -60,8 +60,6 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
         } catch (e) {
             util.debug("#########", e);
         }
-
-        $('.wh_indexterms_link').find('a').text('');
 
         $('.gcse-searchresults-only').attr('data-queryParameterName', 'searchQuery');
 
@@ -74,6 +72,11 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
                 // Set to 1 if it is undefined
                 if (pageToShow == undefined || pageToShow == "undefined" || pageToShow == "") {
                     pageToShow = 1;
+                } else {
+                    pageToShow = parseInt(pageToShow);
+                    if (isNaN(pageToShow)) {
+                        pageToShow = 1;
+                    }
                 }
 
                 displayPageResults(pageToShow);
@@ -84,6 +87,16 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
 
             }
         };
+
+        $('#searchForm').on('submit', function(event){
+            util.debug('submit form....');
+            if ($('#textToSearch').val().trim()=='') {
+                event.preventDefault();
+                event.stopPropagation();
+
+                return false;
+            }
+        });
     });
 
 
@@ -97,7 +110,7 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
         try {
             var element = google.search.cse.element.getElement('searchresults-only0');
         } catch (e) {
-            console.log(e);
+            util.debug(e);
         }
         if (element != undefined) {
             if (input.value == '') {
@@ -135,15 +148,17 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
     }
 
     function searchAndDisplayResults(query) {
-        var searchResult = nwSearchFnt.performSearch(query);
-        if (searchResult.searchExpression.trim().length > 0 || searchResult.excluded.length > 0) {
-            displayResults(searchResult);
-        } else {
-            var error = searchResult.error;
-            if (typeof error != "undefined" && error.length > 0) {
-                displayErrors(searchResult.error);
+        nwSearchFnt.performSearch(query, function(searchResult) {
+            if (searchResult.searchExpression.trim().length > 0 || searchResult.excluded.length > 0) {
+                displayResults(searchResult);
+            } else {
+                var error = searchResult.error;
+                if (typeof error != "undefined" && error.length > 0) {
+                    displayErrors(searchResult.error);
+                }
             }
-        }
+        });
+
     }
 
     /**
@@ -170,7 +185,7 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
         searchHistory.addSearchQueryToHistory(searchResult.originalSearchExpression);
 
         var webhelpEnableSearchPagination = options.getBoolean("webhelp.search.enable.pagination");
-        var webhelpSearchNumberOfItems = options.get("webhelp.search.page.numberOfItems");
+        var webhelpSearchNumberOfItems = options.getInteger("webhelp.search.page.numberOfItems");
 
         if (webhelpEnableSearchPagination !== 'undefined' && webhelpEnableSearchPagination == false) {
             // WH-1470 - Search pagination is disabled
@@ -190,6 +205,11 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
         // Set to 1 if it is undefined
         if (pageToShow == undefined || pageToShow == "undefined" || pageToShow == "") {
             pageToShow = 1;
+        } else {
+            pageToShow = parseInt(pageToShow);
+            if (isNaN(pageToShow)) {
+                pageToShow = 1;
+            }
         }
 
         // Display a page
@@ -201,7 +221,7 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
                 total: totalPageNumber,          // total pages
                 page: pageToShow,            // default page
                 maxVisible: 10,     // visible pagination
-                leaps: true,         // next/prev leaps through maxVisible
+                leaps: false,         // next/prev leaps through maxVisible
                 next: i18n.getLocalization("next.page"),
                 prev: i18n.getLocalization("prev.page")
             }).on("page", function(event, num){
@@ -229,7 +249,9 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
                  $(this).bootpag({total: 10, maxVisible: 10});*/
             });
         }
-
+        // make bootpag compatible with Bootstrap 4.0
+        $('#wh-search-pagination').find('li').addClass('page-item');
+        $('#wh-search-pagination').find('a').addClass('page-link');
 
         $("#search").trigger('click');
     }
@@ -240,9 +262,6 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
      * @param pageIdx The page index.
      */
     function displayPageResults(pageIdx) {
-        var s = pageIdx * maxItemsPerPage;
-        var e = s + maxItemsPerPage;
-
         var searchResultHTML =
             computeHTMLResult('wh-responsive', pageIdx, totalPageNumber, maxItemsPerPage);
 
@@ -267,9 +286,10 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
      * @param {int} startsWith The number used to display 5 stars ranking.
      * @param {int} resultID The search result ID.
      * @param {int} linkID The search link ID.
+     * @param {[TopicInfo]} breadcrumb The breadcrumb of current document. Can be [].
      * @constructor
      */
-    function SearchResultInfo(topicID, relativePath, title, shortDescription, words, scoring, starWidth, resultID, linkID) {
+    function SearchResultInfo(topicID, relativePath, title, shortDescription, words, scoring, starWidth, resultID, linkID, breadcrumb) {
         this.topicID = topicID;
         this.relativePath = relativePath;
         this.title = title;
@@ -280,6 +300,7 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
         this.resultID = resultID;
         this.linkID = linkID;
         this.similarResults = [];
+        this.breadcrumb = breadcrumb;
     }
 
     /**
@@ -349,6 +370,7 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
                 var idResult = 'foundResult' + page;
 
                 // topicID, relativePath, title, shortDescription, words, scoring, starWidth, resultID, linkID, similarResults
+                util.debug("page", page);
                 var csri = new SearchResultInfo(
                     allPages[page].topicID,
                     allPages[page].relativePath,
@@ -358,7 +380,8 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
                     allPages[page].scoring,
                     starWidth,
                     idResult,
-                    idLink
+                    idLink,
+                    allPages[page].breadcrumb
                 );
 
                 // Similar pages
@@ -401,7 +424,8 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
 
                 if (typeof pageNumber != "undefined" && typeof itemsPerPage != "undefined") {
                     s = (pageNumber - 1) * itemsPerPage;
-                    e = Math.min(s + itemsPerPage, lastSearchResultItems.length);
+                    var next = s + itemsPerPage;
+                    e = Math.min(next, lastSearchResultItems.length);
                 }
 
                 // Result for: word1 word2
@@ -590,41 +614,59 @@ define(['util', 'options', 'nwSearchFnt', 'searchHistoryItems', 'localization', 
 
         var link = 'return openAndHighlight(\'' + tempPath + '\', ' + arrayString + '\)';
 
+        // Create the search result item li
         // Similar pages
         if (similarPageID == null) {
             htmlResult = $('<li/>', {
                 id: idResult
             });
-
-            var $a = $('<a/>', {
-                id: idLink,
-                href: tempPath,
-                class: 'foundResult'
-            }).html(tempTitle);
-            if (wh_Classic) {
-                $a.attr('onclick', link);
-            }
-
-            htmlResult.append($a);
         } else {
             htmlResult = $('<li/>', {
                 id: idResult,
                 class: 'similarResult',
                 'data-similarTo': similarPageID
             });
-
-            var $a = $('<a/>', {
-                id: idLink,
-                href: tempPath,
-                class: 'foundResult'
-            }).html(tempTitle);
-            if (wh_Classic) {
-                $a.attr('onclick', link);
-            }
-
-            htmlResult.append($a);
         }
 
+        // The topic title of the search result item
+        var $a = $('<a/>', {
+            id: idLink,
+            href: tempPath,
+            class: 'foundResult'
+        }).html(tempTitle);
+        htmlResult.append($a);
+
+        // The breadcrumb
+        var breadcrumb = searchItem.breadcrumb;
+        util.debug('searchItem', searchItem);
+        util.debug('breadcrumb', breadcrumb);
+        if (breadcrumb !== undefined && breadcrumb.length > 0) {
+            // Show the breadcrumb
+            var breadcrumbHtml = $('<div>', {
+                class: 'search-breadcrumb',
+            });
+
+            var breadcrumbItems = $('<ol>');
+            breadcrumb.forEach(function (item) {
+                var li = $('<li>');
+                var span = $('<span>',
+                    {
+                        class: 'title'
+                    });
+                span.append($('<a>',
+                    {
+                        href: item.relativePath,
+                        html: item.title
+                    }));
+                li.append(span);
+                breadcrumbItems.append(li);
+            });
+
+            breadcrumbHtml.append(breadcrumbItems);
+            htmlResult.append(breadcrumbHtml);
+        }
+
+        // Short description
         // Also check if we have a valid description
         if ((tempShortDesc != "null" && tempShortDesc != '...')) {
             var $shortDescriptionDIV = $('<div/>', {

@@ -134,7 +134,7 @@ define(["keywords", "searchHistoryItems", "options", "jquery", "jquery.ui"], fun
 
             // Close autocomplete on ENTER
             $("#textToSearch").keydown(function (event) {
-                if (event.which == 13) {
+                if (event.which == 13 && $("#textToSearch").length > 1) {
                     $("#textToSearch").autocomplete("close");
                     $("#searchForm").submit();
                 }
@@ -230,7 +230,7 @@ define(["keywords", "searchHistoryItems", "options", "jquery", "jquery.ui"], fun
                     removeButton =
                         $("<span>", {
                             class: "search-autocomplete-proposal-type-history",
-                            html: "<a data-value='" + item.value + "' class='glyphicon glyphicon-remove' />"
+                            html: "<a data-value='" + item.value + "' class='oxy-icon oxy-icon-remove' />"
                         });
                     $(removeButton).find("a").on("click", function (event) {
                         removeHistoryItem(this);
@@ -286,7 +286,7 @@ define(["keywords", "searchHistoryItems", "options", "jquery", "jquery.ui"], fun
 
         // Change label
         if (removed) {
-            $(hi).attr("class", "glyphicon glyphicon-ok");
+            $(hi).attr("class", "oxy-icon oxy-icon-ok");
             $(hi).parents("div").find(".search-autocomplete-proposal-label").addClass("removed-from-history");
         }
 

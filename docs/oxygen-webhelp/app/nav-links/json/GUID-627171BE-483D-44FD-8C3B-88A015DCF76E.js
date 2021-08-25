@@ -1,0 +1,1 @@
+define({"topics" : [{"title":"Export SupportAssist Collections","href":"GUID-54E3A4A7-45A7-495E-8AF4-1112500386D7.html","attributes": {"data-id":"GUID-54E3A4A7-45A7-495E-8AF4-1112500386D7",},"menu": {"hasChildren":false,},"tocID":"GUID-54E3A4A7-45A7-495E-8AF4-1112500386D7","topics":[]}]});

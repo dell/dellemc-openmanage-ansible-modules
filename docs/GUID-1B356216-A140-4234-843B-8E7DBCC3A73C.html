@@ -1,0 +1,797 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: ome_discovery Synopsis This module allows to create, modify, or delete a discovery job. Options Table 1. ome_discovery Parameter Required Default Choices Comments hostname True NA NA Target IP ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" /><meta name="DC.relation" scheme="URI" content="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" /><meta name="DC.relation" scheme="URI" content="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="August 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /><title>Manage discovery jobs</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container navbar-nav navbar-expand-md navbar-dark">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.0.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li><li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" class="topicref" data-id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19.html" id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link">Manage Devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" class="topicref" data-id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C.html" id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link">Template Service</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage application settings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" class="topicref" data-id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768.html" id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link">Manage network configuration</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" class="topicref" data-id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4.html" id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link">Manage fabrics</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" class="topicref" data-id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link">Manage Profiles</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" class="topicref" data-id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link">Device discovery</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem" class="active"><span data-tocid="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C" class="topicref" data-id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C.html" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C-link">Manage discovery jobs</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link">Manage Chassis</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" class="topicref" data-id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link">Manage Active Directory service and user groups</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" class="topicref" data-id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E.html" id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link">Diagnostics</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
+                        </nav>
+                    
+
+                    <div id="wh_topic_body" class="col-lg-7 col-md-9 col-sm-9 col-xs-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <!--  -->
+                                <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li><span class="topicref" data-id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1"><span class="title"><a href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html">Device discovery</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C"><span class="title"><a href="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C.html">Manage discovery jobs</a></span></span></li></ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="- topic/link link" href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" title="Device discovery" aria-label="Previous topic: Device discovery" rel="prev"></a></span>  
+<span class="navnext"><a class="- topic/link link" href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" title="Manage Chassis" aria-label="Next topic: Manage Chassis" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row topic_content_row">
+                                <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__GUID-1FCF821B-59D1-4CBC-A432-A1D7C325BC62"> 
+  <h1 class="- topic/title title topictitle1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__GUID-1FCF821B-59D1-4CBC-A432-A1D7C325BC62">Manage discovery jobs</h1> 
+  <div class="- topic/body reference/refbody body refbody"> 
+	 <section class="- topic/section section" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__GUID-8D525376-752F-48A3-BE48-2D00626D84E7"> 
+		<span class="ph uicontrol bold">Module: ome_discovery</span> 
+	 </section> 
+	 <section class="- topic/section section" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__SECTION_89C275B43E834A49BA31F9B4F0AC6AE8"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="- topic/p p"> This module allows to create, modify, or delete a discovery job. 
+		</p> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="- topic/table table all pgwide" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865"><caption><span class="table-anchor" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865"></span><span class="tablecap"><span class="table-label">Table 1. </span>ome_discovery</span></caption><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="- topic/thead thead"> 
+			 <tr class="- topic/row"> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1">Parameter 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">Required 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">Default 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">Choices 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="- topic/tbody tbody"> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1">hostname 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5">Target IP Address or hostname 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1">username 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5">Target username 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1">password 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5">Target user password 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1">port 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">443 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5">Target HTTPS port 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1">state 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">present 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">present, and absent 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_C18D4951BA704DC9AEB59816674484E1"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_8561785E15544888AD1794D95803E2CF"> C(present)creates a discovery job or modifies an existing discovery job. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_21AC0CD6C3864990A17F77B902E17AB0"> I(discovery_job_name) is mandatory for the creation of a new discovery job. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_CE58ADDB98224669AB36FD65E4CFF7D0"> If multiple discoveries of the same I(discovery_job_name) exist, then the new discovery job will not be created. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_34C5866492A84D828507C3F640D8034C"> C(absent) deletes an existing discovery job(s) with thespecifiedgiven I(discovery_job_name). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> discovery_job_name 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_829D988BA6644676BAC55EA90ED1EF7A"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_180C0A43DBAE4B9195D1EEC919E3868A"> Name of the discovery configuration job. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_49BB1000C4F34BCE90A32B0E7D7990D3"> This option is mutually exclusive with I(discovery_id). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> discovery_id 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_22C06D05BD45440EADB275FE5616585B"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_065012AD6044405D8E1C38737383DD9A"> ID of the discovery configuration group. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_7E0CE9C4740141AFAFBDFDAFF0A033C0"> This option is mutually exclusive with I(discovery_job_name). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> new_name 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> New name of the discovery configuration job. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> schedule 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">RunNow 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">RunNow, and RunLater 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_F910EFCE8506493EA446459E622D33CD"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_9BD2E133E7F54F4FBA44ACDD3F35AD36"> Provides the option to schedule the discovery job. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_35F9385CF5BF432985A19933299BE865"> If C(RunLater) is selected, then I(cron) must be specified. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> cron 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> Provide a cron expression based on Quartz cron format. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> trap_destination 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> Enable OpenManage Enterprise to receive the incoming SNMP traps from the discovered 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> community_string 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> Enable the use of SNMP community strings to receive SNMP traps using Application Settings in OpenManage Enterprise. This option is available only for the discovered iDRAC servers and MX7000 chassis. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> email_recipient 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> Enter the email address to which notifications are to be sent about the discovery job status. Configure the SMTP settings to allow sending notifications to an email address. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> job_wait 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_C651979219334C3D94B94718A2E9DDFD"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_15971CE2CD044AD6AD49E0280B7D0254"> Provides the option to wait for job completion. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_7CE19173EB5243FCB8F717A129CD8E9B"> This option is applicable when I(state) is C(present). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> job_wait_timeout 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">10800 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_77CC02D22D204EBF891744220D6B226D"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_FCFC7E7EF5BF4974A5E9CB803282B62F"> The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_6E8D77A9ACFC46D0BEAA5712B9A94D61"> This option is applicable when I(job_wait) is C(True). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> ignore_partial_failure 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_9B082295595B41D692D8737E8B5C95DC"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_C08A9529A84F46F38918B733E2F72D6C"> Provides the option to ignore partial failures. Partial failures occur when there is a combination of both discovered and undiscovered IPs. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_7EDF9C03ADB74189939625EA5AF6772C"> If C(False), then the partial failure is not ignored, and the module will error out. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_9246915F033E49CE9D80FDD1EB5204EC"> If C(True), then the partial failure is ignored. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_E252EBE9F1AE40BD977CA68C18F8C23C"> This option is only applicable if I(job_wait) is C(True). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__1"> discovery_config_targets 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__3"> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__TABLE_A1FBBD39626B44D198CD040A8A709865__entry__5"> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_4480E98D38BC4E60B39D1EA88ED597B7"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_567AC99C97BD49908E890377FAEB4C0C"> Provide the list of discovery targets. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_7A1D00B4D38E4FBCB5713F14EE5BB596"> Each discovery target is a set of I(network_address_detail), I(device_types), and one or more protocol credentials. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_0815195A236E4AB9951A5AAE42C80245"> This is mandatory when I(state) is C(present). 
+					 </li> 
+				  </ul> 
+				  <div class="warning admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/warning.svg" alt="" /></div></td><td><div class="admonition-body"><span class="warning admonition-label">WARNING:</span><span> </span> Modification of this field is not supported, this field is overwritten every time. Ensure to provide all the required details for this field. 
+				  </div></td></tr></tbody></table></div> 
+				  <p class="- topic/p p"><span class="ph uicontrol bold">Suboptions</span> 
+				  </p> 
+				  <ul class="level1" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_ACB632621ADC459C8B738170CD9C8D27"> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_F984D70FDD58491BAC8CC0F9CC197EEA"> network_address_detail: 
+						<ul class="level2" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_0F97C83CF750479FBC4422C6C3107B15"> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_507E27B12ED24D059B3D5A953F8024DF"> Provide the list of IP addresses, host names, or the range of IP addresses of the devices to be discovered or included. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_0AD131CF56064C48893EEE298BA53EA8"> Sample Valid IP Range Formats: 
+							 <ul class="level3" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_857A26C539E34B669C3A61CA55CBF0AD"> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_C8E84DD5AD394075B2AC518037BC94C5"> 192.35.0.0 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_129C0A6A0BA44C93A042A7FAE09D64CF"> 192.36.0.0-10.36.0.255 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_2F95640424CC4FADB205BCC0A9BD107C"> 192.37.0.0/24 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_9E2515D82E184A5E8B098897CAA08E77"> 2345:f2b1:f083:135::5500/118 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_14F588A01205490383F88035AD123AE0"> 2345:f2b1:f083:135::a500-2607:f2b1:f083:135::a600 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_5394897EABDC4AFA87A4751E020271FA"> hostname.domain.tld 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_A36DAA0D64C64926BCCF616324C297EE"> hostname 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_142AA7DAA6094D06B34B29357F14C5C4"> 2345:f2b1:f083:139::22a 
+								</li> 
+							 </ul> 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_E76AFE6DD41749C98C9A37312FE94AA6"> Sample Invalid IP Range Formats: 
+							 <ul class="level3" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_DDCD9D9443A94D14906EF618904AAC7F"> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_339636A755704B26BE40B672E98B4E0A"> 192.35.0.* 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_87542FB96C164377990F0BF86CBD1FE1"> 192.36.0.0-255 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_AE121D68DC8A455A9B233395EC4AD284"> 192.35.0.0/255.255.255.0 
+								</li> 
+							 </ul> 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_32FFA6324B3447E6936B4C4D2B544622"> 
+							 <div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span> The range size for the number of IP addresses is limited to 16,385 (0x4001). 
+							 </div></td></tr></tbody></table></div> 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_6934AFB9B3B4402EA5D4F941C78BE01B"> 
+							 <div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span> Both IPv6 and IPv6 CIDR formats are supported. 
+							 </div></td></tr></tbody></table></div> 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_664E48EDE61C48E1A9D367FE1911EFC6"> device_types: 
+						<ul class="level2" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_6BF7B054D74E447CAD2704AF06B22A3A"> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_B94E82BDF65C4CDE9621AF4A6A77AEE5"> Provide the types of devices to be discovered. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_853BD06063B444C9957C405A8F13F959">The accepted types are SERVER, CHASSIS, NETWORK and STORAGE. A combination or all of the types can be provided 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_F4CF73AB6A274F0AA7932B3B29D23F83">Supported protocols for each device type are: 
+							 <ul class="level3" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_A170DC00D1BA44EAAFB5002000AF4DBE"> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_FD3D0FDEA0444201B20AFF0EF2B73829"> SERVER - I(wsman), I(redfish), I(snmp), I(ipmi), I(ssh) and I(vmware). 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_5808F418C22541D18F74650CCB3983AD"> CHASSIS - I(wsman) and I(redfish). 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_875C307EB306427AA9B8E30197A2FD74"> NETWORK SWITCH - I(snmp). 
+								</li> 
+								<li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_5C02324CC07946558B18FF24CED60A48"> STORAGE - I(storage) and I(snmp). 
+								</li> 
+							 </ul> 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_D50DEDB5CD6C4D628426B2E954BD6237"> wsman: Web Services-Management (WS-Man). 
+						<p class="- topic/p p"><span class="ph uicontrol bold">Suboptions</span>: 
+						</p> 
+						<ul class="level2" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_C5CD6B0D4A0D48E6B4D403FBEDD863F5"> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_64414F88863B47169A1E0CA0D4F8602A">username: Provide a username for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_22828B55229E469884B3FC0019FA9D65">password: Provide a password for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_3EE7E7090AE34F1CB4D565BC5A952C9F"> domain: Provide a domain for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_774D9FD97791458789289C1A54EDA703">port: Enter the port number that the job must use to discover the devices. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_E135217065274F10A2A98FD8306133EC">retries: Enter the number of repeated attempts required to discover a device. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_2ECE3488505841468632A06F6E7E8629">timeout: Enter the time after which a job must stop running. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_B60BC135E8A948D0963B36D7431FAB18">cn_check: Enable the Common Name (CN) check. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_43434258EC484BC0AF38F2B516BF6DC5"> ca_check: Enable the Certificate Authority (CA) check. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_5CA125C482274E14BCDC257A5812A7FA">certificate_data: Provide certificate details for the CA check. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_8E0884474EBF4E0C8F1B67D5F81D51E0"> redfish: Redfish protocol. 
+						<p class="- topic/p p"><span class="ph uicontrol bold">Suboptions</span>: 
+						</p> 
+						<ul class="level2" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_B35AC284E7CC44AD96A3B519638930A1"> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_4F1258D9E30D4315A49385992452E00D">username: Provide a username for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_717E7A55110E44048DD7365DC53EAA88">password: Provide a password for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_86EDC051309847468208330498CC197E"> domain: Provide a domain for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_2E6054D3D40C42A3A7CEACFE95410DAE">port: Enter the port number that the job must use to discover the devices. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_A2C209BA30D5484D8CB6B348FD85671F">retries: Enter the number of repeated attempts required to discover a device. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_235B1A0FD3DF4DF3B01B245ED4F9FC4D">timeout: Enter the time after which a job must stop running. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_8BF1B48A393E48BA9689745B149DE953">cn_check: Enable the Common Name (CN) check. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_38174AB0E5604CD98CE552A609937697"> ca_check: Enable the Certificate Authority (CA) check. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_2623C452B7BF4238A76F012B05F8C8FC">certificate_data: Provide certificate details for the CA check. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_1BE3F8357226490DA8FA2DC427FB3C02">snmp: Simple Network Management Protocol (SNMP). 
+						<p class="- topic/p p"><span class="ph uicontrol bold">Suboptions</span>: 
+						</p> 
+						<ul class="level2" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_129D50F9F8304AB8892CECA71947B31B"> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_0F1AAFA980A94871865BFA3AC5FF46EC">community: Community string for the SNMP protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_10852ECFB06E41E986DA647A3229FBEA">port: Enter the port number that the job must use to discover the devices. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_D087D9183E3F4A03BBE0990FE2B0A2EE">retries: Enter the number of repeated attempts required to discover a device. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_4809C36F93494CA1BE8F3AC7C53DA008">timeout: Enter the time after which a job must stop running. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_D099165E3FC14F49BF65A744ECE7B4BF">cn_check: Enable the Common Name (CN) check. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_7234D2261EF34EDAAE94D9A9B2F8BCF9"> ca_check: Enable the Certificate Authority (CA) check. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_A4666A7C1243463D9B33E15C7488AF9A">certificate_data: Provide certificate details for the CA check. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_A273E32398E1409AA91C87726B9D51BA">vmware: VMWARE protocol. 
+						<p class="- topic/p p"><span class="ph uicontrol bold">Suboptions</span>: 
+						</p> 
+						<ul class="level2" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_8B2CAFEE70FB4060858D1645DABBB416"> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_7B198ED446CE4B34A6B6A7979DD4D2D8">username: Provide a username for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_8FF6362BB2E84AFB9BB9243C282F808C">password: Provide a password for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_304BDEAA445C42AEA5A20A9F95DE735A"> domain: Provide a domain for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_3E533321FD914CA5B442F6BEB95D899A">port: Enter the port number that the job must use to discover the devices. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_5FD2DCEA4A1743238ADDB3D1B45B9681">retries: Enter the number of repeated attempts required to discover a device. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_3B92B211BEAF48F48A6302F607C4D9BD">timeout: Enter the time after which a job must stop running. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_A08BAE3D54EF4061BF27B6AD8B767330">cn_check: Enable the Common Name (CN) check. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_5CFAE78830644856904A056CB2C2CB4F"> ca_check: Enable the Certificate Authority (CA) check. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_01DE00409BDA416CAB18C5077BADC179">certificate_data: Provide certificate details for the CA check. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_A888F2F4F70E4F86B417C23A57D1B5F7">ssh: Secure Shell (SSH). 
+						<p class="- topic/p p"><span class="ph uicontrol bold">Suboptions</span>: 
+						</p> 
+						<ul class="level2" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_ABD284216B3744BF86AF5E0B71EB7AFA"> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_0D87F5CFB6BB491CB8C1FDB9D611A19B">username: Provide a username for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_44B11DA00D1C428396055E84907C65D4">password: Provide a password for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_2D644302225F483AA1932D3419DC5604"> domain: Provide a domain for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_218F2A2331694733B674995F12E4ABB5">port: Enter the port number that the job must use to discover the devices. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_9DC5016634324A619383EE30F28E7D78">retries: Enter the number of repeated attempts required to discover a device. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_251D41DB719F4E1B94125142AA176A80">timeout: Enter the time after which a job must stop running. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_4F11D2D075BB4E38ABD5849145785913">check_known_hosts: Verify the known host key. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_3ED4D135B20B4035AF19E414DFE910C2">is_sudo_user: Use the SUDO option. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_5E7C4AA7C37F493083ECDE991C1D8161">ipmi: Intelligent Platform Management Interface (IPMI). 
+						<p class="- topic/p p"><span class="ph uicontrol bold">Suboptions</span>: 
+						</p> 
+						<ul class="level2" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__UL_B326C1EF845D4BBF98C7949B728A00CA"> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_681886E8CD3541DE94970B688E07511C">username: Provide a username for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_2D63E6CE274D4E7A99D9D910C6D19642">password: Provide a password for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_92460DED6DA742C2AA1791B802C3F1F0"> domain: Provide a domain for the protocol. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_4B426B2695EF4EA6B9F52D9D6853A86A">port: Enter the port number that the job must use to discover the devices. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_E253DEC9BA1B4AE4A87CE1C33F776559">retries: Enter the number of repeated attempts required to discover a device. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_F12199702E3A47E9822D44B854F319FD">timeout: Enter the time after which a job must stop running. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-1B356216-A140-4234-843B-8E7DBCC3A73C__LI_E2E6578EF0EF4EFA96AC3F1724F1F44F">kgkey: KgKey for the IPMI protocol. 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Return Values</span> 
+		</p> 
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>msg:
+ description: Overall status of the discovery operation.
+  returned: always
+  type: str
+  sample: "Successfully deleted 1 discovery job(s)."
+discovery_status:
+  description:
+    - Details of the discovery job created or modified.
+    - If I(job_wait) is true, Completed and Failed IPs are also listed.
+  returned: when I(state) is C(present)
+  type: dict
+  sample: {
+    "DiscoveredDevicesByType": [
+      {
+        "Count": 3,
+        "DeviceType": "SERVER"
+      }
+    ],
+    "Completed": [
+      "192.168.24.17",
+      "192.168.24.20",
+      "192.168.24.22"
+    ],
+    "Failed": [
+      "192.168.24.15",
+      "192.168.24.16",
+      "192.168.24.18",
+      "192.168.24.19",
+      "192.168.24.21",
+      "host123"
+    ],
+    "DiscoveryConfigDiscoveredDeviceCount": 3,
+    "DiscoveryConfigEmailRecipient": "myemail@dell.com",
+    "DiscoveryConfigExpectedDeviceCount": 9,
+    "DiscoveryConfigGroupId": 125,
+    "JobDescription": "D1",
+    "JobEnabled": true,
+    "JobEndTime": "2021-01-01 06:27:29.99",
+    "JobId": 12666,
+    "JobName": "D1",
+    "JobNextRun": null,
+    "JobProgress": "100",
+    "JobSchedule": "startnow",
+    "JobStartTime": "2021-01-01 06:24:10.071",
+    "JobStatusId": 2090,
+    "LastUpdateTime": "2021-01-01 06:27:30.001",
+    "UpdatedBy": "admin"
+  }
+discovery_ids:
+  description: IDs of the discoveries with duplicate names.
+  returned: when discoveries with duplicate name exist for I(state) is C(present) 
+  type: list
+  sample: [1234, 5678]
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
+
+</code></pre> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Examples</span> 
+		</p> 
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Discover servers in a range
+  dellemc.openmanage.ome_discovery:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    discovery_job_name: "Discovery_server_1"
+    discovery_config_targets:
+      - network_address_detail:
+          - 192.96.24.1-192.96.24.255
+        device_types:
+          - SERVER
+        wsman:
+          username: user
+          password: password
+
+- name: Discover chassis in a range
+  dellemc.openmanage.ome_discovery:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    discovery_job_name: "Discovery_chassis_1"
+    discovery_config_targets:
+      - network_address_detail:
+          - 192.96.24.1-192.96.24.255
+        device_types:
+          - CHASSIS
+        wsman:
+          username: user
+          password: password
+     
+- name: Discover switches in a range
+  dellemc.openmanage.ome_discovery:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    discovery_job_name: "Discover_switch_1"
+    discovery_config_targets:
+      - network_address_detail:
+          - 192.96.24.1-192.96.24.255
+        device_types:
+          - NETWORK SWITCH
+        snmp:
+          community: snmp_creds
+
+- name: Discover storage in a range
+  dellemc.openmanage.ome_discovery:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    discovery_job_name: "Discover_storage_1"
+    discovery_config_targets:
+      - network_address_detail:
+          - 192.96.24.1-192.96.24.255
+        device_types:
+          - STORAGE
+        storage:
+          username: user
+          password: password
+
+- name: Delete a discovery job
+  dellemc.openmanage.ome_discovery:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "absent"
+    discovery_job_name: "Discovery-123"
+
+- name: Schedule the discovery of multiple devices and enable trap to receive alerts receiving
+  dellemc.openmanage.ome_discovery:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "absent"
+    discovery_job_name: "Discovery-123"
+    discovery_config_targets:
+      - network_address_detail:
+          - 192.96.24.1-192.96.24.255
+         - 192.96.0.0/24
+          - 192.96.26.108
+        device_types:
+          - SERVER
+          - CHASSIS
+          - STORAGE
+          - NETWORK SWITCH
+        wsman:
+          username: wsman_user
+          password: wsman_pwd
+        redfish:
+          username: redfish_user
+          password: redfish_pwd
+        storage:
+          username: root
+          password: https_pwd
+        snmp:
+          community: snmp_community
+      - network_address_detail:
+          - 192.96.25.1-192.96.25.255
+          - ipmihost
+          - esxiserver
+          - sshserver
+        device_types:
+          - SERVER
+        ssh:
+          username: ssh_user
+          password: ssh_pwd
+        vmware:
+          username: vm_user
+          password: vmware_pwd
+        ipmi:
+          username: ipmi_user
+          password: ipmi_pwd
+    schedule: RunLater
+    cron: "0 0 9 ? * MON,WED,FRI *"
+    trap_destination: True
+    community_string: True
+    email_recipient: OpenManageAnsible@dell.com
+</code></pre> 
+	 </section> 
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <!--<script src="${oxygen-webhelp-assets-dir}/lib/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>-->
+        
+    </body>
+</html>

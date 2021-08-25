@@ -85,13 +85,32 @@ article.topic:first-of-type {
     margin: 1em 0 .5em 0;
 }
 
+/* bug fix */
+.wh_tools{
+	min-width: 1142px;
+}
+
+
+/* topic onpage reference display at top */
+#wh_topic_toc {
+    display:block;
+    clear: both;
+}
+
+/* topic body obscuring mobile buttons for mobile version */
+#wh_topic_body {
+	min-width: 75%;
+    margin-left: -0.4em;
+}
+
 div, td, h1, h2, h3, h4 {
     overflow-x: inherit;
     line-height: normal;
 }
 
 a:visited {
-    color: #007DB8;
+    /*color: #007DB8;*/
+	color: #0076CE;
 }
 
 a:hover {
@@ -146,8 +165,9 @@ samp,
 
 kbd,
 code {
-    color: #333;
-    background-color: white;
+     /*color: #333;*/
+	color: #fff;
+    /*background-color: white;*/
     border: none;
     box-shadow: none;
 }
@@ -182,11 +202,11 @@ pre {
 }
 
 .no-paddings {
-    padding: 0;!important;
+    padding: 0 !important;
 }
 
 .no-margins {
-    margin: 0;!important;
+    margin: 0 !important;
 }
 
 figure {
@@ -195,7 +215,7 @@ figure {
     overflow-y: hidden;
     width: inherit;
     /* and for IE 8 */
-    width: auto\9;
+    width: auto ;
 }
 
 .figcap {
@@ -355,6 +375,8 @@ table {
     margin-top: 16px;
     margin-bottom: 16px;
     text-indent: 0;
+     /* fixed the admonitions table spacing issue */
+    margin-left:0em;
 }
 
 .table {
@@ -565,7 +587,7 @@ td, th {
     height: 1em;
 }
 
-.glyphicon-arrow-left:before{
+.glyphicon-arrow-left:before, .oxy-icon-arrow-left:before{
     display: block;
     content: ' ';
     background-image: url('../images/arrow-tri-left.svg');
@@ -575,7 +597,7 @@ td, th {
     background-position: center;
 }
 
-.glyphicon-arrow-right:before{
+.glyphicon-arrow-right:before, .oxy-icon-arrow-right:before{
     display: block;
     content: ' ';
     background-image: url('../images/arrow-tri-right.svg');
@@ -590,10 +612,20 @@ td, th {
 
 .wh_navigation_links {
     text-indent: -1em;
+    margin-right: 0.1em;
+}
+
+.wh_navigation_links .navprev {
+    margin-left: 0.1em;
+}
+
+.wh_navigation_links .navnext {
+    margin-left: -0.2em;
 }
 
 .collapse_section_wraper {
     display: inline-block;
+    margin-left: 0.1em;
 }
 
 .webhelp_expand_collapse_sections[data-next-state='expanded']:after,
@@ -620,7 +652,7 @@ td, th {
     width: 1em;
 }
 
-.glyphicon-print:before {
+.glyphicon-print:before, .oxy-icon-print:before {
     content: "";
     display: none;
 }
@@ -632,10 +664,12 @@ button:focus {
 .wh_print_link button{
     display: block;
     content: ' ';
-    background-image: url("../images/printer-short.svg");
+    /* commenting the styling due to icon is changed in 3.4.1 but is intact for 2.5.4*/
+	background-image: url("../images/printer-short.svg");
     background-size: cover;
     height: 1em;
     width: 1em;
+	padding:0.6em
 
 }
 
@@ -718,6 +752,10 @@ button:focus {
 .wh_topic_content {
     padding-right: 15px;
     padding-left: 15px;
+}
+
+.topic_content_row {
+    align-items: baseline;
 }
 
 .current_node {

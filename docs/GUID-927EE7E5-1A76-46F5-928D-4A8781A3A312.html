@@ -1,16 +1,8 @@
 
 <!DOCTYPE html
-  PUBLIC "" "about:legacy-compat">
+  SYSTEM "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
-    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Module: ome_firmware_catalog Synopsis This module triggers the job to create a catalog. Options Table 1. ome_firmware_catalog Parameter Required Default Choices Comments hostname True NA NA Target IP ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Relation" scheme="URI" content="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" /><meta name="DC.Relation" scheme="URI" content="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35.html" /><meta name="DC.Relation" scheme="URI" content="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.Publisher" content="June 2020" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312" /><meta name="DC.Language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /><title>Create a firmware catalog</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap-theme.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.2.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script>
-				$(document).ready(function() {
-					var metaelement = $("[name=meta-topic-title]");
-					var newTitle = $(metaelement).attr("content");
-					if(newTitle){
-						document.title = newTitle;
-					}
-				});
-			</script></head>
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: ome_firmware_catalog Synopsis This module allows to create, modify, or delete a firmware catalog. Options Table 1. ome_firmware_catalog Parameter Required Default Choices Comments hostname ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" /><meta name="DC.relation" scheme="URI" content="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35.html" /><meta name="DC.relation" scheme="URI" content="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="August 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /><title>Create a firmware catalog</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
 
     <body data-lang="en-us" class="wh_topic_page">
         <a href="#wh_topic_body" class="sr-only sr-only-focusable">
@@ -22,7 +14,7 @@
 
         <header class="navbar navbar-default wh_header">
     <div class="container-fluid">
-        <div class="wh_header_flex_container">
+        <div class="wh_header_flex_container navbar-nav navbar-expand-md navbar-dark">
             <div class="wh_logo_and_publication_title_container">
                 <div class="logo_and_publication_title">
                     
@@ -31,8 +23,8 @@
                             'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
                             See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
                     -->
-                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /></a>
-                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules<span class="pipe-separator"></span></span><span class="booktitlealt">Version 2.1 User’s Guide</span></span></div>
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.0.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
                     
                 </div>
                 
@@ -42,15 +34,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div><script><!--
-							$(document).ready(function () {
-							$('#searchForm').submit(function (e) {
-							if ($('.wh_search_textfield').val().length < 1) {
-							e.preventDefault();
-							}
-							});
-							});
-						--></script></form></div>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div></form></div>
             </div>
 
         </div>
@@ -58,15 +42,7 @@
 </header>
         <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
             
-            <nav class=" wh_top_menu "><ul>
-   <li><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li>
-   <li><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf" class=" topicref " data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789"><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html">Accessing documents from the Dell EMC support site</a></span></span></li>
-</ul></nav>
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
             <!--<whc:webhelp_indexterms_link/>-->
             
         </div>
@@ -76,334 +52,453 @@
                 <div class="row">
                     
                         <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
-                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li>
-   <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li>
-         <li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li>
-         <li role="treeitem"><span data-tocid="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE" class="topicref" data-id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE.html" id="GUID-4AD0DD4D-FE4F-4C16-99A9-B2E937066DDE-link">View device information</a></span></span></li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span></li>
-         <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35" class="topicref" data-id="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35.html" id="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35-link">Update device firmware</a></span></span></li>
-               <li role="treeitem" class="active"><span data-tocid="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312" class="topicref" data-id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312.html" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312-link">Create a firmware catalog</a></span></span></li>
-               <li role="treeitem"><span data-tocid="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B" class="topicref" data-id="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B.html" id="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B-link">Create a firmware baseline</a></span></span></li>
-               <li role="treeitem"><span data-tocid="GUID-5DDE7F57-4D9B-47CE-8318-40CEC452E224" class="topicref" data-id="GUID-5DDE7F57-4D9B-47CE-8318-40CEC452E224" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5DDE7F57-4D9B-47CE-8318-40CEC452E224.html" id="GUID-5DDE7F57-4D9B-47CE-8318-40CEC452E224-link">Retrieve firmware baseline details</a></span></span></li>
-               <li role="treeitem"><span data-tocid="GUID-95E18B70-0612-4CD2-A002-AA5B470F390E" class="topicref" data-id="GUID-95E18B70-0612-4CD2-A002-AA5B470F390E" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-95E18B70-0612-4CD2-A002-AA5B470F390E.html" id="GUID-95E18B70-0612-4CD2-A002-AA5B470F390E-link">Retrieve firmware baseline compliance details</a></span></span></li>
-            </ul>
-         </li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage network settings</a></span></span></li>
-      </ul>
-   </li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li>
-   <li role="treeitem"><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" class="topicref" data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789-link">Accessing documents from the Dell EMC support site</a></span></span></li>
-</ul></div>
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li><li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" class="topicref" data-id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19.html" id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link">Manage Devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" class="topicref" data-id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C.html" id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link">Template Service</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35" class="topicref" data-id="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35.html" id="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35-link">Update device firmware</a></span></span></li><li role="treeitem" class="active"><span data-tocid="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312" class="topicref" data-id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312.html" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312-link">Create a firmware catalog</a></span></span></li><li role="treeitem"><span data-tocid="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B" class="topicref" data-id="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B.html" id="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B-link">Create a firmware baseline</a></span></span></li><li role="treeitem"><span data-tocid="GUID-5DDE7F57-4D9B-47CE-8318-40CEC452E224" class="topicref" data-id="GUID-5DDE7F57-4D9B-47CE-8318-40CEC452E224" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5DDE7F57-4D9B-47CE-8318-40CEC452E224.html" id="GUID-5DDE7F57-4D9B-47CE-8318-40CEC452E224-link">Retrieve firmware baseline details</a></span></span></li><li role="treeitem"><span data-tocid="GUID-95E18B70-0612-4CD2-A002-AA5B470F390E" class="topicref" data-id="GUID-95E18B70-0612-4CD2-A002-AA5B470F390E" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-95E18B70-0612-4CD2-A002-AA5B470F390E.html" id="GUID-95E18B70-0612-4CD2-A002-AA5B470F390E-link">Retrieve firmware baseline compliance details</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage application settings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" class="topicref" data-id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768.html" id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link">Manage network configuration</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" class="topicref" data-id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4.html" id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link">Manage fabrics</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" class="topicref" data-id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link">Manage Profiles</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" class="topicref" data-id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link">Device discovery</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link">Manage Chassis</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" class="topicref" data-id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link">Manage Active Directory service and user groups</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" class="topicref" data-id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E.html" id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link">Diagnostics</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
                         </nav>
                     
 
-                    <div class="col-lg-7 col-md-9 col-sm-9 col-xs-12" id="wh_topic_body">
+                    <div id="wh_topic_body" class="col-lg-7 col-md-9 col-sm-9 col-xs-12">
                         <div class="container-fluid">
                             <div class="row">
-                                <nav class="wh_tools hidden-print col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="hidden-print"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li>
-   <li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
-   <li><span class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45"><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html">Manage the device firmware</a></span></span></li>
-   <li class="active"><span class="topicref" data-id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312"><span class="title"><a href="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312.html">Create a firmware catalog</a></span></span></li>
-</ol></div>
+                                <!--  -->
+                                <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li><span class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45"><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html">Manage the device firmware</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312"><span class="title"><a href="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312.html">Create a firmware catalog</a></span></span></li></ol></div>
 
                                     <div class="wh_right_tools hidden-sm hidden-xs">
                                         <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
   
-<span class="navprev"><a class="link" href="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35.html" title="Update device firmware" aria-label="Previous topic: Update device firmware" rel="prev"></a></span>  
-<span class="navnext"><a class="link" href="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B.html" title="Create a firmware baseline" aria-label="Next topic: Create a firmware baseline" rel="next"></a></span>  </span></div>
+<span class="navprev"><a class="- topic/link link" href="GUID-F26B637C-95FF-4B5B-B40D-6B06BE509D35.html" title="Update device firmware" aria-label="Previous topic: Update device firmware" rel="prev"></a></span>  
+<span class="navnext"><a class="- topic/link link" href="GUID-7580DDAD-A564-4D93-8D80-77980EA7B32B.html" title="Create a firmware baseline" aria-label="Next topic: Create a firmware baseline" rel="next"></a></span>  </span></div>
                                         <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
                                         <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
                                     </div>
                                 </nav>
                             </div>
-                            <div class="row">
-                                <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12" id="topic_content">
+                            <div class="row topic_content_row">
+                                <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
                                     <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__GUID-20610EEA-E4BB-4B41-96EB-F7DA9AE846FA"> 
-  <h1 class="title topictitle1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__GUID-20610EEA-E4BB-4B41-96EB-F7DA9AE846FA">Create a firmware catalog</h1> 
-  <div class="body refbody"> 
-	 <section class="section" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__GUID-462AB30B-9B48-4596-BC86-1FAEE2E283F8"> 
+  <h1 class="- topic/title title topictitle1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__GUID-20610EEA-E4BB-4B41-96EB-F7DA9AE846FA">Create a firmware catalog</h1> 
+  <div class="- topic/body reference/refbody body refbody"> 
+	 <section class="- topic/section section" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__GUID-462AB30B-9B48-4596-BC86-1FAEE2E283F8"> 
 		<span class="ph uicontrol bold">Module: ome_firmware_catalog</span> 
 	 </section> 
-	 <section class="section" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__SECTION_60E346F183AC451BBF8C53F8A459281D"><span class="ph uicontrol bold">Synopsis</span> 
-		<p class="p">This module triggers the job to create a catalog. 
+	 <section class="- topic/section section" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__SECTION_60E346F183AC451BBF8C53F8A459281D"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="- topic/p p"> This module allows to create, modify, or delete a firmware catalog. 
 		</p> 
-		<p class="p"><span class="ph uicontrol bold">Options</span> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
 		</p> 
-		<table class="table all  pgwide" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B"><caption><span class="table-anchor" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B"></span><span class="tablecap"><span class="table-label">Table 1. </span>ome_firmware_catalog</span></caption><colgroup><col style="width:21.67487684729064%" /><col style="width:16.420361247947454%" /><col style="width:19.047619047619044%" /><col style="width:19.047619047619044%" /><col style="width:23.809523809523807%" /></colgroup><thead class="thead"> 
-			 <tr> 
-				<th class="entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">Parameter 
+		<table class="- topic/table table all pgwide" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B"><caption><span class="table-anchor" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B"></span><span class="tablecap"><span class="table-label">Table 1. </span>ome_firmware_catalog</span></caption><colgroup><col style="width:21.67487684729064%" /><col style="width:16.420361247947454%" /><col style="width:19.047619047619044%" /><col style="width:19.047619047619044%" /><col style="width:23.809523809523807%" /></colgroup><thead class="- topic/thead thead"> 
+			 <tr class="- topic/row"> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">Parameter 
 				</th> 
-				<th class="entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">Required 
+				<th class="- topic/entry entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">Required 
 				</th> 
-				<th class="entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">Default 
+				<th class="- topic/entry entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">Default 
 				</th> 
-				<th class="entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">Choices 
+				<th class="- topic/entry entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">Choices 
 				</th> 
-				<th class="entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">Comments 
+				<th class="- topic/entry entry cellrowborder" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">Comments 
 				</th> 
-			 </tr></thead><tbody class="tbody"> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">hostname 
+			 </tr></thead><tbody class="- topic/tbody tbody"> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">hostname 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">True 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">True 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Target IP Address or hostname
-				</td> 
-			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">username 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">True 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Target username
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">Target IP Address or hostname 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 "> password 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">username 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">True 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">True 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Target user password
-				</td> 
-			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">port 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">443 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Target HTTPS port
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">Target username 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">catalog_name 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1"> password 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">True 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">True 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Name of the firmware catalog being created. 
-				</td> 
-			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">catalog_description 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 "> Description of the catalog being created. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">Target user password 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">source 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">port 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">443 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">The share address of the system where the firmware catalog is stored on the network. 
-				</td> 
-			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">source_path 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Full path of the catalog file location excluding the file name. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">Target HTTPS port 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">file_name 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">state 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">present 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">present, or absent 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Catalog file name relative to the I (source_path). 
-				</td> 
-			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">repository_type 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">HTTPS 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">HTTP, NFS, CIFS, HTTPS 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">The type of supported repositories are: HTTP, NFS, CIFS, HTTPS. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> 
+				  <ul class="level1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__UL_6427988616A5498AA2F57A5DDEA0BA34"> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_72063B60F6AE413CAE1A8A7229664592"> C(present) creates or modifies a catalog. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_92DE664B6FEC4008A655CBA6159B9EEF"> C(absent) deletes an existing catalog. 
+					 </li> 
+				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">repository_username 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">catalog_name 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">NA
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">User name of the repository where the catalog is stored. This option is mandatory when I(repository_type) is CIFS. 
-				</td> 
-			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">repository_password 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 "> Password to access the repository. This option is mandatory when I(repository_type) is CIFS. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> 
+				  <ul class="level1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__UL_A50A4D15593C4C71AD1EABA11099ED2D"> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_D88AAE75369144ECA3A875B8BF7F045F">Name of the firmware catalog to be created. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_2333A4E14DAA4CBA8DA46CBDE48405DC"> This is option is mutually exclusive with I(catalog_id). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_01BE7787C3A6431EB2E95B0A5D278E48"> Provide the list of firmware catalog names that are supported when I(state) is C(absent). 
+					 </li> 
+				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">repository_domain 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1"> new_catalog_name 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Domain name of the repository. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> New name of the firmware catalog. 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1 ">check_certificate 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1"> catalog_id 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5 ">Specifies if certificate warnings are ignored when I(repository_type) is HTTPS. If C(True) option is set, then the certificate warnings are ignored otherwise certificate warnings are not ignored. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> 
+				  <ul class="level1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__UL_32F9879DC85E4179992C074EF718F8E6"> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_E547ED3F9C524E0491DF8474A86930D5">ID of the catalog 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_38C477B0872B4F86BC5A13F220696F8B"> This option is mutually exclusive with I(catalog_name). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_76205341BD284D389C265FD402C283B5"> Provide the list of firmware catalog IDs that are supported when I(state) is C(absent). 
+					 </li> 
+				  </ul> 
 				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">catalog_description 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> Description for the catalog. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">source 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> 
+				  <ul class="level1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__UL_2D08833759D34D59B3685B4E2CF348BB"> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_C659B5BE0CBF49B0B15F64B141CF286D">The share IP address of the system where the firmware catalog is stored on the local network. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_E3CAF17DA1694415AEC7581E4C0E5E96"> By default, this option is set to downloads.dell.com when I(repository_type) is C(DELL_ONLINE). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">source_path 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> 
+				  <ul class="level1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__UL_CF846C5979C04E04B13E4017511F840E"> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_84098F0494C040E0A3A3DF849D96FF4C">Specify the complete path of the catalog file location without the file name. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_A163EB7CB09D41B88338AE7EF2A6071D"> This is option ignored when I(repository_type) is C(DELL_ONLINE). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">file_name 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> 
+				  <ul class="level1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__UL_46FD147F132040EF831AE6B10A5C0049"> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_22E281F7E67740BC861FFF85A0E16A18">Catalog file name associated with the I (source_path). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_0B5ADC02AC3C49BE869769E6CA985851"> This option is ignored when I(repository_type) is C(DELL_ONLINE). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">repository_type 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">HTTPS 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">HTTP, NFS, CIFS, HTTPS, or DELL_ONLINE 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">The type of supported repositories are: HTTP, NFS, CIFS, HTTPS, and DELL_ONLINE. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">repository_username 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">User name of the repository where the catalog is stored. This option is mandatory when I(repository_type) is CIFS and is ignored when I(repository_type) is C(DELL_ONLINE). 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">repository_password 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> Password to access the repository. This option is mandatory when I(repository_type) is CIFS, and is ignored when I(repository_type) is C(DELL_ONLINE). 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">repository_domain 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">Domain name of the repository. This option is ignored when I(repository_type) is C(DELL_ONLINE). 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">check_certificate 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5"> The certificate warnings are ignored when I(repository_type) is HTTPS. If C(True). If not, certificate warnings are not ignored. 
+				</td> 
+			 </tr>
+			 <tr class="- topic/row">
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">job_wait
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">NA
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">True
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">
+				  <ul class="level1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__UL_6C32922FA5D64E368EAE3FC9C76021A0">
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_6BFA9CA6EC7947C29A3F78EB698D53E8">Provides the option to wait for job completion.
+					 </li>
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_912AF72D10004CF0AE2EF553B2225C42">This option is applicable when I(state) is C(present).
+					 </li>
+				  </ul>
+				</td>
+			 </tr>
+			 <tr class="- topic/row">
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__1">job_wait_timeout
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__2">NA
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__3">600
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__4">NA
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__TABLE_0CF3A4B0A4B64F97BE80189C6D87508B__entry__5">
+				  <ul class="level1" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__UL_F250F5BD921F4957BBFBECA627F232DD">
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_6766413B3E464A769F17285E07D62E65">The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
+					 </li>
+					 <li class="- topic/li li" id="GUID-927EE7E5-1A76-46F5-928D-4A8781A3A312__LI_8C7B0CE9B437445298518E77FAC7F59B">This option is applicable when I(job_wait) is C(True).
+					 </li>
+				  </ul>
+				</td>
 			 </tr> 
 		  </tbody></table> 
-		<div class="p"><span class="ph uicontrol bold">Return Values</span> 
-		  <pre class="pre codeblock"><code>msg:
-          description: Overall status of the firmware catalog creation
-          returned: always
-          type: str
-          sample: "Successfully triggered the job to create a catalog with Task Id : 10094"
-        catalog_status:
-          description: Details of the catalog creation.
-          returned: on success
-          type: dict
-          sample:  {
-                "AssociatedBaselines": [],
-                "BaseLocation": null,
-                "BundlesCount": 0,
-                "Filename": "catalog.gz",
-                "Id": 0,
-                "LastUpdated": null,
-                "ManifestIdentifier": null,
-                "ManifestVersion": null,
-                "NextUpdate": null,
-                "PredecessorIdentifier": null,
-                "ReleaseIdentifier": null,
-                "Repository": {
-                   "CheckCertificate": true,
-                   "Description": "HTTPS Desc",
-                   "DomainName": null,
-                   "Id": null,
-                   "Name": "catalog4",
-                   "Password": null,
-                   "RepositoryType": "HTTPS",
-                   "Source": "company.com",
-                   "Username": null
-                },
-                "Schedule": null,
-                "SourcePath": "catalog",
-                "Status": null,
-                "TaskId": 10094
-            }
+		<div class="- topic/p p"><span class="ph uicontrol bold">Return Values</span> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>msg:
+  description: Overall status of the firmware catalog operation.
+  returned: always
+  type: str
+  sample: "Successfully triggered the job to create a catalog with Task ID : 10094"
+catalog_status:
+  description: Details of the catalog operation.
+  returned: When I(state) is C(present)
+  type: dict
+  sample:  {
+        "AssociatedBaselines": [],
+        "BaseLocation": null,
+        "BundlesCount": 0,
+        "Filename": "catalog.gz",
+        "Id": 0,
+        "LastUpdated": null,
+        "ManifestIdentifier": null,
+        "ManifestVersion": null,
+        "NextUpdate": null,
+        "PredecessorIdentifier": null,
+        "ReleaseDate": null,
+        "ReleaseIdentifier": null,
+        "Repository": {
+            "CheckCertificate": true,
+            "Description": "HTTPS Desc",
+            "DomainName": null,
+            "Id": null,
+            "Name": "catalog4",
+            "Password": null,
+            "RepositoryType": "HTTPS",
+            "Source": "company.com",
+            "Username": null
+        },
+        "Schedule": null,
+        "SourcePath": "catalog",
+        "Status": null,
+        "TaskId": 10094
+    }
+job_id:
+  description: Job ID of the catalog task.
+  returned: When catalog job is in a running state.
+  type: int
+  sample: 10123
+catalog_id:
+  description: IDs of the deleted catalog.
+  returned: When I(state) is C(absent)
+  type: int
+  sample: 10123
+associated_baselines:
+  description: IDs of the baselines associated with catalog.
+  returned: When I(state) is C(absent)
+  type: list
+  elements: dict
+  sample: [
+    {
+        "BaselineId": 24,
+        "BaselineName": "new"
+    },
+    {
+        "BaselineId": 25,
+        "BaselineName": "c7"
+    },
+    {
+        "BaselineId": 27,
+        "BaselineName": "c4"
+    }
+  ]
 error_info:
   type: dict
-  description: Details of http error.
+  description: Details of the http error.
   returned: on http error
   sample:  {
         "error": {
             "@Message.ExtendedInfo": [
                 {
-                    "Message": "Unable to create or update the catalog because a 
+                    "Message": "Unable to create or update the catalog because a
                     repository with the same name already exists.",
                     "Resolution": "Enter a different name and retry the operation.",
                     "Severity": "Critical"
                 }
-             ],
-             "code": "Base.1.0.GeneralError",
-             "message": "A general error has occurred. See ExtendedInfo for more information."
-         }
-     } </code></pre> 
+            ],
+            "code": "Base.1.0.GeneralError",
+            "message": "A general error has occurred. See ExtendedInfo for more information."
+        }
+    }</code></pre> 
 		</div> 
-		<p class="p"><span class="ph uicontrol bold">Examples</span> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Examples</span> 
 		</p> 
-		<pre class="pre codeblock"><code>- name: create catalog from a repository on a HTTPS.
-  ome_firmware_catalog:
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Create a catalog from HTTPS repository
+  dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
+    password: "password"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "HTTPS"
-    source: "downloads.dell.com" 
+    source: "downloads.dell.com"
     source_path: "catalog"
     file_name: "catalog.gz"
     check_certificate: True
-    
-- name: create catalog from a repository on a HTTP.
-  ome_firmware_catalog:
+
+- name: Create a catalog from HTTP repository
+  dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
+    password: "password"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "HTTP"
     source: "downloads.dell.com"
     source_path: "catalog"
     file_name: "catalog.gz"
-    
-- name: create catalog from a CIFS network share.
-  ome_firmware_catalog:
+
+- name: Create a catalog using CIFS share
+  dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
+    password: "password"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "CIFS"
@@ -413,17 +508,70 @@ error_info:
     repository_username: "repository_username"
     repository_password: "repository_password"
     repository_domain: "repository_domain"
-    
-- name: create catalog from a NFS network share.
-  ome_firmware_catalog:
+
+- name: Create a catalog using NFS share
+  dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
+    password: "password"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "NFS"
     source: "192.166.0.2"
     source_path: "/nfs/R940"
-    file_name: "catalog.xml"</code></pre> 
+    file_name: "catalog.xml"
+
+- name: Create a catalog using a repository from Dell.com
+  dellemc.openmanage.ome_firmware_catalog:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    catalog_name: "catalog_name"
+    catalog_description: "catalog_description"
+    repository_type: "DELL_ONLINE"
+    check_certificate: True
+
+- name: Modify a catalog using a repository from CIFS share
+  dellemc.openmanage.ome_firmware_catalog:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    catalog_name: "catalog_name"
+    catalog_description: "new catalog_description"
+    repository_type: "CIFS"
+    source: "192.167.0.2"
+    source_path: "cifs/R941"
+    file_name: "catalog1.gz"
+    repository_username: "repository_username"
+    repository_password: "repository_password"
+    repository_domain: "repository_domain"
+
+- name: Modify a catalog using a repository from Dell.com
+  dellemc.openmanage.ome_firmware_catalog:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    catalog_id: 10
+    new_catalog_name: "new_catalog_name"
+    repository_type: "DELL_ONLINE"
+    catalog_description: "catalog_description"
+
+- name: Delete catalog using catalog name
+  dellemc.openmanage.ome_firmware_catalog:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: absent
+    catalog_name: ["catalog_name1", "catalog_name2"]
+
+- name: Delete catalog using catalog ID
+  dellemc.openmanage.ome_firmware_catalog:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: absent
+    catalog_id: [11, 34]
+</code></pre> 
 	 </section> 
   </div> 
 </article></main></div>
@@ -431,10 +579,6 @@ error_info:
                                     
                                     
                                 </div>
-                                
-                                    <nav role="navigation" id="wh_topic_toc" class="col-lg-2 hidden-md hidden-sm hidden-xs navbar hidden-print">
-                                        <div class=" wh_topic_toc "><div class="wh_topic_label">On this page</div><ul><li class="section-item"></li><li class="section-item"></li></ul></div>
-                                    </nav>
                                 
                             </div>
                         </div>
@@ -457,7 +601,7 @@ error_info:
             <div id="caption"></div>
         </div>
 
-        <script src="./oxygen-webhelp/lib/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+        <!--<script src="${oxygen-webhelp-assets-dir}/lib/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>-->
         
     </body>
 </html>

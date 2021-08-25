@@ -34,7 +34,8 @@ html, body {
 
 
 .wh_header{
-    background: #0085C3 none;
+    /*background: #0085C3 none;*/
+	background: #0076CE none;
     color: #ffffff;
 }
 
@@ -263,6 +264,17 @@ Example:
 */
 
 
+/* topic onpage reference display at top */
+#wh_topic_toc {
+    display:block;
+    clear: both;    
+}
+
+/* topic body obscuring mobile buttons for mobile version */
+#wh_topic_body{
+    min-width: 75%;
+    margin-left: -0.4em;
+}
 /*
  * ------------------------------------------------------------------
  *  
@@ -289,7 +301,8 @@ Example:
     display:block;
     margin:0;
     position:relative;
-    background-color: #0085C3;
+    /*background-color: #0085C3;*/
+	background-color: #0076CE;
     padding: 5px 0;
     width: 230px;
 }
@@ -375,6 +388,7 @@ Example:
     padding: .5em .5em;
     background-color: #f4f4f4;
     height: 100%;
+	width:inherit;
 }
 .wh_publication_toc .active>.topicref {
     background-color: #e4e4e4;
@@ -397,6 +411,12 @@ Example:
 
 .wh_publication_toc > ul > li{
     margin-top: 0.3em;
+}
+
+#wh_publication_toc {
+    padding-top: 0pt;
+    padding-left: 1em;
+    width: calc(100% - 1em);
 }
 
 .bookmap_part > .title > a {
@@ -426,6 +446,13 @@ Example:
     }
 }
 
+/* WH-1485: A wide table overflows the topic content area in the Responsive output. */
+.tablenoborder,
+.simpletable-container {
+    overflow-x: none;
+}
+
+
 /* Publication TOC tooltip */
 .wh_breadcrumb .topicref .wh-tooltip,
 .wh_publication_toc .topicref .wh-tooltip {
@@ -434,7 +461,8 @@ Example:
     font-size: 12px;
     border-radius: 0;
     box-shadow: 0 2px 5px 0 rgba(0,0,0,.08);
-    border: 1px solid #007DB8;
+    /*border: 1px solid #007DB8;*/
+	border: 1px solid #0076CE;
     display: block;
     /*align-items: baseline;*/
 
@@ -563,6 +591,7 @@ Example:
 
 .wh_content_area > .row{
     display: flex;
+	padding-left:0;
 }
 
 .wh_search_page .wh_content_area > .row{
@@ -924,6 +953,7 @@ html[dir='rtl'] .wh_logo {
 .wh_related_links .linklist{
     margin-left: 15px;
     margin-right: 15px;
+    margin-bottom: 1em;
 }
 
 .wh_related_links .related_link-header{
@@ -1066,3 +1096,35 @@ html[dir='rtl'] .wh_publication_toc ul ul {
     padding-right: 1em;
     padding-left: unset;
 }
+/* Moved changes from the original Oxygen CSS code STARTS HERE */
+
+/* Expand / collapse */
+table > caption,
+.topic > .title,
+.sectiontitle:not(.tasklabel),
+.wh_term_group > .wh_first_letter {
+    /* Headings appear indented. Should not be different across brands hence commented out and making compatible across brands */
+    /*padding-left: .7em*/
+    padding-left: 0em;
+}
+
+.oxy-icon-arrow-left{
+    padding-right:0.8em;
+}
+
+.wh_print_link,
+.wh_navigation_links,
+.wh_navigation_links .navnext,
+.wh_navigation_links .navprev{
+    /* commented this line as this line is breaking the icons of navigation links and displaying the link in a separate line
+        * changing the style of nav link icons to inline-flex*/
+    display: inline-flex;
+    /* display:inline-block; */
+    margin-left:0.5em;
+}
+
+.tablenoborder,
+.simpletable-container {
+    overflow-x: unset;
+}
+/* Moved changes from the original Oxygen CSS code ENDS HERE */

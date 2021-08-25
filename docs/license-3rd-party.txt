@@ -16,15 +16,79 @@ oxygen-webhelp/app/search/stemmers/de_stemmer.js                        		BSD 2-
 oxygen-webhelp/app/search/stemmers/fr_stemmer.js                        		BSD 2-Clause (Kasun Gajasinghe)
 oxygen-webhelp/app/search/stemmers/en_stemmer.js                        		BSD 2-Clause (http://tartarus.org/~martin/PorterStemmer/)
 oxygen-webhelp/app/util/parseuri.js                             				MIT License (author Steven Levithan)
-oxygen-webhelp/lib/jquery-ui/jquery-ui.min.js                       			MIT License (https://jqueryui.com/)
-oxygen-webhelp/lib/jquery/jquery-3.2.1.min.js                     				MIT License (https://jquery.org/license/, see oxygen-webhelp/lib/jquery/jquery.MIT-License.txt)
-oxygen-webhelp/lib/jquery-highlight/jquery.highlight-3.js           			MIT License (Johann Burkard <http://johannburkard.de>)
-oxygen-webhelp/lib/bootstrap/                                 					MIT License (CTwitter, https://github.com/twbs/bootstrap/blob/master/LICENSE)
-oxygen-webhelp/lib/maphighlight/jquery.maphilight.min.js            			MIT License (David Lynch, https://github.com/kemayo/maphilight/blob/master/MIT-LICENSE.txt)
-oxygen-webhelp/lib/jquery-bootpag/jquery.bootpag.js                 			MIT License (https://github.com/botmonster/jquery-bootpag)
-oxygen-webhelp/template/resources/fonts/Roboto-Bold.ttf							Apache-2.0 (http://www.apache.org/licenses/)
-oxygen-webhelp/template/resources/fonts/Roboto-Regular.ttf						Apache-2.0 (http://www.apache.org/licenses/)
-oxygen-webhelp/template/resources/fonts/Roboto-Thin.ttf							Apache-2.0 (http://www.apache.org/licenses/)
+
+
+Bootstrap v4.4.1 (https://getbootstrap.com/)                                    MIT License (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  - oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css 
+  - oxygen-webhelp/lib/bootstrap/js/bootstrap.bundle.min.js
+  
+jQuery v3.5.1 (https://jquery.org)                                              MIT License (https://jquery.org/license/)
+  - oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js
+  
+bootpag v1.07 (http://botmonster.com/jquery-bootpag/)                           MIT License (http://www.opensource.org/licenses/mit-license.php)
+  - oxygen-webhelp/lib/jquery-bootpag/jquery.bootpag.min.js
+
+highlight v3                                                                    MIT license (https://opensource.org/licenses/MIT)
+(https://johannburkard.de/blog/programming/javascript/highlight-javascript-text-higlighting-jquery-plugin.html)
+  - oxygen-webhelp/lib/jquery-highlight/jquery.highlight-3.js
+  
+jQuery UI v1.12.1  (http://jqueryui.com)                                        MIT License (https://jquery.org/license/) 
+  - oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css
+  - oxygen-webhelp/lib/jquery-ui/jquery-ui.min.js
+  
+kuromoji v0.1.1 (https://github.com/takuyaa/kuromoji.js)                        Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+  - oxygen-webhelp/lib/kuromoji/kuromoji.js
+  - oxygen-webhelp/lib/kuromoji/dict/base.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/cc.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/check.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/tid_map.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/tid_pos.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/tid.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/unk_char.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/unk_compat.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/unk_invoke.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/unk_map.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/unk_pos.dat.gz
+  - oxygen-webhelp/lib/kuromoji/dict/unk.dat.gz
+
+maphilight v1.3.1 (https://github.com/kemayo/maphilight)                        MIT License (https://github.com/kemayo/maphilight/blob/master/MIT-LICENSE.txt)
+  - oxygen-webhelp/lib/maphighlight/jquery.maphilight.min.js
+  
+RequireJS 2.3.5 (https://requirejs.org/)                                        MIT License (https://github.com/requirejs/requirejs/blob/master/LICENSE)
+  - oxygen-webhelp/lib/requirejs/require.js
+  
+rwdImageMaps v1.4 (https://github.com/stowball/jQuery-rwdImageMaps)             MIT License (https://github.com/stowball/jQuery-rwdImageMaps/blob/master/LICENSE)
+  - oxygen-webhelp/lib/rwdImageMaps/jquery.rwdImageMaps.min.js
+  
+Roboto Font (https://github.com/google/roboto/)                                 Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+  - templates/oxygen/resources/fonts/Roboto-Bold.ttf
+  - templates/oxygen/resources/fonts/Roboto-Light.ttf
+  - templates/oxygen/resources/fonts/Roboto-Regular.ttf
+  - templates/oxygen/resources/fonts/Roboto-Thin.ttf
+
+Oxygen WebHelp FeedBack third party libraries:
+
+oxygen-webhelp/feedback/resources/js/jquery.plugin.min.js                    	MIT License (http://keith-wood.name/licence.html)
+oxygen-webhelp/feedback/resources/js/base64.js                               	CC BY 2.0 UK (http://www.webtoolkit.info/, see oxygen-webhelp/feedback/resources/js/base64.Creative-Commons-License.txt)
+oxygen-webhelp/feedback/resources/js/parseuri.js                     			MIT License (author Steven Levithan)
+
+Bootstrap v4.4.1 (https://getbootstrap.com/)                                    MIT License (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  - oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css 
+  - oxygen-webhelp/lib/bootstrap/js/bootstrap.bundle.min.js
+
+CLEditor WYSIWYG Editor v1.4.4 (https://premiumsoftware.net/cleditor/)          MIT License (Chris Landowski, Premium Software, LLC)
+  - oxygen-webhelp/feedback/resources/css/jquery.cleditor.css
+  - oxygen-webhelp/feedback/resources/js/jquery.cleditor.min.js
+
+jQuery-QuickSearch - v2.0.0 (https://plugins.jquery.com/jquery.quicksearch/)    MIT License (http://deuxhuithuit.mit-license.org)
+  - oxygen-webhelp/feedback/resources/js/jquery.quicksearch.js                   	
+  
+Bootstrap v4.4.1 (https://getbootstrap.com/)                                    MIT License (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+  - oxygen-webhelp/feedback/resources/bootstrap/css/bootstrap.min.css
+  - oxygen-webhelp/feedback/resources/bootstrap/js/bootstrap.min.js
+
+jQuery v3.5.1 (https://jquery.org)                                              MIT License (https://jquery.org/license/)
+  - oxygen-webhelp/feedback/resources/js/jquery-3.5.1.min.js                 
 
 Additional Third Party Code in Oxygen WebHelp Plug-In (inside Oxygen XML) distribution:
 
@@ -42,17 +106,17 @@ xsl/dita/original/relpath_util.xsl                             					Apache-2.0 (
 
 Additional Third Party Code in standalone Oxygen WebHelp distribution:
 
-lib/ant-contrib-1.0b3.jar                                      					Apache-2.0 (see lib/ant.LICENSE.txt)
-lib/log4j.jar                                                  					Apache-2.0 (see lib/log4j.LICENSE.txt) 
-lib/lucene-analyzer-common-4.0.0.jar                           					Apache-2.0  with additional 3rd party licenses (see lib/lucene-4.0.LICENSE.txt)     
-lib/lucene-core-4.0.0.jar                                      					Apache-2.0  with additional 3rd party license (see lib/lucene-4.0.LICENSE.txt)     
-lib/resolver.jar                                               					Apache-2.0 (see lib/resolver.LICENSE.txt)     
-lib/xercesImpl.jar                                             					Apache-2.0 (see lib/xerces.LICENSE.txt)     
-lib/xhtml-indexer.jar                                          					BSD 3-Clause (see lib/xhtml-indexer.LICENSE.txt)    
-lib/xml-apis.jar                                               					Apache-2.0 (see lib/xml-apis.LICENSE.txt)
-lib/xml-apis-ext.jar                                           					Apache-2.0 (see lib/xml-apis.LICENSE.txt)
-lib/xslthl.jar                                                 					zlib/libpng License (see lib/xslthl.LICENSE.txt)
-
+../com.oxygenxml.common/lib/ant-contrib-1.0b3.jar              					Apache-2.0 (see ../com.oxygenxml.common/lib/ant.LICENSE.txt)
+../com.oxygenxml.common/lib/log4j-core-2.13.0.jar                   					Apache-2.0 (see ../com.oxygenxml.common/lib/log4j.LICENSE.txt)
+../com.oxygenxml.common/lib/log4j-1.2-api-2.13.0.jar                   					Apache-2.0 (see ../com.oxygenxml.common/lib/log4j.LICENSE.txt) 
+../com.oxygenxml.common/lib/lucene-analyzers-common-4.7.2.jar   					Apache-2.0  with additional 3rd party licenses (see ../com.oxygenxml.common/lib/lucene.LICENSE.txt)     
+../com.oxygenxml.common/lib/lucene-analyzers-kuromoji-4.7.2.jar					Apache-2.0  with additional 3rd party licenses (see ../com.oxygenxml.common/lib/lucene.LICENSE.txt)
+../com.oxygenxml.common/lib/lucene-core-4.7.2.jar              					Apache-2.0  with additional 3rd party license (see ../com.oxygenxml.common/lib/lucene.LICENSE.txt)     
+../com.oxygenxml.highlight/lib/xslthl-2.1.1.jar                					zlib/libpng License (see ../com.oxygenxml.highlight/lib/xslthl.LICENSE.txt)
+../com.oxygenxml.common/lib/activation-1.1.1.jar 								CDDL 1.0 (see: ../com.oxygenxml.common/lib/activation-1.1.1.jar\META-INF\LICENSE.txt)
+../com.oxygenxml.common/lib/jaxb-impl-2.3.0.1.jar 								CDDL 1.1 (see: https://javaee.github.io/glassfish/LICENSE)
+../com.oxygenxml.common/lib/jaxb-api-2.3.0.jar 									CDDL 1.1 (see: ../com.oxygenxml.common/lib/jaxb-api-2.3.0.jar\META-INF\LICENSE.txt)
+../com.oxygenxml.common/lib/jaxb-core-2.3.0.1.jar 								CDDL 1.1 (see https://javaee.github.io/glassfish/LICENSE)
 
 
 ========================= W3C ==================================================
