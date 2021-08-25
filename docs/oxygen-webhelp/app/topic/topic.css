@@ -1,12 +1,13 @@
 /*
 
 Oxygen WebHelp Plugin
-Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
+Copyright (c) 1998-2020 Syncro Soft SRL, Romania.  All rights reserved.
 
 */
 
-@import "elements-styles.css?buildId=2018061311";
-@import "print.css?buildId=2018061311";
+@import "elements.css?buildId=2020072412";
+@import "syntax-highlight.css?buildId=2020072412";
+@import "print.css?buildId=2020072412";
 
 #wh_print_link{
     margin-left: 5px;

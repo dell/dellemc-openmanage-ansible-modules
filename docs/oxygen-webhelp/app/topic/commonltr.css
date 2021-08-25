@@ -12,6 +12,35 @@
  *
  * See the accompanying LICENSE file for applicable license.
  */
+.hazardstatement td,
+.hazardstatement th {
+  padding: 0.5rem;
+}
+
+.hazardstatement th {
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.hazardstatement--caution {
+  background-color: #ffd100;
+}
+
+.hazardstatement--danger {
+  background-color: #c8102e;
+  color: #fff;
+}
+
+.hazardstatement--warning {
+  background-color: #ff8200;
+}
+
+.hazardstatement--attention, .hazardstatement--fastpath, .hazardstatement--important, .hazardstatement--note, .hazardstatement--notice, .hazardstatement--other, .hazardstatement--remember, .hazardstatement--restriction, .hazardstatement--tip {
+  background-color: #0072ce;
+  color: #fff;
+  font-style: italic;
+}
+
 .codeblock {
 	font-family: monospace;
 }
@@ -264,27 +293,14 @@ div.imagejustify {
 	margin-top: 1pc;
 }
 
-.topictitle3 {
+.topictitle3,
+.topictitle4,
+.topictitle5,
+.topictitle6 {
 	font-size: 1.17em;
 	font-weight: bold;
 	margin-bottom: 0.17em;
 	margin-top: 1pc;
-}
-
-.topictitle4 {
-	font-size: 1.17em;
-	font-weight: bold;
-	margin-top: 0.83em;
-}
-
-.topictitle5 {
-	font-size: 1.17em;
-	font-weight: bold;
-}
-
-.topictitle6 {
-	font-size: 1.17em;
-	font-style: italic;
 }
 
 .sectiontitle {
@@ -321,7 +337,14 @@ div.imagejustify {
 }
 
 .linklist {
-	margin-bottom: 1em;
+	margin-top: 0em;
+	margin-bottom: 0em;
+}
+
+ul.linklist {
+  margin-top: 0;
+  list-style-type: none;
+  padding-left: 0;
 }
 
 .linklistwithchild {
@@ -464,6 +487,7 @@ dt.prereq {
 }
 
 table {
+	margin: 1em;
 	border-collapse: collapse;
 }
 
@@ -569,13 +593,9 @@ table .desc {
 	margin-top: 1em;
 }
 
-/* div with class=p is used for paragraphs that contain blocks, to keep the XHTML valid */
-.p {
-	margin-top: 1em;
-}
-
 .linklist {
-	margin-bottom: 1em;
+	margin-top: 0em;
+	margin-bottom: 0em;
 }
 
 .linklistwithchild {
@@ -618,7 +638,8 @@ dt.prereq {
 *[dir] *[dir] *[dir='rtl'] .linklist,
 *[dir] *[dir] *[dir] *[dir='rtl'] .linklist,
 *[dir] *[dir] *[dir] *[dir] *[dir='rtl'] .linklist {
-   margin-bottom: 1em;
+   margin-top: 0em;
+   margin-bottom: 0em;
 }
 
 *[dir='rtl'] .linklistwithchild,

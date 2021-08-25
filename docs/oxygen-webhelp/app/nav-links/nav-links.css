@@ -7,7 +7,7 @@
 
 .wh_publication_toc .wh-expand-btn:before{
     display: inline-block;
-    font-family: "Glyphicons Halflings", serif;
+    font-family: "oXygen WebHelp", serif;
     font-size: .7em;
     font-weight: lighter;
     font-style: normal;
@@ -29,12 +29,12 @@
 }
 
 .wh_publication_toc span[data-state=expanded] > .wh-expand-btn:before {
-    content: "\e259";
+    content: "p";
 }
 
 .wh_publication_toc span[data-state=not-ready]  > .wh-expand-btn:before,
 .wh_publication_toc span[data-state=collapsed] > .wh-expand-btn:before {
-    content: "\e258";
+    content: "q";
 }
 
 .wh_publication_toc span[data-state=collapsed] ~ ul {
@@ -55,9 +55,11 @@
     transition: border 1s;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@media screen {
+	@keyframes spin {
+	    0% { transform: rotate(0deg); }
+	    100% { transform: rotate(360deg); }
+	}
 }
 
 /* WH-1565 Inherit the styles of the parent node */
@@ -68,10 +70,12 @@
 
 /* ------------------ Menu --------------------------- */
 
-@keyframes blink {
-    0% { opacity: .2; }
-    20% { opacity: 1; }
-    100% { opacity: .2; }
+@media screen {
+	@keyframes blink {
+	    0% { opacity: .2; }
+	    20% { opacity: 1; }
+	    100% { opacity: .2; }
+	}
 }
 
 .wh_top_menu .loading {

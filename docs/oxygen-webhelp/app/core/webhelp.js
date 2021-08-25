@@ -1,4 +1,4 @@
-define(['util', 'jquery', 'jquery.highlight'], function(util, $) {
+define(["options", 'util', 'jquery', 'jquery.highlight'], function(options, util, $) {
     // Add some Bootstrap classes when document is ready
     var highlighted = false;
 
@@ -37,25 +37,41 @@ define(['util', 'jquery', 'jquery.highlight'], function(util, $) {
             $(this).hide();
         });
 
-        // Get the image and insert it inside the modal - use its "alt" text as a caption
-        $('img.image:not([usemap]):not(.image-link)').click(function(){
-            $('#modal_img_large').css("display","block");
-            $("#modal-img").attr('src',$(this).attr('src') );
-            $("#caption").html( $(this).attr('alt') );
-        });
+		// WH-2209
+        var showZoomedImage = options.getBoolean("webhelp.show.full.size.image");
+        if (showZoomedImage) {
+            // Get the image and insert it inside the modal - use its "alt" text as a caption
+            $.each( $('img.image:not([usemap]):not(.image-link)'), function (e) {
+                 var parentElement = $(this).parent().get(0).tagName;
+                 if(this.naturalWidth > this.width && parentElement.toLowerCase() != 'a'){
+                     $(this).addClass('zoom');
+                 }
+             });
+            $('.zoom').click(function(){
+                $('#modal_img_large').css("display","block");
+                $("#modal-img").attr('src',$(this).attr('src') );
+                $("#caption").html( $(this).attr('alt') );
+            });
+        }
 
         // When the user clicks on (x), close the modal
         $(".modal .close").click(function(){
             $(".modal").css("display","none");
         });
+        $(document).keyup(function(e) {
+            if (e.keyCode == 27 && $('#modal_img_large').is(":visible")) { // escape key maps to keycode `27`
+               $(".modal").css("display","none");
+           }
+       });
 
         // Navigational links and print
-        $('#topic_navigation_links .navprev>a').addClass("glyphicon glyphicon-arrow-left");
-        $('#topic_navigation_links .navnext>a').addClass("glyphicon glyphicon-arrow-right");
-        $('.wh_print_link button').addClass('glyphicon glyphicon-print');
+        $('#topic_navigation_links .navprev>a').addClass("oxy-icon oxy-icon-arrow-left");
+        $('#topic_navigation_links .navnext>a').addClass("oxy-icon oxy-icon-arrow-right");
+        $('.wh_print_link button').addClass('oxy-icon oxy-icon-print');
 
         // Hide sideTOC when it is empty
         var sideToc = $('#wh_publication_toc');
+        var pageToc = $('#wh_topic_toc');
         if (sideToc !== undefined) {
             var sideTocChildren = sideToc.find('*');
             if (sideTocChildren.length == 0) {
@@ -64,7 +80,7 @@ define(['util', 'jquery', 'jquery.highlight'], function(util, $) {
                 // The topic content should span on all 12 columns
                 sideToc.removeClass('col-lg-4 col-md-4 col-sm-4 col-xs-12');
                 var topicContentParent = $('.wh_topic_content').parent();
-                if (topicContentParent !== undefined) {
+                if (topicContentParent !== undefined && pageToc == undefined) {
                     topicContentParent.removeClass(' col-lg-8 col-md-8 col-sm-8 col-xs-12 ');
                     topicContentParent.addClass(' col-lg-12 col-md-12 col-sm-12 col-xs-12 ');
                 }
@@ -256,9 +272,9 @@ function handleSideTocPosition(scrollPosition) {
         }
         if (tocHeight  <=   visibleAreaHeight) {
             var cHeight = parseInt($('.wh_content_area').height());
-            if (parseInt(minVisibleOffset - topOffset) <=  $(window).scrollTop()) {
+            if (parseInt(minVisibleOffset - topOffset) <=  $(window).scrollTop() && parseInt($(window).width()) > 767) {
                 $('.wh_content_area').css('min-height', cHeight+'px');
-                $sideToc.css("top", topOffset + "px").css("width", tocWidth + "px").css("position", "fixed");
+                $sideToc.css("top", topOffset + "px").css("width", tocWidth + "px").css("position", "fixed").css("z-index", "999");
             } else {
                 $sideToc.removeAttr('style');
             }
@@ -275,32 +291,57 @@ function handleSideTocPosition(scrollPosition) {
  * @description Highlight the current node in the page toc section on scroll change
  */
 function pageTocHighlightNode(scrollPosition) {
-    var scrollPosition = scrollPosition !== undefined ? scrollPosition : 0;
+    var scrollPosition = scrollPosition !== undefined ? Math.round(scrollPosition) : 0;
     var topOffset = 150;
+    var hash = location.hash != undefined ? location.hash : "";
+    var hashOffTop = $(hash).offset() != undefined ? $(hash).offset().top : 0;
+    var elemHashTop =  hash != "" ? Math.round(hashOffTop) : 0;
 
-    $.each( $('.wh_topic_content .title'), function () {
-        var currentId = $(this).parent().attr('id');
+    if( hash.substr(1) != '' && elemHashTop >= scrollPosition && (elemHashTop <= (scrollPosition + topOffset)) ){
+        $('#wh_topic_toc a').removeClass('current_node');
+        $('#wh_topic_toc a[data-tocid = "'+ hash.substr(1) + '"]').addClass('current_node');
+    } else {
+        $.each( $('.wh_topic_content .title'), function (e) {
+            var currentId = $(this).parent().attr('id');
+            var elemTop = Math.round($(this).offset().top);
 
-        if( ($(this).offset().top - topOffset) <  $(window).scrollTop() && ( $(this).offset().top >  $(window).scrollTop()) ){
-            $('#wh_topic_toc a').removeClass('current_node');
-            $('#wh_topic_toc a[data-tocid = "'+ currentId + '"]').addClass('current_node');
-        }
-    });
+            if( elemTop >= scrollPosition && (elemTop <= (scrollPosition + topOffset)) ){
+                $('#wh_topic_toc a').removeClass('current_node');
+                $('#wh_topic_toc a[data-tocid = "'+ currentId + '"]').addClass('current_node');
+            }
+        });
+        $.each( $('.wh_topic_content .tasklabel'), function () {
+            if ($(this).parent().attr('id')) {
+                var currentId = $(this).parent().attr('id');
+                if( ($(this).offset().top - topOffset) <  $(window).scrollTop() && ( $(this).offset().top >  $(window).scrollTop()) ){
+                    $('#wh_topic_toc a').removeClass('current_node');
+                    $('#wh_topic_toc a[data-tocid = "'+ currentId + '"]').addClass('current_node');
+                }
+            }
+        });
+    }
     return $(window).scrollTop();
 }
+
+
 
 /**
  * @description Handle the vertical position of the page toc
  */
 function handlePageTocPosition(scrollPosition) {
-    var scrollPosition = scrollPosition !== undefined ? scrollPosition : 0;
+    scrollPosition = scrollPosition !== undefined ? scrollPosition : 0;
     var $pageTOCID = $("#wh_topic_toc");
     var $pageTOC = $(".wh_topic_toc");
     var $navSection = $(".wh_tools");
+    /* added for floating TOC bug IDPL_13923 
+     * Fix By:986204
+     **/
+    var $topicContentSection = $("#topic_content");
+    
     var bottomNavOffset = 0;
     var $slideSection = $('#wh_topic_body');
-    var topOffset = 33;
-    
+    var topOffset = 22;
+
     if($pageTOC.length > 0){
         pageTocHighlightNode(scrollPosition);
 
@@ -308,7 +349,13 @@ function handlePageTocPosition(scrollPosition) {
             var minVisibleOffset = $(window).scrollTop();
             var tocHeight = parseInt($pageTOC.height()) + parseInt($pageTOC.css("padding-top")) + parseInt($pageTOC.css("padding-bottom")) + parseInt($pageTOC.css("margin-top")) + parseInt($pageTOC.css("margin-bottom"));
             var tocWidth =  parseInt($pageTOCID.outerWidth()) - parseInt($pageTOCID.css("padding-left")) - parseInt($pageTOCID.css("padding-right"));
-            var tocXNav = parseInt($slideSection.offset().left) + parseInt($slideSection.width()) + parseInt($slideSection.css('padding-left')) + parseInt($slideSection.css('padding-right')) + parseInt($pageTOCID.css('padding-left')) + 1;
+            // var tocXNav = parseInt($slideSection.width()) + parseInt($slideSection.css('padding-left')) + parseInt($slideSection.css('padding-right')) + parseInt($pageTOCID.css('padding-left')) + 1;
+            // var tocXNav = parseInt($slideSection.offset().left) + parseInt($slideSection.width()) + parseInt($slideSection.css('padding-left')) + parseInt($slideSection.css('padding-right')) + parseInt($pageTOCID.css('padding-left')) + 1;
+
+            /* added for floating TOC bug IDPL_13923 
+             * Fix By:986204
+             **/
+            var topicContentHeight = parseInt($topicContentSection.height()) + parseInt($topicContentSection.css("padding-top")) + parseInt($topicContentSection.css("padding-bottom")) + parseInt($topicContentSection.css("margin-top")) + parseInt($topicContentSection.css("margin-bottom"));
 
             if (scrollPosition > $(window).scrollTop()) {
                 if ($pageTOC.offset().top < $pageTOC.parent().offset().top) {
@@ -328,7 +375,33 @@ function handlePageTocPosition(scrollPosition) {
             }
             if (tocHeight < $slideSection.height()) {
                 if (parseInt(minVisibleOffset - topOffset) <= $(window).scrollTop()) {
-                    $pageTOC.css("top", "20px").css("position", "fixed").css("left", tocXNav + "px").css("width", tocWidth + "px");
+                    /* IDPL_13923 Bug Fix code starts */
+                var windowswidth = $(window).width();
+				//console.log("windows width (" + windowswidth + ") pagetocWidth (" + tocWidth + ")");
+				if(windowswidth < 481)
+				{// Itâ€™s a Phone.
+					//console.log("phone size");
+					$pageTOC.css("display","none !important");
+				}
+				else if(windowswidth < 769)
+				{	
+				// Itâ€™s a tablet.
+					//console.log("tab size");
+					$pageTOC.css("display","none !important");
+				}
+				else 
+				{ 
+					// Itâ€™s a desktop/laptop.
+					//console.log("desktop/laptop size");
+					if((windowswidth > 769 && windowswidth <= 1000)){
+						$pageTOC.css("top", topicContentHeight + 20 + "px").css("position", "fixed").css("width", tocWidth + "px");
+					} else {
+						$pageTOC.css("top", "20px").css("position", "fixed").css("width", tocWidth + "px");
+					}
+					
+				}
+                /* IDPL_13923 Bug Fix code ends */
+                //$pageTOC.css("top", "20px").css("position", "fixed").css("width", tocWidth + "px").css("height", tocHeight + "px");
                 } else {
                     $pageTOC.removeAttr('style');
                 }

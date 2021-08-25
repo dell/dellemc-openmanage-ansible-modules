@@ -8,7 +8,7 @@
 .wh-tooltip-container .wh-tooltip,
 .wh_breadcrumb .topicref .wh-tooltip,
 .wh_publication_toc .topicref .wh-tooltip {
-    display: flex;
+    display: block;
     align-items: baseline;
     visibility: hidden;
     background-color: #444;
@@ -50,27 +50,28 @@
 }
 
 /* Tooltip positioning. */
-
-[data-tooltip-position="left"] .wh-tooltip {
-    top: -0.5em;
-    right: calc(100% + 1em);
-}
-
-[data-tooltip-position="right"] .wh-tooltip {
-    top: -0.5em;
-    left: calc(100% + .4em);
-}
-
-[data-tooltip-position="top"] .wh-tooltip {
-    bottom: 100%;
-}
-
-[data-tooltip-position="bottom"] .wh-tooltip {
-    top: 100%;
-}
-
-[data-tooltip-position="hidden"] .wh-tooltip {
-    display:none;
+@media screen {
+	[data-tooltip-position="left"] .wh-tooltip {
+	    top: -0.5em;
+	    right: 105%;
+	}
+	
+	[data-tooltip-position="right"] .wh-tooltip {
+	    top: -0.5em;
+	    left: 105%;
+	}
+	
+	[data-tooltip-position="top"] .wh-tooltip {
+	    bottom: 100%;
+	}
+	
+	[data-tooltip-position="bottom"] .wh-tooltip {
+	    top: 100%;
+	}
+	
+	[data-tooltip-position="hidden"] .wh-tooltip {
+	    display:none !important;
+	}
 }
 
 /* Tooltip arrow. */

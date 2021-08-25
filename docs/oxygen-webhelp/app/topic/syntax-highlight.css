@@ -1,0 +1,60 @@
+.hl-json_key {
+	color: #7263B9
+}
+
+.hl-keyword {
+	color: #7f0055
+}
+
+.hl-string {
+	color: #2a00ff
+}
+
+.hl-comment {
+	color: #006400
+}
+
+.hl-directive {
+	color: #8b26c9
+}
+
+.hl-tag {
+	color: #000096
+}
+
+.hl-attribute {
+	color: #ff7935
+}
+
+.hl-value {
+	color: #993300
+}
+
+.hl-html {
+	color: navy;
+	font-weight: bold
+}
+
+.hl-xsl {
+	color: #0066FF
+}
+
+.hl-section {
+	
+}
+
+.hl-number {
+	
+}
+
+.hl-annotation {
+	color: gray
+}
+
+.hl-tag-doctype-comment {
+	color: #3f5fbf
+}
+
+.hl-tag-doctype {
+	color: #0000ff
+}

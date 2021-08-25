@@ -1,16 +1,8 @@
 
 <!DOCTYPE html
-  PUBLIC "" "about:legacy-compat">
+  SYSTEM "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
-    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Module: redfish_storage_volume Synopsis This module allows to create, modify, initialize, or delete a single storage volume. Options Table 1. redfish_storage_volume Parameter Required Default Choices ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Relation" scheme="URI" content="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" /><meta name="DC.Relation" scheme="URI" content="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B.html" /><meta name="DC.Relation" scheme="URI" content="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.Publisher" content="June 2020" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="GUID-478264E9-EA27-4961-B194-BA7DE083DB18" /><meta name="DC.Language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /><title>Manage storage volume configuration</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap-theme.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.2.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script>
-				$(document).ready(function() {
-					var metaelement = $("[name=meta-topic-title]");
-					var newTitle = $(metaelement).attr("content");
-					if(newTitle){
-						document.title = newTitle;
-					}
-				});
-			</script></head>
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: redfish_storage_volume Synopsis This module allows to create, modify, initialize, or delete a single storage volume. Options Table 1. redfish_storage_volume Parameter Required Default Choices ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" /><meta name="DC.relation" scheme="URI" content="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B.html" /><meta name="DC.relation" scheme="URI" content="GUID-90768038-3DE5-44E2-AA9E-6AD58AAA6128.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="August 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-478264E9-EA27-4961-B194-BA7DE083DB18" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /><title>Manage storage volume configuration</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
 
     <body data-lang="en-us" class="wh_topic_page">
         <a href="#wh_topic_body" class="sr-only sr-only-focusable">
@@ -22,7 +14,7 @@
 
         <header class="navbar navbar-default wh_header">
     <div class="container-fluid">
-        <div class="wh_header_flex_container">
+        <div class="wh_header_flex_container navbar-nav navbar-expand-md navbar-dark">
             <div class="wh_logo_and_publication_title_container">
                 <div class="logo_and_publication_title">
                     
@@ -31,8 +23,8 @@
                             'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
                             See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
                     -->
-                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /></a>
-                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules<span class="pipe-separator"></span></span><span class="booktitlealt">Version 2.1 User’s Guide</span></span></div>
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.0.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
                     
                 </div>
                 
@@ -42,15 +34,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div><script><!--
-							$(document).ready(function () {
-							$('#searchForm').submit(function (e) {
-							if ($('.wh_search_textfield').val().length < 1) {
-							e.preventDefault();
-							}
-							});
-							});
-						--></script></form></div>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div></form></div>
             </div>
 
         </div>
@@ -58,15 +42,7 @@
 </header>
         <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
             
-            <nav class=" wh_top_menu "><ul>
-   <li><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li>
-   <li><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf" class=" topicref " data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789"><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html">Accessing documents from the Dell EMC support site</a></span></span></li>
-</ul></nav>
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
             <!--<whc:webhelp_indexterms_link/>-->
             
         </div>
@@ -76,371 +52,358 @@
                 <div class="row">
                     
                         <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
-                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span></li>
-   <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-23042353-CF15-4A5E-B0BA-627788A063AA" class="topicref" data-id="GUID-23042353-CF15-4A5E-B0BA-627788A063AA" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-23042353-CF15-4A5E-B0BA-627788A063AA.html" id="GUID-23042353-CF15-4A5E-B0BA-627788A063AA-link">How OpenManage Ansible Modules work with Redfish APIs</a></span></span></li>
-         <li role="treeitem"><span data-tocid="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B" class="topicref" data-id="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B.html" id="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B-link">Firmware update using standard Redfish URI</a></span></span></li>
-         <li role="treeitem" class="active"><span data-tocid="GUID-478264E9-EA27-4961-B194-BA7DE083DB18" class="topicref" data-id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-478264E9-EA27-4961-B194-BA7DE083DB18.html" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18-link">Manage storage volume configuration</a></span></span></li>
-      </ul>
-   </li>
-   <li role="treeitem"><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" class="topicref" data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789-link">Accessing documents from the Dell EMC support site</a></span></span></li>
-</ul></div>
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-23042353-CF15-4A5E-B0BA-627788A063AA" class="topicref" data-id="GUID-23042353-CF15-4A5E-B0BA-627788A063AA" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-23042353-CF15-4A5E-B0BA-627788A063AA.html" id="GUID-23042353-CF15-4A5E-B0BA-627788A063AA-link">How OpenManage Ansible Modules work with Redfish APIs</a></span></span></li><li role="treeitem"><span data-tocid="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B" class="topicref" data-id="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B.html" id="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B-link">Firmware update using standard Redfish URI</a></span></span></li><li role="treeitem" class="active"><span data-tocid="GUID-478264E9-EA27-4961-B194-BA7DE083DB18" class="topicref" data-id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-478264E9-EA27-4961-B194-BA7DE083DB18.html" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18-link">Manage storage volume configuration</a></span></span></li><li role="treeitem"><span data-tocid="GUID-90768038-3DE5-44E2-AA9E-6AD58AAA6128" class="topicref" data-id="GUID-90768038-3DE5-44E2-AA9E-6AD58AAA6128" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-90768038-3DE5-44E2-AA9E-6AD58AAA6128.html" id="GUID-90768038-3DE5-44E2-AA9E-6AD58AAA6128-link">Manage device power state</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
                         </nav>
                     
 
-                    <div class="col-lg-7 col-md-9 col-sm-9 col-xs-12" id="wh_topic_body">
+                    <div id="wh_topic_body" class="col-lg-7 col-md-9 col-sm-9 col-xs-12">
                         <div class="container-fluid">
                             <div class="row">
-                                <nav class="wh_tools hidden-print col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="hidden-print"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li>
-   <li><span class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li>
-   <li class="active"><span class="topicref" data-id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18"><span class="title"><a href="GUID-478264E9-EA27-4961-B194-BA7DE083DB18.html">Manage storage volume configuration</a></span></span></li>
-</ol></div>
+                                <!--  -->
+                                <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18"><span class="title"><a href="GUID-478264E9-EA27-4961-B194-BA7DE083DB18.html">Manage storage volume configuration</a></span></span></li></ol></div>
 
                                     <div class="wh_right_tools hidden-sm hidden-xs">
                                         <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
   
-<span class="navprev"><a class="link" href="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B.html" title="Firmware update using standard Redfish URI" aria-label="Previous topic: Firmware update using standard Redfish URI" rel="prev"></a></span>  
-<span class="navnext"><a class="link" href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" title="Accessing documents from the Dell EMC support site" aria-label="Next topic: Accessing documents from the Dell EMC support site" rel="next"></a></span>  </span></div>
+<span class="navprev"><a class="- topic/link link" href="GUID-418D8F9D-C821-497E-BC9B-866802BFBB9B.html" title="Firmware update using standard Redfish URI" aria-label="Previous topic: Firmware update using standard Redfish URI" rel="prev"></a></span>  
+<span class="navnext"><a class="- topic/link link" href="GUID-90768038-3DE5-44E2-AA9E-6AD58AAA6128.html" title="Manage device power state" aria-label="Next topic: Manage device power state" rel="next"></a></span>  </span></div>
                                         <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
                                         <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
                                     </div>
                                 </nav>
                             </div>
-                            <div class="row">
-                                <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12" id="topic_content">
+                            <div class="row topic_content_row">
+                                <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
                                     <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__GUID-8ABE4C25-4351-4E6C-8F03-B9BD6DB8B332"> 
-  <h1 class="title topictitle1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__GUID-8ABE4C25-4351-4E6C-8F03-B9BD6DB8B332">Manage storage volume configuration</h1> 
-  <div class="body refbody"> 
-	 <section class="section" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__GUID-D3DA7CCF-25FA-4476-BB5E-CCF616D8CEAE"> 
+  <h1 class="- topic/title title topictitle1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__GUID-8ABE4C25-4351-4E6C-8F03-B9BD6DB8B332">Manage storage volume configuration</h1> 
+  <div class="- topic/body reference/refbody body refbody"> 
+	 <section class="- topic/section section" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__GUID-D3DA7CCF-25FA-4476-BB5E-CCF616D8CEAE"> 
 		<span class="ph uicontrol bold">Module: redfish_storage_volume</span> 
 	 </section> 
-	 <section class="section" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__SECTION_FF005F7BB3574969A9982A98B2D4C23F"><span class="ph uicontrol bold">Synopsis</span> 
-		<p class="p">This module allows to create, modify, initialize, or delete a single storage volume. 
+	 <section class="- topic/section section" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__SECTION_FF005F7BB3574969A9982A98B2D4C23F"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="- topic/p p">This module allows to create, modify, initialize, or delete a single storage volume. 
 		</p> 
-		<p class="p"><span class="ph uicontrol bold">Options</span> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
 		</p> 
-		<table class="table all  pgwide" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A"><caption><span class="table-anchor" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A"></span><span class="tablecap"><span class="table-label">Table 1. </span>redfish_storage_volume</span></caption><colgroup><col style="width:23.473541383989144%" /><col style="width:14.24694708276798%" /><col style="width:13.568521031207597%" /><col style="width:26.865671641791046%" /><col style="width:21.845318860244234%" /></colgroup><thead class="thead"> 
-			 <tr> 
-				<th class="entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1">Parameter 
+		<table class="- topic/table table all pgwide" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A"><caption><span class="table-anchor" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A"></span><span class="tablecap"><span class="table-label">Table 1. </span>redfish_storage_volume</span></caption><colgroup><col style="width:23.473541383989144%" /><col style="width:14.24694708276798%" /><col style="width:13.568521031207597%" /><col style="width:26.865671641791046%" /><col style="width:21.845318860244234%" /></colgroup><thead class="- topic/thead thead"> 
+			 <tr class="- topic/row"> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1">Parameter 
 				</th> 
-				<th class="entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">Required 
+				<th class="- topic/entry entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">Required 
 				</th> 
-				<th class="entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">Default 
+				<th class="- topic/entry entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">Default 
 				</th> 
-				<th class="entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">Choices 
+				<th class="- topic/entry entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">Choices 
 				</th> 
-				<th class="entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5">Comments 
+				<th class="- topic/entry entry cellrowborder" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5">Comments 
 				</th> 
-			 </tr></thead><tbody class="tbody"> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 ">baseuri 
+			 </tr></thead><tbody class="- topic/tbody tbody"> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1">baseuri 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">True 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">True 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> IP address of the target out-of-band controller. For example- &lt;ipaddress&gt;:&lt;port&gt; 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> IP address of the target out-of-band controller. For example- &lt;ipaddress&gt;:&lt;port&gt; 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> username 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> username 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">True 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">True 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> Username of the target out-of-band controller. 
-				</td> 
-			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> password 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">True 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
-				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> Password of the target out-of-band controller. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> Username of the target out-of-band controller. 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> controller_id 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> password 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">True 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> Password of the target out-of-band controller. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> controller_id 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_B2106977F38C4FD692F0164B73DE9CF0"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_140C31CF732D49AFA02994F4177155E8"> Fully Qualified Device Descriptor (FQDD) of the storage controller. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_140C31CF732D49AFA02994F4177155E8"> Fully Qualified Device Descriptor (FQDD) of the storage controller. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_53B22CC8BD5848B9A4ACBE8183547958"> For example- RAID.Slot.1-1. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_53B22CC8BD5848B9A4ACBE8183547958"> For example- RAID.Slot.1-1. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_41539382C4124E04B14CDD69364386AF"> This option is mandatory when I(state) is C(present) when creating a volume. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_41539382C4124E04B14CDD69364386AF"> This option is mandatory when I(state) is C(present) when creating a volume. 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> volume_id 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> volume_id 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_25302C9FB0154810ACF03C43E222F5EA"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_AF9FB92C6564433E8820024A25043749"> FQDD of existing volume. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_AF9FB92C6564433E8820024A25043749"> FQDD of existing volume. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_AC632C9C0872416489941000C9FC692F"> For example- Disk.Virtual.4:RAID.Slot.1-1. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_AC632C9C0872416489941000C9FC692F"> For example- Disk.Virtual.4:RAID.Slot.1-1. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_3A093F1A1BCE47CF9CEA81C456F1467C"> This option is mandatory in the following scenarios-: 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_3A093F1A1BCE47CF9CEA81C456F1467C"> This option is mandatory in the following scenarios-: 
 						<ul class="level2" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_46CC5492626D471E90FFA7C6DD112473"> 
-						  <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_4CCE6FF5940344E2AC78840B79686046"> I(state) is C(present), when updating a volume. 
+						  <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_4CCE6FF5940344E2AC78840B79686046"> I(state) is C(present), when updating a volume. 
 						  </li> 
-						  <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_F78596154C5D4F94B980FFBD2D55A92F"> I(state) is C(absent), when deleting a volume. 
+						  <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_F78596154C5D4F94B980FFBD2D55A92F"> I(state) is C(absent), when deleting a volume. 
 						  </li> 
-						  <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_48B87C31D3A64A77BDDD8BCBDEEDA214"> I(command) is C(initialize), when initializing a volume. 
+						  <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_48B87C31D3A64A77BDDD8BCBDEEDA214"> I(command) is C(initialize), when initializing a volume. 
 						  </li> 
 						</ul> 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 ">state 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1">state 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">Present, or absent. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">Present, or absent. 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_C3BC5782B7B7469E89C1B5BFEB186FB0"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_DB3B9BC51D26450D9791BABE6166CD79"> C(present) creates a storage volume for a specified I (controller_id), or modifies the storage volume for a specified I (volume_id). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_DB3B9BC51D26450D9791BABE6166CD79"> C(present) creates a storage volume for a specified I (controller_id), or modifies the storage volume for a specified I (volume_id). 
 						<div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>Modification of an existing volume depends on drive and controller capabilities. 
 						</div></td></tr></tbody></table></div> 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_CC9032750B12458590DDDBF1441CCEDB"> C(absent) deletes the volume for a specified I(volume_id). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_CC9032750B12458590DDDBF1441CCEDB"> C(absent) deletes the volume for a specified I(volume_id). 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 ">command 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1">command 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">Initialize 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">Initialize 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> C(initialize) initializes an existing storage volume for a specified I (volume_id). 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> C(initialize) initializes an existing storage volume for a specified I (volume_id). 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> volume_type 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> volume_type 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NonRedundant, Mirrored,StripedWithParity, SpannedMirrors, or SpannedStripesWithParity. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NonRedundant, Mirrored,StripedWithParity, SpannedMirrors, or SpannedStripesWithParity. 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> One of the following volume types must be selected to create a volume- 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> One of the following volume types must be selected to create a volume- 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_0A637AFA41D7497284499CD7B655A13B"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_7780E92774CF4832AA3048B7091BED00">C(Mirrored) The volume is a mirrored device. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_7780E92774CF4832AA3048B7091BED00">C(Mirrored) The volume is a mirrored device. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_3243C9B4502A4FC2A475F8A1BEDF614F"> C(NonRedundant) The volume is a non-redundant storage device. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_3243C9B4502A4FC2A475F8A1BEDF614F"> C(NonRedundant) The volume is a non-redundant storage device. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_44B3B311CA57411B9A8FD39DA2CEEA16"> C(SpannedMirrors) The volume is a spanned set of mirrored devices. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_44B3B311CA57411B9A8FD39DA2CEEA16"> C(SpannedMirrors) The volume is a spanned set of mirrored devices. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_FCC7EE624DB949BB8C3E08DC186161FE">C(SpannedStripesWithParity) The volume is a spanned set of devices which uses parity to retain redundant information. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_FCC7EE624DB949BB8C3E08DC186161FE">C(SpannedStripesWithParity) The volume is a spanned set of devices which uses parity to retain redundant information. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_A9F462AA00754FA7B4FFBAE5CE0C30E1">C(StripedWithParity) The volume is a device which uses parity to retain redundant information. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_A9F462AA00754FA7B4FFBAE5CE0C30E1">C(StripedWithParity) The volume is a device which uses parity to retain redundant information. 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> name 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> name 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_411AFCABA2F543B9801AF3AC76BF5A53"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_7B113C27E6EA4AC4812FCF01B5483C0B"> Name of the volume to be created. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_7B113C27E6EA4AC4812FCF01B5483C0B"> Name of the volume to be created. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_ADC2913051C24198975123809F4F0BC2"> Only applicable when I(state) is C(present). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_ADC2913051C24198975123809F4F0BC2"> Only applicable when I(state) is C(present). 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> drives 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> drives 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_BEA306CC401C443A83A8427918754763"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_B17548B3A30C4282B4836449FB9493EE"> FQDD of the Physical disks. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_B17548B3A30C4282B4836449FB9493EE"> FQDD of the Physical disks. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_1150F9EAB5AD4997814D078CDC42A5C5"> For example- Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_1150F9EAB5AD4997814D078CDC42A5C5"> For example- Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_4CB5317420F14976B0527E37E9638FD0"> Only applicable when I(state) is C(present) when creating a new volume. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_4CB5317420F14976B0527E37E9638FD0"> Only applicable when I(state) is C(present) when creating a new volume. 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> block_size_bytes 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> block_size_bytes 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> Block size in bytes.Only applicable when I(state) is C(present). 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> Block size in bytes.Only applicable when I(state) is C(present). 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> capacity_bytes 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> capacity_bytes 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_0BD8C178E82341B48152887B1B180512"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_71047A73EE3C4FC69583A3857AA1ECD6"> Virtual disk size in bytes. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_71047A73EE3C4FC69583A3857AA1ECD6"> Virtual disk size in bytes. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_BE2203E7CC2E4BFCBD3E5F2132849796"> Only applicable when I(state) is C(present). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_BE2203E7CC2E4BFCBD3E5F2132849796"> Only applicable when I(state) is C(present). 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> optimum_io_size_bytes 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> optimum_io_size_bytes 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_7090872B12B94AC4BE8ECBBD586E1821"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_72747B441D2E485AB04E0A417CF0C2D6"> Stripe size value must be in multiples of 64 * 1024. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_72747B441D2E485AB04E0A417CF0C2D6"> Stripe size value must be in multiples of 64 * 1024. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_226C77836DFD481787F2DF8D8FC0D709"> Only applicable when I(state) is C(present). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_226C77836DFD481787F2DF8D8FC0D709"> Only applicable when I(state) is C(present). 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> encryption_types 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> encryption_types 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NativeDriveEncryption, ControllerAssisted, or SoftwareAssisted. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NativeDriveEncryption, ControllerAssisted, or SoftwareAssisted. 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> The following encryption types can be selected. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> The following encryption types can be selected. 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_CB9EEE66DEBE4856A03AC276BF29280E"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_62AD3D0DAA3341BC9270B29D8AAAA4DC"> C(ControllerAssisted) The volume is encrypted by the storage controller entity. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_62AD3D0DAA3341BC9270B29D8AAAA4DC"> C(ControllerAssisted) The volume is encrypted by the storage controller entity. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_F07DE5878B23404498E814004C5F79CF">C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities of the drive hardware. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_F07DE5878B23404498E814004C5F79CF">C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities of the drive hardware. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_5AE7E09CBFE442F9A49C3494183A8608">C(SoftwareAssisted) The volume is encrypted by the software running on the system or the operating system. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_5AE7E09CBFE442F9A49C3494183A8608">C(SoftwareAssisted) The volume is encrypted by the software running on the system or the operating system. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_D66F9ABBDF82448492B3D2141D8616D1"> Only applicable when I(state) is C(present). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_D66F9ABBDF82448492B3D2141D8616D1"> Only applicable when I(state) is C(present). 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> encrypted 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> encrypted 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_1D0BF5A438C84814B24E39C865B33EA0"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_6E6EF74B250B458B8BDC0355BB6ADFCA"> Indicates whether volume is currently utilizing encryption or not. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_6E6EF74B250B458B8BDC0355BB6ADFCA"> Indicates whether volume is currently utilizing encryption or not. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_F7AB3228222045B8857130067E5C0EDE"> Only applicable when I(state) is C(present). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_F7AB3228222045B8857130067E5C0EDE"> Only applicable when I(state) is C(present). 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> oem 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> oem 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_784F1DBFA106456CBACEA38239FF4C26"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_D9DDD8AC9A454D049F0DB565776BCB34"> Includes OEM extended payloads. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_D9DDD8AC9A454D049F0DB565776BCB34"> Includes OEM extended payloads. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_8565DE18F9A9475795B8232AB5E1A6A3"> Only applicable when I(state) is I(present). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_8565DE18F9A9475795B8232AB5E1A6A3"> Only applicable when I(state) is I(present). 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
-			 <tr> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1 "> initialize_type 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__1"> initialize_type 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2 ">False 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__2">False 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3 ">NA 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__3">NA 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4 ">Fast, or slow. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__4">Fast, or slow. 
 				</td> 
-				<td class="entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5 "> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__TABLE_EEDBC566E9D8432BA41D0352BD997F4A__entry__5"> 
 				  <ul class="level1" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__UL_498C2760814C46489DAD8EF55D084E62"> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_DBBE36197C5948E79C3D41349D9EE1BC"> Initialization type of existing volume. 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_DBBE36197C5948E79C3D41349D9EE1BC"> Initialization type of existing volume. 
 					 </li> 
-					 <li class="li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_EAB09E8265F54448844EDDFF54646948"> Only applicable when I(command) is C(initialize). 
+					 <li class="- topic/li li" id="GUID-478264E9-EA27-4961-B194-BA7DE083DB18__LI_EAB09E8265F54448844EDDFF54646948"> Only applicable when I(command) is C(initialize). 
 					 </li> 
 				  </ul> 
 				</td> 
 			 </tr> 
 		  </tbody></table> 
-		<div class="p"><span class="ph uicontrol bold">Return Values</span> 
-		  <pre class="pre codeblock"><code>msg:
+		<div class="- topic/p p"><span class="ph uicontrol bold">Return Values</span> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>msg:
   description: Overall status of the storage configuration operation.
   returned: always
   type: str
@@ -480,10 +443,10 @@ error_info:
   }
 </code></pre> 
 		</div> 
-		<p class="p"><span class="ph uicontrol bold">Examples</span> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Examples</span> 
 		</p> 
-		<pre class="pre codeblock"><code>- name: Create a volume with supported options.
-  redfish_storage_volume:
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Create a volume with supported options
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
@@ -500,8 +463,8 @@ error_info:
     encryption_types: NativeDriveEncryption
     encrypted: true
 
-- name: Create a volume with minimum options.
-  redfish_storage_volume:
+- name: Create a volume with minimum options
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
@@ -511,8 +474,8 @@ error_info:
     drives:
        - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
 
-- name: Modify a volume's encryption type settings.
-  redfish_storage_volume:
+- name: Modify a volume's encryption type settings
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
@@ -521,16 +484,16 @@ error_info:
     encryption_types: "ControllerAssisted"
     encrypted: true
 
-- name: Delete an existing volume.
-  redfish_storage_volume:
+- name: Delete an existing volume
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
     state: "absent"
     volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
 
-- name: Initialize an existing volume.
-  redfish_storage_volume:
+- name: Initialize an existing volume
+  dellemc.openmanage.redfish_storage_volume:
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
@@ -545,10 +508,6 @@ error_info:
                                     
                                     
                                 </div>
-                                
-                                    <nav role="navigation" id="wh_topic_toc" class="col-lg-2 hidden-md hidden-sm hidden-xs navbar hidden-print">
-                                        <div class=" wh_topic_toc "><div class="wh_topic_label">On this page</div><ul><li class="section-item"></li><li class="section-item"></li></ul></div>
-                                    </nav>
                                 
                             </div>
                         </div>
@@ -571,7 +530,7 @@ error_info:
             <div id="caption"></div>
         </div>
 
-        <script src="./oxygen-webhelp/lib/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+        <!--<script src="${oxygen-webhelp-assets-dir}/lib/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>-->
         
     </body>
 </html>

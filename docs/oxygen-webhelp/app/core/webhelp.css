@@ -1,10 +1,12 @@
-@import "fonts.css?buildId=2018061311";
-@import "../indexterms/indexterms.css?buildId=2018061311";
+@import "fonts.css?buildId=2020072412";
+@import "icons.css?buildId=2020072412";
+@import "../indexterms/indexterms.css?buildId=2020072412";
+@import "webhelp-dot3x.css?buildId=2020072412";
 
 .container-fluid {
-  margin-right: auto;
-  margin-left: auto;
-  max-width: 1600px;
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 1600px;
 }
 
 a.sr-only:focus {
@@ -27,21 +29,6 @@ a.sr-only:focus {
     background-color: #000;
 }
 
-/*
- * Styles for printing
- */
-@media print {
-	  body {
-	  	font-size: 11.5pt;
-        margin: auto;
-    }
-    .container {
-        width:100%;
-    }
-    *[class^="col-"], *[class^=" col-"] {
-        width: 100%;
-    }
-}
 
 /*
  * Responsive images
@@ -61,16 +48,16 @@ img.image:not(img[usemap]):hover {opacity: 0.7;}
 
 /* The Modal background */
 #modal_img_large {
-    display: none; 
-    position: fixed; 
-    padding-top: 100px; 
+    display: none;
+    position: fixed;
+    padding-top: 100px;
     left: 0;
     top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: auto; 
-    background-color: rgb(0,0,0); 
-    background-color: rgba(0,0,0,0.9); 
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.9);
 }
 .modal-content {
     margin: auto;
@@ -78,8 +65,12 @@ img.image:not(img[usemap]):hover {opacity: 0.7;}
     width: 80%;
 }
 #modal-img{
-    max-width: 80%;    
+    width:auto;
+    max-width: 95%;
+    max-height: 95%;
 }
+
+.zoom{cursor: pointer}
 
 /* Caption of Modal Image (Image Text) */
 #caption {
@@ -93,20 +84,25 @@ img.image:not(img[usemap]):hover {opacity: 0.7;}
     height: 150px;
 }
 /* Add Animation - Zoom in the Modal */
-.modal-content, #caption { 
+.modal-content, #caption {
     -webkit-animation-name: zoom;
     -webkit-animation-duration: 0.6s;
     animation-name: zoom;
     animation-duration: 0.6s;
 }
+@media screen {
+	
 @-webkit-keyframes zoom {
-    from {-webkit-transform:scale(0)} 
+    from {-webkit-transform:scale(0)}
     to {-webkit-transform:scale(1)}
 }
 @keyframes zoom {
-    from {transform:scale(0)} 
+    from {transform:scale(0)}
     to {transform:scale(1)}
 }
+
+}
+
 /* The Close button of the modal container*/
 .close {
     position: absolute;
@@ -128,7 +124,7 @@ img.image:not(img[usemap]):hover {opacity: 0.7;}
 }
 
 .wh_topic_toc{
-    border-left: 1px solid #cfe2f5; 
+    border-left: 1px solid #cfe2f5;
     margin-left:0;
     padding-left:.5em;
 }
@@ -172,7 +168,7 @@ img.image:not(img[usemap]):hover {opacity: 0.7;}
  * Fight bootstrap
  *  
  */
- 
+
 /*Fix for: Bootstrap marks all the LIs as position:relative, so you cannot position an 
   li:after or a li:before absolutely to a parent of your choice.*/
 .wh_publication_toc .nav>li {
@@ -197,17 +193,17 @@ li.hide-after, li.hide-before{display:none}
 .table>tfoot>tr>td,
 .table>tbody>tr>th,
 .table>tbody>tr>td,
-.table>caption+thead>tr:first-child>td, 
-.table>caption+thead>tr:first-child>th, 
-.table>colgroup+thead>tr:first-child>td, 
-.table>colgroup+thead>tr:first-child>th, 
-.table>thead:first-child>tr:first-child>td, 
+.table>caption+thead>tr:first-child>td,
+.table>caption+thead>tr:first-child>th,
+.table>colgroup+thead>tr:first-child>td,
+.table>colgroup+thead>tr:first-child>th,
+.table>thead:first-child>tr:first-child>td,
 .table>thead:first-child>tr:first-child>th {
-/*  
-   WH-1947 In order for the default alignment to apply as it is defined 
-   in elements-styles.css we need not to override it from this very specific rule. 
-*/
-/*  vertical-align:inherit ;*/
+    /*
+       WH-1947 In order for the default alignment to apply as it is defined
+       in elements.css we need not to override it from this very specific rule.
+    */
+    /*  vertical-align:inherit ;*/
     border-color:inherit;
 }
 td, th {
@@ -217,13 +213,14 @@ td, th {
 /*Fix for: Bootstrap sets a light gray color to the table caption. Use a darker color.*/
 caption{
     color:inherit;
-    margin-top:1em;    
+    margin-top:1em;
+    caption-side: top;
 }
 
 /* Bootstrap adds a dotted border-bottom for abbr elements and browser renders them with with a dotted underline */
 abbr, abbr[title] {
-  text-decoration: none;
-  border-bottom: none;
+    text-decoration: none;
+    border-bottom: none;
 }
 
 
@@ -240,6 +237,7 @@ abbr, abbr[title] {
     align-items: center;
     align-content: center;
     flex-wrap: wrap;
+    width:100%;
 }
 
 .wh_header {
@@ -254,6 +252,10 @@ abbr, abbr[title] {
 
 .wh_top_menu_and_indexterms_link {
     padding: 0;
+}
+
+#topic_navigation_links {
+    white-space: nowrap;
 }
 
 @media only screen and (max-width: 767px) {
@@ -296,7 +298,7 @@ abbr, abbr[title] {
     }
 
     .wh_header {
-        text-align: center;
+        text-align: right;
     }
 }
 
@@ -304,7 +306,7 @@ abbr, abbr[title] {
     .wh_toggle_button {
         float: none;
         line-height: 1em;
-        margin: 10px 0;
+        margin: 0;
     }
 
     .wh_header {
@@ -343,7 +345,7 @@ abbr, abbr[title] {
 /* Render top_menu for devices larger than 767px */
 @media only screen and (min-width: 768px) {
     .wh_top_menu {
-        display: inline-block;        
+        display: inline-block;
     }
 
     .wh_top_menu ul ul {
@@ -397,7 +399,7 @@ abbr, abbr[title] {
         left: 100%;
         top: 0;
     }
-    
+
     /* Mark the items that have a submenu with a small double arrow. */
     .wh_top_menu ul ul li.has-children{
         position:relative;
@@ -424,7 +426,7 @@ abbr, abbr[title] {
     .wh_top_menu ul ul li.has-children:after{
         color:silver;
     }
-    
+
 }
 
 /* Render top_menu for devices smaller than 767px */
@@ -468,9 +470,9 @@ abbr, abbr[title] {
     display:none;
 }
 @media only screen and (max-width: 767px) {
-   .wh_welcome:not(:empty), .wh_welcome:empty {
-       display: none;
-   }
+    .wh_welcome:not(:empty), .wh_welcome:empty {
+        display: none;
+    }
 }
 
 /*
@@ -482,21 +484,22 @@ abbr, abbr[title] {
 
 /* Place the right tools in line with the breadcrumb. */
 .wh_tools{
-    position:relative;
-    padding-right: 80px;
+    position: relative;
+    padding-right: 10px;
     display: flex;
-    align-items: center
+    justify-content: space-between;
+    flex: 1 0;
 }
+
+.wh_right_tools {
+    display: flex;
+    align-items: center;
+}
+
 .wh_breadcrumb {
     display:inline-block;
 }
-.wh_right_tools {
-    display:inline-block;
-    position:absolute;
-    top: 0;
-    right:0;
-    padding: 7px;
-}
+
 /* Breadcrumb */
 .wh_breadcrumb ol {
     margin:0;
@@ -515,7 +518,7 @@ abbr, abbr[title] {
 }
 
 /* WH-1520 */
-.webhelp_expand_collapse_sections:after{font-family: "oXygen WebHelp"; display:inline-block; vertical-align: bottom;}
+.webhelp_expand_collapse_sections:after{font-family: "oXygen WebHelp"; display:inline-block;}
 .webhelp_expand_collapse_sections[data-next-state='expanded']:after{content:'l'}
 .webhelp_expand_collapse_sections[data-next-state='collapsed']:after{content:'k'}
 
@@ -524,7 +527,7 @@ abbr, abbr[title] {
 .wh_hide_highlight:focus {outline: none}
 .wh_hide_highlight.hl-close:after{opacity:.7}
 
-/*TODO - dan - discuss with bogdan what for??*/
+@media screen {
 #printlink:before {
     display: inline-block;
     width: 16px;
@@ -540,7 +543,7 @@ abbr, abbr[title] {
 
 #printlink:hover:before {
     opacity: 0.5;
-    filter: alpha(opacity=50);
+}
 }
 
 #trigger.active {
@@ -551,6 +554,9 @@ abbr, abbr[title] {
     float:left;
 }
 
+#wh_publication_toc {
+    margin-bottom: 1em;
+}
 .wh_publication_toc ul{
     list-style: none;
     margin:0;
@@ -587,74 +593,13 @@ abbr, abbr[title] {
 /**
  * Content area
  */
-
-.wh_content_area {
-    min-height: 500px;
+@media screen{
+	/* On media print it creates problems if there is a two column page layout: big spaces around the elements that span all columns. */
+	.wh_content_area {
+	    min-height: 500px;
+	}
 }
 
-.wh_child_links .olchildlinks,
-.wh_child_links .ullinks,
-.wh_child_links li {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.wh_child_links strong {
-    font-weight: normal;
-}
-
-/*
- * ------------------------------------------------------------------
- *  
- * Topic content
- * 
- */
-.wh_topic_content .related-links:empty{
-    display:none;
-}
-
-.sectiontitle {
-   /* EXM-37168: The section title should have the same color as the rest of the content. */
-   color:inherit;
-}
-
-/*
- * Topic titles & subtitles
- */
-.topictitle1 {
-    font-size: 2em;
-    margin-bottom: 1em;
-    font-weight: 400;
-}
-
-.topictitle2 {
-    margin: 1.5em 0 .5em 0;
-    font-size: 1.7em;
-    font-weight: 400;
-    font-style: italic;
-}
-
-.topictitle3 {
-    margin: 1.3em 0 .4em 0;
-    font-size: 1.4em;
-    font-weight: 300;
-    font-style: italic;
-}
-
-.topictitle4 {
-    margin: 1.2em 0 .3em 0;
-    font-size: 1.1em;
-    font-weight: 400;
-}
-
-.topictitle5, .topictitle6 {
-    margin: 1.1em 0 .3em 0;
-    font-size: 1em;
-    font-weight: 300;
-    font-style: italic;
-    text-decoration: underline;
-}
 
 /*
  * ------------------------------------------------------------------
@@ -746,16 +691,16 @@ abbr, abbr[title] {
 .wh_main_page_toc .wh_main_page_toc_accordion_header:before{
     display: inline-block;
     font-weight: bold;
-    font-family:"Glyphicons Halflings";
+    font-family:"oXygen WebHelp", serif;
     position: absolute;
     left: 1em;
     cursor: pointer;
 }
 .wh_main_page_toc .wh_main_page_toc_accordion_header:before{
-    content: "\e258"; /* expand symbol */
+    content: "q"; /* expand symbol */
 }
 .wh_main_page_toc .wh_main_page_toc_accordion_header.expanded:before{
-    content: "\e259"; /* collapse symbol */
+    content: "p"; /* collapse symbol */
 }
 
 /* Colors */
@@ -763,7 +708,7 @@ abbr, abbr[title] {
     border: 1px solid #c0c0c0;
     background-color: #ffffff;
 }
-.wh_main_page_toc .wh_main_page_toc_accordion_header, 
+.wh_main_page_toc .wh_main_page_toc_accordion_header,
 .wh_main_page_toc > .wh_main_page_toc_entry {
     border-bottom: 1px solid #c0c0c0;
 }
@@ -778,7 +723,7 @@ abbr, abbr[title] {
     background-color: #eeeeee;
     border-bottom: 0;
 }
-.wh_main_page_toc .wh_main_page_toc_accordion_header:hover, 
+.wh_main_page_toc .wh_main_page_toc_accordion_header:hover,
 .wh_main_page_toc>.wh_main_page_toc_entry:hover{
     background-color: #eeeeee;
 }
@@ -847,6 +792,7 @@ abbr, abbr[title] {
 .wh_tile_title span{
     display: block;
     width: 100%;
+    line-height: 1.2em;
 }
 
 .wh_tile_title a{
@@ -865,7 +811,7 @@ abbr, abbr[title] {
  * Remove outline border on focus
  *
  */
- input:focus{
+input:focus{
     outline:none;
 }
 
@@ -879,11 +825,66 @@ abbr, abbr[title] {
  * Styles used for RTL pages
  *
  */
+html[dir='rtl'] * {
+	text-align: initial;
+}
+
+html[dir='rtl'] .title {
+    padding-right: .6em;
+}
+
+html[dir='rtl'] .wh_expand_btn {
+    right: .6em;
+}
+html[dir='rtl'] .wh_expand_btn:before,
+html[dir='rtl'] .wh-expand-btn{
+    transform: scaleX(-1);
+}
+
+html[dir='rtl'] .wh_breadcrumb li:not(:last-of-type):after {
+    content: "";
+}
+html[dir='rtl'] .wh_breadcrumb li:not(:first-of-type):before {
+    content: "/";
+    padding: 0 5px;
+}
+html[dir='rtl'] .wh_breadcrumb li:nth-child(2):before {
+    display: none;
+}
+
+ html[dir='rtl'] .wh_publication_toc ul ul{
+     padding-right: 1em;
+ }
+
 html[dir='rtl'] .wh_search_button{
     left:0;
     right: auto;
     float:left;
     border-radius: 5px 0 0 5px;
+}
+html[dir='rtl'] .wh_search_button:after{
+    left:-2px;
+}
+
+html[dir='rtl'] .wh_topic_toc {
+    border-right: 1px solid #cfe2f5;
+    border-left: none;
+    margin-right: 0;
+    padding-right: .5em;
+}
+
+html[dir='rtl'] .wh_publication_toc > ul {
+    border-left: none;
+    border-right: 2px solid #941e88;
+    margin-right: 1em;
+    padding-right: 1.5em;
+    position: relative;
+}
+
+html[dir='rtl'] .wh_publication_toc .active:before {
+    transform: scaleX(-1);
+    left: initial;
+    right: 1px;
 }
 
 html[dir='rtl'] .wh_right_tools {
@@ -948,15 +949,15 @@ html[dir='rtl'] .navprev, html[dir='rtl'] .navnext, html[dir='rtl'] .wh_print_li
  * WebHelp Feedback section
  */
 #loginData .nav-tabs li.active:before{
-position: absolute;
-bottom: 0;
-left: 0;
-width: 100%;
-height: 4px;
-background: #2CC185;
-content: '';
--webkit-transition: -webkit-transform 0.3s;
-transition: transform 0.3s;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: #2CC185;
+    content: '';
+    -webkit-transition: -webkit-transform 0.3s;
+    transition: transform 0.3s;
 }
 
 #fbUnavailable{
@@ -1098,20 +1099,21 @@ input
     width:2.8em;
     height:100%;
     border:none;
+    cursor: pointer;
 }
 .wh_search_button>span{
     display: none;
 }
 .wh_search_button:after{
-    font-family: "Glyphicons Halflings", serif;
-    content:"\e003";
+    font-family: "oXygen WebHelp", serif;
+    content:"f";
 }
 
 .ui-menu-item-wrapper > .search-autocomplete-proposal-icon {
-  font-family: "oXygen WebHelp";
-  display: inline-block;
-  min-width: 1.5em;
-  font-size: 0.7em;
+    font-family: "oXygen WebHelp", serif;
+    display: inline-block;
+    min-width: 1.5em;
+    font-size: 0.7em;
 }
 
 /*
@@ -1179,8 +1181,8 @@ input
 .errorMessage:before{
     position: absolute;
     display: block;
-    font-family: 'Glyphicons Halflings';
-    content: '\e101';
+    font-family: 'oXygen WebHelp', serif;
+    content: 'm';
     bottom: 0;
     left: 0;
     top: 0;
@@ -1205,6 +1207,75 @@ input
     justify-content:center;
 }
 
+/* Search results breadcrumb */
+.search-breadcrumb ol {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    flex-wrap: wrap;
+    align-content: space-between;
+    justify-content: flex-start;
+    font-size: .8em;
+}
+
+.search-breadcrumb li {
+    padding: 0 !important;
+    margin-bottom: .3em;
+    margin-left: -1.2em;
+
+}
+
+.search-breadcrumb li:first-child {
+    margin-left: inherit;
+}
+
+.search-breadcrumb li .title {
+    display:flex;
+    justify-content:flex-start;
+    flex-wrap: nowrap;
+}
+
+.search-breadcrumb li a {
+    color: #fff;
+    display: block;
+    background: #ddd;
+    text-decoration: none;
+    line-height: 1.6em;
+    padding: 0 .5em;
+    text-align: center;
+}
+
+.search-breadcrumb li:first-child a {
+    border-radius: .1em 0 0 .1em;
+}
+.search-breadcrumb li:first-child .title:before,
+.search-breadcrumb li:last-child .title:after {
+    border: none;
+}
+.search-breadcrumb li:last-child a {
+    border-radius: 0 .1em .1em 0;
+}
+
+.search-breadcrumb li:only-child a {
+    border-radius: .1em;
+}
+
+.search-breadcrumb li .title:before,
+.search-breadcrumb li .title:after {
+    display: inline-block;
+    content: "";
+    border-style: solid;
+    border-color: #ddd;
+    border-width: .8em;
+}
+.search-breadcrumb li .title:before {
+    border-left-color: transparent;
+}
+.search-breadcrumb li .title:after {
+    border-color: transparent;
+    border-left-color: #ddd;
+}
+
 /* Container displaying missing words and similar results */
 .missingAndSimilar {
     flex-grow: 2;
@@ -1216,39 +1287,37 @@ input
 /*
  * Missing words.
  */
-.searchresult .wh_missing_words {
-    color:#888888;
-}
-
 .searchresult .wh_missing_word {
+    color:#888888;
     text-decoration:line-through;
 }
 
 .searchresult .wh_missing_words {
-    margin: .3em .5em 0 0;
+    font-size: .8em;
 }
+
 
 /* Search relative path */
 .searchresult .relativePath {
-    margin: .1em .5em 0 0;
-
+    display: none;
 }
 
 /* Similar results */
 .showSimilarPages {
+    font-size: .8em;
     display: inline-block;
-    margin: .3em 0 0 0;
+    margin: 0;
     cursor: pointer
 }
 .showSimilarPages:before{
-    font-family: 'Glyphicons Halflings';
-    content: "\e250";
+    font-family: "oXygen WebHelp", serif;
+    content: "s";
     display: inline-block;
     font-size: .7em;
-    padding-right: .3em
+    padding-right: .2em
 }
 .showSimilarPages.expanded:before{
-    content: "\e252";
+    content: "z";
 }
 .similarResult {
     display:none;
@@ -1345,7 +1414,7 @@ ui-menu-item > .ui-state-active{
 }
 
 .search-autocomplete-proposal-hg {
-    font-weight: bold;    
+    font-weight: bold;
 }
 
 /* 
@@ -1365,11 +1434,6 @@ ui-menu-item > .ui-state-active{
     opacity: 0.5;
     font-size: 15px;
     border-radius:0 7px 0 0px;
-}
-
-code{
-    background-color: #e7e7e7;
-    color: #222222;
 }
 
 .copyTooltip::before{
@@ -1415,12 +1479,13 @@ pre{
     border: 1px solid #999999;
     cursor: pointer;
     text-align: center;
-    padding: 10px;
+    padding: 4px 12px;
     font-weight: bold;
     color: #fff;
     background-color: #444444;
     white-space: nowrap;
     overflow: hidden;
+    font-size: 1.5em;
 }
 /*
  * Edit link
@@ -1431,4 +1496,55 @@ div.edit-link-container {
 .edit-link {
     float: right;
     font-style: normal;
+}
+
+/*
+ * Hide the figure numbers, not useful in the context of a small topic.
+ */ 
+ 
+ @media screen {
+ 	.fig--title-label-number,
+ 	.fig--title-label-punctuation {
+ 		display:none;
+ 	}
+ 	
+ 	.fig--title-label:after {
+ 		content:": ";
+ 	}
+ }
+ 
+/* 
+ * WH-2114 Fix font size issues 
+ */
+html {
+    font-size: 10px;     
+}
+
+body {
+    font-size: 14px;     
+}
+
+/*
+ * Custom toggler
+ */
+.custom-toggler .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(52,123,183, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+.custom-toggler {
+    border-color: #347bb7;
+}
+#wh_toc_button {
+    margin-left: 1em;
+}
+
+@media screen {
+    .wh_topic_toc li,
+    .wh_publication_toc li,
+    .wh_main_page_toc_entry,
+    .wh_top_menu ul,
+    .wh_breadcrumb ol {
+        word-break: break-word;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+    }
 }

@@ -3,7 +3,8 @@
  */
 define(["require", "config"], function() {
     require([
-        'nav-links-loader',
+        'polyfill',
+        'menu',
         'expand',
         'template-module-loader'
     ]);

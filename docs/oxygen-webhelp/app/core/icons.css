@@ -1,0 +1,40 @@
+.glyphicon:before,
+.glyphicon:after,
+.oxy-icon:before,
+.oxy-icon:after {
+    font-family: "oXygen WebHelp";
+}
+
+.glyphicon-chevron-up:before,
+.oxy-icon-up:before {
+    content: "r";
+}
+
+.glyphicon-remove:before,
+.oxy-icon-remove:before {
+    content: "g";
+}
+
+.glyphicon-print:before,
+.oxy-icon-print:before {
+    content: "n";
+}
+
+.glyphicon-arrow-left:before,
+.oxy-icon-arrow-left:before {
+    content: "u";
+}
+
+.glyphicon-arrow-right:before,
+.oxy-icon-arrow-right:before {
+    content: "t";
+}
+
+.glyphicon-ok:before,
+.oxy-icon-ok:before {
+    content: "i";
+}
+
+.home a:before {
+    font-family: "oXygen WebHelp", serif !important;
+}

@@ -1,0 +1,707 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: ome_profile Synopsis This module allows to create, modify, delete, assign, unassign, and migrate a profile on OpenManage Enterprise. Options Table 1. ome_profile Parameter Required Default ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" /><meta name="DC.relation" scheme="URI" content="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" /><meta name="DC.relation" scheme="URI" content="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="August 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /><title>Create and manage profiles</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container navbar-nav navbar-expand-md navbar-dark">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.0.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li><li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" class="topicref" data-id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19.html" id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link">Manage Devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" class="topicref" data-id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C.html" id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link">Template Service</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage application settings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" class="topicref" data-id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768.html" id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link">Manage network configuration</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" class="topicref" data-id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4.html" id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link">Manage fabrics</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" class="topicref" data-id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link">Manage Profiles</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem" class="active"><span data-tocid="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD" class="topicref" data-id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD.html" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD-link">Create and manage profiles</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" class="topicref" data-id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link">Device discovery</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link">Manage Chassis</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" class="topicref" data-id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link">Manage Active Directory service and user groups</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" class="topicref" data-id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E.html" id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link">Diagnostics</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
+                        </nav>
+                    
+
+                    <div id="wh_topic_body" class="col-lg-7 col-md-9 col-sm-9 col-xs-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <!--  -->
+                                <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li><span class="topicref" data-id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14"><span class="title"><a href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html">Manage Profiles</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD"><span class="title"><a href="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD.html">Create and manage profiles</a></span></span></li></ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="- topic/link link" href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" title="Manage Profiles" aria-label="Previous topic: Manage Profiles" rel="prev"></a></span>  
+<span class="navnext"><a class="- topic/link link" href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" title="Device discovery" aria-label="Next topic: Device discovery" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row topic_content_row">
+                                <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__GUID-555A4D80-B0B1-4800-BA06-F2FA61FFC7F6"> 
+  <h1 class="- topic/title title topictitle1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__GUID-555A4D80-B0B1-4800-BA06-F2FA61FFC7F6">Create and manage profiles</h1> 
+  <div class="- topic/body reference/refbody body refbody"> 
+	 <section class="- topic/section section" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__GUID-1D710FE5-8CCA-4928-81E2-A0F7BED457C7"> 
+		<span class="ph uicontrol bold"> Module: ome_profile</span> 
+	 </section> 
+	 <section class="- topic/section section" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__SECTION_FCD4108A44744CC1836FDE0FD861DA0F"> 
+		<span class="ph uicontrol bold"> Synopsis</span> 
+		<p class="- topic/p p">This module allows to create, modify, delete, assign, unassign, and migrate a profile on OpenManage Enterprise. 
+		</p> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="- topic/table table all pgwide" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC"><caption><span class="table-anchor" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC"></span><span class="tablecap"><span class="table-label">Table 1. </span>ome_profile</span></caption><colgroup><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /><col style="width:20%" /></colgroup><thead class="- topic/thead thead"> 
+			 <tr class="- topic/row"> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">Parameter 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">Required 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">Default 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">Choices 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="- topic/tbody tbody"> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">hostname 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5">Target IP Address or hostname 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">username 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5">Target username 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">password 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5">Target user password 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">port 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">443 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5">Target HTTPS port 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">command 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">create 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">create, modify, delete, assign, unassign, and migrate 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_75788A0917DE4728BEE2CEC4B9910C51"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_BE30A0723AF74FEC9C8F888F7A3C3A3C">C(create) creates new profiles. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_321CECD0A5B94B36A1DEBB526CDA0A93">C(modify) modifies an existing profile. Only I(name), I(description), I(boot_to_network_iso), and I(attributes) can be modified. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_EA3A4C5367DE44F486E90B5FBF192490">C(delete) deletes an existing profile. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_B2AE3BB71681484D80773EFD892092DA">C(assign) Deploys an existing profile on a target device and returns a task ID. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_6D34B3DC58404612850971FB72522563">C(unassign) unassigns a profile from a specified target and returns a task ID. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_BA40260252004B60B341C063CF0FCECF">C(migrate) migrates an existing profile and returns a task ID. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">name_prefix 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">Profile 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_8A883540ABE3467C9294AE72F24A390B"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_8FEDA411A5314489A42175020B902A6B">The name provided when creating a profile is used a prefix followed by the number assigned to it by OpenManage Enterprise. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_CB61CB780674477CA78A8F5329A1AA4B">This is applicable only for a create operation. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_6CFA581DDB1240C29E1E640B55B95D58">This option is mutually exclusive with I(name). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">name 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_5BA62EDE8E4D4BAD9581CA6C0DC6265C"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_06C20388E90E4C69A57EA2C4F41926EF">Name of the profile. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_774420125A2745C9831931E0FEC03758">This is applicable for modify, delete, assign, unassign, and migrate operations. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_B2DBBC340ACD4FB7BE75DC65C9FE565F">This option is mutually exclusive with I(name_prefix) and I(number_of_profiles). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">new_name 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_CBE0DEB1A76A4310BB63F0A875BEBFDD"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_143EB1CAADA24C75B1BC4EAAD053DA7C">New name of the profile. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_7D74884812A4425DAC6E3387F3B3B935">Applicable when I(command) is C(modify). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">number_of_profiles 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">1 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_630FAF651DA04E4C88EA501396BD6D98"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_9708CB014E464F228BF4D4583908C03E">Provide the number of profiles to be created. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_4827141C4119442C90D127594D88C18A">This is applicable when I(name_prefix) is used with C(create). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_11B2D1404D1A4964961B9E9220FB4E42">This option is mutually exclusive with I(name). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_8EF9C649F8F74573982BB126751C5381">Openmanage Enterprise can create a maximum of 100 profiles. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">template_name 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_407185154C9A4106B01FCE91D46A273F"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_FB0105E8435541BDBA7D4219A9DE7F8B">Name of the template for creating the profile(s). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_381521FD651F4962A1BFDFBE44F5F0A2">This is applicable when I(command) is C(create). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_924DDE27274C4F0E996BA4ED812D36CA">This option is mutually exclusive with I(template_id). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">template_id 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_BAD6A44716744B1488EBF835FA1BFC9F"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_72962FC5CE934A3F9B42FAB7C2F63E06">ID of the template. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_C23168D532914B8184303025FB1CB871">This is applicable when I(command) is C(create). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_7AA34F93A7424B33897E64F6FD0CE6B6">This option is mutually exclusive with I(template_name). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">device_id 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_305A18EA29794A779A6F2F26B9407661"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_FD7FEE888D704C61B957CB7BF78BDE67">ID of the target device. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_B636A2F89BE84D0390F8C896AAE92759">This is applicable when I(command) is C(assign) and C(migrate). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_48E1125E2152486397FDAE699AB45B24">This option is mutually exclusive with I(device_service_tag). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">device_service_tag 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_84EA74F24C294329A4CA55A23E2DBEA2"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_608B43C6AE474D1DBD28A58EC2D9C754">Identifier of the target device. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_FFAB6337AD08471B8F6EB925CBEDA0FB">This is typically 7 to 8 characters in length. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_0E87206652924E14B29366CD302FD0AD">This is applicable when I(command) is C(assign), and C(migrate). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_0027848EA5964008AB0951B9EB547EC2">This option is mutually exclusive with I(device_id). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_0309FBFB7DC44AC282DF864F66197AA5">If the device does not exist when I(command) is C(assign) then the profile is auto-deployed. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1"> description 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5">Description of the profile. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1"> boot_to_network_iso 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5">Details of the Share ISO. This is applicable when I(command) is C(create), C(assign), and C(modify). 
+				  <p class="- topic/p p">Sub-options 
+				  </p> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_216CBCDD09704C519ACDC3ADC98DFEA4"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_20C48AEF159D4B91A862A6C066399502">boot_to_network: Enable or disable a network share. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_2EA584E9551D404C80473B000F5F6F2A">share_type: Type of network share. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_2ADBB4372C734697A397EFB4FDC991E5">share_ip: IP address of the network share. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_E2450296EFDA4208942C69F5C4A0EDD5">share_user: User name when I(share_type) is C(CIFS). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_0C22A45B81FD4BE1B4E684E1A98B6A33"> share_password: User password when I(share_type) is C(CIFS). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_377C1A7C66BE49809FCA55AF32EC6FD9">workgroup: User workgroup when I(share_type) is C(CIFS). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_BA8F0A595C3D4A3E859263949BF9517B">iso_path: Specify the full ISO path including the share name. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_91F01F558AA8477898F6411DFD6B9914">iso_timeout: Set the number of hours that the network ISO file will remain mapped to the target device(s). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">filters 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_C59C03F967EB4FB4A1CC89419A012917"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_0C9E3E5C359D4D4AA9F3A5CE692100F0">Filters the profiles based on selected criteria. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_F94AF9A19E224A5083EAEAE8E9A52CBC">This is applicable when I(command) is C(delete) or C(unassign). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_628D6BA03F2145BBA1B881DC9E0844E9">This supports suboption I(ProfileIds) which takes a list of profile IDs. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_26B386A370994F80BC868919BA212EF1">This also supports OData filter expressions with the suboption I(Filters). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_58DFD6C00DC7402490A63F902CA005B3">See OpenManage Enterprise REST API guide for the filtering options available. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_02BE4E3125384A5AA167E89BB0572F83">I(WARNING) When this option is used in case of C(unassign), task ID is not returned for any of the profiles affected. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">force 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5"> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_55A7DF5D4EAC42BB87D51B13DB517B4E"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_26484162F23944EAB48E242A69DB07BE">Provides the option to force the migration of a profile even if the source device cannot be contacted. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_CF9196950C8D413A8DAB18C6EDB3EDB0">This option is applicable when I(command) is C(migrate). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__1">attributes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__TABLE_92C4D4E129AF47A6BDE9CB3C7A5A48BC__entry__5">Attributes for C(modify) and C(assign). 
+				  <p class="- topic/p p">Sub-options 
+				  </p> 
+				  <ul class="level1" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_6F0547BDEB5D42899A6F411B099A14D4"> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_8B0E5054D8604AEB8B262369FCCF1907">Attributes: 
+						<ul class="level2" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_186D00FF9B1347DAB89EE06C941F4D0B"> 
+						  <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_AF0C7A8B79004ABAA75292E23F358146">List of attributes to be modified, when I(command) is C(modify). 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_EB4AE3E7B3C64831B6D1FDCB15D81ABB">List of attributes to be overridden when I(command) is C(assign). 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_E186B1D8D9D9477C87B2404B97154F55">Options: 
+						<ul class="level2" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_534BC5FD26824A179DF56D19D6D5C232"> 
+						  <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_FE85E87A26A74AC39B9AC47AF20611C6">Provides the different shut down options. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_EEFF963769AA49C5A0CC6E49A5CA03E8">This is applicable when I(command) is C(assign). 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_765155BFB73940CD91D8A188FF2ABC3F">Schedule: 
+						<ul class="level2" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__UL_FEB236DF1AE940ECB9D105D1EBDAE4D8"> 
+						  <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_73031FB08F2C4C039255FCF79D352BD3">Schedule for profile deployment. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-54A871C4-3E2C-4CC4-A322-2EEC82E664CD__LI_E819DCEB4CAE4AA18C4594312345B568">This is applicable when I(command) is C(assign). 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<div class="- topic/p p"><span class="ph uicontrol bold">Return Values</span> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>msg:
+  description: Overall status of the profile operation.
+  returned: always
+  type: str
+  sample: "Successfully created 2 profile(s)."
+profile_ids:
+  description: IDs of the profiles created.
+  returned: when I(command) is C(create)
+  type: list
+  sample: [1234, 5678]
+job_id:
+  description:
+    - Task ID created when I(command) is C(assign), C(migrate) or C(unassign).
+    - C(assign) and C(unassign) operations do not trigger a task if a profile is auto-deployed.
+  returned: when I(command) is C(assign), C(migrate) or C(unassign)
+  type: int
+  sample: 14123
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
+</code></pre> 
+		</div> 
+		<div class="- topic/p p"><span class="ph uicontrol bold">Examples</span> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Create two profiles from a template
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    template_name: "template 1"
+    name_prefix: "omam_profile"
+    number_of_profiles: 2
+
+- name: Create profile with NFS share
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: create
+    template_name: "template 1"
+    name_prefix: "omam_profile"
+    number_of_profiles: 1
+    boot_to_network_iso:
+      boot_to_network: True
+      share_type: NFS
+      share_ip: "192.168.0.1"
+      iso_path: "path/to/my_iso.iso"
+      iso_timeout: 8
+
+- name: Create profile with CIFS share
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: create
+    template_name: "template 1"
+    name_prefix: "omam_profile"
+    number_of_profiles: 1
+    boot_to_network_iso:
+      boot_to_network: True
+      share_type: CIFS
+      share_ip: "192.168.0.2"
+      share_user: "username"
+      share_password: "password"
+      workgroup: "workgroup"
+      iso_path: "\\path\\to\\my_iso.iso"
+      iso_timeout: 8
+
+- name: Modify profile name with NFS share and attributes
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: modify
+    name: "Profile 00001"
+    new_name: "modified profile"
+    description: "new description"
+    boot_to_network_iso:
+      boot_to_network: True
+      share_type: NFS
+      share_ip: "192.168.0.3"
+      iso_path: "path/to/my_iso.iso"
+      iso_timeout: 8
+    attributes:
+      Attributes:
+        - Id: 4506
+          Value: "server attr 1"
+          IsIgnored: true
+        - Id: 4507
+          Value: "server attr 2"
+          IsIgnored: true
+
+- name: Delete a profile using profile name
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "delete"
+    name: "Profile 00001"
+
+- name: Delete profiles using filters
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "delete"
+    filters:
+      SelectAll: True
+      Filters: =contains(ProfileName,'Profile 00002')
+
+- name: Delete profiles using profile list filter
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "delete"
+    filters:
+      ProfileIds:
+        - 17123
+        - 16124
+
+- name: Assign a profile to target along with network share
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: assign
+    name: "Profile 00001"
+    device_id: 12456
+    boot_to_network_iso:
+      boot_to_network: True
+      share_type: NFS
+      share_ip: "192.168.0.1"
+      iso_path: "path/to/my_iso.iso"
+      iso_timeout: 8
+    attributes:
+      Attributes:
+        - Id: 4506
+          Value: "server attr 1"
+          IsIgnored: true
+      Options:
+        ShutdownType: 0
+        TimeToWaitBeforeShutdown: 300
+        EndHostPowerState: 1
+        StrictCheckingVlan: True
+      Schedule:
+        RunNow: True
+        RunLater: False
+
+- name: Unassign a profile using profile name
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "unassign"
+    name: "Profile 00003"
+
+- name: Unassign profiles using filters
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "unassign"
+    filters:
+      SelectAll: True
+      Filters: =contains(ProfileName,'Profile 00003')
+
+- name: Unassign profiles using profile list filter
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "unassign"
+    filters:
+      ProfileIds:
+        - 17123
+        - 16123
+
+- name: Migrate a profile
+  dellemc.openmanage.ome_profile:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    command: "migrate"
+    name: "Profile 00001"
+    device_id: 12456
+</code></pre> 
+		</div> 
+	 </section> 
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <!--<script src="${oxygen-webhelp-assets-dir}/lib/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>-->
+        
+    </body>
+</html>

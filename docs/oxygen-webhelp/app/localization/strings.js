@@ -1,4 +1,5 @@
 define(function() {var localization = new Array();
+localization["index.terms.page.title"]="Index Terms";
 localization["toggle.menu"]="Toggle menu";
 localization["label.cleditorControls"]="Insert your comment. Press Alt+S to submit your comment or Alt+` to discard it.";
 localization["label.closeDialog"]="Close dialog";

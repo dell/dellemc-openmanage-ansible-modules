@@ -19,7 +19,8 @@ EMCKickstart.webhelpMap = {
 /**
 * If an old URL is given, redirect to the corresponding topic from the WebHelp Responsive
 */
-var actualLocation = window.location.href;
+
+var actualLocation = encodeURIComponent(window.location.href);
 var newLocation;
 
 if (actualLocation.match(/\/[\w]+\.htm(l)?([\w#\-]+)?\?topic=/gi) != null) {
@@ -33,7 +34,8 @@ if (actualLocation.match(/\/[\w]+\.htm(l)?([\w#\-]+)?\?topic=/gi) != null) {
 
 			$.each(EMCKickstart.webhelpMap, function (key, value) {
 				if (key == resourceId) {
-					window.location.replace(actualLocation.substr(0, linkTopicPosition) + "/" + value);
+					var newencodedurl = encodeURIComponent(actualLocation.substr(0, linkTopicPosition) + "/" + value);
+					window.location.replace(newencodedurl);
 				}
 			});
 
@@ -51,7 +53,8 @@ if (actualLocation.match(/\/[\w\-]+\.htm(l)?([\w#\-]+)?\?context=/gi) != null) {
 
 			$.each(EMCKickstart.webhelpMap, function (key, value) {
 				if (key == contextId) {
-					window.location.replace(actualLocation.substr(0, linkTopicPosition) + "/" + value);
+					var newencodedurl = encodeURIComponent(actualLocation.substr(0, linkTopicPosition) + "/" + value);
+					window.location.replace(newencodedurl);
 				}
 			});
 
@@ -60,11 +63,11 @@ if (actualLocation.match(/\/[\w\-]+\.htm(l)?([\w#\-]+)?\?context=/gi) != null) {
 }
 
 if (actualLocation.indexOf('/#')!=-1) {
-	newLocation = actualLocation.replace(/\/#/g, "/");
+	newLocation = encodeURIComponent(actualLocation.replace(/\/#/g, "/"));
 	window.location.replace(newLocation);
 }
 if (actualLocation.match(/\/index\.(.*)#/gi)!=null) {
-	newLocation = actualLocation.replace(/\/index\.(.*)#/gi, "/");
+	newLocation = encodeURIComponent(actualLocation.replace(/\/index\.(.*)#/gi, "/"));
 	window.location.replace(newLocation);
 }
 			

@@ -1,16 +1,8 @@
 
 <!DOCTYPE html
-  PUBLIC "" "about:legacy-compat">
+  SYSTEM "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
-    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Module: dellemc_idrac_storage_volume Synopsis This module hosts the RAID configuration related attributes. Check_mode support: Yes Options Table 1. dellemc_idrac_storage_volume Parameter/aliases ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2020" /><meta name="DC.rights.owner" content="(C) Copyright 2020" /><meta name="DC.Type" content="reference" /><meta name="DC.Relation" scheme="URI" content="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892.html" /><meta name="DC.Relation" scheme="URI" content="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892.html" /><meta name="DC.Relation" scheme="URI" content="GUID-D9B24130-D512-4B98-8A44-50183FE342F9.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.Publisher" content="June 2020" /><meta name="DC.Format" content="XHTML" /><meta name="DC.Identifier" content="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40" /><meta name="DC.Language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /><title>Configure storage volume</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap-theme.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.2.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2018061311" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2018061311" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script>
-				$(document).ready(function() {
-					var metaelement = $("[name=meta-topic-title]");
-					var newTitle = $(metaelement).attr("content");
-					if(newTitle){
-						document.title = newTitle;
-					}
-				});
-			</script></head>
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: dellemc_idrac_storage_volume Synopsis This module hosts the RAID configuration related attributes. Check_mode support: Yes Options Table 1. dellemc_idrac_storage_volume Parameter/aliases ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" /><meta name="DC.relation" scheme="URI" content="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA.html" /><meta name="DC.relation" scheme="URI" content="GUID-D9B24130-D512-4B98-8A44-50183FE342F9.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="August 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /><title>Configure storage volume</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
 
     <body data-lang="en-us" class="wh_topic_page">
         <a href="#wh_topic_body" class="sr-only sr-only-focusable">
@@ -22,7 +14,7 @@
 
         <header class="navbar navbar-default wh_header">
     <div class="container-fluid">
-        <div class="wh_header_flex_container">
+        <div class="wh_header_flex_container navbar-nav navbar-expand-md navbar-dark">
             <div class="wh_logo_and_publication_title_container">
                 <div class="logo_and_publication_title">
                     
@@ -31,8 +23,8 @@
                             'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
                             See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
                     -->
-                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules   Version 2.1 User’s Guide   " /></a>
-                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules<span class="pipe-separator"></span></span><span class="booktitlealt">Version 2.1 User’s Guide</span></span></div>
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.0.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.0.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
                     
                 </div>
                 
@@ -42,15 +34,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div><script><!--
-							$(document).ready(function () {
-							$('#searchForm').submit(function (e) {
-							if ($('.wh_search_textfield').val().length < 1) {
-							e.preventDefault();
-							}
-							});
-							});
-						--></script></form></div>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div></form></div>
             </div>
 
         </div>
@@ -58,15 +42,7 @@
 </header>
         <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
             
-            <nav class=" wh_top_menu "><ul>
-   <li><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li>
-   <li class="has-children"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li>
-   <li><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf" class=" topicref " data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789"><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html">Accessing documents from the Dell EMC support site</a></span></span></li>
-</ul></nav>
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
             <!--<whc:webhelp_indexterms_link/>-->
             
         </div>
@@ -76,275 +52,412 @@
                 <div class="row">
                     
                         <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
-                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li>
-   <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" class="topicref" data-id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6.html" id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6-link">How OpenManage Ansible Modules work with iDRAC</a></span></span></li>
-         <li role="treeitem"><span data-tocid="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" class="topicref" data-id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5.html" id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5-link">Running your first iDRAC Playbook</a></span></span></li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" class="topicref" data-id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8.html" id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link">Updating Firmware</a></span></span></li>
-         <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link">Configuring PowerEdge Servers</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7" class="topicref" data-id="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7.html" id="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7-link">View LC status</a></span></span></li>
-               <li role="treeitem"><span data-tocid="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" class="topicref" data-id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856.html" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856-link">Server Configuration Profile</a></span></span></li>
-               <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461" class="topicref" data-id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461-link">Configuring iDRAC</a></span></span></li>
-               <li role="treeitem"><span data-tocid="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA" class="topicref" data-id="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA.html" id="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA-link">Configure BIOS</a></span></span></li>
-               <li role="treeitem" aria-expanded="true"><span data-tocid="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892" class="topicref" data-id="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-4CFF4634-5713-44D7-B21B-32BB47D49892-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892.html" id="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892-link">Configure RAID</a></span></span><ul role="group" class="nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem" class="active"><span data-tocid="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40" class="topicref" data-id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40.html" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40-link">Configure storage volume</a></span></span></li>
-                  </ul>
-               </li>
-               <li role="treeitem"><span data-tocid="GUID-D9B24130-D512-4B98-8A44-50183FE342F9" class="topicref" data-id="GUID-D9B24130-D512-4B98-8A44-50183FE342F9" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D9B24130-D512-4B98-8A44-50183FE342F9.html" id="GUID-D9B24130-D512-4B98-8A44-50183FE342F9-link">Configure Collect System Inventory on Restart</a></span></span></li>
-               <li role="treeitem"><span data-tocid="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46" class="topicref" data-id="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46.html" id="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46-link">Configure syslog</a></span></span></li>
-            </ul>
-         </li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-9D880486-295B-4E50-AE21-050134D36869" class="topicref" data-id="GUID-9D880486-295B-4E50-AE21-050134D36869" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-9D880486-295B-4E50-AE21-050134D36869-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-9D880486-295B-4E50-AE21-050134D36869.html" id="GUID-9D880486-295B-4E50-AE21-050134D36869-link">Deploying operating system</a></span></span></li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" class="topicref" data-id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273.html" id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link">Server Inventory</a></span></span></li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" class="topicref" data-id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981.html" id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link">Server administration tasks</a></span></span></li>
-         <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" class="topicref" data-id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link">Storage controller</a></span></span></li>
-      </ul>
-   </li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span></li>
-   <li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li>
-   <li role="treeitem"><span data-tocid="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" class="topicref" data-id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789.html" id="GUID-B9F8B314-89CD-4D7A-9B5A-07D0B0BE7789-link">Accessing documents from the Dell EMC support site</a></span></span></li>
-</ul></div>
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" class="topicref" data-id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6.html" id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6-link">How OpenManage Ansible Modules work with iDRAC</a></span></span></li><li role="treeitem"><span data-tocid="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" class="topicref" data-id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5.html" id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5-link">Running your first iDRAC Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" class="topicref" data-id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8.html" id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link">Updating Firmware</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link">Configuring PowerEdge Servers</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7" class="topicref" data-id="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7.html" id="GUID-FC7D0604-F6A9-4E27-961C-47F1097E83E7-link">View Lifecycle Controller status</a></span></span></li><li role="treeitem"><span data-tocid="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" class="topicref" data-id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856.html" id="GUID-71D8EF6D-787C-4200-9BE2-EA2CF63A2856-link">Export or Import Server Configuration Profile</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461" class="topicref" data-id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461.html" id="GUID-BB7B95E1-C3F6-4FE9-80EC-F1F81C462461-link">Configuring iDRAC</a></span></span></li><li role="treeitem"><span data-tocid="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA" class="topicref" data-id="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA.html" id="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA-link">Configure BIOS</a></span></span></li><li role="treeitem" class="active"><span data-tocid="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40" class="topicref" data-id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40.html" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40-link">Configure storage volume</a></span></span></li><li role="treeitem"><span data-tocid="GUID-D9B24130-D512-4B98-8A44-50183FE342F9" class="topicref" data-id="GUID-D9B24130-D512-4B98-8A44-50183FE342F9" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-D9B24130-D512-4B98-8A44-50183FE342F9.html" id="GUID-D9B24130-D512-4B98-8A44-50183FE342F9-link">Configure Collect System Inventory on Restart</a></span></span></li><li role="treeitem"><span data-tocid="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46" class="topicref" data-id="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46.html" id="GUID-4DC3797B-3981-4DEC-BA30-D845E0C63C46-link">Configure syslog</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-9D880486-295B-4E50-AE21-050134D36869" class="topicref" data-id="GUID-9D880486-295B-4E50-AE21-050134D36869" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-9D880486-295B-4E50-AE21-050134D36869-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-9D880486-295B-4E50-AE21-050134D36869.html" id="GUID-9D880486-295B-4E50-AE21-050134D36869-link">Deploying operating system</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" class="topicref" data-id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273.html" id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link">Server Inventory</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" class="topicref" data-id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981.html" id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link">Server administration tasks</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" class="topicref" data-id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link">Storage controller</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
                         </nav>
                     
 
-                    <div class="col-lg-7 col-md-9 col-sm-9 col-xs-12" id="wh_topic_body">
+                    <div id="wh_topic_body" class="col-lg-7 col-md-9 col-sm-9 col-xs-12">
                         <div class="container-fluid">
                             <div class="row">
-                                <nav class="wh_tools hidden-print col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="hidden-print"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li>
-   <li><span class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li>
-   <li><span class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8"><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html">Configuring PowerEdge Servers</a></span></span></li>
-   <li><span class="topicref" data-id="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892"><span class="title"><a href="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892.html">Configure RAID</a></span></span></li>
-   <li class="active"><span class="topicref" data-id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40"><span class="title"><a href="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40.html">Configure storage volume</a></span></span></li>
-</ol></div>
+                                <!--  -->
+                                <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li><span class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8"><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html">Configuring PowerEdge Servers</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40"><span class="title"><a href="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40.html">Configure storage volume</a></span></span></li></ol></div>
 
                                     <div class="wh_right_tools hidden-sm hidden-xs">
                                         <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
   
-<span class="navprev"><a class="link" href="GUID-4CFF4634-5713-44D7-B21B-32BB47D49892.html" title="Configure RAID" aria-label="Previous topic: Configure RAID" rel="prev"></a></span>  
-<span class="navnext"><a class="link" href="GUID-D9B24130-D512-4B98-8A44-50183FE342F9.html" title="Configure Collect System Inventory on Restart" aria-label="Next topic: Configure Collect System Inventory on Restart" rel="next"></a></span>  </span></div>
+<span class="navprev"><a class="- topic/link link" href="GUID-D2D8D871-C3E1-48D1-A879-197670FE33EA.html" title="Configure BIOS" aria-label="Previous topic: Configure BIOS" rel="prev"></a></span>  
+<span class="navnext"><a class="- topic/link link" href="GUID-D9B24130-D512-4B98-8A44-50183FE342F9.html" title="Configure Collect System Inventory on Restart" aria-label="Next topic: Configure Collect System Inventory on Restart" rel="next"></a></span>  </span></div>
                                         <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
                                         <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
                                     </div>
                                 </nav>
                             </div>
-                            <div class="row">
-                                <div class="col-lg-10 col-md-12 col-sm-12 col-xs-12" id="topic_content">
-                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__GUID-74BAFC6D-7C18-419C-A65F-E79FCEA9D58D">
-<h1 class="title topictitle1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__GUID-74BAFC6D-7C18-419C-A65F-E79FCEA9D58D">Configure
-storage volume</h1>
-<div class="body refbody">
-<section class="section" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__GUID-A67538C0-B71C-4C9F-9CF4-84179AAA4DB1"><span class="ph uicontrol bold">Module: dellemc_idrac_storage_volume</span></section>
-<section class="section" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__SECTION_6F710EA84CC84D5F82461C2B33F83E65"><span class="ph uicontrol bold">Synopsis</span><p class="p">This module hosts the RAID configuration
-related attributes.</p><p class="p">Check_mode support: Yes</p><p class="p"><span class="ph uicontrol bold">Options</span></p><table class="table all  pgwide" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8"><caption><span class="table-anchor" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8"></span><span class="tablecap"><span class="table-label">Table 1. </span>dellemc_idrac_storage_volume</span></caption><colgroup><col style="width:19.85898942420681%" /><col style="width:11.750881316098704%" /><col style="width:14.33607520564042%" /><col style="width:18.918918918918916%" /><col style="width:35.13513513513513%" /></colgroup><thead class="thead"><tr>
-<th class="entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">Parameter/aliases</th>
-<th class="entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">Required</th>
-<th class="entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">Default</th>
-<th class="entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">Choices</th>
-<th class="entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Comments</th>
-</tr></thead><tbody class="tbody">
-
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">idrac_ip</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">Yes</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">iDRAC IP Address</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">idrac_user</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">Yes</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">iDRAC username</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">idrac_password/idrac_pwd</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">Yes</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">iDRAC user password</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">idrac_port</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">443</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">iDRAC port</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">span_depth</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">1</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Span Depth</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">span_length</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">1</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Span Length</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">number_dedicated_hot_spare</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">0</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Number of Dedicated Hot Spare</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">volume_type</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">RAID 0</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_77B0FAF1CE304B03A74D0A9542BCCE70">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_3B1258D59D4F45CC9B5747B1E883588D">RAID 0</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_49FE1456AA694ED78AE8ADB56F12E5C9">RAID 1</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_1B6892DE01F8416AA7CB32738B697D6F">RAID 5</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_7C4C61A5A2A44F35BBEB5DCCA7872C77">RAID 6</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_BA676B8BBCEC4BADB452755247FB25B7">RAID 10</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_8BC8759F42064824BB1DE95302DEFD17">RAID 50</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_0C721C8FB3474463BF576C57D2169620">RAID 60</li>
-</ul></td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Provide the required RAID level</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">disk_cache_policy</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">Default</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_7E4612C10FF347CCB94C7DC9FA9FC27D">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_CEF772A7B22C4FB88A9F64FC33CBB2AF">Default</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_72BA48CC3F6F430D8ABC976E42794497">Enabled</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_5B9EBA4CE1214B389566F1B2DDBAE00F">Disabled</li>
-</ul></td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Disk Cache Policy</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">write_cache_policy</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">WriteThrough</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_A75D08C2E75D4CC984613D2FCDC755A5">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_219A07C9FC5040DD831543622CEB9B86">WriteThrough</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_15D8D3D7DC0B472FBF20B54A8A6F0142">WriteBack</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_790CD2FF2247473D9013371BA0B09CAF">WriteBackForce</li>
-</ul></td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Write Cache Policy</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">read_cache_policy</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NoReadAhead</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_EF7531E9481D4D53A7D42BA153FC8C9B">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_C87EBCF35E5949EC91E43924CF03C11C">NoReadAhead</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_C21E4882D9E5417A9F46ECFED83DB1F4">ReadAhead</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_4F9BFE9A5ACF4E35A69C3BF19E7F7C4C">AdaptiveReadAhead</li>
-</ul></td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Read Cache Policy</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">stripe_size</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">65536</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Provide stripe size value in multiples
-of 64 * 1024</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">controller_id</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Fully Qualified Device Descriptor
-(FQDD) of the storage controller, for example: <span class="ph codeph">RAID.Integrated.1-1</span><div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>Controller FQDD
-is required for C(create) RAID configuration.</div></td></tr></tbody></table></div></td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">volume_id</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Fully Qualified Device Descriptor
-(FQDD) of the virtual disk, for example: <span class="ph codeph">Disk.virtual.0:RAID.Slot.1-1</span><div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>This option
-is used to get the virtual disk information.</div></td></tr></tbody></table></div></td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">media_type</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">None</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_ABD710486F1A4521BC4B8CC82D07B803">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_74907CC88A014B138326245360DB5764">HDD</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_66968A4725BE44DFB4CEE4C12AB98751">SDD</li>
-</ul></td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Media type</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">protocol</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">None</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_FE8795D036C041AFA1592B7E4F026319">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_707529A220904A0CB82C632CA6C80879">SAS</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_40948676F1E14A52A05AEA9A82277EAA">SATA</li>
-</ul></td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Bus protocol</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">state</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">Yes</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">view</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_25ADF66EF57042FBA2E838BBE9D794AE">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_8EF13C40B9BD4D0DBA5F87FE4E8F1734">create</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_9AA9FB534C604AAF8B4A761FBC37DCB7">delete</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_126746A678664231BBCD19F650EF5A23">view</li>
-</ul></td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_29F6298B595241C1B9739A81986FB102">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_45F0D43F87974D53B773971FCA69C36E">C(create) performs <span class="ph uicontrol bold">create </span> volume operations.</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_69D15C41E3FD4248A609FB0AF1F44969">C(delete) performs <span class="ph uicontrol bold">remove</span> volume operations.</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_8CABF270CA294778ADA5EB3E42808374">C(view) returns the storage view.</li>
-</ul></td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">volumes</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">A list of virtual disk-specific
-iDRAC attributes. This is applicable for C(create) and C(delete) operations.<ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_1533D410BDFE4825B54F87DDAEC90E7D">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_F4DA6E8428574D94B16C1B425CA5CB8D">For C(create) operation,
-name and drives are applicable options, other volume options can also
-be specified.<div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>The drives is a required option for C(create) operation and accepts
-either location (list of drive slot) or id (list of drive fqdd).</div></td></tr></tbody></table></div></li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_378517BB47194B10B4F8303C3A0807A0">For C(delete) operation,
-only name option is applicable.</li>
-</ul></td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">capacity</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 "> No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">Virtual disk size in GB</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">raid_reset_config</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 ">NA</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">This option represents whether
-a Reset Config operation needs to be performed on the RAID controller.
-Reset Config operation deletes all the virtual disks present on the
-RAID controller.</td>
-</tr>
-<tr>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1 ">raid_init_operation</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2 ">No</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3 ">None</td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4 "><ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_E7A53DEF042C4DB98FEDAC2ADE9989EF">
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_28756E416A2046DE95593459B9A32228">None</li>
-<li class="li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_93DE38F62F5B43348C5FEBAB0E9BF551">Fast</li>
-</ul></td>
-<td class="entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5 ">This option represents Initialization
-Configuration operation to be performed on the virtual disk.</td>
-</tr>
-</tbody></table><div class="p"><span class="ph uicontrol bold">Return Values</span><pre class="pre codeblock"><code>msg:
+                            <div class="row topic_content_row">
+                                <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__GUID-74BAFC6D-7C18-419C-A65F-E79FCEA9D58D"> 
+  <h1 class="- topic/title title topictitle1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__GUID-74BAFC6D-7C18-419C-A65F-E79FCEA9D58D">Configure storage volume</h1> 
+  <div class="- topic/body reference/refbody body refbody"> 
+	 <section class="- topic/section section" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__GUID-A67538C0-B71C-4C9F-9CF4-84179AAA4DB1"><span class="ph uicontrol bold">Module: dellemc_idrac_storage_volume</span> 
+	 </section> 
+	 <section class="- topic/section section" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__SECTION_6F710EA84CC84D5F82461C2B33F83E65"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="- topic/p p">This module hosts the RAID configuration related attributes. 
+		</p> 
+		<p class="- topic/p p">Check_mode support: Yes 
+		</p> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="- topic/table table all pgwide" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8"><caption><span class="table-anchor" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8"></span><span class="tablecap"><span class="table-label">Table 1. </span>dellemc_idrac_storage_volume</span></caption><colgroup><col style="width:19.85898942420681%" /><col style="width:11.750881316098704%" /><col style="width:14.33607520564042%" /><col style="width:18.918918918918916%" /><col style="width:35.13513513513513%" /></colgroup><thead class="- topic/thead thead"> 
+			 <tr class="- topic/row"> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">Parameter/aliases 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">Required 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">Default 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">Choices 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="- topic/tbody tbody"> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">idrac_ip 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">Yes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">iDRAC IP Address 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">idrac_user 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">Yes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">iDRAC username 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">idrac_password/idrac_pwd 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">Yes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">iDRAC user password 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">idrac_port 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">443 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">iDRAC port 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">span_depth 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">1 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_9E21FD6D826046E5BE0ED4840CE744B4">
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_8475D1C32A9A4227840D0BE075BE3149"> Number of spans in the RAID configuration.
+					 </li>
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_6C453EF0DFC04BDF8E9E68CC0DB864A4"> I(span_depth) is mandatory for C(create) and its value depends on I(volume_type).
+					 </li>
+				  </ul>
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">span_length 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">1 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_EC93B20554A1468B9A32B5BC655690E8">
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_2F913283D02B43598FDE2602E9AA0F4C"> Number of disks in a span.
+					 </li>
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_93904C0D775B48929B8F858539448DEC"> I(span_length) is mandatory for C(create) and its value depends on I(volume_type).
+					 </li>
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">number_dedicated_hot_spare 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">0 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Number of Dedicated Hot Spare 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">volume_type 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">RAID 0 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_77B0FAF1CE304B03A74D0A9542BCCE70"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_3B1258D59D4F45CC9B5747B1E883588D">RAID 0 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_49FE1456AA694ED78AE8ADB56F12E5C9">RAID 1 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_1B6892DE01F8416AA7CB32738B697D6F">RAID 5 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_7C4C61A5A2A44F35BBEB5DCCA7872C77">RAID 6 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_BA676B8BBCEC4BADB452755247FB25B7">RAID 10 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_8BC8759F42064824BB1DE95302DEFD17">RAID 50 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_0C721C8FB3474463BF576C57D2169620">RAID 60 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Provide the required RAID level 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">disk_cache_policy 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">Default 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_7E4612C10FF347CCB94C7DC9FA9FC27D"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_CEF772A7B22C4FB88A9F64FC33CBB2AF">Default 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_72BA48CC3F6F430D8ABC976E42794497">Enabled 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_5B9EBA4CE1214B389566F1B2DDBAE00F">Disabled 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Disk Cache Policy 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">write_cache_policy 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">WriteThrough 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_A75D08C2E75D4CC984613D2FCDC755A5"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_219A07C9FC5040DD831543622CEB9B86">WriteThrough 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_15D8D3D7DC0B472FBF20B54A8A6F0142">WriteBack 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_790CD2FF2247473D9013371BA0B09CAF">WriteBackForce 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Write Cache Policy 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">read_cache_policy 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NoReadAhead 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_EF7531E9481D4D53A7D42BA153FC8C9B"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_C87EBCF35E5949EC91E43924CF03C11C">NoReadAhead 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_C21E4882D9E5417A9F46ECFED83DB1F4">ReadAhead 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_4F9BFE9A5ACF4E35A69C3BF19E7F7C4C">AdaptiveReadAhead 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Read Cache Policy 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">stripe_size 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">65536 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Provide stripe size value in multiples of 64 * 1024 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">controller_id 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Fully Qualified Device Descriptor (FQDD) of the storage controller, for example: 
+				  <span class="+ topic/ph pr-d/codeph ph codeph">RAID.Integrated.1-1</span> 
+				  <div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>Controller FQDD is required for C(create) RAID configuration. 
+				  </div></td></tr></tbody></table></div> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">volume_id 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Fully Qualified Device Descriptor (FQDD) of the virtual disk, for example: 
+				  <span class="+ topic/ph pr-d/codeph ph codeph">Disk.virtual.0:RAID.Slot.1-1</span> 
+				  <div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>This option is used to get the virtual disk information. 
+				  </div></td></tr></tbody></table></div> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">media_type 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">None 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_ABD710486F1A4521BC4B8CC82D07B803"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_74907CC88A014B138326245360DB5764">HDD 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_66968A4725BE44DFB4CEE4C12AB98751">SDD 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Media type 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">protocol 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">None 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_FE8795D036C041AFA1592B7E4F026319"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_707529A220904A0CB82C632CA6C80879">SAS 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_40948676F1E14A52A05AEA9A82277EAA">SATA 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Bus protocol 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">state 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">Yes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">view 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_25ADF66EF57042FBA2E838BBE9D794AE"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_8EF13C40B9BD4D0DBA5F87FE4E8F1734">create 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_9AA9FB534C604AAF8B4A761FBC37DCB7">delete 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_126746A678664231BBCD19F650EF5A23">view 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_29F6298B595241C1B9739A81986FB102"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_45F0D43F87974D53B773971FCA69C36E">C(create) performs 
+						<span class="ph uicontrol bold">create 
+						</span> volume operations. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_69D15C41E3FD4248A609FB0AF1F44969">C(delete) performs 
+						<span class="ph uicontrol bold">remove</span> volume operations. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_8CABF270CA294778ADA5EB3E42808374">C(view) returns the storage view. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">volumes 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">A list of virtual disk-specific iDRAC attributes. This is applicable for C(create) and C(delete) operations. 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_1533D410BDFE4825B54F87DDAEC90E7D"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_F4DA6E8428574D94B16C1B425CA5CB8D">For C(create) operation, name and drives are applicable options, other volume options can also be specified. 
+						<div class="note admonition"><table><tbody><tr><td><div class="admonition-image-container"><img class="admonition-image" src="oxygen-webhelp/template/resources/images/note.svg" alt="" /></div></td><td><div class="admonition-body"><span class="note admonition-label">NOTE:</span><span> </span>The drives is a required option for C(create) operation and accepts either location (list of drive slot) or id (list of drive fqdd). 
+						</div></td></tr></tbody></table></div> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_378517BB47194B10B4F8303C3A0807A0">For C(delete) operation, only name option is applicable. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">capacity 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2"> No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">Virtual disk size in GB 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">raid_reset_config 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">This option represents whether a Reset Config operation needs to be performed on the RAID controller. Reset Config operation deletes all the virtual disks present on the RAID controller. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__1">raid_init_operation 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__2">No 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__3">None 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__4"> 
+				  <ul class="level1" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__UL_E7A53DEF042C4DB98FEDAC2ADE9989EF"> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_28756E416A2046DE95593459B9A32228">None 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__LI_93DE38F62F5B43348C5FEBAB0E9BF551">Fast 
+					 </li> 
+				  </ul> 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-13F2AB35-E9DF-46C4-8ADC-D5CCAAA1AC40__TABLE_9CF9CCDA67C14EC0B7005AF6333BD9A8__entry__5">This option represents Initialization Configuration operation to be performed on the virtual disk. 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<div class="- topic/p p"><span class="ph uicontrol bold">Return Values</span> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>msg:
   type: str
   description: Overall status of the storage configuration operation.
   returned: always
@@ -366,18 +479,22 @@ storage_status:
       "Status": "Success",
       "TargetSettingsURI": null,
       "retval": true 
-    }</code></pre></div><div class="p"><span class="ph uicontrol bold">Examples</span><pre class="pre codeblock"><code>-name: Create single volume
-   dellemc_idrac_storage_volume:
+    }</code></pre> 
+		</div> 
+		<div class="- topic/p p"><span class="ph uicontrol bold">Examples</span> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>-name: Create single volume
+   dellemc.openmanage.dellemc_idrac_storage_volume:
      idrac_ip:        "192.168.0.1"
      idrac_user:      "username"
-     idrac_password:  "password"
-     controller_id:   "RAID.Slot.1-1"
+     idrac_password:  "password" 
      state:           "create"
+     controller_id:   "RAID.Slot.1-1"
      volumes:
         - drives:
           location:    [5]
-     </code></pre><pre class="pre codeblock"><code>-name: Create multiple volume
-   dellemc_idrac_storage_volume:
+     </code></pre> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>-name: Create multiple volume	
+   dellemc.openmanage.dellemc_idrac_storage_volume:
      idrac_ip:                  "192.168.0.1"
      idrac_user:                "username"
      idrac_password:            "password"
@@ -409,45 +526,47 @@ storage_status:
          write_cache_policy:     "WriteBack"
          read_cache_policy:      "NoReadAhead"
          stripe_size:             131072
-         capacity:                200
-         raid_init_operation:    "None"</code></pre><pre class="pre codeblock"><code>-name: View all volume details
-   dellemc_idrac_storage_volume:
+         capacity:               "200"
+         raid_init_operation:    "None"</code></pre> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>-name: View all volume details
+   dellemc.openmanage.dellemc_idrac_storage_volume:
      idrac_ip:   					"192.168.0.1"
      idrac_user: 					"username"
      idrac_password:  "password"
-     state:      					"view"</code></pre><pre class="pre codeblock"><code>-name: View specific volume details
-   dellemc_idrac_storage_volume:
+     state:      					"view"</code></pre> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>-name: View specific volume details
+   dellemc.openmanage.dellemc_idrac_storage_volume:
      idrac_ip:        "192.168.0.1"
      idrac_user:      "username"
      idrac_password:  "password"
      state:           "view"
      controller_id:   "RAID.Slot.1-1"
-     volume_id:       "Disk.Virtual.0:RAID.Slot.1-1"</code></pre><pre class="pre codeblock"><code>-name: Delete single volume
-   dellemc_idrac_storage_volume:
+     volume_id:       "Disk.Virtual.0:RAID.Slot.1-1"</code></pre> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>-name: Delete single volume
+   dellemc.openmanage.dellemc_idrac_storage_volume:
      idrac_ip:    			"192.168.0.1"
      idrac_user:  			"username"
      idrac_password: "password"
      state:       			"delete"
      volumes:
-       - name:    "volume_1"</code></pre><pre class="pre codeblock"><code>-name: Delete multiple volume
-   dellemc_idrac_storage_volume:
+       - name:    "volume_1"</code></pre> 
+		  <pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>-name: Delete multiple volume
+   dellemc.openmanage.dellemc_idrac_storage_volume:
      idrac_ip:    			"192.168.0.1"
      idrac_user:  			"username"
      idrac_password: "password"
      state:       			"delete"
      volumes:
        - name: "volume_1"
-       - name: "volume_2"</code></pre></div></section>
-</div>
+       - name: "volume_2"</code></pre> 
+		</div> 
+	 </section> 
+  </div> 
 </article></main></div>
                                     
                                     
                                     
                                 </div>
-                                
-                                    <nav role="navigation" id="wh_topic_toc" class="col-lg-2 hidden-md hidden-sm hidden-xs navbar hidden-print">
-                                        <div class=" wh_topic_toc "><div class="wh_topic_label">On this page</div><ul><li class="section-item"></li><li class="section-item"></li></ul></div>
-                                    </nav>
                                 
                             </div>
                         </div>
@@ -470,7 +589,7 @@ storage_status:
             <div id="caption"></div>
         </div>
 
-        <script src="./oxygen-webhelp/lib/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+        <!--<script src="${oxygen-webhelp-assets-dir}/lib/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>-->
         
     </body>
 </html>

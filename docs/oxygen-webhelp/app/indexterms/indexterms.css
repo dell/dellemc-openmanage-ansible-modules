@@ -73,15 +73,17 @@ a.wh_term_target{
 /**
  * Try to avoid column break between an index group and its first child.
  */
-.wh_term {
-    display: block;
-    -webkit-column-break-inside:avoid;
-    -moz-column-break-inside:avoid;
-    -o-column-break-inside:avoid;
-    -ms-column-break-inside:avoid;
-    column-break-inside:avoid;
-     page-break-inside:avoid; /* Firefox */
+.wh_term .wh_term{
+    break-inside:avoid;
 }
+@media screen{
+	@-moz-document url-prefix() {
+	  .wh_term .wh_term{
+	        display: table
+	    }
+	}
+}
+
 .wh_term > ul > .wh_term:first-child {
     break-before: avoid-column;
     -webkit-column-break-before: avoid;

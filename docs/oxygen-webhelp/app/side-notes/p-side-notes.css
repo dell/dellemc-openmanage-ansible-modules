@@ -1,7 +1,7 @@
 /*
 
 Oxygen WebHelp Plugin
-Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
+Copyright (c) 1998-2020 Syncro Soft SRL, Romania.  All rights reserved.
 
 */
 /*
@@ -165,10 +165,6 @@ Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
     .oxy-author {
         font-weight:bold;
     }
-    oxy-author:after,
-    .oxy-author:after {
-        content:':';
-    }
     
     /* Comment */
     oxy-comment-text,
@@ -176,14 +172,6 @@ Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
         display:block;
         margin-top:0.5em;
         margin-bottom:0.5em;
-    }
-    oxy-comment-text:before,
-    .oxy-comment-text:before  {
-        content:'\201C';
-    }
-    oxy-comment-text:after,
-    .oxy-comment-text:after  {
-        content:'\201D';
     }
         
     /* Content of the change */    
@@ -193,14 +181,7 @@ Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
         margin-top:0.5em;
         margin-bottom:0.5em;
     }
-    oxy-content:before,
-    .oxy-content:before {
-        content:'\201C';
-    }
-    oxy-content:after,
-    .oxy-content:after{
-        content:'\201D';
-    }
+
     oxy-delete > oxy-content,
     .oxy-delete > .oxy-content  {
         text-decoration:line-through;
@@ -232,7 +213,8 @@ Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
     /* Old and cuattribute value */    
     oxy-old-value,
     .oxy-old-value {
-        display:block;    
+        display:block;
+        text-decoration: line-through;    
     }
     
     oxy-old-value:before,
@@ -243,10 +225,10 @@ Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
         font-weight:bold;
         text-decoration:none;
     }
-    oxy-old-value:before,
-    .oxy-old-value:before{
-        content: "Was:";
-    }        
+    
+    
+    
+    
     oxy-current-value[unknown='true']:before,
     .oxy-current-value[unknown='true']:before{
     	content:"<< Cannot determine the current value >>";
@@ -275,9 +257,7 @@ Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
     	text-decoration: none;
         font-weight: normal;
         font-style: normal;
-    	
     }
-
 
     /*
      * This is the link to the floated comment.
@@ -299,41 +279,6 @@ Copyright (c) 1998-2018 Syncro Soft SRL, Romania.  All rights reserved.
         content:'[/' attr(hr_id) ']';
     }
     
-    /*
-     * Between an insert range start and end, underline the text.  
-     */
-    oxy-insert-hl,
-    .oxy-insert-hl
-    {
-    	display:inline;
-		text-decoration:underline;
-    }
-    
-    /*
-     * Between an delete range start and end, underline the text.  
-     */    
-    oxy-delete-hl,
-    .oxy-delete-hl {
-    	display:inline;
-		text-decoration:line-through;
-     
-    }
-
-    /*
-     * Between an comment range start and end, highlight the text.  
-     */    
-    oxy-comment-hl,
-    .oxy-comment-hl{
-    	display:inline;
-     }
-    /*
-     * Between an highlight range start and end, highlight the text.  
-     */    
-    oxy-color-hl[color],
-    .oxy-color-hl[color]{
-    	display:inline;
-        background-color:attr(color, color);
-    }
 }
 
 
@@ -374,6 +319,35 @@ oxy-insert,
 }
 
 
+/*
+ * The highlight part.
+ * This is also built-in Chemistry processor, but if one uses other processors is good to have it here also.
+ */
+oxy-insert-hl,
+.oxy-insert-hl{
+    display:inline;
+    color:blue;
+	text-decoration:underline;    
+}
+oxy-delete-hl,
+.oxy-delete-hl {
+  	display:inline;
+	color:red;
+	text-decoration:line-through;
+}
+oxy-comment-hl,
+.oxy-comment-hl{
+	display:inline;
+    background-color:yellow;
+}
+oxy-color-hl[color],
+.oxy-color-hl[color]{
+	display:inline;
+    background-color:attr(color, color);
+}
+
+
+
     
 /*
  * The marked as done changes should be grayed out.
@@ -410,18 +384,7 @@ oxy-range-end,
 .oxy-range-end {
     background-color: yellow;        
 }
-oxy-insert-hl,
-.oxy-insert-hl{
-    color:blue;
-}
-oxy-delete-hl,
-.oxy-delete-hl {
-    color:red;
-}
-oxy-comment-hl,
-.oxy-comment-hl{
-    background-color:yellow;
-}
+
 oxy-attributes   oxy-comment,
 oxy-comment  	 oxy-comment,
 oxy-delete  	 oxy-comment,
@@ -435,7 +398,12 @@ oxy-insert   	 oxy-comment,
 
 
 
-/* Because Chemistry does not support the float:right, we use footnotes instead. */
+/* 
+	Because Chemistry does not support the float:right, we use footnotes instead.
+	Starting with Chemistry 21 the oxy-attributes, oxy-comment, oxy-delete and oxy-insert are 
+	moved from footnotes to PDF annotations. To keep them as footnotes, use 
+	the -no-pdf-annotaotions-for-change-tracking-and-comments Chemistry command line parameter. 	
+*/
 
 @media oxygen-chemistry{
 	oxy-attributes,
@@ -449,8 +417,21 @@ oxy-insert   	 oxy-comment,
     	margin: 0.5em;
         position:static;
         float: footnote;
-        clear:none;
 	}
+
+	/* Footnotes in footnotes are not allowed in the FO and they are not OK to represent the replies. 
+	   So leave the replies as normal blocks, inside the parent change.*/	
+	oxy-attributes oxy-comment,
+    oxy-comment oxy-comment,
+    oxy-delete oxy-comment,
+    oxy-insert oxy-comment,
+    .oxy-attributes .oxy-comment,
+    .oxy-comment .oxy-comment,
+    .oxy-delete .oxy-comment,
+    .oxy-insert .oxy-comment{
+        float:none;
+	}
+	
 	
     oxy-attributes[hr_id]:before,
     oxy-comment[hr_id]:before,
@@ -466,17 +447,46 @@ oxy-insert   	 oxy-comment,
 		content:none;
     }
 
-    /*
+    /* Do not leave the range id in the content, it creates confusion with the footnotes numbers. */
+    oxy-range-start,
+    .oxy-range-start,
+    oxy-range-end,
+    .oxy-range-end {
+    	background-color:inherit;
+        color:maroon;
+    }
     oxy-range-start:before,
     .oxy-range-start:before {
-        content:none;        
+        content:'{';
+        font-weight:bold;
     }
     oxy-range-end:before,
     .oxy-range-end:before {
-        content:none;
+        content:'}';
+        font-weight:bold;
     }
-    */
     
+    oxy-range-start[is-changebar]:before(100),
+    .oxy-range-start[is-changebar]:before(100) {
+        content: "";
+        display:-oxy-changebar-start;
+        -oxy-changebar-color: gray;
+        -oxy-changebar-width: 1.5pt;
+    }
+    oxy-range-end[is-changebar]:before(100),
+    .oxy-range-end[is-changebar]:before(100) {
+        content: "";
+    	display:-oxy-changebar-end;
+    }
+
+    /* Remove the link from the HTML output, we already have a link from the footnote marker to the call. */
+    .oxy-attributes > a,
+    .oxy-comment > a,
+    .oxy-delete > a,
+    .oxy-insert > a{
+        display:none;
+    }
+
     oxy-attributes,
     oxy-attributes:footnote-call,
     oxy-attributes:footnote-marker,

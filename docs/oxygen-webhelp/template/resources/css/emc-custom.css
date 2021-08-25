@@ -1,0 +1,15 @@
+main h1.topictitle1 {
+    color: #0076CE;
+}
+
+
+/* topic onpage reference display at top */
+#wh_topic_toc {
+    display:block;
+    clear: both;    
+}
+
+/* topic body obscuring mobile buttons for mobile version */
+#wh_topic_body{
+    /*  min-width:1180px; */
+}
