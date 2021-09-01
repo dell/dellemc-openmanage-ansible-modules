@@ -1,0 +1,79 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OpenManage Ansible device inventory details.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Add devices to a static device group by using the group name and device IDs
+      ome_device_group:
+        hostname:  "{{ hostname }}"
+        username: "{{ username }}"
+        password:  "{{ password }}"
+        name: "Storage Services"
+        device_ids:
+          - 11111
+          - 11112
+      tags: device-id
+
+    - name: Add devices to a static device group by using the group name and device service tags
+      ome_device_group:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        name: "Storage Services"
+        device_service_tags:
+          - GHRT2R
+          - KJHDF3
+      tags: device-service-tags
+
+    - name: Add devices to a static device group by using the group ID and device service tags
+      ome_device_group:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        group_id: 12345
+        device_service_tags:
+          - GHRT2R
+          - KJHDF3
+      tags: group_id_device-service-tags
+
+    - name: Add devices to a static device group by using the group name and IPv4 addresses
+      ome_device_group:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        name: "Storage Services"
+        ip_addresses:
+          - 192.35.0.1
+          - 192.35.0.5
+      tags: group_name_ipv4
+
+    - name: Add devices to a static device group by using the group ID and IPv6 addresses
+      ome_device_group:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        group_id: 12345
+        ip_addresses:
+          - fe80::ffff:ffff:ffff:ffff
+          - fe80::ffff:ffff:ffff:2222
+      tags: group_id_ipv6
+
+    - name: Add devices to a static device group by using the group ID and supported IPv4 and IPv6 address formats.
+      ome_device_group:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        group_id: 12345
+        ip_addresses:
+          - 192.35.0.1
+          - 10.36.0.0-192.36.0.255
+          - 192.37.0.0/24
+          - fe80::ffff:ffff:ffff:ffff
+          - ::ffff:192.0.2.0/125
+          - fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff
+      tags: group_id_ipv4_ipv6

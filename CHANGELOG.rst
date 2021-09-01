@@ -5,6 +5,134 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v4.0.0
+======
+
+Release Summary
+---------------
+
+Support for configuring active directory user group on OpenManage Enterprise and OpenManage Enterprise Modular.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_active_directory - Configure Active Directory groups to be used with Directory Services on OpenManage Enterprise and OpenManage Enterprise Modular
+- dellemc.openmanage.ome_domain_user_groups - Create, modify, or delete an Active Directory user group on OpenManage Enterprise and OpenManage Enterprise Modular
+
+v3.6.0
+======
+
+Release Summary
+---------------
+
+Support for configuring device slot name and export SupportAssist device collections from OpenManage Enterprise and OpenManage Enterprise Modular.
+
+Bugfixes
+--------
+
+- dellemc_idrac_storage_volume - Module fails if the BlockSize, FreeSize, or Size state of the physical disk is set to "Not Available".
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_chassis_slots - Rename sled slots on OpenManage Enterprise Modular
+- dellemc.openmanage.ome_diagnostics - Export technical support logs(TSR) to network share location
+
+v3.5.0
+======
+
+Release Summary
+---------------
+
+Support for managing static device groups on OpenManage Enterprise.
+
+Major Changes
+-------------
+
+- idrac_server_config_profile - Added support for exporting and importing Server Configuration Profile through HTTP/HTTPS share.
+- ome_device_group - Added support for adding devices to a group using the IP addresses of the devices and group ID.
+
+Bugfixes
+--------
+
+- Handled invalid share and unused imports cleanup for iDRAC modules (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/268)
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_groups - Manages static device groups on OpenManage Enterprise
+
+v3.4.0
+======
+
+Release Summary
+---------------
+
+OpenManage Enterprise firmware baseline and firmware catalog modules updated to support checkmode.
+
+Major Changes
+-------------
+
+- ome_firmware_baseline - Module supports check mode, and allows the modification and deletion of firmware baselines.
+- ome_firmware_catalog - Module supports check mode, and allows the modification and deletion of firmware catalogs.
+
+Minor Changes
+-------------
+
+- ome_firmware_catalog - Added support for repositories available on the Dell support site.
+- ome_template_network_vlan - Added the input option which allows to apply the modified VLAN settings immediately on the associated modular-system servers.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+v3.3.0
+======
+
+Release Summary
+---------------
+
+OpenManage Enterprise device group and device discovery support added
+
+Minor Changes
+-------------
+
+- ome_firmware_baseline - Allows to retrieve the device even if it not in the first 50 device IDs
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_configuration_compliance_info - Issue(195592) Module may error out with the message ``unable to process the request because an error occurred``. If the issue persists, report it to the system administrator.
+- ome_smart_fabric - Issue(185322) Only three design types are supported by OpenManage Enterprise Modular but the module successfully creates a fabric when the design type is not supported.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_device_group - Add devices to a static device group on OpenManage Enterprise
+- dellemc.openmanage.ome_discovery - Create, modify, or delete a discovery job on OpenManage Enterprise
+
 v3.2.0
 ======
 
@@ -21,15 +149,15 @@ Minor Changes
 Known Issues
 ------------
 
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_configuration_compliance_info - Issue(195592) Module may error out with the message ``unable to process the request because an error occurred``. If the issue persists, report it to the system administrator.
 - ome_smart_fabric - Issue(185322) Only three design types are supported by OpenManage Enterprise Modular but the module successfully creates a fabric when the design type is not supported.
 - ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though this is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
-- ome_configuration_compliance_info - Issue(195592) Module may error out with the message "unable to process the request because an error occurred". If the issue persists, report it to the system administrator.
-- idrac_user - Issue(192043) Module may error out with the message "unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress". Wait for the job to complete and run the task again.
 
 New Modules
 -----------
 
-- dellemc.openmanage.ome_configuration_compliance_baseline - Create, modify, delete and remediate a compliance configuration baseline on OpenManage Enterprise
+- dellemc.openmanage.ome_configuration_compliance_baseline - Create, modify, and delete a configuration compliance baseline and remediate non-compliant devices on OpenManage Enterprise
 - dellemc.openmanage.ome_configuration_compliance_info - Device compliance report for devices managed in OpenManage Enterprise
 
 v3.1.0
@@ -139,8 +267,8 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.ome_smart_fabric - Create, modify or delete a fabric on OpenManage Enterprise Modular.
-- dellemc.openmanage.ome_smart_fabric_uplink - Create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_smart_fabric - Create, modify or delete a fabric on OpenManage Enterprise Modular
+- dellemc.openmanage.ome_smart_fabric_uplink - Create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular
 
 v2.1.3
 ======
@@ -153,9 +281,9 @@ Network configuration service related modules ome_network_vlan, ome_network_port
 New Modules
 -----------
 
-- dellemc.openmanage.ome_network_port_breakout - This module allows to automate the port partitioning or breaking out to logical sub ports.
-- dellemc.openmanage.ome_network_vlan - Create, modify & delete a VLAN.
-- dellemc.openmanage.ome_network_vlan_info - Retrieves the information about networks VLAN(s) present in OpenManage Enterprise.
+- dellemc.openmanage.ome_network_port_breakout - This module allows to automate the port portioning or port breakout to logical sub ports
+- dellemc.openmanage.ome_network_vlan - Create, modify & delete a VLAN
+- dellemc.openmanage.ome_network_vlan_info - Retrieves the information about networks VLAN(s) present in OpenManage Enterprise
 
 v2.1.2
 ======
@@ -191,8 +319,8 @@ Bugfixes
 New Modules
 -----------
 
-- dellemc.openmanage.idrac_user - Configure settings for user accounts.
-- dellemc.openmanage.redfish_powerstate - Manage device power state.
+- dellemc.openmanage.idrac_user - Configure settings for user accounts
+- dellemc.openmanage.redfish_powerstate - Manage device power state
 
 v2.1.1
 ======
@@ -224,15 +352,15 @@ Deprecated Features
 New Modules
 -----------
 
-- dellemc.openmanage.idrac_bios - Configure the BIOS attributes.
-- dellemc.openmanage.idrac_lifecycle_controller_job_status_info - Get the status of a Lifecycle Controller job.
-- dellemc.openmanage.idrac_lifecycle_controller_jobs - Delete the Lifecycle Controller Jobs.
-- dellemc.openmanage.idrac_lifecycle_controller_logs - Export Lifecycle Controller logs to a network share.
-- dellemc.openmanage.idrac_lifecycle_controller_status_info - Get the status of the Lifecycle Controller.
-- dellemc.openmanage.idrac_network - Configures the iDRAC network attributes.
-- dellemc.openmanage.idrac_reset - Reset iDRAC.
-- dellemc.openmanage.idrac_syslog - Enable or disable the syslog on iDRAC.
-- dellemc.openmanage.idrac_timezone_ntp - Configures time zone and NTP on iDRAC.
+- dellemc.openmanage.idrac_bios - Configure the BIOS attributes
+- dellemc.openmanage.idrac_lifecycle_controller_job_status_info - Get the status of a Lifecycle Controller job
+- dellemc.openmanage.idrac_lifecycle_controller_jobs - Delete the Lifecycle Controller Jobs
+- dellemc.openmanage.idrac_lifecycle_controller_logs - Export Lifecycle Controller logs to a network share or local path.
+- dellemc.openmanage.idrac_lifecycle_controller_status_info - Get the status of the Lifecycle Controller
+- dellemc.openmanage.idrac_network - Configures the iDRAC network attributes
+- dellemc.openmanage.idrac_reset - Reset iDRAC
+- dellemc.openmanage.idrac_syslog - Enable or disable the syslog on iDRAC
+- dellemc.openmanage.idrac_timezone_ntp - Configures time zone and NTP on iDRAC
 
 v2.1.0
 ======

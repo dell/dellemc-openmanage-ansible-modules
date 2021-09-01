@@ -24,7 +24,7 @@ description: "This module allows to create, modify, and delete a configuration c
  This module also allows to remediate devices that are non-compliant with the baseline by changing the attributes of devices
   to match with the associated baseline attributes."
 extends_documentation_fragment:
-  - dellemc.openmanage.ome_auth_options
+  - dellemc.openmanage.oment_auth_options
 options:
   command:
     description:

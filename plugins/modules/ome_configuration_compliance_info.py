@@ -22,7 +22,7 @@ version_added: "3.2.0"
 description: This module allows the generation of a compliance report of a specific or all
   of devices in a configuration compliance baseline.
 extends_documentation_fragment:
-  - dellemc.openmanage.ome_auth_options
+  - dellemc.openmanage.oment_auth_options
 options:
   baseline:
     required: True

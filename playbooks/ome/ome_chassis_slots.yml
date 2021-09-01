@@ -1,0 +1,61 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OpenManage Ansible slot name configuration.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Rename the slots in multiple chassis using slot number and chassis service tag.
+      ome_chassis_slots:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        slot_options:
+          - chassis_service_tag: ABC1234
+            slots:
+              - slot_number: 1
+                slot_name: sled_name_1
+              - slot_number: 2
+                slot_name: sled_name_2
+          - chassis_service_tag: ABC1235
+            slots:
+              - slot_number: 1
+                slot_name: sled_name_1
+              - slot_number: 2
+                slot_name: sled_name_2
+
+    - name: Rename single slot name of the sled using sled ID
+      ome_chassis_slots:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        device_options:
+          - device_id: 10054
+            slot_name: slot_device_name_1
+
+    - name: Rename single slot name of the sled using sled service tag
+      ome_chassis_slots:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        device_options:
+          - device_service_tag: ABC1234
+            slot_name: service_tag_slot
+
+    - name: Rename multiple slot names of the devices
+      ome_chassis_slots:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        device_options:
+          - device_id: 10054
+            slot_name: sled_name_1
+          - device_service_tag: ABC1234
+            slot_name: sled_name_2
+          - device_id: 10055
+            slot_name: sled_name_3
+          - device_service_tag: PQR1234
+            slot_name: sled_name_4

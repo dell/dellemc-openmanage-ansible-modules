@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 4.0.0
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -130,8 +130,10 @@ class TestOmeUser(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'ome_user._get_resource_parameters',
                      return_value=["DELETE", "ACCOUNT_RESOURCE", {"user_id": 23}])
         result = self._run_module(ome_default_args)
+        message_success = [
+            "Successfully deleted the User", "Successfully modified a User", "Successfully created a User"]
         assert result['changed'] is True
-        assert result['msg'] == "Successfully deleted the User" or "Successfully modified a User" or "Successfully created a User"
+        assert result['msg'] in message_success
 
     def test_main_user_success_case02(self, ome_default_args, mocker, ome_connection_for_user, ome_response_mock):
         ome_default_args.update({"state": "present",
@@ -142,8 +144,10 @@ class TestOmeUser(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'ome_user._get_resource_parameters',
                      return_value=["PUT", "ACCOUNT_RESOURCE", {"user_id": 23}])
         result = self._run_module(ome_default_args)
+        message_success = [
+            "Successfully deleted the User", "Successfully modified a User", "Successfully created a User"]
         assert result['changed'] is True
-        assert result['msg'] == "Successfully deleted the User" or "Successfully modified a User" or "Successfully created a User"
+        assert result['msg'] in message_success
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])

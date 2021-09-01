@@ -21,7 +21,7 @@ description:
   - This module allows to automate breaking out of IOMs in fabric mode into logical sub ports.
   - The port breakout operation is only supported in OpenManage Enterprise Modular.
 extends_documentation_fragment:
-  - dellemc.openmanage.ome_auth_options
+  - dellemc.openmanage.omem_auth_options
 options:
   target_port:
     required: True

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.6.0
 # Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -23,7 +23,7 @@ description:
   - This module allows to create a fabric, and modify or delete an existing fabric
    on OpenManage Enterprise Modular.
 extends_documentation_fragment:
-  - dellemc.openmanage.ome_auth_options
+  - dellemc.openmanage.omem_auth_options
 options:
   state:
     type: str
@@ -140,12 +140,12 @@ additional_info:
         "@Message.ExtendedInfo": [
             {
                 "RelatedProperties": [],
-                "Message":  "Fabric update is successful. The OverrideLLDPConfiguration attribute is not provided in the
-                 payload, so it preserves the previous value.",
+                "Message":  "Fabric update is successful. The OverrideLLDPConfiguration attribute is not provided in the
+                 payload, so it preserves the previous value.",
                 "MessageArgs": [],
                 "Severity": "Informational",
-                "Resolution": "Please update the Fabric with the OverrideLLDPConfiguration as Disabled or Enabled if
-                 necessary."
+                "Resolution": "Please update the Fabric with the OverrideLLDPConfiguration as Disabled or Enabled if
+                 necessary."
             }
         ]
     }
@@ -175,7 +175,7 @@ error_info:
 '''
 
 import json
-import re
+import socket
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -218,7 +218,7 @@ def get_service_tag_with_fqdn(rest_obj, module):
     device_details = rest_obj.get_all_items_with_pagination(DEVICE_URI)
     for each_device in device_details["value"]:
         for item in each_device["DeviceManagement"]:
-            if item["DnsName"] == hostname:
+            if item.get("DnsName") == hostname or item.get('NetworkAddress') == hostname:
                 return each_device["DeviceServiceTag"]
     return service_tag
 
@@ -236,6 +236,27 @@ def validate_lead_msm_version(each_domain, module, fabric_design=None):
     return msm_version
 
 
+def get_ip_from_host(hostname):
+    """
+    workaround:
+    when Virtual IP DNS name used in hostname, the DNS Name not reflected in device info
+    instead it shows original IP DNSName which causes failure in finding service tag of the device
+    Solution: Convert VIP DNS name to IP
+    """
+    ipaddr = hostname
+    try:
+        result = socket.getaddrinfo(hostname, None)
+        last_element = result[-1]
+        ip_address = last_element[-1][0]
+        if ip_address:
+            ipaddr = ip_address
+    except socket.gaierror:
+        ipaddr = hostname
+    except Exception:
+        ipaddr = hostname
+    return ipaddr
+
+
 def get_msm_device_details(rest_obj, module):
     """
     Get msm details
@@ -245,7 +266,7 @@ def get_msm_device_details(rest_obj, module):
     1st item: service tag of the domain
     2nd item: msm version of ome-M device
     """
-    hostname = module.params["hostname"]
+    hostname = get_ip_from_host(module.params["hostname"])
     fabric_design = module.params.get("fabric_design")
     msm_version = ""
     service_tag = get_service_tag_with_fqdn(rest_obj, module)
@@ -292,13 +313,19 @@ def idempotency_check_for_state_present(fabric_id, current_payload, expected_pay
     :return: None
     """
     if fabric_id:
-        payload_diff = compare_payloads(expected_payload, current_payload)
+        exp_dict = expected_payload.copy()
+        cur_dict = current_payload.copy()
+        for d in (exp_dict, cur_dict):
+            fab_dz_lst = d.pop("FabricDesignMapping", [])
+            for fab in fab_dz_lst:
+                d[fab.get('DesignNode')] = fab.get('PhysicalNode')
+        payload_diff = compare_payloads(exp_dict, cur_dict)
         if module.check_mode:
             if payload_diff:
                 module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True)
             else:
                 module.exit_json(msg=CHECK_MODE_CHANGE_NOT_FOUND_MSG, changed=False)
-        elif not module.check_mode and not payload_diff:
+        elif not payload_diff:
             module.exit_json(msg=IDEMPOTENCY_MSG, changed=False)
     else:
         if module.check_mode:
@@ -338,10 +365,10 @@ def validate_switches_overlap(current_dict, modify_dict, module):
     flag = all([modify_primary_switch, modify_secondary_switch, current_primary_switch,
                 current_secondary_switch]) and (modify_primary_switch == current_secondary_switch and
                                                 modify_secondary_switch == current_primary_switch)
-    if not flag and modify_primary_switch is not None and current_secondary_switch is not None and\
+    if not flag and modify_primary_switch is not None and current_secondary_switch is not None and \
             modify_primary_switch == current_secondary_switch:
         module.fail_json(PRIMARY_SWITCH_OVERLAP_MSG)
-    if not flag and modify_secondary_switch is not None and current_primary_switch is not None and\
+    if not flag and modify_secondary_switch is not None and current_primary_switch is not None and \
             modify_secondary_switch == current_primary_switch:
         module.fail_json(SECONDARY_SWITCH_OVERLAP_MSG)
 
@@ -438,10 +465,8 @@ def create_modify_payload(module_params, fabric_id, msm_version):
         "Name": backup_params["name"],
         "Description": backup_params.get("description"),
         "OverrideLLDPConfiguration": backup_params.get("override_LLDP_configuration"),
-        "FabricDesignMapping": [
-        ],
-        "FabricDesign": {
-        }
+        "FabricDesignMapping": [],
+        "FabricDesign": {}
     }
     if backup_params.get("primary_switch_service_tag"):
         _payload["FabricDesignMapping"].append({
@@ -581,7 +606,7 @@ def process_output(name, fabric_resp, msg, fabric_id, rest_obj, module):
 
 def validate_modify(module, current_payload):
     """Fabric modification does not support fabric design type modification"""
-    if module.params.get("fabric_design") and current_payload["FabricDesign"]["Name"] and\
+    if module.params.get("fabric_design") and current_payload["FabricDesign"]["Name"] and \
             (module.params.get("fabric_design") != current_payload["FabricDesign"]["Name"]):
         module.fail_json(msg="The modify operation does not support fabric_design update.")
 

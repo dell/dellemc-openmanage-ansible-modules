@@ -1,11 +1,28 @@
 # -*- coding: utf-8 -*-
 
-#
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 4.0.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+
+#    * Redistributions of source code must retain the above copyright notice,
+#      this list of conditions and the following disclaimer.
+
+#    * Redistributions in binary form must reproduce the above copyright notice,
+#      this list of conditions and the following disclaimer in the documentation
+#      and/or other materials provided with the distribution.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
 
@@ -207,7 +224,8 @@ class iDRACRedfishAPI(object):
             time.sleep(30)
         return response
 
-    def export_scp(self, export_format=None, export_use=None, target=None, job_wait=False):
+    def export_scp(self, export_format=None, export_use=None, target=None,
+                   job_wait=False, share=None):
         """
         This method exports system configuration details from the system.
         :param export_format: XML or JSON.
@@ -218,7 +236,55 @@ class iDRACRedfishAPI(object):
         """
         payload = {"ExportFormat": export_format, "ExportUse": export_use,
                    "ShareParameters": {"Target": target}}
+        if share is None:
+            share = {}
+        if share.get("share_ip") is not None:
+            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
+        if share.get("share_name") is not None and share.get("share_name"):
+            payload["ShareParameters"]["ShareName"] = share["share_name"]
+        if share.get("share_type") is not None:
+            payload["ShareParameters"]["ShareType"] = share["share_type"]
+        if share.get("file_name") is not None:
+            payload["ShareParameters"]["FileName"] = share["file_name"]
+        if share.get("username") is not None:
+            payload["ShareParameters"]["Username"] = share["username"]
+        if share.get("password") is not None:
+            payload["ShareParameters"]["Password"] = share["password"]
         response = self.invoke_request(EXPORT_URI, "POST", data=payload)
+        if response.status_code == 202 and job_wait:
+            task_uri = response.headers["Location"]
+            response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
+        return response
+
+    def import_scp_share(self, shutdown_type=None, host_powerstate=None, job_wait=True,
+                         target=None, share=None):
+        """
+        This method imports system configuration using share.
+        :param shutdown_type: graceful
+        :param host_powerstate: on
+        :param file_name: import.xml
+        :param job_wait: True
+        :param target: iDRAC
+        :param share: dictionary which has all the share details.
+        :return: json response
+        """
+        payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
+                   "ShareParameters": {"Target": target}}
+        if share is None:
+            share = {}
+        if share.get("share_ip") is not None:
+            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
+        if share.get("share_name") is not None and share.get("share_name"):
+            payload["ShareParameters"]["ShareName"] = share["share_name"]
+        if share.get("share_type") is not None:
+            payload["ShareParameters"]["ShareType"] = share["share_type"]
+        if share.get("file_name") is not None:
+            payload["ShareParameters"]["FileName"] = share["file_name"]
+        if share.get("username") is not None:
+            payload["ShareParameters"]["Username"] = share["username"]
+        if share.get("password") is not None:
+            payload["ShareParameters"]["Password"] = share["password"]
+        response = self.invoke_request(IMPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
