@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.1
-# Copyright (C) 2019 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 4.1.0
+# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+
 # see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt
@@ -28,18 +28,8 @@ description: >
     HTTPS is required for the destination listening server. Example: Logstash HTTP Input Plugin.
     The maximum number of subscriptions a user can create is 2.
 options:
-    baseuri:
-        description: "IP Address of the target out-of-band controller."
-        type: str
-        required: True
-    username:
-        description: Username of the target out-of-band controller.
-        type: str
-        required: True
-    password:
-        description: Password of the target out of-band controller.
-        type: str
-        required: True
+    extends_documentation_fragment:
+        - dellemc.openmanage.redfish_auth_options
     destination:
         description:
             - URL of server that is listening for events.
