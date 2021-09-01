@@ -20,7 +20,7 @@ short_description: Create, modify or delete a uplink for a fabric on OpenManage 
 version_added: "2.1.0"
 description: This module allows to create, modify or delete an uplink for a fabric.
 extends_documentation_fragment:
-  - dellemc.openmanage.ome_auth_options
+  - dellemc.openmanage.omem_auth_options
 options:
   state:
     description:
@@ -38,11 +38,11 @@ options:
     required: true
   name:
     type: str
-    description: Provide the I(name) of the uplink to be modified.
+    description: Provide the I(name) of the uplink to be created, modified or deleted.
     required: true
   new_name:
     type: str
-    description: Provide the I(name) of the uplink to be modified.
+    description: Provide the new I(new_name) for the uplink.
   description:
     type: str
     description: Provide a short description for the uplink to be created or modified.

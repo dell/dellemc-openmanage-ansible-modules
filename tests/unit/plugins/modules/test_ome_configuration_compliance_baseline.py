@@ -703,8 +703,9 @@ class TestOmeConfigCompBaseline(FakeAnsibleModule):
             "BaselineTargets": [{"Id": Constants.device_id1},
                                 {"Id": Constants.device_id2}]
         }
-        f_module = self.get_module_mock(params={"names": ["abc"], "command": "modify", "job_wait": False,
-                                                "job_wait_timeout": 600}, check_mode=False)
+        f_module = self.get_module_mock(
+            params={"names": ["abc"], "command": "modify", "job_wait": False,
+                    "job_wait_timeout": 600}, check_mode=False)
         mocker.patch(MODULE_PATH + 'get_baseline_compliance_info',
                      return_value=baseline_output)
         mocker.patch(MODULE_PATH + 'create_payload',
@@ -989,3 +990,206 @@ class TestOmeConfigCompBaseline(FakeAnsibleModule):
         with pytest.raises(Exception) as err:
             self.module.validate_job_time(command, f_module)
         assert err.value.args[0] == INVALID_TIME.format(inparams["job_wait_timeout"])
+
+    @pytest.mark.parametrize("command", ["remediate"])
+    def test_compliance_remediate_operation(self, mocker, command, ome_connection_mock_for_compliance):
+        f_module = self.get_module_mock(params={"names": ["abc"], "command": "remediate"}, check_mode=False)
+        mocker.patch(MODULE_PATH + 'validate_job_time',
+                     return_value=None)
+        mock_remediate = mocker.patch(MODULE_PATH + 'remediate_baseline',
+                                      return_value=None)
+        self.module.compliance_operation(f_module, ome_connection_mock_for_compliance)
+        assert mock_remediate.called
+
+    @pytest.mark.parametrize("inparams", [{"command": "modify", "names": ["baseline1"], "job_wait": True,
+                                           "job_wait_timeout": 1},
+                                          {"command": "modify", "names": ["baseline1"], "job_wait": False,
+                                           "job_wait_timeout": 1},
+                                          {"command": "delete", "names": ["baseline1"], "job_wait": True,
+                                           "job_wait_timeout": 1},
+                                          ])
+    def test_validate_job_time_no_err_case(self, inparams):
+        command = inparams['command']
+        f_module = self.get_module_mock(
+            params=inparams)
+        self.module.validate_job_time(command, f_module)
+
+    def test_remediate_baseline_case4(self, mocker, ome_connection_mock_for_compliance, ome_response_mock):
+        f_module = self.get_module_mock(
+            params={"command": "remediate", "names": ["baseline1"], "job_wait": True, "job_wait_timeout": 600},
+            check_mode=True)
+        mocker.patch(MODULE_PATH + 'validate_remediate_idempotency',
+                     return_value=([Constants.device_id1], baseline_output))
+        mocker.patch(MODULE_PATH + 'create_remediate_payload',
+                     return_value="payload")
+        ome_response_mock.json_data = 1234
+        ome_connection_mock_for_compliance.job_tracking.return_value = False, "Job is running."
+        with pytest.raises(Exception) as err:
+            self.module.remediate_baseline(f_module, ome_connection_mock_for_compliance)
+        assert err.value.args[0] == "Job is running."
+
+    def test_modify_baseline_case05(self, mocker, ome_response_mock, ome_connection_mock_for_compliance):
+        payload = {
+            "Name": "baseline1",
+            "TemplateId": 2
+        }
+        f_module = self.get_module_mock(params={"names": ["abc"], "command": "modify", "job_wait": False,
+                                                "job_wait_timeout": 600}, check_mode=False)
+        mocker.patch(MODULE_PATH + 'get_baseline_compliance_info',
+                     return_value=baseline_output)
+        mocker.patch(MODULE_PATH + 'create_payload',
+                     return_value=payload)
+        mocker.patch(MODULE_PATH + 'idempotency_check_for_command_modify',
+                     return_value=None)
+        ome_response_mock.json_data = {"Id": 1}
+        with pytest.raises(Exception) as err:
+            self.module.modify_baseline(f_module, ome_connection_mock_for_compliance)
+        assert err.value.args[0] == TASK_PROGRESS_MSG
+
+    def test_validate_create_baseline_idempotency_case3(self, mocker, ome_connection_mock_for_compliance):
+        f_module = self.get_module_mock(params={"names": ["baseline5"]}, check_mode=True)
+        mocker.patch(MODULE_PATH + 'get_baseline_compliance_info',
+                     return_value={})
+        with pytest.raises(Exception) as err:
+            self.module.validate_create_baseline_idempotency(f_module,
+                                                             ome_connection_mock_for_compliance)
+        assert err.value.args[0] == CHECK_MODE_CHANGES_MSG
+
+    def test_validate_capability_no_err_case01(self):
+        capability_map = {"capable": [Constants.device_id1], "non_capable": [Constants.device_id2], }
+        f_module = self.get_module_mock(params={"device_ids": [Constants.device_id1]}, check_mode=True)
+        self.module.validate_capability(f_module, capability_map)
+
+    def test_validate_capability_no_err_case02(self):
+        capability_map = {"capable": [Constants.service_tag1], "non_capable": [Constants.service_tag2]}
+        f_module = self.get_module_mock(params={"device_service_tags": [Constants.service_tag1]}, check_mode=True)
+        self.module.validate_capability(f_module, capability_map)
+
+    def test_validate_capability_err_case01(self):
+        NO_CAPABLE_DEVICES = "Target device_service_tags contains devices which cannot be used for a baseline " \
+                             "compliance operation."
+        capability_map = {"capable": [Constants.service_tag2], "non_capable": [Constants.service_tag1]}
+        f_module = self.get_module_mock(params={"device_service_tags": [Constants.service_tag1]}, check_mode=True)
+        with pytest.raises(Exception) as err:
+            self.module.validate_capability(f_module, capability_map)
+        assert err.value.args[0] == NO_CAPABLE_DEVICES
+
+    def test_validate_remediate_idempotency_case01(self, mocker, ome_connection_mock_for_compliance):
+        mocker.patch(MODULE_PATH + 'get_baseline_compliance_info',
+                     return_value={})
+        f_module = self.get_module_mock(params={"names": ["name1"]}, check_mode=True)
+        with pytest.raises(Exception) as err:
+            self.module.validate_remediate_idempotency(f_module, ome_connection_mock_for_compliance)
+        assert err.value.args[0] == BASELINE_CHECK_MODE_NOCHANGE_MSG.format(name="name1")
+
+    def test_validate_remediate_idempotency_case02(self, mocker, ome_connection_mock_for_compliance):
+        mocker.patch(MODULE_PATH + 'get_baseline_compliance_info',
+                     return_value=baseline_output)
+        compliance_status = [
+            {
+                "Id": Constants.device_id1,
+                "DeviceName": "XX.XXX.X.XXX",
+                "IpAddresses": [
+                    "XX.XXX.X.XXX"
+                ],
+                "Model": "PowerEdge MX840c",
+                "ServiceTag": Constants.service_tag1,
+                "ComplianceStatus": 1,
+                "DeviceType": 1000,
+                "InventoryTime": "2020-10-05 18:28:09.842072"
+            }
+        ]
+        f_module = self.get_module_mock(params={"names": ["name1"], "device_ids": [Constants.device_id1]},
+                                        check_mode=True)
+        capability_map = {"capable": [Constants.service_tag1], "non_capable": [Constants.service_tag2]}
+        mocker.patch(MODULE_PATH + 'get_device_ids',
+                     return_value=([Constants.device_id2, Constants.device_id1], capability_map))
+        ome_connection_mock_for_compliance.get_all_items_with_pagination.return_value = {
+            "total_count": 1, "value": compliance_status}
+        with pytest.raises(Exception) as err:
+            self.module.validate_remediate_idempotency(f_module, ome_connection_mock_for_compliance)
+        assert err.value.args[0] == CHECK_MODE_NO_CHANGES_MSG
+
+    def test_validate_remediate_idempotency_case03(self, mocker, ome_connection_mock_for_compliance):
+        mocker.patch(MODULE_PATH + 'get_baseline_compliance_info',
+                     return_value=baseline_output)
+        compliance_status = [
+            {
+                "Id": Constants.device_id1,
+                "DeviceName": "XX.XXX.X.XXX",
+                "IpAddresses": [
+                    "XX.XXX.X.XXX"
+                ],
+                "Model": "PowerEdge MX840c",
+                "ServiceTag": Constants.service_tag1,
+                "ComplianceStatus": 2,
+                "DeviceType": 1000,
+                "InventoryTime": "2020-10-05 18:28:09.842072"
+            }
+        ]
+        f_module = self.get_module_mock(params={"names": ["name1"], "device_ids": [Constants.device_id1]},
+                                        check_mode=True)
+        capability_map = {"capable": [Constants.service_tag1], "non_capable": [Constants.service_tag2]}
+        mocker.patch(MODULE_PATH + 'get_device_ids',
+                     return_value=([Constants.device_id2, Constants.device_id1], capability_map))
+        ome_connection_mock_for_compliance.get_all_items_with_pagination.return_value = {
+            "total_count": 1, "value": compliance_status}
+        with pytest.raises(Exception) as err:
+            self.module.validate_remediate_idempotency(f_module, ome_connection_mock_for_compliance)
+        assert err.value.args[0] == CHECK_MODE_CHANGES_MSG
+
+    def test_validate_remediate_idempotency_case04(self, mocker, ome_connection_mock_for_compliance):
+        mocker.patch(MODULE_PATH + 'get_baseline_compliance_info',
+                     return_value=baseline_output)
+        compliance_status = [
+            {
+                "Id": Constants.device_id1,
+                "DeviceName": "XX.XXX.X.XXX",
+                "IpAddresses": [
+                    "XX.XXX.X.XXX"
+                ],
+                "Model": "PowerEdge MX840c",
+                "ServiceTag": Constants.service_tag1,
+                "ComplianceStatus": 2,
+                "DeviceType": 1000,
+                "InventoryTime": "2020-10-05 18:28:09.842072"
+            }
+        ]
+        f_module = self.get_module_mock(params={"names": ["name1"], "device_service_tags": [Constants.service_tag1]},
+                                        check_mode=True)
+        capability_map = {"capable": [Constants.service_tag1], "non_capable": [Constants.service_tag2]}
+        mocker.patch(MODULE_PATH + 'get_device_ids',
+                     return_value=([Constants.device_id2, Constants.device_id1], capability_map))
+        ome_connection_mock_for_compliance.get_all_items_with_pagination.return_value = {
+            "total_count": 1, "value": compliance_status}
+        with pytest.raises(Exception) as err:
+            self.module.validate_remediate_idempotency(f_module, ome_connection_mock_for_compliance)
+        assert err.value.args[0] == CHECK_MODE_CHANGES_MSG
+
+    def test_validate_remediate_idempotency_case05(self, mocker, ome_connection_mock_for_compliance):
+        mocker.patch(MODULE_PATH + 'get_baseline_compliance_info',
+                     return_value=baseline_output)
+        compliance_status = [
+            {
+                "Id": Constants.device_id1,
+                "DeviceName": "XX.XXX.X.XXX",
+                "IpAddresses": [
+                    "XX.XXX.X.XXX"
+                ],
+                "Model": "PowerEdge MX840c",
+                "ServiceTag": Constants.service_tag1,
+                "ComplianceStatus": 2,
+                "DeviceType": 1000,
+                "InventoryTime": "2020-10-05 18:28:09.842072"
+            }
+        ]
+        f_module = self.get_module_mock(params={"names": ["name1"]},
+                                        check_mode=True)
+        capability_map = {"capable": [Constants.service_tag1], "non_capable": [Constants.service_tag2]}
+        mocker.patch(MODULE_PATH + 'get_device_ids',
+                     return_value=([Constants.device_id2, Constants.device_id1], capability_map))
+        ome_connection_mock_for_compliance.get_all_items_with_pagination.return_value = {
+            "total_count": 1, "value": compliance_status}
+        with pytest.raises(Exception) as err:
+            self.module.validate_remediate_idempotency(f_module, ome_connection_mock_for_compliance)
+        assert err.value.args[0] == CHECK_MODE_CHANGES_MSG

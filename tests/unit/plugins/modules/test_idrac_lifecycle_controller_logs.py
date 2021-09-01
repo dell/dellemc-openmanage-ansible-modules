@@ -62,12 +62,10 @@ class TestExportLcLogs(FakeAnsibleModule):
                                               idrac_file_manager_export_lc_logs_mock):
         idrac_default_args.update({"share_name": "sharename", "share_user": "shareuser",
                                    "share_password": "sharepassword", "job_wait": True})
-        message = {"Status": "Success"}
-        mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs', return_value=(message, False))
-        idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "Success"}
+        message = {"Status": "Success", "JobStatus": "Success"}
+        mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs', return_value=message)
         result = self._run_module(idrac_default_args)
-        assert result == {'msg': 'Successfully exported the lifecycle controller logs.',
-                          'lc_logs_status': ({'Status': 'Success'}, False), 'changed': False}
+        assert result["msg"] == "Successfully exported the lifecycle controller logs."
 
     def test_run_export_lc_logs_success_case01(self, idrac_connection_export_lc_logs_mock, idrac_default_args,
                                                idrac_file_manager_export_lc_logs_mock):

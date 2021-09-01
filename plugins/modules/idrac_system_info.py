@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 3.5.0
 # Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -90,7 +90,7 @@ import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 
 # Main

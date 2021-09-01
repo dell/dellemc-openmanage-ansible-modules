@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
+# Version 3.4.0
 # Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -18,19 +18,19 @@ class ModuleDocFragment(object):
     DOCUMENTATION = r'''
 options:
   hostname:
-    description: Target IP address or hostname.
+    description: OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
     type: str
     required: True
   username:
-    description: Target username.
+    description: OpenManage Enterprise or OpenManage Enterprise Modular username.
     type: str
     required: True
   password:
-    description: Target user password.
+    description: OpenManage Enterprise or OpenManage Enterprise Modular password.
     type: str
     required: True
   port:
-    description: Target HTTPS port.
+    description: OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
     type: int
     default: 443
 '''

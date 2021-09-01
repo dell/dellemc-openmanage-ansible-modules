@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 3.4.0
+# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -12,11 +12,31 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
+import json
 import pytest
+from ssl import SSLError
+from io import StringIO
+from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware_baseline
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 
-MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+BASELINE_JOB_RUNNING = "Firmware baseline '{name}' with ID {id} is running. Please retry after job completion."
+MULTI_BASLEINES = "Multiple baselines present. Run the module again using a specific ID."
+BASELINE_DEL_SUCCESS = "Successfully deleted the firmware baseline."
+NO_CHANGES_MSG = "No changes found to be applied."
+INVALID_BASELINE_ID = "Invalid baseline ID provided."
+BASELINE_TRIGGERED = "Successfully triggered the firmware baseline task."
+NO_CATALOG_MESSAGE = "Catalog name not provided for baseline creation."
+NO_TARGETS_MESSAGE = "Targets not specified for baseline creation."
+CATALOG_STATUS_MESSAGE = "Unable to create the firmware baseline as the catalog is in {status} status."
+BASELINE_UPDATED = "Successfully {op} the firmware baseline."
+DISCOVER_JOB_COMPLETE = "Successfully completed the Discovery job."
+JOB_TRACK_SUCCESS = "Discovery job has {0}."
+JOB_TRACK_FAIL = "No devices discovered, job is in {0} state."
+SETTLING_TIME = 3
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline.'
 
 payload_out1 = {
     "Name": "baseline1",
@@ -35,7 +55,7 @@ payload_out1 = {
 payload_out2 = {
     "Name": "baseline1",
     "CatalogId": 12,
-    "RepositoryId": 23,
+    "RepositoryId": 23, 'Description': None, 'DowngradeEnabled': True, 'Is64Bit': True,
     "Targets": [
         {"Id": 123,
          "Type": {
@@ -85,13 +105,13 @@ def ome_connection_mock_for_firmware_baseline(mocker, ome_response_mock):
     return ome_connection_mock_obj
 
 
-class TestOmeFirmwareCatalog(FakeAnsibleModule):
+class TestOmeFirmwareBaseline(FakeAnsibleModule):
     module = ome_firmware_baseline
 
     @pytest.fixture
     def mock__get_catalog_payload(self, mocker):
         mock_payload = mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline._get_baseline_payload',
+            MODULE_PATH + '_get_baseline_payload',
             return_value={
                 "Name": "baseline_name",
                 "CatalogId": "cat_id",
@@ -113,32 +133,126 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                                         {"inp": catrepo_param3, "out": catrepo_out3}])
     def test_get_catrepo_ids(self, ome_connection_mock_for_firmware_baseline,
                              ome_response_mock, params):
-        ome_response_mock.success = True
-        ome_response_mock.json_data = {
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
             "value": [
                 {
                     "Id": 22,
                     "Repository": {
                         "Id": 12,
                         "Name": "catalog1",
-                    }
+                    },
+                    "Status": "Completed"
                 },
                 {
                     "Id": 23,
                     "Repository": {
                         "Id": 12,
                         "Name": "catalog2",
-                    }
+                    },
+                    "Status": "Completed"
                 }
             ]
         }
-        catrepo = self.module.get_catrepo_ids(params["inp"], ome_connection_mock_for_firmware_baseline)
+        f_module = self.get_module_mock(params=params["inp"])
+        catrepo = self.module.get_catrepo_ids(f_module, params["inp"], ome_connection_mock_for_firmware_baseline)
         assert catrepo == params["out"]
+
+    @pytest.mark.parametrize("params", [{"mparams": {"state": "absent", "baseline_name": "my_baseline1"}, "res": [
+        {"Id": 12, "Name": "my_baseline1"}], "json_data": {
+        "value": [{"Id": 12, "Name": "my_baseline1"}]}, "success": True}, {
+        "mparams": {"state": "absent", "baseline_id": 12},
+        "res": [{"Id": 12, "Name": "my_baseline1"}],
+        "json_data": {"value": [{"Id": 11, "Name": "my_baseline2"},
+                                {"Id": 12, "Name": "my_baseline1"}]}, "success": True}])
+    def test_check_existing_baseline(self, mocker, params, ome_connection_mock_for_firmware_baseline, ome_response_mock):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params["json_data"]
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = params['json_data']
+        f_module = self.get_module_mock(params=params["mparams"])
+        res = self.module.check_existing_baseline(f_module, ome_connection_mock_for_firmware_baseline)
+        assert res == params["res"]
+
+    @pytest.mark.parametrize("params", [
+        {"json_data": {"Name": 'd1'}, 'job_failed': False, 'job_message': BASELINE_UPDATED.format(op='created'),
+         'mparams': {'catalog_name': 'c1', 'device_ids': 123, 'job_wait': True, 'job_wait_timeout': 1000}},
+        {"json_data": {"Name": 'd1'}, 'job_failed': True, 'job_message': JOB_TRACK_FAIL,
+         'mparams': {'catalog_name': 'c1', 'device_ids': 123, 'job_wait': True, 'job_wait_timeout': 1000}},
+        {"json_data": {"Name": 'd1'}, 'job_failed': True, 'job_message': BASELINE_TRIGGERED,
+         'mparams': {'catalog_name': 'c1', 'device_ids': 123, 'job_wait': False, 'schedule': 'RunLater',
+                     'job_wait_timeout': 1000}}])
+    def test_create_baseline(self, params, mocker, ome_connection_mock_for_firmware_baseline, ome_response_mock):
+        mocker.patch(MODULE_PATH + '_get_baseline_payload', return_value={})
+        mocker.patch(MODULE_PATH + 'check_existing_baseline', return_value=[{"Id": 123}])
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
+        ome_connection_mock_for_firmware_baseline.job_tracking.return_value = \
+            (params['job_failed'], params['job_message'])
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params["json_data"]
+        f_module = self.get_module_mock(params=params['mparams'])
+        error_message = params["job_message"]
+        with pytest.raises(Exception) as err:
+            self.module.create_baseline(f_module, ome_connection_mock_for_firmware_baseline)
+        assert err.value.args[0] == error_message
+
+    @pytest.mark.parametrize("params", [
+        {"json_data": {"Name": 'd1', },
+         'job_failed': False, 'job_message': BASELINE_UPDATED.format(op='modified'),
+         'mparams': {"baseline_description": "new description", "baseline_name": "c4", "catalog_name": "baseline",
+                     "device_service_tags": ["2H7HNX2", "2HB9NX2"], "downgrade_enabled": False, "is_64_bit": False,
+                     "job_wait": True, "job_wait_timeout": 600, "new_baseline_name": "new name"},
+         "baseline_list": [{"CatalogId": 25, "Description": "", "DowngradeEnabled": True, "Id": 40, "Is64Bit": True,
+                            "Name": "c4", "RepositoryId": 15,
+                            "Targets": [{"Id": 13456, "Type": {"Id": 1000, "Name": "DEVICE"}},
+                                        {"Id": 13457, "Type": {"Id": 1000, "Name": "DEVICE"}}], "TaskId": 14465,
+                            "TaskStatusId": 2010}],
+         "get_catrepo_ids": (12, 13), "get_target_list": [{"Id": 13456, "Type": {"Id": 1000, "Name": "DEVICE"}},
+                                                          {"Id": 13457, "Type": {"Id": 1000, "Name": "DEVICE"}}]
+         },
+        {"json_data": {"Name": 'd1'}, 'job_failed': True, 'job_message': JOB_TRACK_FAIL,
+         'mparams': {'catalog_name': 'c1', 'device_ids': 123, 'job_wait': True, 'job_wait_timeout': 1000},
+         "baseline_list": [{"Id": 12, "Name": "c1", "TaskStatusId": 2010, "TaskId": 12}], },
+        {"json_data": {"Name": 'd1'}, 'job_failed': True, 'job_message': BASELINE_TRIGGERED,
+         "baseline_list": [{"Id": 12, "Name": "c1", "TaskStatusId": 2010, "TaskId": 12}],
+         'mparams': {'catalog_name': 'c1', 'device_ids': 123, 'job_wait': False, 'schedule': 'RunLater',
+                     'job_wait_timeout': 1000}}])
+    def test_modify_baseline(self, params, mocker, ome_connection_mock_for_firmware_baseline, ome_response_mock):
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
+        mocker.patch(MODULE_PATH + 'get_catrepo_ids', return_value=params.get('get_catrepo_ids', (12, 13)))
+        mocker.patch(MODULE_PATH + 'get_target_list', return_value=params.get('get_target_list', []))
+        ome_connection_mock_for_firmware_baseline.job_tracking.return_value = \
+            (params['job_failed'], params['job_message'])
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params["json_data"]
+        f_module = self.get_module_mock(params=params['mparams'])
+        error_message = params["job_message"]
+        with pytest.raises(Exception) as err:
+            self.module.modify_baseline(f_module, ome_connection_mock_for_firmware_baseline, params['baseline_list'])
+        assert err.value.args[0] == error_message
+
+    @pytest.mark.parametrize("params",
+                             [{"mparams": {"state": "absent", "baseline_job_name": "my_baseline1"},
+                               "baseline_list": [{"Id": 12, "Name": "my_baseline1", "TaskStatusId": 2010}],
+                               "job_state_dict": {12: 2010}, "res": BASELINE_DEL_SUCCESS.format(n=1),
+                               "json_data": 1, "success": True},
+                              {"mparams": {"state": "absent", "baseline_job_name": "my_baseline1"},
+                               "baseline_list": [{"Id": 12, "Name": "my_baseline1", "TaskStatusId": 2050, "TaskId": 12}],
+                               "job_state_dict": {12: 2050},
+                               "res": BASELINE_JOB_RUNNING.format(name='my_baseline1', id=12), "json_data": 1,
+                               "success": True}])
+    def test_delete_baseline(self, mocker, params, ome_connection_mock_for_firmware_baseline, ome_response_mock):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params["json_data"]
+        f_module = self.get_module_mock(params=params["mparams"])
+        error_message = params["res"]
+        with pytest.raises(Exception) as err:
+            self.module.delete_baseline(f_module, ome_connection_mock_for_firmware_baseline, params['baseline_list'])
+        assert err.value.args[0] == error_message
 
     def test_get_catrepo_ids_success(self, ome_connection_mock_for_firmware_baseline,
                                      ome_response_mock):
         ome_response_mock.success = False
-        catrepo = self.module.get_catrepo_ids("catalog1", ome_connection_mock_for_firmware_baseline)
+        f_module = self.get_module_mock()
+        catrepo = self.module.get_catrepo_ids(f_module, "catalog1", ome_connection_mock_for_firmware_baseline)
         assert catrepo == (None, None)
 
     inp_param1 = {"device_service_tags": ["R840PT3", "R940PT3"]}
@@ -172,8 +286,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_dev_ids(self, ome_connection_mock_for_firmware_baseline,
                          ome_response_mock, params):
         f_module = self.get_module_mock(params=params["inp"])
-        ome_response_mock.success = True
-        ome_response_mock.json_data = {
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
             "value":
                 [
                     {
@@ -197,14 +310,14 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         {
             "Id": 12,
             "Type": {
-                "Id": 2000,
+                "Id": 6000,
                 "Name": "GROUP"
             }
         },
         {
             "Id": 23,
             "Type": {
-                "Id": 2000,
+                "Id": 6000,
                 "Name": "GROUP"
             }
         }
@@ -214,7 +327,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         {
             "Id": 12,
             "Type": {
-                "Id": 2000,
+                "Id": 6000,
                 "Name": "GROUP"
             }
         }
@@ -226,16 +339,16 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                            ome_response_mock, params):
         f_module = self.get_module_mock(params=params["inp"])
         ome_response_mock.success = True
-        ome_response_mock.json_data = {
+        ome_connection_mock_for_firmware_baseline.get_all_items_with_pagination.return_value = {
             "value": [
                 {
                     "Id": 12,
-                    "TypeId": 2000,
+                    "TypeId": 6000,
                     "Name": "group1"
                 },
                 {
                     "Id": 23,
-                    "TypeId": 2000,
+                    "TypeId": 6000,
                     "Name": "group2"
                 }
             ]
@@ -259,12 +372,11 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test__get_baseline_payload(self, ome_connection_mock_for_firmware_baseline, params, mocker):
         f_module = self.get_module_mock(params=params["inp"])
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline.get_catrepo_ids',
+            MODULE_PATH + 'get_catrepo_ids',
             return_value=(12, 23))
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline.get_target_list',
-            return_value=[{"Id": 123, "Type": {
-                "Id": 1000, "Name": "DEVICE"}}])
+            MODULE_PATH + 'get_target_list',
+            return_value=[{"Id": 123, "Type": {"Id": 1000, "Name": "DEVICE"}}])
         payload = self.module._get_baseline_payload(f_module, ome_connection_mock_for_firmware_baseline)
         assert payload == params["out"]
 
@@ -272,10 +384,10 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"catalog_name": "cat1",
                                                 "baseline_name": "baseline1"})
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline.get_catrepo_ids',
+            MODULE_PATH + 'get_catrepo_ids',
             return_value=(None, None))
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline.get_target_list',
+            MODULE_PATH + 'get_target_list',
             return_value=[{"Id": 123, "Type": {
                 "Id": 1000, "Name": "DEVICE"}}])
         with pytest.raises(Exception) as exc:
@@ -286,14 +398,14 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"catalog_name": "cat1",
                                                 "baseline_name": "baseline1"})
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline.get_catrepo_ids',
+            MODULE_PATH + 'get_catrepo_ids',
             return_value=(12, 23))
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline.get_target_list',
+            MODULE_PATH + 'get_target_list',
             return_value=None)
         with pytest.raises(Exception) as exc:
             self.module._get_baseline_payload(f_module, ome_connection_mock_for_firmware_baseline)
-        assert exc.value.args[0] == "No Targets specified"
+        assert exc.value.args[0] == NO_TARGETS_MESSAGE
 
     target_param1 = {"device_ids": [12, 23]}
     target_out1 = [
@@ -324,21 +436,21 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_get_target_list(self, ome_connection_mock_for_firmware_baseline, params, mocker):
         f_module = self.get_module_mock(params=params["inp"])
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline.get_dev_ids',
+            MODULE_PATH + 'get_dev_ids',
             return_value=params["out"])
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline.get_group_ids',
+            MODULE_PATH + 'get_group_ids',
             return_value=params["out"])
         targets = self.module.get_target_list(f_module, ome_connection_mock_for_firmware_baseline)
         assert targets == params["out"]
 
-    def test_main_success(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock, mocker):
-        mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline._get_baseline_payload',
-            return_value=payload_out1)
+    def _test_main_success(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock, mocker):
+        mocker.patch(MODULE_PATH + 'check_existing_baseline', return_value=[])
+        mocker.patch(MODULE_PATH + '_get_baseline_payload', return_value=payload_out1)
         ome_response_mock.success = True
         ome_response_mock.json_data = baseline_status1
-        ome_default_args.update({"baseline_name": "b1", "device_ids": [12, 23]})
+        ome_default_args.update({"baseline_name": "b1", "device_ids": [12, 23], 'catalog_name': 'c1',
+                                 'job_wait': False})
         result = self._run_module(ome_default_args)
         assert result["changed"] is True
         assert 'baseline_status' in result
@@ -346,7 +458,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_main_failure01(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock,
                             mocker):
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline._get_baseline_payload',
+            MODULE_PATH + '_get_baseline_payload',
             return_value=payload_out1)
         ome_response_mock.success = False
         ome_response_mock.json_data = baseline_status1
@@ -358,11 +470,35 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
     def test_main_failure02(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock,
                             mocker):
         mocker.patch(
-            MODULE_PATH + 'ome_firmware_baseline._get_baseline_payload',
+            MODULE_PATH + '_get_baseline_payload',
             return_value=payload_out1)
         ome_response_mock.success = False
         ome_response_mock.json_data = baseline_status1
         ome_default_args.update({"baseline_name": "b1"})
         result = self._run_module_with_fail_json(ome_default_args)
         assert result["failed"] is True
+        assert 'msg' in result
+
+    @pytest.mark.parametrize("exc_type",
+                             [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
+    def test_ome_baseline_main_exception_failure_case(self, exc_type, mocker, ome_default_args,
+                                                      ome_connection_mock_for_firmware_baseline, ome_response_mock):
+        ome_default_args.update({"state": "absent", "baseline_name": "t1"})
+        ome_response_mock.status_code = 400
+        ome_response_mock.success = False
+        json_str = to_text(json.dumps({"info": "error_details"}))
+        if exc_type == URLError:
+            mocker.patch(MODULE_PATH + 'check_existing_baseline', side_effect=exc_type("url open error"))
+            result = self._run_module(ome_default_args)
+            assert result["unreachable"] is True
+        elif exc_type not in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + 'check_existing_baseline', side_effect=exc_type("exception message"))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+        else:
+            mocker.patch(MODULE_PATH + 'check_existing_baseline',
+                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                              {"accept-type": "application/json"}, StringIO(json_str)))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
         assert 'msg' in result

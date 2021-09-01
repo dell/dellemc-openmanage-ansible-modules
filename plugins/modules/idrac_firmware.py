@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 4.0.0
 # Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -81,6 +81,10 @@ author:
     - "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
+    - Module will report success based on the iDRAC firmware update parent job status if there are no individual
+        component jobs present.
+    - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the
+        module will return success with a proper message.
     - This module supports C(check_mode).
 '''
 
@@ -197,6 +201,7 @@ iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 MESSAGE = "Firmware versions on server match catalog, applicable updates are not present in the repository."
 EXIT_MESSAGE = "The catalog in the repository specified in the operation has the same firmware versions " \
                "as currently present on the server."
+IDEM_MSG_ID = "SUP029"
 REDFISH_VERSION = "3.30"
 INTERVAL = 30  # polling interval
 WAIT_COUNT = 240
@@ -325,6 +330,17 @@ def get_jobid(module, resp):
     return jobid
 
 
+def handle_HTTP_error(module, httperr):
+    err_message = json.load(httperr)
+    err_list = err_message.get('error', {}).get('@Message.ExtendedInfo', [{"Message": EXIT_MESSAGE}])
+    if err_list:
+        err_reason = err_list[0].get("Message", EXIT_MESSAGE)
+        if IDEM_MSG_ID in err_list[0].get('MessageId'):
+            module.exit_json(msg=err_reason)
+    if "error" in err_message:
+        module.fail_json(msg=err_message)
+
+
 def update_firmware_url_redfish(module, idrac, share_name, catalog_file_name, apply_update, reboot,
                                 ignore_cert_warning, job_wait, payload):
     """Update firmware through HTTP/HTTPS/FTP and return the job details."""
@@ -349,9 +365,7 @@ def update_firmware_url_redfish(module, idrac, share_name, catalog_file_name, ap
                                                            dump=False)
         job_details = resp_repo_based_update_list.json_data
     except HTTPError as err:
-        err_message = json.load(err)
-        if err_message['error']['@Message.ExtendedInfo'][0]['Message'] == MESSAGE:
-            module.exit_json(msg=EXIT_MESSAGE)
+        handle_HTTP_error(module, err)
         raise err
     return status, job_details
 
@@ -512,10 +526,13 @@ def update_firmware_redfish(idrac, module):
                 msg['update_status'] = resp.json_data
             else:
                 msg['update_status'] = mesg
-            repo_based_update_list = idrac.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST", data="{}",
-                                                          dump=False)
-            msg['update_status']['job_details'] = repo_based_update_list.json_data
-
+            try:
+                repo_based_update_list = idrac.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST",
+                                                              data="{}", dump=False)
+                msg['update_status']['job_details'] = repo_based_update_list.json_data
+            except HTTPError as err:
+                handle_HTTP_error(module, err)
+                raise err
         json_data, repo_status, failed = msg['update_status']['job_details'], False, False
         if "PackageList" not in json_data:
             job_data = json_data.get('Data')

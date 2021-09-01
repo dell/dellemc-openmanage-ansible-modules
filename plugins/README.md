@@ -1,31 +1,80 @@
-# Collections Plugins Directory
+# dellemc.openmanage collections Plugins Directory
 
-This directory can be used to ship various plugins inside an Ansible collection. Each plugin is placed in a folder that
-is named after the type of plugin it is in. It can also include the `module_utils` and `modules` directory that
-would contain module utils and modules respectively.
-
-Here is an example directory of the majority of plugins currently supported by Ansible:
+Here are the list of modules and module_utils supported by Dell EMC.
 
 ```
-└── plugins
-    ├── action
-    ├── become
-    ├── cache
-    ├── callback
-    ├── cliconf
-    ├── connection
-    ├── filter
-    ├── httpapi
-    ├── inventory
-    ├── lookup
-    ├── module_utils
-    ├── modules
-    ├── netconf
-    ├── shell
-    ├── strategy
-    ├── terminal
-    ├── test
-    └── vars
+├── doc_fragments
+    ├── idrac_auth_options.py
+    ├── network_share_options.py
+    ├── ome_auth_options.py
+    ├── omem_auth_options.py
+    ├── oment_auth_options.py
+    └── redfish_auth_options.py
+├── module_utils
+    ├── dellemc_idrac.py
+    ├── idrac_redfish.py
+    ├── ome.py
+    └── redfish.py
+└── modules
+    ├── dellemc_configure_idrac_eventing.py
+    ├── dellemc_configure_idrac_services.py
+    ├── dellemc_get_firmware_inventory.py
+    ├── dellemc_get_system_inventory.py
+    ├── dellemc_idrac_lc_attributes.py
+    ├── dellemc_idrac_storage_volume.py
+    ├── dellemc_system_lockdown_mode.py
+    ├── idrac_bios.py
+    ├── idrac_firmware.py
+    ├── idrac_firmware_info.py
+    ├── idrac_lifecycle_controller_job_status_info.py
+    ├── idrac_lifecycle_controller_jobs.py
+    ├── idrac_lifecycle_controller_logs.py
+    ├── idrac_lifecycle_controller_status_info.py
+    ├── idrac_network.py
+    ├── idrac_os_deployment.py
+    ├── idrac_redfish_storage_controller.py
+    ├── idrac_reset.py
+    ├── idrac_server_config_profile.py
+    ├── idrac_syslog.py
+    ├── idrac_system_info.py
+    ├── idrac_timezone_ntp.py
+    ├── idrac_user.py
+    ├── ome_active_directory.py
+    ├── ome_application_certificate.py
+    ├── ome_application_network_address.py
+    ├── ome_application_network_proxy.py
+    ├── ome_application_network_time.py
+    ├── ome_application_network_webserver.py
+    ├── ome_chassis_slots.py
+    ├── ome_configuration_compliance_baseline.py
+    ├── ome_configuration_compliance_info.py
+    ├── ome_device_group.py
+    ├── ome_device_info.py
+    ├── ome_diagnostics.py
+    ├── ome_discovery.py
+    ├── ome_domain_user_groups.py
+    ├── ome_firmware.py
+    ├── ome_firmware_baseline.py
+    ├── ome_firmware_baseline_compliance_info.py
+    ├── ome_firmware_baseline_info.py
+    ├── ome_firmware_catalog.py
+    ├── ome_groups.py
+    ├── ome_identity_pool.py
+    ├── ome_job_info.py
+    ├── ome_network_port_breakout.py
+    ├── ome_network_vlan.py
+    ├── ome_network_vlan_info.py
+    ├── ome_powerstate.py
+    ├── ome_profile.py
+    ├── ome_smart_fabric.py
+    ├── ome_smart_fabric_uplink.py
+    ├── ome_template.py
+    ├── ome_template_identity_pool.py
+    ├── ome_template_info.py
+    ├── ome_template_network_vlan.py
+    ├── ome_user.py
+    ├── ome_user_info.py
+    ├── redfish_firmware.py
+    ├── redfish_powerstate.py
+    └── redfish_storage_volume.py
 ```
-
-A full list of plugin types can be found at [Working With Plugins](https://docs.ansible.com/ansible/2.9/plugins/plugins.html).
