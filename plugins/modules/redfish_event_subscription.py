@@ -27,9 +27,9 @@ description: >
     This module allows you to create or delete Redfish Subscriptions.
     HTTPS is required for the destination listening server. Example: Logstash HTTP Input Plugin.
     The maximum number of subscriptions a user can create is 2.
+extends_documentation_fragment:
+    - dellemc.openmanage.redfish_auth_options
 options:
-    extends_documentation_fragment:
-        - dellemc.openmanage.redfish_auth_options
     destination:
         description:
             - URL of server that is listening for events.
