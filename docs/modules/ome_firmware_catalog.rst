@@ -36,7 +36,7 @@ Parameters
   catalog_name (optional, list, None)
     Name of the firmware catalog to be created.
 
-    This is option is mutually exclusive with *catalog_id*.
+    This option is mutually exclusive with *catalog_id*.
 
     Provide the list of firmware catalog names that are supported when *state* is ``absent``.
 
