@@ -401,7 +401,7 @@ Content (success, when I(command) is C(export), str, <SystemConfiguration Model=
 <Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1">
 <Attribute Name="RAIDPDState">Ready</Attribute>
 <Attribute Name="RAIDHotSpareStatus">No</Attribute>
- </Component>
+</Component>
 <Component FQDD="Disk.Direct.1-1:AHCI.Slot.6-1">
 <Attribute Name="RAIDPDState">Ready </Attribute>
 <Attribute Name="RAIDHotSpareStatus">No</Attribute>
