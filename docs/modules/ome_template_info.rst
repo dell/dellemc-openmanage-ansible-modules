@@ -106,7 +106,7 @@ msg (on error, str, Failed to fetch the template facts)
   Overall template facts status.
 
 
-template_info (success, dict, AnsibleMapping([('192.168.0.1', AnsibleMapping([('CreatedBy', 'system'), ('CreationTime', '1970-01-31 00:00:56.372144'), ('Description', 'Tune workload for Performance Optimized Virtualization'), ('HasIdentityAttributes', False), ('Id', 1), ('IdentityPoolId', 0), ('IsBuiltIn', True), ('IsPersistencePolicyValid', False), ('IsStatelessAvailable', False), ('LastUpdatedBy', None), ('LastUpdatedTime', '1970-01-31 00:00:56.372144'), ('Name', 'iDRAC Enable Performance Profile for Virtualization'), ('SourceDeviceId', 0), ('Status', 0), ('TaskId', 0), ('TypeId', 2), ('ViewTypeId', 4)]))]))
+template_info (success, dict, {'192.168.0.1': {'CreatedBy': 'system', 'CreationTime': '1970-01-31 00:00:56.372144', 'Description': 'Tune workload for Performance Optimized Virtualization', 'HasIdentityAttributes': False, 'Id': 1, 'IdentityPoolId': 0, 'IsBuiltIn': True, 'IsPersistencePolicyValid': False, 'IsStatelessAvailable': False, 'LastUpdatedBy': None, 'LastUpdatedTime': '1970-01-31 00:00:56.372144', 'Name': 'iDRAC Enable Performance Profile for Virtualization', 'SourceDeviceId': 0, 'Status': 0, 'TaskId': 0, 'TypeId': 2, 'ViewTypeId': 4}})
   Details of the templates.
 
 

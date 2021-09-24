@@ -188,3 +188,11 @@ class Redfish(object):
             path = SESSION_RESOURCE_COLLECTION["SESSION_ID"].format(Id=self.session_id)
             self.invoke_request('DELETE', path)
         return False
+
+    def strip_substr_dict(self, odata_dict, chkstr='@odata.'):
+        cp = odata_dict.copy()
+        klist = cp.keys()
+        for k in klist:
+            if chkstr in str(k).lower():
+                odata_dict.pop(k)
+        return odata_dict

@@ -206,11 +206,11 @@ msg (always, str, Successfully submitted the job that performs the AssignSpare o
   Overall status of the storage controller configuration operation.
 
 
-task (success, dict, AnsibleMapping([('id', 'JID_XXXXXXXXXXXXX'), ('uri', '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX')]))
+task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX'})
   ID and URI resource of the job created.
 
 
-error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to run the method because the requested HTTP method is not allowed.'), ('MessageArgs', []), ('MessageArgs@odata.count', 0), ('MessageId', 'iDRAC.1.6.SYS402'), ('RelatedProperties', []), ('RelatedProperties@odata.count', 0), ('Resolution', 'Enter a valid HTTP method and retry the operation. For information about valid methods, see the Redfish Users Guide available on the support site.'), ('Severity', 'Informational')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information')]))]))
+error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to run the method because the requested HTTP method is not allowed.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'iDRAC.1.6.SYS402', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'Enter a valid HTTP method and retry the operation. For information about valid methods, see the Redfish Users Guide available on the support site.', 'Severity': 'Informational'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
   Details of a http error.
 
 

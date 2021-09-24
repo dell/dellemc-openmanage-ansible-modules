@@ -1,14 +1,14 @@
 namespace: dellemc
 name: openmanage
-version: 4.0.0
+version: 4.1.0
 readme: README.md
 authors:
 - Rajeev Arakkal <Rajeev_Arakkal@Dell.com>
 - Jagadeesh N V <Jagadeesh_N_V@Dell.com>
-- Sajna N Shetty <Sajna_Shetty@Dell.com>
 - Felix Stephen <Felix_S@Dell.com>
-- Anooja Vardhineni <Anooja_Vardhineni@Dellteam.com>
 - Sachin Apagundi <Sachin_Apagundi@Dell.com>
+- Sajna N Shetty <Sajna_Shetty@Dell.com>
+- Anooja Vardhineni <Anooja_Vardhineni@Dellteam.com>
 
 description: Dell EMC OpenManage Ansible Modules allows data center and IT
   administrators to use RedHat Ansible to automate and orchestrate the
@@ -30,3 +30,4 @@ homepage: https://github.com/dell/dellemc-openmanage-ansible-modules
 
 issues: https://github.com/dell/dellemc-openmanage-ansible-modules/issues
 
+documentation: https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/docs

@@ -125,11 +125,11 @@ msg (always, str, Successfully configured the iDRAC time settings.)
   Overall status of the timezone and ntp configuration.
 
 
-timezone_ntp_status (success, dict, AnsibleMapping([('@odata.context', '/redfish/v1/$metadata#DellJob.DellJob'), ('@odata.id', '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_861801613971'), ('@odata.type', '#DellJob.v1_0_0.DellJob'), ('CompletionTime', '2020-04-06T19:06:01'), ('Description', 'Job Instance'), ('EndTime', None), ('Id', 'JID_861801613971'), ('JobState', 'Completed'), ('JobType', 'ImportConfiguration'), ('Message', 'Successfully imported and applied Server Configuration Profile.'), ('MessageArgs', []), ('MessageId', 'SYS053'), ('Name', 'Import Configuration'), ('PercentComplete', 100), ('StartTime', 'TIME_NOW'), ('Status', 'Success'), ('TargetSettingsURI', None), ('retval', True)]))
+timezone_ntp_status (success, dict, {'@odata.context': '/redfish/v1/$metadata#DellJob.DellJob', '@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_861801613971', '@odata.type': '#DellJob.v1_0_0.DellJob', 'CompletionTime': '2020-04-06T19:06:01', 'Description': 'Job Instance', 'EndTime': None, 'Id': 'JID_861801613971', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageArgs': [], 'MessageId': 'SYS053', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
   Job details of the time zone setting operation.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

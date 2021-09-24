@@ -36,7 +36,7 @@ Parameters
   catalog_name (optional, list, None)
     Name of the firmware catalog to be created.
 
-    This is option is mutually exclusive with *catalog_id*.
+    This option is mutually exclusive with *catalog_id*.
 
     Provide the list of firmware catalog names that are supported when *state* is ``absent``.
 
@@ -268,7 +268,7 @@ msg (always, str, Successfully triggered the job to create a catalog with Task I
   Overall status of the firmware catalog operation.
 
 
-catalog_status (When I(state) is C(present), dict, AnsibleMapping([('AssociatedBaselines', []), ('BaseLocation', None), ('BundlesCount', 0), ('Filename', 'catalog.gz'), ('Id', 0), ('LastUpdated', None), ('ManifestIdentifier', None), ('ManifestVersion', None), ('NextUpdate', None), ('PredecessorIdentifier', None), ('ReleaseDate', None), ('ReleaseIdentifier', None), ('Repository', AnsibleMapping([('CheckCertificate', True), ('Description', 'HTTPS Desc'), ('DomainName', None), ('Id', None), ('Name', 'catalog4'), ('Password', None), ('RepositoryType', 'HTTPS'), ('Source', 'company.com'), ('Username', None)])), ('Schedule', None), ('SourcePath', 'catalog'), ('Status', None), ('TaskId', 10094)]))
+catalog_status (When I(state) is C(present), dict, {'AssociatedBaselines': [], 'BaseLocation': None, 'BundlesCount': 0, 'Filename': 'catalog.gz', 'Id': 0, 'LastUpdated': None, 'ManifestIdentifier': None, 'ManifestVersion': None, 'NextUpdate': None, 'PredecessorIdentifier': None, 'ReleaseDate': None, 'ReleaseIdentifier': None, 'Repository': {'CheckCertificate': True, 'Description': 'HTTPS Desc', 'DomainName': None, 'Id': None, 'Name': 'catalog4', 'Password': None, 'RepositoryType': 'HTTPS', 'Source': 'company.com', 'Username': None}, 'Schedule': None, 'SourcePath': 'catalog', 'Status': None, 'TaskId': 10094})
   Details of the catalog operation.
 
 
@@ -280,11 +280,11 @@ catalog_id (When I(state) is C(absent), int, 10123)
   IDs of the deleted catalog.
 
 
-associated_baselines (When I(state) is C(absent), list, [AnsibleMapping([('BaselineId', 24), ('BaselineName', 'new')]), AnsibleMapping([('BaselineId', 25), ('BaselineName', 'c7')]), AnsibleMapping([('BaselineId', 27), ('BaselineName', 'c4')])])
+associated_baselines (When I(state) is C(absent), list, [{'BaselineId': 24, 'BaselineName': 'new'}, {'BaselineId': 25, 'BaselineName': 'c7'}, {'BaselineId': 27, 'BaselineName': 'c4'}])
   IDs of the baselines associated with catalog.
 
 
-error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to create or update the catalog because a repository with the same name already exists.'), ('Resolution', 'Enter a different name and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to create or update the catalog because a repository with the same name already exists.', 'Resolution': 'Enter a different name and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of the http error.
 
 

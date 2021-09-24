@@ -36,7 +36,7 @@ options:
     elements: str
     description:
       - Name of the firmware catalog to be created.
-      - This is option is mutually exclusive with I(catalog_id).
+      - This option is mutually exclusive with I(catalog_id).
       - Provide the list of firmware catalog names that are supported when I(state) is C(absent).
   new_catalog_name:
     type: str
