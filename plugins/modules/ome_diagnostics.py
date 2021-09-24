@@ -48,7 +48,7 @@ options:
     type: str
     description:
       - C(application) is applicable for OpenManage Enterprise Modular to export the application log bundle.
-      - C(support_assist_collection) is applicable for one or more devices to export support assist logs.
+      - C(support_assist_collection) is applicable for one or more devices to export SupportAssist logs.
       - C(support_assist_collection) supports both OpenManage Enterprise and OpenManage Enterprise Modular.
       - C(support_assist_collection) does not support export of C(OS_LOGS) from OpenManage Enterprise.
         If tried to export, the tasks will complete with errors, and the module fails.

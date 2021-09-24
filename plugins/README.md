@@ -74,6 +74,7 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── ome_template_network_vlan.py
     ├── ome_user.py
     ├── ome_user_info.py
+    ├── redfish_event_subscription.py
     ├── redfish_firmware.py
     ├── redfish_powerstate.py
     └── redfish_storage_volume.py

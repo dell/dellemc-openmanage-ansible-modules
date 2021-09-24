@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
+# Version 4.1.0
 # Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -25,6 +25,10 @@ from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+NO_CHANGES_MSG = "No changes found to be applied. Either there are no updates present or components specified are not" \
+                 " found in the baseline."
+COMPLIANCE_READ_FAIL = "Failed to read compliance report."
+APPLICABLE_DUP = "Unable to get applicable components DUP."
 
 device_resource = {"device_path": "DeviceService/Devices"}
 
@@ -249,7 +253,7 @@ class TestOmeFirmware(FakeAnsibleModule):
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
             self.module.get_applicable_components(ome_response_mock, param, f_module)
-        assert exc.value.args[0] == "Unable to get components DUP applies."
+        assert exc.value.args[0] == APPLICABLE_DUP
 
     filepayload = {'SingleUpdateReportBaseline': [],
                    'SingleUpdateReportGroup': [],
@@ -261,9 +265,30 @@ class TestOmeFirmware(FakeAnsibleModule):
                   'SingleUpdateReportTargets': [],
                   'SingleUpdateReportFileToken': '1577786112600'}
 
-    @pytest.mark.parametrize("duppayload", [{"inp": filepayload, "out": outpayload}])
+    @pytest.mark.parametrize(
+        "duppayload",
+        [
+            {'file_token': '1577786112600', 'device_ids': None, 'group_ids': None, 'baseline_ids': None,
+             "out": outpayload},
+            {'file_token': '1577786112600', 'device_ids': [123], 'group_ids': None, 'baseline_ids': None,
+             "out": {'SingleUpdateReportBaseline': [],
+                     'SingleUpdateReportGroup': [],
+                     'SingleUpdateReportTargets': [123],
+                     'SingleUpdateReportFileToken': '1577786112600'}},
+            {'file_token': '1577786112600', 'device_ids': None, 'group_ids': [123], 'baseline_ids': None,
+             "out": {'SingleUpdateReportBaseline': [],
+                     'SingleUpdateReportGroup': [123],
+                     'SingleUpdateReportTargets': [],
+                     'SingleUpdateReportFileToken': '1577786112600'}},
+            {'file_token': '1577786112600', 'device_ids': None, 'group_ids': None, 'baseline_ids': [123],
+             "out": {'SingleUpdateReportBaseline': [123],
+                     'SingleUpdateReportGroup': [],
+                     'SingleUpdateReportTargets': [],
+                     'SingleUpdateReportFileToken': '1577786112600'}}])
     def test_get_dup_applicability_payload_success_case(self, duppayload):
-        data = self.module.get_dup_applicability_payload("1577786112600", None, None)
+        data = self.module.get_dup_applicability_payload(
+            duppayload.get('file_token'),
+            duppayload.get('device_ids'), duppayload.get('group_ids'), duppayload.get('baseline_ids'))
         assert data == duppayload["out"]
 
     def test_upload_dup_file_success_case01(self, ome_connection_firmware_mock, ome_response_mock):
@@ -278,16 +303,6 @@ class TestOmeFirmware(FakeAnsibleModule):
         with patch("{0}.open".format(builtin_module_name), mock_open(read_data="data")) as mock_file:
             result = self.module.upload_dup_file(ome_connection_firmware_mock, f_module)
         assert result == (True, "1577786112600")
-
-    def test_upload_dup_file_failure_case01(self, ome_response_mock, ome_connection_firmware_mock):
-        ome_response_mock.json_data = {'value': [{"device_id": 28628,
-                                                  "dup_file": "/root1/Ansible_EXE/BIOS_87V69_WN64_2.4.7.EXE"}]}
-        ome_response_mock.success = False
-        f_module = self.get_module_mock({'dup_file': False})
-        with pytest.raises(Exception) as exc:
-            self.module.upload_dup_file(ome_connection_firmware_mock, f_module)
-        assert exc.value.args[0] == "argument {0} is type of {1} and we were unable to convert to string: {1} " \
-                                    "cannot be converted to a string".format("dup_file", type(True))
 
     def test_upload_dup_file_failure_case02(self, ome_default_args,
                                             ome_connection_firmware_mock, ome_response_mock):
@@ -309,21 +324,23 @@ class TestOmeFirmware(FakeAnsibleModule):
 
     def test_get_device_ids_success_case(self, ome_connection_firmware_mock, ome_response_mock, ome_default_args):
         ome_default_args.update()
-        ome_response_mock.status_code = 200
-        ome_response_mock.json_data = {'value': [{'Id': 'DeviceServiceTag'}]}
-        ome_response_mock.success = True
         f_module = self.get_module_mock()
-        data = self.module.get_device_ids(ome_connection_firmware_mock, f_module, [1111, 2222, 3333])
-        assert data == ['1111', '2222', '3333']
+        ome_connection_firmware_mock.get_all_report_details.return_value = {
+            "report_list": [{'Id': 1111, 'DeviceServiceTag': "ABC1111"},
+                            {'Id': 2222, 'DeviceServiceTag': "ABC2222"},
+                            {'Id': 3333, 'DeviceServiceTag': "ABC3333"},
+                            {'Id': 4444, 'DeviceServiceTag': "ABC4444"}]}
+        data, id_tag_map = self.module.get_device_ids(ome_connection_firmware_mock, f_module, [1111, 2222, 3333, "ABC4444"])
+        assert data == ['1111', '2222', '3333', '4444']
 
     def test_get_device_ids_failure_case01(self, ome_connection_firmware_mock, ome_response_mock):
         ome_response_mock.json_data = {'value': [{'Id': 'DeviceServiceTag'}]}
         ome_response_mock.success = False
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
-            self.module.get_device_ids(ome_connection_firmware_mock, f_module, ["@#!1", 2222, 3333])
+            self.module.get_device_ids(ome_connection_firmware_mock, f_module, [2222])
         assert exc.value.args[0] == "Unable to complete the operation because the entered target device service" \
-                                    " tag(s) or device id(s) '{0}' are invalid.".format("@#!1")
+                                    " tag(s) or device id(s) '{0}' are invalid.".format("2222")
 
     def test__validate_device_attributes_success_case(self, ome_connection_firmware_mock, ome_response_mock,
                                                       ome_default_args):
@@ -331,7 +348,8 @@ class TestOmeFirmware(FakeAnsibleModule):
         ome_response_mock.status_code = 200
         ome_response_mock.json_data = {'value': [{'device_service_tag': ['R9515PT'], 'device_id': [2222]}]}
         ome_response_mock.success = True
-        f_module = self.get_module_mock(params={'device_service_tag': ['R9515PT'], 'device_id': [2222]})
+        f_module = self.get_module_mock(params={'device_service_tag': ['R9515PT'], 'device_id': [2222],
+                                                'devices': [{'id': 1234}, {'service_tag': "ABCD123"}]})
         data = self.module._validate_device_attributes(f_module)
         assert "R9515PT" in data
 
@@ -354,16 +372,19 @@ class TestOmeFirmware(FakeAnsibleModule):
         assert data["msg"] == "Unable to complete the operation because the entered target device group name(s)" \
                               " '{0}' are invalid.".format(",".join(set(["Servers"])))
 
-    # def test_get_baseline_ids_fail_case(self, ome_default_args, ome_response_mock, ome_connection_firmware_mock):
-    #     ome_default_args.update({'baseline_name': "baseline_servers",
-    #     "dup_file": ""})
-    #     ome_response_mock.json_data = [{"Id": 12,
-    #                                     "Name": "baseline_servers"}]
-    #     ome_response_mock.success = False
-    #     data = self._run_module_with_fail_json(ome_default_args)
-    #     assert data["msg"] == "Unable to complete the operation because the entered target baseline name" \
-    #                           " '{0}' is invalid.".format(",".join(set([
-    #         "baseline_servers"])))
+    def test_get_device_component_map(self, ome_connection_firmware_mock, ome_response_mock,
+                                      ome_default_args, mocker):
+        mocker.patch(MODULE_PATH + 'ome_firmware._validate_device_attributes',
+                     return_value=['R9515PT', 2222, 1234, 'ABCD123'])
+        mocker.patch(MODULE_PATH + 'ome_firmware.get_device_ids',
+                     return_value=([1234, 2222], {'1111': 'R9515PT', '1235': 'ABCD123'}))
+        output = {'1111': [], '1235': [], '2222': [], 1234: []}
+        f_module = self.get_module_mock(params={'device_service_tag': ['R9515PT'], 'device_id': [2222],
+                                                'components': [],
+                                                'devices': [{'id': 1234, 'components': []},
+                                                            {'service_tag': "ABCD123", 'components': []}]})
+        data = self.module.get_device_component_map(ome_connection_firmware_mock, f_module)
+        assert 2222 in data
 
     def test_main_firmware_success_case01(self, ome_default_args, mocker, ome_connection_firmware_mock):
         ome_default_args.update({"device_id": Constants.device_id1, "device_service_tag": Constants.service_tag1,
@@ -403,43 +424,6 @@ class TestOmeFirmware(FakeAnsibleModule):
         assert data['msg'] == "Successfully submitted the firmware update job."
         assert data['update_status'] == "Success"
 
-    @pytest.mark.parametrize("exc_type",
-                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    def test_firmware_main_exception_case(self, exc_type, mocker, ome_default_args,
-                                          ome_response_mock, ome_connection_firmware_mock):
-        ome_default_args.update({"device_id": Constants.device_id1, "device_service_tag": Constants.service_tag1,
-                                 "dup_file": ""})
-        mocker.patch(MODULE_PATH + 'ome_firmware._validate_device_attributes')
-        ome_response_mock.json_data = {"value": [{"Id": "DeviceServiceTag",
-                                                  "dup_file": ""}]}
-        ome_response_mock.status_code = 400
-        ome_response_mock.success = False
-        json_str = to_text(json.dumps({"data": "out"}))
-
-        if exc_type not in [HTTPError, SSLValidationError]:
-            mocker.patch(
-                MODULE_PATH + 'ome_firmware.get_device_ids')
-            mocker.patch(
-                MODULE_PATH + 'ome_firmware.upload_dup_file',
-                side_effect=exc_type('test'))
-        else:
-            mocker.patch(
-                MODULE_PATH + 'ome_firmware.get_dup_applicability_payload')
-            mocker.patch(
-                MODULE_PATH + 'ome_firmware.get_applicable_components')
-            mocker.patch(
-                MODULE_PATH + 'ome_firmware.job_payload_for_update')
-            mocker.patch(
-                MODULE_PATH + 'ome_firmware.spawn_update_job',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
-                                     {"accept-type": "application/json"}, StringIO(json_str)))
-        if not exc_type == URLError:
-            result = self._run_module_with_fail_json(ome_default_args)
-            assert result['failed'] is True
-        else:
-            result = self._run_module(ome_default_args)
-        assert 'msg' in result
-
     def test_job_payload_for_update_case_01(self, ome_connection_firmware_mock):
         """response None case"""
         f_module = self.get_module_mock()
@@ -451,7 +435,7 @@ class TestOmeFirmware(FakeAnsibleModule):
 
     def test_job_payload_for_update_case_02(self, ome_connection_firmware_mock, ome_response_mock):
         """baseline case"""
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock(params={'schedule': 'RebootNow'})
         target_data = {}
         baseline = {"baseline_id": 1, "repo_id": 2, "catalog_id": 3}
         ome_connection_firmware_mock.get_job_type_id.return_value = ome_response_mock
@@ -466,7 +450,7 @@ class TestOmeFirmware(FakeAnsibleModule):
 
     def test_job_payload_for_update_case_03(self, ome_connection_firmware_mock, ome_response_mock):
         """response None case"""
-        f_module = self.get_module_mock()
+        f_module = self.get_module_mock(params={'schedule': 'RebootNow'})
         target_data = {}
         ome_connection_firmware_mock.get_job_type_id.return_value = ome_response_mock
         payload = self.module.job_payload_for_update(ome_connection_firmware_mock, f_module, target_data)
@@ -507,52 +491,25 @@ class TestOmeFirmware(FakeAnsibleModule):
         assert exc.value.args[0] == "Unable to complete the operation because" \
                                     " the entered target baseline name does not exist."
 
-    def test_get_dup_baseline_case_01(self, ome_connection_firmware_mock):
-        baseline = "baseline_name1,baseline_name2,baseline_name3"
-        report_list = [{'Name': 'baseline_name1', 'Id': 1}, {'Name': 'baseline_name2', 'Id': 2},
-                       {'Name': 'baseline_name3', 'Id': 3}]
-        ome_connection_firmware_mock.get_all_report_details.return_value = {"report_list": report_list}
-        f_module = self.get_module_mock(params={'baseline_name': baseline})
-        baseline_ids = self.module.get_dup_baseline(ome_connection_firmware_mock, f_module)
-        assert baseline_ids == [1, 2, 3]
-
-    def test_get_dup_baseline_exception_case_01(self, ome_connection_firmware_mock):
-        baseline = "baseline_name5"
-        report_list = [{'Name': 'baseline_name1', 'Id': 1}, {'Name': 'baseline_name2', 'Id': 2},
-                       {'Name': 'baseline_name3', 'Id': 3}]
-        ome_connection_firmware_mock.get_all_report_details.return_value = {"report_list": report_list}
-        f_module = self.get_module_mock(params={'baseline_name': baseline})
-        with pytest.raises(Exception) as exc:
-            self.module.get_dup_baseline(ome_connection_firmware_mock, f_module)
-        assert exc.value.args[0] == "Unable to complete the operation because the entered" \
-                                    " target baseline name(s) 'baseline_name5' are invalid."
-
-    def test_get_dup_baseline_exception_case_02(self, ome_connection_firmware_mock):
-        baseline = "baseline_name1,baseline_name2,baseline_name3"
-        ome_connection_firmware_mock.get_all_report_details.return_value = {"report_list": []}
-        f_module = self.get_module_mock(params={'baseline_name': baseline})
-        with pytest.raises(Exception) as exc:
-            self.module.get_dup_baseline(ome_connection_firmware_mock, f_module)
-        assert exc.value.args[0] == "Unable to complete the operation because the" \
-                                    " entered target baseline name(s) does not exists."
-
     def test_baseline_based_update_exception_case_01(self, ome_connection_firmware_mock):
         ome_connection_firmware_mock.get_all_report_details.return_value = {"report_list": []}
         f_module = self.get_module_mock()
+        dev_comp_map = {}
         with pytest.raises(Exception) as exc:
-            self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id": 1})
-        assert exc.value.args[0] == "No components available for update."
+            self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id": 1}, dev_comp_map)
+        assert exc.value.args[0] == COMPLIANCE_READ_FAIL
 
     def test_baseline_based_update_case_02(self, ome_connection_firmware_mock):
         f_module = self.get_module_mock(params={'baseline_id': 1})
         response = {"report_list": [
-            {"DeviceId": 1111, "DeviceTypeId": 2000, "DeviceName": "MX-111", "DeviceTypeName": "CHASSIS",
+            {"DeviceId": "1111", "DeviceTypeId": 2000, "DeviceName": "MX-111", "DeviceTypeName": "CHASSIS",
              "ComponentComplianceReports": [{"UpdateAction": "UPGRADE", "SourceName": "SAS.xx.x2"}]}]}
         ome_connection_firmware_mock.get_all_report_details.return_value = response
+        dev_comp_map = {}
         compliance_report_list = self.module.baseline_based_update(ome_connection_firmware_mock, f_module,
-                                                                   {"baseline_id": 1})
+                                                                   {"baseline_id": 1}, dev_comp_map)
         assert compliance_report_list == [
-            {'Id': 1111, 'Data': 'SAS.xx.x2', 'TargetType': {'Id': 2000, 'Name': 'CHASSIS'}}]
+            {'Id': "1111", 'Data': 'SAS.xx.x2', 'TargetType': {'Id': 2000, 'Name': 'CHASSIS'}}]
 
     def test_baseline_based_update_case_03(self, ome_connection_firmware_mock):
         f_module = self.get_module_mock(params={'baseline_id': 1})
@@ -560,12 +517,38 @@ class TestOmeFirmware(FakeAnsibleModule):
             {"DeviceId": 1111, "DeviceTypeId": 2000, "DeviceName": "MX-111", "DeviceTypeName": "CHASSIS",
              "ComponentComplianceReports": []}]}
         ome_connection_firmware_mock.get_all_report_details.return_value = response
-        with pytest.raises(Exception, match="No components available for update.") as exc:
-            self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id": 1})
+        dev_comp_map = {}
+        with pytest.raises(Exception, match=NO_CHANGES_MSG) as exc:
+            self.module.baseline_based_update(ome_connection_firmware_mock, f_module, {"baseline_id": 1}, dev_comp_map)
 
     def test_validate_inputs(self):
-        f_module = self.get_module_mock(params={"device_id": 111})
+        f_module = self.get_module_mock(params={"dup_file": "/path/file.exe"})
         msg = "Parameter 'dup_file' to be provided along with 'device_id'|'device_service_tag'|'device_group_names'"
         with pytest.raises(Exception) as exc:
             self.module.validate_inputs(f_module)
         assert exc.value.args[0] == msg
+
+    @pytest.mark.parametrize("exc_type",
+                             [IOError, ValueError, SSLValidationError, TypeError, ConnectionError, HTTPError, URLError])
+    def test_firmware_main_exception_case(self, exc_type, mocker, ome_default_args,
+                                          ome_connection_firmware_mock, ome_response_mock):
+        ome_default_args.update(
+            {"device_id": Constants.device_id1, "device_service_tag": Constants.service_tag1, "dup_file": "duppath"})
+        ome_response_mock.status_code = 400
+        ome_response_mock.success = False
+        json_str = to_text(json.dumps({"info": "error_details"}))
+        if exc_type == URLError:
+            mocker.patch(MODULE_PATH + 'ome_firmware._validate_device_attributes', side_effect=exc_type("url open error"))
+            result = self._run_module(ome_default_args)
+            assert result["unreachable"] is True
+        elif exc_type not in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + 'ome_firmware._validate_device_attributes', side_effect=exc_type("exception message"))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+        else:
+            mocker.patch(MODULE_PATH + 'ome_firmware._validate_device_attributes',
+                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                              {"accept-type": "application/json"}, StringIO(json_str)))
+            result = self._run_module_with_fail_json(ome_default_args)
+            assert result['failed'] is True
+        assert 'msg' in result

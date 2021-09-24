@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
+# Version 4.1.0
 # Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -96,7 +96,7 @@ author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -159,7 +159,7 @@ msg:
   type: str
   description: Overall status of the template vlan operation.
   returned: always
-  sample: "Successfully applied the network settings to template"
+  sample: "Successfully applied the network settings to template."
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -201,7 +201,9 @@ TEMPLATE_ATTRIBUTE_VIEW = "TemplateService/Templates({0})/Views({1}" \
                           ")/AttributeViewDetails"
 VLAN_NETWORKS = "NetworkConfigurationService/Networks?$top=9999"
 TEMPLATE_VIEW = "TemplateService/Templates"  # Add ?$top=9999 if not query
-
+NO_CHANGES_MSG = "No changes found to be applied."
+CHANGES_FOUND = "Changes found to be applied."
+SUCCESS_MSG = "Successfully applied the network settings to the template."
 KEY_ATTR_NAME = 'DisplayName'
 SUB_GRP_ATTR_NAME = 'SubAttributeGroups'
 GRP_ATTR_NAME = 'Attributes'
@@ -309,7 +311,7 @@ def get_vlan_payload(module, rest_obj, untag_dict, tagged_dict):
     untag_equal_dict = compare_nested_dict(untag_dict, port_untagged_map)
     tag_equal_dict = compare_nested_dict(tagged_dict, port_tagged_map)
     if untag_equal_dict and tag_equal_dict:
-        module.exit_json(msg="No changes found to be applied")
+        module.exit_json(msg=NO_CHANGES_MSG)
     vlan_attributes = []
     for pk, pv in port_id_map.items():
         mdict = {}
@@ -321,11 +323,11 @@ def get_vlan_payload(module, rest_obj, untag_dict, tagged_dict):
         if mdict:
             vlan_attributes.append(mdict)
     if untag_dict:
-        module.fail_json(msg="Invalid port(s) {0} found for untagged "
-                             "VLAN".format(untag_dict.keys()))
+        module.fail_json(msg="Invalid port(s) {0} found for untagged VLAN".format(untag_dict.keys()))
     if tagged_dict:
-        module.fail_json(msg="Invalid port(s) {0} found for tagged "
-                             "VLAN".format(tagged_dict.keys()))
+        module.fail_json(msg="Invalid port(s) {0} found for tagged VLAN".format(tagged_dict.keys()))
+    if module.check_mode:
+        module.exit_json(changed=True, msg=CHANGES_FOUND)
     payload["VlanAttributes"] = vlan_attributes
     return payload
 
@@ -434,7 +436,7 @@ def main():
         required_one_of=[("template_id", "template_name"),
                          ("untagged_networks", "tagged_networks")],
         mutually_exclusive=[("template_id", "template_name")],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
@@ -442,14 +444,12 @@ def main():
             payload = get_vlan_payload(module, rest_obj, untag_dict, tagged_dict)
             resp = rest_obj.invoke_request("POST", UPDATE_NETWORK_CONFIG, data=payload)
             if resp.success:
-                module.exit_json(msg="Successfully applied the network settings to the template", changed=True)
+                module.exit_json(msg=SUCCESS_MSG, changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
         module.fail_json(msg=str(err))
 
 

@@ -43,9 +43,9 @@
 
     - name: Add devices to a static device group by using the group name and IPv4 addresses
       ome_device_group:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         name: "Storage Services"
         ip_addresses:
           - 192.35.0.1
@@ -54,9 +54,9 @@
 
     - name: Add devices to a static device group by using the group ID and IPv6 addresses
       ome_device_group:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         group_id: 12345
         ip_addresses:
           - fe80::ffff:ffff:ffff:ffff
@@ -65,9 +65,9 @@
 
     - name: Add devices to a static device group by using the group ID and supported IPv4 and IPv6 address formats.
       ome_device_group:
-        hostname: "192.168.0.1"
-        username: "username"
-        password: "password"
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         group_id: 12345
         ip_addresses:
           - 192.35.0.1

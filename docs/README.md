@@ -28,6 +28,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 - [idrac_system_info](modules/idrac_system_info.rst)
 - [idrac_timezone_ntp](modules/idrac_timezone_ntp.rst)
 - [idrac_user](modules/idrac_user.rst)
+- [redfish_event_subscription](modules/redfish_event_subscription.rst)
 - [redfish_firmware](modules/redfish_firmware.rst)
 - [redfish_powerstate](modules/redfish_powerstate.rst)
 - [redfish_storage_volume](modules/redfish_storage_volume.rst)

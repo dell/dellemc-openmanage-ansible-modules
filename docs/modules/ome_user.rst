@@ -47,7 +47,7 @@ Parameters
     Either *user_id* or *name* is mandatory for ``absent`` operation.
 
 
-  attributes (optional, dict, AnsibleMapping())
+  attributes (optional, dict, {})
     Payload data for the user operations. It can take the following attributes for ``present``.
 
     UserTypeId, DirectoryServiceId, Description, Name, Password, UserName, RoleId, Locked, Enabled.
@@ -157,7 +157,7 @@ msg (always, str, Successfully created a User)
   Overall status of the user operation.
 
 
-user_status (When I(state) is C(present)., dict, AnsibleMapping([('Description', 'Test user creation'), ('DirectoryServiceId', 0), ('Enabled', True), ('Id', '61546'), ('IsBuiltin', False), ('Locked', False), ('Name', 'test'), ('Password', None), ('PlainTextPassword', None), ('RoleId', '10'), ('UserName', 'test'), ('UserTypeId', 1)]))
+user_status (When I(state) is C(present)., dict, {'Description': 'Test user creation', 'DirectoryServiceId': 0, 'Enabled': True, 'Id': '61546', 'IsBuiltin': False, 'Locked': False, 'Name': 'test', 'Password': None, 'PlainTextPassword': None, 'RoleId': '10', 'UserName': 'test', 'UserTypeId': 1})
   Details of the user operation, when *state* is ``present``.
 
 

@@ -238,7 +238,7 @@ msg (always, str, Successfully completed the view storage volume operation)
   Overall status of the storage configuration operation.
 
 
-storage_status (success, dict, AnsibleMapping([('Id', 'JID_XXXXXXXXX'), ('JobState', 'Completed'), ('JobType', 'ImportConfiguration'), ('Message', 'Successfully imported and applied Server Configuration Profile.'), ('MessageId', 'XXX123'), ('Name', 'Import Configuration'), ('PercentComplete', 100), ('StartTime', 'TIME_NOW'), ('Status', 'Success'), ('TargetSettingsURI', None), ('retval', True)]))
+storage_status (success, dict, {'Id': 'JID_XXXXXXXXX', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageId': 'XXX123', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
   Storage configuration job and progress details from the iDRAC.
 
 

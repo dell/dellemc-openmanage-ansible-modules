@@ -12,70 +12,85 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
+__metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
 module: redfish_event_subscription
 short_description: Manage Redfish Subscriptions
-version_added: "3.3.0"
-description: >
-    This module allows you to create or delete Redfish Subscriptions.
-    HTTPS is required for the destination listening server. Example: Logstash HTTP Input Plugin.
-    The maximum number of subscriptions a user can create is 2.
+version_added: "4.1.0"
+description:
+    This module allows to add or delete Redfish Event subscriptions.
 extends_documentation_fragment:
-    - dellemc.openmanage.redfish_auth_options
+  - dellemc.openmanage.redfish_auth_options
 options:
     destination:
         description:
-            - URL of server that is listening for events.
-            - HTTPS is required.
-            - The maximum number of subscriptions a user can create is 2.
+          - The HTTPS URI of the destination to send events.
+          - HTTPS is required.
         type: str
         required: True
-    type:
-        description: Type of Redfish subscription to create.
+    event_type:
+        description:
+          - Specifies the event type to be subscribed.
+          - C(Alert) used to subscribe for alert.
+          - C(MetricReport) used to subscribe for the metrics report.
         type: str
-        default: metric
-        choices: ["metric", "alert"]
-        required: False
+        default: Alert
+        choices: [Alert, MetricReport]
+    event_format_type:
+        description:
+          - Specifies the format type of the event to be subscribed.
+          - C(Event) used to subscribe for Event format type.
+          - C(MetricReport) used to subscribe for the metrics report format type.
+        type: str
+        default: Event
+        choices: [Event, MetricReport]
     state:
-        description: Whether the subscription should exist or not.
+        description:
+          - C(present) adds new event subscription.
+          - C(absent) deletes event subscription with the specified I(destination).
         type: str
         default: present
         choices: ["present", "absent"]
-        required: False
 requirements:
     - "python >= 2.7.5"
 author:
     - "Trevor Squillario (@TrevorSquillario)"
+    - "Sachin Apagundi (@sachin-apa)"
+notes:
+    - I(event_type) needs to be C(MetricReport) and I(event_format_type) needs to be C(MetricReport) for metrics
+      subscription.
+    - I(event_type) needs to be C(Alert) and I(event_format_type) needs to be C(Event) for event subscription.
+    - Modifying a subscription is not supported.
+    - Context is always set to RedfishEvent.
+    - This module does not support C(check_mode).
 """
 
 EXAMPLES = """
 ---
-- name: Create redfish metric subscription
+- name: Add Redfish metric subscription
   redfish_event_subscription:
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
     destination: "https://192.168.1.100:8188"
-    type: metric
+    event_type: MetricReport
+    event_format_type: MetricReport
     state: present
 
-- name: Create redfish alert subscription
+- name: Add Redfish alert subscription
   redfish_event_subscription:
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
     destination: "https://server01.example.com:8188"
-    type: alert
+    event_type: Alert
+    event_format_type: Event
     state: present
 
-- name: Delete redfish subscription
+- name: Delete Redfish subscription with a specified destination
   redfish_event_subscription:
     baseuri: "192.168.0.1"
     username: "user_name"
@@ -90,10 +105,10 @@ msg:
   description: Overall status of the task.
   returned: always
   type: str
-  sample: Successfully submitted the task.
+  sample: Successfully added the subscription.
 status:
-  description: Returns subscription object createdq
-  returned: success
+  description: Returns subscription object created
+  returned: on adding subscription successfully
   type: dict
   sample: {
         "@Message.ExtendedInfo": [
@@ -118,9 +133,6 @@ status:
                 "Severity": "Informational"
             }
         ],
-        "@odata.context": "/redfish/v1/$metadata#EventDestination.EventDestination",
-        "@odata.id": "/redfish/v1/EventService/Subscriptions/5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a",
-        "@odata.type": "#EventDestination.v1_9_0.EventDestination",
         "Actions": {
             "#EventDestination.ResumeSubscription": {
                 "target": "/redfish/v1/EventService/Subscriptions/5d432f36-81f4-11eb-9dc0-2cea7ff7ff9a/Actions/EventDestination.ResumeSubscription"
@@ -129,7 +141,7 @@ status:
         "Context": "RedfishEvent",
         "DeliveryRetryPolicy": "RetryForever",
         "Description": "Event Subscription Details",
-        "Destination": "https://100.77.11.5:8189",
+        "Destination": "https://192.168.1.100:8188",
         "EventFormatType": "Event",
         "EventTypes": [
             "Alert"
@@ -182,9 +194,17 @@ error_info:
 import json
 import os
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
-from ansible.module_utils.basic import AnsibleModule, missing_required_lib
+from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+
+DESTINATION_INVALID = "The Parameter destination must have an HTTPS destination. The HTTP destination is not allowed"
+SUBSCRIPTION_EXISTS = "No changes found to be applied."
+SUBSCRIPTION_DELETED = "Successfully deleted the subscription."
+SUBSCRIPTION_UNABLE_DEL = "Unable to delete the subscription."
+SUBSCRIPTION_UNABLE_ADD = "Unable to add a subscription."
+SUBSCRIPTION_ADDED = "Successfully added the subscription."
+DESTINATION_MISMATCH = "No changes found to be applied."
 
 
 def get_subscription_payload():
@@ -232,12 +252,8 @@ def get_subscription_details(obj, id):
 def create_subscription(obj, module):
     payload = get_subscription_payload()
     payload["Destination"] = module.params["destination"]
-    if module.params["type"] == "metric":
-        payload["EventFormatType"] = "MetricReport"
-        payload["EventTypes"] = ["MetricReport"]
-    if module.params["type"] == "alert":
-        payload["EventFormatType"] = "Event"
-        payload["EventTypes"] = ["Alert"]
+    payload["EventFormatType"] = module.params["event_format_type"]
+    payload["EventTypes"] = [module.params["event_type"]]
     resp = obj.invoke_request("POST", "{0}{1}".format(obj.root_uri, "EventService/Subscriptions"), data=payload)
     return resp
 
@@ -247,6 +263,19 @@ def delete_subscription(obj, id):
     return resp
 
 
+def _validate_inputs(module):
+    """validates that destination has https instead of http"""
+    inp_destination = module.params['destination']
+    if not inp_destination.startswith("https"):
+        module.fail_json(msg=DESTINATION_INVALID)
+
+
+def _get_formatted_payload(obj, existing_payload):
+    """get the payload after removing unwanted tags"""
+    existing_payload = obj.strip_substr_dict(existing_payload)
+    return existing_payload
+
+
 def main():
     module = AnsibleModule(
         argument_spec={
@@ -254,40 +283,39 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "destination": {"required": True, "type": "str"},
-            "type": {
-                "required": False,
-                "type": "str",
-                "default": "metric",
-                "choices": ["alert", "metric"]},
-            "state": {
-                "required": False,
-                "default": "present",
-                "choices": ['present', 'absent']},
+            "event_type": {"type": "str", "default": "Alert", "choices": ['Alert', 'MetricReport']},
+            "event_format_type": {"type": "str", "default": "Event",
+                                  "choices": ['Event', 'MetricReport']},
+            "state": {"type": "str", "default": "present", "choices": ['present', 'absent']},
         },
         supports_check_mode=False)
     try:
+        _validate_inputs(module)
         with Redfish(module.params, req_session=True) as obj:
             subscription = get_subscription(obj, module.params["destination"])
             if subscription:
                 if module.params["state"] == "present":
-                    module.exit_json(msg="Subscription exists. No changes made.", changed=False)
-                if module.params["state"] == "absent":
+                    module.exit_json(msg=SUBSCRIPTION_EXISTS, changed=False)
+                else:
                     delete_resp = delete_subscription(obj, subscription["Id"])
                     if delete_resp.success:
-                        module.exit_json(msg="Successfully deleted subscription.", changed=True)
+                        module.exit_json(msg=SUBSCRIPTION_DELETED, changed=True)
                     else:
-                        module.exit_json(msg="Module failed.", changed=True)
+                        module.fail_json(msg=SUBSCRIPTION_UNABLE_DEL)
             else:
                 if module.params["state"] == "present":
                     create_resp = create_subscription(obj, module)
                     if create_resp.success:
-                        module.exit_json(msg="Successfully created subscription.", changed=True, status=create_resp.json_data)
+                        module.exit_json(msg=SUBSCRIPTION_ADDED, changed=True,
+                                         status=_get_formatted_payload(obj, create_resp.json_data))
                     else:
-                        module.exit_json(msg="Module failed.", changed=True)
+                        module.fail_json(msg=SUBSCRIPTION_UNABLE_ADD)
                 else:
-                    module.exit_json(msg="No changes made.", changed=False)
+                    module.exit_json(msg=DESTINATION_MISMATCH, changed=False)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError, IOError, AssertionError) as e:
         module.fail_json(msg=str(e))
