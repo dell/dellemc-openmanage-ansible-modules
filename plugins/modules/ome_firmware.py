@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.2.0
+# Version 4.1.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -16,50 +16,88 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_firmware
-short_description: Firmware update of PowerEdge devices and its components through OpenManage Enterprise
+short_description: Update firmware on PowerEdge devices and its components through OpenManage Enterprise
 version_added: "2.0.0"
-description: "This module updates the firmware of PowerEdge devices and all its components through
-OpenManage Enterprise."
+description: This module updates the firmware of PowerEdge devices and all its components through OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
   device_service_tag:
     description:
-      - List of targeted device service tags.
+      - List of service tags of the targeted devices.
       - Either I(device_id) or I(device_service_tag) can be used individually or together.
-      - I(device_service_tag) is mutually exclusive with I(device_group_names).
+      - This option is mutually exclusive with I(device_group_names) and I(devices).
     type: list
     elements: str
   device_id:
     description:
-      - List of targeted device ids.
+      - List of ids of the targeted device.
       - Either I(device_id) or I(device_service_tag) can be used individually or together.
-      - I(device_id) is mutually exclusive with I(device_group_names).
+      - This option is mutually exclusive with I(device_group_names) and I(devices).
     type: list
     elements: int
   device_group_names:
     description:
-      - Enter the name of the group to update the firmware of all the devices within the group.
-      - I(device_group_names) is mutually exclusive with I(device_id) and I(device_service_tag).
+      - Enter the name of the device group that contains the devices on which firmware needs to be updated.
+      - This option is mutually exclusive with I(device_id) and I(device_service_tag).
     type: list
     elements: str
+  dup_file:
+    description:
+      - "The path of the Dell Update Package (DUP) file that contains the firmware or drivers required to update the
+      target system device or individual device components."
+      - This is mutually exclusive with I(baseline_name), I(components), and I(devices).
+    type: path
   baseline_name:
     description:
-      - Enter the baseline name to update the firmware of all the devices or groups of
-        devices against the available compliance report.
-      - The firmware update can also be done by providing the baseline name and the path to
-        the single DUP file. To update multiple baselines at once, provide the baseline
-        names separated by commas.
-      - I(baseline_names) is mutually exclusive with I(device_group_names), I(device_id)
-        and I(device_service_tag).
+      - Enter the baseline name to update the firmware of all devices or list of devices that are not complaint.
+      - This option is mutually exclusive with I(dup_file) and I(device_group_names).
     type: str
-  dup_file:
-    description: "Executable file to apply on the targets."
+  components:
+    description:
+      - List of components to be updated.
+      - If not provided, all components applicable are considered.
+      - This option is case sensitive.
+      - This is applicable to I(device_service_tag), I(device_id), and I(baseline_name).
+    type: list
+    elements: str
+  devices:
+    description:
+      - This option allows to select components on each device for firmware update.
+      - This option is mutually exclusive with I(dup_file), I(device_group_names), I(device_id), and I(device_service_tag).
+    type: list
+    elements: dict
+    suboptions:
+      id:
+        type: int
+        description:
+          - The id of the target device to be updated.
+          - This option is mutually exclusive with I(service_tag).
+      service_tag:
+        type: str
+        description:
+          - The service tag of the target device to be updated.
+          - This option is mutually exclusive with I(id).
+      components:
+        description: The target components to be updated. If not specified, all applicable device components are considered.
+        type: list
+        elements: str
+  schedule:
     type: str
+    description:
+      - Select the schedule for the firmware update.
+      - if C(StageForNextReboot) is chosen, the firmware will be staged and updated during the next reboot
+        of the target device.
+      - if C(RebootNow) will apply the firmware updates immediately.
+    choices:
+      - RebootNow
+      - StageForNextReboot
+    default: RebootNow
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 2.7.17"
 author:
     - "Felix Stephen (@felixs88)"
+    - "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
     - This module does not support C(check_mode).
@@ -103,13 +141,91 @@ EXAMPLES = r'''
     password: "password"
     baseline_name: baseline_devices
 
-- name: Update firmware from a DUP file using a baseline names
+- name: Stage firmware for the next reboot using baseline name
   dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
-    baseline_name: "baseline_devices, baseline_groups"
-    dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
+    baseline_name: baseline_devices
+    schedule: StageForNextReboot
+
+- name: "Update firmware using baseline name and components."
+  dellemc.openmanage.ome_firmwar:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    baseline_name: baseline_devices
+    components:
+      - BIOS
+
+- name: Update firmware of device components from a DUP file using a device ids in a baseline
+  dellemc.openmanage.ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    baseline_name: baseline_devices
+    device_id:
+      - 11111
+      - 22222
+    components:
+      - iDRAC with Lifecycle Controller
+
+- name: Update firmware of device components from a baseline using a device service tags under a baseline
+  dellemc.openmanage.ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    baseline_name: baseline_devices
+    device_service_tag:
+      - KLBR111
+      - KLBR222
+    components:
+      - IOM-SAS
+
+- name: Update firmware using baseline name with a device id and required components
+  dellemc.openmanage.ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    baseline_name: baseline_devices
+    devices:
+      - id: 12345
+        components:
+         - Lifecycle Controller
+      - id: 12346
+        components:
+          - Enterprise UEFI Diagnostics
+          - BIOS
+
+- name: "Update firmware using baseline name with a device service tag and required components."
+  dellemc.openmanage.ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    baseline_name: baseline_devices
+    devices:
+      - service_tag: ABCDE12
+        components:
+          - PERC H740P Adapter
+          - BIOS
+      - service_tag: GHIJK34
+        components:
+          - OS Drivers Pack
+
+- name: "Update firmware using baseline name with a device service tag or device id and required components."
+  dellemc.openmanage.ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    baseline_name: baseline_devices
+    devices:
+      - service_tag: ABCDE12
+        components:
+          - BOSS-S1 Adapter
+          - PowerEdge Server BIOS
+      - id: 12345
+        components:
+          - iDRAC with Lifecycle Controller
 '''
 
 RETURN = r'''
@@ -118,10 +234,10 @@ msg:
   type: str
   description: "Overall firmware update status."
   returned: always
-  sample: "Successfully submitted the firmware update job."
+  sample: Successfully submitted the firmware update job.
 update_status:
   type: dict
-  description: "Firmware Update job and progress details from the OME."
+  description: The firmware update job and progress details from the OME.
   returned: success
   sample: {
     'LastRun': None,
@@ -159,7 +275,7 @@ update_status:
       'TargetType': {
       'Id': 1000,
       'Name': 'DEVICE'},
-      'Data': 'DCIM:INSTALLED#701__NIC.Mezzanine.1A-1-1=1111111111111',
+      'Data': 'DCIM:INSTALLED#701__NIC.Mezzanine.1A-1-1=1234567654321',
       'Id': 11115,
       'JobId': 11116}],
     'StartTime': None,
@@ -202,6 +318,16 @@ from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationEr
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 
+COMPLIANCE_URI = "UpdateService/Baselines({0})/DeviceComplianceReports"
+BASELINE_URI = "UpdateService/Baselines"
+FW_JOB_DESC = "Firmware update task initiated from OpenManage Ansible Module collections"
+NO_CHANGES_MSG = "No changes found to be applied. Either there are no updates present or components specified are not" \
+                 " found in the baseline."
+COMPLIANCE_READ_FAIL = "Failed to read compliance report."
+DUP_REQ_MSG = "Parameter 'dup_file' to be provided along with 'device_id'|'device_service_tag'|'device_group_names'"
+APPLICABLE_DUP = "Unable to get applicable components DUP."
+
+
 def spawn_update_job(rest_obj, job_payload):
     """Spawns an update job and tracks it to completion."""
     job_uri, job_details = "JobService/Jobs", {}
@@ -216,15 +342,23 @@ def job_payload_for_update(rest_obj, module, target_data, baseline=None):
     resp = rest_obj.get_job_type_id("Update_Task")
     if resp is None:
         module.fail_json(msg="Unable to fetch the job type Id.")
+    stage_dict = {"StageForNextReboot": 'true', "RebootNow": 'false'}
+    schedule = module.params["schedule"]
+    params = [{"Key": "operationName", "Value": "INSTALL_FIRMWARE"},
+              {"Key": "stagingValue", "Value": stage_dict[schedule]},
+              {"Key": "signVerify", "Value": "true"}]
+    # reboot applicable only if staging false
+    if schedule == "RebootNow":
+        params.append({"Key": "rebootType", "Value": "3"})
+        # reboot_dict = {"GracefulReboot": "2", "GracefulRebootForce": "3", "PowerCycle": "1"}
     payload = {
         "Id": 0, "JobName": "Firmware Update Task",
-        "JobDescription": "Firmware Update Task", "Schedule": "startnow",
+        "JobDescription": FW_JOB_DESC, "Schedule": "startnow",
         "State": "Enabled", "JobType": {"Id": resp, "Name": "Update_Task"},
         "Targets": target_data,
-        "Params": [{"Key": "operationName", "Value": "INSTALL_FIRMWARE"},
-                   {"Key": "stagingValue", "Value": "false"},
-                   {"Key": "signVerify", "Value": "true"}]
+        "Params": params
     }
+
     if baseline is not None:
         payload["Params"].append({"Key": "complianceReportId", "Value": "{0}".format(baseline["baseline_id"])})
         payload["Params"].append({"Key": "repositoryId", "Value": "{0}".format(baseline["repo_id"])})
@@ -255,7 +389,7 @@ def get_applicable_components(rest_obj, dup_payload, module):
                 temp_map['TargetType']['Name'] = str(device['DeviceReport']['DeviceTypeName'])
                 target_data.append(temp_map)
     else:
-        module.fail_json(msg="Unable to get components DUP applies.")
+        module.fail_json(msg=APPLICABLE_DUP)
     return target_data
 
 
@@ -266,32 +400,21 @@ def get_dup_applicability_payload(file_token, device_ids=None, group_ids=None, b
                                  'SingleUpdateReportTargets': [],
                                  'SingleUpdateReportFileToken': file_token}
     if device_ids is not None:
-        dup_applicability_payload.update(
-            {"SingleUpdateReportTargets": list(map(int, device_ids))}
-        )
+        dup_applicability_payload.update({"SingleUpdateReportTargets": list(map(int, device_ids))})
     elif group_ids is not None:
-        dup_applicability_payload.update(
-            {"SingleUpdateReportGroup": list(map(int, group_ids))}
-        )
+        dup_applicability_payload.update({"SingleUpdateReportGroup": list(map(int, group_ids))})
     elif baseline_ids is not None:
-        dup_applicability_payload.update(
-            {"SingleUpdateReportBaseline": list(map(int, baseline_ids))}
-        )
+        dup_applicability_payload.update({"SingleUpdateReportBaseline": list(map(int, baseline_ids))})
     return dup_applicability_payload
 
 
 def upload_dup_file(rest_obj, module):
     """Upload DUP file to OME and get a file token."""
     upload_uri = "UpdateService/Actions/UpdateService.UploadFile"
-    headers = {"Content-Type": "application/octet-stream",
-               "Accept": "application/octet-stream"}
+    headers = {"Content-Type": "application/octet-stream", "Accept": "application/octet-stream"}
     upload_success, token = False, None
     dup_file = module.params['dup_file']
-    if not isinstance(dup_file, str):
-        module.fail_json(
-            msg="argument {0} is type of {1} and we were unable to convert to string: {1} cannot be "
-                "converted to a string".format("dup_file", type(dup_file)))
-    with open(module.params['dup_file'], 'rb') as payload:
+    with open(dup_file, 'rb') as payload:
         payload = payload.read()
         response = rest_obj.invoke_request("POST", upload_uri, data=payload, headers=headers,
                                            api_timeout=100, dump=False)
@@ -299,8 +422,7 @@ def upload_dup_file(rest_obj, module):
             upload_success = True
             token = str(response.json_data)
         else:
-            module.fail_json(msg="Unable to upload {0} to {1}".format(module.params['dup_file'],
-                                                                      module.params['hostname']))
+            module.fail_json(msg="Unable to upload {0} to {1}".format(dup_file, module.params['hostname']))
     return upload_success, token
 
 
@@ -308,12 +430,12 @@ def get_device_ids(rest_obj, module, device_id_tags):
     """Getting the list of device ids filtered from the device inventory."""
     device_id = []
     resp = rest_obj.get_all_report_details("DeviceService/Devices")
-    if resp["report_list"]:
+    if resp.get("report_list"):
         device_resp = dict([(str(device['Id']), device['DeviceServiceTag']) for device in resp["report_list"]])
         device_tags = map(str, device_id_tags)
         invalid_tags = []
         for tag in device_tags:
-            if tag in device_resp.keys() or tag.isdigit():
+            if tag in device_resp.keys():
                 device_id.append(tag)
             elif tag in device_resp.values():
                 ids = list(device_resp.keys())[list(device_resp.values()).index(tag)]
@@ -326,23 +448,7 @@ def get_device_ids(rest_obj, module, device_id_tags):
                     " tag(s) or device id(s) '{0}' are invalid.".format(",".join(set(invalid_tags))))
     else:
         module.fail_json(msg="Failed to fetch the device facts.")
-    return device_id
-
-
-def get_dup_baseline(rest_obj, module):
-    """Getting the list of baseline ids filtered from the baselines."""
-    resp = rest_obj.get_all_report_details("UpdateService/Baselines")
-    baseline = module.params.get('baseline_name').split(",")
-    if resp["report_list"]:
-        baseline_ids = [bse['Id'] for bse in resp["report_list"] for name in baseline if bse['Name'] == name]
-        if len(set(baseline)) != len(set(baseline_ids)):
-            module.fail_json(
-                msg="Unable to complete the operation because the entered target baseline name(s)"
-                    " '{0}' are invalid.".format(",".join(set(baseline))))
-    else:
-        module.fail_json(msg="Unable to complete the operation because the entered "
-                             "target baseline name(s) does not exists.")
-    return baseline_ids
+    return device_id, device_resp
 
 
 def get_group_ids(rest_obj, module):
@@ -360,7 +466,7 @@ def get_group_ids(rest_obj, module):
 
 def get_baseline_ids(rest_obj, module):
     """Getting the list of group ids filtered from the groups."""
-    resp = rest_obj.get_all_report_details("UpdateService/Baselines")
+    resp = rest_obj.get_all_report_details(BASELINE_URI)
     baseline, baseline_details = module.params.get('baseline_name'), {}
     if resp["report_list"]:
         for bse in resp["report_list"]:
@@ -382,12 +488,9 @@ def single_dup_update(rest_obj, module):
     target_data, device_ids, group_ids, baseline_ids = None, None, None, None
     if module.params.get("device_group_names") is not None:
         group_ids = get_group_ids(rest_obj, module)
-    elif module.params.get("baseline_name") is not None \
-            and module.params.get("dup_file") is not None:
-        baseline_ids = get_dup_baseline(rest_obj, module)
     else:
         device_id_tags = _validate_device_attributes(module)
-        device_ids = get_device_ids(rest_obj, module, device_id_tags)
+        device_ids, id_tag_map = get_device_ids(rest_obj, module, device_id_tags)
     upload_status, token = upload_dup_file(rest_obj, module)
     if upload_status:
         report_payload = get_dup_applicability_payload(token, device_ids=device_ids, group_ids=group_ids,
@@ -397,34 +500,54 @@ def single_dup_update(rest_obj, module):
     return target_data
 
 
-def baseline_based_update(rest_obj, module, baseline):
-    compliance_uri = "UpdateService/Baselines({0})/DeviceComplianceReports".format(baseline["baseline_id"])
+def baseline_based_update(rest_obj, module, baseline, dev_comp_map):
+    compliance_uri = COMPLIANCE_URI.format(baseline["baseline_id"])
     resp = rest_obj.get_all_report_details(compliance_uri)
     compliance_report_list = []
+    update_actions = ["UPGRADE", "DOWNGRADE"]
     if resp["report_list"]:
-        for each in resp["report_list"]:
-            compliance_report = each.get("ComponentComplianceReports")
-            if compliance_report is not None:
-                data_dict = {}
-                for component in compliance_report:
-                    if component["UpdateAction"] in ["UPGRADE", "DOWNGRADE"]:
-                        if data_dict.get("Id") == each["DeviceId"]:
-                            data_dict["Data"] = "{0};{1}".format(data_dict["Data"], component["SourceName"])
-                        else:
-                            data_dict["Id"] = each["DeviceId"]
-                            data_dict["Data"] = component["SourceName"]
-                            data_dict["TargetType"] = {"Id": each["DeviceTypeId"], "Name": each["DeviceTypeName"]}
-                if data_dict:
-                    compliance_report_list.append(data_dict)
-    if not compliance_report_list or not resp["report_list"]:
-        module.fail_json(msg="No components available for update.")
+        comps = []
+        if not dev_comp_map:
+            comps = module.params.get('components')
+            dev_comp_map = dict([(str(dev["DeviceId"]), comps) for dev in resp["report_list"]])
+        for dvc in resp["report_list"]:
+            dev_id = dvc["DeviceId"]
+            if str(dev_id) in dev_comp_map:
+                comps = dev_comp_map.get(str(dev_id), [])
+                compliance_report = dvc.get("ComponentComplianceReports")
+                if compliance_report is not None:
+                    data_dict = {}
+                    comp_list = []
+                    if not comps:
+                        comp_list = list(icomp["SourceName"] for icomp in compliance_report
+                                         if icomp["UpdateAction"] in update_actions)
+                    else:
+                        comp_list = list(icomp["SourceName"] for icomp in compliance_report
+                                         if ((icomp["UpdateAction"] in update_actions) and
+                                         (icomp.get('Name') in comps)))  # regex filtering ++
+                    if comp_list:
+                        data_dict["Id"] = dev_id
+                        data_dict["Data"] = str(";").join(comp_list)
+                        data_dict["TargetType"] = {"Id": dvc['DeviceTypeId'], "Name": dvc["DeviceTypeName"]}
+                        compliance_report_list.append(data_dict)
+    else:
+        module.fail_json(msg=COMPLIANCE_READ_FAIL)
+    if not compliance_report_list:
+        module.exit_json(msg=NO_CHANGES_MSG)
     return compliance_report_list
 
 
 def _validate_device_attributes(module):
+    device_id_tags = []
     service_tag = module.params.get('device_service_tag')
     device_id = module.params.get('device_id')
-    device_id_tags = []
+    devices = module.params.get('devices')
+    if devices:
+        for dev in devices:
+            if dev.get('id'):
+                device_id_tags.append(dev.get('id'))
+            else:
+                device_id_tags.append(dev.get('service_tag'))
     if device_id is not None:
         device_id_tags.extend(device_id)
     if service_tag is not None:
@@ -432,15 +555,29 @@ def _validate_device_attributes(module):
     return device_id_tags
 
 
+def get_device_component_map(rest_obj, module):
+    device_id_tags = _validate_device_attributes(module)
+    device_ids, id_tag_map = get_device_ids(rest_obj, module, device_id_tags)
+    comps = module.params.get('components')
+    dev_comp_map = {}
+    if device_ids:
+        dev_comp_map = dict([(dev, comps) for dev in device_ids])
+    devices = module.params.get('devices')
+    if devices:
+        for dev in devices:
+            if dev.get('id'):
+                dev_comp_map[str(dev.get('id'))] = dev.get('components')
+            else:
+                id = list(id_tag_map.keys())[list(id_tag_map.values()).index(dev.get('service_tag'))]
+                dev_comp_map[str(id)] = dev.get('components')
+    return dev_comp_map
+
+
 def validate_inputs(module):
     param = module.params
-    if any([param.get("device_id") is not None,
-            param.get("device_service_tag") is not None,
-            param.get("device_group_names") is not None]) \
-            and param.get("dup_file") is None:
-        module.fail_json(msg="Parameter 'dup_file' to be provided along with "
-                             "'device_id'|'device_service_tag'"
-                             "|'device_group_names'")
+    if param.get("dup_file"):
+        if not any([param.get("device_id"), param.get("device_service_tag"), param.get("device_group_names")]):
+            module.fail_json(msg=DUP_REQ_MSG)
 
 
 def main():
@@ -449,28 +586,42 @@ def main():
             "hostname": {"required": True, "type": "str"},
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "device_service_tag": {"required": False, "type": "list", "elements": 'str'},
-            "device_id": {"required": False, "type": "list", "elements": 'int'},
-            "dup_file": {"required": False, "type": "str"},
-            "device_group_names": {"required": False, "type": "list", "elements": 'str'},
-            "baseline_name": {"required": False, "type": "str"},
+            "port": {"type": "int", "default": 443},
+            "device_service_tag": {"type": "list", "elements": 'str'},
+            "device_id": {"type": "list", "elements": 'int'},
+            "dup_file": {"type": "path"},
+            "device_group_names": {"type": "list", "elements": 'str'},
+            "components": {"type": "list", "elements": 'str', "default": []},
+            "baseline_name": {"type": "str"},
+            "schedule": {"type": 'str', "choices": ['RebootNow', 'StageForNextReboot'], "default": 'RebootNow'},
+            "devices": {
+                "type": 'list', "elements": 'dict',
+                "options": {
+                    "id": {'type': 'int'},
+                    "service_tag": {"type": 'str'},
+                    "components": {"type": "list", "elements": 'str', "default": []},
+                },
+                "mutually_exclusive": [('id', 'service_tag')],
+                "required_one_of": [('id', 'service_tag')]
+            },
         },
-        required_one_of=[["device_id", "device_service_tag", "device_group_names", "baseline_name"]],
-        mutually_exclusive=[["device_group_names", "device_id"],
-                            ["device_group_names", "device_service_tag"],
-                            ["baseline_name", "device_id"],
-                            ["baseline_name", "device_service_tag"],
-                            ["baseline_name", "device_group_names"]],
+        required_one_of=[["dup_file", "baseline_name"]],
+        mutually_exclusive=[
+            ["baseline_name", "dup_file"],
+            ["device_group_names", "device_id", "devices"],
+            ["device_group_names", "device_service_tag", "devices"],
+            ["baseline_name", "device_group_names"],
+            ["dup_file", "components", "devices"]],
         supports_check_mode=False
     )
     validate_inputs(module)
     update_status, baseline_details = {}, None
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            if module.params.get("baseline_name") is not None and module.params.get("dup_file") is None:
+            if module.params.get("baseline_name"):
                 baseline_details = get_baseline_ids(rest_obj, module)
-                target_data = baseline_based_update(rest_obj, module, baseline_details)
+                device_comp_map = get_device_component_map(rest_obj, module)
+                target_data = baseline_based_update(rest_obj, module, baseline_details, device_comp_map)
             else:
                 target_data = single_dup_update(rest_obj, module)
             job_payload = job_payload_for_update(rest_obj, module, target_data, baseline=baseline_details)

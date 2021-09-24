@@ -82,11 +82,11 @@ msg (always, str, Successfully performed iDRAC reset.)
   Status of the iDRAC reset operation.
 
 
-reset_status (always, dict, AnsibleMapping([('idracreset', AnsibleMapping([('Data', AnsibleMapping([('StatusCode', 204)])), ('Message', 'none'), ('Status', 'Success'), ('StatusCode', 204), ('retval', True)]))]))
+reset_status (always, dict, {'idracreset': {'Data': {'StatusCode': 204}, 'Message': 'none', 'Status': 'Success', 'StatusCode': 204, 'retval': True}})
   Details of iDRAC reset operation.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

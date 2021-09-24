@@ -106,11 +106,11 @@ msg (always, str, Successfully updated network web server configuration.)
   Overall status of the network web server configuration change.
 
 
-webserver_configuration (success, dict, AnsibleMapping([('TimeOut', 20), ('PortNumber', 443), ('EnableWebServer', True)]))
+webserver_configuration (success, dict, {'TimeOut': 20, 'PortNumber': 443, 'EnableWebServer': True})
   Updated application network web server configuration.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to complete the request because the input value for  PortNumber  is missing or an invalid value is entered.'), ('MessageArgs', ['PortNumber']), ('MessageId', 'CGEN6002'), ('RelatedProperties', []), ('Resolution', 'Enter a valid value and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the request because the input value for  PortNumber  is missing or an invalid value is entered.', 'MessageArgs': ['PortNumber'], 'MessageId': 'CGEN6002', 'RelatedProperties': [], 'Resolution': 'Enter a valid value and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of the HTTP error.
 
 

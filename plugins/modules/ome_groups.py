@@ -89,7 +89,7 @@ EXAMPLES = """
     password: "password"
     name: "group 1"
     description: "Group 1 description"
-    parent: "group parent 1"
+    parent_group_name: "group parent 1"
 
 - name: Modify a device group using the group ID
   dellemc.openmanage.ome_groups:
@@ -98,7 +98,7 @@ EXAMPLES = """
     password: "password"
     group_id: 1234
     description: "Group description updated"
-    parent: "group parent 2"
+    parent_group_name: "group parent 2"
 
 - name: Delete a device group using the device group name
   dellemc.openmanage.ome_groups:

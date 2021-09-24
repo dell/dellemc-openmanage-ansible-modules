@@ -269,11 +269,11 @@ msg (always, str, Successfully created an identity pool.)
   Overall status of the identity pool operation.
 
 
-pool_status (success, dict, AnsibleMapping([('Id', 29), ('IsSuccessful', True), ('Issues', [])]))
+pool_status (success, dict, {'Id': 29, 'IsSuccessful': True, 'Issues': []})
   Details of the user operation, when *state* is ``present``.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to process the request because an error occurred: Ethernet-MAC Range overlap found (in this Identity Pool or in a different one) .'), ('MessageArgs', ['Ethernet-MAC Range overlap found (in this Identity Pool or in a different one)"']), ('MessageId', 'CGEN6001'), ('RelatedProperties', []), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to process the request because an error occurred: Ethernet-MAC Range overlap found (in this Identity Pool or in a different one) .', 'MessageArgs': ['Ethernet-MAC Range overlap found (in this Identity Pool or in a different one)"'], 'MessageId': 'CGEN6001', 'RelatedProperties': [], 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of the HTTP Error.
 
 

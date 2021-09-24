@@ -130,11 +130,11 @@ msg (always, str, Successfully configured network time.)
   Overall status of the network time configuration change.
 
 
-proxy_configuration (success, dict, AnsibleMapping([('EnableNTP', False), ('JobId', None), ('PrimaryNTPAddress', None), ('SecondaryNTPAddress1', None), ('SecondaryNTPAddress2', None), ('SystemTime', None), ('TimeSource', 'Local Clock'), ('TimeZone', 'TZ_ID_1'), ('TimeZoneIdLinux', None), ('TimeZoneIdWindows', None), ('UtcTime', None)]))
+proxy_configuration (success, dict, {'EnableNTP': False, 'JobId': None, 'PrimaryNTPAddress': None, 'SecondaryNTPAddress1': None, 'SecondaryNTPAddress2': None, 'SystemTime': None, 'TimeSource': 'Local Clock', 'TimeZone': 'TZ_ID_1', 'TimeZoneIdLinux': None, 'TimeZoneIdWindows': None, 'UtcTime': None})
   Updated application network time configuration.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to complete the request because the input value for  SystemTime  is missing or an invalid value is entered.'), ('MessageArgs', ['SystemTime']), ('MessageId', 'CGEN6002'), ('RelatedProperties', []), ('Resolution', 'Enter a valid value and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the request because the input value for  SystemTime  is missing or an invalid value is entered.', 'MessageArgs': ['SystemTime'], 'MessageId': 'CGEN6002', 'RelatedProperties': [], 'Resolution': 'Enter a valid value and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of the HTTP error.
 
 

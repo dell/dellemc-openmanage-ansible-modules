@@ -161,11 +161,11 @@ msg (always, str, Successfully created the VLAN.)
   Overall status of the VLAN operation.
 
 
-vlan_status (when I(state=present), dict, AnsibleMapping([('@odata.context', '/api/$metadata#NetworkConfigurationService.Network'), ('@odata.type', '#NetworkConfigurationService.Network'), ('@odata.id', '/api/NetworkConfigurationService/Networks(1234)'), ('Id', 1234), ('Name', 'vlan1'), ('Description', 'VLAN description'), ('VlanMaximum', 130), ('VlanMinimum', 140), ('Type', 1), ('CreatedBy', 'admin'), ('CreationTime', '2020-01-01 05:54:36.113'), ('UpdatedBy', None), ('UpdatedTime', '2020-01-01 05:54:36.113'), ('InternalRefNWUUId', '6d6effcc-eca4-44bd-be07-1234ab5cd67e')]))
+vlan_status (when I(state=present), dict, {'@odata.context': '/api/$metadata#NetworkConfigurationService.Network', '@odata.type': '#NetworkConfigurationService.Network', '@odata.id': '/api/NetworkConfigurationService/Networks(1234)', 'Id': 1234, 'Name': 'vlan1', 'Description': 'VLAN description', 'VlanMaximum': 130, 'VlanMinimum': 140, 'Type': 1, 'CreatedBy': 'admin', 'CreationTime': '2020-01-01 05:54:36.113', 'UpdatedBy': None, 'UpdatedTime': '2020-01-01 05:54:36.113', 'InternalRefNWUUId': '6d6effcc-eca4-44bd-be07-1234ab5cd67e'})
   Details of the VLAN that is either created or modified.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CTEM1043'), ('RelatedProperties', []), ('Message', 'Unable to create or update the network because the entered VLAN minimum 0 is not within a valid range ( 1  -  4000  or  4021  -  4094 ).'), ('MessageArgs', ['0', '1', '4000', '4021', '4094']), ('Severity', 'Warning'), ('Resolution', 'Enter a valid VLAN minimum as identified in the message and retry the operation.')])])]))
+error_info (on HTTP error, dict, {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CTEM1043', 'RelatedProperties': [], 'Message': 'Unable to create or update the network because the entered VLAN minimum 0 is not within a valid range ( 1  -  4000  or  4021  -  4094 ).', 'MessageArgs': ['0', '1', '4000', '4021', '4094'], 'Severity': 'Warning', 'Resolution': 'Enter a valid VLAN minimum as identified in the message and retry the operation.'}]})
   Details of the HTTP Error.
 
 

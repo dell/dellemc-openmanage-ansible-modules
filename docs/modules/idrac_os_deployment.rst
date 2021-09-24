@@ -102,7 +102,7 @@ msg (on error, str, Failed to boot to network iso)
   Over all device information status.
 
 
-boot_status (always, dict, AnsibleMapping([('DeleteOnCompletion', 'false'), ('InstanceID', 'DCIM_OSDConcreteJob:1'), ('JobName', 'BootToNetworkISO'), ('JobStatus', 'Success'), ('Message', 'The command was successful.'), ('MessageID', 'OSD1'), ('Name', 'BootToNetworkISO'), ('Status', 'Success'), ('file', '192.168.0.0:/nfsfileshare/unattended_os_image.iso'), ('retval', True)]))
+boot_status (always, dict, {'DeleteOnCompletion': 'false', 'InstanceID': 'DCIM_OSDConcreteJob:1', 'JobName': 'BootToNetworkISO', 'JobStatus': 'Success', 'Message': 'The command was successful.', 'MessageID': 'OSD1', 'Name': 'BootToNetworkISO', 'Status': 'Success', 'file': '192.168.0.0:/nfsfileshare/unattended_os_image.iso', 'retval': True})
   Details of the boot to network ISO image operation.
 
 

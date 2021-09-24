@@ -96,11 +96,11 @@ msg (always, str, Successfully submitted the firmware update task.)
   Overall status of the firmware update task.
 
 
-task (success, dict, AnsibleMapping([('id', 'JID_XXXXXXXXXXXX'), ('uri', '/redfish/v1/TaskService/Tasks/JID_XXXXXXXXXXXX')]))
+task (success, dict, {'id': 'JID_XXXXXXXXXXXX', 'uri': '/redfish/v1/TaskService/Tasks/JID_XXXXXXXXXXXX'})
   Returns ID and URI of the created task.
 
 
-error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to complete the operation because the JSON data format entered is invalid.'), ('Resolution', 'Do the following and the retry the operation: 1) Enter the correct JSON data format and retry the operation. 2) Make sure that no syntax error is present in JSON data format. 3) Make sure that a duplicate key is not present in JSON data format.'), ('Severity', 'Critical')]), AnsibleMapping([('Message', 'The request body submitted was malformed JSON and could not be parsed by the receiving service.'), ('Resolution', 'Ensure that the request body is valid JSON and resubmit the request.'), ('Severity', 'Critical')])]), ('code', 'Base.1.2.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the operation because the JSON data format entered is invalid.', 'Resolution': 'Do the following and the retry the operation: 1) Enter the correct JSON data format and retry the operation. 2) Make sure that no syntax error is present in JSON data format. 3) Make sure that a duplicate key is not present in JSON data format.', 'Severity': 'Critical'}, {'Message': 'The request body submitted was malformed JSON and could not be parsed by the receiving service.', 'Resolution': 'Ensure that the request body is valid JSON and resubmit the request.', 'Severity': 'Critical'}], 'code': 'Base.1.2.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of http error.
 
 

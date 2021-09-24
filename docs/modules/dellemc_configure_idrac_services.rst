@@ -169,11 +169,11 @@ msg (always, str, Successfully configured the iDRAC services settings.)
   Overall status of iDRAC service attributes configuration.
 
 
-service_status (success, dict, AnsibleMapping([('CompletionTime', '2020-04-02T02:43:28'), ('Description', 'Job Instance'), ('EndTime', None), ('Id', 'JID_12345123456'), ('JobState', 'Completed'), ('JobType', 'ImportConfiguration'), ('Message', 'Successfully imported and applied Server Configuration Profile.'), ('MessageArgs', []), ('MessageId', 'SYS053'), ('Name', 'Import Configuration'), ('PercentComplete', 100), ('StartTime', 'TIME_NOW'), ('Status', 'Success'), ('TargetSettingsURI', None), ('retval', True)]))
+service_status (success, dict, {'CompletionTime': '2020-04-02T02:43:28', 'Description': 'Job Instance', 'EndTime': None, 'Id': 'JID_12345123456', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageArgs': [], 'MessageId': 'SYS053', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
   Details of iDRAC services attributes configuration.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

@@ -56,7 +56,7 @@ Parameters
   log_type (optional, str, support_assist_collection)
     ``application`` is applicable for OpenManage Enterprise Modular to export the application log bundle.
 
-    ``support_assist_collection`` is applicable for one or more devices to export support assist logs.
+    ``support_assist_collection`` is applicable for one or more devices to export SupportAssist logs.
 
     ``support_assist_collection`` supports both OpenManage Enterprise and OpenManage Enterprise Modular.
 
@@ -223,11 +223,11 @@ msg (always, str, Export log job completed successfully.)
   Overall status of the export log.
 
 
-jog_status (success, dict, AnsibleMapping([('Builtin', False), ('CreatedBy', 'root'), ('Editable', True), ('EndTime', 'None'), ('Id', 12778), ('JobDescription', 'Export device log'), ('JobName', 'Export Log'), ('JobStatus', AnsibleMapping([('Id', 2080), ('Name', 'New')])), ('JobType', AnsibleMapping([('Id', 18), ('Internal', False), ('Name', 'DebugLogs_Task')])), ('LastRun', '2021-07-06 10:52:50.519'), ('LastRunStatus', AnsibleMapping([('Id', 2060), ('Name', 'Completed')])), ('NextRun', 'None'), ('Schedule', 'startnow'), ('StartTime', 'None'), ('State', 'Enabled'), ('UpdatedBy', 'None'), ('UserGenerated', True), ('Visible', True), ('Params', [AnsibleMapping([('JobId', 12778), ('Key', 'maskSensitiveInfo'), ('Value', 'FALSE')]), AnsibleMapping([('JobId', 12778), ('Key', 'password'), ('Value', 'tY86w7q92u0QzvykuF0gQQ')]), AnsibleMapping([('JobId', 12778), ('Key', 'userName'), ('Value', 'administrator')]), AnsibleMapping([('JobId', 12778), ('Key', 'shareName'), ('Value', 'iso')]), AnsibleMapping([('JobId', 12778), ('Key', 'OPERATION_NAME'), ('Value', 'EXTRACT_LOGS')]), AnsibleMapping([('JobId', 12778), ('Key', 'shareType'), ('Value', 'CIFS')]), AnsibleMapping([('JobId', 12778), ('Key', 'shareAddress'), ('Value', '100.96.32.142')])]), ('Targets', [AnsibleMapping([('Data', ''), ('Id', 10053), ('JobId', 12778), ('TargetType', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))])])]))
+jog_status (success, dict, {'Builtin': False, 'CreatedBy': 'root', 'Editable': True, 'EndTime': 'None', 'Id': 12778, 'JobDescription': 'Export device log', 'JobName': 'Export Log', 'JobStatus': {'Id': 2080, 'Name': 'New'}, 'JobType': {'Id': 18, 'Internal': False, 'Name': 'DebugLogs_Task'}, 'LastRun': '2021-07-06 10:52:50.519', 'LastRunStatus': {'Id': 2060, 'Name': 'Completed'}, 'NextRun': 'None', 'Schedule': 'startnow', 'StartTime': 'None', 'State': 'Enabled', 'UpdatedBy': 'None', 'UserGenerated': True, 'Visible': True, 'Params': [{'JobId': 12778, 'Key': 'maskSensitiveInfo', 'Value': 'FALSE'}, {'JobId': 12778, 'Key': 'password', 'Value': 'tY86w7q92u0QzvykuF0gQQ'}, {'JobId': 12778, 'Key': 'userName', 'Value': 'administrator'}, {'JobId': 12778, 'Key': 'shareName', 'Value': 'iso'}, {'JobId': 12778, 'Key': 'OPERATION_NAME', 'Value': 'EXTRACT_LOGS'}, {'JobId': 12778, 'Key': 'shareType', 'Value': 'CIFS'}, {'JobId': 12778, 'Key': 'shareAddress', 'Value': '100.96.32.142'}], 'Targets': [{'Data': '', 'Id': 10053, 'JobId': 12778, 'TargetType': {'Id': 1000, 'Name': 'DEVICE'}}]})
   Details of the export log operation status.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

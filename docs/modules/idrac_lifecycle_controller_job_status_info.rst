@@ -84,11 +84,11 @@ msg (always, str, Successfully fetched the job info.)
   Overall status of the job facts operation.
 
 
-job_info (success, dict, AnsibleMapping([('ElapsedTimeSinceCompletion', '8742'), ('InstanceID', 'JID_844222910040'), ('JobStartTime', 'NA'), ('JobStatus', 'Completed'), ('JobUntilTime', 'NA'), ('Message', 'Job completed successfully.'), ('MessageArguments', 'NA'), ('MessageID', 'RED001'), ('Name', 'update:DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo'), ('PercentComplete', '100'), ('Status', 'Success')]))
+job_info (success, dict, {'ElapsedTimeSinceCompletion': '8742', 'InstanceID': 'JID_844222910040', 'JobStartTime': 'NA', 'JobStatus': 'Completed', 'JobUntilTime': 'NA', 'Message': 'Job completed successfully.', 'MessageArguments': 'NA', 'MessageID': 'RED001', 'Name': 'update:DCIM:INSTALLED#iDRAC.Embedded.1-1#IDRACinfo', 'PercentComplete': '100', 'Status': 'Success'})
   Displays the status of a Lifecycle Controller job.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

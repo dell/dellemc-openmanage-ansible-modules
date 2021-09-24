@@ -116,11 +116,11 @@ msg (always, str, Successfully exported the lifecycle controller logs.)
   Status of the export lifecycle controller logs job.
 
 
-lc_logs_status (success, dict, AnsibleMapping([('ElapsedTimeSinceCompletion', '0'), ('InstanceID', 'JID_274774785395'), ('JobStartTime', 'NA'), ('JobStatus', 'Completed'), ('JobUntilTime', 'NA'), ('Message', 'LCL Export was successful'), ('MessageArguments', 'NA'), ('MessageID', 'LC022'), ('Name', 'LC Export'), ('PercentComplete', '100'), ('Status', 'Success'), ('file', '192.168.0.0:/nfsfileshare/190.168.0.1_20210728_133437_LC_Log.log'), ('retval', True)]))
+lc_logs_status (success, dict, {'ElapsedTimeSinceCompletion': '0', 'InstanceID': 'JID_274774785395', 'JobStartTime': 'NA', 'JobStatus': 'Completed', 'JobUntilTime': 'NA', 'Message': 'LCL Export was successful', 'MessageArguments': 'NA', 'MessageID': 'LC022', 'Name': 'LC Export', 'PercentComplete': '100', 'Status': 'Success', 'file': '192.168.0.0:/nfsfileshare/190.168.0.1_20210728_133437_LC_Log.log', 'retval': True})
   Status of the export operation along with job details and file path.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

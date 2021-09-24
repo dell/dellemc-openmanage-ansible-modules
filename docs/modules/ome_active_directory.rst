@@ -227,11 +227,11 @@ msg (always, str, Successfully renamed the slot(s).)
   Overall status of the Active Directory operation.
 
 
-active_directory (on change, dict, AnsibleMapping([('Name', 'ad_test'), ('Id', 21789), ('ServerType', 'MANUAL'), ('ServerName', ['192.168.20.181']), ('DnsServer', []), ('GroupDomain', 'dellemcdomain.com'), ('NetworkTimeOut', 120), ('Password', None), ('SearchTimeOut', 120), ('ServerPort', 3269), ('CertificateValidation', False)]))
+active_directory (on change, dict, {'Name': 'ad_test', 'Id': 21789, 'ServerType': 'MANUAL', 'ServerName': ['192.168.20.181'], 'DnsServer': [], 'GroupDomain': 'dellemcdomain.com', 'NetworkTimeOut': 120, 'Password': None, 'SearchTimeOut': 120, 'ServerPort': 3269, 'CertificateValidation': False})
   The Active Directory that was added, modified or deleted by this module.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error_info', AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to connect to the LDAP or AD server because the entered credentials are invalid.'), ('MessageArgs', []), ('MessageId', 'CSEC5002'), ('RelatedProperties', []), ('Resolution', 'Make sure the server input configuration are valid and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))]))
+error_info (on HTTP error, dict, {'error_info': {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to connect to the LDAP or AD server because the entered credentials are invalid.', 'MessageArgs': [], 'MessageId': 'CSEC5002', 'RelatedProperties': [], 'Resolution': 'Make sure the server input configuration are valid and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}}})
   Details of the HTTP Error.
 
 
