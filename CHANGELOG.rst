@@ -5,6 +5,35 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v4.1.0
+======
+
+Release Summary
+---------------
+
+Support for Redfish event subscriptions and enhancements to ome_firmware module.
+
+Major Changes
+-------------
+
+- ome_firmware - Added option to stage the firmware update and support for selecting components and devices for baseline-based firmware update.
+
+Minor Changes
+-------------
+
+- ome_template_network_vlan - Enabled check_mode support.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.redfish_event_subscription - Manage Redfish Subscriptions
+
 v4.0.0
 ======
 

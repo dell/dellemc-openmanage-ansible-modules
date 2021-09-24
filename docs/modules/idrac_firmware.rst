@@ -181,7 +181,7 @@ msg (always, str, Successfully updated the firmware.)
   Overall firmware update status.
 
 
-update_status (success, dict, AnsibleMapping([('InstanceID', 'JID_XXXXXXXXXXXX'), ('JobState', 'Completed'), ('Message', 'Job completed successfully.'), ('MessageId', 'REDXXX'), ('Name', 'Repository Update'), ('JobStartTime', 'NA'), ('Status', 'Success')]))
+update_status (success, dict, {'InstanceID': 'JID_XXXXXXXXXXXX', 'JobState': 'Completed', 'Message': 'Job completed successfully.', 'MessageId': 'REDXXX', 'Name': 'Repository Update', 'JobStartTime': 'NA', 'Status': 'Success'})
   Firmware Update job and progress details from the iDRAC.
 
 

@@ -28,7 +28,7 @@ Parameters
 ----------
 
   state (optional, str, present)
-    ``present`` creates or modifies the Active Directory user group.
+    ``present`` imports or modifies the Active Directory user group.
 
     ``absent`` deletes an existing Active Directory user group.
 
@@ -36,7 +36,7 @@ Parameters
   group_name (True, str, None)
     The desired Active Directory user group name to be imported or removed.
 
-    Examples for user group name: Administrator or Account Operators or Access Control Assistance Operator
+    Examples for user group name: Administrator or Account Operators or Access Control Assistance Operator.
 
     *group_name* value is case insensitive.
 
@@ -44,9 +44,9 @@ Parameters
   role (optional, str, None)
     The desired roles and privilege for the imported Active Directory user group.
 
-    OpenManage Enterprise Modular Roles: CHASSIS ADMINISTRATOR, COMPUTE MANAGER, STORAGE MANAGER, FABRIC MANAGER, VIEWER
+    OpenManage Enterprise Modular Roles: CHASSIS ADMINISTRATOR, COMPUTE MANAGER, STORAGE MANAGER, FABRIC MANAGER, VIEWER.
 
-    OpenManage Enterprise Roles: ADMINISTRATOR, DEVICE MANAGER, VIEWER
+    OpenManage Enterprise Roles: ADMINISTRATOR, DEVICE MANAGER, VIEWER.
 
     *role* value is case insensitive.
 
@@ -66,7 +66,7 @@ Parameters
   domain_username (optional, str, None)
     Active directory domain username.
 
-    Example: username@domain or domain\username
+    Example: username@domain or domain\username.
 
 
   domain_password (optional, str, None)
@@ -143,15 +143,15 @@ Examples
 Return Values
 -------------
 
-msg (always, str, Successfully created the active directory user group.)
+msg (always, str, Successfully imported the active directory user group.)
   Overall status of the Active Directory user group operation.
 
 
-domain_user_status (When I(state) is C(present)., list, AnsibleMapping([('Description', None), ('DirectoryServiceId', 16097), ('Enabled', True), ('Id', '16617'), ('IsBuiltin', False), ('IsVisible', True), ('Locked', False), ('Name', 'Account Operators'), ('ObjectGuid', 'a491859c-031e-42a3-ae5e-0ab148ecf1d6'), ('ObjectSid', None), ('Oem', None), ('Password', None), ('PlainTextPassword', None), ('RoleId', '16'), ('UserName', 'Account Operators'), ('UserTypeId', 2)]))
+domain_user_status (When I(state) is C(present)., dict, {'Description': None, 'DirectoryServiceId': 16097, 'Enabled': True, 'Id': '16617', 'IsBuiltin': False, 'IsVisible': True, 'Locked': False, 'Name': 'Account Operators', 'ObjectGuid': 'a491859c-031e-42a3-ae5e-0ab148ecf1d6', 'ObjectSid': None, 'Oem': None, 'Password': None, 'PlainTextPassword': None, 'RoleId': '16', 'UserName': 'Account Operators', 'UserTypeId': 2})
   Details of the domain user operation, when *state* is ``present``.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

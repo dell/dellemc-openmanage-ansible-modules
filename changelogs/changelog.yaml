@@ -356,3 +356,24 @@ releases:
       name: ome_domain_user_groups
       namespace: ''
     release_date: '2021-08-27'
+  4.1.0:
+    changes:
+      major_changes:
+      - ome_firmware - Added option to stage the firmware update and support for selecting components and devices for baseline-based firmware update.
+      minor_changes:
+      - ome_template_network_vlan - Enabled check_mode support.
+      known_issues:
+      - idrac_user - Issue(192043) Module may error out with the message ``unable
+        to perform the import or export operation because there are pending attribute
+        changes or a configuration job is in progress``. Wait for the job to complete
+        and run the task again.
+      - ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does
+        not allow the creation of multiple uplinks of the same name even though it
+        is supported by OpenManage Enterprise Modular. If an uplink is created using
+        the same name as an existing uplink, the existing uplink is modified.
+      release_summary: Support for Redfish event subscriptions and enhancements to ome_firmware module.
+    modules:
+    - description: Manage Redfish Subscriptions
+      name: redfish_event_subscription
+      namespace: ''
+    release_date: '2021-09-28'

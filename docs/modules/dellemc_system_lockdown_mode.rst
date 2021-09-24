@@ -103,11 +103,11 @@ msg (always, str, Successfully completed the lockdown mode operations.)
   Lockdown mode of the system is configured.
 
 
-system_lockdown_status (success, dict, AnsibleMapping([('Data', AnsibleMapping([('StatusCode', 200), ('body', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Successfully Completed Request'), ('MessageArgs', []), ('MessageArgs@odata.count', 0), ('MessageId', 'Base.1.0.Success'), ('RelatedProperties', []), ('RelatedProperties@odata.count', 0), ('Resolution', 'None'), ('Severity', 'OK')])])]))])), ('Message', 'none'), ('Status', 'Success'), ('StatusCode', 200), ('retval', True)]))
+system_lockdown_status (success, dict, {'Data': {'StatusCode': 200, 'body': {'@Message.ExtendedInfo': [{'Message': 'Successfully Completed Request', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'Base.1.0.Success', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'None', 'Severity': 'OK'}]}}, 'Message': 'none', 'Status': 'Success', 'StatusCode': 200, 'retval': True})
   Storage configuration job and progress details from the iDRAC.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 
