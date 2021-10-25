@@ -50,6 +50,9 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── ome_configuration_compliance_info.py
     ├── ome_device_group.py
     ├── ome_device_info.py
+    ├── ome_device_location.py
+    ├── ome_device_mgmt_network.py
+    ├── ome_device_power_settings.py
     ├── ome_diagnostics.py
     ├── ome_discovery.py
     ├── ome_domain_user_groups.py

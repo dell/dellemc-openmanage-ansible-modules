@@ -1,0 +1,50 @@
+---
+- hosts: ome
+  connection: local
+  name: OpenManage Ansible Modules
+  gather_facts: false
+  collections: dellemc.openmanage
+
+  tasks:
+
+  - name: Update power configuration settings of a chassis using the device ID.
+    ome_device_power_settings:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_id: 25011
+      power_configuration:
+        enable_power_cap: true
+        power_cap: 3424
+    tags: power-config
+
+  - name: Update redundancy configuration settings of a chassis using the device service tag.
+    ome_device_power_settings:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_service_tag: GHRT2RL
+      redundancy_configuration:
+        redundancy_policy: GRID_REDUNDANCY
+    tags: redundancy-config
+
+  - name: Update hot spare configuration settings of a chassis using device ID.
+    ome_device_power_settings:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_id: 25012
+      hot_spare_configuration:
+        enable_hot_spare: true
+        primary_grid: GRID_1
+    tags: hostspare-config
+
+  - name: Update power configuration settings of a host chassis.
+    ome_device_power_settings:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      power_configuration:
+        enable_power_cap: true
+        power_cap: 3425
+    tags: power-config-chassis

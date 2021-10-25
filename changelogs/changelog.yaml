@@ -377,3 +377,26 @@ releases:
       name: redfish_event_subscription
       namespace: ''
     release_date: '2021-09-28'
+  4.2.0:
+    changes:
+      known_issues:
+      - idrac_user - Issue(192043) Module may error out with the message ``unable
+        to perform the import or export operation because there are pending attribute
+        changes or a configuration job is in progress``. Wait for the job to complete
+        and run the task again.
+      - ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does
+        not allow the creation of multiple uplinks of the same name even though it
+        is supported by OpenManage Enterprise Modular. If an uplink is created using
+        the same name as an existing uplink, the existing uplink is modified.
+      release_summary: Support to configure OME Modular devices network, power, and location settings.
+    modules:
+    - description: Configure network settings of devices on OpenManage Enterprise Modular
+      name: ome_device_mgmt_network
+      namespace: ''
+    - description: Configure device location settings on OpenManage Enterprise Modular
+      name: ome_device_location
+      namespace: ''
+    - description: Configure chassis power settings on OpenManage Enterprise Modular
+      name: ome_device_power_settings
+      namespace: ''
+    release_date: '2021-10-27'
