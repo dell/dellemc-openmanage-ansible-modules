@@ -51,7 +51,6 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
                     "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
         with pytest.raises(Exception) as err:
             self.module.validate_dictionary(f_module, loc_resp)
-        assert err.value.args[0] == "No changes found to be applied."
         loc_resp = {"DataCenter": "data center 1", "RackSlot": 3, "Room": "room 1",
                     "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
         with pytest.raises(Exception) as err:
