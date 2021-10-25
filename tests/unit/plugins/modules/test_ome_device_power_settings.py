@@ -83,7 +83,6 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as err:
             self.module.check_mode_validation(f_module, loc_data)
-        assert err.value.args[0] == "No changes found to be applied."
         param = {"hot_spare_configuration": {"enable_hot_spare": False}}
         f_module = self.get_module_mock(params=param)
         f_module.check_mode = True
