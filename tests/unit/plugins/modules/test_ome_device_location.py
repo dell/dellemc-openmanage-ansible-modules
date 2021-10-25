@@ -42,33 +42,6 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         result = self.module.check_domain_service(f_module, ome_conn_mock_location)
         assert result is None
 
-    def test_validate_dictionary(self, ome_conn_mock_location, ome_default_args, mocker):
-        param = {"data_center": "data center 1", "rack_slot": 2,
-                 "room": "room 1", "aisle": "aisle 1", "rack": "rack 1", "location": "location 1"}
-        f_module = self.get_module_mock(params=param)
-        f_module.check_mode = True
-        loc_resp = {"DataCenter": "data center 1", "RackSlot": 2, "Room": "room 1",
-                    "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
-        with pytest.raises(Exception) as err:
-            self.module.validate_dictionary(f_module, loc_resp)
-        loc_resp = {"DataCenter": "data center 1", "RackSlot": 3, "Room": "room 1",
-                    "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
-        with pytest.raises(Exception) as err:
-            self.module.validate_dictionary(f_module, loc_resp)
-        assert err.value.args[0] == "Changes found to be applied."
-        loc_resp = {"DataCenter": "data center 1", "RackSlot": 2, "Room": "room 1",
-                    "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
-        f_module.check_mode = False
-        with pytest.raises(Exception) as err:
-            self.module.validate_dictionary(f_module, loc_resp)
-        assert err.value.args[0] == "No changes found to be applied."
-        loc_resp = {"DataCenter": "data center 1", "RackSlot": 3, "Room": "room 1",
-                    "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
-        result = self.module.validate_dictionary(f_module, loc_resp)
-        assert result == {"DataCenter": "data center 1", "RackSlot": 2,
-                          "Room": "room 1", "Aisle": "aisle 1", "RackName": "rack 1",
-                          "Location": "location 1", "SettingType": "Location"}
-
     def test_standalone_chassis(self, ome_conn_mock_location, ome_default_args, mocker, ome_response_mock):
         mocker.patch(MODULE_PATH + "get_ip_from_host", return_value="192.18.1.1")
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
