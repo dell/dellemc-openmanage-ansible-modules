@@ -75,27 +75,6 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         result = self.module.get_ip_from_host("192.168.0.1")
         assert result == "192.168.0.1"
 
-    def test_check_mode_validation(self, ome_conn_mock_power, ome_default_args, ome_response_mock):
-        loc_data = {"PowerCap": "3424", "MinPowerCap": "3291", "MaxPowerCap": "3424",
-                    "RedundancyPolicy": "NO_REDUNDANCY", "EnablePowerCapSettings": True,
-                    "EnableHotSpare": True, "PrimaryGrid": "GRID_1", "PowerBudgetOverride": False}
-        param = {"power_configuration": {"enable_power_cap": True, "power_cap": 3424}}
-        f_module = self.get_module_mock(params=param)
-        with pytest.raises(Exception) as err:
-            self.module.check_mode_validation(f_module, loc_data)
-        param = {"hot_spare_configuration": {"enable_hot_spare": False}}
-        f_module = self.get_module_mock(params=param)
-        f_module.check_mode = True
-        with pytest.raises(Exception) as err:
-            self.module.check_mode_validation(f_module, loc_data)
-        assert err.value.args[0] == "Changes found to be applied."
-        param = {"redundancy_configuration": {"redundancy_policy": "NO_REDUNDANCY"}}
-        f_module = self.get_module_mock(params=param)
-        f_module.check_mode = True
-        with pytest.raises(Exception) as err:
-            self.module.check_mode_validation(f_module, loc_data)
-        assert err.value.args[0] == "No changes found to be applied."
-
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_device_power_main_exception_case(self, exc_type, mocker, ome_default_args,
