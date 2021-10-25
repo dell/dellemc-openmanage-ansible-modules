@@ -172,19 +172,6 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
         assert result['msg'] == params['msg']
 
     @pytest.mark.parametrize("params", [
-        {"module_args": {"device_id": 1234}, "dvc": {"Type": 4000}, "msg": NO_CHANGES_MSG, 'check_mode': True},
-        {"module_args": inp_param, "dvc": {"Type": 1000}, "msg": CHANGES_FOUND, 'check_mode': True},
-    ])
-    def test_ome_device_mgmt_network_check_mode_success(
-            self, params, ome_connection_mock_for_device_network, ome_response_mock, ome_default_args, mocker):
-        ome_response_mock.success = params.get("success", True)
-        ome_response_mock.json_data = {"IPAddress": "192.1.2.3"}
-        mocker.patch(MODULE_PATH + 'get_device_details', return_value=params.get("dvc", {"Type": 2000}))
-        ome_default_args.update(params['module_args'])
-        result = self._run_module(ome_default_args, check_mode=params.get('check_mode', False))
-        assert result['msg'] == params['msg']
-
-    @pytest.mark.parametrize("params", [
         {"module_args": inp_param, "dvc": {"Type": 3000, "Model": "Unsupported"}, "msg": NON_CONFIG_NETWORK}, ])
     def test_ome_device_mgmt_network_fails(self, params, ome_connection_mock_for_device_network,
                                            ome_response_mock, ome_default_args, mocker):
