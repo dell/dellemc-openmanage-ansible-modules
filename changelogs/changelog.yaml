@@ -388,6 +388,11 @@ releases:
         not allow the creation of multiple uplinks of the same name even though it
         is supported by OpenManage Enterprise Modular. If an uplink is created using
         the same name as an existing uplink, the existing uplink is modified.
+      - ome_device_power_settings - Issues(212679) the ome_device_power_settings module
+        errors out with the following message if the value provided for the parameter
+        ``power_cap`` is not within the supported range of 0 to 32767: ``Unable to
+        complete the request because PowerCap does not  exist or is not applicable
+        for the resource URI.``
       release_summary: Support to configure OME Modular devices network, power, and location settings.
     modules:
     - description: Configure network settings of devices on OpenManage Enterprise Modular
