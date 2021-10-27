@@ -1,0 +1,711 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="description" content="Configure network settings of devices on OpenManage Enterprise Modular." /><meta name="DC.relation" scheme="URI" content="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" /><meta name="DC.relation" scheme="URI" content="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" /><meta name="DC.relation" scheme="URI" content="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="October 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.2.0    User’s Guide   " />        
+      <title>Configure the network settings of devices</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-input-sanitizer.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container navbar-nav navbar-expand-md navbar-dark">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.2.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.2.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li><li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" class="topicref" data-id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19.html" id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link">Manage Devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" class="topicref" data-id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C.html" id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link">Template Service</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage application settings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" class="topicref" data-id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768.html" id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link">Manage network configuration</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" class="topicref" data-id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4.html" id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link">Manage fabrics</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" class="topicref" data-id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link">Manage Profiles</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" class="topicref" data-id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link">Device discovery</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link">Manage Chassis</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem" class="active"><span data-tocid="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8" class="topicref" data-id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8.html" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8-link">Configure the network settings of devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">Configure network settings of devices on OpenManage Enterprise Modular.    </span></span></span></span></li><li role="treeitem"><span data-tocid="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C" class="topicref" data-id="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C.html" id="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C-link">Configure the chassis power settings</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">Configure chassis power settings on OpenManage Enterprise Modular.    </span></span></span></span></li><li role="treeitem"><span data-tocid="GUID-40D168BC-5057-4280-8F51-F208DBEB4AD9" class="topicref" data-id="GUID-40D168BC-5057-4280-8F51-F208DBEB4AD9" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-40D168BC-5057-4280-8F51-F208DBEB4AD9.html" id="GUID-40D168BC-5057-4280-8F51-F208DBEB4AD9-link">Configure the device location settings</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">Configure device location settings on OpenManage Enterprise Modular.    </span></span></span></span></li><li role="treeitem"><span data-tocid="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100" class="topicref" data-id="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100.html" id="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100-link">Rename chassis slots</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" class="topicref" data-id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link">Manage Active Directory service and user groups</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" class="topicref" data-id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E.html" id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link">Diagnostics</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
+                        </nav>
+                    
+
+                    <div id="wh_topic_body" class="col-lg-7 col-md-9 col-sm-9 col-xs-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <!--  -->
+                                <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li><span class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C"><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html">Manage Chassis</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8"><span class="title"><a href="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8.html">Configure the network settings of devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">Configure network settings of devices on OpenManage Enterprise Modular.    </span></span></span></span></li></ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="- topic/link link" href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" title="Manage Chassis" aria-label="Previous topic: Manage Chassis" rel="prev"></a></span>  
+<span class="navnext"><a class="- topic/link link" href="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C.html" title="Configure the chassis power settings" aria-label="Next topic: Configure the chassis power settings" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row topic_content_row">
+                                <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__GUID-9285DB03-0DAB-49F5-90E4-49107E6B505A"> 
+  <h1 class="- topic/title title topictitle1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__GUID-9285DB03-0DAB-49F5-90E4-49107E6B505A">Configure the network settings of devices</h1> 
+   
+  <div class="- topic/body reference/refbody body refbody"><p class="- topic/shortdesc shortdesc">Configure network settings of devices on OpenManage Enterprise Modular. 
+  </p> 
+	 <section class="- topic/section section" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__GUID-C273EAA0-1C9D-4CD9-9EAB-FD6874529C1E"><span class="ph uicontrol bold">Module: ome_device_mgmt_network</span> 
+	 </section> 
+	 <section class="- topic/section section" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__SECTION_3F458EBCBA2A4183931270068EF3EF2F"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="- topic/p p"> This module allows to configure network settings on Chassis, Servers, and I/O Modules on OpenManage Enterprise Modular. 
+		</p> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="- topic/table table all pgwide" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB"><caption><span class="table-anchor" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB"></span><span class="tablecap"><span class="table-label">Table 1. </span>ome_device_mgmt_network</span></caption><colgroup><col style="width:21.37203166226913%" /><col style="width:13.192612137203167%" /><col style="width:16.226912928759894%" /><col style="width:17.941952506596305%" /><col style="width:31.266490765171508%" /></colgroup><thead class="- topic/thead thead"> 
+			 <tr class="- topic/row"> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">Parameter 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">Required 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">Default 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">Choices 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="- topic/tbody tbody"> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">hostname 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">Target IP Address or hostname 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">username 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">Target username 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">password 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">Target user password 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1"> device_service_tag 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5"> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_276E473B0E9F4E5F9FD0DFBD9F022CBD"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_1E1C4132BC42486B9776EF7F1DC6F1A6"> Service tag of the device. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_6B95628F40F54C7A80E54F02A6DD9043">This option is mutually exclusive with I(device_id). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1"> device_id 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5"> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_02A10B3AAE2944898D47E531DA2D33A2"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_6ECB1083C9C14A1CBB50B70672A0BA98"> ID of the device. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_0900C9A4DA2E441CB34765B138282249"> This option is mutually exclusive with I(device_service_tag). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">enable_nic 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5"> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_B9A4CFBA1CBF43DC99471E9D5530BA01"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_DE21C44874EC4E75A5DF5FE0F300BEFA">Enable or disable Network Interface Card (NIC) configuration of the device. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_E57E1CE22FAE486895E28DC6655F6956">This option is not applicable to I/O Module. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">delay 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">0 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5"> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_A680BBDF383B4664A24434E9FE5400F8"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_9B454DCD91184BEA9651FB33C55FB757"> The time in seconds, after which settings are applied. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_EF1254154B334464AFE5B1D2E367BBF5">This option is applicable only for Chassis. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">ipv4_configuration 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5"> IPv4 network configuration. 
+				  <p class="- topic/p p">C(WARNING) Ensure that you have an alternate interface to access OpenManage Enterprise Modular because these options can change the current IPv4 address for I(hostname). 
+				  </p> 
+				  <p class="- topic/p p">Suboptions- 
+				  </p> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_A4CD8A5B97B246BD83A44F2FB263AC16"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_8D5BA9F2404D449E9F88699D0EA5E9A6">enable_ipv4- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_3A09DAB656E5441595BDA4D2822F84E2"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_BF545BAABE1846BE9B5462E8C89D65BA">Enable or disable access to the network using IPv4. 
+						  </li> 
+						</ul> 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_E068632D802F4E9F9B12E0D0B646580F"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_EF9F0FDB41734994923B30F5CBE2745A">Required: True 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_540337FC9A054842A55285584E0B4F9A">enable_dhcp- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_956D3439C06D41318B267CADB1812FB9"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_D6D94CB34B634E90A629CD7F407B5BC7">Enable or disable the automatic request to obtain an IPv4 address from the IPv4 Dynamic Host Configuration Protocol (DHCP) server. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_72E8B84C12A7473283535E8AE71E3805"> 
+							 <p class="- topic/p p">C(NOTE) If this option is C(yes), the values provided for I(static_ip_address), I(static_subnet_mask), and I(static_gateway) are not applied for these fields. However, the module may report changes. 
+							 </p> 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_4F7BC9F695184B70A2A50C89EFF16548">static_ip_address- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_810FEF465AEA47A0A3C044E7701D0879"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_41A02341A52F44DBB908B029B6C69BB5">Static IPv4 address. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_BE26005264C14F3BB9DC7EE1B410BCE7">This option is applicable when I(enable_dhcp) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_3519BDF92EDE442C9F5A5C9677E35349">static_subnet_mask- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_E2F04791254043B1A29D056E26FC902E"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_D3BB9044E4104B7AB272A1CAC1B5A875">Static IPv4 subnet mask address. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_379BDE70921A4C2D9077BB809FBEA87D">This option is applicable when I(enable_dhcp) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_8305706B02FC4B7D9DAE4FA40888B009">static_gateway- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_E783303C2A39412DAF395BB0F6F33B87"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_8430BE1AF4664E589411AF52C3848A28">Static IPv4 gateway address. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_E1743226D3734B26842D0755DC67396B">This option is applicable when I(enable_dhcp) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_74EC4A05C3544ECBBD2343F585171EE5">use_dhcp_to_obtain_dns_server_address- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_0889EE8E1A2D4A3F9AA1D3E93BC914F8"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_DB266BB854B04DDC9F1E19CAA1FC7535">This option allows to automatically request and obtain IPv4 address for the DNS Server from the DHCP server. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_5C048C36FBFE4550B69CE0541F8F4002">This option is applicable when I(enable_dhcp) is true. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_80EFF4AF0C6F4544AC488C6107284A7A"> 
+							 <p class="- topic/p p">C(NOTE) If this option is C(yes), the values provided for I(static_preferred_dns_server) and I(static_alternate_dns_server) are not applied for these fields. However, the module may report changes. 
+							 </p> 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_0BE44803E6BF481CBB1472C6D8FC88AB"> static_preferred_dns_server- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_7AE0290231374CD3AD1167446C8A96F6"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_1A8E08B1838F4CACB5BF77852CF9770F">Static IPv4 DNS preferred server. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_22A9534BF7E54FF1883EAB8697E005AA">This option is applicable when I(use_dhcp_for_dns_server_names) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_5537F3BB2ADE4708A59D52948A7CC867"> static_alternate_dns_server- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_75575D28EF9A40F3A553D3CEA9807EA9"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_6FEDC0BF3AB84EFF90CD68E99A348652">Static IPv4 DNS alternate server. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_C78A22E0E59F435199C88A1A5DF898C3">This option is applicable when I(use_dhcp_for_dns_server_names) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">ipv6_configuration 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">IPv6 network configuration. 
+				  <p class="- topic/p p">C(WARNING) Ensure that you have an alternate interface to access OpenManage Enterprise Modular because these options can change the current IPv6 address for I(hostname). 
+				  </p> 
+				  <p class="- topic/p p">Suboptions- 
+				  </p> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_5A075D91392F428AAA78C0B77B875294"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_FE2552A50222432BA4F9B713A9E2AA08">enable_ipv6- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_762D9CD8BFCB4464A9A91ACFD10B1273"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_2E891279A46548C3AC143EB419A89169">Enable or disable access to the network using the IPv6.
+						  </li> 
+						</ul>
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_1B3B139D644E41A0B6FFED887E288800"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_4E4DDA3E43B8423AAB6AC67DC99717DA">Required: True 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_9B839EA74E094351945F301EAC4BE98B">enable_auto_configuration- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_0666BFA4E9444594AD879102D98D9799"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_0D25AD2EEC6244E3BE8CFB879CA2274D"> 
+							 <p class="- topic/p p">Enable or disable the automatic request to obtain an IPv6 address from the IPv6 DHCP server or router advertisements(RA). 
+							 </p> 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_53C7900D9BFF4821BA97FCDF08391150"> 
+							 <p class="- topic/p p">If I(enable_auto_configuration) is C(true), OpenManage Enterprise Modular retrieves IP configuration (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network. 
+							 </p> 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_0A83A9C5A10D4C5C8C13CEE1DC54CC58"> 
+							 <p class="- topic/p p">C(NOTE) If this option is C(yes), the values provided for I(static_ip_address), I(static_prefix_length), and I(static_gateway) are not applied for these fields. However, the module may report changes. 
+							 </p> 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_E4D8537694E042588BC650D3DABA63D9">static_ip_address- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_35DA8053B2C847FCB00C09268FBE1C99"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_AD4934DC194A4226BDBDCDC0806744E4">Static IPv6 address. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_EA731FE8DEE640DBAAD85150F13A5469">This option is applicable when I(enable_auto_configuration) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_7F45C7C60CC14223AE91720A6AA7280C">static_prefix_length- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_A8A803629ED34BD89F847670772DC659"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_F508B66C7E9A469D975691894288BF1E">Static IPv6 prefix length. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_E63036A35D7344D183A73C383D6BD4F6">This option is applicable when I(enable_auto_configuration) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_D1A0DF7AF96943B292DACE3BFF5F2E76">static_gateway- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_D1F88930FB0A4913976D83C03415F125"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_411E021F626242B6AC15D03FF9FF5662">Static IPv6 gateway address. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_8FD1CD39477448278AF6C8A3B2665CAD">This option is applicable when I(enable_auto_configuration) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_CA8A357BC919493CB43A00A0221F031D">use_dhcpv6_to_obtain_dns_server_address- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_C66D640DB5064F8F86416A44F0220684"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_3E0A5307D477401291A21ABF8108376B">This option allows to automatically request and obtain a IPv6 address for the DNS server from the DHCP server. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_4CEEBA23F2454A0EB9377B58AED42E89">This option is applicable when I(enable_auto_configuration) is true. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_4B5081BBD7F841BB9CE4CEB326B9CD0F"> 
+							 <p class="- topic/p p">C(NOTE) If this option is C(yes), the values provided for I(static_preferred_dns_server) and I(static_alternate_dns_server) are not applied for these fields. However, the module may report changes. 
+							 </p> 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_5A0D94A398CA480EA05907523951C0AC"> static_preferred_dns_server- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_C29FCD075C60423EA63E2FF02C8297EC"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_2CB662B665714F06897DA28E146A53B7">Static IPv6 DNS preferred server. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_4EA16F2280DB4237BA00AF3F5B3C099B">This option is applicable when I(use_dhcp_for_dns_server_names) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_80B9811F3CDF4745B265C5AD66EAC6F4"> static_alternate_dns_server- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_21F8E222C74142E196704F42D998609A"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_17A5F8197C8A4B5496C4D006D76128D7">Static IPv6 DNS alternate server. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_A3E1FCD4164B4D6EA6631C8F987AE56D">This option is applicable when I(use_dhcp_for_dns_server_names) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">management_vlan 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">VLAN configuration. 
+				  <p class="- topic/p p">Suboptions- 
+				  </p> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_0217818D11A44B43AC8A50D48542D3EA"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_834C03D881A14C9E8E9CE3E903E4E82F">enable_vlan- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_3FF6EB2DDC4340A29347ABBCD98B2631"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_FAC44F2933CA41AC9FDE99D5E8345CAC">Enable or disable VLAN for management. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_CA31AE1071514F0D8724D771038F9EB7">The VLAN configuration cannot be updated if the I(register_with_dns) field under I(dns_configuration) is true. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_819A452471794D089E96C0870855DCA5"> 
+							 <p class="- topic/p p">C(WARNING) Ensure that the network cable is connected to the correct port after the VLAN configuration is changed. If not, the VLAN configuration changes may not be applied. 
+							 </p> 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_122CDFD4DE4F4FE99F51626695A395E3">Required: True 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_8DC860BA1A10465EA272B244F8F0AB9A">vlan_id- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_AF96C4572B4E4896A831EFE8DF62C04E"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_9FC7408F592D4E899D5CE364212B4205"> VLAN ID. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_E36F68C8D8744D41B200BD842BF008EC">The valid VLAN IDs are: 1 to 4000, and 4021 to 4094. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_5ED48042AAFB4C2C94DE232138FBF07F">This option is applicable when I(enable_vlan) is true. 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">dns_configuration 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">Domain Name System(DNS) settings. 
+				  <p class="- topic/p p">Suboptions- 
+				  </p> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_3E58AB653DB142058782570AE8ECF6C1"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_109411F7BF42461492143E94105EE79C">register_with_dns- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_841C4CFCC35548ACA323DD5BE5E64F68"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_ED7855863211456783DE5976E8F8E5B8">Register/Unregister I(dns_name) on the DNS Server. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_EA0DA07A1C8B4CBA82F91AC6CDD44552">C(WARNING) This option cannot be updated if VLAN configuration changes. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_06A6D5C40AA6411FA00AC14DD84365D8">use_dhcp_for_dns_domain_name- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_7156A6E8789D44A793A92AD39CBC705E"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_F22216D15C0B45ED8DED83101FC9BD66"> Get the I(dns_domain_name) using a DHCP server. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_707A6D2705DA438CB678FB8F4B20350A">dns_name- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_6B4E69B197934E74A646EAA99EB4724D"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_69F7B3CD19F940B3AC0D85327CF7FF7B"> DNS name for I(hostname). 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_F57D228FB55747678F78FC0A5914E64D"> This is applicable when I(register_with_dns) is true. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_082A07416A69469891FC47F43B9BD9F9">dns_domain_name- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_A871419ECB8C4763A8EE10B12B84FD7E"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_377EF60541D0455FBC8CDE05BDF5136B"> Static DNS domain name. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_7F507AED8C7A466185480B56DAB36B4F"> This is applicable when I(use_dhcp_for_dns_domain_name) is false. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_80B31FA42E5640A59FF92984E9AF1C0A">auto_negotiation- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_66AAC37FD5F64B85BA27B820276F989A"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_B8D237E4EBDA49458BE05AED8D2ACBBA"> Enables or disables the auto negation of the network speed. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_186E09CE5E8A479AA1FAF0C6CC47E2DF"> 
+							 <p class="- topic/p p">C(NOTE): Setting I(auto_negotiation) to false and choosing a network port speed may result in the chassis loosing link to the top of rack network switch, or to the neighboring chassis in case of MCM mode. It is recommended that the I(auto_negotiation) is set to C(true) for most use cases. 
+							 </p> 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_B30C097A75A14916AF704FDDC73FB626"> This is applicable when I(use_dhcp_for_dns_domain_name) is false. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_B726468E33FD494C8F5352D87816464E"> This is applicable only for Chassis. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_ACD75002EA924759A652DF7CC5659F1D">network_speed- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_9B7CA8335D2D4A15BAFAB508DD2C65BC"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_7DED88D14028465AAFF8156CC872A64C"> The speed of the network port. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_C4E3FACEAB91441084E97CF6EA80EE9F"> This is applicable when I(auto_negotiation) is false. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_A3FA5DA175154E7DAAB4D9DFD5AD8FCC">C(10_MB) to select network speed of 10 MB. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_3EFD6AD83C4440319E19C8C3B96B0239">C(100_MB) to select network speed of 100 MB. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_57B91DE22CD746D7BF1271392CCBDD38">This is applicable only for Chassis. 
+						  </li> 
+						</ul> 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_CB0326075F8043E190A87D58EE4A7F4E"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_C80EC66AD38740B88F5E53BC93635E7E">Choices: 10_MB and 100_MB 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">dns_server_settings 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5"> DNS server settings. 
+				  <p class="- topic/p p">This is applicable only for I/O Module. 
+				  </p> 
+				  <p class="- topic/p p">Suboptions- 
+				  </p> 
+				  <ul class="level1" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_0A724873212840788E4C0C202E77D84B"> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_260B832337664B1D9116E91A28E14A75">preferred_dns_server- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_BF79D21971B14F98B64B3CC68C20D0A9"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_36E9BE716682456AA03129AB2C0E2358">Enter the IP address of the preferred DNS server. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_900A74BB60864FAA82CB60233AF11C92">alternate_dns_server1- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_5A720ADEA9D641C7AB44B2D3CC9E4E31"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_AA1B9FF1541B4AD48123FBFFAD68ACF6"> Enter the IP address of the first alternate DNS server. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_08F4C57B10AF49379C5E74A5954C9935">alternate_dns_server2- 
+						<ul class="level2" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__UL_D698FF9201134B69916309B4C618FBD7"> 
+						  <li class="- topic/li li" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8__LI_80C634F3ADCF4B82BE709CC32BA270A0"> Enter the IP address of the second alternate DNS server. 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Return Values</span> 
+		</p> 
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>msg:
+ type: str
+  description: Overall status of the network config operation.
+  returned: always
+  sample: "Successfully applied the network settings."
+
+error_info:
+ description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "CGEN1004",
+          "RelatedProperties": [],
+          "Message": "Unable to complete the request because IPV4 Settings Capability is not Supported does not exist or is not applicable for the resource URI.",
+          "MessageArgs": [
+              "IPV4 Settings Capability is not Supported"
+          ],
+          "Severity": "Critical",
+          "Resolution": "Check the request resource URI. Refer to the OpenManage Enterprise-Modular User's Guide for more information about resource URI and its properties."
+        }
+      ]
+    }
+  }
+</code></pre><span class="ph uicontrol bold">Examples</span> 
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Network settings for chassis
+  dellemc.openmanage.ome_device_mgmt_network:
+    hostname: "192.168.0.1" 
+    username: "username"
+    password: "password"  
+    device_service_tag: CHAS123
+    ipv4_configuration:
+      enable_ipv4: true
+      enable_dhcp: false
+      static_ip_address: 192.168.0.2
+      static_subnet_mask: 255.255.254.0
+      static_gateway: 192.168.0.3
+      use_dhcp_to_obtain_dns_server_address: false
+      static_preferred_dns_server: 192.168.0.4
+      static_alternate_dns_server: 192.168.0.5
+    ipv6_configuration:
+      enable_ipv6: true
+      enable_auto_configuration: false
+      static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+      static_prefix_length: 10
+      static_gateway: ffff::2607:f2b1:f081:9
+      use_dhcpv6_to_obtain_dns_server_address: false
+      static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+      static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
+    dns_configuration:
+      register_with_dns: true
+      use_dhcp_for_dns_domain_name: false
+      dns_name: "MX-SVCTAG"
+      dns_domain_name: "dnslocaldomain"
+      auto_negotiation: no
+      network_speed: 100_MB
+
+
+- name: Network settings for server
+  dellemc.openmanage.ome_device_mgmt_network:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    device_service_tag: SRVR123
+    ipv4_configuration:
+      enable_ipv4: true
+      enable_dhcp: false
+      static_ip_address: 192.168.0.2
+      static_subnet_mask: 255.255.254.0
+      static_gateway: 192.168.0.3
+      use_dhcp_to_obtain_dns_server_address: false
+      static_preferred_dns_server: 192.168.0.4
+      static_alternate_dns_server: 192.168.0.5
+    ipv6_configuration:
+      enable_ipv6: true
+      enable_auto_configuration: false
+      static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+      static_prefix_length: 10
+      static_gateway: ffff::2607:f2b1:f081:9
+      use_dhcpv6_to_obtain_dns_server_address: false
+      static_preferred_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:3
+      static_alternate_dns_server: 2626:f2f2:f081:9:1c1c:f1f1:4747:4
+ 
+
+- name: Network settings for I/O module
+  dellemc.openmanage.ome_device_mgmt_network:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    device_service_tag: IOM1234
+    ipv4_configuration:
+      enable_ipv4: true
+      enable_dhcp: false
+      static_ip_address: 192.168.0.2
+      static_subnet_mask: 255.255.254.0
+      static_gateway: 192.168.0.3
+    ipv6_configuration:
+      enable_ipv6: true
+      enable_auto_configuration: false
+      static_ip_address: 2626:f2f2:f081:9:1c1c:f1f1:4747:1
+      static_prefix_length: 10
+      static_gateway: ffff::2607:f2b1:f081:9
+    dns_server_settings:
+      preferred_dns_server: 192.168.0.4
+      alternate_dns_server1: 192.168.0.5
+
+
+- name:  Management VLAN configuration of chassis using device id
+  dellemc.openmanage.ome_device_mgmt_network:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    device_id : 12345
+    management_vlan:
+      enable_vlan: true
+      vlan_id: 2345
+    dns_configuration:
+      register_with_dns: false
+
+</code></pre> 
+	 </section> 
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <!--<script src="${oxygen-webhelp-assets-dir}/lib/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>-->
+        
+    </body>
+</html>
