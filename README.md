@@ -34,8 +34,9 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 Install the collection from the github repository using the latest commit on the branch 'collections'  
 ```ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections```
 
-## Playbooks
-Latest sample playbooks and examples are available at [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
+## Playbooks and Tutorials
+* For the latest sample playbooks and examples, see [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
+* For the tutorials and sample use cases, see the tutorials available at [developer.dell.com](https://developer.dell.com/).
 
 ## Documentation
 - For the OpenManage Ansible collection documentation, see [Documentation](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/docs). This documentation page is updated for every major and minor (patch release) and has the latest collection documentation.
