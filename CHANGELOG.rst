@@ -18,7 +18,7 @@ Known Issues
 
 - idrac_user - Issue(192043) Module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
 - ome_smart_fabric_uplink - Issue(186024) ome_smart_fabric_uplink module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
-- ome_device_power_settings - Issues(212679) the ome_device_power_settings module errors out with the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767: ``Unable to complete the request because PowerCap does not  exist or is not applicable for the resource URI.``
+- ome_device_power_settings - Issue(212679) The ome_device_power_settings module errors out with the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767: ``Unable to complete the request because PowerCap does not  exist or is not applicable for the resource URI.``
 
 New Modules
 -----------
