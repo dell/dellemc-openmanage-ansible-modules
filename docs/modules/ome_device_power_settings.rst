@@ -65,6 +65,12 @@ Parameters
     redundancy_policy (optional, str, NO_REDUNDANCY)
       The choices to configure the redundancy policy.
 
+      ``NO_REDUNDANCY``no redundancy policy is used.
+
+      ``GRID_REDUNDANCY`` to distributes power by dividing the PSUs into two grids.
+
+      ``PSU_REDUNDANCY`` to distribute power between all the PSUs.
+
 
 
   hot_spare_configuration (optional, dict, None)
@@ -77,6 +83,10 @@ Parameters
 
     primary_grid (optional, str, GRID_1)
       The choices for PSU grid.
+
+      ``GRID_1`` Hot Spare on Grid 1.
+
+      ``GRID_2`` Hot Spare on Grid 2.
 
 
 

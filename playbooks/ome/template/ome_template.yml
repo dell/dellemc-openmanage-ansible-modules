@@ -241,3 +241,35 @@
           Name: "Imported Template Name"
           Type: 2
           Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"
+
+    - name: "Deploy template and Operating System (OS) on multiple devices."
+      ome_template:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "deploy"
+        template_id: 12
+        device_id:
+          - 12765
+        device_service_tag:
+          - 'SVTG123'
+        attributes:
+          # Include this to install OS on the devices.
+          # This section is optional
+          NetworkBootIsoModel:
+            BootToNetwork: true
+            ShareType: "CIFS"
+            IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
+            IsoPath: "/home/iso_path/filename.iso"
+            ShareDetail:
+              IpAddress: "192.168.0.2"
+              ShareName: "sharename"
+              User: "share_user"
+              Password: "share_password"
+          Options:
+            EndHostPowerState: 1
+            ShutdownType: 0
+            TimeToWaitBeforeShutdown: 300
+          Schedule:
+            RunLater: true
+            RunNow: false
