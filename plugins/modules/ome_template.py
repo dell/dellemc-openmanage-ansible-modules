@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
+# Version 4.3.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -358,6 +358,38 @@ install OS using its image"
       Name: "Imported Template Name"
       Type: 2
       Content: "{{ lookup('ansible.builtin.file.', '/path/to/xmlfile') }}"
+
+- name: "Deploy template and Operating System (OS) on multiple devices."
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "{{password}}"
+    command: "deploy"
+    template_id: 12
+    device_id:
+      - 12765
+    device_service_tag:
+      - 'SVTG123'
+    attributes:
+      # Include this to install OS on the devices.
+      # This section is optional
+      NetworkBootIsoModel:
+        BootToNetwork: true
+        ShareType: "CIFS"
+        IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
+        IsoPath: "/home/iso_path/filename.iso"
+        ShareDetail:
+          IpAddress: "192.168.0.2"
+          ShareName: "sharename"
+          User: "share_user"
+          Password: "share_password"
+      Options:
+        EndHostPowerState: 1
+        ShutdownType: 0
+        TimeToWaitBeforeShutdown: 300
+      Schedule:
+        RunLater: true
+        RunNow: false
 '''
 
 RETURN = r'''

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.2.0
+# Version 4.3.0
 # Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -187,7 +187,7 @@ def validate_dictionary(module, loc_resp):
         req_dict.update({"RackSlot": rack_slot})
         req_filter_none.update({"RackSlot": rack_slot})
         exit_dict.update({"RackSlot": loc_resp["RackSlot"]})
-    diff = req_filter_none.items() ^ exit_dict.items()
+    diff = bool(set(req_filter_none.items()) ^ set(exit_dict.items()))
     if not diff and not module.check_mode:
         module.exit_json(msg="No changes found to be applied.")
     elif not diff and module.check_mode:
