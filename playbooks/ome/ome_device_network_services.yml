@@ -1,0 +1,56 @@
+---
+- hosts: ome
+  connection: local
+  name: OpenManage Ansible Modules for network services settings.
+  gather_facts: false
+  collections: dellemc.openmanage
+
+  tasks:
+
+  - name: Update network services settings of a chassis using the device ID.
+    ome_device_power_settings:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_id: 25011
+      snmp_settings:
+        enabled: true
+        port_number: 161
+        community_name: public
+      ssh_settings:
+        enabled: false
+      remote_racadm_settings:
+        enabled: false
+    tags: snmp-settings
+
+  - name: Update network services settings of a chassis using the device service tag.
+    ome_device_power_settings:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_service_tag: GHRT2RL
+      snmp_settings:
+        enabled: false
+      ssh_settings:
+        enabled: true
+        port_number: 22
+        max_sessions: 1
+        max_auth_retries: 3
+        idle_timeout: 1
+      remote_racadm_settings:
+        enabled: false
+    tags: ssh-settings
+
+  - name: Update network services settings of the host chassis.
+    ome_device_power_settings:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      device_id: 25012
+      snmp_settings:
+        enabled: false
+      ssh_settings:
+        enabled: false
+      remote_racadm_settings:
+        enabled: true
+    tags: racadm-settings

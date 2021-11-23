@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.2.0
+# Version 4.3.0
 # Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -52,7 +52,11 @@ options:
     suboptions:
       redundancy_policy:
         type: str
-        description: The choices to configure the redundancy policy.
+        description:
+          - The choices to configure the redundancy policy.
+          - C(NO_REDUNDANCY) no redundancy policy is used.
+          - C(GRID_REDUNDANCY) to distributes power by dividing the PSUs into two grids.
+          - C(PSU_REDUNDANCY) to distribute power between all the PSUs.
         choices: ['NO_REDUNDANCY', 'GRID_REDUNDANCY', 'PSU_REDUNDANCY']
         default: NO_REDUNDANCY
   hot_spare_configuration:
@@ -66,7 +70,10 @@ options:
         required: true
       primary_grid:
         type: str
-        description: The choices for PSU grid.
+        description:
+          - The choices for PSU grid.
+          - C(GRID_1) Hot Spare on Grid 1.
+          - C(GRID_2) Hot Spare on Grid 2.
         choices: ['GRID_1', 'GRID_2']
         default: GRID_1
 requirements:
@@ -244,7 +251,7 @@ def check_mode_validation(module, loc_data):
             cloned_data.update({"EnableHotSpare": enable_hot_spare, "PrimaryGrid": primary_grid})
         else:
             cloned_data.update({"EnableHotSpare": enable_hot_spare})
-    power_diff = power_data.items() ^ cloned_data.items()
+    power_diff = bool(set(power_data.items()) ^ set(cloned_data.items()))
     if not power_diff and not module.check_mode:
         module.exit_json(msg=NO_CHANGES_FOUND)
     elif not power_diff and module.check_mode:
