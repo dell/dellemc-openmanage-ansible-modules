@@ -65,7 +65,7 @@ Parameters
     redundancy_policy (optional, str, NO_REDUNDANCY)
       The choices to configure the redundancy policy.
 
-      ``NO_REDUNDANCY``no redundancy policy is used.
+      ``NO_REDUNDANCY`` no redundancy policy is used.
 
       ``GRID_REDUNDANCY`` to distributes power by dividing the PSUs into two grids.
 
