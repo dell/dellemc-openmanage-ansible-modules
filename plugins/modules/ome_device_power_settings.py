@@ -54,7 +54,7 @@ options:
         type: str
         description:
           - The choices to configure the redundancy policy.
-          - C(NO_REDUNDANCY)no redundancy policy is used.
+          - C(NO_REDUNDANCY) no redundancy policy is used.
           - C(GRID_REDUNDANCY) to distributes power by dividing the PSUs into two grids.
           - C(PSU_REDUNDANCY) to distribute power between all the PSUs.
         choices: ['NO_REDUNDANCY', 'GRID_REDUNDANCY', 'PSU_REDUNDANCY']
