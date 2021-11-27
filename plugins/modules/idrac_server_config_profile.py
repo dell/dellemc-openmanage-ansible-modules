@@ -64,8 +64,11 @@ options:
       - If C(BIOS), this module exports or imports BIOS configuration from SCP file.
       - If C(NIC), this module exports or imports NIC configuration from SCP file.
       - If C(RAID), this module exports or imports RAID configuration from SCP file.
+      - If C(EVENTFILTERS), this module exports or imports EVENTFILTERS configuration from SCP file.
+      - If C(SUPPORTASSIST), this module exports or imports SUPPORTASSIST configuration from SCP file.
+      - If C(LIFECYCLECONTROLLER), this module exports or imports LIFECYCLECONTROLLER configuration from SCP file.
     type: str
-    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
+    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'EVENTFILTERS', 'SUPPORTASSIST', 'LIFECYCLECONTROLLER']
     default: 'ALL'
   shutdown_type:
     description:
@@ -451,7 +454,7 @@ def main():
             "share_password": {"required": False, "type": 'str',
                                "aliases": ['share_pwd'], "no_log": True},
             "scp_components": {"required": False,
-                               "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
+                               "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'EVENTFILTERS', 'SUPPORTASSIST', 'LIFECYCLECONTROLLER'],
                                "default": 'ALL'},
 
             "scp_file": {"required": False, "type": 'str'},
