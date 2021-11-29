@@ -79,11 +79,11 @@ Parameters
   shutdown_type (optional, str, Graceful)
     This option is applicable for ``import`` command.
 
-    If ``Graceful``, it gracefully shuts down the server.
+    If ``Graceful``, it gracefully shuts down the server if needed.
 
     If ``Forced``,  it forcefully shuts down the server.
 
-    If ``NoReboot``, it does not reboot the server.
+    If ``NoReboot``, the job that applies the scp will pause until you manually reboot the server.
 
 
   end_host_power_state (optional, str, On)
