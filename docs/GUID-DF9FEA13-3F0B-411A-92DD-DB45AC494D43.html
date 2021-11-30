@@ -1,0 +1,435 @@
+
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="description" content="This module allows to configure the network services on OpenManage Enterprise Modular." /><meta name="DC.relation" scheme="URI" content="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" /><meta name="DC.relation" scheme="URI" content="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100.html" /><meta name="DC.relation" scheme="URI" content="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="October 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.3.0    User’s Guide   " />        
+      <title>Configure the chassis network services</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-input-sanitizer.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
+
+    <body data-lang="en-us" class="wh_topic_page">
+        <a href="#wh_topic_body" class="sr-only sr-only-focusable">
+            Jump to main content
+        </a>
+        <!-- EXM-36950 - Expand the args.hdr parameter here -->
+        
+        
+
+        <header class="navbar navbar-default wh_header">
+    <div class="container-fluid">
+        <div class="wh_header_flex_container navbar-nav navbar-expand-md navbar-dark">
+            <div class="wh_logo_and_publication_title_container">
+                <div class="logo_and_publication_title">
+                    
+                    <!--
+                            This component will be generated when the next parameters are specified in the transformation scenario:
+                            'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
+                            See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
+                    -->
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.3.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.3.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
+                    
+                </div>
+                
+                <!-- The menu button for mobile devices is copied in the output only when the 'webhelp.show.top.menu' parameter is set to 'yes' -->
+                <button type="button" data-target="#wh_top_menu_and_indexterms_link" id="wh_menu_mobile_button" data-toggle="collapse" class="hamburger-toggle collapsed hamburger_toggle_button" aria-expanded="false" aria-label="Toggle menu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <div class="revision-date-container"><div class="revision-date-box"><div class="revision-date"><span class="rev-number">Rev. A00</span></div></div></div><div class=" wh_search_input "><form id="searchForm" method="get" role="search" action="search.html"><div><input type="search" placeholder="Search " class="wh_search_textfield" id="textToSearch" name="searchQuery" aria-label="Search query" /><button type="submit" class="wh_search_button" aria-label="Search"><span>Search</span></button></div></form></div>
+            </div>
+
+        </div>
+    </div>
+</header>
+        <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
+            
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
+            <!--<whc:webhelp_indexterms_link/>-->
+            
+        </div>
+
+        <div class="container-fluid">
+            <div class="wh_content_area">
+                <div class="row">
+                    
+                        <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li><li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" class="topicref" data-id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19.html" id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link">Manage Devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" class="topicref" data-id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C.html" id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link">Template Service</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage application settings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" class="topicref" data-id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768.html" id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link">Manage network configuration</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" class="topicref" data-id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4.html" id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link">Manage fabrics</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" class="topicref" data-id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link">Manage Profiles</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" class="topicref" data-id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link">Device discovery</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link">Manage Chassis</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8" class="topicref" data-id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8.html" id="GUID-211DD0D5-10DB-44AC-879E-03A56A5981A8-link">Configure the network settings of devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">Configure network settings of devices on OpenManage Enterprise Modular.    </span></span></span></span></li><li role="treeitem"><span data-tocid="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C" class="topicref" data-id="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C.html" id="GUID-126DBE58-73D9-4EB6-B627-DCF5E1D1BF0C-link">Configure the chassis power settings</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">Configure chassis power settings on OpenManage Enterprise Modular.    </span></span></span></span></li><li role="treeitem"><span data-tocid="GUID-40D168BC-5057-4280-8F51-F208DBEB4AD9" class="topicref" data-id="GUID-40D168BC-5057-4280-8F51-F208DBEB4AD9" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-40D168BC-5057-4280-8F51-F208DBEB4AD9.html" id="GUID-40D168BC-5057-4280-8F51-F208DBEB4AD9-link">Configure the device location settings</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">Configure device location settings on OpenManage Enterprise Modular.    </span></span></span></span></li><li role="treeitem"><span data-tocid="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100" class="topicref" data-id="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100.html" id="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100-link">Rename chassis slots</a></span></span></li><li role="treeitem" class="active"><span data-tocid="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43" class="topicref" data-id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43.html" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43-link">Configure the chassis network services</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">This module allows to configure the network services on OpenManage Enterprise Modular.    </span></span></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" class="topicref" data-id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link">Manage Active Directory service and user groups</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" class="topicref" data-id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E.html" id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link">Diagnostics</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
+                        </nav>
+                    
+
+                    <div id="wh_topic_body" class="col-lg-7 col-md-9 col-sm-9 col-xs-12">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <!--  -->
+                                <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li><span class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C"><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html">Manage Chassis</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43"><span class="title"><a href="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43.html">Configure the chassis network services</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">This module allows to configure the network services on OpenManage Enterprise Modular.    </span></span></span></span></li></ol></div>
+
+                                    <div class="wh_right_tools hidden-sm hidden-xs">
+                                        <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
+  
+<span class="navprev"><a class="- topic/link link" href="GUID-BF012B1C-4026-4185-8B61-E64ABCF68100.html" title="Rename chassis slots" aria-label="Previous topic: Rename chassis slots" rel="prev"></a></span>  
+<span class="navnext"><a class="- topic/link link" href="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" title="Manage Active Directory service and user groups" aria-label="Next topic: Manage Active Directory service and user groups" rel="next"></a></span>  </span></div>
+                                        <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
+                                        <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
+                                    </div>
+                                </nav>
+                            </div>
+                            <div class="row topic_content_row">
+                                <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
+                                    <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__GUID-9285DB03-0DAB-49F5-90E4-49107E6B505A"> 
+  <h1 class="- topic/title title topictitle1" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__GUID-9285DB03-0DAB-49F5-90E4-49107E6B505A">Configure the chassis network services</h1> 
+   
+  <div class="- topic/body reference/refbody body refbody"><p class="- topic/shortdesc shortdesc">This module allows to configure the network services on OpenManage Enterprise Modular. 
+  </p> 
+	 <section class="- topic/section section" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__GUID-C273EAA0-1C9D-4CD9-9EAB-FD6874529C1E"><span class="ph uicontrol bold">Module: ome_device_network_services</span> 
+	 </section> 
+	 <section class="- topic/section section" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__SECTION_3F458EBCBA2A4183931270068EF3EF2F"><span class="ph uicontrol bold">Synopsis</span> 
+		<p class="- topic/p p">This module allows to configure the network services on OpenManage Enterprise Modular. 
+		</p> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
+		</p> 
+		<table class="- topic/table table all pgwide" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB"><caption><span class="table-anchor" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB"></span><span class="tablecap"><span class="table-label">Table 1. </span>ome_device_network_services</span></caption><colgroup><col style="width:19.94177583697234%" /><col style="width:14.556040756914118%" /><col style="width:16.44832605531295%" /><col style="width:17.903930131004365%" /><col style="width:31.149927219796215%" /></colgroup><thead class="- topic/thead thead"> 
+			 <tr class="- topic/row"> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">Parameter 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">Required 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">Default 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">Choices 
+				</th> 
+				<th class="- topic/entry entry cellrowborder" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">Comments 
+				</th> 
+			 </tr></thead><tbody class="- topic/tbody tbody"> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">hostname 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">OpenManage Enterprise Modular IP address or hostname 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">username 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">OpenManage Enterprise Modular username
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">password 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">OpenManage Enterprise Modular password
+				</td> 
+			 </tr>
+			 <tr class="- topic/row">
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">port
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">False
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA
+				</td>
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">OpenManage Enterprise Modular HTTPS port
+				</td>
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">device_id 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">False
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5"> 
+				  <ul class="level1" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_1E44B3F29D2848C9B7A830509B395296"> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_0F0CD196DDC44D24AC7F79DA84FC784D">The ID of the chassis for which the settings need to be updated. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_207C29EFDB544F8EAB9A1A9BDDEB4358">If the device ID is not specified, this module updates the network services settings for the I(hostname). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_7F88537E409B477997250C769DC5686B">I(device_id) is mutually exclusive with I(device_service_tag). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">device_service_tag 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">False
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5"> 
+				  <ul class="level1" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_63BDE1F6F2F543BB8671295F050CAB5F"> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_F06101EABB4F4F72BE748A029332E20A">The service tag of the chassis for which the setting needs to be updated. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_A6B9497EADF143C49BFF3FB46FECE866"> 
+						<p class="- topic/p p">If the device service tag is not specified, this module updates the network services settings for the I(hostname). 
+						</p> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_C7078C504F85467EB18F6905903FBA8D">I(device_service_tag) is mutually exclusive with I(device_id). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">snmp_settings 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">False
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">The settings for SNMP configuration. 
+				  <p class="- topic/p p">Suboptions- 
+				  </p> 
+				  <ul class="level1" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_A4CD8A5B97B246BD83A44F2FB263AC16"> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_8D5BA9F2404D449E9F88699D0EA5E9A6">enabled- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_94A75A6F94B44A3B957491FC9A2DEEBC"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_B073AE6CEA9044499FD2EB7814C4573B">Enables or disables the SNMP settings. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_AE87CFDB38CE42759E63EF156B4FFF91">Required: True 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_540337FC9A054842A55285584E0B4F9A">port_number- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_5F344DFEC8C745C59C6DE84CE694B2F6"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_F44109116EB44208943CBCB3BE173D58">The SNMP port number. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_D8A3D00711814703B085B8C38275C552">community_name- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_C14BADC5D6C7402CA29B954725333E8B"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_DA267C1582534273AE64E5FBCFE05C86">The SNMP community string. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_668934FCC0E0433CA69542F80EB4D620">Required when I(enabled) is C(true). 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">ssh_settings 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">False
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">The settings for SSH configuration. 
+				  <p class="- topic/p p">Suboptions- 
+				  </p> 
+				  <ul class="level1" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_3CAA84DC4FF24943A544144C9471D654"> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_FC4DC9F3631446D2AAC35B755B3F6E40">enabled- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_0928909FD3B0480E969A2EF4F17AFF84"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_1EF3F0E83F734B6FA7AE59E2F90907BD">Enables or disables the SSH settings. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_C1DC888D68E542819875F921D9C57D1A">Required: True 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_E994C590DDD8434F8490B25E62B81EE7">port_number- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_8887C98953A34ADBA73556562AC6FD40"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_F1F619E4258842D8959877AD8FE60D0F">The port number for SSH service. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_94FD461CE2214AD6B1B86B5F58EC3EFF">max_sessions- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_F0EFA30F23B243BC9C1B6294F5C048F7"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_FF7BBB0ABAE64C2EBC7AC9E0FBF1C551">Number of SSH sessions. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_60FB2A6BACC843128B1BDB9C0305AAB8">max_auth_retries- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_EB85A220A5BE4D42846E3E8CFE1EAEAE"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_1319C99661B248AB8EE492B08BEB1EE2">The number of retries when the SSH session fails. 
+						  </li> 
+						</ul> 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_83474F790A9742A0809A35F9625FD1EF">idle_timeout- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_7B46D00FDCB84133B197EE6DC76EE16A"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_9EE6B767EAC347D48E3FF94D7A9DDF07">SSH idle timeout in minutes. 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__1">remote_racadm_settings 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__2">False
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__TABLE_5C1F02F8344549B3AFCE1642791844EB__entry__5">The settings for remote RACADM configuration. 
+				  <p class="- topic/p p">Suboptions- 
+				  </p> 
+				  <ul class="level1" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_B526B2471F914B2C8A64F4FCF8D4955C"> 
+					 <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_0CFD2921135E470596089130F748F068">enabled- 
+						<ul class="level2" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__UL_397C55EAC03842DBB3770907CFB89A1F"> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_A45750FB3B3F4AA091F628B1D37160AB">Enables or disables the remote RACADM settings. 
+						  </li> 
+						  <li class="- topic/li li" id="GUID-DF9FEA13-3F0B-411A-92DD-DB45AC494D43__LI_F93DFF45251D4489B8FAA37BF940A09D">Required: True 
+						  </li> 
+						</ul> 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+		  </tbody></table> 
+		<p class="- topic/p p"><span class="ph uicontrol bold">Return Values</span> 
+		</p> 
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>msg:
+ type: str
+  description: Overall status of the network services settings.
+  returned: always
+  sample: "Successfully Updated the network services settings."
+network_services_details:
+  type: dict
+  description: returned when network services settings are updated successfully.
+  returned: success
+  sample: {
+    "EnableRemoteRacadm": true,
+    "SettingType": "NetworkServices",
+    "SnmpConfiguration": {
+      "PortNumber": 161,
+      "SnmpEnabled": true,
+      "SnmpV1V2Credential": {
+        "CommunityName": "public"
+      }
+    },
+    "SshConfiguration": {
+      "IdleTimeout": 60,
+      "MaxAuthRetries": 3,
+      "MaxSessions": 1,
+      "PortNumber": 22,
+      "SshEnabled": false
+    }
+  }
+error_info:
+ description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "CAPP1042",
+          "RelatedProperties": [],
+          "Message": "Unable to update the network configuration because the SNMP PortNumber is already in use.",
+          "MessageArgs": ["SNMP PortNumber"],
+          "Severity": "Informational",
+          "Resolution": "Enter a different port number and retry the operation."
+        }
+      ]
+    }
+  }
+</code></pre><span class="ph uicontrol bold">Examples</span> 
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Update network services settings of a chassis using the device ID.
+  dellemc.openmanage.ome_device_network_services:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    device_id: 25011
+    snmp_settings:
+      enabled: true
+      port_number: 161
+      community_name: public
+    ssh_settings:
+      enabled: false
+    remote_racadm_settings:
+      enabled: false
+
+
+- name: Update network services settings of a chassis using the device service tag.
+  dellemc.openmanage.ome_device_network_services:
+    hostname: "192.168.0.2"
+    username: "username"
+    password: "password"
+    device_service_tag: GHRT2RL
+    snmp_settings:
+      enabled: false
+    ssh_settings:
+      enabled: true
+      port_number: 22
+      max_sessions: 1
+      max_auth_retires: 3
+      idle_timeout: 1
+    remote_racadm_settings:
+      enabled: false
+
+
+- name: Update network services settings of the host chassis.
+  dellemc.openmanage.ome_device_network_services:
+    hostname: "192.168.0.3"
+    username: "username"
+    password: "password"
+    snmp_settings:
+      enabled: false
+    ssh_settings:
+      enabled: false
+    remote_racadm_settings:
+      enabled: true
+
+
+</code></pre> 
+	 </section> 
+  </div> 
+</article></main></div>
+                                    
+                                    
+                                    
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<whc:include_html href="footer.xml"/>-->
+
+        <div id="go2top">
+            <span class="glyphicon glyphicon-chevron-up"></span>
+        </div>
+
+        <!-- The modal container for images -->
+        <div id="modal_img_large" class="modal">
+            <span class="close glyphicon glyphicon-remove"></span>
+            <!-- Modal Content (The Image) -->
+            <img class="modal-content" id="modal-img" />
+            <!-- Modal Caption (Image Text) -->
+            <div id="caption"></div>
+        </div>
+
+        <!--<script src="${oxygen-webhelp-assets-dir}/lib/bootstrap/js/bootstrap.bundle.min.js" type="text/javascript"></script>-->
+        
+    </body>
+</html>
