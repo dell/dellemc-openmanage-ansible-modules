@@ -6,10 +6,10 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 
 ## Supported Platforms
   * iDRAC 7 based Dell EMC PowerEdge Servers with firmware versions 2.63.60.62 and above.
-  * iDRAC 8 based Dell EMC PowerEdge Servers with firmware versions 2.81.81.81 and above.
-  * iDRAC 9 based Dell EMC PowerEdge Servers with firmware versions 5.00.10.20 and above.
-  * Dell EMC OpenManage Enterprise versions 3.8.0 and above.
-  * Dell EMC OpenManage Enterprise-Modular versions 1.30.10 and above.
+  * iDRAC 8 based Dell EMC PowerEdge Servers with firmware versions 2.80.80.80 and above.
+  * iDRAC 9 based Dell EMC PowerEdge Servers with firmware versions 4.40.40.00 and above.
+  * Dell EMC OpenManage Enterprise versions 3.7.0 and above.
+  * Dell EMC OpenManage Enterprise-Modular versions 1.30.00 and above.
 
 ## Prerequisites
   * [Ansible >= 2.10.0](https://github.com/ansible/ansible)
@@ -18,7 +18,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   using either ```pip install omsdk --upgrade``` or ```pip install -r requirements.txt```. 
   OMSDK can also be installed from [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
   * Operating System
-    * Red Hat Enterprise Linux (RHEL) 8.5 and 8.4
+    * Red Hat Enterprise Linux (RHEL) 8.4 and 8.3
     * SUSE Linux Enterprise Server (SLES) 15 SP2 and 15 SP1
     * Ubuntu 20.04.2 and 20.04.1
 

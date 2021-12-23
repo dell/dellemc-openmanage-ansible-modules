@@ -125,8 +125,8 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+   - This module does not support ``check_mode``.
 
 
 
@@ -183,7 +183,7 @@ Examples
         schedule: StageForNextReboot
 
     - name: "Update firmware using baseline name and components."
-      dellemc.openmanage.ome_firmware:
+      dellemc.openmanage.ome_firmwar:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"

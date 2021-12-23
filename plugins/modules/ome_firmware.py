@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.4.0
+# Version 4.1.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -99,8 +99,8 @@ author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
 notes:
-    - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
-    - This module supports C(check_mode).
+    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -150,7 +150,7 @@ EXAMPLES = r'''
     schedule: StageForNextReboot
 
 - name: "Update firmware using baseline name and components."
-  dellemc.openmanage.ome_firmware:
+  dellemc.openmanage.ome_firmwar:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
@@ -326,7 +326,6 @@ NO_CHANGES_MSG = "No changes found to be applied. Either there are no updates pr
 COMPLIANCE_READ_FAIL = "Failed to read compliance report."
 DUP_REQ_MSG = "Parameter 'dup_file' to be provided along with 'device_id'|'device_service_tag'|'device_group_names'"
 APPLICABLE_DUP = "Unable to get applicable components DUP."
-CHANGES_FOUND = "Changes found to be applied."
 
 
 def spawn_update_job(rest_obj, job_payload):
@@ -492,8 +491,6 @@ def single_dup_update(rest_obj, module):
     else:
         device_id_tags = _validate_device_attributes(module)
         device_ids, id_tag_map = get_device_ids(rest_obj, module, device_id_tags)
-    if module.check_mode:
-        module.exit_json(msg=CHANGES_FOUND)
     upload_status, token = upload_dup_file(rest_obj, module)
     if upload_status:
         report_payload = get_dup_applicability_payload(token, device_ids=device_ids, group_ids=group_ids,
@@ -537,8 +534,6 @@ def baseline_based_update(rest_obj, module, baseline, dev_comp_map):
         module.fail_json(msg=COMPLIANCE_READ_FAIL)
     if not compliance_report_list:
         module.exit_json(msg=NO_CHANGES_MSG)
-    if module.check_mode:
-        module.exit_json(msg=CHANGES_FOUND)
     return compliance_report_list
 
 
@@ -617,7 +612,7 @@ def main():
             ["device_group_names", "device_service_tag", "devices"],
             ["baseline_name", "device_group_names"],
             ["dup_file", "components", "devices"]],
-        supports_check_mode=True
+        supports_check_mode=False
     )
     validate_inputs(module)
     update_status, baseline_details = {}, None

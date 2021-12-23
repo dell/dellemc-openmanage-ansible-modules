@@ -180,9 +180,9 @@ def validate_dictionary(module, loc_resp):
     rack_slot = module.params.get("rack_slot")
     location = module.params.get("location")
     req_dict = {"DataCenter": data_center, "Room": room, "Aisle": aisle, "RackName": rack, "Location": location}
-    req_filter_none = dict((k, v) for k, v in req_dict.items() if v is not None)
+    req_filter_none = dict((k, v.lower()) for k, v in req_dict.items() if v is not None)
     keys = list(req_filter_none.keys())
-    exit_dict = dict((k, v) for k, v in loc_resp.items() if k in keys and v is not None)
+    exit_dict = dict((k, v.lower()) for k, v in loc_resp.items() if k in keys and v is not None)
     if rack_slot is not None:
         req_dict.update({"RackSlot": rack_slot})
         req_filter_none.update({"RackSlot": rack_slot})

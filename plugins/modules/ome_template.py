@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.4.0
+# Version 4.3.0
 # Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -363,7 +363,7 @@ install OS using its image"
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
-    password: "password"
+    password: "{{password}}"
     command: "deploy"
     template_id: 12
     device_id:
@@ -390,32 +390,6 @@ install OS using its image"
       Schedule:
         RunLater: true
         RunNow: false
-
-- name: Create a compliance template from reference device
-  dellemc.openmanage.ome_template:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
-    command: "create"
-    device_service_tag:
-      - "SVTG123"
-    template_view_type: "Compliance"
-    attributes:
-      Name: "Configuration Compliance"
-      Description: "Configuration Compliance Template"
-      Fqdds: "BIOS"
-
-- name: Import a compliance template from XML file
-  dellemc.openmanage.ome_template:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
-    command: "import"
-    template_view_type: "Compliance"
-    attributes:
-      Name: "Configuration Compliance"
-      Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
-      Type: 2
 '''
 
 RETURN = r'''
@@ -564,12 +538,7 @@ def get_create_payload(module_params, deviceid, view_id):
     create_payload = {"Fqdds": "All",
                       "ViewTypeId": view_id}
     if isinstance(module_params.get("attributes"), dict):
-        attrib_dict = module_params.get("attributes").copy()
-        typeid = attrib_dict.get("Type") and attrib_dict.get("Type") or attrib_dict.get("TypeId")
-        if typeid:
-            create_payload["TypeId"] = typeid
-        attrib_dict.pop("Type", None)  # remove if exists as it is not required for create payload
-        create_payload.update(attrib_dict)
+        create_payload.update(module_params.get("attributes"))
     create_payload["SourceDeviceId"] = int(deviceid)
     return create_payload
 
@@ -602,7 +571,7 @@ def get_import_payload(module, rest_obj, view_id):
     import_payload["Name"] = attrib_dict.pop("Name")
     import_payload["ViewTypeId"] = view_id
     import_payload["Type"] = 2
-    typeid = attrib_dict.get("Type") and attrib_dict.get("Type") or attrib_dict.get("TypeId")
+    typeid = attrib_dict.get("Type")
     if typeid:
         if get_type_id_valid(rest_obj, typeid):
             import_payload["Type"] = typeid   # Type is mandatory for import
@@ -610,7 +579,6 @@ def get_import_payload(module, rest_obj, view_id):
             fail_module(module, msg="Type provided for 'import' operation is invalid")
     import_payload["Content"] = attrib_dict.pop("Content")
     if isinstance(attrib_dict, dict):
-        attrib_dict.pop("TypeId", None)  # remove if exists as it is not required for import payload
         import_payload.update(attrib_dict)
     return import_payload
 
