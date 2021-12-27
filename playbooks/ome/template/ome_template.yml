@@ -273,3 +273,28 @@
           Schedule:
             RunLater: true
             RunNow: false
+
+    - name: Create a compliance template from reference device
+      ome_template:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "create"
+        device_service_tag: "SVTG123"
+        template_view_type: "Compliance"
+        attributes:
+          Name: "Configuration Compliance"
+          Description: "Configuration Compliance Template"
+          Fqdds: "BIOS"
+
+    - name: Import a compliance template from XML file
+      ome_template:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        command: "import"
+        template_view_type: "Compliance"
+        attributes:
+          Name: "Configuration Compliance"
+          Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
+          Type: 2
