@@ -380,7 +380,7 @@ Examples
       dellemc.openmanage.ome_template:
         hostname: "192.168.0.1"
         username: "username"
-        password: "{{password}}"
+        password: "password"
         command: "deploy"
         template_id: 12
         device_id:
@@ -407,6 +407,32 @@ Examples
           Schedule:
             RunLater: true
             RunNow: false
+
+    - name: Create a compliance template from reference device
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        command: "create"
+        device_service_tag:
+          - "SVTG123"
+        template_view_type: "Compliance"
+        attributes:
+          Name: "Configuration Compliance"
+          Description: "Configuration Compliance Template"
+          Fqdds: "BIOS"
+
+    - name: Import a compliance template from XML file
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        command: "import"
+        template_view_type: "Compliance"
+        attributes:
+          Name: "Configuration Compliance"
+          Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
+          Type: 2
 
 
 
