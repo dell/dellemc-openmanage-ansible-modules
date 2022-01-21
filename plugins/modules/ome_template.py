@@ -457,9 +457,9 @@ Content:
   type: str
   sample: "<SystemConfiguration Model=\"PowerEdge R940\" ServiceTag=\"DG22TR2\" TimeStamp=\"Tue Sep 24 09:20:57.872551
      2019\">\n<Component FQDD=\"AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDresetConfig\">True</Attribute>\n<Attribute
-     Name=\"RAIDforeignConfig\">Clear</Attribute>\n</Component>\n<Component FQDD=\"Disk.Direct.0-0:AHCI.Slot.6-1\">\n
-     <Attribute Name=\"RAIDPDState\">Ready</Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n
-     </Component>\n<Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready
+     Name=\"RAIDforeignConfig\">Clear</Attribute>\n</Component>\n<Component FQDD=\"Disk.Direct.0-0:AHCI.Slot.6-1\">
+     \n<Attribute Name=\"RAIDPDState\">Ready</Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>
+     \n</Component>\n<Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready
      </Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>\n"
 error_info:
   description: Details of the HTTP Error.
