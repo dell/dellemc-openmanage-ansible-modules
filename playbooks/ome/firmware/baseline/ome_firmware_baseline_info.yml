@@ -13,6 +13,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
       tags: firmware_baselines
 
     - name:  Retrieve details of a specific firmware baseline identified by its baseline name.
@@ -20,5 +21,6 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: "baseline_name"
       tags: firmware_baseline

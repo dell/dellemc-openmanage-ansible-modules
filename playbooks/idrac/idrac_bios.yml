@@ -12,7 +12,8 @@
     idrac_bios:
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_password: "{{ idrac_password }}"
+       idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        attributes:
          BootMode: "Bios"
          OneTimeBootMode: "Enabled"
@@ -25,6 +26,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        attributes:
          PxeDev1EnDis: "Enabled"
          PxeDev1Protocol: "IPV4"
@@ -40,6 +42,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        boot_sources:
          - Name: "NIC.Integrated.x-x-x"
            Enabled: true
@@ -55,6 +58,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        boot_sources:
          - Name: "HardDisk.List.1-1"
            Enabled: true
@@ -66,6 +70,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        boot_sources:
          - Name: "NIC.Integrated.x-x-x"
            Index: 1

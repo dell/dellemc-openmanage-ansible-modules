@@ -13,6 +13,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       command: "generate_csr"
       distinguished_name: "hostname.com"
       department_name: "Remote Access Group"
@@ -37,6 +38,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       command: "upload"
       upload_file: "/path/certificate.cer"
     tags:

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.4.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -119,7 +119,7 @@ options:
       - >-
         Refer OpenManage Enterprise API Reference Guide for more details.
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
@@ -133,6 +133,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25123
     attributes:
       Name: "New Template"
@@ -143,6 +144,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "modify"
     template_id: 12
     attributes:
@@ -161,6 +163,7 @@ EXAMPLES = r'''
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -175,6 +178,7 @@ EXAMPLES = r'''
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_group_names:
@@ -186,6 +190,7 @@ EXAMPLES = r'''
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -217,6 +222,7 @@ EXAMPLES = r'''
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -250,6 +256,7 @@ install OS using its image"
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -293,6 +300,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     template_id: 12
 
@@ -301,6 +309,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "export"
     template_id: 12
 
@@ -310,6 +319,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "export"
     template_name: "my_template"
   register: result
@@ -324,6 +334,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "clone"
     template_id: 12
     attributes:
@@ -334,6 +345,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "import"
     attributes:
       Name: "Imported Template Name"
@@ -353,6 +365,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "import"
     attributes:
       Name: "Imported Template Name"
@@ -364,6 +377,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -396,6 +410,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "create"
     device_service_tag:
       - "SVTG123"
@@ -410,6 +425,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "import"
     template_view_type: "Compliance"
     attributes:
@@ -772,6 +788,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "command": {"required": False, "default": "create", "aliases": ['state'],
                         "choices": ['create', 'modify', 'deploy', 'delete', 'export', 'import', 'clone']},
             "template_id": {"required": False, "type": 'int'},
@@ -793,6 +812,7 @@ def main():
             ['command', 'clone', ['template_id', 'template_name'], True],
             ['command', 'deploy', ['template_id', 'template_name'], True],
             ['command', 'deploy', ['device_id', 'device_service_tag', 'device_group_names'], True],
+            ['validate_certs', True, ['ca_path']],
         ],
         mutually_exclusive=[["template_id", "template_name"]],
         supports_check_mode=False)
@@ -809,7 +829,7 @@ def main():
     except URLError as err:
         password_no_log(module.params.get("attributes"))
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, SSLError, SSLValidationError, ConnectionError, TypeError, ValueError, KeyError) as err:
+    except (IOError, SSLError, SSLValidationError, ConnectionError, TypeError, ValueError, KeyError, OSError) as err:
         fail_module(module, msg=str(err))
 
 

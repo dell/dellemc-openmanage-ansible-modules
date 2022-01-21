@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -125,6 +125,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -150,6 +168,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id: 25123
         attributes:
           Name: "New Template"
@@ -160,6 +179,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "modify"
         template_id: 12
         attributes:
@@ -178,6 +198,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -192,6 +213,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_group_names:
@@ -203,6 +225,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -234,6 +257,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -267,6 +291,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -310,6 +335,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         template_id: 12
 
@@ -318,6 +344,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "export"
         template_id: 12
 
@@ -327,6 +354,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "export"
         template_name: "my_template"
       register: result
@@ -341,6 +369,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "clone"
         template_id: 12
         attributes:
@@ -351,6 +380,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "import"
         attributes:
           Name: "Imported Template Name"
@@ -370,6 +400,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "import"
         attributes:
           Name: "Imported Template Name"
@@ -381,6 +412,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -413,6 +445,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "create"
         device_service_tag:
           - "SVTG123"
@@ -427,6 +460,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "import"
         template_view_type: "Compliance"
         attributes:
@@ -457,18 +491,19 @@ Content (success, when I(command) is C(export), str, <SystemConfiguration Model=
 <Attribute Name="RAIDforeignConfig">Clear</Attribute>
 </Component>
 <Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1">
-<Attribute Name="RAIDPDState">Ready</Attribute>
+ <Attribute Name="RAIDPDState">Ready</Attribute>
 <Attribute Name="RAIDHotSpareStatus">No</Attribute>
-</Component>
+ </Component>
 <Component FQDD="Disk.Direct.1-1:AHCI.Slot.6-1">
 <Attribute Name="RAIDPDState">Ready </Attribute>
 <Attribute Name="RAIDHotSpareStatus">No</Attribute>
 </Component>
 </SystemConfiguration>
-) XML content of the exported template. This content can be written to a xml file.
+)
+  XML content of the exported template. This content can be written to a xml file.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 

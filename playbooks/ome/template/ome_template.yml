@@ -13,6 +13,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         device_id: 25123
         attributes:
           Name: "New Template"
@@ -23,6 +24,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "modify"
         template_id: 12
         attributes:
@@ -41,6 +43,7 @@
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -55,6 +58,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_group_names:
@@ -66,6 +70,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -97,6 +102,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -130,6 +136,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -173,6 +180,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         template_id: 12
 
@@ -181,6 +189,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "export"
         template_id: 12
 
@@ -190,6 +199,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "export"
         template_name: "my_template"
       register: result
@@ -207,6 +217,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "clone"
         template_id: 12
         attributes:
@@ -217,6 +228,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "import"
         attributes:
           Name: "Imported Template Name"
@@ -236,6 +248,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "import"
         attributes:
           Name: "Imported Template Name"
@@ -247,6 +260,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -279,6 +293,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "create"
         device_service_tag: "SVTG123"
         template_view_type: "Compliance"
@@ -292,6 +307,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "import"
         template_view_type: "Compliance"
         attributes:

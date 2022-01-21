@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -88,7 +88,7 @@ options:
     description: Specify the name of the VLAN to be added as untagged to the uplink.
     type: str
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
@@ -103,6 +103,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -128,6 +129,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -154,6 +156,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -164,6 +167,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -175,6 +179,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -194,6 +199,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "create1"
@@ -491,6 +497,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
             "fabric_name": {"required": True, "type": "str"},
             "name": {"required": True, "type": "str"},
@@ -507,7 +516,8 @@ def main():
             "tagged_networks": {"required": False, "type": "list", "elements": "str"},
             "untagged_network": {"required": False, "type": "str"}
         },
-        required_if=[['state', 'present',
+        required_if=[['validate_certs', True, ['ca_path']],
+                     ['state', 'present',
                       ('new_name', 'description', 'uplink_type', 'ufd_enable',
                        'primary_switch_service_tag', 'primary_switch_ports', 'secondary_switch_service_tag',
                        'secondary_switch_ports', 'tagged_networks', 'untagged_network',), True]],
@@ -536,7 +546,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError) as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))

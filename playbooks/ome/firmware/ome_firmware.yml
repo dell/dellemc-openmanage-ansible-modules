@@ -13,6 +13,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_id:
         - 11111
         - 22222
@@ -23,6 +24,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag:
         - KLBR111
         - KLBR222
@@ -33,6 +35,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_group_names:
         - servers
       dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
@@ -42,6 +45,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: baseline_devices
 
   - name: Stage firmware for the next reboot using baseline name
@@ -49,15 +53,16 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: baseline_devices
       schedule: StageForNextReboot
 
   - name: Update firmware using baseline name and components
-    dellemc.openmanage.ome_firmwar:
     ome_firmware:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: baseline_devices
       components:
         - BIOS
@@ -67,6 +72,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: baseline_devices
       device_id:
         - 11111
@@ -79,6 +85,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: baseline_devices
       device_service_tag:
         - KLBR111
@@ -91,6 +98,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: baseline_devices
       devices:
         - id: 12345
@@ -106,6 +114,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: baseline_devices
       devices:
         - service_tag: ABCDE12
@@ -121,6 +130,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: baseline_devices
       devices:
         - service_tag: ABCDE12

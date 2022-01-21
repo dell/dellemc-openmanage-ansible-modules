@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -99,6 +99,24 @@ Parameters
     OpenManage Enterprise HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -127,6 +145,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: "group 1"
         description: "Group 1 description"
         parent_group_name: "group parent 1"
@@ -136,6 +155,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         group_id: 1234
         description: "Group description updated"
         parent_group_name: "group parent 2"
@@ -145,6 +165,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         name: "group 1"
 
@@ -153,6 +174,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         group_id:
           - 1234
@@ -167,7 +189,7 @@ msg (always, str, Successfully deleted the device group(s).)
   Overall status of the device group operation.
 
 
-group_status (success, dict, {'Description': 'my group description', 'Id': 12123, 'MembershipTypeId': 12, 'Name': 'group 1', 'ParentId': 12345, 'TypeId': 3000, 'IdOwner': 30, 'CreatedBy': 'admin', 'CreationTime': '2021-01-01 10:10:10.100', 'DefinitionDescription': 'UserDefined', 'DefinitionId': 400, 'GlobalStatus': 5000, 'HasAttributes': False, 'UpdatedBy': '', 'UpdatedTime': '2021-01-01 11:11:10.100', 'Visible': True})
+group_status (success, dict, AnsibleMapping([('Description', 'my group description'), ('Id', 12123), ('MembershipTypeId', 12), ('Name', 'group 1'), ('ParentId', 12345), ('TypeId', 3000), ('IdOwner', 30), ('CreatedBy', 'admin'), ('CreationTime', '2021-01-01 10:10:10.100'), ('DefinitionDescription', 'UserDefined'), ('DefinitionId', 400), ('GlobalStatus', 5000), ('HasAttributes', False), ('UpdatedBy', ''), ('UpdatedTime', '2021-01-01 11:11:10.100'), ('Visible', True)]))
   Details of the device group operation status.
 
 
@@ -179,7 +201,7 @@ invalid_groups (when I(state) is C(absent), list, [1234, 5678])
   List of the invalid device group IDs or names.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CGRP9013', 'RelatedProperties': [], 'Message': 'Unable to update group  12345  with the provided parent  54321  because a group/parent relationship already exists.', 'MessageArgs': ['12345', '54321'], 'Severity': 'Warning', 'Resolution': 'Make sure the entered parent ID does not create a bidirectional relationship and retry the operation.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CGRP9013'), ('RelatedProperties', []), ('Message', 'Unable to update group  12345  with the provided parent  54321  because a group/parent relationship already exists.'), ('MessageArgs', ['12345', '54321']), ('Severity', 'Warning'), ('Resolution', 'Make sure the entered parent ID does not create a bidirectional relationship and retry the operation.')])])]))]))
   Details of the HTTP Error.
 
 

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.4.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -94,7 +94,7 @@ options:
 author:
   - Jagadeesh N V(@jagadeeshnv)
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise or OpenManage Enterprise Modular.
     - This module supports C(check_mode).
@@ -107,6 +107,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     restrict_allowed_ip_range:
       enable_ip_range: true
       ip_range: 192.1.2.3/24
@@ -116,6 +117,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     login_lockout_policy:
       by_user_name: true
       by_ip_address: true
@@ -128,6 +130,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     restrict_allowed_ip_range:
       enable_ip_range: true
       ip_range: 192.1.2.3/24
@@ -144,6 +147,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fips_mode_enable: yes
 '''
 
@@ -312,6 +316,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "restrict_allowed_ip_range": {
                 "type": 'dict', "options": {
                     "enable_ip_range": {"type": 'bool', "required": True},
@@ -337,6 +344,7 @@ def main():
         mutually_exclusive=[("fips_mode_enable", "login_lockout_policy"),
                             ("fips_mode_enable", "restrict_allowed_ip_range")],
         required_one_of=[("restrict_allowed_ip_range", "login_lockout_policy", "fips_mode_enable")],
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:
@@ -349,7 +357,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

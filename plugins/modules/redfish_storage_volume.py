@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -127,7 +127,7 @@ options:
     default: Fast
 
 requirements:
-  - "python >= 2.7.5"
+  - "python >= 3.8.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
@@ -141,6 +141,7 @@ EXAMPLES = r'''
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     volume_type: "Mirrored"
     name: "VD0"
@@ -159,6 +160,7 @@ EXAMPLES = r'''
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     controller_id: "RAID.Slot.1-1"
     volume_type: "NonRedundant"
@@ -170,6 +172,7 @@ EXAMPLES = r'''
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
     encryption_types: "ControllerAssisted"
@@ -180,6 +183,7 @@ EXAMPLES = r'''
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
 
@@ -188,6 +192,7 @@ EXAMPLES = r'''
     baseuri: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "initialize"
     volume_id: "Disk.Virtual.6:RAID.Slot.1-1"
     initialize_type: "Slow"
@@ -236,6 +241,7 @@ error_info:
 '''
 
 import json
+from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -513,6 +519,9 @@ def main():
             "baseuri": {"required": True, "type": "str"},
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"type": "str", "required": False, "choices": ['present', 'absent']},
             "command": {"type": "str", "required": False, "choices": ['initialize']},
             "volume_type": {"type": "str", "required": False,
@@ -536,7 +545,8 @@ def main():
         mutually_exclusive=[['state', 'command']],
         required_one_of=[['state', 'command']],
         required_if=[['command', 'initialize', ['volume_id']],
-                     ['state', 'absent', ['volume_id']], ],
+                     ['state', 'absent', ['volume_id']],
+                     ['validate_certs', True, ['ca_path']], ],
         supports_check_mode=False)
 
     try:
@@ -549,7 +559,7 @@ def main():
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except (URLError, SSLValidationError, ConnectionError, ImportError, ValueError,
-            RuntimeError, TypeError) as err:
+            RuntimeError, TypeError, OSError, SSLError) as err:
         module.fail_json(msg=str(err))
 
 

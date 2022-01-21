@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -77,7 +77,7 @@ options:
         choices: ['GRID_1', 'GRID_2']
         default: GRID_1
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:
@@ -92,6 +92,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25011
     power_configuration:
       enable_power_cap: true
@@ -102,6 +103,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: GHRT2RL
     redundancy_configuration:
       redundancy_policy: GRID_REDUNDANCY
@@ -111,6 +113,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25012
     hot_spare_configuration:
       enable_hot_spare: true
@@ -133,7 +136,6 @@ power_details:
     "EnablePowerCapSettings": true,
     "MaxPowerCap": "3424",
     "MinPowerCap": "3291",
-    "PowerBudgetOverride": false,
     "PowerCap": "3425",
     "PrimaryGrid": "GRID_1",
     "RedundancyPolicy": "NO_REDUNDANCY",
@@ -228,8 +230,7 @@ def check_mode_validation(module, loc_data):
     power_data = {"PowerCap": loc_data.get("PowerCap"), "MinPowerCap": loc_data["MinPowerCap"],
                   "MaxPowerCap": loc_data["MaxPowerCap"], "RedundancyPolicy": loc_data.get("RedundancyPolicy"),
                   "EnablePowerCapSettings": loc_data["EnablePowerCapSettings"],
-                  "EnableHotSpare": loc_data["EnableHotSpare"], "PrimaryGrid": loc_data.get("PrimaryGrid"),
-                  "PowerBudgetOverride": loc_data["PowerBudgetOverride"]}
+                  "EnableHotSpare": loc_data["EnableHotSpare"], "PrimaryGrid": loc_data.get("PrimaryGrid")}
     cloned_data = copy.deepcopy(power_data)
     if module.params.get("power_configuration") is not None:
         if module.params["power_configuration"]["enable_power_cap"] is None:
@@ -310,6 +311,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "device_id": {"required": False, "type": "int"},
             "device_service_tag": {"required": False, "type": "str"},
             "power_configuration": {"type": "dict", "required": False, "options": power_options,
@@ -320,6 +324,7 @@ def main():
         },
         mutually_exclusive=[('device_id', 'device_service_tag')],
         required_one_of=[["power_configuration", "redundancy_configuration", "hot_spare_configuration"]],
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True,
     )
     try:
@@ -334,7 +339,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

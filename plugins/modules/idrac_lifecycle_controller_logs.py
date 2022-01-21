@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -44,7 +44,7 @@ options:
 
 requirements:
   - "omsdk"
-  - "python >= 2.7.5"
+  - "python >= 3.8.6"
 author:
   - "Rajeev Arakkal (@rajeevarakkal)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
@@ -62,6 +62,7 @@ EXAMPLES = r'''
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     share_name: "192.168.0.0:/nfsfileshare"
 
 - name: Export lifecycle controller logs to CIFS share.
@@ -69,6 +70,7 @@ EXAMPLES = r'''
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     share_name: "\\\\192.168.0.2\\share"
     share_user: "share_user_name"
     share_password: "share_user_pwd"
@@ -78,6 +80,7 @@ EXAMPLES = r'''
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     share_name: "/example/export_lc"
 '''
 
@@ -192,12 +195,16 @@ def main():
             "idrac_user": {"required": True, "type": 'str'},
             "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
 
             "share_name": {"required": True, "type": 'str'},
             "share_user": {"required": False, "type": 'str'},
             "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
             "job_wait": {"required": False, "type": 'bool', "default": True},
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=False)
 
     try:

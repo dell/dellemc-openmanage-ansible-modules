@@ -13,12 +13,14 @@
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
 
     - name: Retrieve information about a network VLAN using the VLAN ID.
       ome_network_vlan_info:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         id: 12345
 
     - name: Retrieve information about a network VLAN using the VLAN name.
@@ -26,4 +28,5 @@
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: "Network VLAN - 1"

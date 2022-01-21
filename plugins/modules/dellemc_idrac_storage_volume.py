@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.4.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -123,7 +123,7 @@ options:
 
 requirements:
   - "omsdk"
-  - "python >= 2.7.5"
+  - "python >= 3.8.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
@@ -137,6 +137,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "create"
     controller_id: "RAID.Slot.1-1"
     volumes:
@@ -148,6 +149,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     raid_reset_config: "True"
     state: "create"
     controller_id: "RAID.Slot.1-1"
@@ -183,6 +185,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "view"
 
 - name: View specific volume details
@@ -190,6 +193,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "view"
     controller_id: "RAID.Slot.1-1"
     volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
@@ -199,6 +203,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "delete"
     volumes:
       - name: "volume_1"
@@ -208,6 +213,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "delete"
     volumes:
       - name: "volume_1"
@@ -445,6 +451,9 @@ def main():
             "idrac_user": {"required": True, "type": 'str'},
             "idrac_password": {"required": True, "type": 'str', "aliases": ["idrac_pwd"], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"required": False,
                       "choices": ['create', 'delete', 'view'], "default": 'view'},
             "volume_id": {"required": False, "type": 'str'},
@@ -469,6 +478,7 @@ def main():
             "raid_reset_config": {"required": False, "choices": ['True', 'False'], "default": 'False'},
             "raid_init_operation": {"required": False, "choices": ['None', 'Fast']}
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:
