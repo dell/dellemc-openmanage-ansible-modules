@@ -460,7 +460,7 @@ Content:
      Name=\"RAIDforeignConfig\">Clear</Attribute>\n</Component>\n<Component FQDD=\"Disk.Direct.0-0:AHCI.Slot.6-1\">
      \n<Attribute Name=\"RAIDPDState\">Ready</Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>
      \n</Component>\n<Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready
-     </Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>\n"
+     </Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>"
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
