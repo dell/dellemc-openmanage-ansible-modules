@@ -485,14 +485,14 @@ TemplateId (success, when I(command) is C(export), int, 13)
   ID of the template for ``export``.
 
 
-Content (success, when I(command) is C(export), str, <SystemConfiguration Model="PowerEdge R940" ServiceTag="DG22TR2" TimeStamp="Tue Sep 24 09:20:57.872551 2019">
+Content (success, when I(command) is C(export), str, <SystemConfiguration Model="PowerEdge R940" ServiceTag="DEFG123" TimeStamp="Tue Sep 24 09:20:57.872551 2019">
 <Component FQDD="AHCI.Slot.6-1">
 <Attribute Name="RAIDresetConfig">True</Attribute>
 <Attribute Name="RAIDforeignConfig">Clear</Attribute>
 </Component>
-<Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1">
+<Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1"> 
 <Attribute Name="RAIDPDState">Ready</Attribute>
-<Attribute Name="RAIDHotSpareStatus">No</Attribute>
+<Attribute Name="RAIDHotSpareStatus">No</Attribute> 
 </Component>
 <Component FQDD="Disk.Direct.1-1:AHCI.Slot.6-1">
 <Attribute Name="RAIDPDState">Ready </Attribute>
@@ -502,7 +502,7 @@ Content (success, when I(command) is C(export), str, <SystemConfiguration Model=
   XML content of the exported template. This content can be written to a xml file.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 
