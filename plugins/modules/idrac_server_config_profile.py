@@ -70,9 +70,9 @@ options:
   shutdown_type:
     description:
       - This option is applicable for C(import) command.
-      - If C(Graceful), it gracefully shuts down the server.
+      - If C(Graceful), it gracefully shuts down the server if needed.
       - If C(Forced),  it forcefully shuts down the server.
-      - If C(NoReboot), it does not reboot the server.
+      - If C(NoReboot), the job that applies the scp will pause until you manually reboot the server.
     type: str
     choices: ['Graceful', 'Forced', 'NoReboot']
     default: 'Graceful'
