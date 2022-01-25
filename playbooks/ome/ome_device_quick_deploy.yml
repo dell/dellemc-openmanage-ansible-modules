@@ -1,0 +1,66 @@
+---
+- hosts: ome
+  connection: local
+  name: OpenManage Ansible Modules for Quick Deploy settings.
+  gather_facts: false
+  collections: dellemc.openmanage
+
+  tasks:
+
+  - name: Configure server Quick Deploy settings of the chassis using device ID.
+    ome_device_quick_deploy:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      device_id: 25011
+      setting_type: ServerQuickDeploy
+      quick_deploy_options:
+        password: "password"
+        ipv4_enabled: True
+        ipv4_network_type: Static
+        ipv4_subnet_mask: 255.255.255.0
+        ipv4_gateway: 192.168.0.1
+        ipv6_enabled: True
+        ipv6_network_type: Static
+        ipv6_prefix_length: 1
+        ipv6_gateway: "::"
+        slots:
+          - slot_id: 1
+            slot_ipv4_address: 192.168.0.2
+            slot_ipv6_address: "::"
+            vlan_id: 1
+          - slot_id: 2
+            slot_ipv4_address: 192.168.0.3
+            slot_ipv6_address: "::"
+            vlan_id: 2
+    tags: server-quick-deploy
+
+  - name: Configure server Quick Deploy settings of the chassis using device service tag.
+    ome_device_quick_deploy:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      device_service_tag: GHRT2RL
+      setting_type: IOMQuickDeploy
+      quick_deploy_options:
+        password: "password"
+        ipv4_enabled: True
+        ipv4_network_type: Static
+        ipv4_subnet_mask: 255.255.255.0
+        ipv4_gateway: 192.168.0.1
+        ipv6_enabled: True
+        ipv6_network_type: Static
+        ipv6_prefix_length: 1
+        ipv6_gateway: "::"
+        slots:
+          - slot_id: 1
+            slot_ipv4_address: 192.168.0.2
+            slot_ipv6_address: "::"
+            vlan_id: 1
+          - slot_id: 2
+            slot_ipv4_address: 192.168.0.3
+            slot_ipv6_address: "::"
+            vlan_id: 2
+    tags: iom-quick-deploy

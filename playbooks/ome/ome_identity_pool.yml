@@ -13,6 +13,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         pool_name: "pool1"
         pool_description: "Identity pool with Ethernet, FCoE, ISCSI and FC settings"
@@ -43,6 +44,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         pool_name: "pool2"
         pool_description: "Identity pool with ethernet"
         ethernet_settings:
@@ -55,6 +57,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         pool_name: "pool3"
         pool_description: "Identity pool with iscsi"
         iscsi_settings:
@@ -75,6 +78,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         pool_name: "pool2"
         pool_description: "Identity pool with fc_settings"
         fc_settings:
@@ -87,6 +91,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         pool_name: "pool1"
         new_pool_name: "pool_new"
         pool_description: "modifying identity pool with ethernet and fcoe settings"
@@ -103,6 +108,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         pool_name: "pool_new"
         new_pool_name: "pool_new2"
         pool_description: "modifying identity pool with iscsi and fc settings"
@@ -122,6 +128,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         pool_name: "pool1"
       tags: delete

@@ -13,12 +13,14 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
 
   - name: Get job details for id.
     ome_job_info:
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       job_id: 12345
 
   - name: Get filtered job details.
@@ -26,6 +28,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       system_query_options:
         top: 2
         skip: 1

@@ -21,7 +21,7 @@ Requirements
 The below requirements are needed on the host that executes this module.
 
 - omsdk
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -79,11 +79,11 @@ Parameters
   shutdown_type (optional, str, Graceful)
     This option is applicable for ``import`` command.
 
-    If ``Graceful``, it gracefully shuts down the server if needed.
+    If ``Graceful``, the job gracefully shuts down the operating system and turns off the server.
 
-    If ``Forced``,  it forcefully shuts down the server.
+    If ``Forced``, it forcefully shuts down the server.
 
-    If ``NoReboot``, the job that applies the scp will pause until you manually reboot the server.
+    If ``NoReboot``, the job that applies the SCP will pause until you manually reboot the server.
 
 
   end_host_power_state (optional, str, On)
@@ -118,6 +118,24 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -144,6 +162,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         share_name: "/scp_folder"
         scp_components: IDRAC
         scp_file: example_file
@@ -156,6 +175,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         share_name: "/scp_folder"
         command: import
         scp_components: "IDRAC"
@@ -169,6 +189,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         share_name: "192.168.0.2:/share"
         scp_components: "BIOS"
         export_format: XML
@@ -180,6 +201,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         share_name: "192.168.0.2:/share"
         command: import
         scp_components: "BIOS"
@@ -193,6 +215,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         share_name: "\\\\192.168.0.2\\share"
         share_user: share_username@domain
         share_password: share_password
@@ -208,6 +231,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         share_name: "\\\\192.168.0.2\\share"
         share_user: share_username
         share_password: share_password
@@ -224,6 +248,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         share_name: "http://192.168.0.3/share"
         share_user: share_username
         share_password: share_password
@@ -237,6 +262,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         command: import
         share_name: "http://192.168.0.3/share"
         share_user: share_username
@@ -251,6 +277,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         share_name: "https://192.168.0.4/share"
         share_user: share_username
         share_password: share_password
@@ -264,6 +291,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         command: import
         share_name: "https://192.168.0.4/share"
         share_user: share_username
@@ -282,11 +310,11 @@ msg (always, str, Successfully imported the Server Configuration Profile)
   Status of the import or export SCP job.
 
 
-scp_status (success, dict, {'Id': 'JID_XXXXXXXXX', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageArgs': [], 'MessageId': 'XXX123', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
+scp_status (success, dict, AnsibleMapping([('Id', 'JID_XXXXXXXXX'), ('JobState', 'Completed'), ('JobType', 'ImportConfiguration'), ('Message', 'Successfully imported and applied Server Configuration Profile.'), ('MessageArgs', []), ('MessageId', 'XXX123'), ('Name', 'Import Configuration'), ('PercentComplete', 100), ('StartTime', 'TIME_NOW'), ('Status', 'Success'), ('TargetSettingsURI', None), ('retval', True)]))
   SCP operation job and progress details from the iDRAC.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 

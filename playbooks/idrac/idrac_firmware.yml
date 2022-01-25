@@ -12,7 +12,8 @@
     idrac_firmware:
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
-       idrac_password: "{{ idrac_password}}"
+       idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "https://downloads.dell.com"
        reboot: True
        job_wait: True

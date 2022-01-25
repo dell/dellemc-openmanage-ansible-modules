@@ -13,6 +13,7 @@
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        state: "present"
        user_name: "user_name"
        user_password: "user_password"
@@ -23,7 +24,6 @@
        protocol_enable: "true"
        authentication_protocol: "MD5"
        privacy_protocol: "DES"
-
     tags:
       - create-user
 
@@ -32,6 +32,7 @@
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        action: "present"
        user_name: "user_name"
        new_user_name: "new_user_name"
@@ -42,7 +43,6 @@
        protocol_enable: "true"
        authentication_protocol: "MD5"
        privacy_protocol: "DES"
-
     tags:
       - modify-user
 
@@ -51,6 +51,7 @@
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        action: "present"
        user_name: "user_name"
        new_user_name: "new_user_name"
@@ -63,8 +64,8 @@
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        state: "absent"
        user_name: "user_name"
-
     tags:
       - remove-user

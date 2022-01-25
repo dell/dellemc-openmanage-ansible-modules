@@ -40,19 +40,26 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── idrac_timezone_ntp.py
     ├── idrac_user.py
     ├── ome_active_directory.py
+    ├── ome_application_alerts_smtp.py
+    ├── ome_application_alerts_syslog.py
     ├── ome_application_certificate.py
     ├── ome_application_network_address.py
     ├── ome_application_network_proxy.py
+    ├── ome_application_network_settings.py
     ├── ome_application_network_time.py
     ├── ome_application_network_webserver.py
+    ├── ome_application_security_settings.py
     ├── ome_chassis_slots.py
     ├── ome_configuration_compliance_baseline.py
     ├── ome_configuration_compliance_info.py
     ├── ome_device_group.py
     ├── ome_device_info.py
+    ├── ome_device_local_access_configuration.py
     ├── ome_device_location.py
     ├── ome_device_mgmt_network.py
+    ├── ome_device_network_services.py
     ├── ome_device_power_settings.py
+    ├── ome_device_quick_deploy.py
     ├── ome_diagnostics.py
     ├── ome_discovery.py
     ├── ome_domain_user_groups.py

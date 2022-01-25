@@ -12,4 +12,5 @@
     dellemc_get_firmware_inventory:
        idrac_ip:        "{{ idrac_ip }}"
        idrac_user:      "{{ idrac_user }}"
-       idrac_password:       "{{ idrac_password }}"
+       idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"

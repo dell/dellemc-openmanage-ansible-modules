@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.1.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -91,7 +91,7 @@ options:
         type: list
         elements: str
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
@@ -106,6 +106,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     template_id: 78
     nic_identifier: NIC Slot 4
     untagged_networks:
@@ -134,6 +135,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     template_id: 78
     nic_identifier: NIC Slot 4
     untagged_networks:
@@ -425,6 +427,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "template_name": {"required": False, "type": "str"},
             "template_id": {"required": False, "type": "int"},
             "nic_identifier": {"required": True, "type": "str"},
@@ -436,6 +441,7 @@ def main():
         required_one_of=[("template_id", "template_name"),
                          ("untagged_networks", "tagged_networks")],
         mutually_exclusive=[("template_id", "template_name")],
+        required_if=[['validate_certs', True, ['ca_path']], ],
         supports_check_mode=True
     )
     try:
@@ -449,7 +455,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

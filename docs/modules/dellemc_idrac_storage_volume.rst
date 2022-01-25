@@ -21,7 +21,7 @@ Requirements
 The below requirements are needed on the host that executes this module.
 
 - omsdk
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -128,6 +128,24 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -153,6 +171,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "username"
         idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "create"
         controller_id: "RAID.Slot.1-1"
         volumes:
@@ -164,6 +183,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "username"
         idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         raid_reset_config: "True"
         state: "create"
         controller_id: "RAID.Slot.1-1"
@@ -199,6 +219,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "username"
         idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "view"
 
     - name: View specific volume details
@@ -206,6 +227,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "username"
         idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "view"
         controller_id: "RAID.Slot.1-1"
         volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
@@ -215,6 +237,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "username"
         idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "delete"
         volumes:
           - name: "volume_1"
@@ -224,6 +247,7 @@ Examples
         idrac_ip: "192.168.0.1"
         idrac_user: "username"
         idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "delete"
         volumes:
           - name: "volume_1"
@@ -238,7 +262,7 @@ msg (always, str, Successfully completed the view storage volume operation)
   Overall status of the storage configuration operation.
 
 
-storage_status (success, dict, {'Id': 'JID_XXXXXXXXX', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageId': 'XXX123', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
+storage_status (success, dict, AnsibleMapping([('Id', 'JID_XXXXXXXXX'), ('JobState', 'Completed'), ('JobType', 'ImportConfiguration'), ('Message', 'Successfully imported and applied Server Configuration Profile.'), ('MessageId', 'XXX123'), ('Name', 'Import Configuration'), ('PercentComplete', 100), ('StartTime', 'TIME_NOW'), ('Status', 'Success'), ('TargetSettingsURI', None), ('retval', True)]))
   Storage configuration job and progress details from the iDRAC.
 
 

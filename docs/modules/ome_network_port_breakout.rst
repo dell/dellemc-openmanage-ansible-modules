@@ -22,7 +22,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -55,6 +55,24 @@ Parameters
     OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -80,6 +98,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         target_port: "2HB7NX2:phy-port1/1/11"
         breakout_type: "1X40GE"
 
@@ -88,6 +107,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         target_port: "2HB7NX2:phy-port1/1/11"
         breakout_type: "HardwareDefault"
 
@@ -100,11 +120,11 @@ msg (always, str, Port breakout configuration job submitted successfully.)
   Overall status of the port configuration.
 
 
-breakout_status (success, dict, {'Builtin': False, 'CreatedBy': 'root', 'Editable': True, 'EndTime': None, 'Id': 11111, 'JobDescription': '', 'JobName': 'Breakout Port', 'JobStatus': {'Id': 1112, 'Name': 'New'}, 'JobType': {'Id': 3, 'Internal': False, 'Name': 'DeviceAction_Task'}, 'LastRun': None, 'LastRunStatus': {'Id': 1113, 'Name': 'NotRun'}, 'NextRun': None, 'Params': [{'JobId': 11111, 'Key': 'operationName', 'Value': 'CONFIGURE_PORT_BREAK_OUT'}, {'JobId': 11111, 'Key': 'interfaceId', 'Value': '2HB7NX2:phy-port1/1/11'}, {'JobId': 11111, 'Key': 'breakoutType', 'Value': '1X40GE'}], 'Schedule': 'startnow', 'StartTime': None, 'State': 'Enabled', 'Targets': [{'Data': '', 'Id': 11112, 'JobId': 34206, 'TargetType': {'Id': 1000, 'Name': 'DEVICE'}}], 'UpdatedBy': None, 'UserGenerated': True, 'Visible': True})
+breakout_status (success, dict, AnsibleMapping([('Builtin', False), ('CreatedBy', 'root'), ('Editable', True), ('EndTime', None), ('Id', 11111), ('JobDescription', ''), ('JobName', 'Breakout Port'), ('JobStatus', AnsibleMapping([('Id', 1112), ('Name', 'New')])), ('JobType', AnsibleMapping([('Id', 3), ('Internal', False), ('Name', 'DeviceAction_Task')])), ('LastRun', None), ('LastRunStatus', AnsibleMapping([('Id', 1113), ('Name', 'NotRun')])), ('NextRun', None), ('Params', [AnsibleMapping([('JobId', 11111), ('Key', 'operationName'), ('Value', 'CONFIGURE_PORT_BREAK_OUT')]), AnsibleMapping([('JobId', 11111), ('Key', 'interfaceId'), ('Value', '2HB7NX2:phy-port1/1/11')]), AnsibleMapping([('JobId', 11111), ('Key', 'breakoutType'), ('Value', '1X40GE')])]), ('Schedule', 'startnow'), ('StartTime', None), ('State', 'Enabled'), ('Targets', [AnsibleMapping([('Data', ''), ('Id', 11112), ('JobId', 34206), ('TargetType', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))])]), ('UpdatedBy', None), ('UserGenerated', True), ('Visible', True)]))
   Details of the OpenManage Enterprise jobs.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 

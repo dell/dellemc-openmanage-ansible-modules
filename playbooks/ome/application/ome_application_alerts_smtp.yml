@@ -13,6 +13,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       destination_address:    "localhost"
       port_number: 25
       use_ssl: true
@@ -27,6 +28,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       destination_address: "localhost"
       port_number: 25
       use_ssl: false

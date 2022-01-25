@@ -12,6 +12,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_id: 25011
       power_configuration:
         enable_power_cap: true
@@ -23,6 +24,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag: GHRT2RL
       redundancy_configuration:
         redundancy_policy: GRID_REDUNDANCY
@@ -33,6 +35,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_id: 25012
       hot_spare_configuration:
         enable_hot_spare: true
@@ -44,6 +47,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       power_configuration:
         enable_power_cap: true
         power_cap: 3425

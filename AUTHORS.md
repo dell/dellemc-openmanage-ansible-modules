@@ -9,6 +9,7 @@
 * Anirudh Kumar <Anirudh_Kumar1@Dell.com>
 * Jaya Gupta <Jaya_Gupta@Dell.com>
 * Sachin Apagundi <Sachin_Apagundi@Dell.com>
+* Husniya Hameed <Husniya.Hameed@Dellteam.com>
 * Chris Clonch (@cacack)
 * Mario Lenz (@mariolenz)
 * Grant Curell (@grantcurell)

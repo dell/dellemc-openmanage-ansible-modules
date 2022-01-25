@@ -54,6 +54,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 - [ome_device_mgmt_network](modules/ome_device_mgmt_network.rst)
 - [ome_device_network_services](modules/ome_device_network_services.rst)
 - [ome_device_power_settings](modules/ome_device_power_settings.rst)
+- [ome_device_quick_deploy](modules/ome_device_quick_deploy.rst)
 - [ome_diagnostics](modules/ome_diagnostics.rst)
 - [ome_discovery](modules/ome_discovery.rst)
 - [ome_domain_user_groups](modules/ome_domain_user_groups.rst)

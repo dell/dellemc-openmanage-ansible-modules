@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,9 +21,38 @@ short_description: Configures the iDRAC services related attributes
 version_added: "1.0.0"
 description:
     - This module allows to configure the iDRAC services related attributes.
-extends_documentation_fragment:
-  - dellemc.openmanage.idrac_auth_options
 options:
+    idrac_ip:
+        required: True
+        type: str
+        description: iDRAC IP Address.
+    idrac_user:
+        required: True
+        type: str
+        description: iDRAC username.
+    idrac_password:
+        required: True
+        type: str
+        description: iDRAC user password.
+        aliases: ['idrac_pwd']
+    idrac_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+    validate_certs:
+        description:
+            - If C(False), the SSL certificates will not be validated.
+            - Configure C(False) only on personally controlled sites where self-signed certificates are used.
+            - Prior to collection version C(5.0.0), the I(validate_certs) is C(False) by default.
+        type: bool
+        default: True
+        version_added: 5.0.0
+    ca_path:
+        description:
+            - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+            - I(ca_path) is required if I(validate_certs) is C(True)
+        type: path
+        version_added: 5.0.0
     share_name:
         required: True
         type: str
@@ -97,7 +126,7 @@ options:
                     The community name is checked by the remote system to which the traps are sent.
 requirements:
     - "omsdk"
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
@@ -112,6 +141,7 @@ EXAMPLES = """
        idrac_ip:   "192.168.0.1"
        idrac_user: "user_name"
        idrac_password:  "user_password"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "192.168.0.1:/share"
        share_mnt: "/mnt/share"
        enable_web_server: "Enabled"
@@ -300,7 +330,8 @@ def main():
             idrac_user=dict(required=True, type='str'),
             idrac_password=dict(required=True, type='str', aliases=['idrac_pwd'], no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
-
+            validate_certs=dict(type='bool', default=True),
+            ca_path=dict(type='path'),
             # Export Destination
             share_name=dict(required=True, type='str'),
             share_password=dict(required=False, type='str', aliases=['share_pwd'], no_log=True),
@@ -330,7 +361,7 @@ def main():
             trap_format=dict(required=False, choices=['SNMPv1', 'SNMPv2', 'SNMPv3'], default=None),
 
         ),
-
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -118,7 +118,7 @@ options:
       - The certificate should be a Root CA Certificate encoded in Base64 format.
       - This is applicable when I(validate_certificate) is C(yes).
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 notes:
   - The module will always report change when I(validate_certificate) is C(yes).
   - Run this module from a system that has direct access to OpenManage Enterprise.
@@ -132,6 +132,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad1
     domain_server:
       - domainname.com
@@ -145,6 +146,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
     domain_controller_lookup: MANUAL
     domain_server:
@@ -158,6 +160,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
     domain_controller_lookup: MANUAL
     domain_server:
@@ -170,6 +173,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
     state: absent
 
@@ -178,6 +182,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
     test_connection: yes
     domain_username: user@domainname
@@ -406,6 +411,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"type": 'str', "choices": ["present", "absent"], "default": 'present'},
             "name": {"type": 'str'},
             "id": {"type": 'int'},
@@ -423,6 +431,7 @@ def main():
         },
         required_one_of=[('name', 'id')],
         required_if=[
+            ['validate_certs', True, ['ca_path']],
             ('test_connection', True, ('domain_username', 'domain_password',)),
             ('validate_certificate', True, ('certificate_file',))],
         mutually_exclusive=[('name', 'id')],
@@ -447,7 +456,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

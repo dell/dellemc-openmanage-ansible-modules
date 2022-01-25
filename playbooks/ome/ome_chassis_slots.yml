@@ -13,6 +13,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         slot_options:
           - chassis_service_tag: ABC1234
             slots:
@@ -32,6 +33,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_id: 10054
             slot_name: slot_device_name_1
@@ -41,6 +43,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_service_tag: ABC1234
             slot_name: service_tag_slot
@@ -50,6 +53,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_id: 10054
             slot_name: sled_name_1

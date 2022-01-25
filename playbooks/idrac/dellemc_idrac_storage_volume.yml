@@ -12,7 +12,8 @@
     dellemc_idrac_storage_volume:
       idrac_ip:    "{{ idrac_ip }}"
       idrac_user:  "{{ idrac_user }}"
-      idrac_password:   "{{ idrac_password }}"
+      idrac_password:  "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: "create"
       controller_id: "RAID.Slot.1-1"
       volumes:
@@ -26,6 +27,7 @@
         idrac_ip:    "{{ idrac_ip }}"
         idrac_user:  "{{ idrac_user }}"
         idrac_password:   "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
         raid_reset_config: "True"
         state: "create"
         controller_id: "RAID.Slot.1-1"
@@ -64,6 +66,7 @@
       idrac_ip:    "{{ idrac_ip }}"
       idrac_user:  "{{ idrac_user }}"
       idrac_password:   "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: "delete"
       volumes:
         - name: "volume_1"
@@ -76,6 +79,7 @@
       idrac_ip:    "{{ idrac_ip }}"
       idrac_user:  "{{ idrac_user }}"
       idrac_password:   "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: "delete"
       volumes:
         - name: "volume_1"
@@ -88,6 +92,7 @@
       idrac_ip:    "{{ idrac_ip }}"
       idrac_user:  "{{ idrac_user }}"
       idrac_password:   "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: "view"
       controller_id: "RAID.Slot.1-1"
       volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
@@ -99,6 +104,7 @@
       idrac_ip:    "{{ idrac_ip }}"
       idrac_user:  "{{ idrac_user }}"
       idrac_password:   "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: "view"
     tags:
         - view_all_volume

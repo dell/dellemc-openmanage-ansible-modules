@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -53,7 +53,7 @@ options:
       - >-
         Refer OpenManage Enterprise API Reference Guide for more details.
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
@@ -67,6 +67,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     attributes:
       UserName: "user1"
       Password: "UserPassword"
@@ -78,6 +79,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     attributes:
       UserName: "user2"
       Description: "user2 description"
@@ -94,6 +96,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     attributes:
       UserName: "user3"
@@ -106,6 +109,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     user_id: 1234
 
@@ -114,6 +118,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     name: "name"
 '''
@@ -147,6 +152,7 @@ user_status:
 '''
 
 import json
+from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -231,6 +237,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"required": False, "type": 'str', "default": "present",
                       "choices": ['present', 'absent']},
             "user_id": {"required": False, "type": 'int'},
@@ -238,7 +247,8 @@ def main():
             "attributes": {"required": False, "type": 'dict'},
         },
         mutually_exclusive=[['user_id', 'name'], ],
-        required_if=[['state', 'present', ['attributes']], ],
+        required_if=[['state', 'present', ['attributes']],
+                     ['validate_certs', True, ['ca_path']], ],
         supports_check_mode=False)
 
     try:
@@ -252,7 +262,7 @@ def main():
                 exit_module(module, resp, method)
     except HTTPError as err:
         fail_module(module, msg=str(err), user_status=json.load(err))
-    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, OSError, SSLError) as err:
         fail_module(module, msg=str(err))
 
 
