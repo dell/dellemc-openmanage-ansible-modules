@@ -13,6 +13,7 @@
       baseuri:   "{{ baseuri }}"
       username: "{{ username }}"
       password:  "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       reset_type: "On"
 
   - name: Manage power state of a specified device.
@@ -20,5 +21,6 @@
        baseuri: "{{ baseuri }}"
        username: "{{ username }}"
        password: "{{ password }}"
+       ca_path: "/path/to/ca_cert.pem"
        reset_type: "ForceOff"
        resource_id: "System.Embedded.1"

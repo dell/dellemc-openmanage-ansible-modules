@@ -16,6 +16,11 @@ This module allows to configure SMTP or email configurations on OpenManage Enter
 
 
 
+Requirements
+------------
+The below requirements are needed on the host that executes this module.
+
+- python >= 3.8.6
 
 
 
@@ -71,6 +76,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -97,6 +120,7 @@ Examples
         hostname: "192.168.0.1"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         destination_address: "localhost"
         port_number: 25
         use_ssl: true
@@ -109,6 +133,7 @@ Examples
         hostname: "192.168.0.1"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         destination_address: "localhost"
         port_number: 25
         use_ssl: false
@@ -123,11 +148,11 @@ msg (always, str, Successfully updated the SMTP settings.)
   Overall status of the SMTP settings update.
 
 
-smtp_details (success, dict, {'DestinationAddress': 'localhost', 'PortNumber': 25, 'UseCredentials': True, 'UseSSL': False, 'Credential': {'User': 'admin', 'Password': None}})
+smtp_details (success, dict, AnsibleMapping([('DestinationAddress', 'localhost'), ('PortNumber', 25), ('UseCredentials', True), ('UseSSL', False), ('Credential', AnsibleMapping([('User', 'admin'), ('Password', None)]))]))
   returned when SMTP settings are updated successfully.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CAPP1106', 'RelatedProperties': [], 'Message': 'Unable to update the SMTP settings because the entered credential is invalid or empty.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Either enter valid credentials or disable the Use Credentials option and retry the operation.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CAPP1106'), ('RelatedProperties', []), ('Message', 'Unable to update the SMTP settings because the entered credential is invalid or empty.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Either enter valid credentials or disable the Use Credentials option and retry the operation.')])])]))]))
   Details of the HTTP Error.
 
 

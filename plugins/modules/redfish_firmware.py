@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -37,7 +37,7 @@ options:
         default: HTTP
         choices: ["CIFS", "FTP", "HTTP", "HTTPS", "NSF", "OEM", "SCP", "SFTP", "TFTP"]
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
     - "urllib3"
 author:
     - "Felix Stephen (@felixs88)"
@@ -53,6 +53,7 @@ EXAMPLES = """
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     image_uri: "http://192.168.0.2/firmware_repo/component.exe"
     transfer_protocol: "HTTP"
 
@@ -61,6 +62,7 @@ EXAMPLES = """
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     image_uri: "/home/firmware_repo/component.exe"
 """
 
@@ -110,6 +112,7 @@ error_info:
 
 import json
 import os
+from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -188,10 +191,14 @@ def main():
             "baseuri": {"required": True, "type": "str"},
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "image_uri": {"required": True, "type": "str"},
             "transfer_protocol": {"type": "str", "default": "HTTP",
                                   "choices": ["CIFS", "FTP", "HTTP", "HTTPS", "NSF", "OEM", "SCP", "SFTP", "TFTP"]},
         },
+        required_if=[['validate_certs', True, ['ca_path']], ],
         supports_check_mode=False)
     if not HAS_LIB:
         module.fail_json(msg=missing_required_lib("urllib3"))
@@ -208,7 +215,7 @@ def main():
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except (RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError, IOError, AssertionError) as e:
+            ImportError, ValueError, TypeError, IOError, AssertionError, OSError, SSLError) as e:
         module.fail_json(msg=str(e))
 
 

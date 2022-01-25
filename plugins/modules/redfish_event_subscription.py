@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.1.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+
 # see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt
@@ -55,7 +55,7 @@ options:
         default: present
         choices: ["present", "absent"]
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Trevor Squillario (@TrevorSquillario)"
     - "Sachin Apagundi (@sachin-apa)"
@@ -75,6 +75,7 @@ EXAMPLES = """
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     destination: "https://192.168.1.100:8188"
     event_type: MetricReport
     event_format_type: MetricReport
@@ -85,6 +86,7 @@ EXAMPLES = """
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     destination: "https://server01.example.com:8188"
     event_type: Alert
     event_format_type: Event
@@ -95,6 +97,7 @@ EXAMPLES = """
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     destination: "https://server01.example.com:8188"
     state: absent
 """
@@ -193,6 +196,7 @@ error_info:
 
 import json
 import os
+from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -282,12 +286,16 @@ def main():
             "baseuri": {"required": True, "type": "str"},
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "destination": {"required": True, "type": "str"},
             "event_type": {"type": "str", "default": "Alert", "choices": ['Alert', 'MetricReport']},
             "event_format_type": {"type": "str", "default": "Event",
                                   "choices": ['Event', 'MetricReport']},
             "state": {"type": "str", "default": "present", "choices": ['present', 'absent']},
         },
+        required_if=[['validate_certs', True, ['ca_path']], ],
         supports_check_mode=False)
     try:
         _validate_inputs(module)
@@ -317,7 +325,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError, IOError, AssertionError) as e:
+            ImportError, ValueError, TypeError, IOError, AssertionError, OSError, SSLError) as e:
         module.fail_json(msg=str(e))
 
 

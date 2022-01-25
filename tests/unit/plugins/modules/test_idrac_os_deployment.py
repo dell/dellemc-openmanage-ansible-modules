@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -85,6 +85,7 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
+                  "ca_path": "/path/to/ca_cert.pem",
                   "share_name": "dummy_share_name", "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }
@@ -98,6 +99,7 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
+                  "ca_path": "/path/to/ca_cert.pem",
                   "share_name": None, "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }
@@ -111,6 +113,7 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
         fileonshare_mock.side_effect = RuntimeError("Error in Runtime")
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
+                  "ca_path": "/path/to/ca_cert.pem",
                   "share_name": "invalid_share_name", "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }
@@ -122,6 +125,7 @@ class TestOsDeployment(FakeAnsibleModule):
                                                        fileonshare_mock, omsdk_mock, minutes_to_cim_format_mock):
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Failure"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
+                  "ca_path": "/path/to/ca_cert.pem",
                   "share_name": "dummy_share_name", "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -56,6 +56,8 @@ options:
           - The password to access the SMTP server.
         type: str
         required: true
+requirements:
+    - "python >= 3.8.6"
 notes:
   - The module will always report change when I(enable_authentication) is C(True).
   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise
@@ -72,6 +74,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     destination_address: "localhost"
     port_number: 25
     use_ssl: true
@@ -84,6 +87,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     destination_address: "localhost"
     port_number: 25
     use_ssl: false
@@ -227,6 +231,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "destination_address": {"required": True, "type": "str"},
             "port_number": {"required": False, "type": "int"},
             "use_ssl": {"required": False, "type": "bool"},
@@ -236,7 +243,8 @@ def main():
                  "options": credentials_options,
                  },
         },
-        required_if=[['enable_authentication', True, ['credentials']], ],
+        required_if=[['enable_authentication', True, ['credentials']],
+                     ['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:
@@ -253,7 +261,7 @@ def main():
         fail_module(module, msg=str(err), error_info=json.load(err))
     except URLError as err:
         exit_module(module, msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         fail_module(module, msg=str(err), error_info=json.load(err))
 
 

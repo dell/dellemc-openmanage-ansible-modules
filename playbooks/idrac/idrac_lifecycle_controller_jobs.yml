@@ -13,6 +13,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
     tags:
       - delete_all_jobs
 
@@ -21,6 +22,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        job_id: "JID_123456789"
     tags:
       - delete_job

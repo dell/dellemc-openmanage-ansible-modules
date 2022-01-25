@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -53,7 +53,12 @@ class iDRACConnection:
             raise ValueError("hostname, username and password required")
         self.handle = None
         self.creds = UserCredentials(self.idrac_user, self.idrac_pwd)
-        self.pOp = WsManOptions(port=self.idrac_port)
+        self.validate_certs = module_params.get("validate_certs", False)
+        verify_ssl = False
+        if self.validate_certs is True:
+            verify_ssl = module_params.get("ca_path")
+        self.pOp = WsManOptions(port=self.idrac_port, read_timeout=module_params.get("timeout", 30),
+                                verify_ssl=verify_ssl)
         self.sdk = sdkinfra()
         if self.sdk is None:
             msg = "Could not initialize iDRAC drivers."
@@ -61,7 +66,10 @@ class iDRACConnection:
 
     def __enter__(self):
         self.sdk.importPath()
-        self.handle = self.sdk.get_driver(self.sdk.driver_enum.iDRAC, self.idrac_ip, self.creds, pOptions=self.pOp)
+        protopref = ProtoPreference(ProtocolEnum.WSMAN)
+        protopref.include_only(ProtocolEnum.WSMAN)
+        self.handle = self.sdk.get_driver(self.sdk.driver_enum.iDRAC, self.idrac_ip, self.creds,
+                                          protopref=protopref, pOptions=self.pOp)
         if self.handle is None:
             msg = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
                   "Incorrect username or password, unreachable iDRAC IP or " \

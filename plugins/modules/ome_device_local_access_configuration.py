@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.4.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -129,7 +129,7 @@ options:
           - ja to set Japanese language.
           - zh to set Chinese language.
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:
@@ -145,6 +145,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25011
     enable_kvm_access: true
     enable_chassis_direct_access: false
@@ -158,6 +159,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: GHRT2RL
     quick_sync:
       quick_sync_access: READ_ONLY
@@ -176,6 +178,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     enable_kvm_access: true
     enable_chassis_direct_access: false
     chassis_power_button:
@@ -432,6 +435,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "device_id": {"required": False, "type": "int"},
             "device_service_tag": {"required": False, "type": "str"},
             "enable_kvm_access": {"required": False, "type": "bool"},
@@ -451,6 +457,7 @@ def main():
         mutually_exclusive=[('device_id', 'device_service_tag')],
         required_one_of=[["enable_kvm_access", "enable_chassis_direct_access",
                           "chassis_power_button", "quick_sync", "lcd"]],
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True,
     )
     try:
@@ -472,7 +479,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

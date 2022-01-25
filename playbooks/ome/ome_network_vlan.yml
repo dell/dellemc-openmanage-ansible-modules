@@ -13,6 +13,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan1"
         description: "VLAN desc"
@@ -26,6 +27,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan2"
         description: "VLAN desc"
@@ -39,6 +41,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan1"
         new_name: "vlan_gold1"
@@ -53,6 +56,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "vlan1"
       tags: delete_vlan

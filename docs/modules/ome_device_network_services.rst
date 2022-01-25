@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -112,6 +112,24 @@ Parameters
     OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -137,6 +155,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id: 25011
         snmp_settings:
           enabled: true
@@ -152,6 +171,7 @@ Examples
         hostname: "192.168.0.2"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: GHRT2RL
         snmp_settings:
           enabled: false
@@ -169,6 +189,7 @@ Examples
         hostname: "192.168.0.3"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         snmp_settings:
           enabled: false
         ssh_settings:
@@ -185,11 +206,11 @@ msg (always, str, Successfully updated the network services settings.)
   Overall status of the network services settings.
 
 
-network_services_details (success, dict, {'EnableRemoteRacadm': True, 'SettingType': 'NetworkServices', 'SnmpConfiguration': {'PortNumber': 161, 'SnmpEnabled': True, 'SnmpV1V2Credential': {'CommunityName': 'public'}}, 'SshConfiguration': {'IdleTimeout': 60, 'MaxAuthRetries': 3, 'MaxSessions': 1, 'PortNumber': 22, 'SshEnabled': False}})
+network_services_details (success, dict, AnsibleMapping([('EnableRemoteRacadm', True), ('SettingType', 'NetworkServices'), ('SnmpConfiguration', AnsibleMapping([('PortNumber', 161), ('SnmpEnabled', True), ('SnmpV1V2Credential', AnsibleMapping([('CommunityName', 'public')]))])), ('SshConfiguration', AnsibleMapping([('IdleTimeout', 60), ('MaxAuthRetries', 3), ('MaxSessions', 1), ('PortNumber', 22), ('SshEnabled', False)]))]))
   returned when network services settings are updated successfully.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CAPP1042', 'RelatedProperties': [], 'Message': 'Unable to update the network configuration because the SNMP PortNumber is already in use.', 'MessageArgs': ['SNMP PortNumber'], 'Severity': 'Informational', 'Resolution': 'Enter a different port number and retry the operation.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CAPP1042'), ('RelatedProperties', []), ('Message', 'Unable to update the network configuration because the SNMP PortNumber is already in use.'), ('MessageArgs', ['SNMP PortNumber']), ('Severity', 'Informational'), ('Resolution', 'Enter a different port number and retry the operation.')])])]))]))
   Details of the HTTP Error.
 
 

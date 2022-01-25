@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.4.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -94,7 +94,7 @@ options:
       - StageForNextReboot
     default: RebootNow
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
@@ -110,6 +110,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id:
       - 11111
       - 22222
@@ -120,6 +121,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag:
       - KLBR111
       - KLBR222
@@ -130,6 +132,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_group_names:
       - servers
     dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
@@ -139,6 +142,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
 
 - name: Stage firmware for the next reboot using baseline name
@@ -146,6 +150,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     schedule: StageForNextReboot
 
@@ -154,6 +159,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     components:
       - BIOS
@@ -163,6 +169,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     device_id:
       - 11111
@@ -175,6 +182,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     device_service_tag:
       - KLBR111
@@ -187,6 +195,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     devices:
       - id: 12345
@@ -202,6 +211,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     devices:
       - service_tag: ABCDE12
@@ -217,6 +227,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     devices:
       - service_tag: ABCDE12
@@ -592,6 +603,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "device_service_tag": {"type": "list", "elements": 'str'},
             "device_id": {"type": "list", "elements": 'int'},
             "dup_file": {"type": "path"},
@@ -617,6 +631,7 @@ def main():
             ["device_group_names", "device_service_tag", "devices"],
             ["baseline_name", "device_group_names"],
             ["dup_file", "components", "devices"]],
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     validate_inputs(module)
@@ -635,7 +650,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, OSError) as err:
         module.fail_json(msg=str(err))
     module.exit_json(msg="Successfully submitted the firmware update job.", update_status=update_status, changed=True)
 

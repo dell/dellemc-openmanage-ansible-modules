@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -90,6 +90,24 @@ Parameters
     OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -116,6 +134,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         slot_options:
           - chassis_service_tag: ABC1234
             slots:
@@ -135,6 +154,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_id: 10054
             slot_name: slot_device_name_1
@@ -144,6 +164,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_service_tag: ABC1234
             slot_name: service_tag_slot
@@ -153,6 +174,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_id: 10054
             slot_name: sled_name_1
@@ -172,7 +194,7 @@ msg (always, str, Successfully renamed the slot(s).)
   Overall status of the slot rename operation.
 
 
-slot_info (if at least one slot renamed, list, [{'ChassisId': 10053, 'ChassisServiceTag': 'ABCD123', 'DeviceName': '', 'DeviceType': 1000, 'JobId': 15746, 'SlotId': '10072', 'SlotName': 'slot_op2', 'SlotNumber': '6', 'SlotType': 2000}, {'ChassisId': 10053, 'ChassisName': 'MX-ABCD123', 'ChassisServiceTag': 'ABCD123', 'DeviceType': '3000', 'JobId': 15747, 'SlotId': '10070', 'SlotName': 'slot_op2', 'SlotNumber': '4', 'SlotType': '2000'}, {'ChassisId': '10053', 'ChassisName': 'MX-PQRS123', 'ChassisServiceTag': 'PQRS123', 'DeviceId': '10054', 'DeviceServiceTag': 'XYZ5678', 'DeviceType': '1000', 'JobId': 15761, 'SlotId': '10067', 'SlotName': 'a1', 'SlotNumber': '1', 'SlotType': '2000'}])
+slot_info (if at least one slot renamed, list, [AnsibleMapping([('ChassisId', 10053), ('ChassisServiceTag', 'ABCD123'), ('DeviceName', ''), ('DeviceType', 1000), ('JobId', 15746), ('SlotId', '10072'), ('SlotName', 'slot_op2'), ('SlotNumber', '6'), ('SlotType', 2000)]), AnsibleMapping([('ChassisId', 10053), ('ChassisName', 'MX-ABCD123'), ('ChassisServiceTag', 'ABCD123'), ('DeviceType', '3000'), ('JobId', 15747), ('SlotId', '10070'), ('SlotName', 'slot_op2'), ('SlotNumber', '4'), ('SlotType', '2000')]), AnsibleMapping([('ChassisId', '10053'), ('ChassisName', 'MX-PQRS123'), ('ChassisServiceTag', 'PQRS123'), ('DeviceId', '10054'), ('DeviceServiceTag', 'XYZ5678'), ('DeviceType', '1000'), ('JobId', 15761), ('SlotId', '10067'), ('SlotName', 'a1'), ('SlotNumber', '1'), ('SlotType', '2000')])])
   Information of the slots that are renamed successfully.
 
   The ``DeviceServiceTag`` and ``DeviceId`` options are available only if *device_options* is used.
@@ -180,7 +202,7 @@ slot_info (if at least one slot renamed, list, [{'ChassisId': 10053, 'ChassisSer
   ``NOTE`` Only the slots which were renamed are listed.
 
 
-rename_failed_slots (if at least one slot renaming fails, list, [{'ChassisId': '12345', 'ChassisName': 'MX-ABCD123', 'ChassisServiceTag': 'ABCD123', 'DeviceType': '4000', 'JobId': 1234, 'JobStatus': 'Aborted', 'SlotId': '10061', 'SlotName': 'c2', 'SlotNumber': '1', 'SlotType': '4000'}, {'ChassisId': '10053', 'ChassisName': 'MX-PQRS123', 'ChassisServiceTag': 'PQRS123', 'DeviceType': '1000', 'JobId': 0, 'JobStatus': 'HTTP Error 400: Bad Request', 'SlotId': '10069', 'SlotName': 'b2', 'SlotNumber': '3', 'SlotType': '2000'}])
+rename_failed_slots (if at least one slot renaming fails, list, [AnsibleMapping([('ChassisId', '12345'), ('ChassisName', 'MX-ABCD123'), ('ChassisServiceTag', 'ABCD123'), ('DeviceType', '4000'), ('JobId', 1234), ('JobStatus', 'Aborted'), ('SlotId', '10061'), ('SlotName', 'c2'), ('SlotNumber', '1'), ('SlotType', '4000')]), AnsibleMapping([('ChassisId', '10053'), ('ChassisName', 'MX-PQRS123'), ('ChassisServiceTag', 'PQRS123'), ('DeviceType', '1000'), ('JobId', 0), ('JobStatus', 'HTTP Error 400: Bad Request'), ('SlotId', '10069'), ('SlotName', 'b2'), ('SlotNumber', '3'), ('SlotType', '2000')])])
   Information of the valid slots that are not renamed.
 
   ``JobStatus`` is shown if rename job fails.
@@ -188,7 +210,7 @@ rename_failed_slots (if at least one slot renaming fails, list, [{'ChassisId': '
   ``NOTE`` Only slots which were not renamed are listed.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CGEN1014', 'RelatedProperties': [], 'Message': 'Unable to complete the operation because an invalid value is entered for the property Invalid json type: STRING for Edm.Int64 property: Id .', 'MessageArgs': ['Invalid json type: STRING for Edm.Int64 property: Id'], 'Severity': 'Critical', 'Resolution': "Enter a valid value for the property and retry the operation. For more information about valid values, see the OpenManage Enterprise-Modular User's Guide available on the support site."}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CGEN1014'), ('RelatedProperties', []), ('Message', 'Unable to complete the operation because an invalid value is entered for the property Invalid json type: STRING for Edm.Int64 property: Id .'), ('MessageArgs', ['Invalid json type: STRING for Edm.Int64 property: Id']), ('Severity', 'Critical'), ('Resolution', "Enter a valid value for the property and retry the operation. For more information about valid values, see the OpenManage Enterprise-Modular User's Guide available on the support site.")])])]))]))
   Details of the HTTP Error.
 
 

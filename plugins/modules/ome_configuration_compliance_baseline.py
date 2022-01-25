@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.2.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -106,7 +106,7 @@ options:
     type: int
     default: 10800
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - This module supports C(check_mode).
@@ -120,6 +120,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     names: "baseline1"
     template_name: "template1"
     description: "description of baseline"
@@ -132,6 +133,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     names: "baseline1"
     template_id: 1234
     description: "description of baseline"
@@ -144,6 +146,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     names: "baseline2"
     template_id: 2
     job_wait_timeout: 1000
@@ -157,6 +160,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: delete
     names:
       - baseline1
@@ -167,6 +171,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: modify
     names: "baseline1"
     new_name: "baseline_update"
@@ -181,6 +186,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "remediate"
     names: "baseline1"
     device_ids:
@@ -191,6 +197,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "remediate"
     names: "baseline1"
     device_service_tags:
@@ -202,6 +209,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "remediate"
     names: "baseline1"
 '''
@@ -794,6 +802,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "command": {"default": "create",
                         "choices": ['create', 'modify', 'delete', 'remediate']},
             "names": {"required": True, "type": 'list', "elements": 'str'},
@@ -808,6 +819,7 @@ def main():
             "new_name": {"type": 'str'},
         },
         required_if=[
+            ['validate_certs', True, ['ca_path']],
             ['command', 'create', ['template_name', 'template_id'], True],
             ['command', 'remediate', ['device_ids', 'device_service_tags', 'job_wait', 'job_wait_timeout'], True],
             ['command', 'modify',
@@ -828,7 +840,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

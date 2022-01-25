@@ -13,6 +13,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       template_id: 78
       nic_identifier: NIC Slot 4
       untagged_networks:
@@ -43,6 +44,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       template_id: 78
       nic_identifier: NIC Slot 4
       untagged_networks:

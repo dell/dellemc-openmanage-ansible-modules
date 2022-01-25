@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.4.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -80,6 +80,8 @@ options:
           - The maximum number of serial console sessions to be allowed.
           - This is applicable only for OpenManage Enterprise Modular.
         type: int
+requirements:
+    - "python >= 3.8.6"
 notes:
   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise
     or OpenManage Enterprise Modular.
@@ -97,6 +99,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     session_inactivity_timeout:
       enable_universal_timeout: true
       universal_timeout: 30
@@ -110,6 +113,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     session_inactivity_timeout:
       api_timeout: 20
       api_sessions: 100
@@ -121,6 +125,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     session_inactivity_timeout:
       api_timeout: 20
       api_sessions: 100
@@ -136,6 +141,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     session_inactivity_timeout:
       enable_universal_timeout: false
       api_timeout: 20
@@ -340,6 +346,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "session_inactivity_timeout": {
                 "required": False,
                 "type": "dict",
@@ -355,6 +364,7 @@ def main():
                 ]
             }
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:
@@ -370,7 +380,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
 
 

@@ -13,6 +13,7 @@
       hostname: "{{hostname}}"
       username: "{{username}}"
       password: "{{password}}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag: CHAS123
       delay: 10
       ipv4_configuration:
@@ -46,6 +47,7 @@
       hostname: "{{hostname}}"
       username: "{{username}}"
       password: "{{password}}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag: SRVR123
       ipv4_configuration:
         enable_ipv4: true
@@ -71,6 +73,7 @@
       hostname: "{{hostname}}"
       username: "{{username}}"
       password: "{{password}}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag: IOM1234
       ipv4_configuration:
         enable_ipv4: true
@@ -93,6 +96,7 @@
       hostname: "{{hostname}}"
       username: "{{username}}"
       password: "{{password}}"
+      ca_path: "/path/to/ca_cert.pem"
       device_id: 12345
       management_vlan:
         enable_vlan: true

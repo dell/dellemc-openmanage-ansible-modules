@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -366,7 +366,7 @@ options:
             description: KgKey for the IPMI protocol.
             type: str
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V (@jagadeeshnv)"
     - "Sajna Shetty (@Sajna-Shetty)"
@@ -383,6 +383,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discovery_server_1"
     discovery_config_targets:
       - network_address_detail:
@@ -398,6 +399,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discovery_chassis_1"
     discovery_config_targets:
       - network_address_detail:
@@ -413,6 +415,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discover_switch_1"
     discovery_config_targets:
       - network_address_detail:
@@ -427,6 +430,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discover_storage_1"
     discovery_config_targets:
       - network_address_detail:
@@ -444,6 +448,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     discovery_job_name: "Discovery-123"
 
@@ -452,6 +457,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     discovery_job_name: "Discovery-123"
     discovery_config_targets:
@@ -500,6 +506,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discovery_server_ca1"
     discovery_config_targets:
       - network_address_detail:
@@ -517,6 +524,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discovery_chassis_ca1"
     discovery_config_targets:
       - network_address_detail:
@@ -1009,6 +1017,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "type": 'int', "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "discovery_job_name": {"type": 'str'},
             "discovery_id": {"type": 'int'},
             "state": {"default": "present", "choices": ['present', 'absent']},
@@ -1028,6 +1039,7 @@ def main():
             "ignore_partial_failure": {"type": 'bool', "default": False}
         },
         required_if=[
+            ['validate_certs', True, ['ca_path']],
             ['state', 'present', ('discovery_config_targets',)],
             ['schedule', 'RunLater', ('cron',)]
         ],
@@ -1053,7 +1065,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

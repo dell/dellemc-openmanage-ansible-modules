@@ -13,6 +13,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         session_inactivity_timeout:
           enable_universal_timeout: true
           universal_timeout: 30
@@ -27,6 +28,7 @@
           hostname: "{{hostname}}"
           username: "{{username}}"
           password: "{{password}}"
+          ca_path: "/path/to/ca_cert.pem"
           session_inactivity_timeout:
             api_timeout: 20
             api_sessions: 100
@@ -39,6 +41,7 @@
           hostname: "{{hostname}}"
           username: "{{username}}"
           password: "{{password}}"
+          ca_path: "/path/to/ca_cert.pem"
           session_inactivity_timeout:
             api_timeout: 20
             api_sessions: 100
@@ -55,6 +58,7 @@
           hostname: "{{hostname}}"
           username: "{{username}}"
           password: "{{password}}"
+          ca_path: "/path/to/ca_cert.pem"
           session_inactivity_timeout:
             enable_universal_timeout: false
             api_timeout: 20

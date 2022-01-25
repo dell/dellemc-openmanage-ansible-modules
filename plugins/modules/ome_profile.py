@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.1.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -160,7 +160,7 @@ options:
           - This is applicable when I(command) is C(assign).
         type: dict
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
@@ -175,6 +175,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     template_name: "template 1"
     name_prefix: "omam_profile"
     number_of_profiles: 2
@@ -184,6 +185,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: create
     template_name: "template 1"
     name_prefix: "omam_profile"
@@ -200,6 +202,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: create
     template_name: "template 1"
     name_prefix: "omam_profile"
@@ -219,6 +222,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: modify
     name: "Profile 00001"
     new_name: "modified profile"
@@ -243,6 +247,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     name: "Profile 00001"
 
@@ -251,6 +256,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     filters:
       SelectAll: True
@@ -261,6 +267,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     filters:
       ProfileIds:
@@ -272,6 +279,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: assign
     name: "Profile 00001"
     device_id: 12456
@@ -300,6 +308,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "unassign"
     name: "Profile 00003"
 
@@ -308,6 +317,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "unassign"
     filters:
       SelectAll: True
@@ -318,6 +328,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "unassign"
     filters:
       ProfileIds:
@@ -329,6 +340,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "migrate"
     name: "Profile 00001"
     device_id: 12456
@@ -709,6 +721,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "command": {"default": "create",
                         "choices": ['create', 'modify', 'delete', 'assign', 'unassign', 'migrate']},
             "name_prefix": {"default": "Profile", "type": 'str'},
@@ -730,6 +745,7 @@ def main():
             "force": {"default": False, "type": 'bool'}
         },
         required_if=[
+            ['validate_certs', True, ['ca_path']],
             ['command', 'create', ['template_name', 'template_id'], True],
             ['command', 'modify', ['name']],
             ['command', 'modify', ['new_name', 'description', 'attributes', 'boot_to_network_iso'], True],
@@ -754,7 +770,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

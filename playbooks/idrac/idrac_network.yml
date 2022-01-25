@@ -12,7 +12,8 @@
     idrac_network:
        idrac_ip:   "{{idrac_ip}}"
        idrac_user: "{{idrac_user}}"
-       idrac_password:  "{{idrac_password}}"
+       idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "{{playbook_dir}}"
        register_idrac_on_dns: "Enabled"
        dns_idrac_name: "idrac-3CZWCK2"
@@ -27,6 +28,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "{{ playbook_dir }}"
        setup_idrac_nic_vlan: "Enabled"
 
@@ -38,6 +40,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "{{ playbook_dir }}"
        enable_nic: "Enabled"
        nic_selection: "Dedicated"
@@ -55,6 +58,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "{{ playbook_dir }}"
        enable_dhcp: "Enabled"
        dns_from_dhcp: "Enabled"
@@ -68,6 +72,7 @@
        idrac_ip:   "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "{{ playbook_dir }}"
        dns_from_dhcp: "Disabled"
 

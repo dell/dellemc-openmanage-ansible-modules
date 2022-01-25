@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -59,6 +59,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -84,6 +102,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id: 11111
         power_state: "off"
 
@@ -92,6 +111,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: "KLBR111"
         power_state: "on"
 
@@ -100,6 +120,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id: "{{ item.device_id }}"
         power_state: "{{ item.state }}"
       with_items:
@@ -111,6 +132,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: "{{ item.service_tag }}"
         power_state: "{{ item.state }}"
       with_items:
@@ -126,7 +148,7 @@ msg (always, str, Power State operation job submitted successfully.)
   Overall power state operation job status.
 
 
-job_status (success, dict, {'Builtin': False, 'CreatedBy': 'user', 'Editable': True, 'EndTime': None, 'Id': 11111, 'JobDescription': 'DeviceAction_Task', 'JobName': 'DeviceAction_Task_PowerState', 'JobStatus': {'Id': 1111, 'Name': 'New'}, 'JobType': {'Id': 1, 'Internal': False, 'Name': 'DeviceAction_Task'}, 'LastRun': '2019-04-01 06:39:02.69', 'LastRunStatus': {'Id': 1112, 'Name': 'Running'}, 'NextRun': None, 'Params': [{'JobId': 11111, 'Key': 'powerState', 'Value': '2'}, {'JobId': 11111, 'Key': 'operationName', 'Value': 'POWER_CONTROL'}], 'Schedule': '', 'StartTime': None, 'State': 'Enabled', 'Targets': [{'Data': '', 'Id': 11112, 'JobId': 11111, 'TargetType': {'Id': 1000, 'Name': 'DEVICE'}}], 'UpdatedBy': None, 'Visible': True})
+job_status (success, dict, AnsibleMapping([('Builtin', False), ('CreatedBy', 'user'), ('Editable', True), ('EndTime', None), ('Id', 11111), ('JobDescription', 'DeviceAction_Task'), ('JobName', 'DeviceAction_Task_PowerState'), ('JobStatus', AnsibleMapping([('Id', 1111), ('Name', 'New')])), ('JobType', AnsibleMapping([('Id', 1), ('Internal', False), ('Name', 'DeviceAction_Task')])), ('LastRun', '2019-04-01 06:39:02.69'), ('LastRunStatus', AnsibleMapping([('Id', 1112), ('Name', 'Running')])), ('NextRun', None), ('Params', [AnsibleMapping([('JobId', 11111), ('Key', 'powerState'), ('Value', '2')]), AnsibleMapping([('JobId', 11111), ('Key', 'operationName'), ('Value', 'POWER_CONTROL')])]), ('Schedule', ''), ('StartTime', None), ('State', 'Enabled'), ('Targets', [AnsibleMapping([('Data', ''), ('Id', 11112), ('JobId', 11111), ('TargetType', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))])]), ('UpdatedBy', None), ('Visible', True)]))
   Power state operation job and progress details from the OME.
 
 

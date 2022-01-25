@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -63,7 +63,7 @@ options:
               'Storage - iSCSI', 'Storage - FCoE', 'Storage - Data Replication',
               'VM Migration', 'VMWare FT Logging']
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
@@ -78,6 +78,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "vlan1"
     description: "VLAN desc"
@@ -91,6 +92,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "vlan2"
     description: "VLAN desc"
@@ -104,6 +106,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "vlan1"
     new_name: "vlan_gold1"
@@ -118,6 +121,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     name: "vlan1"
   tags: delete_vlan
@@ -307,6 +311,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
             "name": {"required": True, "type": "str"},
             "new_name": {"required": False, "type": "str"},
@@ -319,7 +326,8 @@ def main():
                                  'Storage - iSCSI', 'Storage - FCoE', 'Storage - Data Replication', 'VM Migration',
                                  'VMWare FT Logging']}
         },
-        required_if=[['state', 'present', ('new_name', 'description', 'vlan_minimum', 'vlan_maximum', 'type',), True]],
+        required_if=[['state', 'present', ('new_name', 'description', 'vlan_minimum', 'vlan_maximum', 'type',), True],
+                     ['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:
@@ -339,7 +347,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError) as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))

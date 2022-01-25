@@ -12,6 +12,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_id: 25011
       data_center: data center 1
       room: room 1
@@ -26,6 +27,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag: GHRT2RL
       data_center: data center 1
       room: room 1
@@ -40,6 +42,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       data_center: data center 1
       room: room 1
       aisle: aisle 1

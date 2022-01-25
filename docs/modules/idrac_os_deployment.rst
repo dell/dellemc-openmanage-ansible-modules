@@ -21,7 +21,7 @@ Requirements
 The below requirements are needed on the host that executes this module.
 
 - omsdk
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -64,6 +64,24 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -89,6 +107,7 @@ Examples
           idrac_ip: "192.168.0.1"
           idrac_user: "user_name"
           idrac_password: "user_password"
+          ca_path: "/path/to/ca_cert.pem"
           share_name: "192.168.0.0:/nfsfileshare"
           iso_image:  "unattended_os_image.iso"
           expose_duration: 180
@@ -102,7 +121,7 @@ msg (on error, str, Failed to boot to network iso)
   Over all device information status.
 
 
-boot_status (always, dict, {'DeleteOnCompletion': 'false', 'InstanceID': 'DCIM_OSDConcreteJob:1', 'JobName': 'BootToNetworkISO', 'JobStatus': 'Success', 'Message': 'The command was successful.', 'MessageID': 'OSD1', 'Name': 'BootToNetworkISO', 'Status': 'Success', 'file': '192.168.0.0:/nfsfileshare/unattended_os_image.iso', 'retval': True})
+boot_status (always, dict, AnsibleMapping([('DeleteOnCompletion', 'false'), ('InstanceID', 'DCIM_OSDConcreteJob:1'), ('JobName', 'BootToNetworkISO'), ('JobStatus', 'Success'), ('Message', 'The command was successful.'), ('MessageID', 'OSD1'), ('Name', 'BootToNetworkISO'), ('Status', 'Success'), ('file', '192.168.0.0:/nfsfileshare/unattended_os_image.iso'), ('retval', True)]))
   Details of the boot to network ISO image operation.
 
 

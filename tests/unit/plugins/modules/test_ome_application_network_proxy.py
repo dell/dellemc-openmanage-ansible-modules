@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.1.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -180,7 +180,8 @@ class TestOmeTemplate(FakeAnsibleModule):
                                     "hostname": "192.168.0.1",
                                     "username": "username",
                                     "password": "password",
-                                    "port": 443}
+                                    "port": 443,
+                                    "ca_path": "/path/ca_bundle"}
         assert payload == {"EnableProxy": True, "IpAddress": "192.168.0.2", "PortNumber": 443, "Username": "username",
                            "Password": "password", "EnableAuthentication": False}
 

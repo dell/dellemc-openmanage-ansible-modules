@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -97,7 +97,7 @@ options:
       - A privacy protocol is not configured if C(None) is selected.
     choices: [None, DES, AES]
 requirements:
-  - "python >= 2.7.5"
+  - "python >= 3.8.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
@@ -111,6 +111,7 @@ EXAMPLES = """
     idrac_ip: 198.162.0.1
     idrac_user: idrac_user
     idrac_password: idrac_password
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     user_name: user_name
     user_password: user_password
@@ -128,6 +129,7 @@ EXAMPLES = """
     idrac_ip: 198.162.0.1
     idrac_user: idrac_user
     idrac_password: idrac_password
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     user_name: user_name
     new_user_name: new_user_name
@@ -138,6 +140,7 @@ EXAMPLES = """
     idrac_ip: 198.162.0.1
     idrac_user: idrac_user
     idrac_password: idrac_password
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     user_name: user_name
 """
@@ -199,6 +202,7 @@ error_info:
 import json
 import re
 import time
+from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
@@ -381,6 +385,9 @@ def main():
             "idrac_user": {"required": True},
             "idrac_password": {"required": True, "aliases": ['idrac_pwd'], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
             "new_user_name": {"required": False},
             "user_name": {"required": True},
@@ -394,6 +401,7 @@ def main():
             "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None']},
             "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None']},
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
@@ -419,7 +427,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError) as e:
+            ImportError, ValueError, TypeError, SSLError) as e:
         module.fail_json(msg=str(e))
 
 

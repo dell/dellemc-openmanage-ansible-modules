@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -101,6 +101,24 @@ Parameters
     Password of the target out-of-band controller.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -126,6 +144,7 @@ Examples
         baseuri: "192.168.0.1:443"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         volume_id:
           - "Disk.Virtual.0:RAID.Slot.1-1"
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
@@ -137,6 +156,7 @@ Examples
         baseuri: "192.168.0.1:443"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - assign_global_hot_spare
@@ -146,6 +166,7 @@ Examples
         baseuri: "192.168.0.1:443"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "SetControllerKey"
         controller_id: "RAID.Slot.1-1"
         key: "PassPhrase@123"
@@ -158,6 +179,7 @@ Examples
         baseuri: "192.168.0.1:443"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "ReKey"
         controller_id: "RAID.Slot.1-1"
         key: "NewPassPhrase@123"
@@ -171,6 +193,7 @@ Examples
         baseuri: "192.168.0.1:443"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "ReKey"
         controller_id: "RAID.Slot.1-1"
         mode: "SEKM"
@@ -182,6 +205,7 @@ Examples
         baseuri: "192.168.0.1:443"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "RemoveControllerKey"
         controller_id: "RAID.Slot.1-1"
       tags:
@@ -192,6 +216,7 @@ Examples
         baseuri: "192.168.0.1:443"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "ResetConfig"
         controller_id: "RAID.Slot.1-1"
       tags:
@@ -206,11 +231,11 @@ msg (always, str, Successfully submitted the job that performs the AssignSpare o
   Overall status of the storage controller configuration operation.
 
 
-task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX'})
+task (success, dict, AnsibleMapping([('id', 'JID_XXXXXXXXXXXXX'), ('uri', '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX')]))
   ID and URI resource of the job created.
 
 
-error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to run the method because the requested HTTP method is not allowed.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'iDRAC.1.6.SYS402', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'Enter a valid HTTP method and retry the operation. For information about valid methods, see the Redfish Users Guide available on the support site.', 'Severity': 'Informational'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
+error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to run the method because the requested HTTP method is not allowed.'), ('MessageArgs', []), ('MessageArgs@odata.count', 0), ('MessageId', 'iDRAC.1.6.SYS402'), ('RelatedProperties', []), ('RelatedProperties@odata.count', 0), ('Resolution', 'Enter a valid HTTP method and retry the operation. For information about valid methods, see the Redfish Users Guide available on the support site.'), ('Severity', 'Informational')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information')]))]))
   Details of a http error.
 
 

@@ -25,6 +25,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         volume_id:
           - "Disk.Virtual.0:RAID.Slot.1-1"
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
@@ -37,6 +38,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       register: result
       tags:
@@ -47,6 +49,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "SetControllerKey"
         controller_id: "RAID.Slot.1-1"
         key: "PassPhrase@123"
@@ -60,6 +63,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "ReKey"
         controller_id: "RAID.Slot.1-1"
         key: "NewPassPhrase@123"
@@ -74,6 +78,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "ReKey"
         controller_id: "RAID.Slot.1-1"
         mode: "SEKM"
@@ -86,6 +91,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "RemoveControllerKey"
         controller_id: "RAID.Slot.1-1"
       register: result
@@ -97,6 +103,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "ResetConfig"
         controller_id: "RAID.Slot.1-1"
       register: result
@@ -108,6 +115,7 @@
         url: "https://{{ baseuri }}{{ result.task.uri }}"
         user: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         method: "GET"
         use_proxy: yes
         status_code: 200, 202

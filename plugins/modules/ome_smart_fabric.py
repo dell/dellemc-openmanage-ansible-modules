@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.6.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -75,7 +75,7 @@ options:
        to represent the entire fabric. Enable this feature only when connecting to such a solution."
     choices: ['Enabled', 'Disabled']
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:
@@ -90,6 +90,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "fabric1"
     description: "fabric desc"
@@ -103,6 +104,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "fabric1"
     new_name: "fabric_gold1"
@@ -113,6 +115,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     name: "fabric1"
 '''
@@ -703,6 +706,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"type": "str", "required": False, "default": "present", "choices": ['present', 'absent']},
             "name": {"required": True, "type": "str"},
             "new_name": {"required": False, "type": "str"},
@@ -713,7 +719,8 @@ def main():
             "secondary_switch_service_tag": {"required": False, "type": "str"},
             "override_LLDP_configuration": {"required": False, "type": "str", "choices": ['Enabled', 'Disabled']},
         },
-        required_if=[['state', 'present', ('new_name', 'description', 'fabric_design', 'primary_switch_service_tag',
+        required_if=[['validate_certs', True, ['ca_path']],
+                     ['state', 'present', ('new_name', 'description', 'fabric_design', 'primary_switch_service_tag',
                                            'secondary_switch_service_tag', 'override_LLDP_configuration',), True]],
         supports_check_mode=True
     )
@@ -726,7 +733,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

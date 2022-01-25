@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -81,6 +81,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -106,6 +124,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         enable_ntp: false
         system_time: "2020-03-31 21:35:18"
         time_zone: "TZ_ID_11"
@@ -115,6 +134,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         enable_ntp: true
         time_zone: "TZ_ID_66"
         primary_ntp_address: "192.168.0.2"
@@ -130,11 +150,11 @@ msg (always, str, Successfully configured network time.)
   Overall status of the network time configuration change.
 
 
-proxy_configuration (success, dict, {'EnableNTP': False, 'JobId': None, 'PrimaryNTPAddress': None, 'SecondaryNTPAddress1': None, 'SecondaryNTPAddress2': None, 'SystemTime': None, 'TimeSource': 'Local Clock', 'TimeZone': 'TZ_ID_1', 'TimeZoneIdLinux': None, 'TimeZoneIdWindows': None, 'UtcTime': None})
+proxy_configuration (success, dict, AnsibleMapping([('EnableNTP', False), ('JobId', None), ('PrimaryNTPAddress', None), ('SecondaryNTPAddress1', None), ('SecondaryNTPAddress2', None), ('SystemTime', None), ('TimeSource', 'Local Clock'), ('TimeZone', 'TZ_ID_1'), ('TimeZoneIdLinux', None), ('TimeZoneIdWindows', None), ('UtcTime', None)]))
   Updated application network time configuration.
 
 
-error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the request because the input value for  SystemTime  is missing or an invalid value is entered.', 'MessageArgs': ['SystemTime'], 'MessageId': 'CGEN6002', 'RelatedProperties': [], 'Resolution': 'Enter a valid value and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to complete the request because the input value for  SystemTime  is missing or an invalid value is entered.'), ('MessageArgs', ['SystemTime']), ('MessageId', 'CGEN6002'), ('RelatedProperties', []), ('Resolution', 'Enter a valid value and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
   Details of the HTTP error.
 
 

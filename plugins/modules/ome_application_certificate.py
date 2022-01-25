@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -58,7 +58,7 @@ options:
     description: Local path of the certificate file to be uploaded. This option is applicable for C(upload).
         Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Felix Stephen (@felixs88)"
 '''
 
@@ -69,6 +69,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "generate_csr"
     distinguished_name: "hostname.com"
     department_name: "Remote Access Group"
@@ -83,6 +84,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "upload"
     upload_file: "/path/certificate.cer"
 '''
@@ -167,6 +169,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "command": {"type": "str", "required": False,
                         "choices": ["generate_csr", "upload"], "default": "generate_csr"},
             "distinguished_name": {"required": False, "type": "str"},
@@ -178,7 +183,8 @@ def main():
             "email": {"required": False, "type": "str"},
             "upload_file": {"required": False, "type": "str"},
         },
-        required_if=[["command", "generate_csr", ["distinguished_name", "department_name",
+        required_if=[['validate_certs', True, ['ca_path']],
+                     ["command", "generate_csr", ["distinguished_name", "department_name",
                                                   "business_name", "locality", "country_state",
                                                   "country", "email"]],
                      ["command", "upload", ["upload_file"]]],
@@ -201,7 +207,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))

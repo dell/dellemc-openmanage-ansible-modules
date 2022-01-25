@@ -14,6 +14,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "/scp_folder"
       scp_components: IDRAC
       scp_file: example_file
@@ -27,6 +28,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "/scp_folder"
       command: import
       scp_components: "IDRAC"
@@ -41,6 +43,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "192.168.0.2:/share"
       scp_components: "BIOS"
       export_format: XML
@@ -53,6 +56,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "192.168.0.2:/share"
       command: import
       scp_components: "BIOS"
@@ -67,6 +71,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "\\\\192.168.0.2\\share"
       share_user: share_username@domain
       share_password: share_password
@@ -83,6 +88,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "\\\\192.168.0.2\\share"
       share_user: share_username
       share_password: share_password
@@ -100,6 +106,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "http://192.168.0.3/share"
       share_user: share_username
       share_password: share_password
@@ -114,6 +121,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       command: import
       share_name: "http://192.168.0.3/share"
       share_user: share_username
@@ -129,6 +137,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "https://192.168.0.4/share"
       share_user: share_username
       share_password: share_password
@@ -143,6 +152,7 @@
       idrac_ip: "{{ idrac_ip }}"
       idrac_user: "{{ idrac_user }}"
       idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
       command: import
       share_name: "https://192.168.0.4/share"
       share_user: share_username

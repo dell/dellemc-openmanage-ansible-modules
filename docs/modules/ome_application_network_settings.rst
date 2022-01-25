@@ -16,6 +16,11 @@ This module allows you to configure the session inactivity timeout settings on O
 
 
 
+Requirements
+------------
+The below requirements are needed on the host that executes this module.
+
+- python >= 3.8.6
 
 
 
@@ -103,6 +108,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -129,6 +152,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         session_inactivity_timeout:
           enable_universal_timeout: true
           universal_timeout: 30
@@ -142,6 +166,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         session_inactivity_timeout:
           api_timeout: 20
           api_sessions: 100
@@ -153,6 +178,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         session_inactivity_timeout:
           api_timeout: 20
           api_sessions: 100
@@ -168,6 +194,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         session_inactivity_timeout:
           enable_universal_timeout: false
           api_timeout: 20
@@ -188,11 +215,11 @@ msg (always, str, Successfully updated the session timeout settings.)
   Overall status of the Session timeout settings.
 
 
-session_inactivity_setting (success, dict, [{'SessionType': 'API', 'MaxSessions': 32, 'SessionTimeout': 99600, 'MinSessionTimeout': 60000, 'MaxSessionTimeout': 86400000, 'MinSessionsAllowed': 1, 'MaxSessionsAllowed': 100, 'MaxSessionsConfigurable': True, 'SessionTimeoutConfigurable': True}, {'SessionType': 'GUI', 'MaxSessions': 6, 'SessionTimeout': 99600, 'MinSessionTimeout': 60000, 'MaxSessionTimeout': 7200000, 'MinSessionsAllowed': 1, 'MaxSessionsAllowed': 6, 'MaxSessionsConfigurable': True, 'SessionTimeoutConfigurable': True}, {'SessionType': 'SSH', 'MaxSessions': 4, 'SessionTimeout': 99600, 'MinSessionTimeout': 60000, 'MaxSessionTimeout': 10800000, 'MinSessionsAllowed': 1, 'MaxSessionsAllowed': 4, 'MaxSessionsConfigurable': True, 'SessionTimeoutConfigurable': True}, {'SessionType': 'Serial', 'MaxSessions': 1, 'SessionTimeout': 99600, 'MinSessionTimeout': 60000, 'MaxSessionTimeout': 86400000, 'MinSessionsAllowed': 1, 'MaxSessionsAllowed': 1, 'MaxSessionsConfigurable': False, 'SessionTimeoutConfigurable': True}, {'SessionType': 'UniversalTimeout', 'MaxSessions': 0, 'SessionTimeout': -1, 'MinSessionTimeout': -1, 'MaxSessionTimeout': 86400000, 'MinSessionsAllowed': 0, 'MaxSessionsAllowed': 0, 'MaxSessionsConfigurable': False, 'SessionTimeoutConfigurable': True}])
+session_inactivity_setting (success, dict, [AnsibleMapping([('SessionType', 'API'), ('MaxSessions', 32), ('SessionTimeout', 99600), ('MinSessionTimeout', 60000), ('MaxSessionTimeout', 86400000), ('MinSessionsAllowed', 1), ('MaxSessionsAllowed', 100), ('MaxSessionsConfigurable', True), ('SessionTimeoutConfigurable', True)]), AnsibleMapping([('SessionType', 'GUI'), ('MaxSessions', 6), ('SessionTimeout', 99600), ('MinSessionTimeout', 60000), ('MaxSessionTimeout', 7200000), ('MinSessionsAllowed', 1), ('MaxSessionsAllowed', 6), ('MaxSessionsConfigurable', True), ('SessionTimeoutConfigurable', True)]), AnsibleMapping([('SessionType', 'SSH'), ('MaxSessions', 4), ('SessionTimeout', 99600), ('MinSessionTimeout', 60000), ('MaxSessionTimeout', 10800000), ('MinSessionsAllowed', 1), ('MaxSessionsAllowed', 4), ('MaxSessionsConfigurable', True), ('SessionTimeoutConfigurable', True)]), AnsibleMapping([('SessionType', 'Serial'), ('MaxSessions', 1), ('SessionTimeout', 99600), ('MinSessionTimeout', 60000), ('MaxSessionTimeout', 86400000), ('MinSessionsAllowed', 1), ('MaxSessionsAllowed', 1), ('MaxSessionsConfigurable', False), ('SessionTimeoutConfigurable', True)]), AnsibleMapping([('SessionType', 'UniversalTimeout'), ('MaxSessions', 0), ('SessionTimeout', -1), ('MinSessionTimeout', -1), ('MaxSessionTimeout', 86400000), ('MinSessionsAllowed', 0), ('MaxSessionsAllowed', 0), ('MaxSessionsConfigurable', False), ('SessionTimeoutConfigurable', True)])])
   Returned when session inactivity timeout settings are updated successfully.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CUSR1233', 'RelatedProperties': [], 'Message': 'The number of allowed concurrent sessions for API must be between 1 and 100 sessions.', 'MessageArgs': ['API', '1', '100'], 'Severity': 'Critical', 'Resolution': 'Enter values in the correct range and retry the operation.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CUSR1233'), ('RelatedProperties', []), ('Message', 'The number of allowed concurrent sessions for API must be between 1 and 100 sessions.'), ('MessageArgs', ['API', '1', '100']), ('Severity', 'Critical'), ('Resolution', 'Enter values in the correct range and retry the operation.')])])]))]))
   Details of the HTTP Error.
 
 

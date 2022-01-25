@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -37,7 +37,7 @@ options:
         type: str
 
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Deepak Joshi(@deepakjoshishri)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
@@ -51,12 +51,14 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
 
 - name: Retrieve information about a network VLAN using the VLAN ID
   dellemc.openmanage.ome_network_vlan_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     id: 12345
 
 - name: Retrieve information about a network VLAN using the VLAN name
@@ -64,6 +66,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: "Network VLAN - 1"
 """
 
@@ -215,10 +218,14 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "id": {"required": False, "type": 'int'},
             "name": {"required": False, "type": 'str'}
         },
         mutually_exclusive=[["id", "name"]],
+        required_if=[['validate_certs', True, ['ca_path']], ],
         supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
@@ -254,7 +261,7 @@ def main():
         module.fail_json(msg=str(MODULE_FAILURE_MESSAGE), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, KeyError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, SSLError, TypeError, KeyError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 
