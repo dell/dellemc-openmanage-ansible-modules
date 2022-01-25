@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -139,6 +139,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -165,6 +183,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad1
         domain_server:
           - domainname.com
@@ -178,6 +197,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
         domain_controller_lookup: MANUAL
         domain_server:
@@ -191,6 +211,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
         domain_controller_lookup: MANUAL
         domain_server:
@@ -203,6 +224,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
         state: absent
 
@@ -211,6 +233,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
         test_connection: yes
         domain_username: user@domainname
@@ -227,11 +250,11 @@ msg (always, str, Successfully renamed the slot(s).)
   Overall status of the Active Directory operation.
 
 
-active_directory (on change, dict, {'Name': 'ad_test', 'Id': 21789, 'ServerType': 'MANUAL', 'ServerName': ['192.168.20.181'], 'DnsServer': [], 'GroupDomain': 'dellemcdomain.com', 'NetworkTimeOut': 120, 'Password': None, 'SearchTimeOut': 120, 'ServerPort': 3269, 'CertificateValidation': False})
+active_directory (on change, dict, AnsibleMapping([('Name', 'ad_test'), ('Id', 21789), ('ServerType', 'MANUAL'), ('ServerName', ['192.168.20.181']), ('DnsServer', []), ('GroupDomain', 'dellemcdomain.com'), ('NetworkTimeOut', 120), ('Password', None), ('SearchTimeOut', 120), ('ServerPort', 3269), ('CertificateValidation', False)]))
   The Active Directory that was added, modified or deleted by this module.
 
 
-error_info (on HTTP error, dict, {'error_info': {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to connect to the LDAP or AD server because the entered credentials are invalid.', 'MessageArgs': [], 'MessageId': 'CSEC5002', 'RelatedProperties': [], 'Resolution': 'Make sure the server input configuration are valid and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}}})
+error_info (on HTTP error, dict, AnsibleMapping([('error_info', AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to connect to the LDAP or AD server because the entered credentials are invalid.'), ('MessageArgs', []), ('MessageId', 'CSEC5002'), ('RelatedProperties', []), ('Resolution', 'Make sure the server input configuration are valid and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))]))
   Details of the HTTP Error.
 
 

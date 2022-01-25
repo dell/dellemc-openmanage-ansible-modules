@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -423,6 +423,24 @@ Parameters
     OpenManage Enterprise HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -449,6 +467,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_server_1"
         discovery_config_targets:
           - network_address_detail:
@@ -464,6 +483,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_chassis_1"
         discovery_config_targets:
           - network_address_detail:
@@ -479,6 +499,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discover_switch_1"
         discovery_config_targets:
           - network_address_detail:
@@ -493,6 +514,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discover_storage_1"
         discovery_config_targets:
           - network_address_detail:
@@ -510,6 +532,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         discovery_job_name: "Discovery-123"
 
@@ -518,6 +541,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "present"
         discovery_job_name: "Discovery-123"
         discovery_config_targets:
@@ -566,6 +590,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_server_ca1"
         discovery_config_targets:
           - network_address_detail:
@@ -583,6 +608,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_chassis_ca1"
         discovery_config_targets:
           - network_address_detail:
@@ -609,7 +635,7 @@ msg (always, str, Successfully deleted 1 discovery job(s).)
   Overall status of the discovery operation.
 
 
-discovery_status (when I(state) is C(present), dict, {'Completed': ['192.168.24.17', '192.168.24.20', '192.168.24.22'], 'Failed': ['192.168.24.15', '192.168.24.16', '192.168.24.18', '192.168.24.19', '192.168.24.21', 'host123'], 'DiscoveredDevicesByType': [{'Count': 3, 'DeviceType': 'SERVER'}], 'DiscoveryConfigDiscoveredDeviceCount': 3, 'DiscoveryConfigEmailRecipient': 'myemail@dell.com', 'DiscoveryConfigExpectedDeviceCount': 9, 'DiscoveryConfigGroupId': 125, 'JobDescription': 'D1', 'JobEnabled': True, 'JobEndTime': '2021-01-01 06:27:29.99', 'JobId': 12666, 'JobName': 'D1', 'JobNextRun': None, 'JobProgress': '100', 'JobSchedule': 'startnow', 'JobStartTime': '2021-01-01 06:24:10.071', 'JobStatusId': 2090, 'LastUpdateTime': '2021-01-01 06:27:30.001', 'UpdatedBy': 'admin'})
+discovery_status (when I(state) is C(present), dict, AnsibleMapping([('Completed', ['192.168.24.17', '192.168.24.20', '192.168.24.22']), ('Failed', ['192.168.24.15', '192.168.24.16', '192.168.24.18', '192.168.24.19', '192.168.24.21', 'host123']), ('DiscoveredDevicesByType', [AnsibleMapping([('Count', 3), ('DeviceType', 'SERVER')])]), ('DiscoveryConfigDiscoveredDeviceCount', 3), ('DiscoveryConfigEmailRecipient', 'myemail@dell.com'), ('DiscoveryConfigExpectedDeviceCount', 9), ('DiscoveryConfigGroupId', 125), ('JobDescription', 'D1'), ('JobEnabled', True), ('JobEndTime', '2021-01-01 06:27:29.99'), ('JobId', 12666), ('JobName', 'D1'), ('JobNextRun', None), ('JobProgress', '100'), ('JobSchedule', 'startnow'), ('JobStartTime', '2021-01-01 06:24:10.071'), ('JobStatusId', 2090), ('LastUpdateTime', '2021-01-01 06:27:30.001'), ('UpdatedBy', 'admin')]))
   Details of the discovery job created or modified.
 
   If *job_wait* is true, Completed and Failed IPs are also listed.
@@ -619,7 +645,7 @@ discovery_ids (when discoveries with duplicate name exist for I(state) is C(pres
   IDs of the discoveries with duplicate names.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 

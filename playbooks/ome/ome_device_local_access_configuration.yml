@@ -12,6 +12,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_id: 25011
       enable_kvm_access: true
       enable_chassis_direct_access: false
@@ -26,6 +27,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag: GHRT2RL
       quick_sync:
         quick_sync_access: READ_ONLY
@@ -45,6 +47,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       enable_kvm_access: true
       enable_chassis_direct_access: false
       chassis_power_button:

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.6.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -72,7 +72,7 @@ options:
             description: Provide name for the slot.
             required: True
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 notes:
   - "This module initiates the refresh inventory task. It may take a minute for new names to be reflected.
   If the task exceeds 300 seconds to refresh, the task times out."
@@ -87,6 +87,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     slot_options:
       - chassis_service_tag: ABC1234
         slots:
@@ -106,6 +107,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_options:
       - device_id: 10054
         slot_name: slot_device_name_1
@@ -115,6 +117,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_options:
       - device_service_tag: ABC1234
         slot_name: service_tag_slot
@@ -124,6 +127,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_options:
       - device_id: 10054
         slot_name: sled_name_1
@@ -558,6 +562,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "device_options": {"type": 'list', "elements": 'dict',
                                "options": {
                                    "slot_name": {"required": True, 'type': 'str'},
@@ -581,6 +588,7 @@ def main():
         },
         required_one_of=[('slot_options', 'device_options')],
         mutually_exclusive=[('slot_options', 'device_options')],
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
 
@@ -601,7 +609,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

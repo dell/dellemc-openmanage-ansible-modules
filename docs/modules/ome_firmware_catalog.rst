@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -135,6 +135,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -161,6 +179,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "HTTPS"
@@ -174,6 +193,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "HTTP"
@@ -186,6 +206,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "CIFS"
@@ -201,6 +222,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "NFS"
@@ -213,6 +235,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "DELL_ONLINE"
@@ -223,6 +246,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "new catalog_description"
         repository_type: "CIFS"
@@ -238,6 +262,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_id: 10
         new_catalog_name: "new_catalog_name"
         repository_type: "DELL_ONLINE"
@@ -248,6 +273,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         catalog_name: ["catalog_name1", "catalog_name2"]
 
@@ -256,6 +282,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         catalog_id: [11, 34]
 
@@ -268,7 +295,7 @@ msg (always, str, Successfully triggered the job to create a catalog with Task I
   Overall status of the firmware catalog operation.
 
 
-catalog_status (When I(state) is C(present), dict, {'AssociatedBaselines': [], 'BaseLocation': None, 'BundlesCount': 0, 'Filename': 'catalog.gz', 'Id': 0, 'LastUpdated': None, 'ManifestIdentifier': None, 'ManifestVersion': None, 'NextUpdate': None, 'PredecessorIdentifier': None, 'ReleaseDate': None, 'ReleaseIdentifier': None, 'Repository': {'CheckCertificate': True, 'Description': 'HTTPS Desc', 'DomainName': None, 'Id': None, 'Name': 'catalog4', 'Password': None, 'RepositoryType': 'HTTPS', 'Source': 'company.com', 'Username': None}, 'Schedule': None, 'SourcePath': 'catalog', 'Status': None, 'TaskId': 10094})
+catalog_status (When I(state) is C(present), dict, AnsibleMapping([('AssociatedBaselines', []), ('BaseLocation', None), ('BundlesCount', 0), ('Filename', 'catalog.gz'), ('Id', 0), ('LastUpdated', None), ('ManifestIdentifier', None), ('ManifestVersion', None), ('NextUpdate', None), ('PredecessorIdentifier', None), ('ReleaseDate', None), ('ReleaseIdentifier', None), ('Repository', AnsibleMapping([('CheckCertificate', True), ('Description', 'HTTPS Desc'), ('DomainName', None), ('Id', None), ('Name', 'catalog4'), ('Password', None), ('RepositoryType', 'HTTPS'), ('Source', 'company.com'), ('Username', None)])), ('Schedule', None), ('SourcePath', 'catalog'), ('Status', None), ('TaskId', 10094)]))
   Details of the catalog operation.
 
 
@@ -280,11 +307,11 @@ catalog_id (When I(state) is C(absent), int, 10123)
   IDs of the deleted catalog.
 
 
-associated_baselines (When I(state) is C(absent), list, [{'BaselineId': 24, 'BaselineName': 'new'}, {'BaselineId': 25, 'BaselineName': 'c7'}, {'BaselineId': 27, 'BaselineName': 'c4'}])
+associated_baselines (When I(state) is C(absent), list, [AnsibleMapping([('BaselineId', 24), ('BaselineName', 'new')]), AnsibleMapping([('BaselineId', 25), ('BaselineName', 'c7')]), AnsibleMapping([('BaselineId', 27), ('BaselineName', 'c4')])])
   IDs of the baselines associated with catalog.
 
 
-error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to create or update the catalog because a repository with the same name already exists.', 'Resolution': 'Enter a different name and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
+error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to create or update the catalog because a repository with the same name already exists.'), ('Resolution', 'Enter a different name and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
   Details of the http error.
 
 

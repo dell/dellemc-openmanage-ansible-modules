@@ -13,6 +13,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       restrict_allowed_ip_range:
         enable_ip_range: true
         ip_range: 192.1.2.3/24
@@ -22,6 +23,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       login_lockout_policy:
         by_user_name: true
         by_ip_address: true
@@ -34,6 +36,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       restrict_allowed_ip_range:
         enable_ip_range: true
         ip_range: 192.1.2.3/24
@@ -50,4 +53,5 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       fips_mode_enable: yes

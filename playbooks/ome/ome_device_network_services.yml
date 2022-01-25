@@ -12,6 +12,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_id: 25011
       snmp_settings:
         enabled: true
@@ -28,6 +29,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag: GHRT2RL
       snmp_settings:
         enabled: false
@@ -46,6 +48,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_id: 25012
       snmp_settings:
         enabled: false

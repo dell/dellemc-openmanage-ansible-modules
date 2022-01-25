@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -268,6 +268,24 @@ Parameters
     OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -293,6 +311,7 @@ Examples
         hostname: 192.168.0.1
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: CHAS123
         ipv4_configuration:
           enable_ipv4: true
@@ -325,6 +344,7 @@ Examples
         hostname: 192.168.0.1
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: SRVR123
         ipv4_configuration:
           enable_ipv4: true
@@ -350,6 +370,7 @@ Examples
         hostname: 192.168.0.1
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: IOM1234
         ipv4_configuration:
           enable_ipv4: true
@@ -372,6 +393,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id : 12345
         management_vlan:
           enable_vlan: true
@@ -388,7 +410,7 @@ msg (always, str, Successfully applied the network settings.)
   Overall status of the network config operation.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CGEN1004', 'RelatedProperties': [], 'Message': 'Unable to complete the request because IPV4 Settings Capability is not Supported does not exist or is not applicable for the resource URI.', 'MessageArgs': ['IPV4 Settings Capability is not Supported'], 'Severity': 'Critical', 'Resolution': "Check the request resource URI. Refer to the OpenManage Enterprise-Modular User's Guide for more information about resource URI and its properties."}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CGEN1004'), ('RelatedProperties', []), ('Message', 'Unable to complete the request because IPV4 Settings Capability is not Supported does not exist or is not applicable for the resource URI.'), ('MessageArgs', ['IPV4 Settings Capability is not Supported']), ('Severity', 'Critical'), ('Resolution', "Check the request resource URI. Refer to the OpenManage Enterprise-Modular User's Guide for more information about resource URI and its properties.")])])]))]))
   Details of the HTTP Error.
 
 

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -29,7 +29,7 @@ extends_documentation_fragment:
 
 requirements:
     - "omsdk"
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Rajeev Arakkal (@rajeevarakkal)"
 notes:
     - Run this module from a system that has direct access to DellEMC iDRAC.
@@ -43,6 +43,7 @@ EXAMPLES = """
       idrac_ip:   "192.168.0.1"
       idrac_user: "user_name"
       idrac_password:  "user_password"
+      ca_path: "/path/to/ca_cert.pem"
 """
 
 RETURNS = """
@@ -136,8 +137,11 @@ def main():
             idrac_user=dict(required=True, type='str'),
             idrac_password=dict(required=True, type='str', aliases=['idrac_pwd'], no_log=True),
             idrac_port=dict(required=False, default=443, type='int'),
+            validate_certs=dict(type='bool', default=True),
+            ca_path=dict(type='path'),
+            timeout=dict(type="int", default=30)
         ),
-
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:

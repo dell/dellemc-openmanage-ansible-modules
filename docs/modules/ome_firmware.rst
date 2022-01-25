@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -118,6 +118,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -143,6 +161,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id:
           - 11111
           - 22222
@@ -153,6 +172,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag:
           - KLBR111
           - KLBR222
@@ -163,6 +183,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_group_names:
           - servers
         dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
@@ -172,6 +193,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
 
     - name: Stage firmware for the next reboot using baseline name
@@ -179,6 +201,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         schedule: StageForNextReboot
 
@@ -187,6 +210,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         components:
           - BIOS
@@ -196,6 +220,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         device_id:
           - 11111
@@ -208,6 +233,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         device_service_tag:
           - KLBR111
@@ -220,6 +246,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         devices:
           - id: 12345
@@ -235,6 +262,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         devices:
           - service_tag: ABCDE12
@@ -250,6 +278,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         devices:
           - service_tag: ABCDE12
@@ -269,11 +298,11 @@ msg (always, str, Successfully submitted the firmware update job.)
   Overall firmware update status.
 
 
-update_status (success, dict, {'LastRun': 'None', 'CreatedBy': 'user', 'Schedule': 'startnow', 'LastRunStatus': {'Id': 1111, 'Name': 'NotRun'}, 'Builtin': False, 'Editable': True, 'NextRun': 'None', 'JobStatus': {'Id': 1111, 'Name': 'New'}, 'JobName': 'Firmware Update Task', 'Visible': True, 'State': 'Enabled', 'JobDescription': 'dup test', 'Params': [{'Value': 'true', 'Key': 'signVerify', 'JobId': 11111}, {'Value': 'false', 'Key': 'stagingValue', 'JobId': 11112}, {'Value': 'false', 'Key': 'complianceUpdate', 'JobId': 11113}, {'Value': 'INSTALL_FIRMWARE', 'Key': 'operationName', 'JobId': 11114}], 'Targets': [{'TargetType': {'Id': 1000, 'Name': 'DEVICE'}, 'Data': 'DCIM:INSTALLED#701__NIC.Mezzanine.1A-1-1=1234567654321', 'Id': 11115, 'JobId': 11116}], 'StartTime': 'None', 'UpdatedBy': 'None', 'EndTime': 'None', 'Id': 11117, 'JobType': {'Internal': False, 'Id': 5, 'Name': 'Update_Task'}})
+update_status (success, dict, AnsibleMapping([('LastRun', 'None'), ('CreatedBy', 'user'), ('Schedule', 'startnow'), ('LastRunStatus', AnsibleMapping([('Id', 1111), ('Name', 'NotRun')])), ('Builtin', False), ('Editable', True), ('NextRun', 'None'), ('JobStatus', AnsibleMapping([('Id', 1111), ('Name', 'New')])), ('JobName', 'Firmware Update Task'), ('Visible', True), ('State', 'Enabled'), ('JobDescription', 'dup test'), ('Params', [AnsibleMapping([('Value', 'true'), ('Key', 'signVerify'), ('JobId', 11111)]), AnsibleMapping([('Value', 'false'), ('Key', 'stagingValue'), ('JobId', 11112)]), AnsibleMapping([('Value', 'false'), ('Key', 'complianceUpdate'), ('JobId', 11113)]), AnsibleMapping([('Value', 'INSTALL_FIRMWARE'), ('Key', 'operationName'), ('JobId', 11114)])]), ('Targets', [AnsibleMapping([('TargetType', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')])), ('Data', 'DCIM:INSTALLED#701__NIC.Mezzanine.1A-1-1=1234567654321'), ('Id', 11115), ('JobId', 11116)])]), ('StartTime', 'None'), ('UpdatedBy', 'None'), ('EndTime', 'None'), ('Id', 11117), ('JobType', AnsibleMapping([('Internal', False), ('Id', 5), ('Name', 'Update_Task')]))]))
   The firmware update job and progress details from the OME.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 

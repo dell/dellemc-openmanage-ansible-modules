@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.3.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -38,7 +38,7 @@ options:
       - I(device_id) is mutually exclusive with I(device_service_tag).
     type: int
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
@@ -52,6 +52,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 11111
     power_state: "off"
 
@@ -60,6 +61,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: "KLBR111"
     power_state: "on"
 
@@ -68,6 +70,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: "{{ item.device_id }}"
     power_state: "{{ item.state }}"
   with_items:
@@ -79,6 +82,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: "{{ item.service_tag }}"
     power_state: "{{ item.state }}"
   with_items:
@@ -152,6 +156,7 @@ job_status:
 '''
 
 import json
+from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -246,6 +251,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "power_state": {"required": True, "type": "str",
                             "choices": ["on", "off", "coldboot", "warmboot", "shutdown"]},
             "device_service_tag": {"required": False, "type": "str"},
@@ -253,6 +261,7 @@ def main():
         },
         required_one_of=[["device_service_tag", "device_id"]],
         mutually_exclusive=[["device_service_tag", "device_id"]],
+        required_if=[['validate_certs', True, ['ca_path']], ],
         supports_check_mode=True
     )
     try:
@@ -264,7 +273,7 @@ def main():
             job_status = spawn_update_job(rest_obj, payload)
     except HTTPError as err:
         module.fail_json(msg=str(err), job_status=json.load(err))
-    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
     module.exit_json(msg="Power State operation job submitted successfully.",
                      job_status=job_status, changed=True)

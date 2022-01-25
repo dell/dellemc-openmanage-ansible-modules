@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -43,7 +43,7 @@ options:
 
 requirements:
     - "omsdk"
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
@@ -60,6 +60,7 @@ EXAMPLES = """
        idrac_ip:   "190.168.0.1"
        idrac_user: "user_name"
        idrac_password:  "user_password"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "user_name:/share"
        share_password:  "share_password"
        share_user: "user_name"
@@ -195,6 +196,9 @@ def main():
             "idrac_user": {"required": True, "type": 'str'},
             "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
 
             # Export Destination
             "share_name": {"required": True, "type": 'str'},
@@ -212,6 +216,7 @@ def main():
             "setup_idrac_timezone": {"required": False, "type": 'str'},
 
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:

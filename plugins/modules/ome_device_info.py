@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2019-2021 Dell Inc.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -62,7 +62,7 @@ options:
                 type: str
 
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
@@ -76,12 +76,14 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
 
 - name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering
   dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "basic_inventory"
     system_query_options:
       filter: "Id eq 33333 or Id eq 11111"
@@ -91,6 +93,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "detailed_inventory"
     system_query_options:
       device_id:
@@ -102,6 +105,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "detailed_inventory"
     system_query_options:
       device_service_tag:
@@ -113,6 +117,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "detailed_inventory"
     system_query_options:
       device_id:
@@ -127,6 +132,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "subsystem_health"
     system_query_options:
       device_service_tag:
@@ -190,6 +196,7 @@ device_info:
   }
 '''
 
+from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -371,12 +378,16 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "fact_subset": {"required": False, "default": "basic_inventory",
                             "choices": ['basic_inventory', 'detailed_inventory', 'subsystem_health']},
             "system_query_options": system_query_options,
         },
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],
-                     ['fact_subset', 'subsystem_health', ['system_query_options']], ],
+                     ['fact_subset', 'subsystem_health', ['system_query_options']],
+                     ['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:
@@ -418,7 +429,7 @@ def main():
             module.exit_json(device_info=device_facts)
         else:
             module.fail_json(msg="Failed to fetch the device information")
-    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

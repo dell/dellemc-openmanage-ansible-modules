@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -66,7 +66,7 @@ options:
     description:
       - Active directory domain password.
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:
@@ -82,6 +82,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     group_name: account operators
     directory_name: directory_name
@@ -94,6 +95,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     group_name: account operators
     role: viewer
@@ -103,6 +105,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     group_name: administrators
 """
@@ -305,6 +308,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"required": False, "type": 'str', "default": "present",
                       "choices": ['present', 'absent']},
             "group_name": {"required": True, "type": 'str'},
@@ -315,6 +321,7 @@ def main():
             "domain_password": {"required": False, "type": 'str', "no_log": True},
         },
         mutually_exclusive=[['directory_name', 'directory_id'], ],
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
@@ -335,7 +342,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

@@ -13,6 +13,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "fabric1"
         description: "fabric desc"
@@ -27,6 +28,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "fabric1"
         new_name: "fabric_gold1"
@@ -39,6 +41,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "fabric1"
       tags: delete_smart_fabric

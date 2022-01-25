@@ -14,6 +14,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         template_name: template_name
         identity_pool_name: identity_pool_name
       tags:
@@ -24,6 +25,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         template_name: template_name
       tags:
         - detach

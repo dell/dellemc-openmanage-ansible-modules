@@ -13,6 +13,7 @@
         hostname:  "{{ hostname }}"
         username: "{{ username }}"
         password:  "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         name: "Storage Services"
         device_ids:
           - 11111
@@ -24,6 +25,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         name: "Storage Services"
         device_service_tags:
           - GHRT2R
@@ -35,6 +37,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         group_id: 12345
         device_service_tags:
           - GHRT2R
@@ -46,6 +49,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         name: "Storage Services"
         ip_addresses:
           - 192.35.0.1
@@ -57,6 +61,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         group_id: 12345
         ip_addresses:
           - fe80::ffff:ffff:ffff:ffff
@@ -68,6 +73,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         group_id: 12345
         ip_addresses:
           - 192.35.0.1

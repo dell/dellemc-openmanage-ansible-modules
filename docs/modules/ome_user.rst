@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -47,7 +47,7 @@ Parameters
     Either *user_id* or *name* is mandatory for ``absent`` operation.
 
 
-  attributes (optional, dict, {})
+  attributes (optional, dict, AnsibleMapping())
     Payload data for the user operations. It can take the following attributes for ``present``.
 
     UserTypeId, DirectoryServiceId, Description, Name, Password, UserName, RoleId, Locked, Enabled.
@@ -71,6 +71,24 @@ Parameters
 
   port (optional, int, 443)
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
+
+
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
 
 
 
@@ -98,6 +116,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         attributes:
           UserName: "user1"
           Password: "UserPassword"
@@ -109,6 +128,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         attributes:
           UserName: "user2"
           Description: "user2 description"
@@ -125,6 +145,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "present"
         attributes:
           UserName: "user3"
@@ -137,6 +158,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         user_id: 1234
 
@@ -145,6 +167,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "name"
 
@@ -157,7 +180,7 @@ msg (always, str, Successfully created a User)
   Overall status of the user operation.
 
 
-user_status (When I(state) is C(present)., dict, {'Description': 'Test user creation', 'DirectoryServiceId': 0, 'Enabled': True, 'Id': '61546', 'IsBuiltin': False, 'Locked': False, 'Name': 'test', 'Password': None, 'PlainTextPassword': None, 'RoleId': '10', 'UserName': 'test', 'UserTypeId': 1})
+user_status (When I(state) is C(present)., dict, AnsibleMapping([('Description', 'Test user creation'), ('DirectoryServiceId', 0), ('Enabled', True), ('Id', '61546'), ('IsBuiltin', False), ('Locked', False), ('Name', 'test'), ('Password', None), ('PlainTextPassword', None), ('RoleId', '10'), ('UserName', 'test'), ('UserTypeId', 1)]))
   Details of the user operation, when *state* is ``present``.
 
 

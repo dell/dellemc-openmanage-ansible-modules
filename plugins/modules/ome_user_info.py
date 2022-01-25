@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -34,7 +34,7 @@ options:
         description: Filter records for the supported values.
         type: str
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Jagadeesh N V(@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
@@ -48,12 +48,14 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
 
 - name: Retrieve details of a specific account identified by its account ID
   dellemc.openmanage.ome_user_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     account_id: 1
 
 - name: Get filtered user info based on user name
@@ -61,6 +63,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     system_query_options:
       filter: "UserName eq 'test'"
 '''
@@ -94,6 +97,7 @@ user_info:
 '''
 
 import json
+from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -120,6 +124,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "type": 'int', "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "account_id": {"type": 'int', "required": False},
             "system_query_options": {"required": False, "type": 'dict', "options": {
                 "filter": {"type": 'str', "required": False},
@@ -128,6 +135,7 @@ def main():
         mutually_exclusive=[
             ('account_id', 'system_query_options')
         ],
+        required_if=[['validate_certs', True, ['ca_path']], ],
         supports_check_mode=True
     )
     account_uri = "AccountService/Accounts"
@@ -159,7 +167,7 @@ def main():
         module.fail_json(msg=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+    except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError, SSLError) as err:
         module.fail_json(msg=str(err))
 
 
