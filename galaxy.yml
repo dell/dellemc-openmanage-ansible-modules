@@ -19,7 +19,7 @@ description: Dell EMC OpenManage Ansible Modules allows data center and IT
 
 license_file: 'COPYING.md'
 
-tags: ['dellemc', 'openmanage', 'idrac', 'ome', 'openmanage_enterprise',
+tags: ['dellemc', 'openmanage', 'infrastructure', 'idrac', 'ome', 'openmanage_enterprise',
        'redfish', 'redfish_api', 'poweredge_servers', 'automation', 'devops']
 
 dependencies: {}
