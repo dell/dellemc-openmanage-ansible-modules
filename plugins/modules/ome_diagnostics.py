@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.6.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -121,7 +121,7 @@ options:
       - I(job_wait) and I(job_wait_timeout) options are not applicable for I(test_connection).
     default: False
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
 """
@@ -134,6 +134,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     share_type: CIFS
     share_address: "192.168.0.2"
     share_user: share_username
@@ -148,6 +149,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     share_address: "192.168.0.3"
     share_type: NFS
     share_name: nfs_share
@@ -160,6 +162,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     share_address: "192.168.0.3"
     share_user: share_username
     share_password: share_password
@@ -175,6 +178,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     share_address: "192.168.0.3"
     share_type: NFS
     share_name: nfs_share
@@ -385,6 +389,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "device_ids": {"required": False, "type": "list", "elements": "int"},
             "device_service_tags": {"required": False, "type": "list", "elements": "str"},
             "device_group_name": {"required": False, "type": "str"},
@@ -404,6 +411,7 @@ def main():
             "test_connection": {"required": False, "type": "bool", "default": False},
         },
         required_if=[
+            ['validate_certs', True, ['ca_path']],
             ['log_type', 'application', ['mask_sensitive_info']],
             ['log_type', 'support_assist_collection',
              ['device_ids', 'device_service_tags', 'device_group_name'], True],
@@ -473,7 +481,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

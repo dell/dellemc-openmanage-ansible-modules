@@ -13,6 +13,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline: baseline_name
 
   - name: Retrieve the compliance report for a specific device associated with the baseline using the device ID.
@@ -20,6 +21,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline: baseline_name
       device_id: 10001
 
@@ -28,5 +30,6 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline: baseline_name
       device_service_tag: 2HFGH3

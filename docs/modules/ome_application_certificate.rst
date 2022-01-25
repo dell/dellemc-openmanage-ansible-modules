@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -79,6 +79,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -104,6 +122,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "generate_csr"
         distinguished_name: "hostname.com"
         department_name: "Remote Access Group"
@@ -118,6 +137,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "upload"
         upload_file: "/path/certificate.cer"
 
@@ -130,11 +150,11 @@ msg (always, str, Successfully generated certificate signing request.)
   Overall status of the certificate signing request.
 
 
-csr_status (on success, dict, {'CertificateData': '-----BEGIN CERTIFICATE REQUEST-----GHFSUEKLELE af3u4h2rkdkfjasczjfefhkrr/frjrfrjfrxnvzklf/nbcvxmzvndlskmcvbmzkdk kafhaksksvklhfdjtrhhffgeth/tashdrfstkm@kdjFGD/sdlefrujjfvvsfeikdf yeufghdkatbavfdomehtdnske/tahndfavdtdfgeikjlagmdfbandfvfcrfgdtwxc qwgfrteyupojmnsbajdkdbfs/ujdfgthedsygtamnsuhakmanfuarweyuiwruefjr etwuwurefefgfgurkjkdmbvfmvfvfk==-----END CERTIFICATE REQUEST-----'})
+csr_status (on success, dict, AnsibleMapping([('CertificateData', '-----BEGIN CERTIFICATE REQUEST-----GHFSUEKLELE af3u4h2rkdkfjasczjfefhkrr/frjrfrjfrxnvzklf/nbcvxmzvndlskmcvbmzkdk kafhaksksvklhfdjtrhhffgeth/tashdrfstkm@kdjFGD/sdlefrujjfvvsfeikdf yeufghdkatbavfdomehtdnske/tahndfavdtdfgeikjlagmdfbandfvfcrfgdtwxc qwgfrteyupojmnsbajdkdbfs/ujdfgthedsygtamnsuhakmanfuarweyuiwruefjr etwuwurefefgfgurkjkdmbvfmvfvfk==-----END CERTIFICATE REQUEST-----')]))
   Details of the generated certificate.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CSEC9002', 'RelatedProperties': [], 'Message': 'Unable to upload the certificate because the certificate file provided is invalid.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Make sure the CA certificate and private key are correct and retry the operation.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CSEC9002'), ('RelatedProperties', []), ('Message', 'Unable to upload the certificate because the certificate file provided is invalid.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Make sure the CA certificate and private key are correct and retry the operation.')])])]))]))
   Details of the HTTP error.
 
 

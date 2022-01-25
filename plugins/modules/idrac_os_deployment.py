@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -44,7 +44,7 @@ options:
         default: 1080
 requirements:
     - "omsdk"
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
@@ -60,6 +60,7 @@ EXAMPLES = r'''
       idrac_ip: "192.168.0.1"
       idrac_user: "user_name"
       idrac_password: "user_password"
+      ca_path: "/path/to/ca_cert.pem"
       share_name: "192.168.0.0:/nfsfileshare"
       iso_image:  "unattended_os_image.iso"
       expose_duration: 180
@@ -146,12 +147,16 @@ def main():
             "idrac_user": {"required": True, "type": 'str'},
             "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "share_name": {"required": True, "type": 'str'},
             "share_user": {"required": False, "type": 'str'},
             "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
             "iso_image": {"required": True, "type": 'str'},
             "expose_duration": {"required": False, "type": 'int', "default": 1080}
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=False)
 
     try:

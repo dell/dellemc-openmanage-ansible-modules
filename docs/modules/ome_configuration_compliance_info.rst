@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -59,6 +59,24 @@ Parameters
     OpenManage Enterprise HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -84,6 +102,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline: baseline_name
 
     - name: Retrieve the compliance report for a specific device associated with the baseline using the device ID.
@@ -91,6 +110,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline: baseline_name
         device_id: 10001
 
@@ -99,6 +119,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline: baseline_name
         device_service_tag: 2HFGH3
 
@@ -111,11 +132,11 @@ msg (on error, str, Unable to complete the operation because the entered target 
   Over all compliance report status.
 
 
-compliance_info (success, dict, [{'ComplianceAttributeGroups': [{'Attributes': [], 'ComplianceReason': 'One or more attributes on the target device(s) does not match the compliance template.', 'ComplianceStatus': 2, 'ComplianceSubAttributeGroups': [{'Attributes': [{'AttributeId': 75369, 'ComplianceReason': 'Attribute has different value from template', 'ComplianceStatus': 3, 'CustomId': 0, 'Description': None, 'DisplayName': 'Workload Profile', 'ExpectedValue': 'HpcProfile', 'Value': 'NotAvailable'}], 'ComplianceReason': 'One or more attributes on the target device(s) does not match the compliance template.', 'ComplianceStatus': 2, 'ComplianceSubAttributeGroups': [], 'DisplayName': 'System Profile Settings', 'GroupNameId': 1}], 'DisplayName': 'BIOS', 'GroupNameId': 1}], 'ComplianceStatus': 'NONCOMPLIANT', 'DeviceName': 'WIN-PLOV8MPIP40', 'DeviceType': 1000, 'Id': 25011, 'InventoryTime': '2021-03-18 00:01:57.809771', 'Model': 'PowerEdge R7525', 'ServiceTag': 'JHMBX53'}])
+compliance_info (success, dict, [AnsibleMapping([('ComplianceAttributeGroups', [AnsibleMapping([('Attributes', []), ('ComplianceReason', 'One or more attributes on the target device(s) does not match the compliance template.'), ('ComplianceStatus', 2), ('ComplianceSubAttributeGroups', [AnsibleMapping([('Attributes', [AnsibleMapping([('AttributeId', 75369), ('ComplianceReason', 'Attribute has different value from template'), ('ComplianceStatus', 3), ('CustomId', 0), ('Description', None), ('DisplayName', 'Workload Profile'), ('ExpectedValue', 'HpcProfile'), ('Value', 'NotAvailable')])]), ('ComplianceReason', 'One or more attributes on the target device(s) does not match the compliance template.'), ('ComplianceStatus', 2), ('ComplianceSubAttributeGroups', []), ('DisplayName', 'System Profile Settings'), ('GroupNameId', 1)])]), ('DisplayName', 'BIOS'), ('GroupNameId', 1)])]), ('ComplianceStatus', 'NONCOMPLIANT'), ('DeviceName', 'WIN-PLOV8MPIP40'), ('DeviceType', 1000), ('Id', 25011), ('InventoryTime', '2021-03-18 00:01:57.809771'), ('Model', 'PowerEdge R7525'), ('ServiceTag', 'JHMBX53')])])
   Returns the compliance report information.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 

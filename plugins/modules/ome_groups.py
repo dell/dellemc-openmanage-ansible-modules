@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -71,7 +71,7 @@ options:
       - This is applicable only when I(state) is C(present).
       - This option is mutually exclusive with I(parent_group_name).
 requirements:
-  - "python >= 2.7.5"
+  - "python >= 3.8.6"
 notes:
   - This module manages only static device groups on Dell EMC OpenManage Enterprise.
   - If a device group with the name I(parent_group_name) does not exist, a new device group with the same name is created.
@@ -87,6 +87,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: "group 1"
     description: "Group 1 description"
     parent_group_name: "group parent 1"
@@ -96,6 +97,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     group_id: 1234
     description: "Group description updated"
     parent_group_name: "group parent 2"
@@ -105,6 +107,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     name: "group 1"
 
@@ -113,6 +116,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     group_id:
       - 1234
@@ -399,6 +403,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "name": {"type": "list", "elements": 'str'},
             "group_id": {"type": "list", "elements": 'int'},
             "state": {"type": "str", "choices": ["present", "absent"], "default": "present"},
@@ -408,7 +415,8 @@ def main():
             "parent_group_id": {"type": "int"},
         },
         required_if=[
-            ("state", "present", ("new_name", "description", "parent_group_name", "parent_group_id"), True),
+            ['validate_certs', True, ['ca_path']],
+            ["state", "present", ("new_name", "description", "parent_group_name", "parent_group_id"), True],
         ],
         mutually_exclusive=[
             ("name", "group_id"), ("parent_group_name", "parent_group_id"),
@@ -442,7 +450,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

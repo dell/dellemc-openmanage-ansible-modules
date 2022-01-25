@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -114,7 +114,7 @@ options:
     default: 600
     version_added: 3.4.0
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Jagadeesh N V(@jagadeeshnv)"
@@ -131,6 +131,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "HTTPS"
@@ -144,6 +145,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "HTTP"
@@ -156,6 +158,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "CIFS"
@@ -171,6 +174,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "NFS"
@@ -183,6 +187,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "DELL_ONLINE"
@@ -193,6 +198,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "new catalog_description"
     repository_type: "CIFS"
@@ -208,6 +214,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_id: 10
     new_catalog_name: "new_catalog_name"
     repository_type: "DELL_ONLINE"
@@ -218,6 +225,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     catalog_name: ["catalog_name1", "catalog_name2"]
 
@@ -226,6 +234,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     catalog_id: [11, 34]
 '''
@@ -587,6 +596,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "state": {"default": "present", "choices": ['present', 'absent']},
             "catalog_name": {"type": 'list', "elements": 'str'},
             "new_catalog_name": {"type": 'str'},
@@ -605,6 +617,7 @@ def main():
             "job_wait_timeout": {"type": 'int', "default": 600}
         },
         required_if=[
+            ['validate_certs', True, ['ca_path']],
             ['state', 'present',
              ['repository_type'], False],
             ['state', 'present',
@@ -629,7 +642,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

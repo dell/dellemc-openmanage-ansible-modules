@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -56,6 +56,24 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -81,12 +99,14 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
 
     - name: Retrieve details of a specific template identified by its template ID
       dellemc.openmanage.ome_template_info:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         template_id: 1
 
     - name: Get filtered template info based on name
@@ -94,6 +114,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         system_query_options:
           filter: "Name eq 'new template'"
 
@@ -106,7 +127,7 @@ msg (on error, str, Failed to fetch the template facts)
   Overall template facts status.
 
 
-template_info (success, dict, {'192.168.0.1': {'CreatedBy': 'system', 'CreationTime': '1970-01-31 00:00:56.372144', 'Description': 'Tune workload for Performance Optimized Virtualization', 'HasIdentityAttributes': False, 'Id': 1, 'IdentityPoolId': 0, 'IsBuiltIn': True, 'IsPersistencePolicyValid': False, 'IsStatelessAvailable': False, 'LastUpdatedBy': None, 'LastUpdatedTime': '1970-01-31 00:00:56.372144', 'Name': 'iDRAC Enable Performance Profile for Virtualization', 'SourceDeviceId': 0, 'Status': 0, 'TaskId': 0, 'TypeId': 2, 'ViewTypeId': 4}})
+template_info (success, dict, AnsibleMapping([('192.168.0.1', AnsibleMapping([('CreatedBy', 'system'), ('CreationTime', '1970-01-31 00:00:56.372144'), ('Description', 'Tune workload for Performance Optimized Virtualization'), ('HasIdentityAttributes', False), ('Id', 1), ('IdentityPoolId', 0), ('IsBuiltIn', True), ('IsPersistencePolicyValid', False), ('IsStatelessAvailable', False), ('LastUpdatedBy', None), ('LastUpdatedTime', '1970-01-31 00:00:56.372144'), ('Name', 'iDRAC Enable Performance Profile for Virtualization'), ('SourceDeviceId', 0), ('Status', 0), ('TaskId', 0), ('TypeId', 2), ('ViewTypeId', 4)]))]))
   Details of the templates.
 
 

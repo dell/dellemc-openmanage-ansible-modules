@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -44,7 +44,7 @@ options:
         description: The UDP port number of the syslog server.
         type: int
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - Jagadeesh N V(@jagadeeshnv)
 notes:
@@ -59,6 +59,7 @@ EXAMPLES = """
     hostname: 192.168.0.1
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     syslog_servers:
       - id: 1
         enabled: true
@@ -70,6 +71,7 @@ EXAMPLES = """
     hostname: 192.168.0.1
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     syslog_servers:
       - id: 1
         port_number: 523
@@ -224,6 +226,9 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"type": 'int', "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "syslog_servers":
                 {"type": 'list', "elements": 'dict', "options":
                     {"id": {"type": 'int', "choices": [1, 2, 3, 4], "required": True},
@@ -235,6 +240,7 @@ def main():
                  "required_if": [("enabled", True, ("destination_address",))]
                  }
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:
@@ -249,7 +255,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

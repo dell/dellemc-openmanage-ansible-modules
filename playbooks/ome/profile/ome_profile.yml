@@ -13,6 +13,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
         name_prefix: "omam_profile"
@@ -25,6 +26,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
         name_prefix: "omam_profile"
@@ -43,6 +45,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
         name_prefix: "omam_profile"
@@ -64,6 +67,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: modify
         name: "Profile 00001"
         new_name: "modified profile"
@@ -90,6 +94,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         name: "Profile 00003"
       tags:
@@ -100,6 +105,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         filters:
           SelectAll: True
@@ -112,6 +118,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         filters:
           ProfileIds:
@@ -125,6 +132,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: assign
         name: "Profile 00001"
         device_id: 12456
@@ -155,6 +163,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "unassign"
         name: "Profile 00003"
       tags:
@@ -165,6 +174,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "unassign"
         filters:
           SelectAll: True
@@ -177,6 +187,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "unassign"
         filters:
           ProfileIds:
@@ -190,6 +201,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "migrate"
         name: "Profile 0001"
         device_id: 12456

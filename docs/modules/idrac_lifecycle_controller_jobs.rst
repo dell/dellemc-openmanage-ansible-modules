@@ -21,7 +21,7 @@ Requirements
 The below requirements are needed on the host that executes this module.
 
 - omsdk
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -50,6 +50,24 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -75,14 +93,14 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
-           idrac_port: 443
+           ca_path: "/path/to/ca_cert.pem"
 
     - name: Delete Lifecycle Controller job using a job ID
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
-           idrac_port: 443
+           ca_path: "/path/to/ca_cert.pem"
            job_id: "JID_801841929470"
 
 
@@ -94,11 +112,11 @@ msg (always, str, Successfully deleted the job.)
   Status of the delete operation.
 
 
-status (success, dict, {'Message': 'The specified job was deleted', 'MessageID': 'SUP020', 'ReturnValue': '0'})
+status (success, dict, AnsibleMapping([('Message', 'The specified job was deleted'), ('MessageID', 'SUP020'), ('ReturnValue', '0')]))
   Details of the delete operation.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 

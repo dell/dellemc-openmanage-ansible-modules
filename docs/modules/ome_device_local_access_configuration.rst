@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -176,6 +176,24 @@ Parameters
     OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -202,6 +220,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id: 25011
         enable_kvm_access: true
         enable_chassis_direct_access: false
@@ -215,6 +234,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: GHRT2RL
         quick_sync:
           quick_sync_access: READ_ONLY
@@ -233,6 +253,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         enable_kvm_access: true
         enable_chassis_direct_access: false
         chassis_power_button:
@@ -260,11 +281,11 @@ msg (always, str, Successfully updated the local access settings.)
   Overall status of the device local access settings.
 
 
-location_details (success, dict, {'SettingType': 'LocalAccessConfiguration', 'EnableChassisDirect': False, 'EnableChassisPowerButton': False, 'EnableKvmAccess': True, 'EnableLcdOverridePin': False, 'LcdAccess': 'VIEW_ONLY', 'LcdCustomString': 'LCD Text', 'LcdLanguage': 'en', 'LcdOverridePin': '', 'LcdPinLength': None, 'LcdPresence': 'Present', 'LedPresence': None, 'QuickSync': {'EnableInactivityTimeout': True, 'EnableQuickSyncWifi': False, 'EnableReadAuthentication': False, 'QuickSyncAccess': 'READ_ONLY', 'QuickSyncHardware': 'Present', 'TimeoutLimit': 7, 'TimeoutLimitUnit': 'MINUTES'}})
+location_details (success, dict, AnsibleMapping([('SettingType', 'LocalAccessConfiguration'), ('EnableChassisDirect', False), ('EnableChassisPowerButton', False), ('EnableKvmAccess', True), ('EnableLcdOverridePin', False), ('LcdAccess', 'VIEW_ONLY'), ('LcdCustomString', 'LCD Text'), ('LcdLanguage', 'en'), ('LcdOverridePin', ''), ('LcdPinLength', None), ('LcdPresence', 'Present'), ('LedPresence', None), ('QuickSync', AnsibleMapping([('EnableInactivityTimeout', True), ('EnableQuickSyncWifi', False), ('EnableReadAuthentication', False), ('QuickSyncAccess', 'READ_ONLY'), ('QuickSyncHardware', 'Present'), ('TimeoutLimit', 7), ('TimeoutLimitUnit', 'MINUTES')]))]))
   returned when local access settings are updated successfully.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 

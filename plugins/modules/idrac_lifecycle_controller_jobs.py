@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -31,7 +31,7 @@ options:
 
 requirements:
     - "omsdk"
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
@@ -46,14 +46,14 @@ EXAMPLES = """
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
        idrac_password: "user_password"
-       idrac_port: 443
+       ca_path: "/path/to/ca_cert.pem"
 
 - name: Delete Lifecycle Controller job using a job ID
   dellemc.openmanage.idrac_lifecycle_controller_jobs:
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
        idrac_password: "user_password"
-       idrac_port: 443
+       ca_path: "/path/to/ca_cert.pem"
        job_id: "JID_801841929470"
 """
 RETURN = """
@@ -109,8 +109,12 @@ def main():
             "idrac_user": {"required": True, "type": 'str'},
             "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
             "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "job_id": {"required": False, "type": 'str'}
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=False)
     try:
         with iDRACConnection(module.params) as idrac:

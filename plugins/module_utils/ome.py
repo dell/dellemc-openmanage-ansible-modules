@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -83,6 +83,9 @@ class RestOME(object):
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
         self.port = self.module_params["port"]
+        self.validate_certs = self.module_params.get("validate_certs", True)
+        self.ca_path = self.module_params.get("ca_path")
+        self.timeout = self.module_params.get("timeout", 30)
         self.req_session = req_session
         self.session_id = None
         self.protocol = 'https'
@@ -109,9 +112,12 @@ class RestOME(object):
         req_header = self._headers
         if headers:
             req_header.update(headers)
+        if api_timeout is None:
+            api_timeout = self.timeout
         url_kwargs = {
             "method": method,
-            "validate_certs": False,
+            "validate_certs": self.validate_certs,
+            "ca_path": self.ca_path,
             "use_proxy": True,
             "headers": req_header,
             "timeout": api_timeout,
@@ -119,7 +125,7 @@ class RestOME(object):
         }
         return url_kwargs
 
-    def _args_without_session(self, method, api_timeout=30, headers=None):
+    def _args_without_session(self, method, api_timeout, headers=None):
         """Creates an argument spec in case of basic authentication"""
         req_header = self._headers
         if headers:
@@ -130,14 +136,14 @@ class RestOME(object):
         url_kwargs["force_basic_auth"] = True
         return url_kwargs
 
-    def _args_with_session(self, method, api_timeout=30, headers=None):
+    def _args_with_session(self, method, api_timeout, headers=None):
         """Creates an argument spec, in case of authentication with session"""
         url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
         url_kwargs["force_basic_auth"] = False
         return url_kwargs
 
     def invoke_request(self, method, path, data=None, query_param=None, headers=None,
-                       api_timeout=30, dump=True):
+                       api_timeout=None, dump=True):
         """
         Sends a request through open_url
         Returns :class:`OpenURLResponse` object.

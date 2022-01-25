@@ -13,6 +13,7 @@
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       catalog_name: catalog1
       catalog_description: catalog description
       source: downloads.company.com
@@ -26,6 +27,7 @@
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       catalog_name: "{{ catalog_name }}"
       catalog_description: catalog description
       source: downloads.company.com
@@ -38,6 +40,7 @@
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       catalog_name: "{{ catalog_name }}"
       catalog_description: catalog description
       source: "192.166.0.1"
@@ -53,6 +56,7 @@
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       catalog_name: "{{ catalog_name }}"
       catalog_description: catalog description
       source: "192.166.0.2"
@@ -61,10 +65,11 @@
       file_name: "catalog.xml"
 
   - name: Create a catalog using repository from Dell.com
-    dellemc.openmanage.ome_firmware_catalog:
+    ome_firmware_catalog:
       hostname: "192.168.0.1"
       username: "username"
       password: "password"
+      ca_path: "/path/to/ca_cert.pem"
       catalog_name: "catalog_name"
       catalog_description: "catalog_description"
       repository_type: "DELL_ONLINE"
@@ -75,6 +80,7 @@
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       catalog_name: "{{ catalog_name }}"
       catalog_description: new catalog description
       source: "192.166.0.2"
@@ -86,10 +92,11 @@
       repository_domain: "{{ repository_domain }}"
 
   - name: Modify a catalog using a repository from Dell.com
-    dellemc.openmanage.ome_firmware_catalog:
+    ome_firmware_catalog:
       hostname: "192.168.0.1"
       username: "username"
       password: "password"
+      ca_path: "/path/to/ca_cert.pem"
       catalog_id: 10
       repository_type: DELL_ONLINE
       new_catalog_name: "new_catalog_name"
@@ -100,6 +107,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: absent
       catalog_name: ["catalog_name1", "catalog_name2"]
 
@@ -108,5 +116,6 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: absent
       catalog_id: [11, 34]

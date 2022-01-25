@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -27,7 +27,7 @@ extends_documentation_fragment:
 
 requirements:
   - "omsdk"
-  - "python >= 2.7.5"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
@@ -44,6 +44,7 @@ EXAMPLES = """
        idrac_user: "user_name"
        idrac_password: "user_password"
        idrac_port: 443
+       ca_path: "/path/to/ca_cert.pem"
 """
 
 RETURN = r'''
@@ -113,8 +114,12 @@ def main():
             "idrac_ip": {"required": True, "type": 'str'},
             "idrac_user": {"required": True, "type": 'str'},
             "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'}
+            "idrac_port": {"required": False, "default": 443, "type": 'int'},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30}
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:

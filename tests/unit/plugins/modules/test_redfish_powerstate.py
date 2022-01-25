@@ -255,7 +255,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
 
     def test_fetch_powerstate_resource_error_case_04(self, redfish_connection_mock_for_powerstate,
                                                      redfish_response_mock):
-        """failuere case when system does not supports and throws http error 400 bad request"""
+        """failure case when system does not supports and throws http error 400 bad request"""
         f_module = self.get_module_mock()
         redfish_connection_mock_for_powerstate.root_uri = "/redfish/v1/"
         redfish_connection_mock_for_powerstate.invoke_request.side_effect = HTTPError('http://testhost.com', 400,

@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -70,7 +70,7 @@ options:
        available in OpenManage Enterprise.The module reports failure only if none of the IP addresses provided in the
         list are available in OpenManage Enterprise.
 requirements:
-  - "python >= 2.7.5"
+  - "python >= 3.8.6"
   - "netaddr >= 0.7.19"
 author:
   - "Felix Stephen (@felixs88)"
@@ -87,6 +87,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: "Storage Services"
     device_ids:
       - 11111
@@ -98,6 +99,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: "Storage Services"
     device_service_tags:
       - GHRT2RL
@@ -109,6 +111,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     group_id: 12345
     device_service_tags:
       - GHRT2RL
@@ -119,6 +122,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: "Storage Services"
     ip_addresses:
       - 192.35.0.1
@@ -129,6 +133,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     group_id: 12345
     ip_addresses:
       - fe80::ffff:ffff:ffff:ffff
@@ -139,6 +144,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     group_id: 12345
     ip_addresses:
       - 192.35.0.1
@@ -366,6 +372,9 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "name": {"type": "str"},
             "group_id": {"type": "int"},
             "state": {"required": False, "type": "str", "choices": ["present", "absent"], "default": "present"},
@@ -374,7 +383,8 @@ def main():
             "ip_addresses": {"required": False, "type": "list", "elements": 'str'},
         },
         required_if=(
-            ("state", "present", ("device_ids", "device_service_tags", "ip_addresses"), True),
+            ['validate_certs', True, ['ca_path']],
+            ["state", "present", ("device_ids", "device_service_tags", "ip_addresses"), True],
         ),
         mutually_exclusive=(
             ("name", "group_id"),
@@ -405,7 +415,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError,
-            IndexError, KeyError) as err:
+            IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

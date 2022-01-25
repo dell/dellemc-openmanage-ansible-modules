@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -35,7 +35,7 @@ options:
       - To revoke the default breakout configuration, enter 'HardwareDefault'.
     type: str
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise Modular.
@@ -49,6 +49,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     target_port: "2HB7NX2:phy-port1/1/11"
     breakout_type: "1X40GE"
 
@@ -57,6 +58,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     target_port: "2HB7NX2:phy-port1/1/11"
     breakout_type: "HardwareDefault"
 '''
@@ -257,9 +259,13 @@ def main():
             "username": {"required": True, "type": 'str'},
             "password": {"required": True, "type": 'str', "no_log": True},
             "port": {"required": False, "type": 'int', "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "target_port": {"required": True, "type": 'str'},
             "breakout_type": {"required": True, "type": 'str'},
         },
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:
@@ -275,7 +281,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (SSLValidationError, ConnectionError, TypeError, ValueError, IndexError, SSLError) as err:
+    except (SSLValidationError, ConnectionError, TypeError, ValueError, IndexError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

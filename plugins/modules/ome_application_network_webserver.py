@@ -3,8 +3,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -34,7 +34,7 @@ options:
       - If a change is made to the session timeout, it will only take effect after the next log in.
     type: int
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
@@ -49,6 +49,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     webserver_port: 9443
     webserver_timeout: 20
 
@@ -57,6 +58,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     webserver_timeout: 30
 
 - name: Update web server port
@@ -64,6 +66,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     webserver_port: 8443
 '''
 
@@ -160,10 +163,14 @@ def main():
             "username": {"required": True, "type": "str"},
             "password": {"required": True, "type": "str", "no_log": True},
             "port": {"required": False, "type": "int", "default": 443},
+            "validate_certs": {"type": "bool", "default": True},
+            "ca_path": {"type": "path"},
+            "timeout": {"type": "int", "default": 30},
             "webserver_port": {"required": False, "type": "int"},
             "webserver_timeout": {"required": False, "type": "int"},
         },
         required_one_of=[["webserver_port", "webserver_timeout"]],
+        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:
@@ -182,7 +189,7 @@ def main():
                              webserver_configuration=updated_payload, changed=True)
         else:
             module.fail_json(msg=str(err))
-    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))

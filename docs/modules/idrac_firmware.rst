@@ -27,7 +27,7 @@ Requirements
 The below requirements are needed on the host that executes this module.
 
 - omsdk
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -96,6 +96,24 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -123,6 +141,7 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "192.168.0.0:/share"
            reboot: True
            job_wait: True
@@ -134,6 +153,7 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "full_cifs_path"
            share_user: "share_user"
            share_password: "share_password"
@@ -147,6 +167,7 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "http://downloads.dell.com"
            reboot: True
            job_wait: True
@@ -157,6 +178,7 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "https://downloads.dell.com"
            reboot: True
            job_wait: True
@@ -167,6 +189,7 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "ftp://ftp.dell.com"
            reboot: True
            job_wait: True
@@ -181,7 +204,7 @@ msg (always, str, Successfully updated the firmware.)
   Overall firmware update status.
 
 
-update_status (success, dict, {'InstanceID': 'JID_XXXXXXXXXXXX', 'JobState': 'Completed', 'Message': 'Job completed successfully.', 'MessageId': 'REDXXX', 'Name': 'Repository Update', 'JobStartTime': 'NA', 'Status': 'Success'})
+update_status (success, dict, AnsibleMapping([('InstanceID', 'JID_XXXXXXXXXXXX'), ('JobState', 'Completed'), ('Message', 'Job completed successfully.'), ('MessageId', 'REDXXX'), ('Name', 'Repository Update'), ('JobStartTime', 'NA'), ('Status', 'Success')]))
   Firmware Update job and progress details from the iDRAC.
 
 

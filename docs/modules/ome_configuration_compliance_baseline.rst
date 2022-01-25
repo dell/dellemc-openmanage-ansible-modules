@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -121,6 +121,24 @@ Parameters
     OpenManage Enterprise HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``False``, the SSL certificates will not be validated.
+
+    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+    *ca_path* is required if *validate_certs* is ``True``
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -146,6 +164,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         names: "baseline1"
         template_name: "template1"
         description: "description of baseline"
@@ -158,6 +177,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         names: "baseline1"
         template_id: 1234
         description: "description of baseline"
@@ -170,6 +190,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         names: "baseline2"
         template_id: 2
         job_wait_timeout: 1000
@@ -183,6 +204,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: delete
         names:
           - baseline1
@@ -193,6 +215,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: modify
         names: "baseline1"
         new_name: "baseline_update"
@@ -207,6 +230,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "remediate"
         names: "baseline1"
         device_ids:
@@ -217,6 +241,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "remediate"
         names: "baseline1"
         device_service_tags:
@@ -228,6 +253,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "remediate"
         names: "baseline1"
 
@@ -244,7 +270,7 @@ incompatible_devices (when I(device_service_tags) or I(device_ids) contains inco
   Details of the devices which cannot be used to perform baseline compliance operations
 
 
-compliance_status (when I(command) is C(create) or C(modify), dict, {'Id': 13, 'Name': 'baseline1', 'Description': None, 'TemplateId': 102, 'TemplateName': 'one', 'TemplateType': 2, 'TaskId': 26584, 'PercentageComplete': '100', 'TaskStatus': 2070, 'LastRun': '2021-02-27 13:15:13.751', 'BaselineTargets': [{'Id': 1111, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}], 'ConfigComplianceSummary': {'ComplianceStatus': 'OK', 'NumberOfCritical': 0, 'NumberOfWarning': 0, 'NumberOfNormal': 0, 'NumberOfIncomplete': 0}})
+compliance_status (when I(command) is C(create) or C(modify), dict, AnsibleMapping([('Id', 13), ('Name', 'baseline1'), ('Description', None), ('TemplateId', 102), ('TemplateName', 'one'), ('TemplateType', 2), ('TaskId', 26584), ('PercentageComplete', '100'), ('TaskStatus', 2070), ('LastRun', '2021-02-27 13:15:13.751'), ('BaselineTargets', [AnsibleMapping([('Id', 1111), ('Type', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))])]), ('ConfigComplianceSummary', AnsibleMapping([('ComplianceStatus', 'OK'), ('NumberOfCritical', 0), ('NumberOfWarning', 0), ('NumberOfNormal', 0), ('NumberOfIncomplete', 0)]))]))
   Status of compliance baseline operation.
 
 
@@ -252,7 +278,7 @@ job_id (when I(command) is C(remediate), int, 14123)
   Task ID created when *command* is ``remediate``.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
   Details of the HTTP Error.
 
 
