@@ -34,17 +34,6 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 Install the collection from the github repository using the latest commit on the branch 'collections'  
 ```ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections```
 
-## Playbooks and Tutorials
-* For the latest sample playbooks and examples, see [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
-* For the tutorials and sample use cases, see the tutorials available at [developer.dell.com](https://developer.dell.com/).
-
-## Documentation
-- For the OpenManage Ansible collection documentation, see [Documentation](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/docs). This documentation page is updated for every major and minor (patch release) and has the latest collection documentation.
-- OpenManage Ansible collection is an Ansible certified collection and also available as part of the Ansible Community Releases version v3.0.0 and later. Consequently, the documentation can also be accessed at [Ansible Collection Documentation](https://docs.ansible.com/ansible/latest/collections/dellemc/openmanage/index.html#plugins-in-dellemc-openmanage).
-> **_NOTE_**: There might be a scenario where the documentation available at [Ansible Collection Documentation](https://docs.ansible.com/ansible/latest/collections/dellemc/openmanage/index.html#plugins-in-dellemc-openmanage) is not the latest version. And, this is due to differences in the release timelines for Ansible community release and OpenManage Ansible collection. 
-- To view the documentation for a module, use the command ```ansible-doc```. For example,
-    ```$ ansible-doc dellemc.openmanage.<module-name>```  
-
 ## SSL Certificate Validation
 **By default, SSL certificate validation is enabled in all modules to enforce secure communication.**
 
@@ -61,6 +50,17 @@ To enable SSL certificate validation, perform the following steps:
 
 ### Ignore SSL certificate validation
 It is common to run a test environment without a proper SSL certificate configuration. To disable the certificate validation for a module, set the validate_certs module argument to ```False``` in the playbook.
+
+## Playbooks and Tutorials
+* For the latest sample playbooks and examples, see [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
+* For the tutorials and sample use cases, see the tutorials available at [developer.dell.com](https://developer.dell.com/).
+
+## Documentation
+- For the OpenManage Ansible collection documentation, see [Documentation](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/docs). This documentation page is updated for every major and minor (patch release) and has the latest collection documentation.
+- OpenManage Ansible collection is an Ansible certified collection and also available as part of the Ansible Community Releases version v3.0.0 and later. Consequently, the documentation can also be accessed at [Ansible Collection Documentation](https://docs.ansible.com/ansible/latest/collections/dellemc/openmanage/index.html#plugins-in-dellemc-openmanage).
+> **_NOTE_**: There might be a scenario where the documentation available at [Ansible Collection Documentation](https://docs.ansible.com/ansible/latest/collections/dellemc/openmanage/index.html#plugins-in-dellemc-openmanage) is not the latest version. And, this is due to differences in the release timelines for Ansible community release and OpenManage Ansible collection. 
+- To view the documentation for a module, use the command ```ansible-doc```. For example,
+    ```$ ansible-doc dellemc.openmanage.<module-name>```  
 
 ## LICENSE
 This project is licensed under GPL-3.0 License. See the [COPYING](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/COPYING.md) for more information.
