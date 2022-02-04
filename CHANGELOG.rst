@@ -17,6 +17,7 @@ Major Changes
 -------------
 
 - All modules now support SSL over HTTPS and socket level timeout.
+- HTTPS SSL certificate validation is a ``breaking change`` and needs an update to the playbooks.
 
 Bugfixes
 --------

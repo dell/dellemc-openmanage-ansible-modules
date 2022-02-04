@@ -40,9 +40,9 @@ Install the collection from the github repository using the latest commit on the
 ### Enable SSL certificate validation
 To enable SSL certificate validation, perform the following steps:
   * Generate and upload the custom or organizational CA signed certificates on the iDRACs, OpenManage Enterprise, and OpenManage Enterprise-Modular, as required.
-    * For iDRAC, see the section “SSL server certificates” in the “Integrated Dell Remote Access Controller User’s Guide”.
-    * For OpenManage Enterprise, see the section “Security Certificates” in the “OpenManage Enterprise User’s Guide”.
-    * For OpenManage Enterprise-Modular Edition, see the section “Managing certificates” in the “OpenManage Enterprise-Modular Edition for PowerEdge MX7000 Chassis User's Guide”.
+    * For iDRAC, see the section `SSL server certificates` in the `Integrated Dell Remote Access Controller Users Guide`.
+    * For OpenManage Enterprise, see the section `Security Certificates` in the `OpenManage Enterprise Users Guide`.
+    * For OpenManage Enterprise-Modular Edition, see the section `Managing certificates` in the `OpenManage Enterprise-Modular Edition for PowerEdge MX7000 Chassis Users Guide`.
   * After you have uploaded the custom or organizational CA signed certificate to iDRAC or OME or OME-M, you must have the CA file or bundle available on your Ansible controller. For example, copy the CA file or bundle in the following path: /usr/share/ssl-certs/
     > **_NOTE_**: Ensure that the user running the Ansible modules has permission to access the certificate file or bundle.
   * In your playbook, set the ca_path argument to the file path of your custom or organization CA certificate file or bundle.

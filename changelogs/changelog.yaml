@@ -489,6 +489,7 @@ releases:
     changes:
       major_changes:
       - All modules now support SSL over HTTPS and socket level timeout.
+      - HTTPS SSL certificate validation is a ``breaking change`` and needs an update to the playbooks.
       bugfixes:
       - idrac_bios - The issue while configuring boot sources is fixed (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/347)
       known_issues:
