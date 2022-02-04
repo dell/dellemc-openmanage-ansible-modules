@@ -489,6 +489,9 @@ releases:
     changes:
       major_changes:
       - All modules now support SSL over HTTPS and socket level timeout.
+      breaking_changes:
+      - HTTPS SSL certificate validation is a **breaking change** and will require modification in the
+        existing playbooks. Please refer to `SSL Certificate Validation <https://github.com/dell/dellemc-openmanage-ansible-modules#ssl-certificate-validation>`_ section in the `README.md <https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/README.md#SSL-Certificate-Validation>`_ for modification to existing playbooks.
       bugfixes:
       - idrac_bios - The issue while configuring boot sources is fixed (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/347)
       known_issues:
@@ -525,4 +528,4 @@ releases:
     - description: Configure Quick Deploy settings on OpenManage Enterprise Modular
       name: ome_device_quick_deploy
       namespace: ''
-    release_date: '2022-01-30'
+    release_date: '2022-01-27'
