@@ -489,7 +489,9 @@ releases:
     changes:
       major_changes:
       - All modules now support SSL over HTTPS and socket level timeout.
-      - HTTPS SSL certificate validation is a ``breaking change`` and needs an update to the playbooks.
+      breaking_changes:
+      - HTTPS SSL certificate validation is a **breaking change** and will require modification in the
+        existing playbooks. Please refer to `#SSL Certificate Validation <https://github.com/dell/dellemc-openmanage-ansible-modules#ssl-certificate-validation>`_ section in the `#README.md <https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/README.md#SSL-Certificate-Validation>`_ for modification to existing playbooks.
       bugfixes:
       - idrac_bios - The issue while configuring boot sources is fixed (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/347)
       known_issues:
