@@ -136,8 +136,6 @@ Parameters
   ca_path (optional, path, None)
     The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
 
-    *ca_path* is required if *validate_certs* is ``True``
-
 
   timeout (optional, int, 30)
     The socket level timeout in seconds.
@@ -490,9 +488,9 @@ Content (success, when I(command) is C(export), str, <SystemConfiguration Model=
 <Attribute Name="RAIDresetConfig">True</Attribute>
 <Attribute Name="RAIDforeignConfig">Clear</Attribute>
 </Component>
-<Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1">
+<Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1"> 
 <Attribute Name="RAIDPDState">Ready</Attribute>
-<Attribute Name="RAIDHotSpareStatus">No</Attribute>
+<Attribute Name="RAIDHotSpareStatus">No</Attribute> 
 </Component>
 <Component FQDD="Disk.Direct.1-1:AHCI.Slot.6-1">
 <Attribute Name="RAIDPDState">Ready </Attribute>

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -46,7 +46,7 @@ options:
         description: Whether to Enable or Disable system lockdown mode.
         choices: [Enabled, Disabled]
 requirements:
-    - "omsdk"
+    - "omsdk >= 1.2.488"
     - "python >= 3.8.6"
 author: "Felix Stephen (@felixs88)"
 notes:
@@ -126,7 +126,7 @@ error_info:
 '''
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -180,28 +180,17 @@ def run_system_lockdown_mode(idrac, module):
 
 # Main
 def main():
+    specs = dict(
+        share_name=dict(required=True, type='str'),
+        share_password=dict(required=False, type='str',
+                            aliases=['share_pwd'], no_log=True),
+        share_user=dict(required=False, type='str'),
+        share_mnt=dict(required=False, type='str'),
+        lockdown_mode=dict(required=True, choices=['Enabled', 'Disabled'])
+    )
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec=dict(
-
-            # iDRAC credentials
-            idrac_ip=dict(required=True, type='str'),
-            idrac_user=dict(required=True, type='str'),
-            idrac_password=dict(required=True, type='str',
-                                aliases=['idrac_pwd'], no_log=True),
-            idrac_port=dict(required=False, default=443, type='int'),
-            validate_certs=dict(type='bool', default=True),
-            ca_path=dict(type='path'),
-            timeout=dict(type="int", default=30),
-            # Share Details
-            share_name=dict(required=True, type='str'),
-            share_password=dict(required=False, type='str',
-                                aliases=['share_pwd'], no_log=True),
-            share_user=dict(required=False, type='str'),
-            share_mnt=dict(required=False, type='str'),
-
-            lockdown_mode=dict(required=True, choices=['Enabled', 'Disabled'])
-        ),
-        required_if=[['validate_certs', True, ['ca_path']]],
+        argument_spec=specs,
         supports_check_mode=False)
 
     try:

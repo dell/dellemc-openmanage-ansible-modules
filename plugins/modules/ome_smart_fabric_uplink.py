@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -273,7 +273,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.common.dict_transformations import recursive_diff
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 
 FABRIC_URI = "NetworkService/Fabrics"
 UPLINKS_URI = "NetworkService/Fabrics('{fabric_id}')/Uplinks"
@@ -491,33 +491,27 @@ def modify_uplink(module, rest_obj, fabric_id, uplink_id, uplinks):
 
 
 def main():
+    specs = {
+        "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
+        "fabric_name": {"required": True, "type": "str"},
+        "name": {"required": True, "type": "str"},
+        "new_name": {"required": False, "type": "str"},
+        "description": {"required": False, "type": "str"},
+        "uplink_type": {"required": False,
+                        "choices": ['Ethernet', 'FCoE', 'FC Gateway', 'FC Direct Attach',
+                                    'Ethernet - No Spanning Tree']},
+        "ufd_enable": {"required": False, "choices": ['Enabled', 'Disabled']},
+        "primary_switch_service_tag": {"required": False, "type": "str"},
+        "primary_switch_ports": {"required": False, "type": "list", "elements": "str"},
+        "secondary_switch_service_tag": {"required": False, "type": "str"},
+        "secondary_switch_ports": {"required": False, "type": "list", "elements": "str"},
+        "tagged_networks": {"required": False, "type": "list", "elements": "str"},
+        "untagged_network": {"required": False, "type": "str"}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
-            "fabric_name": {"required": True, "type": "str"},
-            "name": {"required": True, "type": "str"},
-            "new_name": {"required": False, "type": "str"},
-            "description": {"required": False, "type": "str"},
-            "uplink_type": {"required": False,
-                            "choices": ['Ethernet', 'FCoE', 'FC Gateway', 'FC Direct Attach',
-                                        'Ethernet - No Spanning Tree']},
-            "ufd_enable": {"required": False, "choices": ['Enabled', 'Disabled']},
-            "primary_switch_service_tag": {"required": False, "type": "str"},
-            "primary_switch_ports": {"required": False, "type": "list", "elements": "str"},
-            "secondary_switch_service_tag": {"required": False, "type": "str"},
-            "secondary_switch_ports": {"required": False, "type": "list", "elements": "str"},
-            "tagged_networks": {"required": False, "type": "list", "elements": "str"},
-            "untagged_network": {"required": False, "type": "str"}
-        },
-        required_if=[['validate_certs', True, ['ca_path']],
-                     ['state', 'present',
+        argument_spec=specs,
+        required_if=[['state', 'present',
                       ('new_name', 'description', 'uplink_type', 'ufd_enable',
                        'primary_switch_service_tag', 'primary_switch_ports', 'secondary_switch_service_tag',
                        'secondary_switch_ports', 'tagged_networks', 'untagged_network',), True]],

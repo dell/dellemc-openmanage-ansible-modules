@@ -1,6 +1,6 @@
 # Dell EMC OpenManage Ansible Modules
 
-Dell EMC OpenManage Ansible Modules allows data center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers and modular infrastructure by leveraging the management automation capabilities in-built into the Integrated Dell Remote Access Controller (iDRAC), OpenManage Enterprise and OpenManage Enterprise Modular.
+Dell EMC OpenManage Ansible Modules allows data center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers and modular infrastructure by leveraging the management automation capabilities in-built into the Integrated Dell Remote Access Controller (iDRAC), OpenManage Enterprise (OME) and OpenManage Enterprise Modular (OMEM).
 
 OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
 
@@ -8,8 +8,8 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * iDRAC 7 based Dell EMC PowerEdge Servers with firmware versions 2.63.60.62 and above.
   * iDRAC 8 based Dell EMC PowerEdge Servers with firmware versions 2.81.81.81 and above.
   * iDRAC 9 based Dell EMC PowerEdge Servers with firmware versions 5.00.10.20 and above.
-  * Dell EMC OpenManage Enterprise versions 3.8.0 and above.
-  * Dell EMC OpenManage Enterprise-Modular versions 1.30.10 and above.
+  * Dell EMC OpenManage Enterprise versions 3.8.2 and above.
+  * Dell EMC OpenManage Enterprise Modular versions 1.40.00 and above.
 
 ## Prerequisites
   * [Ansible >= 2.10.0](https://github.com/ansible/ansible)
@@ -42,11 +42,15 @@ To enable SSL certificate validation, perform the following steps:
   * Generate and upload the custom or organizational CA signed certificates on the iDRACs, OpenManage Enterprise, and OpenManage Enterprise-Modular, as required.
     * For iDRAC, see the section `SSL server certificates` in the `Integrated Dell Remote Access Controller Users Guide`.
     * For OpenManage Enterprise, see the section `Security Certificates` in the `OpenManage Enterprise Users Guide`.
-    * For OpenManage Enterprise-Modular Edition, see the section `Managing certificates` in the `OpenManage Enterprise-Modular Edition for PowerEdge MX7000 Chassis Users Guide`.
+    * For OpenManage Enterprise Modular, see the section `Managing certificates` in the `OpenManage Enterprise Modular for PowerEdge MX7000 Chassis Users Guide`.
   * After you have uploaded the custom or organizational CA signed certificate to iDRAC or OME or OME-M, you must have the CA file or bundle available on your Ansible controller. For example, copy the CA file or bundle in the following path: /usr/share/ssl-certs/
     > **_NOTE_**: Ensure that the user running the Ansible modules has permission to access the certificate file or bundle.
-  * In your playbook, set the ca_path argument to the file path of your custom or organization CA certificate file or bundle.
+  * You can then use either of the following methods to specify the custom or organization CA certificate file or bundle path to the module:
+    * In your playbook tasks, set the `ca_path` argument to the file path of your custom or organization CA certificate file or bundle.
     ```ca_path: /usr/share/ssl-certs/ca-cert.pem```
+    * Use any of the following environment variables to specify the custom or organization CA certificate file or bundle path. The modules reads the environment variable in the following order of preference: ```REQUESTS_CA_BUNDLE```, ```CURL_CA_BUNDLE```, ```OMAM_CA_BUNDLE```. 
+     > **_NOTE_**: Use the following command to set the environment variable with the custom or organization CA certificate file or bundle:
+        <br>```export REQUESTS_CA_BUNDLE=/usr/share/ssl-certs/ca-cert.pem```
 
 ### Ignore SSL certificate validation
 It is common to run a test environment without a proper SSL certificate configuration. To disable the certificate validation for a module, set the validate_certs module argument to ```False``` in the playbook.

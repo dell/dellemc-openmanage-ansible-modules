@@ -118,8 +118,6 @@ Parameters
   ca_path (optional, path, None)
     The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
 
-    *ca_path* is required if *validate_certs* is ``True``
-
 
   timeout (optional, int, 30)
     The socket level timeout in seconds.

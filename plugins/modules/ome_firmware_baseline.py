@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -269,7 +269,7 @@ import json
 import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.dict_transformations import recursive_diff
@@ -499,35 +499,29 @@ def delete_baseline(module, rest_obj, baseline_list):
 
 
 def main():
+    specs = {
+        "state": {"default": "present", "choices": ['present', 'absent']},
+        "baseline_name": {"type": 'str'},
+        "baseline_id": {"type": 'int'},
+        "baseline_description": {"type": 'str'},
+        "new_baseline_name": {"type": 'str'},
+        "catalog_name": {"type": 'str'},
+        "downgrade_enabled": {"type": 'bool'},
+        "is_64_bit": {"type": 'bool'},
+        "device_ids": {"type": 'list', "elements": 'int'},
+        "device_service_tags": {"type": 'list', "elements": 'str'},
+        "device_group_names": {"type": 'list', "elements": 'str'},
+        "job_wait": {"type": 'bool', "default": True},
+        "job_wait_timeout": {"type": 'int', "default": 600}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "state": {"default": "present", "choices": ['present', 'absent']},
-            "baseline_name": {"type": 'str'},
-            "baseline_id": {"type": 'int'},
-            "baseline_description": {"type": 'str'},
-            "new_baseline_name": {"type": 'str'},
-            "catalog_name": {"type": 'str'},
-            "downgrade_enabled": {"type": 'bool'},
-            "is_64_bit": {"type": 'bool'},
-            "device_ids": {"type": 'list', "elements": 'int'},
-            "device_service_tags": {"type": 'list', "elements": 'str'},
-            "device_group_names": {"type": 'list', "elements": 'str'},
-            "job_wait": {"type": 'bool', "default": True},
-            "job_wait_timeout": {"type": 'int', "default": 600}
-        },
+        argument_spec=specs,
         mutually_exclusive=[
             ('device_ids', 'device_service_tags', 'device_group_names'),
             ('baseline_name', 'baseline_id')
         ],
         required_one_of=[('baseline_name', 'baseline_id')],
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:

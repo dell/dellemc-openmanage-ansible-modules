@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+
@@ -197,7 +197,7 @@ error_info:
 import json
 import os
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -281,22 +281,19 @@ def _get_formatted_payload(obj, existing_payload):
 
 
 def main():
+    specs = {
+        "destination": {"required": True, "type": "str"},
+        "event_type": {"type": "str", "default": "Alert", "choices": ['Alert', 'MetricReport']},
+        "event_format_type": {"type": "str", "default": "Event",
+                              "choices": ['Event', 'MetricReport']},
+        "state": {"type": "str", "default": "present", "choices": ['present', 'absent']},
+    }
+    specs.update(redfish_auth_params)
+
     module = AnsibleModule(
-        argument_spec={
-            "baseuri": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "destination": {"required": True, "type": "str"},
-            "event_type": {"type": "str", "default": "Alert", "choices": ['Alert', 'MetricReport']},
-            "event_format_type": {"type": "str", "default": "Event",
-                                  "choices": ['Event', 'MetricReport']},
-            "state": {"type": "str", "default": "present", "choices": ['present', 'absent']},
-        },
-        required_if=[['validate_certs', True, ['ca_path']], ],
+        argument_spec=specs,
         supports_check_mode=False)
+
     try:
         _validate_inputs(module)
         with Redfish(module.params, req_session=True) as obj:

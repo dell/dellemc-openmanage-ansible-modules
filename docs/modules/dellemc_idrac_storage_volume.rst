@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk
+- omsdk >= 1.2.488
 - python >= 3.8.6
 
 
@@ -138,8 +138,6 @@ Parameters
 
   ca_path (optional, path, None)
     The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
-
-    *ca_path* is required if *validate_certs* is ``True``
 
 
   timeout (optional, int, 30)

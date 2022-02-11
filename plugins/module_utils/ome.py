@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -31,10 +31,21 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
+import os
 import time
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+
+ome_auth_params = {
+    "hostname": {"required": True, "type": "str"},
+    "username": {"required": True, "type": "str"},
+    "password": {"required": True, "type": "str", "no_log": True},
+    "port": {"type": "int", "default": 443},
+    "validate_certs": {"type": "bool", "default": True},
+    "ca_path": {"type": "path"},
+    "timeout": {"type": "int", "default": 30},
+}
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "SessionService/Sessions",
@@ -114,6 +125,8 @@ class RestOME(object):
             req_header.update(headers)
         if api_timeout is None:
             api_timeout = self.timeout
+        if self.ca_path is None:
+            self.ca_path = self._get_omam_ca_env()
         url_kwargs = {
             "method": method,
             "validate_certs": self.validate_certs,
@@ -380,3 +393,7 @@ class RestOME(object):
             job_allowed = True
             available_jobs = job_lst
         return job_allowed, available_jobs
+
+    def _get_omam_ca_env(self):
+        """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
+        return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")

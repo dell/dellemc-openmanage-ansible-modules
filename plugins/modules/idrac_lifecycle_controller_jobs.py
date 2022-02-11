@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -30,7 +30,7 @@ options:
            - All the jobs in the job queue are deleted if this option is not specified.
 
 requirements:
-    - "omsdk"
+    - "omsdk >= 1.2.488"
     - "python >= 3.8.6"
 author:
     - "Felix Stephen (@felixs88)"
@@ -96,25 +96,18 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 
 def main():
+    specs = {
+        "job_id": {"required": False, "type": 'str'}
+    }
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec={
-
-            "idrac_ip": {"required": True, "type": 'str'},
-            "idrac_user": {"required": True, "type": 'str'},
-            "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "job_id": {"required": False, "type": 'str'}
-        },
-        required_if=[['validate_certs', True, ['ca_path']]],
+        argument_spec=specs,
         supports_check_mode=False)
     try:
         with iDRACConnection(module.params) as idrac:

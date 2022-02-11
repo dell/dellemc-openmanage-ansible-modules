@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -97,7 +97,7 @@ options:
             I(onetime_boot_mode), I(secure_boot_mode), I(nvme_mode), I(boot_mode).
 
 requirements:
-    - "omsdk"
+    - "omsdk >= 1.2.488"
     - "python >= 3.8.6"
 author:
     - "Felix Stephen (@felixs88)"
@@ -240,7 +240,7 @@ import tempfile
 import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omdrivers.enums.iDRAC.BIOS import (BootModeTypes, NvmeModeTypes, SecureBootModeTypes,
@@ -380,32 +380,26 @@ def main():
     mutual_exclusive_args = [['boot_sources', 'attributes'], ['boot_sources', 'secure_boot_mode'],
                              ['boot_sources', 'boot_mode'], ['boot_sources', 'boot_sequence'],
                              ['boot_sources', 'nvme_mode'], ['boot_sources', 'onetime_boot_mode']]
+    specs = {
+        "share_name": {"required": False, "type": 'str'},
+        "share_user": {"required": False, "type": 'str'},
+        "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
+        "share_mnt": {"required": False, "type": 'str'},
+        "boot_mode": {"required": False, "choices": ['Bios', 'Uefi']},
+        "nvme_mode": {"required": False, "choices": ['NonRaid', 'Raid']},
+        "secure_boot_mode": {"required": False, "choices": ['AuditMode', 'DeployedMode', 'SetupMode', 'UserMode']},
+        "onetime_boot_mode": {"required": False, "choices": ['Disabled', 'OneTimeBootSeq',
+                                                             'OneTimeCustomBootSeqStr', 'OneTimeCustomHddSeqStr',
+                                                             'OneTimeCustomUefiBootSeqStr', 'OneTimeHddSeq',
+                                                             'OneTimeUefiBootSeq']},
+        "boot_sequence": {"required": False, "type": "str"},
+        "attributes": {"required": False, "type": 'dict'},
+        "boot_sources": {"required": False, "type": 'list', 'elements': 'raw'}
+    }
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "idrac_ip": {"required": True, "type": 'str'},
-            "idrac_user": {"required": True, "type": 'str'},
-            "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "share_name": {"required": False, "type": 'str'},
-            "share_user": {"required": False, "type": 'str'},
-            "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
-            "share_mnt": {"required": False, "type": 'str'},
-            "boot_mode": {"required": False, "choices": ['Bios', 'Uefi']},
-            "nvme_mode": {"required": False, "choices": ['NonRaid', 'Raid']},
-            "secure_boot_mode": {"required": False, "choices": ['AuditMode', 'DeployedMode', 'SetupMode', 'UserMode']},
-            "onetime_boot_mode": {"required": False, "choices": ['Disabled', 'OneTimeBootSeq',
-                                                                 'OneTimeCustomBootSeqStr', 'OneTimeCustomHddSeqStr',
-                                                                 'OneTimeCustomUefiBootSeqStr', 'OneTimeHddSeq',
-                                                                 'OneTimeUefiBootSeq']},
-            "boot_sequence": {"required": False, "type": "str"},
-            "attributes": {"required": False, "type": 'dict'},
-            "boot_sources": {"required": False, "type": 'list', 'elements': 'raw'}
-        },
+        argument_spec=specs,
         mutually_exclusive=mutual_exclusive_args,
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:

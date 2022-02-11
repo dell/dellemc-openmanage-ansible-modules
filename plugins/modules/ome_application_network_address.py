@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -423,12 +423,11 @@ error_info:
   }
 '''
 
-
 import json
 import socket
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -676,52 +675,48 @@ def main():
                    "dns_domain_name": {"required": False, "type": "str"}}
     management_vlan = {"enable_vlan": {"required": True, "type": "bool"},
                        "vlan_id": {"required": False, "type": "int"}}
+
+    specs = {
+        "enable_nic": {"required": False, "type": "bool", "default": True},
+        "interface_name": {"required": False, "type": "str"},
+        "ipv4_configuration":
+            {"required": False, "type": "dict", "options": ipv4_options,
+             "required_if": [
+                 ['enable', True, ('enable_dhcp',), True],
+                 ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
+                 ['use_dhcp_for_dns_server_names', False,
+                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]
+             ]
+             },
+        "ipv6_configuration":
+            {"required": False, "type": "dict", "options": ipv6_options,
+             "required_if": [
+                 ['enable', True, ('enable_auto_configuration',), True],
+                 ['enable_auto_configuration', False, ('static_ip_address', 'static_prefix_length', "static_gateway"),
+                  False],
+                 ['use_dhcp_for_dns_server_names', False,
+                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]
+             ]
+             },
+        "dns_configuration":
+            {"required": False, "type": "dict", "options": dns_options,
+             "required_if": [
+                 ['register_with_dns', True, ('dns_name',), False],
+                 ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)]
+             ]
+             },
+        "management_vlan":
+            {"required": False, "type": "dict", "options": management_vlan,
+             "required_if": [
+                 ['enable_vlan', True, ('vlan_id',), True]
+             ]
+             },
+        "reboot_delay": {"required": False, "type": "int"}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "enable_nic": {"required": False, "type": "bool", "default": True},
-            "interface_name": {"required": False, "type": "str"},
-            "ipv4_configuration":
-                {"required": False, "type": "dict", "options": ipv4_options,
-                 "required_if": [
-                     ['enable', True, ('enable_dhcp',), True],
-                     ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
-                     ['use_dhcp_for_dns_server_names', False,
-                      ('static_preferred_dns_server', 'static_alternate_dns_server'), True]
-                 ]
-                 },
-            "ipv6_configuration":
-                {"required": False, "type": "dict", "options": ipv6_options,
-                 "required_if": [
-                     ['enable', True, ('enable_auto_configuration',), True],
-                     ['enable_auto_configuration', False, ('static_ip_address', 'static_prefix_length', "static_gateway"), False],
-                     ['use_dhcp_for_dns_server_names', False,
-                      ('static_preferred_dns_server', 'static_alternate_dns_server'), True]
-                 ]
-                 },
-            "dns_configuration":
-                {"required": False, "type": "dict", "options": dns_options,
-                 "required_if": [
-                     ['register_with_dns', True, ('dns_name',), False],
-                     ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)]
-                 ]
-                 },
-            "management_vlan":
-                {"required": False, "type": "dict", "options": management_vlan,
-                 "required_if": [
-                     ['enable_vlan', True, ('vlan_id',), True]
-                 ]
-                 },
-            "reboot_delay": {"required": False, "type": "int"}
-        },
+        argument_spec=specs,
         required_if=[
-            ['validate_certs', True, ['ca_path']],
             ["enable_nic", True,
              ("ipv4_configuration", "ipv6_configuration", "dns_configuration", "management_vlan"), True]
         ],

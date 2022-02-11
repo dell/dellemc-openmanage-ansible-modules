@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -205,7 +205,7 @@ import time
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -379,29 +379,23 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
 
 
 def main():
+    specs = {
+        "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
+        "new_user_name": {"required": False},
+        "user_name": {"required": True},
+        "user_password": {"required": False, "no_log": True},
+        "privilege": {"required": False, "choices": ['Administrator', 'ReadOnly', 'Operator', 'None']},
+        "ipmi_lan_privilege": {"required": False, "choices": ['Administrator', 'Operator', 'User', 'No Access']},
+        "ipmi_serial_privilege": {"required": False, "choices": ['Administrator', 'Operator', 'User', 'No Access']},
+        "enable": {"required": False, "type": "bool"},
+        "sol_enable": {"required": False, "type": "bool"},
+        "protocol_enable": {"required": False, "type": "bool"},
+        "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None']},
+        "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None']},
+    }
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "idrac_ip": {"required": True},
-            "idrac_user": {"required": True},
-            "idrac_password": {"required": True, "aliases": ['idrac_pwd'], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
-            "new_user_name": {"required": False},
-            "user_name": {"required": True},
-            "user_password": {"required": False, "no_log": True},
-            "privilege": {"required": False, "choices": ['Administrator', 'ReadOnly', 'Operator', 'None']},
-            "ipmi_lan_privilege": {"required": False, "choices": ['Administrator', 'Operator', 'User', 'No Access']},
-            "ipmi_serial_privilege": {"required": False, "choices": ['Administrator', 'Operator', 'User', 'No Access']},
-            "enable": {"required": False, "type": "bool"},
-            "sol_enable": {"required": False, "type": "bool"},
-            "protocol_enable": {"required": False, "type": "bool"},
-            "authentication_protocol": {"required": False, "choices": ['SHA', 'MD5', 'None']},
-            "privacy_protocol": {"required": False, "choices": ['AES', 'DES', 'None']},
-        },
-        required_if=[['validate_certs', True, ['ca_path']]],
+        argument_spec=specs,
         supports_check_mode=True)
     try:
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:

@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -203,7 +203,7 @@ import json
 import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -310,41 +310,36 @@ def login_security_setting(module, rest_obj):
 
 
 def main():
-    module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "restrict_allowed_ip_range": {
-                "type": 'dict', "options": {
-                    "enable_ip_range": {"type": 'bool', "required": True},
-                    "ip_range": {"type": 'str'}
-                },
-                "required_if": [("enable_ip_range", True, ("ip_range",))]
+    specs = {
+        "restrict_allowed_ip_range": {
+            "type": 'dict', "options": {
+                "enable_ip_range": {"type": 'bool', "required": True},
+                "ip_range": {"type": 'str'}
             },
-            "login_lockout_policy": {
-                "type": 'dict', "options": {
-                    "by_user_name": {"type": 'bool'},
-                    "by_ip_address": {"type": 'bool'},
-                    "lockout_fail_count": {"type": 'int'},
-                    "lockout_fail_window": {"type": 'int'},
-                    "lockout_penalty_time": {"type": 'int'}
-                },
-                "required_one_of": [("by_user_name", "by_ip_address", "lockout_fail_count",
-                                     "lockout_fail_window", "lockout_penalty_time")]
-            },
-            "fips_mode_enable": {"type": 'bool'},
-            "job_wait": {"type": 'bool', "default": True},
-            "job_wait_timeout": {"type": 'int', "default": 120}
+            "required_if": [("enable_ip_range", True, ("ip_range",))]
         },
+        "login_lockout_policy": {
+            "type": 'dict', "options": {
+                "by_user_name": {"type": 'bool'},
+                "by_ip_address": {"type": 'bool'},
+                "lockout_fail_count": {"type": 'int'},
+                "lockout_fail_window": {"type": 'int'},
+                "lockout_penalty_time": {"type": 'int'}
+            },
+            "required_one_of": [("by_user_name", "by_ip_address", "lockout_fail_count",
+                                 "lockout_fail_window", "lockout_penalty_time")]
+        },
+        "fips_mode_enable": {"type": 'bool'},
+        "job_wait": {"type": 'bool', "default": True},
+        "job_wait_timeout": {"type": 'int', "default": 120}
+    }
+    specs.update(ome_auth_params)
+
+    module = AnsibleModule(
+        argument_spec=specs,
         mutually_exclusive=[("fips_mode_enable", "login_lockout_policy"),
                             ("fips_mode_enable", "restrict_allowed_ip_range")],
         required_one_of=[("restrict_allowed_ip_range", "login_lockout_policy", "fips_mode_enable")],
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:

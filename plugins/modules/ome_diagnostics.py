@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -255,7 +255,7 @@ import json
 import re
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2}
@@ -383,35 +383,29 @@ def find_failed_jobs(resp, rest_obj):
 
 
 def main():
+    specs = {
+        "device_ids": {"required": False, "type": "list", "elements": "int"},
+        "device_service_tags": {"required": False, "type": "list", "elements": "str"},
+        "device_group_name": {"required": False, "type": "str"},
+        "log_type": {"required": False, "type": "str", "default": "support_assist_collection",
+                     "choices": ["support_assist_collection", "application"]},
+        "mask_sensitive_info": {"required": False, "type": "bool", "default": False},
+        "log_selectors": {"required": False, "type": "list",
+                          "choices": ["RAID_LOGS", "OS_LOGS"], "elements": "str"},
+        "share_address": {"required": True, "type": "str"},
+        "share_name": {"required": True, "type": "str"},
+        "share_type": {"required": True, "type": "str", "choices": ["NFS", "CIFS"]},
+        "share_user": {"required": False, "type": "str"},
+        "share_password": {"required": False, "type": "str", "no_log": True},
+        "share_domain": {"required": False, "type": "str"},
+        "job_wait": {"required": False, "type": "bool", "default": True},
+        "job_wait_timeout": {"required": False, "type": "int", "default": 60},
+        "test_connection": {"required": False, "type": "bool", "default": False},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "device_ids": {"required": False, "type": "list", "elements": "int"},
-            "device_service_tags": {"required": False, "type": "list", "elements": "str"},
-            "device_group_name": {"required": False, "type": "str"},
-            "log_type": {"required": False, "type": "str", "default": "support_assist_collection",
-                         "choices": ["support_assist_collection", "application"]},
-            "mask_sensitive_info": {"required": False, "type": "bool", "default": False},
-            "log_selectors": {"required": False, "type": "list",
-                              "choices": ["RAID_LOGS", "OS_LOGS"], "elements": "str"},
-            "share_address": {"required": True, "type": "str"},
-            "share_name": {"required": True, "type": "str"},
-            "share_type": {"required": True, "type": "str", "choices": ["NFS", "CIFS"]},
-            "share_user": {"required": False, "type": "str"},
-            "share_password": {"required": False, "type": "str", "no_log": True},
-            "share_domain": {"required": False, "type": "str"},
-            "job_wait": {"required": False, "type": "bool", "default": True},
-            "job_wait_timeout": {"required": False, "type": "int", "default": 60},
-            "test_connection": {"required": False, "type": "bool", "default": False},
-        },
+        argument_spec=specs,
         required_if=[
-            ['validate_certs', True, ['ca_path']],
             ['log_type', 'application', ['mask_sensitive_info']],
             ['log_type', 'support_assist_collection',
              ['device_ids', 'device_service_tags', 'device_group_name'], True],

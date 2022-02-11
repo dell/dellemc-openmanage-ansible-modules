@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -32,9 +32,21 @@ __metaclass__ = type
 import json
 import re
 import time
+import os
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+
+idrac_auth_params = {
+    "idrac_ip": {"required": True, "type": 'str'},
+    "idrac_user": {"required": True, "type": 'str'},
+    "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
+    "idrac_port": {"required": False, "default": 443, "type": 'int'},
+    "validate_certs": {"type": "bool", "default": True},
+    "ca_path": {"type": "path"},
+    "timeout": {"type": "int", "default": 30},
+
+}
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/Sessions",
@@ -116,6 +128,8 @@ class iDRACRedfishAPI(object):
             req_header.update(headers)
         if api_timeout is None:
             api_timeout = self.timeout
+        if self.ca_path is None:
+            self.ca_path = self._get_omam_ca_env()
         url_kwargs = {
             "method": method,
             "validate_certs": self.validate_certs,
@@ -325,3 +339,7 @@ class iDRACRedfishAPI(object):
                     break
             user_attr = dict([(attr["Name"], attr["Value"]) for attr in attributes if attr["Name"].startswith("Users.")])
         return user_attr
+
+    def _get_omam_ca_env(self):
+        """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
+        return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")

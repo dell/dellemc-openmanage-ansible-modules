@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -140,7 +140,7 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -163,7 +163,7 @@ def get_payload(module):
         "secondary_ntp_address2": "SecondaryNTPAddress2"
     }
     backup_params = params.copy()
-    remove_keys = ["hostname", "username", "password", "port", "ca_path"]
+    remove_keys = ["hostname", "username", "password", "port", "ca_path", "validate_certs", "timeout"]
     remove_unwanted_keys(remove_keys, backup_params)
     payload = dict([(proxy_payload_map[key], val) for key, val in backup_params.items() if val is not None])
     return payload
@@ -222,24 +222,18 @@ def validate_input(module):
 
 
 def main():
+    specs = {
+        "enable_ntp": {"required": True, "type": "bool"},
+        "time_zone": {"required": False, "type": "str"},
+        "system_time": {"required": False, "type": "str"},
+        "primary_ntp_address": {"required": False, "type": "str"},
+        "secondary_ntp_address1": {"required": False, "type": "str"},
+        "secondary_ntp_address2": {"required": False, "type": "str"},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "enable_ntp": {"required": True, "type": "bool"},
-            "time_zone": {"required": False, "type": "str"},
-            "system_time": {"required": False, "type": "str"},
-            "primary_ntp_address": {"required": False, "type": "str"},
-            "secondary_ntp_address1": {"required": False, "type": "str"},
-            "secondary_ntp_address2": {"required": False, "type": "str"},
-        },
-        required_if=[['validate_certs', True, ['ca_path']],
-                     ['enable_ntp', False, ('time_zone', 'system_time',), True],
+        argument_spec=specs,
+        required_if=[['enable_ntp', False, ('time_zone', 'system_time',), True],
                      ['enable_ntp', True, ('time_zone', 'primary_ntp_address',
                                            'secondary_ntp_address1', 'secondary_ntp_address2'), True]],
         mutually_exclusive=[['system_time', 'primary_ntp_address'],

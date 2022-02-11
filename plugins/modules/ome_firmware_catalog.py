@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -353,7 +353,7 @@ import json
 import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -590,34 +590,28 @@ def perform_present_action(module, rest_obj, requested_catalog_list, all_catalog
 
 
 def main():
+    specs = {
+        "state": {"default": "present", "choices": ['present', 'absent']},
+        "catalog_name": {"type": 'list', "elements": 'str'},
+        "new_catalog_name": {"type": 'str'},
+        "catalog_id": {"type": 'list', "elements": 'int'},
+        "catalog_description": {"required": False, "type": 'str'},
+        "source": {"required": False, "type": 'str'},
+        "source_path": {"required": False, "type": 'str'},
+        "file_name": {"required": False, "type": 'str'},
+        "repository_type": {"required": False,
+                            "choices": ["NFS", "CIFS", "HTTP", "HTTPS", "DELL_ONLINE"]},
+        "repository_username": {"required": False, "type": 'str'},
+        "repository_password": {"required": False, "type": 'str', "no_log": True},
+        "repository_domain": {"required": False, "type": 'str'},
+        "check_certificate": {"required": False, "type": 'bool', "default": False},
+        "job_wait": {"type": 'bool', "default": True},
+        "job_wait_timeout": {"type": 'int', "default": 600}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "state": {"default": "present", "choices": ['present', 'absent']},
-            "catalog_name": {"type": 'list', "elements": 'str'},
-            "new_catalog_name": {"type": 'str'},
-            "catalog_id": {"type": 'list', "elements": 'int'},
-            "catalog_description": {"required": False, "type": 'str'},
-            "source": {"required": False, "type": 'str'},
-            "source_path": {"required": False, "type": 'str'},
-            "file_name": {"required": False, "type": 'str'},
-            "repository_type": {"required": False,
-                                "choices": ["NFS", "CIFS", "HTTP", "HTTPS", "DELL_ONLINE"]},
-            "repository_username": {"required": False, "type": 'str'},
-            "repository_password": {"required": False, "type": 'str', "no_log": True},
-            "repository_domain": {"required": False, "type": 'str'},
-            "check_certificate": {"required": False, "type": 'bool', "default": False},
-            "job_wait": {"type": 'bool', "default": True},
-            "job_wait_timeout": {"type": 'int', "default": 600}
-        },
+        argument_spec=specs,
         required_if=[
-            ['validate_certs', True, ['ca_path']],
             ['state', 'present',
              ['repository_type'], False],
             ['state', 'present',

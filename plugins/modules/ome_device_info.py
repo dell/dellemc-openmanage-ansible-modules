@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2019-2022 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -198,7 +198,7 @@ device_info:
 
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -372,22 +372,16 @@ def main():
         "filter": {"type": 'str', "required": False},
     }}
 
+    specs = {
+        "fact_subset": {"required": False, "default": "basic_inventory",
+                        "choices": ['basic_inventory', 'detailed_inventory', 'subsystem_health']},
+        "system_query_options": system_query_options,
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "fact_subset": {"required": False, "default": "basic_inventory",
-                            "choices": ['basic_inventory', 'detailed_inventory', 'subsystem_health']},
-            "system_query_options": system_query_options,
-        },
+        argument_spec=specs,
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],
-                     ['fact_subset', 'subsystem_health', ['system_query_options']],
-                     ['validate_certs', True, ['ca_path']]],
+                     ['fact_subset', 'subsystem_health', ['system_query_options']]],
         supports_check_mode=True)
 
     try:

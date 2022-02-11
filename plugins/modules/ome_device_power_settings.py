@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -171,7 +171,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 POWER_API = "DeviceService/Devices({0})/Settings('Power')"
 DEVICE_URI = "DeviceService/Devices"
 DOMAIN_URI = "ManagementDomainService/Domains"
@@ -305,26 +305,20 @@ def main():
     hot_spare_options = {"enable_hot_spare": {"required": True, "type": "bool"},
                          "primary_grid": {"required": False, "type": "str", "default": "GRID_1",
                                           "choices": ["GRID_1", "GRID_2"]}}
+    specs = {
+        "device_id": {"required": False, "type": "int"},
+        "device_service_tag": {"required": False, "type": "str"},
+        "power_configuration": {"type": "dict", "required": False, "options": power_options,
+                                "required_if": [["enable_power_cap", True, ("power_cap",), True]]},
+        "redundancy_configuration": {"type": "dict", "required": False, "options": redundancy_options},
+        "hot_spare_configuration": {"type": "dict", "required": False, "options": hot_spare_options,
+                                    "required_if": [["enable_hot_spare", True, ("primary_grid",)]]},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "device_id": {"required": False, "type": "int"},
-            "device_service_tag": {"required": False, "type": "str"},
-            "power_configuration": {"type": "dict", "required": False, "options": power_options,
-                                    "required_if": [["enable_power_cap", True, ("power_cap",), True]]},
-            "redundancy_configuration": {"type": "dict", "required": False, "options": redundancy_options},
-            "hot_spare_configuration": {"type": "dict", "required": False, "options": hot_spare_options,
-                                        "required_if": [["enable_hot_spare", True, ("primary_grid",)]]},
-        },
+        argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],
         required_one_of=[["power_configuration", "redundancy_configuration", "hot_spare_configuration"]],
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True,
     )
     try:
