@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -324,7 +324,7 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
@@ -597,33 +597,28 @@ def validate_inputs(module):
 
 
 def main():
-    module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "device_service_tag": {"type": "list", "elements": 'str'},
-            "device_id": {"type": "list", "elements": 'int'},
-            "dup_file": {"type": "path"},
-            "device_group_names": {"type": "list", "elements": 'str'},
-            "components": {"type": "list", "elements": 'str', "default": []},
-            "baseline_name": {"type": "str"},
-            "schedule": {"type": 'str', "choices": ['RebootNow', 'StageForNextReboot'], "default": 'RebootNow'},
-            "devices": {
-                "type": 'list', "elements": 'dict',
-                "options": {
-                    "id": {'type': 'int'},
-                    "service_tag": {"type": 'str'},
-                    "components": {"type": "list", "elements": 'str', "default": []},
-                },
-                "mutually_exclusive": [('id', 'service_tag')],
-                "required_one_of": [('id', 'service_tag')]
+    specs = {
+        "device_service_tag": {"type": "list", "elements": 'str'},
+        "device_id": {"type": "list", "elements": 'int'},
+        "dup_file": {"type": "path"},
+        "device_group_names": {"type": "list", "elements": 'str'},
+        "components": {"type": "list", "elements": 'str', "default": []},
+        "baseline_name": {"type": "str"},
+        "schedule": {"type": 'str', "choices": ['RebootNow', 'StageForNextReboot'], "default": 'RebootNow'},
+        "devices": {
+            "type": 'list', "elements": 'dict',
+            "options": {
+                "id": {'type': 'int'},
+                "service_tag": {"type": 'str'},
+                "components": {"type": "list", "elements": 'str', "default": []},
             },
+            "mutually_exclusive": [('id', 'service_tag')],
+            "required_one_of": [('id', 'service_tag')]
         },
+    }
+    specs.update(ome_auth_params)
+    module = AnsibleModule(
+        argument_spec=specs,
         required_one_of=[["dup_file", "baseline_name"]],
         mutually_exclusive=[
             ["baseline_name", "dup_file"],
@@ -631,7 +626,6 @@ def main():
             ["device_group_names", "device_service_tag", "devices"],
             ["baseline_name", "device_group_names"],
             ["dup_file", "components", "devices"]],
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     validate_inputs(module)

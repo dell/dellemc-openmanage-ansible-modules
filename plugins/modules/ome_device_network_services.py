@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -195,7 +195,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 
 DOMAIN_URI = "ManagementDomainService/Domains"
 DEVICE_URI = "DeviceService/Devices"
@@ -361,25 +361,19 @@ def main():
                    "max_auth_retries": {"type": "int", "required": False},
                    "idle_timeout": {"type": "float", "required": False}}
     racadm_options = {"enabled": {"type": "bool", "required": True}}
+    specs = {
+        "device_id": {"required": False, "type": "int"},
+        "device_service_tag": {"required": False, "type": "str"},
+        "snmp_settings": {"type": "dict", "required": False, "options": snmp_options,
+                          "required_if": [["enabled", True, ("community_name",)]]},
+        "ssh_settings": {"type": "dict", "required": False, "options": ssh_options},
+        "remote_racadm_settings": {"type": "dict", "required": False, "options": racadm_options},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "device_id": {"required": False, "type": "int"},
-            "device_service_tag": {"required": False, "type": "str"},
-            "snmp_settings": {"type": "dict", "required": False, "options": snmp_options,
-                              "required_if": [["enabled", True, ("community_name",)]]},
-            "ssh_settings": {"type": "dict", "required": False, "options": ssh_options},
-            "remote_racadm_settings": {"type": "dict", "required": False, "options": racadm_options},
-        },
+        argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],
         required_one_of=[["snmp_settings", "ssh_settings", "remote_racadm_settings"]],
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True,
     )
     if not any([module.params.get("snmp_settings"), module.params.get("ssh_settings"),

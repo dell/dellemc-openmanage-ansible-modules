@@ -136,8 +136,6 @@ Parameters
   ca_path (optional, path, None)
     The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
 
-    *ca_path* is required if *validate_certs* is ``True``
-
 
   timeout (optional, int, 30)
     The socket level timeout in seconds.
@@ -490,16 +488,16 @@ Content (success, when I(command) is C(export), str, <SystemConfiguration Model=
 <Attribute Name="RAIDresetConfig">True</Attribute>
 <Attribute Name="RAIDforeignConfig">Clear</Attribute>
 </Component>
-<Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1">
+<Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1"> 
 <Attribute Name="RAIDPDState">Ready</Attribute>
-<Attribute Name="RAIDHotSpareStatus">No</Attribute>
+<Attribute Name="RAIDHotSpareStatus">No</Attribute> 
 </Component>
 <Component FQDD="Disk.Direct.1-1:AHCI.Slot.6-1">
 <Attribute Name="RAIDPDState">Ready </Attribute>
 <Attribute Name="RAIDHotSpareStatus">No</Attribute>
 </Component>
 </SystemConfiguration>)
-XML content of the exported template. This content can be written to a xml file.
+  XML content of the exported template. This content can be written to a xml file.
 
 
 error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))

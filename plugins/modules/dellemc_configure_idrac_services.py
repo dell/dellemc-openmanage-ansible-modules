@@ -50,7 +50,6 @@ options:
     ca_path:
         description:
             - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
-            - I(ca_path) is required if I(validate_certs) is C(True)
         type: path
         version_added: 5.0.0
     share_name:
@@ -125,7 +124,7 @@ options:
                 description: This option is used by iDRAC when it sends out SNMP and IPMI traps.
                     The community name is checked by the remote system to which the traps are sent.
 requirements:
-    - "omsdk"
+    - "omsdk >= 1.2.488"
     - "python >= 3.8.6"
 author: "Felix Stephen (@felixs88)"
 notes:
@@ -361,7 +360,6 @@ def main():
             trap_format=dict(required=False, choices=['SNMPv1', 'SNMPv2', 'SNMPv3'], default=None),
 
         ),
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True)
 
     try:

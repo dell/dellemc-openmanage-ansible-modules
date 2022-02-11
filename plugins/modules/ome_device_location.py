@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -156,7 +156,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 
 LOCATION_API = "DeviceService/Devices({0})/Settings('Location')"
 DEVICE_URI = "DeviceService/Devices"
@@ -268,26 +268,20 @@ def device_validation(module, rest_obj):
 
 
 def main():
+    specs = {
+        "device_id": {"required": False, "type": "int"},
+        "device_service_tag": {"required": False, "type": "str"},
+        "data_center": {"required": False, "type": "str"},
+        "room": {"required": False, "type": "str"},
+        "aisle": {"required": False, "type": "str"},
+        "rack": {"required": False, "type": "str"},
+        "rack_slot": {"required": False, "type": "int"},
+        "location": {"required": False, "type": "str"},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "device_id": {"required": False, "type": "int"},
-            "device_service_tag": {"required": False, "type": "str"},
-            "data_center": {"required": False, "type": "str"},
-            "room": {"required": False, "type": "str"},
-            "aisle": {"required": False, "type": "str"},
-            "rack": {"required": False, "type": "str"},
-            "rack_slot": {"required": False, "type": "int"},
-            "location": {"required": False, "type": "str"},
-        },
+        argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:

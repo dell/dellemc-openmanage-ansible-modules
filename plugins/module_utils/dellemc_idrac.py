@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -28,7 +28,7 @@
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
-
+import os
 try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
@@ -38,6 +38,17 @@ try:
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
+
+
+idrac_auth_params = {
+    "idrac_ip": {"required": True, "type": 'str'},
+    "idrac_user": {"required": True, "type": 'str'},
+    "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
+    "idrac_port": {"required": False, "default": 443, "type": 'int'},
+    "validate_certs": {"type": "bool", "default": True},
+    "ca_path": {"type": "path"},
+    "timeout": {"type": "int", "default": 30},
+}
 
 
 class iDRACConnection:
@@ -54,11 +65,16 @@ class iDRACConnection:
         self.handle = None
         self.creds = UserCredentials(self.idrac_user, self.idrac_pwd)
         self.validate_certs = module_params.get("validate_certs", False)
+        self.ca_path = module_params.get("ca_path")
         verify_ssl = False
         if self.validate_certs is True:
-            verify_ssl = module_params.get("ca_path")
-        self.pOp = WsManOptions(port=self.idrac_port, read_timeout=module_params.get("timeout", 30),
-                                verify_ssl=verify_ssl)
+            if self.ca_path is None:
+                self.ca_path = self._get_omam_ca_env()
+            verify_ssl = self.ca_path
+        timeout = module_params.get("timeout", 30)
+        if not timeout or type(timeout) != int:
+            timeout = 30
+        self.pOp = WsManOptions(port=self.idrac_port, read_timeout=timeout, verify_ssl=verify_ssl)
         self.sdk = sdkinfra()
         if self.sdk is None:
             msg = "Could not initialize iDRAC drivers."
@@ -80,3 +96,9 @@ class iDRACConnection:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.handle.disconnect()
         return False
+
+    def _get_omam_ca_env(self):
+        """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or True as ssl has to
+        be validated from omsdk with single param and is default to false in omsdk"""
+        return (os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE")
+                or os.environ.get("OMAM_CA_BUNDLE") or True)
