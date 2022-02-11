@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -242,7 +242,7 @@ error_info:
 
 import json
 from ssl import SSLError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -514,39 +514,35 @@ def validate_inputs(module):
 
 
 def main():
-    module = AnsibleModule(
-        argument_spec={
-            "baseuri": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "state": {"type": "str", "required": False, "choices": ['present', 'absent']},
-            "command": {"type": "str", "required": False, "choices": ['initialize']},
-            "volume_type": {"type": "str", "required": False,
-                            "choices": ['NonRedundant', 'Mirrored',
-                                        'StripedWithParity', 'SpannedMirrors',
-                                        'SpannedStripesWithParity']},
-            "name": {"required": False, "type": "str"},
-            "controller_id": {"required": False, "type": "str"},
-            "drives": {"elements": "str", "required": False, "type": "list"},
-            "block_size_bytes": {"required": False, "type": "int"},
-            "capacity_bytes": {"required": False, "type": "str"},
-            "optimum_io_size_bytes": {"required": False, "type": "int"},
-            "encryption_types": {"type": "str", "required": False,
-                                 "choices": ['NativeDriveEncryption', 'ControllerAssisted', 'SoftwareAssisted']},
-            "encrypted": {"required": False, "type": "bool"},
-            "volume_id": {"required": False, "type": "str"},
-            "oem": {"required": False, "type": "dict"},
-            "initialize_type": {"type": "str", "required": False, "choices": ['Fast', 'Slow'], "default": "Fast"},
+    specs = {
+        "state": {"type": "str", "required": False, "choices": ['present', 'absent']},
+        "command": {"type": "str", "required": False, "choices": ['initialize']},
+        "volume_type": {"type": "str", "required": False,
+                        "choices": ['NonRedundant', 'Mirrored',
+                                    'StripedWithParity', 'SpannedMirrors',
+                                    'SpannedStripesWithParity']},
+        "name": {"required": False, "type": "str"},
+        "controller_id": {"required": False, "type": "str"},
+        "drives": {"elements": "str", "required": False, "type": "list"},
+        "block_size_bytes": {"required": False, "type": "int"},
+        "capacity_bytes": {"required": False, "type": "str"},
+        "optimum_io_size_bytes": {"required": False, "type": "int"},
+        "encryption_types": {"type": "str", "required": False,
+                             "choices": ['NativeDriveEncryption', 'ControllerAssisted', 'SoftwareAssisted']},
+        "encrypted": {"required": False, "type": "bool"},
+        "volume_id": {"required": False, "type": "str"},
+        "oem": {"required": False, "type": "dict"},
+        "initialize_type": {"type": "str", "required": False, "choices": ['Fast', 'Slow'], "default": "Fast"},
+    }
 
-        },
+    specs.update(redfish_auth_params)
+
+    module = AnsibleModule(
+        argument_spec=specs,
         mutually_exclusive=[['state', 'command']],
         required_one_of=[['state', 'command']],
         required_if=[['command', 'initialize', ['volume_id']],
-                     ['state', 'absent', ['volume_id']],
-                     ['validate_certs', True, ['ca_path']], ],
+                     ['state', 'absent', ['volume_id']], ],
         supports_check_mode=False)
 
     try:

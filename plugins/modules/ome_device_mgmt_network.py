@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -373,7 +373,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 DEVICE_URI = "DeviceService/Devices"
@@ -709,56 +709,50 @@ def main():
     dns_server_settings = {"preferred_dns_server": {"type": 'str'},
                            "alternate_dns_server1": {"type": 'str'},
                            "alternate_dns_server2": {"type": 'str'}}
+    specs = {
+        "enable_nic": {"type": 'bool', "default": True},
+        "device_id": {"type": 'int'},
+        "device_service_tag": {"type": 'str'},
+        "delay": {"type": 'int', "default": 0},
+        "ipv4_configuration":
+            {"type": "dict", "options": ipv4_options,
+             "required_if": [
+                 ['enable_ipv4', True, ('enable_dhcp',), True],
+                 ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
+                 ['use_dhcp_to_obtain_dns_server_address', False,
+                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
+             },
+        "ipv6_configuration":
+            {"type": "dict", "options": ipv6_options,
+             "required_if": [
+                 ['enable_ipv6', True, ('enable_auto_configuration',), True],
+                 ['enable_auto_configuration', False,
+                  ('static_ip_address', 'static_prefix_length', "static_gateway"), False],
+                 ['use_dhcpv6_to_obtain_dns_server_address', False,
+                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
+             },
+        "dns_configuration":
+            {"type": "dict", "options": dns_options,
+             "required_if": [
+                 ['register_with_dns', True, ('dns_name',), False],
+                 ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)],
+                 ['auto_negotiation', False, ('network_speed',)]]
+             },
+        "management_vlan":
+            {"type": "dict", "options": management_vlan,
+             "required_if": [
+                 ['enable_vlan', True, ('vlan_id',), True]]
+             },
+        "dns_server_settings":
+            {"type": "dict", "options": dns_server_settings,
+             "required_one_of": [("preferred_dns_server", "alternate_dns_server1", "alternate_dns_server2")]
+             }
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"type": 'int', "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "enable_nic": {"type": 'bool', "default": True},
-            "device_id": {"type": 'int'},
-            "device_service_tag": {"type": 'str'},
-            "delay": {"type": 'int', "default": 0},
-            "ipv4_configuration":
-                {"type": "dict", "options": ipv4_options,
-                 "required_if": [
-                     ['enable_ipv4', True, ('enable_dhcp',), True],
-                     ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
-                     ['use_dhcp_to_obtain_dns_server_address', False,
-                      ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
-                 },
-            "ipv6_configuration":
-                {"type": "dict", "options": ipv6_options,
-                 "required_if": [
-                     ['enable_ipv6', True, ('enable_auto_configuration',), True],
-                     ['enable_auto_configuration', False,
-                      ('static_ip_address', 'static_prefix_length', "static_gateway"), False],
-                     ['use_dhcpv6_to_obtain_dns_server_address', False,
-                      ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
-                 },
-            "dns_configuration":
-                {"type": "dict", "options": dns_options,
-                 "required_if": [
-                     ['register_with_dns', True, ('dns_name',), False],
-                     ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)],
-                     ['auto_negotiation', False, ('network_speed',)]]
-                 },
-            "management_vlan":
-                {"type": "dict", "options": management_vlan,
-                 "required_if": [
-                     ['enable_vlan', True, ('vlan_id',), True]]
-                 },
-            "dns_server_settings":
-                {"type": "dict", "options": dns_server_settings,
-                 "required_one_of": [("preferred_dns_server", "alternate_dns_server1", "alternate_dns_server2")]
-                 }
-        },
+        argument_spec=specs,
         required_one_of=[('device_id', 'device_service_tag')],
         mutually_exclusive=[('device_id', 'device_service_tag')],
-        required_if=[['validate_certs', True, ['ca_path']]],
         supports_check_mode=True
     )
     try:

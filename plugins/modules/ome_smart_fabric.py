@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -180,7 +180,7 @@ error_info:
 import json
 import socket
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ssl import SSLError
@@ -700,27 +700,21 @@ def main():
                       '2xMX9116n_Fabric_Switching_Engines_in_same_chassis',
                       '2xMX9116n_Fabric_Switching_Engines_in_different_chassis'
                       ]
+    specs = {
+        "state": {"type": "str", "required": False, "default": "present", "choices": ['present', 'absent']},
+        "name": {"required": True, "type": "str"},
+        "new_name": {"required": False, "type": "str"},
+        "description": {"required": False, "type": "str"},
+        "fabric_design": {"required": False, "type": "str",
+                          "choices": design_choices},
+        "primary_switch_service_tag": {"required": False, "type": "str"},
+        "secondary_switch_service_tag": {"required": False, "type": "str"},
+        "override_LLDP_configuration": {"required": False, "type": "str", "choices": ['Enabled', 'Disabled']},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-            "state": {"type": "str", "required": False, "default": "present", "choices": ['present', 'absent']},
-            "name": {"required": True, "type": "str"},
-            "new_name": {"required": False, "type": "str"},
-            "description": {"required": False, "type": "str"},
-            "fabric_design": {"required": False, "type": "str",
-                              "choices": design_choices},
-            "primary_switch_service_tag": {"required": False, "type": "str"},
-            "secondary_switch_service_tag": {"required": False, "type": "str"},
-            "override_LLDP_configuration": {"required": False, "type": "str", "choices": ['Enabled', 'Disabled']},
-        },
-        required_if=[['validate_certs', True, ['ca_path']],
-                     ['state', 'present', ('new_name', 'description', 'fabric_design', 'primary_switch_service_tag',
+        argument_spec=specs,
+        required_if=[['state', 'present', ('new_name', 'description', 'fabric_design', 'primary_switch_service_tag',
                                            'secondary_switch_service_tag', 'override_LLDP_configuration',), True]],
         supports_check_mode=True
     )

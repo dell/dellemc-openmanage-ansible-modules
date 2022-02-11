@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -74,7 +74,7 @@ options:
         default: False
 
 requirements:
-    - "omsdk"
+    - "omsdk >= 1.2.488"
     - "python >= 3.8.6"
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
@@ -179,7 +179,7 @@ import json
 import time
 from ssl import SSLError
 from xml.etree import ElementTree as ET
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.parse import urlparse
@@ -591,28 +591,21 @@ def update_firmware_redfish(idrac, module):
 
 
 def main():
+    specs = {
+        "share_name": {"required": True, "type": 'str'},
+        "share_user": {"required": False, "type": 'str'},
+        "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
+        "share_mnt": {"required": False, "type": 'str'},
+
+        "catalog_file_name": {"required": False, "type": 'str', "default": "Catalog.xml"},
+        "reboot": {"required": False, "type": 'bool', "default": False},
+        "job_wait": {"required": False, "type": 'bool', "default": True},
+        "ignore_cert_warning": {"required": False, "type": 'bool', "default": True},
+        "apply_update": {"required": False, "type": 'bool', "default": True},
+    }
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "idrac_ip": {"required": True, "type": 'str'},
-            "idrac_user": {"required": True, "type": 'str'},
-            "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'},
-            "validate_certs": {"type": "bool", "default": True},
-            "ca_path": {"type": "path"},
-            "timeout": {"type": "int", "default": 30},
-
-            "share_name": {"required": True, "type": 'str'},
-            "share_user": {"required": False, "type": 'str'},
-            "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
-            "share_mnt": {"required": False, "type": 'str'},
-
-            "catalog_file_name": {"required": False, "type": 'str', "default": "Catalog.xml"},
-            "reboot": {"required": False, "type": 'bool', "default": False},
-            "job_wait": {"required": False, "type": 'bool', "default": True},
-            "ignore_cert_warning": {"required": False, "type": 'bool', "default": True},
-            "apply_update": {"required": False, "type": 'bool', "default": True},
-        },
-        required_if=[['validate_certs', True, ['ca_path']]],
+        argument_spec=specs,
         supports_check_mode=True)
 
     redfish_check = False

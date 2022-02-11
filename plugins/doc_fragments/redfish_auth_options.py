@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.0.1
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -40,7 +40,6 @@ options:
   ca_path:
     description:
      - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
-     - I(ca_path) is required if I(validate_certs) is C(True)
     type: path
     version_added: 5.0.0
   timeout:
