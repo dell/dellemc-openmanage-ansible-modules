@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.1.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -38,7 +38,7 @@ requirements:
 author: "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -102,6 +102,8 @@ TEMPLATE_URI = "TemplateService/Templates"
 IDENTITY_URI = "IdentityPoolService/IdentityPools"
 TEMPLATE_ATTRIBUTE_VIEW = "TemplateService/Templates({template_id})/Views(4)/AttributeViewDetails"
 KEY_ATTR_NAME = 'DisplayName'
+CHANGES_FOUND = "Changes found to be applied."
+NO_CHANGES_FOUND = "No changes found to be applied."
 
 
 def get_template_vlan_info(rest_obj, template_id):
@@ -128,12 +130,12 @@ def get_template_id(rest_obj, module):
     template_req = rest_obj.invoke_request("GET", TEMPLATE_URI, query_param=query_param)
     for each in template_req.json_data.get('value'):
         if each['Name'] == template_name:
-            template_id = each['Id']
+            template = each
             break
     else:
         module.fail_json(msg="Unable to complete the operation because the requested template"
                              " with name '{0}' is not present.".format(template_name))
-    return template_id
+    return template
 
 
 def get_identity_id(rest_obj, module):
@@ -158,17 +160,22 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        supports_check_mode=False
+        supports_check_mode=True
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            template_id = get_template_id(rest_obj, module)
+            template = get_template_id(rest_obj, module)
+            template_id = template["Id"]
             identity_id, message = 0, "Successfully detached identity pool from template."
             if module.params["identity_pool_name"] is not None:
                 identity_id = get_identity_id(rest_obj, module)
                 message = "Successfully attached identity pool to template."
             nic_bonding_tech = get_template_vlan_info(rest_obj, template_id)
             payload = {"TemplateId": template_id, "IdentityPoolId": identity_id, "BondingTechnology": nic_bonding_tech}
+            if template["IdentityPoolId"] == identity_id:
+                module.exit_json(changed=False, msg=NO_CHANGES_FOUND)
+            if module.check_mode:
+                module.exit_json(changed=True, msg=CHANGES_FOUND)
             resp = rest_obj.invoke_request("POST", CONFIG_URI, data=payload)
             if resp.status_code == 200:
                 module.exit_json(msg=message, changed=True)

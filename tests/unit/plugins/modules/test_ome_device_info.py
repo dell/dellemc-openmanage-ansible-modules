@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.1.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -76,8 +76,8 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         ome_response_mock.json_data = {"@odata.context": "/api/$metadata#Collection(DeviceService.Device)",
                                        "@odata.count": 0}
         ome_connection_mock.get_all_report_details.return_value = {"resp_obj": ome_response_mock, "report_list": []}
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert result['msg'] == 'Failed to fetch the device information'
+        result = self._run_module(ome_default_args)
+        assert result['msg'] == 'No devices present.'
 
     def test_main_detailed_inventory_success_case(self, ome_default_args, module_mock, validate_device_inputs_mock,
                                                   ome_connection_mock,
@@ -109,8 +109,8 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
             "device_service_tag": {Constants.service_tag1: "DeviceService/Devices(4321)/InventoryDetails"}}}
         get_device_resource_parameters_mock.return_value = detailed_inventory
         ome_connection_mock.invoke_request.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert 'device_info' not in result
+        result = self._run_module(ome_default_args)
+        assert 'device_info' in result
 
     def test_main_HTTPError_error_case(self, ome_default_args, module_mock, validate_device_inputs_mock,
                                        ome_connection_mock,
@@ -118,9 +118,8 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         ome_connection_mock.invoke_request.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
         ome_response_mock.json_data = {"value": [{"device_id1": "details", "device_id2": "details"}]}
         ome_response_mock.status_code = 400
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert 'device_info' not in result
-        assert result['failed'] is True
+        result = self._run_module(ome_default_args)
+        assert 'device_info' in result
 
     @pytest.mark.parametrize("fact_subset, mutually_exclusive_call",
                              [("basic_inventory", False), ("detailed_inventory", True)])

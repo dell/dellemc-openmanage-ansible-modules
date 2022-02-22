@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.1.0
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -174,7 +174,6 @@ update_status:
 
 
 import os
-import re
 import json
 import time
 from ssl import SSLError
@@ -196,7 +195,7 @@ except ImportError:
 SHARE_TYPE = {'nfs': 'NFS', 'cifs': 'CIFS', 'ftp': 'FTP',
               'http': 'HTTP', 'https': 'HTTPS', 'tftp': 'TFTP'}
 CERT_WARN = {True: 'On', False: 'Off'}
-IDRAC_PATH = "/redfish/v1/Managers/iDRAC.Embedded.1"
+IDRAC_PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService"
 PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService/Actions/" \
        "DellSoftwareInstallationService.InstallFromRepository"
 GET_REPO_BASED_UPDATE_LIST_PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService/" \
@@ -224,7 +223,7 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
                 response = redfish.invoke_request(job_uri, "GET")
             track_counter += 5
             msg = None
-        except (SSLError, URLError, ConnectionError, HTTPError) as error_message:
+        except Exception as error_message:
             msg = str(error_message)
             track_counter += 1
             time.sleep(10)
@@ -238,8 +237,9 @@ def wait_for_job_completion(module, job_uri, job_wait=False, reboot=False, apply
                 response = redfish.invoke_request(job_uri, "GET")
                 job_state = response.json_data.get("JobState")
             msg = None
-        except (SSLError, URLError, ConnectionError, HTTPError) as error_message:
-            track_counter += 1
+        except Exception as error_message:
+            msg = str(error_message)
+            track_counter += 2
             time.sleep(INTERVAL)
         else:
             if response.json_data.get("PercentComplete") == 100 and job_state == "Completed":  # apply now
@@ -282,7 +282,6 @@ def get_job_status(module, each_comp, idrac):
                 resp = idrac.job_mgr.job_wait(each_comp.get("JobID"))
                 if resp.get("JobStatus") is not None and (not resp.get('JobStatus') == "Scheduled"):
                     break
-            # module.warn("omsdk job wait 315: "+json.dumps(resp))
             each_comp['Message'] = resp.get('Message')
             each_comp['JobStatus'] = "OK"
             fail_words_lower = ['fail', 'invalid', 'unable', 'not', 'cancel']
@@ -346,8 +345,7 @@ def handle_HTTP_error(module, httperr):
         module.fail_json(msg=err_message)
 
 
-def update_firmware_url_redfish(module, idrac, share_name, catalog_file_name, apply_update, reboot,
-                                ignore_cert_warning, job_wait, payload):
+def update_firmware_url_redfish(module, idrac, share_name, apply_update, reboot, job_wait, payload, repo_urls):
     """Update firmware through HTTP/HTTPS/FTP and return the job details."""
     repo_url = urlparse(share_name)
     job_details, status = {}, {}
@@ -358,7 +356,14 @@ def update_firmware_url_redfish(module, idrac, share_name, catalog_file_name, ap
     if repo_url.path:
         payload['ShareName'] = sharename
     payload['ShareType'] = SHARE_TYPE[share_type]
-    resp = idrac.invoke_request(PATH, method="POST", data=payload)
+    install_url = PATH
+    get_repo_url = GET_REPO_BASED_UPDATE_LIST_PATH
+    actions = repo_urls.get('Actions')
+    if actions:
+        install_url = actions.get("#DellSoftwareInstallationService.InstallFromRepository", {}).get("target", PATH)
+        get_repo_url = actions.get("#DellSoftwareInstallationService.GetRepoBasedUpdateList", {}).\
+            get("target", GET_REPO_BASED_UPDATE_LIST_PATH)
+    resp = idrac.invoke_request(install_url, method="POST", data=payload)
     job_id = get_jobid(module, resp)
     resp, msg = wait_for_job_completion(module, JOB_URI.format(job_id=job_id), job_wait, reboot, apply_update)
     if not msg:
@@ -366,7 +371,7 @@ def update_firmware_url_redfish(module, idrac, share_name, catalog_file_name, ap
     else:
         status['update_msg'] = msg
     try:
-        resp_repo_based_update_list = idrac.invoke_request(GET_REPO_BASED_UPDATE_LIST_PATH, method="POST", data="{}",
+        resp_repo_based_update_list = idrac.invoke_request(get_repo_url, method="POST", data="{}",
                                                            dump=False)
         job_details = resp_repo_based_update_list.json_data
     except HTTPError as err:
@@ -388,7 +393,6 @@ def update_firmware_url_omsdk(module, idrac, share_name, catalog_file_name, appl
                                                             share_name=sharename, catalog_file=catalog_file_name,
                                                             apply_update=apply_update, reboot_needed=reboot,
                                                             ignore_cert_warning=ignore_cert_warning, job_wait=job_wait)
-        # module.warn(json.dumps(status))
         get_check_mode_status(status, module)
     else:
         status = idrac.update_mgr.update_from_repo_url(ipaddress=ipaddr, share_type=share_type,
@@ -486,7 +490,7 @@ def update_firmware_omsdk(idrac, module):
     return msg
 
 
-def update_firmware_redfish(idrac, module):
+def update_firmware_redfish(idrac, module, repo_urls):
     """Update firmware from a network share and return the job details."""
     msg = {}
     msg['changed'], msg['failed'] = False, False
@@ -508,9 +512,8 @@ def update_firmware_redfish(idrac, module):
             payload['Password'] = share_pwd
 
         if share_name.lower().startswith(('http://', 'https://', 'ftp://')):
-            msg['update_status'], job_details = update_firmware_url_redfish(module, idrac, share_name, catalog_file_name,
-                                                                            apply_update, reboot, ignore_cert_warning,
-                                                                            job_wait, payload)
+            msg['update_status'], job_details = update_firmware_url_redfish(
+                module, idrac, share_name, apply_update, reboot, job_wait, payload, repo_urls)
             if job_details:
                 msg['update_status']['job_details'] = job_details
         else:
@@ -612,14 +615,10 @@ def main():
     try:
         with iDRACRedfishAPI(module.params) as obj:
             resp = obj.invoke_request(IDRAC_PATH, method="GET")
-            idrac_data = resp.json_data
-            if idrac_data:
-                firm_id = idrac_data.get("FirmwareVersion")
-                firmware_version = re.match(r"^\d.\d{2}", firm_id).group()
-                if float(firmware_version) >= float(REDFISH_VERSION):
-                    redfish_check = True
-    except (HTTPError, RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError, ImportError, ValueError,
-            TypeError, SSLError) as e:
+            software_service_data = resp.json_data
+            redfish_check = True
+    except Exception:
+        software_service_data = {}
         redfish_check = False
 
     try:
@@ -632,15 +631,17 @@ def main():
         # Connect to iDRAC and update firmware
         if redfish_check:
             with iDRACRedfishAPI(module.params) as redfish_obj:
-                status = update_firmware_redfish(redfish_obj, module)
+                status = update_firmware_redfish(redfish_obj, module, software_service_data)
         else:
             with iDRACConnection(module.params) as idrac:
                 status = update_firmware_omsdk(idrac, module)
     except HTTPError as err:
         module.fail_json(msg=str(err), update_status=json.load(err))
     except (RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError) as e:
+            ImportError, ValueError, TypeError, SSLError) as e:
         module.fail_json(msg=str(e))
+    except Exception as exc:
+        module.fail_json(msg="Unhandled Exception {0}".format(exc))
 
     module.exit_json(msg=status['update_msg'], update_status=status['update_status'],
                      changed=status['changed'], failed=status['failed'])

@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.1.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -1179,60 +1179,33 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         payload = {"Id": 59, "Name": "pool_new"}
         modify_payload.update(payload)
         f_module = self.get_module_mock()
-        msg = "Both starting MAC address and identity count is required to {0} an identity pool using iSCSI settings.".format(
+        msg = "Both starting MAC address and identity count is required to {0} an identity pool using Iscsi settings.".format(
             action)
         with pytest.raises(Exception, match=msg) as exc:
             self.module.validate_modify_create_payload(modify_payload, f_module, action)
 
-    payload_iscsi4 = {
-        "IqnPrefix1": "iqn.myprefix."
-    }
-
-    payload_iscsi5 = {
-        "IqnPrefix1": None
-    }
-    payload_iscsi6 = {}
-    payload_iscsi7 = None
-
-    @pytest.mark.parametrize("action", ["create", "modify"])
-    @pytest.mark.parametrize("initiatorconfig_payload",
-                             [payload_iscsi4, payload_iscsi5, payload_iscsi6, payload_iscsi7])
-    def test_validate_modify_create_payload_failure_iscsi_setting_case2(self, initiatorconfig_payload, action):
-        modify_payload = {"Id": 59, "Name": "pool_new", "IscsiSettings": {"Mac": {
-            "IdentityCount": 30,
-            "StartingMacAddress": "kJCQkJCQ"
-        }}}
-        modify_payload["IscsiSettings"]["InitiatorConfig"] = initiatorconfig_payload
-        f_module = self.get_module_mock()
-        msg = "IQN prefix is required to {0} iSCSI settings.".format(action)
-        with pytest.raises(Exception, match=msg) as exc:
-            self.module.validate_modify_create_payload(modify_payload, f_module, action)
-
-    payload_iscsi8 = {
+    payload_iscsi3 = {
         "SubnetMask": "255.255.255.0",
         "Gateway": "192.168.4.1",
         "PrimaryDnsServer": "10.8.8.8",
         "SecondaryDnsServer": "8.8.8.8"
     }
 
-    payload_iscsi9 = {
+    payload_iscsi4 = {
         "IpRange": "10.33.0.1-10.33.0.255",
         "Gateway": "192.168.4.1",
         "PrimaryDnsServer": "10.8.8.8",
         "SecondaryDnsServer": "8.8.8.8"
     }
-    payload_iscsi10 = {
+    payload_iscsi5 = {
         "PrimaryDnsServer": "10.8.8.8",
         "SecondaryDnsServer": "8.8.8.8"
     }
-    payload_iscsi11 = {
-    }
-    payload_iscsi12 = None
 
     @pytest.mark.parametrize("action", ["create", "modify"])
     @pytest.mark.parametrize("initiatorip_payload",
-                             [payload_iscsi8, payload_iscsi9, payload_iscsi10, payload_iscsi11, payload_iscsi12])
-    def test_validate_modify_create_payload_failure_iscsi_setting_case3(self, initiatorip_payload, action):
+                             [payload_iscsi3, payload_iscsi4, payload_iscsi5])
+    def test_validate_modify_create_payload_failure_iscsi_setting_case2(self, initiatorip_payload, action):
         modify_payload = {"Id": 59, "Name": "pool_new",
                           "IscsiSettings": {"Mac": {
                               "IdentityCount": 30,
