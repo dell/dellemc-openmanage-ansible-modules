@@ -62,7 +62,7 @@ options:
       untagged_network:
         description:
           - The maximum or minimum VLAN id of the network to be untagged.
-          - The I(untagged_network) can be retrieved using the M(ome_network_vlan_info)
+          - The I(untagged_network) can be retrieved using the M(dellemc.openmanage.ome_network_vlan_info)
           - If I(untagged_network) needs to be unset this needs to be sent as C(0)
           - C(Note) The network cannot be added as a untagged network if it is already assigned to a tagged network.
         type: int
@@ -83,7 +83,7 @@ options:
           names:
             description:
               - List of network name to be marked as tagged networks
-              - The I(names) can be retrieved using the M(ome_network_vlan_info)
+              - The I(names) can be retrieved using the M(dellemc.openmanage.ome_network_vlan_info)
             type: list
             elements: str
             required: True
