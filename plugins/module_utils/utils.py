@@ -40,7 +40,8 @@ def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
     :param case_sensitive: should the match be case sensitive or not
     :return: dict
     '''
-    klist = list(odata_dict.keys()).copy()
+    cp = odata_dict.copy()
+    klist = cp.keys()
     if not case_sensitive:
         chkstr = chkstr.lower()
     for k in klist:
