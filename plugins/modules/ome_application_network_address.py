@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.1.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -24,7 +24,7 @@ description:
 notes:
   - The configuration changes can only be applied to one interface at a time.
   - The system management consoles might be unreachable for some time after the configuration changes are applied.
-  - This module does not support C(check_mode).
+  - This module supports C(check_mode).
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
@@ -434,6 +434,8 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 IP_CONFIG = "ApplicationService/Network/AddressConfiguration"
 JOB_IP_CONFIG = "ApplicationService/Network/AdapterConfigurations"
 POST_IP_CONFIG = "ApplicationService/Actions/Network.ConfigureNetworkAdapter"
+CHANGES_FOUND = "Changes found to be applied."
+NO_CHANGES_FOUND = "No changes found to be applied."
 
 
 def validate_ip_address(address):
@@ -628,8 +630,9 @@ def get_updated_payload(rest_obj, module, ipv4_payload, ipv6_payload, dns_payloa
             current_setting["Delay"] = delay
     if diff == 0:
         module.exit_json(
-            msg="No changes made to network configuration as entered values are the same as current configured "
-                "values", network_configuration=current_setting)
+            msg=NO_CHANGES_FOUND, network_configuration=current_setting)
+    if module.check_mode:
+        module.exit_json(changed=True, msg=CHANGES_FOUND)
     return current_setting, rest_method, uri
 
 
@@ -720,7 +723,7 @@ def main():
             ["enable_nic", True,
              ("ipv4_configuration", "ipv6_configuration", "dns_configuration", "management_vlan"), True]
         ],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
