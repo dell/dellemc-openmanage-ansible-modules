@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.1.0
 # Copyright (C) 2019-2022 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -400,10 +400,9 @@ def main():
                     device_facts = {"@odata.context": device_report["resp_obj"].json_data["@odata.context"],
                                     "@odata.count": len(device_report["report_list"]),
                                     "value": device_report["report_list"]}
-                    if device_facts["@odata.count"] > 0:
-                        resp_status.append(200)
-                    else:
-                        resp_status.append(400)
+                    resp_status.append(device_report["resp_obj"].status_code)
+                    if device_facts["@odata.count"] == 0:
+                        module.exit_json(msg="No devices present.", device_info=[])
             else:
                 for identifier_type, path_dict_map in device_facts.items():
                     for identifier, path in path_dict_map.items():
@@ -422,7 +421,10 @@ def main():
         if 200 in resp_status:
             module.exit_json(device_info=device_facts)
         else:
-            module.fail_json(msg="Failed to fetch the device information")
+            module.exit_json(msg="Unable to fetch the device information because the requested device id(s) or "
+                                 "device service tag(s) does not exist.",
+                             device_info=[])
+
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
 

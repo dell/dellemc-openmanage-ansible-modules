@@ -71,6 +71,8 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 - [ome_network_vlan_info](modules/ome_network_vlan_info.rst)
 - [ome_powerstate](modules/ome_powerstate.rst)
 - [ome_profile](modules/ome_profile.rst)
+- [ome_server_interface_profile_info](modules/ome_server_interface_profile_info.rst)
+- [ome_server_interface_profiles](modules/ome_server_interface_profiles.rst)
 - [ome_smart_fabric](modules/ome_smart_fabric.rst)
 - [ome_smart_fabric_uplink](modules/ome_smart_fabric_uplink.rst)
 - [ome_template](modules/ome_template.rst)

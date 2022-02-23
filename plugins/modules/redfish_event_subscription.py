@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.1.0
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+
@@ -65,7 +65,7 @@ notes:
     - I(event_type) needs to be C(Alert) and I(event_format_type) needs to be C(Event) for event subscription.
     - Modifying a subscription is not supported.
     - Context is always set to RedfishEvent.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
@@ -209,6 +209,7 @@ SUBSCRIPTION_UNABLE_DEL = "Unable to delete the subscription."
 SUBSCRIPTION_UNABLE_ADD = "Unable to add a subscription."
 SUBSCRIPTION_ADDED = "Successfully added the subscription."
 DESTINATION_MISMATCH = "No changes found to be applied."
+CHANGES_FOUND = "Changes found to be applied."
 
 
 def get_subscription_payload():
@@ -258,6 +259,8 @@ def create_subscription(obj, module):
     payload["Destination"] = module.params["destination"]
     payload["EventFormatType"] = module.params["event_format_type"]
     payload["EventTypes"] = [module.params["event_type"]]
+    if module.check_mode:
+        module.exit_json(changed=True, msg=CHANGES_FOUND)
     resp = obj.invoke_request("POST", "{0}{1}".format(obj.root_uri, "EventService/Subscriptions"), data=payload)
     return resp
 
@@ -292,7 +295,7 @@ def main():
 
     module = AnsibleModule(
         argument_spec=specs,
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         _validate_inputs(module)
@@ -302,6 +305,8 @@ def main():
                 if module.params["state"] == "present":
                     module.exit_json(msg=SUBSCRIPTION_EXISTS, changed=False)
                 else:
+                    if module.check_mode:
+                        module.exit_json(changed=True, msg=CHANGES_FOUND)
                     delete_resp = delete_subscription(obj, subscription["Id"])
                     if delete_resp.success:
                         module.exit_json(msg=SUBSCRIPTION_DELETED, changed=True)

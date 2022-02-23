@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.1.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -115,8 +115,8 @@ def get_specific_baseline(module, baseline_name, resp_data):
             baseline = each
             break
     else:
-        module.fail_json(msg="Unable to complete the operation because the requested baseline"
-                             " with name '{0}' does not exist.".format(baseline_name))
+        module.exit_json(msg="Unable to complete the operation because the requested baseline"
+                             " with name '{0}' does not exist.".format(baseline_name), baseline_info=[])
     return baseline
 
 
@@ -134,8 +134,8 @@ def main():
             baseline_name = module.params.get("baseline_name")
             resp = rest_obj.invoke_request('GET', "UpdateService/Baselines")
             data = resp.json_data
-            if len(data["value"]) == 0:
-                module.fail_json(msg="No firmware baseline exists in the system.")
+            if len(data["value"]) == 0 and not baseline_name:
+                module.exit_json(msg="No baselines present.", baseline_info=[])
             if baseline_name is not None:
                 data = get_specific_baseline(module, baseline_name, data)
             module.exit_json(msg="Successfully fetched firmware baseline information.", baseline_info=data)

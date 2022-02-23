@@ -1,0 +1,125 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell EMC OpenManage Ansible server interface profile workflow.
+  gather_facts: False
+  vars:
+    retries_count: 100
+    polling_interval: 10 #in seconds
+    src_service_tag: 7GHH6H1
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+
+    - name: Create a smart fabric.
+      ome_smart_fabric:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: present
+        name: "fabric1"
+        description: "fabric desc"
+        fabric_design: "2xMX9116n_Fabric_Switching_Engines_in_same_chassis"
+        primary_switch_service_tag: "6H7J6Z2"
+        secondary_switch_service_tag: "59HW8X2"
+        override_LLDP_configuration: "Enabled"
+      register: fabric_result
+
+    - name: "sleep for 300 seconds and continue with play"
+      wait_for:
+        timeout: 300
+      when: fabric_result.changed == True
+
+    - name: Create a template from a reference device service tag.
+      ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag: "{{ src_service_tag }}"
+        attributes:
+          Name: "New_Template_2"
+          Description: "New Template description"
+      register: result
+      failed_when: "'return_id' not in result"
+
+    - name: "Get the job id using return id from template."
+      ome_template_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        template_id: "{{ result.return_id }}"
+      register: facts_result
+
+    - name: "Get job details using job id from template task."
+      ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: "{{ facts_result.template_info[hostname].TaskId }}"
+      register: job_result
+      failed_when: job_result.job_info.LastRunStatus.Name == 'Failed'
+      changed_when: job_result.job_info.LastRunStatus.Name == 'Completed'
+      until: job_result.job_info.LastRunStatus.Name == 'Completed' or job_result.job_info.LastRunStatus.Name == 'Failed'
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"
+
+    - name: Deploy template on multiple devices
+      dellemc.openmanage.ome_template:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "deploy"
+        template_id: "{{ result.return_id }}"
+        device_service_tag:
+          - 6GHH6H1
+          - 6GHH6H2
+      register: deploy_result
+
+    - name: "sleep for 10 seconds and continue with play"
+      wait_for: timeout=10
+
+    - name: "Track the deploy job till completion"
+      ome_job_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: "{{ deploy_result.return_id }}"
+      register: deploy_job_result
+      failed_when: "'job_info' not in deploy_job_result"
+      until: deploy_job_result.job_info.LastRunStatus.Name == 'Completed' or deploy_job_result.job_info.LastRunStatus.Name == 'Failed'
+      retries: "{{ retries_count }}"
+      delay: "{{ polling_interval }}"
+
+    - name: Modify Server Interface Profile for the server using the service tag.
+      ome_server_interface_profiles:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag:
+          - 6GHH6H2
+        nic_teaming: NoTeaming
+        nic_configuration:
+          - nic_identifier: NIC.Mezzanine.1A-1-1
+            team: no
+            untagged_network: 2
+            tagged_networks:
+              names:
+                - vlan
+
+    - name: Retrieves the server interface profiles of all the device using device service tag.
+      ome_server_interface_profile_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_service_tag:
+          - 6GHH6H2

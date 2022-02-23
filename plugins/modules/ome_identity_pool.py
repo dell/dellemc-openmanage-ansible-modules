@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.1.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -130,7 +130,7 @@ author:
     - "Deepak Joshi(@Dell-Deepak-Joshi))"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -269,6 +269,8 @@ from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationEr
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 IDENTITY_URI = "IdentityPoolService/IdentityPools"
+CHANGES_FOUND = "Changes found to be applied."
+NO_CHANGES_FOUND = "No changes found to be applied."
 
 
 def get_identity_pool_id_by_name(pool_name, rest_obj):
@@ -310,12 +312,13 @@ def update_modify_setting(modify_payload, existing_payload, setting_type, sub_ke
     for sub_key in sub_keys:
         if sub_key not in modify_payload[setting_type] and sub_key in existing_payload[setting_type]:
             modify_payload[setting_type][sub_key] = existing_payload[setting_type][sub_key]
-        elif modify_payload[setting_type].get(sub_key) and existing_payload[setting_type].get(sub_key):
-            modify_setting = modify_payload[setting_type][sub_key]
-            existing_setting_payload = existing_payload[setting_type][sub_key]
-            diff_item = list(set(existing_setting_payload) - set(modify_setting))
-            for key in diff_item:
-                modify_payload[setting_type][sub_key][key] = existing_setting_payload[key]
+        elif existing_payload[setting_type]:
+            if modify_payload[setting_type].get(sub_key) and existing_payload[setting_type].get(sub_key):
+                modify_setting = modify_payload[setting_type][sub_key]
+                existing_setting_payload = existing_payload[setting_type][sub_key]
+                diff_item = list(set(existing_setting_payload) - set(modify_setting))
+                for key in diff_item:
+                    modify_payload[setting_type][sub_key][key] = existing_setting_payload[key]
 
 
 def get_updated_modify_payload(modify_payload, existing_payload):
@@ -488,15 +491,13 @@ def validate_modify_create_payload(setting_payload, module, action):
                                      " {0} an identity pool using Fc settings.".format(action))
         elif key == "IscsiSettings" and val:
             sub_config1 = val.get("Mac")
-            sub_config2 = val.get("InitiatorConfig")
-            sub_config3 = val.get("InitiatorIpPoolSettings")
+            sub_config2 = val.get("InitiatorIpPoolSettings")
             if sub_config1 is None or not all([sub_config1.get("IdentityCount"), sub_config1.get("StartingMacAddress")]):
                 module.fail_json(msg="Both starting MAC address and identity count is required to {0} an"
-                                     " identity pool using iSCSI settings.".format(action))
-            elif sub_config2 is None or not sub_config2.get("IqnPrefix"):
-                module.fail_json(msg="IQN prefix is required to {0} iSCSI settings.".format(action))
-            elif sub_config3 is None or not all([sub_config3.get("IpRange"), sub_config3.get("SubnetMask")]):
-                module.fail_json(msg="Both ip range and subnet mask in required to {0} an identity"
+                                     " identity pool using {1} settings.".format(action, ''.join(key.split('Settings'))))
+            elif sub_config2:
+                if not all([sub_config2.get("IpRange"), sub_config2.get("SubnetMask")]):
+                    module.fail_json(msg="Both ip range and subnet mask in required to {0} an identity"
                                      " pool using iSCSI settings.".format(action))
 
 
@@ -512,12 +513,12 @@ def pool_create_modify(module, rest_obj):
         method = "PUT"
         uri = uri + "({0})".format(pool_id)
         if compare_nested_dict(setting_payload, existing_payload):
-            module.exit_json(msg="No changes are made to the specified pool name: '{0}',"
-                                 " as the entered values are the same as the current "
-                                 "configuration.".format(setting_payload["Name"]))
+            module.exit_json(msg=NO_CHANGES_FOUND)
         else:
             setting_payload = get_updated_modify_payload(setting_payload, existing_payload)
     validate_modify_create_payload(setting_payload, module, action)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     resp = rest_obj.invoke_request(method, uri, data=setting_payload)
     msg = get_success_message(action, resp.json_data)
     return msg
@@ -532,6 +533,8 @@ def pool_delete(module, rest_obj):
             module.exit_json(msg=message)
         method = "DELETE"
         uri = IDENTITY_URI + "({0})".format(pool_id)
+        if module.check_mode:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
         rest_obj.invoke_request(method, uri)
         return {"msg": "Successfully deleted the identity pool."}
     except Exception as err:
@@ -575,7 +578,7 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        supports_check_mode=False
+        supports_check_mode=True
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
