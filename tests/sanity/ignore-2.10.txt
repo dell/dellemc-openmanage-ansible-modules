@@ -1,1 +1,0 @@
-tests/unit/plugins/modules/test_ome_server_interface_profiles.py compile-2.6!skip
