@@ -86,7 +86,7 @@ Parameters
   attributes (optional, dict, None)
     Payload data for the template operations. All the variables in this option are added as payload for ``create``, ``modify``, ``deploy``, ``import``, and ``clone`` operations. It takes the following attributes.
 
-    Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is applicable when *command* is ``deploy`` and ``modify``.
+    Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is applicable when *command* is ``deploy`` and ``modify``. Use the *Id* If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the *DisplayName*, see the example provided.
 
     Name: Name of the template. This is mandatory when *command* is ``create``, ``import``, ``clone``, and optional when *command* is ``modify``.
 
@@ -149,7 +149,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-   - This module does not support ``check_mode``.
+   - This module supports ``check_mode``.
 
 
 
@@ -189,6 +189,28 @@ Examples
           Attributes:
             - Id: 1234
               Value: "Test Attribute"
+              IsIgnored: false
+
+    - name: Modify template name, description, and attribute using detailed view
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "modify"
+        template_id: 12
+        attributes:
+          Name: "New Custom Template"
+          Description: "Custom Template Description"
+          Attributes:
+            # Enter the comma separated string as appearing in the Detailed view on GUI
+            # NIC -> NIC.Integrated.1-1-1 -> NIC Configuration -> Wake On LAN1
+            - DisplayName: 'NIC, NIC.Integrated.1-1-1, NIC Configuration, Wake On LAN'
+              Value: Enabled
+              IsIgnored: false
+            # System -> LCD Configuration -> LCD 1 User Defined String for LCD
+            - DisplayName: 'System, LCD Configuration, LCD 1 User Defined String for LCD'
+              Value: LCD str by OMAM
               IsIgnored: false
 
     - name: Deploy template on multiple devices
@@ -403,7 +425,7 @@ Examples
         attributes:
           Name: "Imported Template Name"
           Type: 2
-          Content: "{{ lookup('ansible.builtin.file.', '/path/to/xmlfile') }}"
+          Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"
 
     - name: "Deploy template and Operating System (OS) on multiple devices."
       dellemc.openmanage.ome_template:
@@ -497,7 +519,11 @@ Content (success, when I(command) is C(export), str, <SystemConfiguration Model=
 <Attribute Name="RAIDHotSpareStatus">No</Attribute>
 </Component>
 </SystemConfiguration>)
-XML content of the exported template. This content can be written to a xml file.
+  XML content of the exported template. This content can be written to a xml file.
+
+
+devices_assigned (I(command) is C(deploy), dict, AnsibleMapping([('10362', 28), ('10312', 23)]))
+  Mapping of devices with the templates already deployed on them.
 
 
 error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))

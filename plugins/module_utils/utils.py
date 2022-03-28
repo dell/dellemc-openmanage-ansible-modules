@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 5.1.0
+# Version 5.2.0
 # Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -139,3 +139,25 @@ def apply_diff_key(src, dest, klist):
             dest[k] = v
             diff_cnt = diff_cnt + 1
     return diff_cnt
+
+
+def wait_for_job_completion(redfish_obj, uri, job_wait=True, wait_timeout=120, sleep_time=10):
+    max_sleep_time = wait_timeout
+    sleep_interval = sleep_time
+    if job_wait:
+        while max_sleep_time:
+            if max_sleep_time > sleep_interval:
+                max_sleep_time = max_sleep_time - sleep_interval
+            else:
+                sleep_interval = max_sleep_time
+                max_sleep_time = 0
+            time.sleep(sleep_interval)
+            job_resp = redfish_obj.invoke_request("GET", uri)
+            if job_resp.json_data.get("PercentComplete") == 100:
+                time.sleep(10)
+                return job_resp, ""
+    else:
+        job_resp = redfish_obj.invoke_request("GET", uri)
+        time.sleep(10)
+        return job_resp, ""
+    return {}, "The job is not complete after {0} seconds.".format(wait_timeout)

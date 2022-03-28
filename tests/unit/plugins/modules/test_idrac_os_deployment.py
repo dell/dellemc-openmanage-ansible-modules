@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 5.2.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -15,7 +15,7 @@ __metaclass__ = type
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_os_deployment
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from mock import MagicMock
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args, exit_json, \
     fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip

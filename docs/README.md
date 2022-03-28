@@ -38,6 +38,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 - [ome_application_alerts_smtp](modules/ome_application_alerts_smtp.rst)
 - [ome_application_alerts_syslog](modules/ome_application_alerts_syslog.rst)
 - [ome_application_certificate](modules/ome_application_certificate.rst)
+- [ome_application_console_preferences](modules/ome_application_console_preferences.rst)
 - [ome_application_network_address](modules/ome_application_network_address.rst)
 - [ome_application_network_proxy](modules/ome_application_network_proxy.rst)
 - [ome_application_network_settings](modules/ome_application_network_settings.rst)

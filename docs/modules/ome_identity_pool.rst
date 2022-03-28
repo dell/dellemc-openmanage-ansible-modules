@@ -183,7 +183,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-   - This module does not support ``check_mode``.
+   - This module supports ``check_mode``.
 
 
 

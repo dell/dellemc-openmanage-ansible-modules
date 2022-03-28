@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.2.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -23,7 +23,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_device_network_services
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from mock import MagicMock, patch, Mock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_device_network_services.'
 
