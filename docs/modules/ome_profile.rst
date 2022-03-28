@@ -181,6 +181,8 @@ Parameters
 
       List of attributes to be overridden when *command* is ``assign``.
 
+      Use the *Id* If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the *DisplayName*, see the example provided.
+
 
     Options (optional, dict, None)
       Provides the different shut down options.
@@ -235,7 +237,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-   - This module does not support ``check_mode``.
+   - This module supports ``check_mode``.
    - ``assign`` operation on a already assigned profile will not redeploy.
 
 
@@ -315,10 +317,15 @@ Examples
           Attributes:
             - Id: 4506
               Value: "server attr 1"
-              IsIgnored: true
+              IsIgnored: false
             - Id: 4507
               Value: "server attr 2"
-              IsIgnored: true
+              IsIgnored: false
+            # Enter the comma separated string as appearing in the Detailed view on GUI
+            # System -> Server Topology -> ServerTopology 1 Aisle Name
+            - DisplayName: 'System, Server Topology, ServerTopology 1 Aisle Name'
+              Value: Aisle 5
+              IsIgnored: false
 
     - name: Delete a profile using profile name
       dellemc.openmanage.ome_profile:

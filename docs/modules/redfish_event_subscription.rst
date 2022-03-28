@@ -94,7 +94,7 @@ Notes
    - *event_type* needs to be ``Alert`` and *event_format_type* needs to be ``Event`` for event subscription.
    - Modifying a subscription is not supported.
    - Context is always set to RedfishEvent.
-   - This module does not support ``check_mode``.
+   - This module supports ``check_mode``.
 
 
 
