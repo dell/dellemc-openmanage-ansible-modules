@@ -86,6 +86,9 @@
             - Id: 4507
               Value: "server attr 2"
               IsIgnored: true
+            - DisplayName: 'System, Server Topology, ServerTopology 1 Aisle Name'
+              Value: Aisle 5
+              IsIgnored: false
       tags:
         - modify_profile
 

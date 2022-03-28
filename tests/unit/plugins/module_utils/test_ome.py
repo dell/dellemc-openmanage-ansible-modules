@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1
-# Copyright (C) 2019-2020 Dell Inc.
+# Version 5.2.0
+# Copyright (C) 2019-2022 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -18,7 +18,7 @@ import pytest
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from mock import MagicMock
 import json
 
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'

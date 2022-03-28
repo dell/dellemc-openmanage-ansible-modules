@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.2.0
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -120,10 +120,22 @@ options:
       - Test the availability of the network share location.
       - I(job_wait) and I(job_wait_timeout) options are not applicable for I(test_connection).
     default: False
+  lead_chassis_only:
+    type: bool
+    description:
+      - Extract the logs from Lead chassis only.
+      - I(lead_chassis_only) is only applicable when I(log_type) is C(application) on OpenManage Enterprise Modular.
+    default: False
 requirements:
   - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
+  - "Sachin Apagundi(@sachin-apa)"
+notes:
+    - Run this module from a system that has direct access to OpenManage Enterprise.
+    - This module performs the test connection and device validations. It does not create a job for copying the
+      logs in check mode and always reports as changes found.
+    - This module supports C(check_mode).
 """
 
 
@@ -265,6 +277,7 @@ GROUP_DEVICE_URI = "GroupService/Groups({0})/Devices"
 DEVICE_URI = "DeviceService/Devices"
 DOMAIN_URI = "ManagementDomainService/Domains"
 EXE_HISTORY_URI = "JobService/Jobs({0})/ExecutionHistories"
+CHANGES_FOUND = "Changes found to be applied."
 
 
 def group_validation(module, rest_obj):
@@ -319,8 +332,22 @@ def extract_log_operation(module, rest_obj, device_lst=None):
     payload_params, target_params = [], []
     log_type = module.params["log_type"]
     if log_type == "application":
-        resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={"$filter": "Type eq 2000"})
-        resp_data = resp.json_data["value"]
+        lead_only = module.params["lead_chassis_only"]
+        resp_data = None
+        if lead_only:
+            domain_details = rest_obj.get_all_items_with_pagination(DOMAIN_URI)
+            key = "Id"
+            ch_device_id = None
+            for each_domain in domain_details["value"]:
+                if each_domain["DomainRoleTypeValue"] in ["LEAD", "STANDALONE"]:
+                    ch_device_id = each_domain["DeviceId"]
+            if ch_device_id:
+                resp = rest_obj.invoke_request("GET", DEVICE_URI,
+                                               query_param={"$filter": "{0} eq {1}".format(key, ch_device_id)})
+                resp_data = resp.json_data["value"]
+        else:
+            resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={"$filter": "Type eq 2000"})
+            resp_data = resp.json_data["value"]
         if resp_data:
             for dev in resp_data:
                 target_params.append({"Id": dev["Id"], "Data": "",
@@ -401,6 +428,7 @@ def main():
         "job_wait": {"required": False, "type": "bool", "default": True},
         "job_wait_timeout": {"required": False, "type": "int", "default": 60},
         "test_connection": {"required": False, "type": "bool", "default": False},
+        "lead_chassis_only": {"required": False, "type": "bool", "default": False},
     }
     specs.update(ome_auth_params)
     module = AnsibleModule(
@@ -447,6 +475,10 @@ def main():
             elif module.params["log_type"] == "support_assist_collection" and \
                     module.params.get("device_group_name") is None:
                 valid_device = device_validation(module, rest_obj)
+
+            # exit if running in check mode
+            if module.check_mode:
+                module.exit_json(msg=CHANGES_FOUND, changed=True)
 
             # extract log job operation
             response = extract_log_operation(module, rest_obj, device_lst=valid_device)

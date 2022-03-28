@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.2.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -15,7 +15,7 @@ import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants,\
     AnsibleExitJson
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from mock import MagicMock, patch, Mock
 from pytest import importorskip
 from ansible.module_utils.six.moves.urllib.parse import urlparse, ParseResult
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'

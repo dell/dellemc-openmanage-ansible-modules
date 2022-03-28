@@ -1,0 +1,97 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OME Application Console Preferences.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+  - name: Update Console preferences with all the settings.
+    ome_application_console_preferences:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      report_row_limit: 123
+      device_health:
+        health_check_interval: 1
+        health_check_interval_unit: "Hourly"
+        health_and_power_state_on_connection_lost: "last_known"
+      discovery_settings:
+        general_device_naming: "DNS"
+        server_device_naming: "IDRAC_HOSTNAME"
+        invalid_device_hostname: "localhost"
+        common_mac_addresses: "::"
+      server_initiated_discovery:
+        device_discovery_approval_policy: "Automatic"
+        set_trap_destination: True
+      mx7000_onboarding_preferences: "all"
+      builtin_appliance_share:
+        share_options: "CIFS"
+        cifs_options: "V1"
+      email_sender_settings: "admin@dell.com"
+      trap_forwarding_format: "Original"
+      metrics_collection_settings: 31
+    tags:
+      - all_settings
+
+  - name: Update Console preferences with report and device health settings.
+    ome_application_console_preferences:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      report_row_limit: 236
+      device_health:
+        health_check_interval: 10
+        health_check_interval_unit: "Hourly"
+        health_and_power_state_on_connection_lost: "last_known"
+    tags:
+      - valid_report_device
+
+  - name: Update Console preferences with invalid device health settings.
+    ome_application_console_preferences:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      device_health:
+        health_check_interval: 65
+        health_check_interval_unit: "Minutes"
+    tags:
+      - invalid_device
+
+  - name: Update Console preferences with discovery and built in appliance share settings.
+    ome_application_console_preferences:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      discovery_settings:
+        general_device_naming: "DNS"
+        server_device_naming: "IDRAC_SYSTEM_HOSTNAME"
+        invalid_device_hostname: "localhost"
+        common_mac_addresses: "00:53:45:00:00:00"
+      builtin_appliance_share:
+        share_options: "CIFS"
+        cifs_options: "V1"
+    tags:
+      - valid_discovery
+
+  - name: Update Console preferences with server initiated discovery, mx7000 onboarding preferences, email sender, trap forwarding format, and metrics collection settings.
+    ome_application_console_preferences:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      server_initiated_discovery:
+        device_discovery_approval_policy: "Automatic"
+        set_trap_destination: True
+      mx7000_onboarding_preferences: "chassis"
+      email_sender_settings: "admin@dell.com"
+      trap_forwarding_format: "Normalized"
+      metrics_collection_settings: 361
+    tags:
+        - valid_metrics

@@ -238,7 +238,7 @@ Notes
 .. note::
    - The configuration changes can only be applied to one interface at a time.
    - The system management consoles might be unreachable for some time after the configuration changes are applied.
-   - This module does not support ``check_mode``.
+   - This module supports ``check_mode``.
 
 
 
