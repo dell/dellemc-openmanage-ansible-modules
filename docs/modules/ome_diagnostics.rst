@@ -131,6 +131,12 @@ Parameters
     *job_wait* and *job_wait_timeout* options are not applicable for *test_connection*.
 
 
+  lead_chassis_only (optional, bool, False)
+    Extract the logs from Lead chassis only.
+
+    *lead_chassis_only* is only applicable when *log_type* is ``application`` on OpenManage Enterprise Modular.
+
+
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
@@ -166,6 +172,13 @@ Parameters
 
 
 
+Notes
+-----
+
+.. note::
+   - Run this module from a system that has direct access to OpenManage Enterprise.
+   - This module performs the test connection and device validations. It does not create a job for copying the logs in check mode and always reports as changes found.
+   - This module supports ``check_mode``.
 
 
 
@@ -265,4 +278,5 @@ Authors
 ~~~~~~~
 
 - Felix Stephen (@felixs88)
+- Sachin Apagundi(@sachin-apa)
 

@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.1.0
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.2.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -12,7 +12,7 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch, mock_open
+from mock import patch, mock_open
 
 import pytest
 import json

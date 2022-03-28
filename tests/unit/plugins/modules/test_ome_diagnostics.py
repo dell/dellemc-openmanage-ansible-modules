@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.6.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.2.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -53,6 +53,13 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         result = self.module.group_validation(f_module, ome_conn_mock_diagnostics)
         assert result == [25011]
 
+    def test_group_validation_s1(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
+        f_module = self.get_module_mock(params={"device_group_name": "Servers"})
+        ome_response_mock.json_data = {"value": [{"Type": 2000, "Id": 10161}]}
+        with pytest.raises(Exception) as err:
+            self.module.group_validation(f_module, ome_conn_mock_diagnostics)
+        assert err.value.args[0] == "The requested group 'Servers' does not contain devices that support export log."
+
     def test_device_validation(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
         resp = {"report_list": [{"Id": 25014, "DeviceServiceTag": "ZXCVB1", "Type": 1000}]}
         f_module = self.get_module_mock(params={"device_ids": [25011]})
@@ -79,9 +86,17 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"log_type": "application", "share_address": "192.168.0.1",
                                                 "share_type": "NFS", "share_name": "iso", "share_user": "username",
                                                 "share_password": "password", "share_domain": "domain",
-                                                "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"]})
+                                                "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
+                                                "lead_chassis_only": "true"})
         ome_response_mock.json_data = {"value": [{"Id": 16011, "Type": 2000}]}
         ome_conn_mock_diagnostics.job_submission.return_value = {"Id": 16011}
+        ome_conn_mock_diagnostics.get_all_items_with_pagination.return_value = \
+            {"value": [{"DomainRoleTypeValue": "LEAD", "DeviceId": 16011}]}
+        result = self.module.extract_log_operation(f_module, ome_conn_mock_diagnostics)
+        assert result["Id"] == 16011
+
+        ome_conn_mock_diagnostics.get_all_items_with_pagination.return_value = \
+            {"value": [{"DomainRoleTypeValue": "STANDALONE", "DeviceId": 16011}]}
         result = self.module.extract_log_operation(f_module, ome_conn_mock_diagnostics)
         assert result["Id"] == 16011
 
@@ -90,6 +105,41 @@ class TestOMEDiagnostics(FakeAnsibleModule):
                                                 "share_password": "password", "share_domain": "domain",
                                                 "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"]})
         result = self.module.extract_log_operation(f_module, ome_conn_mock_diagnostics, device_lst=[25012])
+        assert result["Id"] == 16011
+
+    def test_extract_log_operation_member(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
+        f_module = self.get_module_mock(params={"log_type": "application", "share_address": "192.168.0.1",
+                                                "share_type": "NFS", "share_name": "iso", "share_user": "username",
+                                                "share_password": "password", "share_domain": "domain",
+                                                "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
+                                                "lead_chassis_only": "true"})
+        ome_response_mock.json_data = {"value": [{"Id": 16011, "Type": 2000}]}
+        ome_conn_mock_diagnostics.job_submission.return_value = {"Id": 16011}
+        ome_conn_mock_diagnostics.get_all_items_with_pagination.return_value = \
+            {"value": [{"DomainRoleTypeValue": "MEMBER", "DeviceId": 16011}]}
+        with pytest.raises(Exception) as err:
+            self.module.extract_log_operation(f_module, ome_conn_mock_diagnostics)
+        assert err.value.args[0] == "There is no device(s) available to export application log."
+
+    def test_extract_log_operation_no_lead_chassis(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
+        f_module = self.get_module_mock(params={"lead_chassis_only": False, "log_type": "application",
+                                                "share_address": "192.168.0.1",
+                                                "share_type": "NFS", "share_name": "iso", "share_user": "username",
+                                                "share_password": "password", "share_domain": "domain",
+                                                "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"], })
+        ome_response_mock.json_data = {"value": [{"Id": 16011, "Type": 2000}]}
+        ome_conn_mock_diagnostics.job_submission.return_value = {"Id": 16011}
+        result = self.module.extract_log_operation(f_module, ome_conn_mock_diagnostics)
+        assert result["Id"] == 16011
+
+    def test_extract_log_operation_s1(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
+        f_module = self.get_module_mock(params={"lead_chassis_only": False, "log_type": "application",
+                                                "share_address": "192.168.0.1",
+                                                "share_type": "NFS",
+                                                "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"], })
+        ome_response_mock.json_data = {"value": [{"Id": 16011, "Type": 2000}]}
+        ome_conn_mock_diagnostics.job_submission.return_value = {"Id": 16011}
+        result = self.module.extract_log_operation(f_module, ome_conn_mock_diagnostics)
         assert result["Id"] == 16011
 
     def test_main_succes_case(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
@@ -152,3 +202,20 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         result = self.module.find_failed_jobs({"Id": 25012}, ome_conn_mock_diagnostics)
         assert result[0] == "Export log job completed with errors."
         assert result[1] is False
+
+        ome_response_mock.json_data = {
+            "Id": 25011,
+            "value": []
+        }
+        result = self.module.find_failed_jobs({"Id": 25012}, ome_conn_mock_diagnostics)
+        assert result[0] == "Export log job completed with errors."
+        assert result[1] is False
+
+        ome_response_mock.json_data = {
+            "Id": 25011,
+            "value": [{"Id": 25013, "Value": "Job status for JID_255809594125 is Completed."}]
+        }
+        result = self.module.find_failed_jobs({"Id": 25012}, ome_conn_mock_diagnostics)
+        print(result)
+        assert result[0] == "Export log job completed with errors."
+        assert result[1] is True

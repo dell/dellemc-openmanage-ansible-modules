@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.2.0
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -147,6 +147,8 @@ options:
         description:
           - List of attributes to be modified, when I(command) is C(modify).
           - List of attributes to be overridden when I(command) is C(assign).
+          - "Use the I(Id) If the attribute Id is available. If not, use the comma separated I (DisplayName).
+          For more details about using the I(DisplayName), see the example provided."
         type: list
         elements: dict
       Options:
@@ -164,7 +166,7 @@ requirements:
 author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
     - C(assign) operation on a already assigned profile will not redeploy.
 '''
 
@@ -237,10 +239,15 @@ EXAMPLES = r'''
       Attributes:
         - Id: 4506
           Value: "server attr 1"
-          IsIgnored: true
+          IsIgnored: false
         - Id: 4507
           Value: "server attr 2"
-          IsIgnored: true
+          IsIgnored: false
+        # Enter the comma separated string as appearing in the Detailed view on GUI
+        # System -> Server Topology -> ServerTopology 1 Aisle Name
+        - DisplayName: 'System, Server Topology, ServerTopology 1 Aisle Name'
+          Value: Aisle 5
+          IsIgnored: false
 
 - name: Delete a profile using profile name
   dellemc.openmanage.ome_profile:
@@ -401,7 +408,11 @@ TEMPLATE_VIEW = "TemplateService/Templates"
 DEVICE_VIEW = "DeviceService/Devices"
 JOB_URI = "JobService/Jobs({job_id})"
 PROFILE_ACTION = "ProfileService/Actions/ProfileService.{action}"
+PROFILE_ATTRIBUTES = "ProfileService/Profiles({profile_id})/AttributeDetails"
 PROFILE_NOT_FOUND = "Profile with the name '{name}' not found."
+CHANGES_MSG = "Changes found to be applied."
+NO_CHANGES_MSG = "No changes found to be applied."
+SEPRTR = ','
 
 
 def get_template_details(module, rest_obj):
@@ -477,6 +488,71 @@ def get_network_iso_payload(module):
     return iso_payload
 
 
+def recurse_subattr_list(subgroup, prefix, attr_detailed, attr_map, adv_list):
+    if isinstance(subgroup, list):
+        for each_sub in subgroup:
+            nprfx = "{0}{1}{2}".format(prefix, SEPRTR, each_sub.get("DisplayName"))
+            if each_sub.get("SubAttributeGroups"):
+                recurse_subattr_list(each_sub.get("SubAttributeGroups"), nprfx, attr_detailed, attr_map, adv_list)
+            else:
+                for attr in each_sub.get('Attributes'):
+                    attr['prefix'] = nprfx
+                    # case sensitive, remove whitespaces for optim
+                    constr = "{0}{1}{2}".format(nprfx, SEPRTR, attr['DisplayName'])
+                    if constr in adv_list:
+                        attr_detailed[constr] = attr['AttributeId']
+                    attr_map[attr['AttributeId']] = attr
+
+
+def get_subattr_all(attr_dtls, adv_list):
+    attr_detailed = {}
+    attr_map = {}
+    for each in attr_dtls:
+        recurse_subattr_list(each.get('SubAttributeGroups'), each.get('DisplayName'), attr_detailed, attr_map, adv_list)
+    return attr_detailed, attr_map
+
+
+def attributes_check(module, rest_obj, inp_attr, profile_id):
+    diff = 0
+    try:
+        resp = rest_obj.invoke_request("GET", PROFILE_ATTRIBUTES.format(profile_id=profile_id))
+        attr_dtls = resp.json_data
+        disp_adv_list = inp_attr.get("Attributes", {})
+        adv_list = []
+        for attr in disp_adv_list:
+            if attr.get("DisplayName"):
+                split_k = str(attr.get("DisplayName")).split(SEPRTR)
+                trimmed = map(str.strip, split_k)
+                n_k = SEPRTR.join(trimmed)
+                adv_list.append(n_k)
+        attr_detailed, attr_map = get_subattr_all(attr_dtls.get('AttributeGroups'), adv_list)
+        payload_attr = inp_attr.get("Attributes", [])
+        rem_attrs = []
+        for attr in payload_attr:
+            if attr.get("DisplayName"):
+                split_k = str(attr.get("DisplayName")).split(SEPRTR)
+                trimmed = map(str.strip, split_k)
+                n_k = SEPRTR.join(trimmed)
+                id = attr_detailed.get(n_k, "")
+                attr['Id'] = id
+                attr.pop("DisplayName", None)
+            else:
+                id = attr.get('Id')
+            if id:
+                ex_val = attr_map.get(id, {})
+                if not ex_val:
+                    rem_attrs.append(attr)
+                    continue
+                if attr.get('Value') != ex_val.get("Value") or attr.get('IsIgnored') != ex_val.get("IsIgnored"):
+                    diff = diff + 1
+        for rem in rem_attrs:
+            payload_attr.remove(rem)
+        # module.exit_json(attr_detailed=attr_detailed, inp_attr=disp_adv_list, payload_attr=payload_attr, adv_list=adv_list)
+    except Exception:
+        diff = 1
+    return diff
+
+
 def assign_profile(module, rest_obj):
     mparam = module.params
     payload = {}
@@ -524,7 +600,10 @@ def assign_profile(module, rest_obj):
     ad_opts = mparam.get("attributes")
     for opt in ad_opts_list:
         if ad_opts and ad_opts.get(opt):
+            diff = attributes_check(module, rest_obj, ad_opts, prof['Id'])
             payload[opt] = ad_opts.get(opt)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
     resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action=action), data=payload)
     res_dict = {'msg': msg, 'changed': True}
     if action == 'AssignProfile':
@@ -562,6 +641,8 @@ def unassign_profile(module, rest_obj):
             module.fail_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
     if mparam.get('filters'):
         payload = mparam.get('filters')
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
     msg = "Successfully applied the unassign operation. No job was triggered."
     resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='UnassignProfiles'), data=payload)
     res_dict = {'msg': msg, 'changed': True}
@@ -588,7 +669,8 @@ def create_profile(module, rest_obj):
     boot_iso_dict = get_network_iso_payload(module)
     if boot_iso_dict:
         payload["NetworkBootToIso"] = boot_iso_dict
-    # module.exit_json(msg=payload)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
     resp = rest_obj.invoke_request('POST', PROFILE_VIEW, data=payload)
     profile_id_list = resp.json_data
     module.exit_json(msg="Successfully created {0} profile(s).".format(len(profile_id_list)),
@@ -615,19 +697,22 @@ def modify_profile(module, rest_obj):
     if boot_iso_dict:
         nest_diff = recursive_diff(boot_iso_dict, rdict)
         if nest_diff:
-            module.warn(json.dumps(nest_diff))
+            # module.warn(json.dumps(nest_diff))
             if nest_diff[0]:
                 diff += 1
         payload["NetworkBootToIso"] = boot_iso_dict
     ad_opts = mparam.get("attributes")
     if ad_opts and ad_opts.get("Attributes"):
-        payload["Attributes"] = ad_opts.get("Attributes")
-        diff += 1
+        diff = diff + attributes_check(module, rest_obj, ad_opts, prof['Id'])
+        if ad_opts.get("Attributes"):
+            payload["Attributes"] = ad_opts.get("Attributes")
     payload['Id'] = prof['Id']
     if diff:
+        if module.check_mode:
+            module.exit_json(msg=CHANGES_MSG, changed=True)
         resp = rest_obj.invoke_request('PUT', PROFILE_VIEW + "({0})".format(payload['Id']), data=payload)
         module.exit_json(msg="Successfully modified the profile.", changed=True)
-    module.exit_json(msg="No changes found to be applied.")
+    module.exit_json(msg=NO_CHANGES_MSG)
 
 
 def delete_profile(module, rest_obj):
@@ -637,12 +722,16 @@ def delete_profile(module, rest_obj):
         if prof:
             if prof['ProfileState'] > 0:
                 module.fail_json(msg="Profile has to be in an unassigned state for it to be deleted.")
+            if module.check_mode:
+                module.exit_json(msg=CHANGES_MSG, changed=True)
             resp = rest_obj.invoke_request('DELETE', PROFILE_VIEW + "({0})".format(prof['Id']))
             module.exit_json(msg="Successfully deleted the profile.", changed=True)
         else:
             module.exit_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
     if mparam.get('filters'):
         payload = mparam.get('filters')
+        if module.check_mode:
+            module.exit_json(msg=CHANGES_MSG, changed=True)
         resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='Delete'), data=payload)
         module.exit_json(msg="Successfully completed the delete operation.", changed=True)
 
@@ -658,7 +747,7 @@ def migrate_profile(module, rest_obj):
     prof = get_profile(rest_obj, module)
     if prof:
         if target['Id'] == prof['TargetId']:
-            module.exit_json(msg="No changes found to be applied.")
+            module.exit_json(msg=NO_CHANGES_MSG)
         try:
             resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='GetInvalidTargetsForAssignProfile'),
                                            data={'Id': prof['Id']})
@@ -668,6 +757,8 @@ def migrate_profile(module, rest_obj):
             resp = None
         if prof['ProfileState'] == 4:  # migrate applicable in deployed state only
             payload['ProfileId'] = prof['Id']
+            if module.check_mode:
+                module.exit_json(msg=CHANGES_MSG, changed=True)
             resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='MigrateProfile'), data=payload)
             msg = "Successfully applied the migrate operation."
             res_dict = {'msg': msg, 'changed': True}
@@ -756,7 +847,7 @@ def main():
             ['name', 'filters'],
             ['device_id', 'device_service_tag'],
             ['template_name', 'template_id']],
-        supports_check_mode=False)
+        supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             profile_operation(module, rest_obj)

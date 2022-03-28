@@ -26,12 +26,10 @@ You can execute them manually by using any tool of your choice, like `pytest` or
 * Edit the copied `utils.py` to refer the above `compat` package as below:
 ```python
       from units.compat import unittest
-      from units.compat.mock import patch
        
        # Replace the above lines in utils.py as below
       
       from ansible_collections.dellemc.openmanage.tests.unit.compat import unittest
-      from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch
 ```
 * To install `ansible-test` requirements use 
     ```

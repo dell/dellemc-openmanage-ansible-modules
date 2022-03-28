@@ -38,6 +38,28 @@
               Value: "Test Attribute"
               IsIgnored: false
 
+    - name: Modify template name, description, and attribute using detailed view
+      ome_template:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "modify"
+        template_id: 12
+        attributes:
+          Name: "New Custom Template"
+          Description: "Custom Template Description"
+          Attributes:
+            # Enter the comma separated string as appearing in the Detailed view on GUI
+            # NIC -> NIC.Integrated.1-1-1 -> NIC Configuration -> Wake On LAN1
+            - DisplayName: 'NIC, NIC.Integrated.1-1-1, NIC Configuration, Wake On LAN'
+              Value: Enabled
+              IsIgnored: false
+            # System -> LCD Configuration -> LCD 1 User Defined String for LCD
+            - DisplayName: 'System, LCD Configuration, LCD 1 User Defined String for LCD'
+              Value: LCD str by OMAM
+              IsIgnored: false
+
     - name: "Deploy template on multiple devices "
       ome_template:
         hostname:  "192.168.0.1"

@@ -68,7 +68,7 @@ Parameters
     untagged_network (optional, int, None)
       The maximum or minimum VLAN id of the network to be untagged.
 
-      The *untagged_network* can be retrieved using the :ref:`ome_network_vlan_info <ome_network_vlan_info_module>`
+      The *untagged_network* can be retrieved using the :ref:`dellemc.openmanage.ome_network_vlan_info <dellemc.openmanage.ome_network_vlan_info_module>`
 
       If *untagged_network* needs to be unset this needs to be sent as ``0``
 
@@ -92,7 +92,7 @@ Parameters
       names (True, list, None)
         List of network name to be marked as tagged networks
 
-        The *names* can be retrieved using the :ref:`ome_network_vlan_info <ome_network_vlan_info_module>`
+        The *names* can be retrieved using the :ref:`dellemc.openmanage.ome_network_vlan_info <dellemc.openmanage.ome_network_vlan_info_module>`
 
 
 
