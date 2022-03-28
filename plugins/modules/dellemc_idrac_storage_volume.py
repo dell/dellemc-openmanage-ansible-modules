@@ -114,8 +114,8 @@ options:
       - >-
         This option represents whether a reset config operation needs to be performed on the RAID controller.
         Reset Config operation deletes all the virtual disks present on the RAID controller.
-    choices: [True, False]
-    default: False
+    choices: ['True', 'False']
+    default: 'False'
   raid_init_operation:
     type: str
     description: This option represents initialization configuration operation to be performed on the virtual disk.
