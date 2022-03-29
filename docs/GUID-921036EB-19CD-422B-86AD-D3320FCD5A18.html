@@ -2,7 +2,7 @@
 <!DOCTYPE html
   SYSTEM "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
-    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: ome_template Synopsis This module creates, modifies, deploys, deletes, exports, imports, or clones a template. Options Table 1. ome_template Parameter Required Default Choices Comments ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" /><meta name="DC.relation" scheme="URI" content="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53.html" /><meta name="DC.relation" scheme="URI" content="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="October 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.3.0    User’s Guide   " /><title>Template operations</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-input-sanitizer.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: ome_template Synopsis This module creates, modifies, deploys, deletes, exports, imports, or clones a template. Check_mode support: Yes Options Table 1. ome_template Parameter Required Default ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" /><meta name="DC.relation" scheme="URI" content="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53.html" /><meta name="DC.relation" scheme="URI" content="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="March 2022" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 5.2.0    User’s Guide   " /><title>Template operations</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-input-sanitizer.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
 
     <body data-lang="en-us" class="wh_topic_page">
         <a href="#wh_topic_body" class="sr-only sr-only-focusable">
@@ -23,8 +23,8 @@
                             'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
                             See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
                     -->
-                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.3.0    User’s Guide   " /></a>
-                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.3.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 5.2.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 5.2.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
                     
                 </div>
                 
@@ -42,7 +42,7 @@
 </header>
         <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
             
-            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise and OpenManage Enterprise Modular</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
             <!--<whc:webhelp_indexterms_link/>-->
             
         </div>
@@ -52,7 +52,7 @@
                 <div class="row">
                     
                         <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
-                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li><li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" class="topicref" data-id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19.html" id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link">Manage Devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53" class="topicref" data-id="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53.html" id="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53-link">View templates</a></span></span></li><li role="treeitem" class="active"><span data-tocid="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18" class="topicref" data-id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18.html" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18-link">Template operations</a></span></span></li><li role="treeitem"><span data-tocid="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C" class="topicref" data-id="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C.html" id="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C-link">Attach or detach an identity pool</a></span></span></li><li role="treeitem"><span data-tocid="GUID-5CE6C199-CD03-410D-8741-16B2D29FC2AE" class="topicref" data-id="GUID-5CE6C199-CD03-410D-8741-16B2D29FC2AE" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5CE6C199-CD03-410D-8741-16B2D29FC2AE.html" id="GUID-5CE6C199-CD03-410D-8741-16B2D29FC2AE-link">Set tagged and untagged VLANs in a template</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" class="topicref" data-id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C.html" id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link">Template Service</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage application settings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" class="topicref" data-id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768.html" id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link">Manage network configuration</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" class="topicref" data-id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4.html" id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link">Manage fabrics</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" class="topicref" data-id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link">Manage Profiles</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" class="topicref" data-id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link">Device discovery</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link">Manage Chassis</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" class="topicref" data-id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link">Manage Active Directory service and user groups</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" class="topicref" data-id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E.html" id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link">Diagnostics</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise and OpenManage Enterprise Modular</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" class="topicref" data-id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A.html" id="GUID-75B4E385-3836-44AF-8F0B-1C1BF668884A-link">How OpenManage Ansible Modules work with OME</a></span></span></li><li role="treeitem"><span data-tocid="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" class="topicref" data-id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D.html" id="GUID-DF96CF37-BD3E-461D-ABA9-59C8A8CD864D-link">Running your first OME Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" class="topicref" data-id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19.html" id="GUID-251A2967-0549-4BCE-882C-86BA5DA7BD19-link">Manage Devices</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-09366F3F-3602-45ED-B10A-E3475652032F" class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-09366F3F-3602-45ED-B10A-E3475652032F-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html" id="GUID-09366F3F-3602-45ED-B10A-E3475652032F-link">Manage device configuration templates</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53" class="topicref" data-id="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53.html" id="GUID-9F1BC463-1FF0-4662-9ED1-6408EE901F53-link">View templates</a></span></span></li><li role="treeitem" class="active"><span data-tocid="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18" class="topicref" data-id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18.html" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18-link">Template operations</a></span></span></li><li role="treeitem"><span data-tocid="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C" class="topicref" data-id="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C.html" id="GUID-C376AA31-63C9-4138-AA53-2238FDE67D9C-link">Attach or detach an identity pool</a></span></span></li><li role="treeitem"><span data-tocid="GUID-5CE6C199-CD03-410D-8741-16B2D29FC2AE" class="topicref" data-id="GUID-5CE6C199-CD03-410D-8741-16B2D29FC2AE" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5CE6C199-CD03-410D-8741-16B2D29FC2AE.html" id="GUID-5CE6C199-CD03-410D-8741-16B2D29FC2AE-link">Set tagged and untagged VLANs in a template</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" class="topicref" data-id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C.html" id="GUID-8CB1DD4E-AB8C-4C7B-9DCA-380F9041733C-link">Template Service</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" class="topicref" data-id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45.html" id="GUID-EFDB96BF-C89C-4EAA-894F-26E51039AD45-link">Manage the device firmware</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" class="topicref" data-id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178.html" id="GUID-735AEE29-F721-44D8-B4C0-BC8F5FDD7178-link">Manage jobs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" class="topicref" data-id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD.html" id="GUID-74EB7630-BCAD-47B1-BD6D-F310B89F55DD-link">Manage users</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" class="topicref" data-id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8.html" id="GUID-EFE961E5-F4A2-436C-B9A9-44494E1AE5A8-link">Manage identity pool</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-4E57A961-3592-4687-9465-2F89170746B0" class="topicref" data-id="GUID-4E57A961-3592-4687-9465-2F89170746B0" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-4E57A961-3592-4687-9465-2F89170746B0-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-4E57A961-3592-4687-9465-2F89170746B0.html" id="GUID-4E57A961-3592-4687-9465-2F89170746B0-link">Manage application settings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" class="topicref" data-id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768.html" id="GUID-1CFAE816-2D1A-4D8E-A28B-2D0AFF432768-link">Manage network configuration</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" class="topicref" data-id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4.html" id="GUID-39EFA76F-E359-4132-A4FF-8DFDECAB6DD4-link">Manage fabrics</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" class="topicref" data-id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14.html" id="GUID-B891EB23-4BE9-4655-B663-EBA4799CFF14-link">Manage Profiles</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" class="topicref" data-id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1.html" id="GUID-34E6090F-9CFF-48E4-A7EE-0F24CF8548C1-link">Device discovery</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" class="topicref" data-id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C.html" id="GUID-962D495A-87E2-484D-83DD-5CD233F38B3C-link">Manage Chassis</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" class="topicref" data-id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1.html" id="GUID-E4FB124A-7EA9-44D2-BD80-9F8FA01974C1-link">Manage Active Directory service and user groups</a><span class="wh-tooltip"><span xmlns:dita-ot="http://dita-ot.sourceforge.net/ns/201007/dita-ot" xmlns:toc="http://www.oxygenxml.com/ns/webhelp/toc" xmlns:xhtml="http://www.w3.org/1999/xhtml" class="undefined_element">   </span></span></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" class="topicref" data-id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E.html" id="GUID-627171BE-483D-44FD-8C3B-88A015DCF76E-link">Diagnostics</a></span></span></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
                         </nav>
                     
 
@@ -61,7 +61,7 @@
                             <div class="row">
                                 <!--  -->
                                 <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
-                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li><span class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F"><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html">Manage device configuration templates</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18"><span class="title"><a href="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18.html">Template operations</a></span></span></li></ol></div>
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise and OpenManage Enterprise Modular</a></span></span></li><li><span class="topicref" data-id="GUID-09366F3F-3602-45ED-B10A-E3475652032F"><span class="title"><a href="GUID-09366F3F-3602-45ED-B10A-E3475652032F.html">Manage device configuration templates</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18"><span class="title"><a href="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18.html">Template operations</a></span></span></li></ol></div>
 
                                     <div class="wh_right_tools hidden-sm hidden-xs">
                                         <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
@@ -82,6 +82,8 @@
 	 </section> 
 	 <section class="- topic/section section" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__SECTION_68AF37AC0A2C4AE5BBD263FE545A11EE"><span class="ph uicontrol bold">Synopsis</span> 
 		<p class="- topic/p p"> This module creates, modifies, deploys, deletes, exports, imports, or clones a template. 
+		</p>
+		<p class="- topic/p p">Check_mode support: Yes
 		</p> 
 		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
 		</p> 
@@ -107,7 +109,7 @@
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__4">NA 
 				</td> 
-				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5">OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5">OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname 
 				</td> 
 			 </tr> 
 			 <tr class="- topic/row"> 
@@ -119,7 +121,7 @@
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__4">NA 
 				</td> 
-				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5">OpenManage Enterprise or OpenManage Enterprise Modular username
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5">OpenManage Enterprise or OpenManage Enterprise Modular username 
 				</td> 
 			 </tr> 
 			 <tr class="- topic/row"> 
@@ -143,7 +145,57 @@
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__4">NA 
 				</td> 
-				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5">OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5">OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__1">validate_certs 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__3">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__4">True, False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5"> 
+				  <ul class="level1" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__UL_1C5A59CD388B45AEB485E077155BAD21"> 
+					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_3370B67F037445D5AFFC5497BD0ACE20"> If C(False), the SSL certificates will not be validated. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_D4A564626CE54C729B2FA61A6A9FDA8F">Configure C(False) only on personally controlled sites where self-signed certificates are used. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_6D39E486166640EE972824A387AD1D6A"> Prior to collection version C(5.0.0), the I(validate_certs) is C(False) by default. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__1"> ca_path 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5"> 
+				  <ul class="level1" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__UL_68221DC71D93482BA6B7534E438BF91F"> 
+					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_44FDED53D2024542AE00AAB043107382"> The Privacy Enhanced Mail (PEM) formatted file that contains a CA certificate to be used for the validation. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_7827D0D5ECB54A1D8939999A2D46E0AE"> I(ca_path) is required if I(validate_certs) is C(True). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__1"> timeout 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__3">30 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__TABLE_7FFE1BC0806D446ABF01EFD088392A31__entry__5"> The socket level timeout in seconds. 
 				</td> 
 			 </tr> 
 			 <tr class="- topic/row"> 
@@ -311,7 +363,7 @@
 					 </li> 
 					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_F399D549516643C1BE1DD8C1E0D4826A"> NetworkBootIsoModel: Payload to specify the ISO deployment details. This is applicable when I(command) is C(deploy). 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_4244E4D62A4445659AD52F857131C6C8"> Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is applicable for when I(command) is C(deploy) and C(modify). 
+					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_4244E4D62A4445659AD52F857131C6C8"> Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is applicable for when I(command) is C(deploy) and C(modify). Use the I(Id) If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the I(DisplayName), see the example provided.
 					 </li> 
 					 <li class="- topic/li li" id="GUID-921036EB-19CD-422B-86AD-D3320FCD5A18__LI_C131CEB2FE9F4A6DB77A734E8A480221">Content: The XML content of template. This is applicable when I(command) is C(import). 
 					 </li> 
@@ -330,10 +382,10 @@
   description: Overall status of the template operation.
   returned: always
   type: str
-  sample: "Successfully created a template with ID 123"
+  sample: "Successfully created a template with ID 23"
 return_id:
-  description: ID of the template used for C(create), C(modify), C(import), and C(clone) or task created in case of C(deploy).
-  returned: on success
+  description: ID of the template for C(create), C(modify), C(import) and C(clone) or task created in case of C(deploy).
+  returned: success, when I(command) is C(create), C(modify), C(import), C(clone) and C(deploy)
   type: int
   sample: 12
 TemplateId:
@@ -342,15 +394,23 @@ TemplateId:
   type: int
   sample: 13
 Content:
-  description: XML content of the exported template.
+  description: XML content of the exported template. This content can be written to a xml file.
   returned: success, when I(command) is C(export)
   type: str
-  sample: "&lt;SystemConfiguration Model=\"PowerEdge R940\" ServiceTag=\"DG22TR2\" TimeStamp=\"Tue Sep 24 09:20:57.872551
+  sample: "&lt;SystemConfiguration Model=\"PowerEdge R940\" ServiceTag=\"DEFG123\" TimeStamp=\"Tue Sep 24 09:20:57.872551
      2019\"&gt;\n&lt;Component FQDD=\"AHCI.Slot.6-1\"&gt;\n&lt;Attribute Name=\"RAIDresetConfig\"&gt;True&lt;/Attribute&gt;\n&lt;Attribute
-     Name=\"RAIDforeignConfig\"&gt;Clear&lt;/Attribute&gt;\n&lt;/Component&gt;\n&lt;Component FQDD=\"Disk.Direct.0-0:AHCI.Slot.6-1\"&gt;\n
-     &lt;Attribute Name=\"RAIDPDState\"&gt;Ready&lt;/Attribute&gt;\n&lt;Attribute Name=\"RAIDHotSpareStatus\"&gt;No&lt;/Attribute&gt;\n
-     &lt;/Component&gt;\n&lt;Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\"&gt;\n&lt;Attribute Name=\"RAIDPDState\"&gt;Ready
-     &lt;/Attribute&gt;\n&lt;Attribute Name=\"RAIDHotSpareStatus\"&gt;No&lt;/Attribute&gt;\n&lt;/Component&gt;\n&lt;/SystemConfiguration&gt;\n"
+     Name=\"RAIDforeignConfig\"&gt;Clear&lt;/Attribute&gt;\n&lt;/Component&gt;\n&lt;Component FQDD=\"Disk.Direct.0-0:AHCI.Slot.6-1\"&gt;
+     \n&lt;Attribute Name=\"RAIDPDState\"&gt;Ready&lt;/Attribute&gt;\n&lt;Attribute Name=\"RAIDHotSpareStatus\"&gt;No&lt;/Attribute&gt;
+     \n&lt;/Component&gt;\n&lt;Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\"&gt;\n&lt;Attribute Name=\"RAIDPDState\"&gt;Ready
+     &lt;/Attribute&gt;\n&lt;Attribute Name=\"RAIDHotSpareStatus\"&gt;No&lt;/Attribute&gt;\n&lt;/Component&gt;\n&lt;/SystemConfiguration&gt;"
+devices_assigned:
+  description: Mapping of devices with the templates already deployed on them.
+  returned: I(command) is C(deploy)
+  type: dict
+  sample: {
+        "10362": 28,
+        "10312": 23
+  }
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -379,6 +439,7 @@ error_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25123
     attributes:
       Name: "New Template"
@@ -389,17 +450,40 @@ error_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "modify"
     template_id: 12
     attributes:
       Name: "New Custom Template"
       Description: "Custom Template Description"
       # Attributes to be modified in the template.
-      # For information on any attribute ID, use API /TemplateService/Templates(Id)/Views(Id)/AttributeViewDetails
+      # For information on any attribute id, use API /TemplateService/Templates(Id)/Views(Id)/AttributeViewDetails
       # This section is optional
       Attributes:
         - Id: 1234
           Value: "Test Attribute"
+          IsIgnored: false
+
+- name: Modify template name, description, and attribute using detailed view
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "modify"
+    template_id: 12
+    attributes:
+      Name: "New Custom Template"
+      Description: "Custom Template Description"
+      Attributes:
+        # Enter the comma separated string as appearing in the Detailed view on GUI
+        # NIC -&gt; NIC.Integrated.1-1-1 -&gt; NIC Configuration -&gt; Wake On LAN1
+        - DisplayName: 'NIC, NIC.Integrated.1-1-1, NIC Configuration, Wake On LAN'
+          Value: Enabled
+          IsIgnored: false
+        # System -&gt; LCD Configuration -&gt; LCD 1 User Defined String for LCD
+        - DisplayName: 'System, LCD Configuration, LCD 1 User Defined String for LCD'
+          Value: LCD str by OMAM
           IsIgnored: false
 
 - name: Deploy template on multiple devices
@@ -407,6 +491,7 @@ error_info:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -416,11 +501,24 @@ error_info:
       - 'SVTG123'
       - 'SVTG456'
 
-- name: Deploy template on multiple devices along with the attribute values to be modified on the target devices
+- name: Deploy template on groups
   dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "deploy"
+    template_id: 12
+    device_group_names:
+      - server_group_1
+      - server_group_2
+
+- name: Deploy template on multiple devices along with the attributes values to be modified on the target devices
+  dellemc.openmanage.ome_template:
+    hostname:  "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -433,8 +531,8 @@ error_info:
       # For information on any attribute id, use API /TemplateService/Templates(Id)/Views(Id)/AttributeViewDetails
       # This section is optional
       Attributes:
-        # The device where attribute to be modified during deployment runtime.
-        # The Device ID should be mentioned above in the 'device_id' section.
+        # specific device where attribute to be modified at deployment run-time.
+        # The DeviceId should be mentioned above in the 'device_id' section.
         # Service tags not allowed.
         - DeviceId: 12765
           Attributes:
@@ -452,6 +550,7 @@ error_info:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -479,22 +578,13 @@ error_info:
         RunLater: true
         RunNow: false
 
-- name: Deploy template on groups
-  ome_template:
-    hostname: "{{hostname}}"
-    username: "{{username}}"
-    password: "{{password}}"
-    command: "deploy"
-    template_id: 12
-    device_group_names:
-      - server_group_1
-      - server_group_2
-
-- name: Deploy template on multiple devices and change the device-level attributes. After the template is deployed, install OS using its image
+- name: "Deploy template on multiple devices and changes the device-level attributes. After the template is deployed,
+install OS using its image"
   dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -507,7 +597,7 @@ error_info:
       Attributes:
         - DeviceId: 12765
           Attributes:
-           - Id : 15645
+            - Id : 15645
               Value : "0.0.0.0"
               IsIgnored : false
         - DeviceId: 10173
@@ -533,11 +623,12 @@ error_info:
         RunLater: true
         RunNow: false
 
-- name: Delete a template
+- name: Delete template
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     template_id: 12
 
@@ -546,30 +637,32 @@ error_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "export"
     template_id: 12
 
-- name: Export template to local xml file
+# Start of example to export template to a local xml file
+- name: Export template to a local xml file
   dellemc.openmanage.ome_template:
-    hostname: "{{hostname}}"
-    username: "{{username}}"
-    password: "{{password}}"
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "export"
     template_name: "my_template"
   register: result
-  tags:
-    - export_xml_to_file
-- copy:
+- name: Save template into a file
+  ansible.builtin.copy:
     content: "{{ result.Content}}"
     dest: "/path/to/exported_template.xml"
-  tags:
-    - export_xml_to_file
+# End of example to export template to a local xml file
 
 - name: Clone a template
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "clone"
     template_id: 12
     attributes:
@@ -580,6 +673,7 @@ error_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "import"
     attributes:
       Name: "Imported Template Name"
@@ -593,20 +687,79 @@ error_info:
       &lt;/Attribute&gt;\n&lt;Attribute Name=\"RAIDHotSpareStatus\"&gt;No&lt;/Attribute&gt;\n&lt;/Component&gt;\n
       &lt;Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\"&gt;\n&lt;Attribute Name=\"RAIDPDState\"&gt;Ready&lt;/Attribute&gt;\n
       &lt;Attribute Name=\"RAIDHotSpareStatus\"&gt;No&lt;/Attribute&gt;\n&lt;/Component&gt;\n&lt;/SystemConfiguration&gt;\n"
-      Description: "Imported Template description"
 
 - name: Import template from local XML file
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "import"
     attributes:
-      name: "Imported Template Name"
+      Name: "Imported Template Name"
       Type: 2
-      Content: "{{ lookup('file', '/path/to/xmlfile') }}"
+      Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"
 
-</code></pre> 
+- name: "Deploy template and Operating System (OS) on multiple devices."
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "deploy"
+    template_id: 12
+    device_id:
+      - 12765
+    device_service_tag:
+      - 'SVTG123'
+    attributes:
+      # Include this to install OS on the devices.
+      # This section is optional
+      NetworkBootIsoModel:
+        BootToNetwork: true
+        ShareType: "CIFS"
+        IsoTimeout: 1 # allowable values(1,2,4,8,16) in hours
+        IsoPath: "/home/iso_path/filename.iso"
+        ShareDetail:
+          IpAddress: "192.168.0.2"
+          ShareName: "sharename"
+          User: "share_user"
+          Password: "share_password"
+      Options:
+        EndHostPowerState: 1
+        ShutdownType: 0
+        TimeToWaitBeforeShutdown: 300
+      Schedule:
+        RunLater: true
+        RunNow: false
+
+- name: Create a compliance template from reference device
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "create"
+    device_service_tag:
+      - "SVTG123"
+    template_view_type: "Compliance"
+    attributes:
+      Name: "Configuration Compliance"
+      Description: "Configuration Compliance Template"
+      Fqdds: "BIOS"
+
+- name: Import a compliance template from XML file
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "import"
+    template_view_type: "Compliance"
+    attributes:
+      Name: "Configuration Compliance"
+      Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
+      Type: 2</code></pre> 
 		</div> 
 	 </section> 
   </div> 

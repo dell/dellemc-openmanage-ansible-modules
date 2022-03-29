@@ -154,7 +154,26 @@ define(["keywords", "searchHistoryItems", "options", "jquery", "jquery.ui"], fun
             auObj._renderItem = function (ul, item) {
                 // Text to search
                 var tts = $("#textToSearch").val();
-
+                // Eliminate the post and pre spaces int he input to avoid DOM XSS Issue 
+                // JIRA - IDPL-16125 Code change added by 986204 on 12/8/2021
+                tts = tts.trim();
+                tts = tts.replace(/</g, " ")
+                        .replace(/>/g, " ")
+                        .replace(/"/g, " ")
+                        .replace(/'/g, " ")
+                        .replace(/=/g, " ")
+                        .replace(/0\\/g, " ")
+                        .replace(/\\/g, " ")
+                        .replace(/\//g, " ")
+                        .replace(/  +/g, " ");
+            
+                 /*  START - EXM-20414 */
+                 tts =
+                     tts.replace(/<\//g, "_st_").replace(/\$_/g, "_di_").replace(/%2C|%3B|%21|%3A|@|\/|\*/g, " ").replace(/(%20)+/g, " ").replace(/_st_/g, "</").replace(/_di_/g, "%24_");
+                 /*  END - EXM-20414 */
+         
+                tts = tts.replace(/  +/g, " ");
+                tts = tts.replace(/ $/, "").replace(/^ /, " ");
                 tts = tts.toLowerCase();
                 var words = tts.split(" ");
 

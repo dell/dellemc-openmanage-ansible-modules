@@ -645,6 +645,11 @@ define(["index", "options", "stemmer", "util"], function(index, options, stemmer
      */
     function filterOriginalSearchExpression(searchTextField) {
         // Eliminate the cross site scripting possibility.
+		
+		// Eliminate the post and pre spaces int he input to avoid DOM XSS Issue 
+		// JIRA - IDPL-16125 Code change added by 986204 on 12/8/2021
+		searchTextField = searchTextField.trim();
+		
         searchTextField = searchTextField.replace(/</g, " ")
             .replace(/>/g, " ")
             .replace(/"/g, " ")

@@ -2,7 +2,7 @@
 <!DOCTYPE html
   SYSTEM "about:legacy-compat">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:whc="http://www.oxygenxml.com/webhelp/components" xml:lang="en-us" lang="en-us">
-    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: idrac_redfish_storage_controller Synopsis This module configures the storage controller settings using Redfish APIs. Options Table 1. idrac_redfish-storage-controller Parameter Required ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2021" /><meta name="DC.rights.owner" content="(C) Copyright 2021" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" /><meta name="DC.relation" scheme="URI" content="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" /><meta name="DC.relation" scheme="URI" content="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="October 2021" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 4.3.0    User’s Guide   " /><title>Configure storage controller settings</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-input-sanitizer.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" /><meta name="description" content="Module: idrac_redfish_storage_controller Synopsis This module allows the users to configure the settings of the physical disk, virtual disk, and storage controller. Check_mode support: Yes Options ..." /><meta charset="UTF-8" /><meta name="copyright" content="(C) Copyright 2022" /><meta name="DC.rights.owner" content="(C) Copyright 2022" /><meta name="DC.type" content="reference" /><meta name="DC.relation" scheme="URI" content="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" /><meta name="DC.relation" scheme="URI" content="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" /><meta name="DC.relation" scheme="URI" content="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" /><meta name="prodname" content="" /><meta name="version" content="0" /><meta name="DC.publisher" content="March 2022" /><meta name="DC.format" content="HTML5" /><meta name="DC.identifier" content="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D" /><meta name="DC.language" content="en-us" /><meta name="meta-topic-title" content="  Dell EMC OpenManage Ansible Modules Version 5.2.0    User’s Guide   " /><title>Configure physical disk, virtual disk, and storage controller settings</title><meta name="wh-path2root" content="" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/lib/bootstrap/css/bootstrap.min.css" /><link rel="stylesheet" href="./oxygen-webhelp/lib/jquery-ui/jquery-ui.min.css" /><link rel="stylesheet" type="text/css" href="./oxygen-webhelp/app/topic-page.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/lib/jquery/jquery-3.5.1.min.js"><!----></script><script data-main="./oxygen-webhelp/app/topic-page.js" src="./oxygen-webhelp/lib/requirejs/require.js"></script><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/main.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/topic.css?buildId=2020072412" /><link rel="stylesheet" type="text/css" href="oxygen-webhelp/template/resources/css/admonitions.css?buildId=2020072412" /><script type="text/javascript" src="./oxygen-webhelp/app/topic-loader.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-input-sanitizer.js"></script><script type="text/javascript" src="./oxygen-webhelp/app/topic-title-meta.js"></script></head>
 
     <body data-lang="en-us" class="wh_topic_page">
         <a href="#wh_topic_body" class="sr-only sr-only-focusable">
@@ -23,8 +23,8 @@
                             'webhelp.logo.image' and 'webhelp.logo.image.target.url'.
                             See: http://oxygenxml.com/doc/versions/17.1/ug-editor/#topics/dita_webhelp_output.html.
                     -->
-                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 4.3.0    User’s Guide   " /></a>
-                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 4.3.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
+                    <a href="index.html" class=" wh_logo "><img src="oxygen-webhelp/template/resources/images/logos/dellemc-white.svg" alt="  Dell EMC OpenManage Ansible Modules Version 5.2.0    User’s Guide   " /></a>
+                    <div class=" wh_publication_title "><span class="booktitle"><span class="mainbooktitle">Dell EMC OpenManage Ansible Modules Version 5.2.0<span class="pipe-separator"></span></span><span class="booktitlealt">User’s Guide</span></span></div>
                     
                 </div>
                 
@@ -42,7 +42,7 @@
 </header>
         <div class="wh_top_menu_and_indexterms_link collapse navbar-collapse" id="wh_top_menu_and_indexterms_link">
             
-            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
+            <nav class=" wh_top_menu "><ul xmlns:xhtml="http://www.w3.org/1999/xhtml" role="menubar" aria-label="Menu"><li role="menuitem"><span id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-mi" data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf" class=" topicref " data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029"><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html">Notes, cautions, and warnings</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-mi" data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready" class=" topicref " data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6"><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html">Overview</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-mi" data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready" class=" topicref " data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57"><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html">Getting Started</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-mi" data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="not-ready" class=" topicref " data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-mi" data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready" class=" topicref " data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30"><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html">Modules for OpenManage Enterprise and OpenManage Enterprise Modular</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-mi" data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready" class=" topicref " data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D"><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html">Modules for Redfish APIs</a></span></span></li><li role="menuitem" aria-haspopup="true" aria-expanded="false" class="has-children"><span id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-mi" data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready" class=" topicref " data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E"><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html">Deprecated modules</a></span></span></li></ul></nav>
             <!--<whc:webhelp_indexterms_link/>-->
             
         </div>
@@ -52,7 +52,7 @@
                 <div class="row">
                     
                         <nav role="navigation" id="wh_publication_toc" class="col-lg-3 col-md-3 col-sm-3 hidden-narrow navbar hidden-print">
-                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" class="topicref" data-id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6.html" id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6-link">How OpenManage Ansible Modules work with iDRAC</a></span></span></li><li role="treeitem"><span data-tocid="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" class="topicref" data-id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5.html" id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5-link">Running your first iDRAC Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" class="topicref" data-id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8.html" id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link">Updating Firmware</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link">Configuring PowerEdge Servers</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-9D880486-295B-4E50-AE21-050134D36869" class="topicref" data-id="GUID-9D880486-295B-4E50-AE21-050134D36869" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-9D880486-295B-4E50-AE21-050134D36869-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-9D880486-295B-4E50-AE21-050134D36869.html" id="GUID-9D880486-295B-4E50-AE21-050134D36869-link">Deploying operating system</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" class="topicref" data-id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273.html" id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link">Server Inventory</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" class="topicref" data-id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981.html" id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link">Server administration tasks</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" class="topicref" data-id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link">Storage controller</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem" class="active"><span data-tocid="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D" class="topicref" data-id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D.html" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D-link">Configure storage controller settings</a></span></span></li></ul></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise (OME)</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
+                            <div class=" wh_publication_toc " data-tooltip-position="right"><ul role="tree" aria-label="Table of Contents"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" class="topicref" data-id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-5B8DE7B7-879F-45A4-88E0-732155904029.html" id="GUID-5B8DE7B7-879F-45A4-88E0-732155904029-link">Notes, cautions, and warnings</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" class="topicref" data-id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6.html" id="GUID-B5B36B0D-3C6B-4DE5-A3A4-40F4930401F6-link">Overview</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" class="topicref" data-id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57.html" id="GUID-6154B7D9-1005-4C5B-9EC1-7808E84D1F57-link">Getting Started</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html" id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529-link">Modules for iDRAC</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem"><span data-tocid="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" class="topicref" data-id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6.html" id="GUID-7ED54CAA-27FB-4CC3-A07F-F39959B061A6-link">How OpenManage Ansible Modules work with iDRAC</a></span></span></li><li role="treeitem"><span data-tocid="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" class="topicref" data-id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5.html" id="GUID-EA8B2754-D62E-4D2C-8951-636D49B0CAA5-link">Running your first iDRAC Playbook</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" class="topicref" data-id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8.html" id="GUID-080C5507-C11A-43A9-B6D0-08157CF09DC8-link">Updating Firmware</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" class="topicref" data-id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8.html" id="GUID-25316801-814F-4F17-97D3-AAF941B3CFE8-link">Configuring PowerEdge Servers</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-9D880486-295B-4E50-AE21-050134D36869" class="topicref" data-id="GUID-9D880486-295B-4E50-AE21-050134D36869" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-9D880486-295B-4E50-AE21-050134D36869-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-9D880486-295B-4E50-AE21-050134D36869.html" id="GUID-9D880486-295B-4E50-AE21-050134D36869-link">Deploying operating system</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" class="topicref" data-id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273.html" id="GUID-DC5090CB-E840-4C72-98F8-93F0DC2DC273-link">Server Inventory</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" class="topicref" data-id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981.html" id="GUID-5F73DBFE-1EAF-410A-999D-0F273A787981-link">Server administration tasks</a></span></span></li><li role="treeitem" aria-expanded="true"><span data-tocid="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" class="topicref" data-id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98" data-state="expanded"><span role="button" tabindex="0" aria-labelledby="button-collapse-action GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98-link">Storage controller</a></span></span><ul role="group" class="navbar-nav nav-list"><span class="expand-button-action-labels"><span id="button-expand-action" aria-label="Expand"></span><span id="button-collapse-action" aria-label="Collapse"></span><span id="button-pending-action" aria-label="Pending"></span></span><li role="treeitem" class="active"><span data-tocid="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D" class="topicref" data-id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D" data-state="leaf"><span role="button" class="wh-expand-btn"></span><span class="title"><a href="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D.html" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D-link">Configure physical disk, virtual disk, and storage controller settings</a></span></span></li></ul></li></ul></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" class="topicref" data-id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" id="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30-link">Modules for OpenManage Enterprise and OpenManage Enterprise Modular</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" class="topicref" data-id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D.html" id="GUID-7A62E6C0-A7D4-436B-B2A3-256B6F77907D-link">Modules for Redfish APIs</a></span></span></li><li role="treeitem" aria-expanded="false"><span data-tocid="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" class="topicref" data-id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E" data-state="not-ready"><span role="button" tabindex="0" aria-labelledby="button-expand-action GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link" class="wh-expand-btn"></span><span class="title"><a href="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E.html" id="GUID-7B5F0532-D11F-499B-A9A6-CDE5CFA08D0E-link">Deprecated modules</a></span></span></li></ul></div>
                         </nav>
                     
 
@@ -61,13 +61,13 @@
                             <div class="row">
                                 <!--  -->
                                 <nav class="wh_tools hidden-print col-lg-10 col-md-10 col-sm-10 col-xs-10" style="min-width: -webkit-fill-available;">
-                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li><span class="topicref" data-id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98"><span class="title"><a href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html">Storage controller</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D"><span class="title"><a href="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D.html">Configure storage controller settings</a></span></span></li></ol></div>
+                                    <div data-tooltip-position="bottom" class=" wh_breadcrumb "><ol xmlns:html="http://www.w3.org/1999/xhtml" class="d-print-none"><li><span class="home"><a href="index.html"><span>Home</span></a></span></li><li><span class="topicref" data-id="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529"><span class="title"><a href="GUID-1A3EBFFB-5127-4FB5-98C0-892FD2D78529.html">Modules for iDRAC</a></span></span></li><li><span class="topicref" data-id="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98"><span class="title"><a href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html">Storage controller</a></span></span></li><li class="active"><span class="topicref" data-id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D"><span class="title"><a href="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D.html">Configure physical disk, virtual disk, and storage controller settings</a></span></span></li></ol></div>
 
                                     <div class="wh_right_tools hidden-sm hidden-xs">
                                         <div class=" wh_navigation_links "><span id="topic_navigation_links" class="navheader">
   
 <span class="navprev"><a class="- topic/link link" href="GUID-35B147A5-88F6-4DC8-88C9-A43D7BBFBC98.html" title="Storage controller" aria-label="Previous topic: Storage controller" rel="prev"></a></span>  
-<span class="navnext"><a class="- topic/link link" href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" title="Modules for OpenManage Enterprise (OME)" aria-label="Next topic: Modules for OpenManage Enterprise (OME)" rel="next"></a></span>  </span></div>
+<span class="navnext"><a class="- topic/link link" href="GUID-F1175648-DCE3-47E7-92F9-B2AF15C8BF30.html" title="Modules for OpenManage Enterprise and OpenManage Enterprise Modular" aria-label="Next topic: Modules for OpenManage Enterprise and OpenManage Enterprise Modular" rel="next"></a></span>  </span></div>
                                         <div class="collapse_section_wraper"><button class="webhelp_expand_collapse_sections" data-next-state="collapsed" aria-label="Collapse sections" title="Collapse sections"></button></div>
                                         <div class=" wh_print_link print "><button onClick="window.print()" title="Print this page" aria-label="Print this page"></button></div>
                                     </div>
@@ -76,14 +76,16 @@
                             <div class="row topic_content_row">
                                 <div id="topic_content" class="col-lg-10 col-md-12 col-sm-12 col-xs-12">
                                     <div class=" wh_topic_content body "><main role="main"><article role="article" aria-labelledby="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__GUID-461D5D02-5B1D-4A22-B7AC-B6A3257FE145"> 
-  <h1 class="- topic/title title topictitle1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__GUID-461D5D02-5B1D-4A22-B7AC-B6A3257FE145">Configure storage controller settings</h1> 
+  <h1 class="- topic/title title topictitle1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__GUID-461D5D02-5B1D-4A22-B7AC-B6A3257FE145">Configure physical disk, virtual disk, and storage controller settings</h1> 
   <div class="- topic/body reference/refbody body refbody"> 
 	 <section class="- topic/section section" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__GUID-044B7BDD-EB83-4C27-9AB6-5C9B9F75459B"> 
 		<span class="ph uicontrol bold">Module: idrac_redfish_storage_controller 
 		</span> 
 	 </section> 
 	 <section class="- topic/section section" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__SECTION_9D217AE1FEF546EABB8EB20E21449669"><span class="ph uicontrol bold">Synopsis</span> 
-		<p class="- topic/p p">This module configures the storage controller settings using Redfish APIs. 
+		<p class="- topic/p p">This module allows the users to configure the settings of the physical disk, virtual disk, and storage controller. 
+		</p>
+		<p class="- topic/p p">Check_mode support: Yes
 		</p> 
 		<p class="- topic/p p"><span class="ph uicontrol bold">Options</span> 
 		</p> 
@@ -137,27 +139,91 @@
 				</td> 
 			 </tr> 
 			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__1">validate_certs 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__3">True 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__4">True, False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> 
+				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_1C5A59CD388B45AEB485E077155BAD21"> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_3370B67F037445D5AFFC5497BD0ACE20"> If C(False), the SSL certificates will not be validated. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_D4A564626CE54C729B2FA61A6A9FDA8F">Configure C(False) only on personally controlled sites where self-signed certificates are used. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_6D39E486166640EE972824A387AD1D6A"> Prior to collection version C(5.0.0), the I(validate_certs) is C(False) by default. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__1"> ca_path 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__3">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> 
+				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_68221DC71D93482BA6B7534E438BF91F"> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_44FDED53D2024542AE00AAB043107382"> The Privacy Enhanced Mail (PEM) formatted file that contains a CA certificate to be used for the validation. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_7827D0D5ECB54A1D8939999A2D46E0AE"> I(ca_path) is required if I(validate_certs) is C(True). 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__1"> timeout 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__3">30 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> The socket level timeout in seconds. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__1">command 
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__2">False 
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__3">AssignSpare 
 				</td> 
-				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__4">ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey,or ReKey. 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__4">ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare, EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID, ChangePDStateToOnline, ChangePDStateToOffline 
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5">Set of actions to configure the storage controller settings. These actions may require a system reset, depending on the controller's capabilities. 
 				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_91D817920D9448D58E2F3D604F89E65C"> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_8D3C712453EE47CC81BFD88CF8638848">C(ResetConfig) - Deletes all the virtual disks and unassigns all hot spares on physical disks. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_6E5245A223AA4F1CBA530C085F21FC01">C(ResetConfig) - Deletes all the virtual disks and unassigns all hot spares on physical disks. I(controller_id) is required for this operation.
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_699450451E5444AA94E3F7B58AC69DD5">C(AssignSpare) - Assigns a physical disk as a dedicated or global hot spare for a virtual disk. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_06593318D3ED43759A357C6B8ACE1834">C(AssignSpare) - Assigns a physical disk as a dedicated or global hot spare for a virtual disk. I(target) is required for this operation.
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_B1A89113FDAD4796A2866039AAE4E783"> 
-						<p class="- topic/p p">C(SetControllerKey) - Sets the key on controllers, which is used to encrypt the drives in Local key Management(LKM). 
-						</p> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_7B6D07F418C645F1B3815085EA88CF04">C(SetControllerKey) - Sets the key on controllers, which is used to encrypt the drives in Local Key Management(LKM). I(controller_id), I(key), and I(key_id) are required for this operation.
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_90EB6A27F78E45D68C2CA57F6DFF18CB">C(RemoveControllerKey) - Erases the encryption key on the controller. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_8C3D25621D03478BA3F6C973C22DD470">C(RemoveControllerKey) - Deletes the encryption key on the controller. I(controller_id) is required for this operation.
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_608D2384490C47D7979110F6A7781DEB">C(ReKey) - Resets the key on the controller. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_B541096ECF4946698342F8DAA69C809A">C(ReKey) - Resets the key on the controller and it always reports as changes found when check mode is enabled. I(controller_id), I(old_key), I(key_id), and I(key) is required for this operation.
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_40FB3DEC7A334B9EAEA97876A465A8E4">C(UnassignSpare) - To unassign the Global or Dedicated hot spare. I(target) is required for this operation. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_FAD29E94007F41D2943C9755462DD19B">C(EnableControllerEncryption) - To enable Local Key Management (LKM) or Secure Enterprise Key Manager (SEKM) on controllers that support encryption of the drives. I(controller_id), I(key), and I(key_id) are required for this operation. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_2CDDB0BB09CB444B85ECA01D823DC26A">C(BlinkTarget) - Blinks the target virtual drive or physical disk and it always reports as changes found when check mode is enabled. I(target) or I(volume_id) is required for this operation.
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_69841F26DF3A4BE991023B342854DDC5">C(UnBlinkTarget) - Unblink the target virtual drive or physical disk and and it always reports as changes found when check mode is enabled. I(target) or I(volume_id) is required for this operation.
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_C239320549884A4B9574F9625C686206">C(ConvertToRAID) - Converts the disk form non-Raid to Raid. I(target) is required for this operation. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_6DFABC28C14D4A4ABFF970AB56FA575A">C(ConvertToNonRAID) - Converts the disk form Raid to non-Raid. I(target) is required for this operation.
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_3368F0DCCEB44508939E77971B272218">C(ChangePDStateToOnline) - To set the disk status to online. I(target) is required for this operation.
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_41D1A9904D3445F88F824CB98677C069">C(ChangePDStateToOffline) - To set the disk status to offline. I(target) is required for this operation.
 					 </li> 
 				  </ul> 
 				</td> 
@@ -173,11 +239,13 @@
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> 
 				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_EA496E6141074C81A6E5BEDC5CB666AD"> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_D9E98006FED7436EB3DB9E4BFBE8C040">Fully Qualified Device Descriptor (FQDD) of the target physical drive that is assigned as a spare. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_D9E98006FED7436EB3DB9E4BFBE8C040">Fully Qualified Device Descriptor (FQDD) of the target physical drive. 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_D5C91C4DD65D414D9B6FA34A7D8BF176">This [option] is mandatory when I(command) is C(AssignSpare) 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_D5C91C4DD65D414D9B6FA34A7D8BF176">This is mandatory when I(command) is C(AssignSpare), C(UnassisgnSpare), C(ChangePDStateToOnline), C(ChangePDStateToOffline), C(ConvertToRAID), or C(ConvertToNonRAID). 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_9335C5CAAB4D4414A618D2B792DBDBD1">If I(volume_id) is not specified or empty, this physical drive will be assigned as a global hot spare. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_9335C5CAAB4D4414A618D2B792DBDBD1">If I(volume_id) is not specified or empty, this physical drive will be assigned as a global hot spare when I(command) is C(AssignSpare). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_855CBCFA295643FC81F0797D68D86033">Note: Global or Dedicated hot spare can be assigned only once for a physical disk, Re-assign cannot be done when I(command) is C(AssignSpare). 
 					 </li> 
 				  </ul> 
 				</td> 
@@ -193,11 +261,13 @@
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> 
 				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_2A45CDDF886C459680DFCC131708D888"> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_4760C7AEAD9F449E9E4673DFDE4E0FF5">FQDD of the volumes to which a hot spare is assigned. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_4760C7AEAD9F449E9E4673DFDE4E0FF5">Fully Qualified Device Descriptor (FQDD) of the volume. 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_641F483FC5234571886A8CFA84DD7BBA">[This option is] Applicable if I(command) is C(AssignSpare). 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_641F483FC5234571886A8CFA84DD7BBA">Applicable if I(command) is C(AssignSpare), C(BlinkTarget), and C(UnBlinkTarget). 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_79832A71CE4B4112B6C0CAB3B074DFE0"> To know the number of volumes to which a hot spare can be assigned, refer iDRAC Redfish API guide. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_8A066BE04E8B41C78EEC1FE12F83293B">I(volume_id) or I(target) is required when the I(command) is C(BlinkTarget) or C(UnBlinkTarget), if both are specified I(target) is considered. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_79832A71CE4B4112B6C0CAB3B074DFE0"> To know the number of volumes to which a hot spare can be assigned, refer iDRAC Redfish API documentation. 
 					 </li> 
 				  </ul> 
 				</td> 
@@ -213,11 +283,9 @@
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> 
 				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_EBF3DBCEEE9342E5ADBF5362324A62B0"> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_4D0BA85D85654F50AD83A052ABB3FFA2">FQDD of the storage controller. For example- 'RAID.Slot.1-1'. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_4D0BA85D85654F50AD83A052ABB3FFA2">Fully Qualified Device Descriptor (FQDD) of the storage controller. For example-'RAID.Slot.1-1'. 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_A2EEAFF034E3488794E743221D82EC99"> 
-						<p class="- topic/p p">This option is mandatory when I(command) is C(ResetConfig), C(SetControllerKey), C(RemoveControllerKey) and C(ReKey). 
-						</p> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_A2EEAFF034E3488794E743221D82EC99"> This option is mandatory when I(command) is C(ResetConfig), C(SetControllerKey), C(RemoveControllerKey), C(ReKey), or C(EnableControllerEncryption). 
 					 </li> 
 				  </ul> 
 				</td> 
@@ -233,11 +301,13 @@
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> 
 				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_5251951669074D14B83AA34A0ECF5776"> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_1DAD522F7DCD4B9DBCB1F30538365ABB"> A new security key passphrase that the encryption-capable controller uses to create the encryption key. The controller uses the encryption key to lock or unlock access to the Self Encryption Disk(SED). 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_1DAD522F7DCD4B9DBCB1F30538365ABB"> A new security key passphrase that the encryption-capable controller uses to create the encryption key. The controller uses the encryption key to lock or unlock access to the Self-Encrypting Drive (SED). Only one encryption key can be created for each controller. 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_CE56573953CA4540957E641075C963E5">Only one encryption key can be created for each controller. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_CE56573953CA4540957E641075C963E5">This is mandatory when I(command) is C(SetControllerKey), C(ReKey), or C(EnableControllerEncryption) and when I(mode) is C(LKM). 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_BDACBD26844C4CF3BE542E6E899D97C4">This option is mandatory when I(command) is C(SetControllerKey) or C(ReKey), and when I(mode) is C(LKM). 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_BDACBD26844C4CF3BE542E6E899D97C4">The length of the key can be a maximum of 32 characters in length, where the expanded form of the special character is counted as a single character. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_04724DDA9E57408DB39D3D50FA8F1046">The key must contain at least one character from each of the character classes: uppercase, lowercase, number, and special character. 
 					 </li> 
 				  </ul> 
 				</td> 
@@ -255,7 +325,9 @@
 				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_21AF8D2AD3EE47308FE19621D0726784"> 
 					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_D2E187DD3080442BBF19D8EDEF65D634">This is a user supplied text label associated with the passphrase. 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_BC5FD37664634B72B4F7FF0AF633E261">This option is mandatory when I(command) is C(SetControllerKey) or C(ReKey), and when I(mode) is C(LKM). 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_BC5FD37664634B72B4F7FF0AF633E261">This is mandatory when I(command) is C(SetControllerKey), C(ReKey), or C(EnableControllerEncryption) and when I(mode) is C(LKM). 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_1A0B1B7207844866A4794529DE6BD5B5">The length of I(key_id) can be a maximum of 32 characters in length and should not have any spaces. 
 					 </li> 
 				  </ul> 
 				</td> 
@@ -273,7 +345,7 @@
 				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_149986CFCA7E468FAAA1A29D07FE7376"> 
 					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_4FD8E112C1E34ADA92B9A19C967C315E">Security key passphrase used by the encryption-capable controller. 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_C0F6A4A5542C40BD939DB0F30BA07E4E"> This option is mandatory when I(command) is C(ReKey) and I(mode) is C(LKM). . 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_C0F6A4A5542C40BD939DB0F30BA07E4E"> This option is mandatory when I(command) is C(ReKey) and I(mode) is C(LKM). 
 					 </li> 
 				  </ul> 
 				</td> 
@@ -289,11 +361,43 @@
 				</td> 
 				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> 
 				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_185FC430BDD5489F92E983287A6B688A"> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_4F93755DF7F748EA93755A2A2AA561D1">Encryption mode of the encryption-capable controller: 1 - Local Key Management (LKM), 2 - Security Enterprise Key Manager(SEKM). 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_4F93755DF7F748EA93755A2A2AA561D1">Encryption mode of the encryption capable controller. 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_93B7622BCB42412D9C013E973C822724">This option is applicable only when I(command) is C(ReKey). 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_93B7622BCB42412D9C013E973C822724">This option is applicable only when I(command) is C(ReKey) or C(EnableControllerEncryption). 
 					 </li> 
-					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_E569F252B1CD425B90D5B338E46F7855"> C(SEKM) requires secure enterprise key manager license on the iDRAC. 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_2473E1FBEB444FDBBE4D946019321B8D">C(SEKM) requires secure enterprise key manager license on the iDRAC. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_E569F252B1CD425B90D5B338E46F7855">C(LKM) to choose mode as local key mode. 
+					 </li> 
+				  </ul> 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__1">job_wait 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__3">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5">Provides the option if the module has to wait for the job to be completed. 
+				</td> 
+			 </tr> 
+			 <tr class="- topic/row"> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__1">job_wait_timeout 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__2">False 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__3">120 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__4">NA 
+				</td> 
+				<td class="- topic/entry entry cellrowborder" headers="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__TABLE_4C7EDC1472294E29B232BFB1EC317434__entry__5"> 
+				  <ul class="level1" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__UL_80188228A1284945A540D6C1C47EB53E"> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_69496C77349344089D87C69A5F5CFDCE"> The maximum wait time of job completion in seconds before the job tracking is stopped. 
+					 </li> 
+					 <li class="- topic/li li" id="GUID-E52F39A3-CB9B-4AFF-9AA1-AE4F13785A2D__LI_FE8FB119230848599A0CE20DFC296265">This option is applicable when I(job_wait) is C(True). 
 					 </li> 
 				  </ul> 
 				</td> 
@@ -305,14 +409,35 @@
   type: str
   description: Overall status of the storage controller configuration operation.
   returned: always
-  sample: "Successfully submitted the job that performs AssignSpare operation"
+  sample: "Successfully submitted the job that performs the AssignSpare operation"
 task:
   type: dict
-  description: ID and URI resource of the created job.
+  description: ID and URI resource of the job created.
   returned: success
   sample: {
     "id": "JID_XXXXXXXXXXXXX",
     "uri": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"
+  }
+status:
+  type: dict
+  description: status of the submitted job.
+  returned: always
+  sample: {
+    "ActualRunningStartTime": "2022-02-09T04:42:41",
+    "ActualRunningStopTime": "2022-02-09T04:44:00",
+    "CompletionTime": "2022-02-09T04:44:00",
+    "Description": "Job Instance",
+    "EndTime": "TIME_NA",
+    "Id": "JID_444033604418",
+    "JobState": "Completed",
+    "JobType": "RealTimeNoRebootConfiguration",
+    "Message": "Job completed successfully.",
+    "MessageArgs":[],
+    "MessageId": "PR19",
+    "Name": "Configure: RAID.Integrated.1-1",
+    "PercentComplete": 100,
+    "StartTime": "2022-02-09T04:42:40",
+    "TargetSettingsURI": null
   }
 error_info:
   type: dict
@@ -322,7 +447,7 @@ error_info:
     "error": {
       "@Message.ExtendedInfo": [
         {
-          "Message": "Cannot run the method because the requested HTTP method is not allowed.",
+          "Message": "Unable to run the method because the requested HTTP method is not allowed.",
           "MessageArgs": [],
           "MessageArgs@odata.count": 0,
           "MessageId": "iDRAC.1.6.SYS402",
@@ -340,30 +465,45 @@ error_info:
 </code></pre> 
 		<p class="- topic/p p"><span class="ph uicontrol bold">Examples</span> 
 		</p> 
-		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Assign a dedicated hot spare
+		<pre class="+ topic/pre pr-d/codeblock pre codeblock"><code>- name: Assign dedicated hot spare
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
-    volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+    ca_path: "/path/to/ca_cert.pem"
+    volume_id:
+      - "Disk.Virtual.0:RAID.Slot.1-1"
     target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
   tags:
     - assign_dedicated_hot_spare
 
-- name: Assign a global hot spare
+- name: Assign global hot spare
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
   tags:
     - assign_global_hot_spare
 
-- name: Set a controller encryption key
+- name: Unassign hot spare
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+    command: UnassignSpare
+  tags:
+    - un-assign-hot-spare
+
+- name: Set controller encryption key
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "SetControllerKey"
     controller_id: "RAID.Slot.1-1"
     key: "PassPhrase@123"
@@ -376,10 +516,11 @@ error_info:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "ReKey"
     controller_id: "RAID.Slot.1-1"
-    key: "PassPhrase@123"
-    key_id: "mykeyid123"
+    key: "NewPassPhrase@123"
+    key_id: "newkeyid123"
     old_key: "OldPassPhrase@123"
   tags:
     - rekey_lkm
@@ -389,32 +530,136 @@ error_info:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "ReKey"
     controller_id: "RAID.Slot.1-1"
     mode: "SEKM"
   tags:
     - rekey_sekm
 
-- name: Remove the controller key
+- name: Remove controller key
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "RemoveControllerKey"
     controller_id: "RAID.Slot.1-1"
   tags:
     - remove_controller_key
 
-- name: Reset configuration
+- name: Reset controller configuration
   dellemc.openmanage.idrac_redfish_storage_controller:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "ResetConfig"
     controller_id: "RAID.Slot.1-1"
   tags:
     - reset_config
-</code></pre> 
+
+- name: Enable controller encryption
+  idrac_redfish_storage_controller:
+    baseuri: "{{ baseuri }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "EnableControllerEncryption"
+    controller_id: "RAID.Slot.1-1"
+    mode: "LKM"
+    key: "your_Key@123"
+    key_id: "your_Keyid@123"
+  tags:
+    - enable-encrypt
+
+- name: Blink physical disk.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: BlinkTarget
+    target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+  tags:
+    - blink-target
+
+- name: Blink virtual drive.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: BlinkTarget
+    volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+  tags:
+    - blink-volume
+
+- name: Unblink physical disk.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: UnBlinkTarget
+    target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+  tags:
+    - unblink-target
+
+- name: Unblink virtual drive.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: UnBlinkTarget
+    volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+  tags:
+    - unblink-drive
+
+- name: Convert physical disk to RAID
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "ConvertToRAID"
+    target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+  tags:
+    - convert-raid
+
+- name: Convert physical disk to non-RAID
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "ConvertToNonRAID"
+    target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+  tags:
+    - convert-non-raid
+
+- name: Change physical disk state to online.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "ChangePDStateToOnline"
+    target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
+  tags:
+    - pd-state-online
+
+- name: Change physical disk state to offline.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "ChangePDStateToOnline"
+    target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
+  tags:
+    - pd-state-offline</code></pre> 
 	 </section> 
   </div> 
 </article></main></div>
