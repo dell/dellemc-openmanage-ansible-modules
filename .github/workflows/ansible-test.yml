@@ -54,6 +54,8 @@ jobs:
         exclude:
           - ansible-version: devel
             python-version: 2.7
+          - ansible-version: stable-2.12
+            python-version: 2.7
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
