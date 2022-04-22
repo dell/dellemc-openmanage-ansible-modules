@@ -5,5 +5,5 @@ mock
 pytest-mock
 pytest-cov
 # pytest-ansible==2.0.1
-coverage
+coverage==5.0
 netaddr>=0.7.19
