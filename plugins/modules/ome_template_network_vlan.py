@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.3.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -346,14 +346,10 @@ def validate_vlans(module, rest_obj):
     vlan_name_id_map["0"] = 0
     tagged_list = module.params.get("tagged_networks")
     untag_list = module.params.get("untagged_networks")
-    if not tagged_list and not untag_list:
-        module.fail_json(msg="Either tagged_networks | untagged_networks "
-                             "data needs to be provided")
     untag_dict = {}
     if untag_list:
         for utg in untag_list:
             p = utg["port"]
-            excl_flag = False
             if utg.get("untagged_network_id") is not None:
                 if p in untag_dict:
                     module.fail_json(msg="port {0} is repeated for "
@@ -364,12 +360,7 @@ def validate_vlans(module, rest_obj):
                                          "valid vlan id for port {1}".
                                      format(vlan, p))
                 untag_dict[p] = vlan
-                excl_flag = True
             if utg.get("untagged_network_name"):
-                if excl_flag:
-                    module.fail_json(msg="Options untagged_network_name | "
-                                         "untagged_network_id are mutually exclusive "
-                                         "for port {0}".format(p))
                 vlan = utg.get("untagged_network_name")
                 if vlan in vlan_name_id_map:
                     if p in untag_dict:

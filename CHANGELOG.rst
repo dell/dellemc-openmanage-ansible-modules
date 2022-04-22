@@ -5,6 +5,36 @@ Dell EMC OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v5.3.0
+======
+
+Release Summary
+---------------
+
+Added check mode and idempotency support for redfish_storage_volume and idempotency support for ome_smart_fabric_uplink. For ome_diagnostics, added support for debug logs and added supportassist_collection as a choice for the log_type argument to export SupportAssist logs.
+
+Minor Changes
+-------------
+
+- ome_diagnostics - Added "supportassist_collection" as a choice for the log_type argument to export SupportAssist logs. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/309)
+- ome_diagnostics - The module is enhanced to support debug logs. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/308)
+- ome_smart_fabric_uplink - The module is enhanced to support idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/253)
+- redfish_storage_volume - The module is enhanced to support check mode and idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/245)
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_console_preferences - Issue(224690) - The module does not display a proper error message when an unsupported value is provided for the parameters report_row_limit, email_sender_settings, and metric_collection_settings, and the value is applied on OpenManage Enterprise.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
 v5.2.0
 ======
 

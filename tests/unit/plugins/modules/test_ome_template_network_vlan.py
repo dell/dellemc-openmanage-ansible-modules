@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 4.1.0
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.3.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -139,6 +139,33 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
                 12765, 12767, 12768], "Untagged": 12766, 'IsNicBonded': True},
             {"ComponentId": 2301, "Tagged": [12765, 12766], "Untagged": 12767, 'IsNicBonded': False}]
 
+    @pytest.mark.parametrize("params", [
+        {"untag_dict": {1: 12766}, "tagged_dict": {2: [12765, 12766]},
+         "port_id_map": {1: 2302, 2: 2301}, "port_untagged_map": {1: 12766}, "port_tagged_map": {2: [12765, 12766]},
+         "mparams": {"template_id": 12}, "port_nic_bond_map": {1: True, 2: False}, 'nic_bonding_tech': "LACP",
+         'message': "No changes found to be applied."},
+        {"untag_dict": {3: 12766}, "tagged_dict": {2: [12765, 12766]},
+         "port_id_map": {1: 2302, 2: 2301}, "port_untagged_map": {1: 12766}, "port_tagged_map": {2: [12765, 12766]},
+         "mparams": {"template_id": 12}, "port_nic_bond_map": {1: True, 2: False}, 'nic_bonding_tech': "LACP",
+         'message': "Invalid port(s) dict_keys([3]) found for untagged VLAN"},
+        {"untag_dict": {1: 12766}, "tagged_dict": {3: [12765, 12766]},
+         "port_id_map": {1: 2302, 2: 2301}, "port_untagged_map": {1: 12766}, "port_tagged_map": {2: [12765, 12766]},
+         "mparams": {"template_id": 12}, "port_nic_bond_map": {1: True, 2: False}, 'nic_bonding_tech': "LACP",
+         'message': "Invalid port(s) dict_keys([3]) found for tagged VLAN"},
+    ])
+    def test_get_vlan_payload_msg(
+            self, params, ome_connection_mock_for_template_network_vlan, ome_default_args, ome_response_mock, mocker):
+        f_module = self.get_module_mock(params=params['mparams'])
+        mocker.patch(MODULE_PATH + 'get_template_details',
+                     return_value={"Name": "vlan_name", "Id": 12, "IdentityPoolId": 23})
+        mocker.patch(MODULE_PATH + 'get_template_vlan_info', return_value=(
+            params['port_id_map'], params['port_untagged_map'], params['port_tagged_map'],
+            params['port_nic_bond_map'], params['nic_bonding_tech']))
+        with pytest.raises(Exception) as exc:
+            self.module.get_vlan_payload(f_module, ome_connection_mock_for_template_network_vlan, params['untag_dict'],
+                                         params['tagged_dict'])
+        assert exc.value.args[0] == params["message"]
+
     def test_validate_vlans(
             self, mocker, ome_connection_mock_for_template_network_vlan):
         f_module = self.get_module_mock(params={
@@ -153,25 +180,25 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
         assert untag_dict == {1: 5, 2: 0, 3: 4}
         assert tagged_dict == {1: [1, 2], 2: [], 3: [6]}
 
-    @pytest.mark.parametrize("params", [{"inp": {"nic_identifier": "NIC1", "template_id": 12},
-                                         "msg": "Either tagged_networks | untagged_networks data needs to be provided"},
-                                        {"inp": {"untagged_networks": [{"port": 2, "untagged_network_name": "plat"},
-                                                                       {"port": 2, "untagged_network_id": 0}]},
-                                            "msg": "port 2 is repeated for untagged_network_id"}, {"inp": {
-                                                "tagged_networks": [{"port": 1, "tagged_network_ids": [1, 7]}, {"port": 2, "tagged_network_names": []},
-                                                                    {"port": 3, "tagged_network_names": ["bronze"]}]},
-                                            "msg": "7 is not a valid vlan id port 1"}, {"inp": {
-                                                "tagged_networks": [{"port": 1, "tagged_network_ids": []},
-                                                                    {"port": 3, "tagged_network_names": ["bronzy"]}]},
-                                            "msg": "bronzy is not a valid vlan name port 3"}, {"inp": {
-                                                "untagged_networks": [{"port": 2, "untagged_network_name": "platy"},
-                                                                      {"port": 3, "untagged_network_id": 0}]},
-                                            "msg": "platy is not a valid vlan name for port 2"}, {"inp": {
-                                                "untagged_networks": [{"port": 2, "untagged_network_name": "plat"}, {"port": 1, "untagged_network_id": 7}]},
-                                            "msg": "untagged_network_id: 7 is not a valid vlan id for port 1"}, {
-                                            "inp": {"tagged_networks": [{"port": 1, "tagged_network_ids": [1]}],
-                                                    "untagged_networks": [{"port": 1, "untagged_network_id": 1}]},
-                                            "msg": "vlan 1('vlan1') cannot be in both tagged and untagged list for port 1"}])
+    @pytest.mark.parametrize("params", [
+        {"inp": {"untagged_networks": [{"port": 2, "untagged_network_name": "plat"},
+                                       {"port": 2, "untagged_network_id": 0}]},
+         "msg": "port 2 is repeated for untagged_network_id"},
+        {"inp": {"tagged_networks": [{"port": 1, "tagged_network_ids": [1, 7]}, {"port": 2, "tagged_network_names": []},
+                                     {"port": 3, "tagged_network_names": ["bronze"]}]},
+         "msg": "7 is not a valid vlan id port 1"},
+        {"inp": {"tagged_networks": [{"port": 1, "tagged_network_ids": []},
+                                     {"port": 3, "tagged_network_names": ["bronzy"]}]},
+         "msg": "bronzy is not a valid vlan name port 3"},
+        {"inp": {"untagged_networks": [{"port": 2, "untagged_network_name": "platy"},
+                                       {"port": 3, "untagged_network_id": 0}]},
+         "msg": "platy is not a valid vlan name for port 2"},
+        {"inp": {"untagged_networks": [{"port": 2, "untagged_network_name": "plat"},
+                                       {"port": 1, "untagged_network_id": 7}]},
+         "msg": "untagged_network_id: 7 is not a valid vlan id for port 1"},
+        {"inp": {"tagged_networks": [{"port": 1, "tagged_network_ids": [1]}],
+                 "untagged_networks": [{"port": 1, "untagged_network_id": 1}]},
+         "msg": "vlan 1('vlan1') cannot be in both tagged and untagged list for port 1"}])
     def test_validate_vlans_failure(
             self, params, mocker, ome_connection_mock_for_template_network_vlan):
         f_module = self.get_module_mock(params["inp"])
@@ -262,6 +289,35 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
             ome_default_args, check_mode=params.get(
                 'check_mode', False))
         assert result['msg'] == params['msg']
+
+    @pytest.mark.parametrize("params", [
+        {"fail_json": True, "json_data": {"JobId": 1234},
+         "get_vlan_name_id_map": {"v1": 1},
+         "mparams": {"template_name": "vlan_name", "nic_identifier": "NIC1",
+                     "untagged_networks": [{"port": 1, "untagged_network_name": "v1"},
+                                           {"port": 1, "untagged_network_name": "v1"}]},
+         'message': "port 1 is repeated for untagged_network_name", "success": True
+         },
+        {"fail_json": True, "json_data": {"JobId": 1234},
+         "get_vlan_name_id_map": {"v1": 1, "v2": 2},
+         "mparams": {"template_name": "vlan_name", "nic_identifier": "NIC1",
+                     "untagged_networks": [{"port": 1, "untagged_network_name": "v1"},
+                                           {"port": 2, "untagged_network_name": "v2"}],
+                     "tagged_networks": [{"port": 3, "tagged_network_names": ['bronzy']}]},
+         'message': "bronzy is not a valid vlan name port 3", "success": True
+         }
+    ])
+    def test_main(self, params, ome_connection_mock_for_template_network_vlan, ome_default_args, ome_response_mock, mocker):
+        mocker.patch(MODULE_PATH + 'get_vlan_name_id_map', return_value=params.get("get_vlan_name_id_map"))
+        # mocker.patch(MODULE_PATH + '_get_baseline_payload', return_value=params.get("_get_baseline_payload"))
+        ome_response_mock.success = True
+        ome_response_mock.json_data = params.get("json_data")
+        ome_default_args.update(params.get('mparams'))
+        if params.get("fail_json", False):
+            result = self._run_module_with_fail_json(ome_default_args)
+        else:
+            result = self._run_module(ome_default_args, check_mode=params.get("check_mode", False))
+        assert result["msg"] == params['message']
 
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])

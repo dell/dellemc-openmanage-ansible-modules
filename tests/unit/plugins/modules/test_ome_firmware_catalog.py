@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 3.4.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.3.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -762,6 +762,32 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         }
         catalog_info1 = [catalog_resp]
         self.module.validate_delete_operation(ome_connection_catalog_mock, f_module, catalog_info1, [34])
+
+    @pytest.mark.parametrize("params", [
+        {"fail_json": True, "json_data": {"JobId": 1234},
+         "check_existing_catalog": ([], []),
+         "mparams": {"state": "present", "job_wait_timeout": 10, "job_wait": False,
+                     "catalog_id": 12, "repository_type": "DELL_ONLINE"},
+         'message': INVALID_CATALOG_ID, "success": True
+         },
+        {"fail_json": False, "json_data": {"JobId": 1234},
+         "check_existing_catalog": ([], []), "check_mode": True,
+         "mparams": {"state": "present", "job_wait_timeout": 10, "job_wait": False,
+                     "catalog_name": "c1", "repository_type": "HTTPS"},
+         'message': CHECK_MODE_CHANGE_FOUND_MSG, "success": True
+         }
+    ])
+    def test_main(self, params, ome_connection_catalog_mock, ome_default_args, ome_response_mock, mocker):
+        mocker.patch(MODULE_PATH + 'check_existing_catalog', return_value=params.get("check_existing_catalog"))
+        # mocker.patch(MODULE_PATH + '_get_baseline_payload', return_value=params.get("_get_baseline_payload"))
+        ome_response_mock.success = True
+        ome_response_mock.json_data = params.get("json_data")
+        ome_default_args.update(params.get('mparams'))
+        if params.get("fail_json", False):
+            result = self._run_module_with_fail_json(ome_default_args)
+        else:
+            result = self._run_module(ome_default_args, check_mode=params.get("check_mode", False))
+        assert result["msg"] == params['message']
 
     @pytest.mark.parametrize("check_mode", [True, False])
     def test_ome_catalog_firmware_validate_delete_operation_case4(self, check_mode, ome_response_mock,
