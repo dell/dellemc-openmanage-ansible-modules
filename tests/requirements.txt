@@ -5,11 +5,5 @@ mock
 pytest-mock
 pytest-cov
 # pytest-ansible==2.0.1
-coverage==4.5.4;python_version=='2.7' and ansible_version=='stable-2.11'
-coverage==4.5.4;python_version=='3.8' and ansible_version=='stable-2.11'
-coverage==4.5.4;python_version=='3.8' and ansible_version=='stable-2.12'
-coverage==6.3.2;python_version=='3.8' and ansible_version=='devel'
-coverage==4.5.4;python_version=='3.9' and ansible_version=='stable-2.11'
-coverage==4.5.4;python_version=='3.9' and ansible_version=='stable-2.12'
-coverage==6.3.2;python_version=='3.9' and ansible_version=='devel'
+coverage==4.5.4
 netaddr>=0.7.19
