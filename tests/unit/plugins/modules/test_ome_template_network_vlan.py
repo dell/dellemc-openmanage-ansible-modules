@@ -139,33 +139,6 @@ class TestOmeTemplateNetworkVlan(FakeAnsibleModule):
                 12765, 12767, 12768], "Untagged": 12766, 'IsNicBonded': True},
             {"ComponentId": 2301, "Tagged": [12765, 12766], "Untagged": 12767, 'IsNicBonded': False}]
 
-    #@pytest.mark.parametrize("params", [
-    #    {"untag_dict": {1: 12766}, "tagged_dict": {2: [12765, 12766]},
-    #     "port_id_map": {1: 2302, 2: 2301}, "port_untagged_map": {1: 12766}, "port_tagged_map": {2: [12765, 12766]},
-    #     "mparams": {"template_id": 12}, "port_nic_bond_map": {1: True, 2: False}, 'nic_bonding_tech': "LACP",
-    #     'message': "No changes found to be applied."},
-    #    {"untag_dict": {3: 12766}, "tagged_dict": {2: [12765, 12766]},
-    #     "port_id_map": {1: 2302, 2: 2301}, "port_untagged_map": {1: 12766}, "port_tagged_map": {2: [12765, 12766]},
-    #     "mparams": {"template_id": 12}, "port_nic_bond_map": {1: True, 2: False}, 'nic_bonding_tech': "LACP",
-    #     'message': "Invalid port(s) dict_keys([3]) found for untagged VLAN"},
-    #    {"untag_dict": {1: 12766}, "tagged_dict": {3: [12765, 12766]},
-    #     "port_id_map": {1: 2302, 2: 2301}, "port_untagged_map": {1: 12766}, "port_tagged_map": {2: [12765, 12766]},
-    #     "mparams": {"template_id": 12}, "port_nic_bond_map": {1: True, 2: False}, 'nic_bonding_tech': "LACP",
-    #     'message': "Invalid port(s) dict_keys([3]) found for tagged VLAN"},
-    #])
-    #def test_get_vlan_payload_msg(
-    #        self, params, ome_connection_mock_for_template_network_vlan, ome_default_args, ome_response_mock, mocker):
-    #    f_module = self.get_module_mock(params=params['mparams'])
-    #    mocker.patch(MODULE_PATH + 'get_template_details',
-    #                 return_value={"Name": "vlan_name", "Id": 12, "IdentityPoolId": 23})
-    #    mocker.patch(MODULE_PATH + 'get_template_vlan_info', return_value=(
-    #        params['port_id_map'], params['port_untagged_map'], params['port_tagged_map'],
-    #        params['port_nic_bond_map'], params['nic_bonding_tech']))
-    #    with pytest.raises(Exception) as exc:
-    #        self.module.get_vlan_payload(f_module, ome_connection_mock_for_template_network_vlan, params['untag_dict'],
-    #                                     params['tagged_dict'])
-    #    assert exc.value.args[0] == params["message"]
-
     def test_validate_vlans(
             self, mocker, ome_connection_mock_for_template_network_vlan):
         f_module = self.get_module_mock(params={
