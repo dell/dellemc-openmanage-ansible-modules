@@ -169,7 +169,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Redfish APIs.
-   - This module does not support ``check_mode``.
+   - This module supports ``check_mode``.
+   - This module always reports changes when *name* and *volume_id* are not specified. Either *name* or *volume_id* is required to support ``check_mode``.
 
 
 

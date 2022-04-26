@@ -86,9 +86,9 @@ jobs:
         run: ansible-test units -v --color --python ${{ matrix.python-version }} --coverage
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
-      - name: Generate coverage report
-        run: ansible-test coverage xml -v --group-by command --group-by version
-        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+      #- name: Generate coverage report
+      #  run: ansible-test coverage xml -v --group-by command --group-by version
+      #  working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
 ###
 # Sanity tests (REQUIRED)

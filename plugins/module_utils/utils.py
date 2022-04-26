@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Version 5.3.0
 # Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -123,12 +123,23 @@ def job_tracking(rest_obj, job_uri, max_job_wait_sec=600, job_state_var=('LastRu
     return job_failed, msg, job_dict, wait_time
 
 
-def get_rest_items(rest_obj, uri="DeviceService/Devices", key="Id", value="Identifier"):
+def get_rest_items(rest_obj, uri="DeviceService/Devices", key="Id", value="Identifier", selector="value"):
     item_dict = {}
     resp = rest_obj.get_all_items_with_pagination(uri)
-    if resp.get("value"):
-        item_dict = dict((item.get(key), item.get(value)) for item in resp["value"])
+    if resp.get(selector):
+        item_dict = dict((item.get(key), item.get(value)) for item in resp[selector])
     return item_dict
+
+
+def get_item_and_list(rest_obj, name, uri, key='Name', value='value'):
+    resp = rest_obj.invoke_request('GET', uri)
+    tlist = []
+    if resp.success and resp.json_data.get(value):
+        tlist = resp.json_data.get(value, [])
+        for xtype in tlist:
+            if xtype.get(key, "") == name:
+                return xtype, tlist
+    return {}, tlist
 
 
 def apply_diff_key(src, dest, klist):

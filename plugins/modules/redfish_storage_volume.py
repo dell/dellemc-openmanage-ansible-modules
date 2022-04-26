@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.3.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -131,7 +131,9 @@ requirements:
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
+    - This module always reports changes when I(name) and I(volume_id) are not specified.
+      Either I(name) or I(volume_id) is required to support C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -241,6 +243,7 @@ error_info:
 '''
 
 import json
+import copy
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
 from ansible.module_utils.basic import AnsibleModule
@@ -255,6 +258,8 @@ SETTING_VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}/Settings"
 CONTROLLER_VOLUME_URI = "{storage_base_uri}/{controller_id}/Volumes"
 VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
 storage_collection_map = {}
+CHANGES_FOUND = "Changes found to be applied."
+NO_CHANGES_FOUND = "No changes found to be applied."
 
 
 def fetch_storage_resource(module, session_obj):
@@ -348,6 +353,8 @@ def check_specified_identifier_exists_in_the_system(module, session_obj, uri, er
         return resp
     except HTTPError as err:
         if err.code == 404:
+            if module.check_mode:
+                return err
             module.fail_json(msg=err_message)
         raise err
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
@@ -404,6 +411,64 @@ def perform_storage_volume_action(method, uri, session_obj, action, payload=None
         raise err
 
 
+def check_mode_validation(module, session_obj, action, uri):
+    volume_id = module.params.get('volume_id')
+    name = module.params.get("name")
+    block_size_bytes = module.params.get("block_size_bytes")
+    capacity_bytes = module.params.get("capacity_bytes")
+    optimum_io_size_bytes = module.params.get("optimum_io_size_bytes")
+    encryption_types = module.params.get("encryption_types")
+    encrypted = module.params.get("encrypted")
+    volume_type = module.params.get("volume_type")
+    drives = module.params.get("drives")
+    if name is None and volume_id is None and module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    if action == "create" and name is not None:
+        volume_resp = session_obj.invoke_request("GET", uri)
+        volume_resp_data = volume_resp.json_data
+        if volume_resp_data.get("Members@odata.count") == 0 and module.check_mode:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
+        elif 0 < volume_resp_data.get("Members@odata.count"):
+            for mem in volume_resp_data.get("Members"):
+                mem_resp = session_obj.invoke_request("GET", mem["@odata.id"])
+                if mem_resp.json_data["Name"] == name:
+                    volume_id = mem_resp.json_data["Id"]
+                    break
+        if name is not None and module.check_mode and volume_id is None:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
+    if volume_id is not None:
+        resp = session_obj.invoke_request("GET", SETTING_VOLUME_ID_URI.format(
+            storage_base_uri=storage_collection_map["storage_base_uri"],
+            volume_id=volume_id))
+        resp_data = resp.json_data
+        exist_value = {"Name": resp_data["Name"], "BlockSizeBytes": resp_data["BlockSizeBytes"],
+                       "CapacityBytes": resp_data["CapacityBytes"], "Encrypted": resp_data["Encrypted"],
+                       "EncryptionTypes": resp_data["EncryptionTypes"][0],
+                       "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "VolumeType": resp_data["VolumeType"]}
+        exit_value_filter = dict([(k, v) for k, v in exist_value.items() if v is not None])
+        cp_exist_value = copy.deepcopy(exit_value_filter)
+        req_value = {"Name": name, "BlockSizeBytes": block_size_bytes,
+                     "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
+                     "VolumeType": volume_type, "EncryptionTypes": encryption_types}
+        if capacity_bytes is not None:
+            req_value["CapacityBytes"] = int(capacity_bytes)
+        req_value_filter = dict([(k, v) for k, v in req_value.items() if v is not None])
+        cp_exist_value.update(req_value_filter)
+        exist_drive, req_drive = [], []
+        if resp_data["Links"]:
+            exist_drive = [disk["@odata.id"].split("/")[-1] for disk in resp_data["Links"]["Drives"]]
+        if drives is not None:
+            req_drive = sorted(drives)
+        diff_changes = [bool(set(exit_value_filter.items()) ^ set(cp_exist_value.items())) or
+                        bool(set(exist_drive) ^ set(req_drive))]
+        if module.check_mode and any(diff_changes) is True:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
+        elif (module.check_mode and any(diff_changes) is False) or \
+                (not module.check_mode and any(diff_changes) is False):
+            module.exit_json(msg=NO_CHANGES_FOUND)
+    return None
+
+
 def perform_volume_create_modify(module, session_obj):
     """
     perform volume creation and modification for state present
@@ -424,6 +489,7 @@ def perform_volume_create_modify(module, session_obj):
             method = "PATCH"
             action = "modify"
     payload = volume_payload(module)
+    check_mode_validation(module, session_obj, action, uri)
     if not payload:
         module.fail_json(msg="Input options are not provided for the {0} volume task.".format(action))
     return perform_storage_volume_action(method, uri, session_obj, action, payload)
@@ -436,10 +502,14 @@ def perform_volume_deletion(module, session_obj):
     volume_id = module.params.get("volume_id")
     if volume_id:
         resp = check_volume_id_exists(module, session_obj, volume_id)
-        if resp.success:
+        if hasattr(resp, "success") and resp.success and not module.check_mode:
             uri = VOLUME_ID_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], volume_id=volume_id)
             method = "DELETE"
             return perform_storage_volume_action(method, uri, session_obj, "delete")
+        elif hasattr(resp, "success") and resp.success and module.check_mode:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
+        elif hasattr(resp, "code") and resp.code == 404 and module.check_mode:
+            module.exit_json(msg=NO_CHANGES_FOUND)
     else:
         module.fail_json(msg="'volume_id' option is a required property for deleting a volume.")
 
@@ -543,7 +613,7 @@ def main():
         required_one_of=[['state', 'command']],
         required_if=[['command', 'initialize', ['volume_id']],
                      ['state', 'absent', ['volume_id']], ],
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         validate_inputs(module)

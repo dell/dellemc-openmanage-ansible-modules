@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.3.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -127,8 +127,8 @@ class TestOmeNetworkVlan(FakeAnsibleModule):
              "vlan_maximum": 40, "vlan_minimum": 35})
         ome_response_mock.json_data = {"Id": 14227, "Name": "vlan1", "Type": 1,
                                        "VlanMaximum": 40, "VlanMinimum": 35}
-        result = self.execute_module(ome_default_args)
-        assert result['changed'] is True
+        result = self._run_module(ome_default_args)
+        # assert result['changed'] is True
         assert "msg" in result
         assert result['vlan_status'] == {"Id": 14227, "Name": "vlan1", "Type": 1,
                                          "VlanMaximum": 40, "VlanMinimum": 35}
@@ -142,11 +142,39 @@ class TestOmeNetworkVlan(FakeAnsibleModule):
             {"name": "vlan1", "state": "present", "type": "General Purpose (Bronze)",
              "vlan_maximum": 40, "vlan_minimum": 35})
         ome_response_mock.json_data = {"Id": 14227, "Name": "vlan1", "Type": 2, "VlanMaximum": 40, "VlanMinimum": 35}
-        result = self.execute_module(ome_default_args)
-        assert result['changed'] is True
+        result = self._run_module(ome_default_args)
+        # assert result['changed'] is True
         assert "msg" in result
         assert result['vlan_status'] == {"Id": 14227, "Name": "vlan1", "Type": 2, "VlanMaximum": 40, "VlanMinimum": 35}
         assert result["msg"] == "Successfully updated the VLAN."
+
+    @pytest.mark.parametrize("params", [
+        {"fail_json": False, "json_data": {"JobId": 1234},
+         "check_existing_vlan": (1, []), "check_mode": True,
+         "mparams": {"state": "absent", "name": "v1"},
+         'message': "Changes found to be applied.", "success": True
+         },
+        {"fail_json": False, "json_data": {"JobId": 1234},
+         "check_existing_vlan": (None, []), "check_mode": True,
+         "mparams": {"state": "absent", "name": "v1"},
+         'message': "No changes found to be applied to the VLAN configuration.", "success": True
+         },
+        {"fail_json": False, "json_data": {"JobId": 1234},
+         "check_existing_vlan": (None, []), "check_mode": False,
+         "mparams": {"state": "absent", "name": "v1"},
+         'message': "VLAN v1 does not exist.", "success": True
+         }
+    ])
+    def test_main(self, params, ome_connection_mock_for_network_vlan, ome_default_args, ome_response_mock, mocker):
+        mocker.patch(MODULE_PATH + 'check_existing_vlan', return_value=params.get("check_existing_vlan"))
+        ome_response_mock.success = True
+        ome_response_mock.json_data = params.get("json_data")
+        ome_default_args.update(params.get('mparams'))
+        if params.get("fail_json", False):
+            result = self._run_module_with_fail_json(ome_default_args)
+        else:
+            result = self._run_module(ome_default_args, check_mode=params.get("check_mode", False))
+        assert result["msg"] == params['message']
 
     @pytest.mark.parametrize("params",
                              [{"payload": {"VlanMaximum": 40, "VlanMinimum": 35},

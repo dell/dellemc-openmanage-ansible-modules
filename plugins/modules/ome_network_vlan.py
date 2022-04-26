@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.3.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -342,8 +342,6 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError, OSError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
         module.fail_json(msg=str(err))
 
 
