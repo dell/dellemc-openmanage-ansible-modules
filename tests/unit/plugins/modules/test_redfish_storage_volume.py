@@ -2,8 +2,8 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 5.3.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -218,6 +218,7 @@ class TestStorageVolume(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_controller_id_exists', return_value=True)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.volume_payload', return_value={"payload": "value"})
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action', return_value=message)
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_mode_validation', return_value=None)
         message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
         assert message["msg"] == "Successfully submitted create volume task."
         assert message["task_id"] == "JID_123"
@@ -232,6 +233,7 @@ class TestStorageVolume(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.volume_payload', return_value={"payload": "value"})
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action', return_value=message)
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_mode_validation', return_value=None)
         message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
         assert message["msg"] == "Successfully submitted modify volume task."
         assert message["task_id"] == "JID_123"
@@ -246,6 +248,7 @@ class TestStorageVolume(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.volume_payload', return_value={})
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action', return_value=message)
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_mode_validation', return_value=None)
         with pytest.raises(Exception) as exc:
             self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
         assert exc.value.args[0] == "Input options are not provided for the modify volume task."
@@ -540,8 +543,6 @@ class TestStorageVolume(FakeAnsibleModule):
         }
         redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
         with pytest.raises(Exception) as exc:
-            # import pdb
-            # pdb.set_trace()
             self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
         assert exc.value.args[0] == "Target out-of-band controller does not support storage feature using Redfish API."
 
@@ -573,3 +574,37 @@ class TestStorageVolume(FakeAnsibleModule):
         redfish_connection_mock_for_storage_volume.invoke_request.side_effect = URLError(msg)
         with pytest.raises(Exception, match=msg) as exc:
             self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
+
+    def test_check_mode_validation(self, redfish_connection_mock_for_storage_volume,
+                                   redfish_response_mock, storage_volume_base_uri):
+        param = {"drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"],
+                 "capacity_bytes": 214748364800, "block_size_bytes": 512, "encryption_types": "NativeDriveEncryption",
+                 "encrypted": False, "volume_type": "NonRedundant", "optimum_io_size_bytes": 65536}
+        f_module = self.get_module_mock(params=param)
+        f_module.check_mode = True
+        with pytest.raises(Exception) as exc:
+            self.module.check_mode_validation(
+                f_module, redfish_connection_mock_for_storage_volume, "create",
+                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/")
+        assert exc.value.args[0] == "Changes found to be applied."
+        redfish_response_mock.json_data = {"Members@odata.count": 0}
+        with pytest.raises(Exception) as exc:
+            self.module.check_mode_validation(
+                f_module, redfish_connection_mock_for_storage_volume, "create",
+                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/")
+        assert exc.value.args[0] == "Changes found to be applied."
+        redfish_response_mock.json_data = {
+            "Members@odata.count": 1, "Id": "Disk.Virtual.0:RAID.Integrated.1-1",
+            "Members": [{"@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/"
+                                      "RAID.Integrated.1-1/Volumes/Disk.Virtual.0:RAID.Integrated.1-1"}],
+            "Name": "VD0", "BlockSizeBytes": 512, "CapacityBytes": 214748364800, "Encrypted": False,
+            "EncryptionTypes": ["NativeDriveEncryption"], "OptimumIOSizeBytes": 65536, "VolumeType": "NonRedundant",
+            "Links": {"Drives": [{"@odata.id": "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"}]}}
+        param.update({"name": "VD0"})
+        f_module = self.get_module_mock(params=param)
+        f_module.check_mode = True
+        with pytest.raises(Exception) as exc:
+            self.module.check_mode_validation(
+                f_module, redfish_connection_mock_for_storage_volume, "create",
+                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/")
+        assert exc.value.args[0] == "No changes found to be applied."

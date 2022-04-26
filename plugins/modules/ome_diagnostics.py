@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Version 5.3.0
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -27,32 +27,32 @@ options:
     type: list
     description:
       - List of target device IDs.
-      - This is applicable for C(support_assist_collection) logs.
+      - This is applicable for C(support_assist_collection) and C(supportassist_collection) logs.
       - This option is mutually exclusive with I(device_service_tags) and I(device_group_name).
     elements: int
   device_service_tags:
     type: list
     description:
       - List of target identifier.
-      - This is applicable for C(support_assist_collection) logs.
+      - This is applicable for C(support_assist_collection) and C(supportassist_collection) logs.
       - This option is mutually exclusive with I(device_ids) and I(device_group_name).
     elements: str
   device_group_name:
     type: str
     description:
-      - Name of the device group to export C(support_assist_collection) logs of all devices within the group.
-      - This is applicable for C(support_assist_collection) logs.
+      - Name of the device group to export C(support_assist_collection) or C(supportassist_collection) logs of all devices within the group.
+      - This is applicable for C(support_assist_collection) and C(supportassist_collection) logs.
       - This option is not applicable for OpenManage Enterprise Modular.
       - This option is mutually exclusive with I(device_ids) and I(device_service_tags).
   log_type:
     type: str
     description:
       - C(application) is applicable for OpenManage Enterprise Modular to export the application log bundle.
-      - C(support_assist_collection) is applicable for one or more devices to export SupportAssist logs.
-      - C(support_assist_collection) supports both OpenManage Enterprise and OpenManage Enterprise Modular.
-      - C(support_assist_collection) does not support export of C(OS_LOGS) from OpenManage Enterprise.
+      - C(support_assist_collection) and C(supportassist_collection) is applicable for one or more devices to export SupportAssist logs.
+      - C(support_assist_collection) and C(supportassist_collection) supports both OpenManage Enterprise and OpenManage Enterprise Modular.
+      - C(support_assist_collection) and C(supportassist_collection) does not support export of C(OS_LOGS) from OpenManage Enterprise.
         If tried to export, the tasks will complete with errors, and the module fails.
-    choices: [application, support_assist_collection]
+    choices: [application, support_assist_collection, supportassist_collection]
     default: support_assist_collection
   mask_sensitive_info:
     type: bool
@@ -64,13 +64,14 @@ options:
   log_selectors:
     type: list
     description:
-      - By default, the SupportAssist logs contains only hardware logs. To collect additional logs
-        such as OS logs or RAID logs, specify these option in the choices list.
-      - If not provided the default hardware log will be exported.
+      - By default, the SupportAssist logs contain only hardware logs. To collect additional logs
+        such as OS logs, RAID logs or Debug logs, specify the log types to be collected in the choices list.
+      - If the log types are not specified, only the hardware logs are exported.
       - C(OS_LOGS) to collect OS Logs.
       - C(RAID_LOGS) to collect RAID controller logs.
-      - This option is applicable only for C(support_assist_collection) of I(log_type).
-    choices: [OS_LOGS, RAID_LOGS]
+      - C(DEBUG_LOGS) to collect Debug logs.
+      - This option is applicable only for C(support_assist_collection) and C(supportassist_collection) of I(log_type).
+    choices: [OS_LOGS, RAID_LOGS, DEBUG_LOGS]
     elements: str
   share_address:
     type: str
@@ -270,7 +271,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2}
+LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2, "DEBUG_LOGS": 3}
 JOB_URI = "JobService/Jobs"
 GROUP_URI = "GroupService/Groups"
 GROUP_DEVICE_URI = "GroupService/Groups({0})/Devices"
@@ -371,7 +372,7 @@ def extract_log_operation(module, rest_obj, device_lst=None):
         payload_params.append({"Key": "domainName", "Value": module.params["share_domain"]})
     if module.params.get("mask_sensitive_info") is not None and log_type == "application":
         payload_params.append({"Key": "maskSensitiveInfo", "Value": str(module.params["mask_sensitive_info"]).upper()})
-    if module.params.get("log_selectors") is not None and log_type == "support_assist_collection":
+    if module.params.get("log_selectors") is not None and (log_type == "support_assist_collection" or log_type == "supportassist_collection"):
         log_lst = [LOG_SELECTOR[i] for i in module.params["log_selectors"]]
         log_lst.sort()
         log_selector = ",".join(map(str, log_lst))
@@ -415,10 +416,10 @@ def main():
         "device_service_tags": {"required": False, "type": "list", "elements": "str"},
         "device_group_name": {"required": False, "type": "str"},
         "log_type": {"required": False, "type": "str", "default": "support_assist_collection",
-                     "choices": ["support_assist_collection", "application"]},
+                     "choices": ["support_assist_collection", "application", "supportassist_collection"]},
         "mask_sensitive_info": {"required": False, "type": "bool", "default": False},
         "log_selectors": {"required": False, "type": "list",
-                          "choices": ["RAID_LOGS", "OS_LOGS"], "elements": "str"},
+                          "choices": ["RAID_LOGS", "OS_LOGS", "DEBUG_LOGS"], "elements": "str"},
         "share_address": {"required": True, "type": "str"},
         "share_name": {"required": True, "type": "str"},
         "share_type": {"required": True, "type": "str", "choices": ["NFS", "CIFS"]},
@@ -436,6 +437,8 @@ def main():
         required_if=[
             ['log_type', 'application', ['mask_sensitive_info']],
             ['log_type', 'support_assist_collection',
+             ['device_ids', 'device_service_tags', 'device_group_name'], True],
+            ['log_type', 'supportassist_collection',
              ['device_ids', 'device_service_tags', 'device_group_name'], True],
             ['share_type', 'CIFS', ['share_user', 'share_password']]
         ],
@@ -469,10 +472,10 @@ def main():
 
             # validation for device id/tag/group
             valid_device = []
-            if module.params["log_type"] == "support_assist_collection" and \
+            if (module.params["log_type"] == "support_assist_collection" or module.params["log_type"] == "supportassist_collection") and \
                     module.params.get("device_group_name") is not None:
                 valid_device = group_validation(module, rest_obj)
-            elif module.params["log_type"] == "support_assist_collection" and \
+            elif (module.params["log_type"] == "support_assist_collection" or module.params["log_type"] == "supportassist_collection") and \
                     module.params.get("device_group_name") is None:
                 valid_device = device_validation(module, rest_obj)
 

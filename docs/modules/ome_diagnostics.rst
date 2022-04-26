@@ -30,7 +30,7 @@ Parameters
   device_ids (optional, list, None)
     List of target device IDs.
 
-    This is applicable for ``support_assist_collection`` logs.
+    This is applicable for ``support_assist_collection`` and ``supportassist_collection`` logs.
 
     This option is mutually exclusive with *device_service_tags* and *device_group_name*.
 
@@ -38,15 +38,15 @@ Parameters
   device_service_tags (optional, list, None)
     List of target identifier.
 
-    This is applicable for ``support_assist_collection`` logs.
+    This is applicable for ``support_assist_collection`` and ``supportassist_collection`` logs.
 
     This option is mutually exclusive with *device_ids* and *device_group_name*.
 
 
   device_group_name (optional, str, None)
-    Name of the device group to export ``support_assist_collection`` logs of all devices within the group.
+    Name of the device group to export ``support_assist_collection`` or ``supportassist_collection`` logs of all devices within the group.
 
-    This is applicable for ``support_assist_collection`` logs.
+    This is applicable for ``support_assist_collection`` and ``supportassist_collection`` logs.
 
     This option is not applicable for OpenManage Enterprise Modular.
 
@@ -56,11 +56,11 @@ Parameters
   log_type (optional, str, support_assist_collection)
     ``application`` is applicable for OpenManage Enterprise Modular to export the application log bundle.
 
-    ``support_assist_collection`` is applicable for one or more devices to export SupportAssist logs.
+    ``support_assist_collection`` and ``supportassist_collection`` is applicable for one or more devices to export SupportAssist logs.
 
-    ``support_assist_collection`` supports both OpenManage Enterprise and OpenManage Enterprise Modular.
+    ``support_assist_collection`` and ``supportassist_collection`` supports both OpenManage Enterprise and OpenManage Enterprise Modular.
 
-    ``support_assist_collection`` does not support export of ``OS_LOGS`` from OpenManage Enterprise. If tried to export, the tasks will complete with errors, and the module fails.
+    ``support_assist_collection`` and ``supportassist_collection`` does not support export of ``OS_LOGS`` from OpenManage Enterprise. If tried to export, the tasks will complete with errors, and the module fails.
 
 
   mask_sensitive_info (optional, bool, False)
@@ -70,15 +70,17 @@ Parameters
 
 
   log_selectors (optional, list, None)
-    By default, the SupportAssist logs contains only hardware logs. To collect additional logs such as OS logs or RAID logs, specify these option in the choices list.
+    By default, the SupportAssist logs contain only hardware logs. To collect additional logs such as OS logs, RAID logs or Debug logs, specify the log types to be collected in the choices list.
 
-    If not provided the default hardware log will be exported.
+    If the log types are not specified, only the hardware logs are exported.
 
     ``OS_LOGS`` to collect OS Logs.
 
     ``RAID_LOGS`` to collect RAID controller logs.
 
-    This option is applicable only for ``support_assist_collection`` of *log_type*.
+    ``DEBUG_LOGS`` to collect Debug logs.
+
+    This option is applicable only for ``support_assist_collection`` and ``supportassist_collection`` of *log_type*.
 
 
   share_address (True, str, None)
