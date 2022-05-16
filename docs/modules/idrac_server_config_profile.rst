@@ -23,7 +23,7 @@ The below requirements are needed on the host that executes this module.
 - omsdk >= 1.2.488
 - python >= 3.8.6
 
-The `Enterprise` License is needed to import the SCP, otherwise, you'll get a 503: Service Unavaible!
+The `Enterprise` License is needed to import the SCP, otherwise, you'll get a `503: Service Unavaible`!
 
 
 
