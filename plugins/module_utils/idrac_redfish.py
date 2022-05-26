@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.4.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -55,6 +55,7 @@ SESSION_RESOURCE_COLLECTION = {
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 EXPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration"
 IMPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfiguration"
+IMPORT_PREVIEW = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfigurationPreview"
 
 
 class OpenURLResponse(object):
@@ -218,10 +219,14 @@ class iDRACRedfishAPI(object):
         """
         response = None
         while job_wait:
-            response = self.invoke_request(task_uri, "GET")
-            if response.json_data.get("TaskState") == "Running":
-                time.sleep(10)
-            else:
+            try:
+                response = self.invoke_request(task_uri, "GET")
+                if response.json_data.get("TaskState") == "Running":
+                    time.sleep(10)
+                else:
+                    break
+            except ValueError:
+                response = str(response.body)
                 break
         return response
 
@@ -276,7 +281,7 @@ class iDRACRedfishAPI(object):
         return response
 
     def import_scp_share(self, shutdown_type=None, host_powerstate=None, job_wait=True,
-                         target=None, share=None):
+                         target=None, import_buffer=None, share=None):
         """
         This method imports system configuration using share.
         :param shutdown_type: graceful
@@ -289,6 +294,8 @@ class iDRACRedfishAPI(object):
         """
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
                    "ShareParameters": {"Target": target}}
+        if import_buffer is not None:
+            payload["ImportBuffer"] = import_buffer
         if share is None:
             share = {}
         if share.get("share_ip") is not None:
@@ -304,6 +311,30 @@ class iDRACRedfishAPI(object):
         if share.get("password") is not None:
             payload["ShareParameters"]["Password"] = share["password"]
         response = self.invoke_request(IMPORT_URI, "POST", data=payload)
+        if response.status_code == 202 and job_wait:
+            task_uri = response.headers["Location"]
+            response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
+        return response
+
+    def import_preview(self, import_buffer=None, target=None, share=None, job_wait=False):
+        payload = {"ShareParameters": {"Target": target}}
+        if import_buffer is not None:
+            payload["ImportBuffer"] = import_buffer
+        if share is None:
+            share = {}
+        if share.get("share_ip") is not None:
+            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
+        if share.get("share_name") is not None and share.get("share_name"):
+            payload["ShareParameters"]["ShareName"] = share["share_name"]
+        if share.get("share_type") is not None:
+            payload["ShareParameters"]["ShareType"] = share["share_type"]
+        if share.get("file_name") is not None:
+            payload["ShareParameters"]["FileName"] = share["file_name"]
+        if share.get("username") is not None:
+            payload["ShareParameters"]["Username"] = share["username"]
+        if share.get("password") is not None:
+            payload["ShareParameters"]["Password"] = share["password"]
+        response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
