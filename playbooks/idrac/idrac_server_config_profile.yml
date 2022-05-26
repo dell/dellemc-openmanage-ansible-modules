@@ -162,3 +162,59 @@
       end_host_power_state: "On"
       job_wait: False
     tags: import-scp-https
+
+  - name: Preview SCP with ALL components in XML format from a CIFS share path
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      share_name: "\\\\192.168.0.2\\share"
+      share_user: share_username
+      share_password: share_password
+      command: preview
+      scp_components: "ALL"
+      scp_file: example_file.xml
+      job_wait: True
+    tags: preview-scp-cifs
+
+  - name: Preview SCP with ALL components in JSON format from a NFS share path
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      share_name: "192.168.0.2:/share"
+      command: preview
+      scp_components: "IDRAC"
+      scp_file: example_file.xml
+      job_wait: True
+    tags: preview-scp-nfs
+
+  - name: Preview SCP with ALL components in XML format from a HTTP share path
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      share_name: "http://192.168.0.1/http-share"
+      share_user: share_username
+      share_password: share_password
+      command: preview
+      scp_components: "ALL"
+      scp_file: example_file.xml
+      job_wait: True
+    tags: preview-scp-http
+
+  - name: Preview SCP with ALL components in XML format from a local path
+    dellemc.openmanage.idrac_server_config_profile:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      share_name: "/scp_folder"
+      command: preview
+      scp_components: "IDRAC"
+      scp_file: example_file.json
+      job_wait: False
+    tags: import-scp-local
