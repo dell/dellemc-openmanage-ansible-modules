@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: OpenManageAnsible mailing list
+    alias: OpenManageAnsible@Dell.com
+    about: Please use OpenManageAnsible contact for questions and queries.
