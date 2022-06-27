@@ -16,7 +16,6 @@ import json
 import os
 import tempfile
 from io import StringIO
-from unittest.mock import mock_open
 
 import pytest
 from ansible.module_utils._text import to_text
@@ -85,13 +84,6 @@ class TestIdracCertificates(FakeAnsibleModule):
                                        return_value=idrac_certificates_mock)
         idrac_conn_mock.return_value.__enter__.return_value = idrac_certificates_mock
         return idrac_conn_mock
-
-    @pytest.fixture
-    def mocker_file_open(self):
-        # Read a mocked /etc/release file
-        mocked_cert = mock_open(read_data="file read ABC")
-        builtin_open = "builtins.open"
-        self.patch(builtin_open, mocked_cert)
 
     @pytest.mark.parametrize("params", [
         {"json_data": {"CertificateFile": b'Hello world!', "@Message.ExtendedInfo": [
