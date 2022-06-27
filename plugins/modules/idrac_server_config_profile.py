@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.4.0
+# Version 5.5.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -371,6 +371,7 @@ REDFISH_SCP_BASE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 INVALID_FILE = "Invalid file path provided."
+JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 
 
 def get_scp_file_format(module):
@@ -407,8 +408,9 @@ def response_format_change(response, params, file_name):
     else:
         location = response.headers.get("Location")
         job_id = location.split("/")[-1]
-        resp["Data"] = {"StatusCode": response.status_code, "joburi": job_id, "next_uri": location}
-        resp["Job"] = {"JobId": job_id, "ResourceURI": location}
+        job_uri = JOB_URI.format(job_id=job_id)
+        resp["Data"] = {"StatusCode": response.status_code, "jobid": job_id, "next_uri": job_uri}
+        resp["Job"] = {"JobId": job_id, "ResourceURI": job_uri}
         resp["Return"] = "JobCreated"
         resp["Status"] = "Success"
         resp["Message"] = "none"
@@ -497,6 +499,8 @@ def export_scp_redfish(module, idrac):
 
 def wait_for_response(scp_resp, module, share, idrac):
     task_uri = scp_resp.headers["Location"]
+    job_id = task_uri.split("/")[-1]
+    job_uri = JOB_URI.format(job_id=job_id)
     wait_resp = idrac.wait_for_job_complete(task_uri, job_wait=True)
     with open("{0}/{1}".format(share["share_name"], share["file_name"]), "w") as file_obj:
         if module.params["export_format"] == "JSON":
@@ -505,7 +509,7 @@ def wait_for_response(scp_resp, module, share, idrac):
             wait_resp_value = wait_resp.decode("utf-8")
             file_obj.write(wait_resp_value)
     if module.params["job_wait"]:
-        scp_resp = idrac.invoke_request(task_uri, "GET")
+        scp_resp = idrac.invoke_request(job_uri, "GET")
     return scp_resp
 
 

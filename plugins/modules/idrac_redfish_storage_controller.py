@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Version 5.5.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -411,6 +411,7 @@ RAID_ACTION_URI = "/redfish/v1/Systems/{system_id}/Oem/Dell/DellRaidService/Acti
 CONTROLLER_URI = "/redfish/v1/Dell/Systems/{system_id}/Storage/DellController/{controller_id}"
 VOLUME_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Volumes"
 PD_URI = "/redfish/v1/Systems/System.Embedded.1/Storage/{controller_id}/Drives/{drive_id}"
+JOB_URI_OEM = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 
 JOB_SUBMISSION = "Successfully submitted the job that performs the '{0}' operation."
 JOB_COMPLETION = "Successfully performed the '{0}' operation."
@@ -689,23 +690,23 @@ def main():
                 resp, job_uri, job_id = convert_raid_status(module, redfish_obj)
             elif command == "ChangePDStateToOnline" or command == "ChangePDStateToOffline":
                 resp, job_uri, job_id = change_pd_status(module, redfish_obj)
-
+            oem_job_url = JOB_URI_OEM.format(job_id=job_id)
             job_wait = module.params["job_wait"]
             if job_wait:
-                resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
+                resp, msg = wait_for_job_completion(redfish_obj, oem_job_url, job_wait=job_wait,
                                                     wait_timeout=module.params["job_wait_timeout"])
                 job_data = strip_substr_dict(resp.json_data)
                 if job_data["JobState"] == "Failed":
                     changed, failed = False, True
                 else:
                     changed, failed = True, False
-                module.exit_json(msg=JOB_COMPLETION.format(command), task={"id": job_id, "uri": job_uri},
+                module.exit_json(msg=JOB_COMPLETION.format(command), task={"id": job_id, "uri": oem_job_url},
                                  status=job_data, changed=changed, failed=failed)
             else:
-                resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=job_wait,
+                resp, msg = wait_for_job_completion(redfish_obj, oem_job_url, job_wait=job_wait,
                                                     wait_timeout=module.params["job_wait_timeout"])
                 job_data = strip_substr_dict(resp.json_data)
-            module.exit_json(msg=JOB_SUBMISSION.format(command), task={"id": job_id, "uri": job_uri},
+            module.exit_json(msg=JOB_SUBMISSION.format(command), task={"id": job_id, "uri": oem_job_url},
                              status=job_data)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
