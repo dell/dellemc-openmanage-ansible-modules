@@ -49,13 +49,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [2.7, 3.8, 3.9]
-        ansible-version: [stable-2.11, stable-2.12, devel]
-        exclude:
-          - ansible-version: devel
-            python-version: 2.7
-          - ansible-version: stable-2.12
-            python-version: 2.7
+        python-version: [3.8, 3.9, 3.10]
+        ansible-version: [stable-2.11, stable-2.12, stable-2.13, devel]
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
