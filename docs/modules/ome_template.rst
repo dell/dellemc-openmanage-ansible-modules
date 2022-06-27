@@ -519,7 +519,7 @@ Content (success, when I(command) is C(export), str, <SystemConfiguration Model=
 <Attribute Name="RAIDHotSpareStatus">No</Attribute>
 </Component>
 </SystemConfiguration>)
-XML content of the exported template. This content can be written to a xml file.
+  XML content of the exported template. This content can be written to a xml file.
 
 
 devices_assigned (I(command) is C(deploy), dict, AnsibleMapping([('10362', 28), ('10312', 23)]))

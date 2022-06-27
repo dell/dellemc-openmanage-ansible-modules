@@ -12,10 +12,11 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import pytest
+import sys
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants,\
     AnsibleExitJson
-from mock import MagicMock, patch, Mock
+from mock import MagicMock, patch, Mock, mock_open
 from pytest import importorskip
 from ansible.module_utils.six.moves.urllib.parse import urlparse, ParseResult
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
@@ -302,14 +303,54 @@ class TestServerConfigProfile(FakeAnsibleModule):
     def test_wait_for_response(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
         idrac_default_args.update({"share_name": "/local-share", "share_user": "sharename",
                                    "share_password": "sharepswd", "command": "export",
-                                   "job_wait": True, "scp_components": "IDRAC",
+                                   "job_wait": False, "scp_components": "IDRAC",
                                    "scp_file": "scp_file.xml", "end_host_power_state": "On",
                                    "shutdown_type": "Graceful", "export_format": "XML",
                                    "export_use": "Default", "validate_certs": False, "idrac_port": 443})
         f_module = self.get_module_mock(params=idrac_default_args)
         idrac_scp_redfish_mock.headers = {"Location": "/redfish/v1/TaskService/Tasks/JID_123456789"}
-        idrac_scp_redfish_mock.wait_for_job_complete.return_value = MagicMock()
-        mocker.patch(MODULE_PATH + 'idrac_server_config_profile.open', return_value=MagicMock())
+        resp_return_value = {"return_data": b"<SystemConfiguration Model='PowerEdge MX840c'>"
+                                            b"<Component FQDD='System.Embedded.1'>"
+                                            b"<Attribute Name='Backplane.1#BackplaneSplitMode'>0</Attribute>"
+                                            b"</Component> </SystemConfiguration>",
+                             "return_job": {"JobState": "Completed", "JobType": "ExportConfiguration",
+                                            "PercentComplete": 100, "Status": "Success"}}
+        idrac_scp_redfish_mock.wait_for_job_complete.return_value = resp_return_value["return_data"]
+        idrac_scp_redfish_mock.job_resp = resp_return_value["return_job"]
         share = {"share_name": "/local_share", "file_name": "export_file.xml"}
-        result = self.module.wait_for_response(idrac_scp_redfish_mock, f_module, share, idrac_scp_redfish_mock)
-        assert isinstance(result, MagicMock)
+        if sys.version_info.major == 3:
+            builtin_module_name = 'builtins'
+        else:
+            builtin_module_name = '__builtin__'
+        with patch("{0}.open".format(builtin_module_name), mock_open(read_data=resp_return_value["return_data"])) as mock_file:
+            result = self.module.wait_for_response(idrac_scp_redfish_mock, f_module, share, idrac_scp_redfish_mock)
+        assert result.job_resp == resp_return_value["return_job"]
+
+    def test_wait_for_response_json(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "/local-share", "share_user": "sharename",
+                                   "share_password": "sharepswd", "command": "export",
+                                   "job_wait": False, "scp_components": "IDRAC",
+                                   "scp_file": "scp_file.xml", "end_host_power_state": "On",
+                                   "shutdown_type": "Graceful", "export_format": "JSON",
+                                   "export_use": "Default", "validate_certs": False, "idrac_port": 443})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        resp_return_value = {"return_data": {
+            "SystemConfiguration": {"Components": [
+                {"FQDD": "SupportAssist.Embedded.1",
+                 "Attributes": [{"Name": "SupportAssist.1#SupportAssistEULAAccepted"}]
+                 }]}
+        },
+            "return_job": {"JobState": "Completed", "JobType": "ExportConfiguration",
+                           "PercentComplete": 100, "Status": "Success"}}
+        mock_scp_json_data = idrac_scp_redfish_mock
+        mock_scp_json_data.json_data = resp_return_value["return_data"]
+        idrac_scp_redfish_mock.wait_for_job_complete.return_value = mock_scp_json_data
+        idrac_scp_redfish_mock.job_resp = resp_return_value["return_job"]
+        share = {"share_name": "/local_share", "file_name": "export_file.xml"}
+        if sys.version_info.major == 3:
+            builtin_module_name = 'builtins'
+        else:
+            builtin_module_name = '__builtin__'
+        with patch("{0}.open".format(builtin_module_name), mock_open(read_data=str(resp_return_value["return_data"]))) as mock_file:
+            result = self.module.wait_for_response(idrac_scp_redfish_mock, f_module, share, idrac_scp_redfish_mock)
+        assert result.job_resp == resp_return_value["return_job"]
