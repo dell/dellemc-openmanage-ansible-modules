@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 5.4.0
+# Version 5.5.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -226,7 +226,7 @@ class iDRACRedfishAPI(object):
                 else:
                     break
             except ValueError:
-                response = str(response.body)
+                response = response.body
                 break
         return response
 

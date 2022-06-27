@@ -13,6 +13,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 - [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)
 - [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)
 - [idrac_bios](modules/idrac_bios.rst)
+- [idrac_certificates](modules/idrac_certificates.rst)
 - [idrac_firmware](modules/idrac_firmware.rst)
 - [idrac_firmware_info](modules/idrac_firmware_info.rst)
 - [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)

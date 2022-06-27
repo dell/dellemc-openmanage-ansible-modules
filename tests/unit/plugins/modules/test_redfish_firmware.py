@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Version 5.5.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -26,6 +26,7 @@ from ansible.module_utils._text import to_text
 from mock import patch, mock_open
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+JOB_URI = "/redfish/v1/JobService/Jobs/{job_id}"
 
 
 @pytest.fixture
@@ -120,7 +121,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result == {'changed': True,
                           'msg': 'Successfully submitted the firmware update task.',
                           'task': {'id': redfish_response_mock.headers.get().split().__getitem__(),
-                                   'uri': redfish_response_mock.headers.get()}}
+                                   'uri': JOB_URI.format(job_id=redfish_response_mock.headers.get().split().__getitem__())}}
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])

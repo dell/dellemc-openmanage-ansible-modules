@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.5.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -126,6 +126,7 @@ except ImportError:
     HAS_LIB = False
 
 UPDATE_SERVICE = "UpdateService"
+JOB_URI = "/redfish/v1/JobService/Jobs/{job_id}"
 
 
 def _encode_form_data(payload_file):
@@ -204,8 +205,8 @@ def main():
             if status.success:
                 message = "Successfully submitted the firmware update task."
                 task_uri = status.headers.get("Location")
-                task_id = task_uri.split("/")[-1]
-                module.exit_json(msg=message, task={"id": task_id, "uri": task_uri}, changed=True)
+                job_id = task_uri.split("/")[-1]
+                module.exit_json(msg=message, task={"id": job_id, "uri": JOB_URI.format(job_id=job_id)}, changed=True)
             module.fail_json(msg=message, error_info=json.loads(status))
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))

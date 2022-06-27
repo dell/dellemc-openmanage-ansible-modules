@@ -29,6 +29,14 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
+RESET_UNTRACK = " iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
+RESET_SUCCESS = " iDRAC has been reset successfully."
+RESET_FAIL = " Unable to reset the iDRAC. For changes to reflect, manually reset the iDRAC."
+SYSTEM_ID = "System.Embedded.1"
+MANAGER_ID = "iDRAC.Embedded.1"
+SYSTEMS_URI = "/redfish/v1/Systems"
+MANAGERS_URI = "/redfish/v1/Managers"
+IDRAC_RESET_URI = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 
 import time
 
@@ -172,3 +180,37 @@ def wait_for_job_completion(redfish_obj, uri, job_wait=True, wait_timeout=120, s
         time.sleep(10)
         return job_resp, ""
     return {}, "The job is not complete after {0} seconds.".format(wait_timeout)
+
+
+def wait_after_idrac_reset(idrac, wait_time_sec, interval=30):
+    time.sleep(interval // 2)
+    msg = RESET_UNTRACK
+    wait = wait_time_sec
+    track_failed = True
+    while wait > 0:
+        try:
+            idrac.invoke_request(MANAGERS_URI, 'GET')
+            time.sleep(interval // 2)
+            msg = RESET_SUCCESS
+            track_failed = False
+            break
+        except Exception:
+            time.sleep(interval)
+            wait = wait - interval
+    return track_failed, msg
+
+
+# Can this be in idrac_redfish???
+def reset_idrac(idrac_restobj, wait_time_sec=300, res_id=MANAGER_ID, interval=30):
+    track_failed = True
+    reset_msg = "iDRAC reset triggered successfully."
+    try:
+        resp = idrac_restobj.invoke_request(IDRAC_RESET_URI.format(res_id=res_id), 'POST',
+                                            data={"ResetType": "GracefulRestart"})
+        if wait_time_sec:
+            track_failed, reset_msg = wait_after_idrac_reset(idrac_restobj, wait_time_sec, interval)
+        reset = True
+    except Exception:
+        reset = False
+        reset_msg = RESET_FAIL
+    return reset, track_failed, reset_msg
