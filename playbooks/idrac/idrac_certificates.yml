@@ -1,0 +1,69 @@
+---
+- hosts: idrac
+  connection: local
+  name: Dell OpenManage Ansible iDRAC Certificates management.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Generate https signing request
+      idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password:  "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command:   "generate_csr"
+        certificate_type:  "HTTPS"
+        certificate_path: "/home/omam/mycert_dir"
+        cert_params:
+          common_name: "sample.domain.com"
+          organization_unit: "OrgUnit"
+          locality_name: "Bangalore"
+          state_name: "Karnataka"
+          country_code: "IN"
+          email_address: "admin@domain.com"
+          organization_name: "OrgName"
+          subject_alt_name:
+            - 192.198.2.1
+
+    - name: Import a SSL certificate.
+      idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password:  "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "HTTPS"
+        certificate_path: "/path/to/cert.pem"
+
+    - name: Export a SSL certificate.
+      idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password:  "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "export"
+        certificate_type: "HTTPS"
+        certificate_path: "/home/omam/mycert_dir"
+
+    - name: Import a CSC certificate.
+      idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password:  "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "CSC"
+        certificate_file: "/path/to/cert.pem"
+
+    - name: Export a Client trust certificate.
+      idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password:  "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "export"
+        certificate_type: "CLIENT_TRUST_CERTIFICATE"
+        certificate_path: "/home/omam/mycert_dir"

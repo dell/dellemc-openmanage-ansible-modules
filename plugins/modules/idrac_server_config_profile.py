@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 5.5.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -26,10 +26,11 @@ extends_documentation_fragment:
 options:
   command:
     description:
-      - If C(import), will perform SCP import operations.
-      - If C(export), will perform SCP export operations.
+      - If C(import), the module performs SCP import operation.
+      - If C(export), the module performs SCP export operation.
+      - If C(preview), the module performs SCP preview operation.
     type: str
-    choices: ['import', 'export']
+    choices: ['import', 'export', 'preview']
     default: 'export'
   job_wait:
     description: Whether to wait for job completion or not.
@@ -39,7 +40,6 @@ options:
     description:
       - Network share or local path.
       - CIFS, NFS, HTTP, and HTTPS network share types are supported.
-      - OMSDK is not required if HTTP or HTTPS location is used for I(share_name).
     type: str
     required: True
   share_user:
@@ -95,11 +95,8 @@ options:
     type: str
     choices: ['Default',  'Clone', 'Replace']
     default: 'Default'
-
 requirements:
-  - "omsdk >= 1.2.488"
   - "python >= 3.8.6"
-
 author:
   - "Jagadeesh N V(@jagadeeshnv)"
   - "Felix Stephen (@felixs88)"
@@ -107,7 +104,8 @@ notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell EMC iDRAC.
     - This module supports C(check_mode).
-    - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
+    - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers, the servers 
+      must have iDRAC Enterprise license or later.
 '''
 
 EXAMPLES = r'''
@@ -255,6 +253,58 @@ EXAMPLES = r'''
     shutdown_type: Graceful
     end_host_power_state: "On"
     job_wait: False
+
+- name: Preview SCP with ALL components in XML format from a CIFS share path
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "\\\\192.168.0.2\\share"
+    share_user: share_username
+    share_password: share_password
+    command: preview
+    scp_components: "ALL"
+    scp_file: example_file.xml
+    job_wait: True
+
+- name: Preview SCP with ALL components in JSON format from a NFS share path
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "192.168.0.2:/share"
+    command: preview
+    scp_components: "IDRAC"
+    scp_file: example_file.xml
+    job_wait: True
+
+- name: Preview SCP with ALL components in XML format from a HTTP share path
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "http://192.168.0.1/http-share"
+    share_user: share_username
+    share_password: share_password
+    command: preview
+    scp_components: "ALL"
+    scp_file: example_file.xml
+    job_wait: True
+
+- name: Preview SCP with ALL components in XML format from a local path
+  dellemc.openmanage.idrac_server_config_profile:
+    idrac_ip: "{{ idrac_ip }}"
+    idrac_user: "{{ idrac_user }}"
+    idrac_password: "{{ idrac_password }}"
+    ca_path: "/path/to/ca_cert.pem"
+    share_name: "/scp_folder"
+    command: preview
+    scp_components: "IDRAC"
+    scp_file: example_file.json
+    job_wait: False
 '''
 
 RETURN = r'''
@@ -307,73 +357,38 @@ error_info:
 
 import os
 import json
+import re
+import copy
 from datetime import datetime
+from os.path import exists
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.parse import urlparse
-try:
-    from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
-    from omdrivers.enums.iDRAC.iDRACEnums import (SCPTargetEnum, EndHostPowerStateEnum,
-                                                  ShutdownTypeEnum, ExportFormatEnum, ExportUseEnum)
-except ImportError:
-    pass
 
 
-def run_import_server_config_profile(idrac, module):
-    """Import Server Configuration Profile from a network share."""
-    target = SCPTargetEnum[module.params['scp_components']]
-    job_wait = module.params['job_wait']
-    end_host_power_state = EndHostPowerStateEnum[module.params['end_host_power_state']]
-    shutdown_type = ShutdownTypeEnum[module.params['shutdown_type']]
-    idrac.use_redfish = True
-
-    try:
-        myshare = file_share_manager.create_share_obj(
-            share_path="{0}{1}{2}".format(module.params['share_name'], os.sep, module.params['scp_file']),
-            creds=UserCredentials(module.params['share_user'],
-                                  module.params['share_password']), isFolder=False)
-        import_status = idrac.config_mgr.scp_import(myshare,
-                                                    target=target, shutdown_type=shutdown_type,
-                                                    end_host_power_state=end_host_power_state,
-                                                    job_wait=job_wait)
-        if not import_status or import_status.get('Status') != "Success":
-            module.fail_json(msg='Failed to import scp.', scp_status=import_status)
-    except RuntimeError as e:
-        module.fail_json(msg=str(e))
-    return import_status
+REDFISH_SCP_BASE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
+CHANGES_FOUND = "Changes found to be applied."
+NO_CHANGES_FOUND = "No changes found to be applied."
+INVALID_FILE = "Invalid file path provided."
+JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
 
 
-def run_export_server_config_profile(idrac, module):
-    """Export Server Configuration Profile to a network share."""
-    export_format = ExportFormatEnum[module.params['export_format']]
+def get_scp_file_format(module):
     scp_file = module.params['scp_file']
     if scp_file:
         scp_file_name_format = scp_file
         if not str(scp_file.lower()).endswith(('.xml', '.json')):
             scp_file_name_format = "{0}.{1}".format(scp_file, module.params['export_format'].lower())
     else:
-        scp_file_name_format = "%ip_%Y%m%d_%H%M%S_scp.{0}".format(module.params['export_format'].lower())
-    target = SCPTargetEnum[module.params['scp_components']]
-    export_use = ExportUseEnum[module.params['export_use']]
-    idrac.use_redfish = True
-
-    try:
-        myshare = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                      creds=UserCredentials(module.params['share_user'],
-                                                                            module.params['share_password']),
-                                                      isFolder=True)
-        scp_file_name = myshare.new_file(scp_file_name_format)
-        export_status = idrac.config_mgr.scp_export(scp_file_name, target=target, export_format=export_format,
-                                                    export_use=export_use, job_wait=module.params['job_wait'])
-        if not export_status or export_status.get('Status') != "Success":
-            module.fail_json(msg='Failed to export scp.', scp_status=export_status)
-    except RuntimeError as e:
-        module.fail_json(msg=str(e))
-    return export_status
+        d = datetime.now()
+        scp_file_name_format = "{0}_{1}{2}{3}_{4}{5}{6}_scp.{7}".format(
+            module.params["idrac_ip"], d.date().year, d.date().month, d.date().day,
+            d.time().hour, d.time().minute, d.time().second,
+            module.params['export_format'].lower())
+    return scp_file_name_format
 
 
 def response_format_change(response, params, file_name):
@@ -389,20 +404,21 @@ def response_format_change(response, params, file_name):
         if response.get("Oem") is not None:
             response.update(response["Oem"]["Dell"])
             response.pop("Oem", None)
-        if params["command"] == "export":
-            response["file"] = "{0}{1}{2}".format(params["share_name"], os.sep, file_name)
+        sep = "/" if "/" in params["share_name"] else "\\"
+        response["file"] = "{0}{1}{2}".format(params["share_name"], sep, file_name)
         response["retval"] = True
     else:
         location = response.headers.get("Location")
         job_id = location.split("/")[-1]
-        resp["Data"] = {"StatusCode": response.status_code, "joburi": job_id, "next_uri": location}
-        resp["Job"] = {"JobId": job_id, "ResourceURI": location}
-        resp["Message"] = "none"
+        job_uri = JOB_URI.format(job_id=job_id)
+        resp["Data"] = {"StatusCode": response.status_code, "jobid": job_id, "next_uri": job_uri}
+        resp["Job"] = {"JobId": job_id, "ResourceURI": job_uri}
         resp["Return"] = "JobCreated"
         resp["Status"] = "Success"
+        resp["Message"] = "none"
         resp["StatusCode"] = response.status_code
-        if params["command"] == "export":
-            resp["file"] = "{0}{1}{2}".format(params["share_name"], os.sep, file_name)
+        sep = "/" if "/" in params["share_name"] else "\\"
+        resp["file"] = "{0}{1}{2}".format(params["share_name"], sep, file_name)
         resp["retval"] = True
         response = resp
     return response
@@ -425,23 +441,146 @@ def run_export_import_scp_http(idrac, module):
                                               host_powerstate=module.params["end_host_power_state"],
                                               job_wait=module.params["job_wait"],
                                               target=module.params["scp_components"], share=share, )
-    else:
-        if scp_file:
-            if not str(scp_file.lower()).endswith(('.xml', '.json')):
-                scp_file_name_format = "{0}.{1}".format(scp_file, module.params['export_format'].lower())
-        else:
-            d = datetime.now()
-            scp_file_name_format = "{0}_{1}{2}{3}_{4}{5}{6}_scp.{7}".format(
-                module.params["idrac_ip"], d.date().year, d.date().month, d.date().day,
-                d.time().hour, d.time().minute, d.time().second,
-                module.params['export_format'].lower())
+    elif command == "export":
+        scp_file_name_format = get_scp_file_format(module)
         share["file_name"] = scp_file_name_format
         scp_response = idrac.export_scp(export_format=module.params["export_format"],
                                         export_use=module.params["export_use"],
                                         target=module.params["scp_components"],
                                         job_wait=module.params["job_wait"], share=share, )
-    scp_response = response_format_change(scp_response, module.params,
-                                          scp_file_name_format)
+    scp_response = response_format_change(scp_response, module.params, scp_file_name_format)
+    if isinstance(scp_response, dict) and scp_response.get("TaskStatus") == "Critical":
+        module.fail_json(msg="Failed to {0} scp.".format(command), scp_status=scp_response)
+    return scp_response
+
+
+def get_scp_share_details(module):
+    share_name = module.params.get("share_name")
+    command = module.params["command"]
+    scp_file_name_format = get_scp_file_format(module)
+    if ":" in share_name:
+        nfs_split = share_name.split(":")
+        share = {"share_ip": nfs_split[0], "share_name": nfs_split[1], "share_type": "NFS"}
+        if command == "export":
+            share["file_name"] = scp_file_name_format
+    elif "\\" in share_name:
+        ip_pattern = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+        share_path = re.split(ip_pattern, share_name)
+        share_ip = re.findall(ip_pattern, share_name)
+        share_path_name = "\\".join(list(filter(None, share_path[-1].split("\\"))))
+        share = {"share_ip": share_ip[0], "share_name": share_path_name, "share_type": "CIFS",
+                 "username": module.params.get("share_user"), "password": module.params.get("share_password")}
+        if command == "export":
+            share["file_name"] = scp_file_name_format
+    else:
+        share = {"share_type": "LOCAL", "share_name": share_name}
+        if command == "export":
+            share["file_name"] = scp_file_name_format
+    return share, scp_file_name_format
+
+
+def export_scp_redfish(module, idrac):
+    command = module.params["command"]
+    share, scp_file_name_format = get_scp_share_details(module)
+    if share["share_type"] == "LOCAL":
+        scp_response = idrac.export_scp(export_format=module.params["export_format"],
+                                        export_use=module.params["export_use"],
+                                        target=module.params["scp_components"],
+                                        job_wait=False, share=share, )
+        scp_response = wait_for_response(scp_response, module, share, idrac)
+    else:
+        scp_response = idrac.export_scp(export_format=module.params["export_format"],
+                                        export_use=module.params["export_use"],
+                                        target=module.params["scp_components"],
+                                        job_wait=module.params["job_wait"], share=share, )
+    scp_response = response_format_change(scp_response, module.params, scp_file_name_format)
+    if isinstance(scp_response, dict) and scp_response.get("TaskStatus") == "Critical":
+        module.fail_json(msg="Failed to {0} scp.".format(command), scp_status=scp_response)
+    return scp_response
+
+
+def wait_for_response(scp_resp, module, share, idrac):
+    task_uri = scp_resp.headers["Location"]
+    job_id = task_uri.split("/")[-1]
+    job_uri = JOB_URI.format(job_id=job_id)
+    wait_resp = idrac.wait_for_job_complete(task_uri, job_wait=True)
+    with open("{0}/{1}".format(share["share_name"], share["file_name"]), "w") as file_obj:
+        if module.params["export_format"] == "JSON":
+            json.dump(wait_resp.json_data, file_obj, indent=4)
+        else:
+            wait_resp_value = wait_resp.decode("utf-8")
+            file_obj.write(wait_resp_value)
+    if module.params["job_wait"]:
+        scp_resp = idrac.invoke_request(job_uri, "GET")
+    return scp_resp
+
+
+def preview_scp_redfish(module, idrac, http_share, import_job_wait=False):
+    command = module.params["command"]
+    scp_target = module.params["scp_components"]
+    job_wait_option = module.params["job_wait"]
+    if command == "import":
+        job_wait_option = import_job_wait
+    if http_share:
+        share_url = urlparse(module.params["share_name"])
+        share = {"share_ip": share_url.netloc, "share_name": share_url.path.strip('/'),
+                 "share_type": share_url.scheme.upper(), "file_name": module.params.get("scp_file"),
+                 "username": module.params.get("share_user"), "password": module.params.get("share_password")}
+    else:
+        share, scp_file_name_format = get_scp_share_details(module)
+        share["file_name"] = module.params.get("scp_file")
+    buffer_text = None
+    if share["share_type"] == "LOCAL":
+        scp_target = "ALL"
+        file_path = "{0}{1}{2}".format(share["share_name"], os.sep, share["file_name"])
+        if not exists(file_path):
+            module.fail_json(msg=INVALID_FILE)
+        with open(file_path, "r") as file_obj:
+            buffer_text = file_obj.read()
+    scp_response = idrac.import_preview(import_buffer=buffer_text, target=scp_target,
+                                        share=share, job_wait=job_wait_option)
+    scp_response = response_format_change(scp_response, module.params, share["file_name"])
+    if isinstance(scp_response, dict) and scp_response.get("TaskStatus") == "Critical":
+        module.fail_json(msg="Failed to {0} scp.".format(command), scp_status=scp_response)
+    return scp_response
+
+
+def import_scp_redfish(module, idrac, http_share):
+    command = module.params["command"]
+    scp_target = module.params["scp_components"]
+    job_wait = copy.copy(module.params["job_wait"])
+    if module.check_mode:
+        module.params["job_wait"] = True
+        scp_resp = preview_scp_redfish(module, idrac, http_share, import_job_wait=True)
+        if "SYS081" in scp_resp["MessageId"] or "SYS082" in scp_resp["MessageId"]:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
+        else:
+            module.fail_json(msg=scp_resp)
+    if http_share:
+        share_url = urlparse(module.params["share_name"])
+        share = {"share_ip": share_url.netloc, "share_name": share_url.path.strip('/'),
+                 "share_type": share_url.scheme.upper(), "file_name": module.params.get("scp_file"),
+                 "username": module.params.get("share_user"), "password": module.params.get("share_password")}
+    else:
+        share, scp_file_name_format = get_scp_share_details(module)
+        share["file_name"] = module.params.get("scp_file")
+    buffer_text = None
+    share_dict = share
+    if share["share_type"] == "LOCAL":
+        scp_target = "ALL"
+        file_path = "{0}{1}{2}".format(share["share_name"], os.sep, share["file_name"])
+        if not exists(file_path):
+            module.fail_json(msg=INVALID_FILE)
+        with open(file_path, "r") as file_obj:
+            buffer_text = file_obj.read()
+        share_dict = {}
+    module.params["job_wait"] = job_wait
+    scp_response = idrac.import_scp_share(shutdown_type=module.params["shutdown_type"],
+                                          host_powerstate=module.params["end_host_power_state"],
+                                          job_wait=module.params["job_wait"],
+                                          target=scp_target,
+                                          import_buffer=buffer_text, share=share_dict, )
+    scp_response = response_format_change(scp_response, module.params, share["file_name"])
     if isinstance(scp_response, dict) and scp_response.get("TaskStatus") == "Critical":
         module.fail_json(msg="Failed to {0} scp.".format(command), scp_status=scp_response)
     return scp_response
@@ -450,9 +589,8 @@ def run_export_import_scp_http(idrac, module):
 def main():
     specs = {
         "command": {"required": False, "type": 'str',
-                    "choices": ['export', 'import'], "default": 'export'},
+                    "choices": ['export', 'import', 'preview'], "default": 'export'},
         "job_wait": {"required": True, "type": 'bool'},
-
         "share_name": {"required": True, "type": 'str'},
         "share_user": {"required": False, "type": 'str'},
         "share_password": {"required": False, "type": 'str',
@@ -460,7 +598,6 @@ def main():
         "scp_components": {"required": False,
                            "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
                            "default": 'ALL'},
-
         "scp_file": {"required": False, "type": 'str'},
         "shutdown_type": {"required": False,
                           "choices": ['Graceful', 'Forced', 'NoReboot'],
@@ -468,7 +605,6 @@ def main():
         "end_host_power_state": {"required": False,
                                  "choices": ['On', 'Off'],
                                  "default": 'On'},
-
         "export_format": {"required": False, "type": 'str',
                           "choices": ['JSON', 'XML'], "default": 'XML'},
         "export_use": {"required": False, "type": 'str',
@@ -479,37 +615,39 @@ def main():
         argument_spec=specs,
         required_if=[
             ["command", "import", ["scp_file"]],
+            ["command", "preview", ["scp_file"]],
         ],
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         changed = False
         http_share = module.params["share_name"].lower().startswith(('http://', 'https://'))
-        with iDRACConnection(module.params) if not http_share else iDRACRedfishAPI(module.params) as idrac:
+        with iDRACRedfishAPI(module.params) as idrac:
             command = module.params['command']
             if command == 'import':
                 if http_share:
                     scp_status = run_export_import_scp_http(idrac, module)
-                    if isinstance(scp_status, dict):
-                        if scp_status.get("MessageId") == "SYS069":
-                            changed = False
-                        elif scp_status.get("MessageId") == "SYS053":
-                            changed = True
+                    if "SYS069" in scp_status.get("MessageId", ""):
+                        changed = False
+                    elif "SYS053" in scp_status.get("MessageId", ""):
+                        changed = True
                 else:
-                    scp_status = run_import_server_config_profile(idrac, module)
+                    scp_status = import_scp_redfish(module, idrac, http_share)
                     if "No changes were applied" not in scp_status.get('Message', ""):
                         changed = True
-                    elif scp_status.get("MessageId") == "SYS043":
+                    elif "SYS043" in scp_status.get("MessageId", ""):
                         changed = True
-                    elif scp_status.get("MessageId") == "SYS069":
+                    elif "SYS069" in scp_status.get("MessageId", ""):
                         changed = False
-            else:
+            elif command == "export":
                 if http_share:
                     scp_status = run_export_import_scp_http(idrac, module)
                 else:
-                    scp_status = run_export_server_config_profile(idrac, module)
-
+                    scp_status = export_scp_redfish(module, idrac)
+            else:
+                scp_status = preview_scp_redfish(module, idrac, http_share, import_job_wait=False)
         if module.params.get('job_wait'):
+            scp_status = strip_substr_dict(scp_status)
             msg = "Successfully {0}ed the Server Configuration Profile."
             module.exit_json(changed=changed, msg=msg.format(command), scp_status=scp_status)
         else:

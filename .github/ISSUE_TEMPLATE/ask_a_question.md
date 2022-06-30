@@ -1,10 +1,11 @@
 ---
 name: 💬 Ask a question
-about: Please ask usage questions here
+about: Ask usage questions here
+title: "[QUESTION]:"
+labels: type/question
+assignees: ''
+
 ---
+### How can the team help?
 
-##### Question
-
-
-##### Details
-
+**Details: ?**

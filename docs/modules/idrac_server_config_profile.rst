@@ -20,7 +20,6 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk >= 1.2.488
 - python >= 3.8.6
 
 
@@ -29,9 +28,11 @@ Parameters
 ----------
 
   command (optional, str, export)
-    If ``import``, will perform SCP import operations.
+    If ``import``, the module performs SCP import operation.
 
-    If ``export``, will perform SCP export operations.
+    If ``export``, the module performs SCP export operation.
+
+    If ``preview``, the module performs SCP preview operation.
 
 
   job_wait (True, bool, None)
@@ -42,8 +43,6 @@ Parameters
     Network share or local path.
 
     CIFS, NFS, HTTP, and HTTPS network share types are supported.
-
-    OMSDK is not required if HTTP or HTTPS location is used for *share_name*.
 
 
   share_user (optional, str, None)
@@ -298,6 +297,58 @@ Examples
         scp_file: 192.168.0.1_20160618_164647.xml
         shutdown_type: Graceful
         end_host_power_state: "On"
+        job_wait: False
+
+    - name: Preview SCP with ALL components in XML format from a CIFS share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "\\\\192.168.0.2\\share"
+        share_user: share_username
+        share_password: share_password
+        command: preview
+        scp_components: "ALL"
+        scp_file: example_file.xml
+        job_wait: True
+
+    - name: Preview SCP with ALL components in JSON format from a NFS share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "192.168.0.2:/share"
+        command: preview
+        scp_components: "IDRAC"
+        scp_file: example_file.xml
+        job_wait: True
+
+    - name: Preview SCP with ALL components in XML format from a HTTP share path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "http://192.168.0.1/http-share"
+        share_user: share_username
+        share_password: share_password
+        command: preview
+        scp_components: "ALL"
+        scp_file: example_file.xml
+        job_wait: True
+
+    - name: Preview SCP with ALL components in XML format from a local path
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "/scp_folder"
+        command: preview
+        scp_components: "IDRAC"
+        scp_file: example_file.json
         job_wait: False
 
 
