@@ -23,8 +23,6 @@ The below requirements are needed on the host that executes this module.
 - omsdk >= 1.2.488
 - python >= 3.8.6
 
-The `Enterprise`/`Express` License is needed to **import** the SCP, otherwise, you'll get a `503: Service Unavaible`!
-
 
 
 Parameters
@@ -146,6 +144,7 @@ Notes
    - This module requires 'Administrator' privilege for *idrac_user*.
    - Run this module from a system that has direct access to Dell EMC iDRAC.
    - This module does not support ``check_mode``.
+   - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
 
 
 
