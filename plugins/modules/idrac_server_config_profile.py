@@ -100,11 +100,13 @@ requirements:
   - "omsdk >= 1.2.488"
   - "python >= 3.8.6"
 
-author: "Jagadeesh N V(@jagadeeshnv)"
+author:
+  - "Jagadeesh N V(@jagadeeshnv)"
+  - "Felix Stephen (@felixs88)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell EMC iDRAC.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
     - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
 '''
 
