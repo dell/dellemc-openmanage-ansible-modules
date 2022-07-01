@@ -143,6 +143,7 @@ Notes
    - This module requires 'Administrator' privilege for *idrac_user*.
    - Run this module from a system that has direct access to Dell EMC iDRAC.
    - This module supports ``check_mode``.
+   - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
 
 
 
