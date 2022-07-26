@@ -115,7 +115,6 @@
         url: "https://{{ baseuri }}{{ result.task.uri }}"
         user: "{{ username }}"
         password: "{{ password }}"
-        ca_path: "/path/to/ca_cert.pem"
         method: "GET"
         use_proxy: yes
         status_code: 200, 202

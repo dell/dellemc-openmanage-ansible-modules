@@ -1,9 +1,14 @@
-# OpenManage Ansible Modules Documentation
- 
-Dell EMC OpenManage Ansible Modules allows data center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers and modular infrastructure by leveraging the management automation capabilities in-built into the Integrated Dell Remote Access Controller (iDRAC), OpenManage Enterprise and OpenManage Enterprise Modular.
+<!--
+Copyright (c) 2022 Dell Inc., or its subsidiaries. All Rights Reserved.
 
-OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
- 
+Licensed under the GPL, Version 3.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.gnu.org/licenses/gpl-3.0.txt
+-->
+# OpenManage Ansible Modules Documentation
+
 ### iDRAC Modules
 - [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)
 - [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)
@@ -12,6 +17,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 - [dellemc_idrac_lc_attributes](modules/dellemc_idrac_lc_attributes.rst)
 - [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)
 - [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)
+- [idrac_attributes](modules/idrac_attributes.rst)
 - [idrac_bios](modules/idrac_bios.rst)
 - [idrac_certificates](modules/idrac_certificates.rst)
 - [idrac_firmware](modules/idrac_firmware.rst)

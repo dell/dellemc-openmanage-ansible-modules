@@ -22,6 +22,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       device_service_tag: "{{ reference_device }}"
       attributes:
         Name: "{{ template_name }}"
@@ -36,6 +37,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       template_id: "{{ result.return_id }}"
     register: template_result
 
@@ -44,6 +46,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       job_id: "{{ template_result.template_info[hostname].TaskId }}"
     register: job_result
     failed_when: "'job_info' not in job_result"
@@ -112,6 +115,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: "modify"
       template_id: "{{ result.return_id }}"
       attributes:

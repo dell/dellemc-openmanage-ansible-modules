@@ -14,7 +14,6 @@
        idrac_user: "{{ idrac_user }}"
        idrac_password:  "{{ idrac_password }}"
        ca_path: "/path/to/ca_cert.pem"
-       share_name: "{{ playbook_dir }}"
        setup_idrac_timezone: "Singapore"
        enable_ntp: "Disabled"
        ntp_server_1: "100.100.25.1"

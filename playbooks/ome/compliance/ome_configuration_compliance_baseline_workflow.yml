@@ -14,6 +14,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
         job_wait_timeout: 1000
@@ -28,6 +29,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         baseline: "baseline1"
       register: compliance_report
 
@@ -43,6 +45,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "remediate"
         names: "baseline1"
         device_ids: "{{ non_compliance_devices }}"

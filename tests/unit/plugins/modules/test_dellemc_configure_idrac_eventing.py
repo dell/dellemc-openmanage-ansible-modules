@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Version 6.0.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -67,7 +67,7 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     def test_main_configure_eventing_success_case01(self, idrac_connection_configure_eventing_mock, idrac_default_args,
                                                     mocker, idrac_file_manager_config_eventing_mock):
-        idrac_default_args.update({"share_name": "sharename", 'share_password': None, "destination_number": 1,
+        idrac_default_args.update({"share_name": None, 'share_password': None, "destination_number": 1,
                                    "destination": "1.1.1.1", 'share_mnt': None, 'share_user': None})
         message = {'msg': 'Successfully configured the idrac eventing settings.',
                    'eventing_status': {"Id": "JID_12345123456", "JobState": "Completed"},
@@ -76,12 +76,17 @@ class TestConfigureEventing(FakeAnsibleModule):
                      'dellemc_configure_idrac_eventing.run_idrac_eventing_config', return_value=message)
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "Successfully configured the iDRAC eventing settings."
+        status_msg = {"Status": "Success", "Message": "No changes found to commit!"}
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'dellemc_configure_idrac_eventing.run_idrac_eventing_config', return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "No changes found to commit!"
 
     def test_run_idrac_eventing_config_success_case01(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args,
                                                       is_changes_applicable_eventing_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "destination_number": 1, "destination": "1.1.1.1",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "destination_number": 1, "destination": "1.1.1.1",
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
@@ -96,8 +101,8 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     def test_run_idrac_eventing_config_success_case02(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "destination_number": 1, "destination": "1.1.1.1",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "destination_number": 1, "destination": "1.1.1.1",
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
@@ -113,8 +118,8 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     def test_run_idrac_eventing_config_success_case03(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "destination_number": 1,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "destination_number": 1,
                                    "destination": "1.1.1.1", "snmp_v3_username": "snmpuser",
                                    "snmp_trap_state": "Enabled", "alert_number": 4, "email_alert_state": "Enabled",
                                    "address": "abc@xyz", "custom_message": "test", "enable_alerts": "Enabled",
@@ -130,8 +135,8 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     def test_run_idrac_eventing_config_success_case04(self, idrac_connection_configure_eventing_mock,
                                                       idrac_default_args, idrac_file_manager_config_eventing_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "destination_number": 1, "destination": "1.1.1.1",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "destination_number": 1, "destination": "1.1.1.1",
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
@@ -147,8 +152,8 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     def test_run_idrac_eventing_config_success_case05(self, idrac_connection_configure_eventing_mock,
                                                       idrac_file_manager_config_eventing_mock, idrac_default_args):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "destination_number": None, "destination": None,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "destination_number": None, "destination": None,
                                    "snmp_v3_username": None, "snmp_trap_state": None, "alert_number": None,
                                    "email_alert_state": None, "address": None, "custom_message": None,
                                    "enable_alerts": None, "authentication": None,
@@ -170,8 +175,8 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     def test_run_idrac_eventing_config_failed_case01(self, idrac_connection_configure_eventing_mock,
                                                      idrac_file_manager_config_eventing_mock, idrac_default_args):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "destination_number": 1, "destination": "1.1.1.1",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "destination_number": 1, "destination": "1.1.1.1",
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
@@ -187,8 +192,8 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     def test_run_idrac_eventing_config_failed_case02(self, idrac_connection_configure_eventing_mock,
                                                      idrac_default_args, idrac_file_manager_config_eventing_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "destination_number": 1, "destination": "1.1.1.1",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "destination_number": 1, "destination": "1.1.1.1",
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
@@ -204,8 +209,8 @@ class TestConfigureEventing(FakeAnsibleModule):
 
     def test_run_idrac_eventing_config_failed_case03(self, idrac_connection_configure_eventing_mock,
                                                      idrac_default_args, idrac_file_manager_config_eventing_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "destination_number": 1,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "destination_number": 1,
                                    "destination": "1.1.1.1", "snmp_v3_username": "snmpuser",
                                    "snmp_trap_state": "Enabled", "alert_number": 4, "email_alert_state": "Enabled",
                                    "address": "abc@xyz", "custom_message": "test", "enable_alerts": "Enabled",
@@ -223,7 +228,7 @@ class TestConfigureEventing(FakeAnsibleModule):
     def test_main_configure_eventing_exception_handling_case(self, exc_type, mocker, idrac_default_args,
                                                              idrac_connection_configure_eventing_mock,
                                                              idrac_file_manager_config_eventing_mock):
-        idrac_default_args.update({"share_name": "sharename", 'share_password': None,
+        idrac_default_args.update({"share_name": None, 'share_password': None,
                                    'share_mnt': None, 'share_user': None})
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_idrac_eventing.run_idrac_eventing_config', side_effect=exc_type('test'))

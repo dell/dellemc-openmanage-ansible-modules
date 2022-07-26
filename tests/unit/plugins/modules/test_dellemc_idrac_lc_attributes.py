@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Version 6.0.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -56,7 +56,7 @@ class TestLcAttributes(FakeAnsibleModule):
 
     def test_main_lc_attributes_success_case01(self, idrac_connection_lc_attribute_mock,
                                                idrac_default_args, mocker, idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename", 'share_password': None,
+        idrac_default_args.update({"share_name": None, 'share_password': None,
                                    'csior': 'Enabled', 'share_mnt': None, 'share_user': None})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
@@ -64,22 +64,38 @@ class TestLcAttributes(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self._run_module(idrac_default_args)
         assert ex.value.args[0]['msg'] == "Failed to configure the iDRAC LC attributes."
+        status_msg = {"Status": "Success"}
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
+                     return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully configured the iDRAC LC attributes."
+        status_msg = {"Status": "Success", "Message": "No changes were applied"}
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
+                     return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "No changes were applied"
 
     def test_run_setup_idrac_csior_success_case01(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "csior": "csior"})
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "csior": "csior"})
         message = {"changes_applicable": True, "message": "changes are applicable"}
         idrac_connection_lc_attribute_mock.config_mgr.is_change_applicable.return_value = message
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
         with pytest.raises(Exception) as ex:
             self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
         assert ex.value.args[0] == "Changes found to commit!"
+        status_msg = {"changes_applicable": False, "message": "no changes are applicable"}
+        idrac_connection_lc_attribute_mock.config_mgr.is_change_applicable.return_value = status_msg
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        with pytest.raises(Exception) as ex:
+            self.module.run_setup_idrac_csior(idrac_connection_lc_attribute_mock, f_module)
+        assert ex.value.args[0] == "No changes found to commit!"
 
     def test_run_setup_idrac_csior_success_case02(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "csior": "scr"})
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "csior": "scr"})
         message = {"changes_applicable": True, "message": "changes found to commit!", "changed": True,
                    "Status": "Success"}
         idrac_connection_lc_attribute_mock.config_mgr.apply_changes.return_value = message
@@ -91,8 +107,8 @@ class TestLcAttributes(FakeAnsibleModule):
 
     def test_run_setup_idrac_csior_success_case03(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                   idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "csior": "scr"})
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "csior": "scr"})
         message = {"changes_applicable": True, "Message": "No changes found to commit!", "changed": False,
                    "Status": "Success"}
         idrac_connection_lc_attribute_mock.config_mgr.apply_changes.return_value = message
@@ -104,8 +120,8 @@ class TestLcAttributes(FakeAnsibleModule):
 
     def test_run_setup_csior_disable_case(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                           idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "csior": 'Disabled'})
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "csior": 'Disabled'})
         message = {"changes_applicable": True}
         obj = MagicMock()
         idrac_connection_lc_attribute_mock.config_mgr = obj
@@ -132,8 +148,8 @@ class TestLcAttributes(FakeAnsibleModule):
 
     def test_run_setup_csior_failed_case01(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                            idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "csior": "csior"})
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "csior": "csior"})
         message = {'Status': 'Failed', "Data": {'Message': 'status failed in checking Data'}}
         idrac_connection_lc_attribute_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
         idrac_connection_lc_attribute_mock.config_mgr.set_liason_share.return_value = message
@@ -144,8 +160,8 @@ class TestLcAttributes(FakeAnsibleModule):
 
     def test_run_setup_idrac_csior_failed_case03(self, idrac_connection_lc_attribute_mock, idrac_default_args,
                                                  idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "csior": "scr"})
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "csior": "scr"})
         message = {"changes_applicable": False, "Message": "Failed to found changes", "changed": False,
                    "Status": "Failed", "failed": True}
         idrac_connection_lc_attribute_mock.config_mgr.apply_changes.return_value = message
@@ -160,7 +176,7 @@ class TestLcAttributes(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
     def test_main_lc_attribute_exception_handling_case(self, exc_type, mocker, idrac_connection_lc_attribute_mock,
                                                        idrac_default_args, idrac_file_manager_lc_attribute_mock):
-        idrac_default_args.update({"share_name": "sharename", 'share_password': None,
+        idrac_default_args.update({"share_name": None, 'share_password': None,
                                    'csior': 'Enabled', 'share_mnt': None, 'share_user': None})
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.dellemc_idrac_lc_attributes.run_setup_idrac_csior',
                      side_effect=exc_type('test'))

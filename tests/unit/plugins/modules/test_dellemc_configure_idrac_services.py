@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Version 6.0.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -68,8 +68,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_main_idrac_services_config_success_Case(self, idrac_connection_configure_services_mock, idrac_default_args,
                                                      mocker, idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
@@ -81,12 +81,23 @@ class TestConfigServices(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self._run_module(idrac_default_args)
         assert ex.value.args[0]['msg'] == "Failed to configure the iDRAC services."
+        status_msg = {"Status": "Success", "Message": "No changes found to commit!"}
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'dellemc_configure_idrac_services.run_idrac_services_config', return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "No changes found to commit!"
+        status_msg = {"Status": "Failed"}
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
+                     'dellemc_configure_idrac_services.run_idrac_services_config', return_value=status_msg)
+        with pytest.raises(Exception) as ex:
+            self._run_module(idrac_default_args)
+        assert ex.value.args[0]['msg'] == "Failed to configure the iDRAC services."
 
     def test_run_idrac_services_config_success_case01(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock,
                                                       is_changes_applicable_mock_services):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
@@ -101,8 +112,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_run_idrac_services_config_success_case02(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
@@ -118,8 +129,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_run_idrac_services_config_success_case03(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
@@ -136,8 +147,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_run_idrac_services_config_success_case04(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
@@ -154,8 +165,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_run_idrac_services_config_success_case05(self, idrac_connection_configure_services_mock,
                                                       idrac_default_args, idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": None, "http_port": None,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": None, "http_port": None,
                                    "https_port": None, "timeout": None, "ssl_encryption": None,
                                    "tls_protocol": None, "snmp_enable": None,
                                    "community_name": None, "snmp_protocol": None, "alert_port": None,
@@ -174,8 +185,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_run_idrac_services_config_failed_case01(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
@@ -190,8 +201,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_run_idrac_services_config_failed_case02(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
@@ -208,8 +219,8 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_run_idrac_services_config_failed_case03(self, idrac_connection_configure_services_mock,
                                                      idrac_default_args, idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "enable_web_server": "Enabled", "http_port": 443,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
                                    "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
                                    "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
                                    "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
@@ -224,7 +235,7 @@ class TestConfigServices(FakeAnsibleModule):
 
     def test_main_idrac_configure_fail_case(self, mocker, idrac_default_args, idrac_connection_configure_services_mock,
                                             idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename"})
+        idrac_default_args.update({"share_name": None})
         message = {'changed': False, 'msg': {'Status': "failed", "message": "No changes found to commit!"}}
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_idrac_services.run_idrac_services_config', return_value=message)
@@ -235,7 +246,7 @@ class TestConfigServices(FakeAnsibleModule):
     def test_main_idrac_configure_services_exception_handling_case(self, exc_type, mocker, idrac_default_args,
                                                                    idrac_connection_configure_services_mock,
                                                                    idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": "sharename"})
+        idrac_default_args.update({"share_name": None})
         mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
                      'dellemc_configure_idrac_services.run_idrac_services_config', side_effect=exc_type('test'))
         result = self._run_module_with_fail_json(idrac_default_args)
