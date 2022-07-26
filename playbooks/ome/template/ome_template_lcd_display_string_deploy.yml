@@ -22,6 +22,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       state: "deploy"
       template_name: "{{ template_name }}"
       device_service_tag: "{{ deployable_servicetag }}"
@@ -34,6 +35,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       job_id: "{{ result.return_id }}"
     register: job_result
     failed_when: "'job_info' not in job_result"

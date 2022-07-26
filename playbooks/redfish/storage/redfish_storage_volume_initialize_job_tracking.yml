@@ -17,6 +17,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "initialize"
         volume_id: "Disk.Virtual.1:RAID.Slot.1-1"
         initialize_type: "Slow"

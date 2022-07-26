@@ -21,6 +21,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "migrate"
         name: "Profile 00001"
         device_id: 12456
@@ -37,6 +38,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         job_id: "{{ result.job_id }}"
       register: job_result
       failed_when: job_result.job_info.LastRunStatus.Name in "{{ failed_states }}"

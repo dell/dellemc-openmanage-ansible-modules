@@ -14,6 +14,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       baseline_name: "baseline_name"
     register: result
 

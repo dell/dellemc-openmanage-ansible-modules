@@ -14,7 +14,8 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── dellemc_idrac.py
     ├── idrac_redfish.py
     ├── ome.py
-    └── redfish.py
+    ├── redfish.py
+    └── utils.py
 └── modules
     ├── dellemc_configure_idrac_eventing.py
     ├── dellemc_configure_idrac_services.py
@@ -23,7 +24,9 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── dellemc_idrac_lc_attributes.py
     ├── dellemc_idrac_storage_volume.py
     ├── dellemc_system_lockdown_mode.py
+    ├── idrac_attributes.py
     ├── idrac_bios.py
+    ├── idrac_certificates.py
     ├── idrac_firmware.py
     ├── idrac_firmware_info.py
     ├── idrac_lifecycle_controller_job_status_info.py
@@ -43,6 +46,7 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── ome_application_alerts_smtp.py
     ├── ome_application_alerts_syslog.py
     ├── ome_application_certificate.py
+    ├── ome_application_console_preferences.py
     ├── ome_application_network_address.py
     ├── ome_application_network_proxy.py
     ├── ome_application_network_settings.py
@@ -76,6 +80,8 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── ome_network_vlan_info.py
     ├── ome_powerstate.py
     ├── ome_profile.py
+    ├── ome_server_interface_profile_info.py
+    ├── ome_server_interface_profiles.py
     ├── ome_smart_fabric.py
     ├── ome_smart_fabric_uplink.py
     ├── ome_template.py

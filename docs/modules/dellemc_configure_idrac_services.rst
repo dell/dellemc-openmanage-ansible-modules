@@ -56,20 +56,28 @@ Parameters
     The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
 
 
-  share_name (True, str, None)
-    Network share or a local path.
+  share_name (optional, str, None)
+    (deprecated)Network share or a local path.
+
+    This option is deprecated and will be removed in the later version.
 
 
   share_user (optional, str, None)
-    Network share user in the format 'user@domain' or 'domain\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+    (deprecated)Network share user in the format 'user@domain' or 'domain\user' if user is part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+
+    This option is deprecated and will be removed in the later version.
 
 
   share_password (optional, str, None)
-    Network share user password. This option is mandatory for CIFS Network Share.
+    (deprecated)Network share user password. This option is mandatory for CIFS Network Share.
+
+    This option is deprecated and will be removed in the later version.
 
 
   share_mnt (optional, str, None)
-    Local mount path of the network share with read-write permission for ansible user. This option is mandatory for Network Share.
+    (deprecated)Local mount path of the network share with read-write permission for ansible user. This option is mandatory for Network Share.
+
+    This option is deprecated and will be removed in the later version.
 
 
   enable_web_server (optional, str, None)
@@ -156,8 +164,6 @@ Examples
            idrac_user: "user_name"
            idrac_password:  "user_password"
            ca_path: "/path/to/ca_cert.pem"
-           share_name: "192.168.0.1:/share"
-           share_mnt: "/mnt/share"
            enable_web_server: "Enabled"
            http_port: 80
            https_port: 443
@@ -197,7 +203,9 @@ Status
 ------
 
 
-
+- This module will be removed in version
+  .
+  *[deprecated]*
 
 
 Authors

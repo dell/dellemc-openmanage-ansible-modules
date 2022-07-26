@@ -15,6 +15,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         system_query_options:
            filter: "Name eq 'template_name'"
   - name: get specific template from result

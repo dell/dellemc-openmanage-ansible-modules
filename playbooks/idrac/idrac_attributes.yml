@@ -1,0 +1,155 @@
+---
+- hosts: idrac
+  connection: local
+  name: Dell OpenManage Ansible iDRAC Certificates management.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Update iDRAC attributes
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password:  "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: Enabled
+      tags: idrac
+
+    - name: Update System attributes
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        system_attributes:
+          ThermalSettings.1.ThermalProfile: Sound Cap
+      tags: system
+
+    - name: Update Lifecycle Controller attributes
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        lifecycle_controller_attributes:
+          LCAttributes.1.AutoUpdate: Enabled
+      tags: lc
+
+    - name: Configure the iDRAC attributes for email alert settings.
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          EmailAlert.1.CustomMsg: Display Message
+          EmailAlert.1.Enable: Enabled
+          EmailAlert.1.Address: test@test.com
+      tags: email-alerts
+
+    - name: Configure the iDRAC attributes for SNMP alert settings.
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          SNMPAlert.1.Destination: 192.168.0.2
+          SNMPAlert.1.State: Enabled
+          SNMPAlert.1.SNMPv3Username: username
+      tags: snmp-alerts
+
+    - name: Configure the iDRAC attributes for SMTP alert settings.
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          RemoteHosts.1.SMTPServerIPAddress: 192.168.0.3
+          RemoteHosts.1.SMTPAuthentication: Enabled
+          RemoteHosts.1.SMTPPort: 25
+          RemoteHosts.1.SMTPUserName: username
+          RemoteHosts.1.SMTPPassword: password
+      tags: smtp-alerts
+
+    - name: Configure the iDRAC attributes for webserver settings.
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          WebServer.1.SSLEncryptionBitLength: 128-Bit or higher
+          WebServer.1.TLSProtocol: TLS 1.1 and Higher
+      tags: webserver-settings
+
+    - name: Configure the iDRAC attributes for SNMP settings.
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          SNMP.1.SNMPProtocol: All
+          SNMP.1.AgentEnable: Enabled
+          SNMP.1.TrapFormat: SNMPv1
+          SNMP.1.AlertPort: 162
+          SNMP.1.AgentCommunity: public
+      tags: snmp-settings
+
+    - name: Configure the iDRAC LC attributes for collecting system inventory.
+      idrac_attributes:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        lifecycle_controller_attributes:
+          LCAttributes.1.CollectSystemInventoryOnRestart: Enabled
+      tags: collect-inventory
+
+    - name: Configure the iDRAC system attributes for LCD settings.
+      idrac_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        system_attributes:
+          LCD.1.Configuration: Service Tag
+          LCD.1.vConsoleIndication: Enabled
+          LCD.1.FrontPanelLocking: Full-Access
+          LCD.1.UserDefinedString: custom lcd string
+      tags: lcd-config
+
+    - name: Configure the iDRAC attributes for Timezone settings.
+      idrac_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          Time.1.TimeZone: CST6CDT
+          NTPConfigGroup.1.NTPEnable: Enabled
+          NTPConfigGroup.1.NTP1: 192.168.0.5
+          NTPConfigGroup.1.NTP2: 192.168.0.6
+          NTPConfigGroup.1.NTP3: 192.168.0.7
+      tags: timezone-settings
+
+    - name: Configure all attributes
+      dellemc.openmanage.idrac_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        idrac_attributes:
+          SNMP.1.AgentCommunity: test
+          SNMP.1.AgentEnable: Enabled
+          SNMP.1.DiscoveryPort: 161
+        system_attributes:
+          ServerOS.1.HostName: demohostname
+        lifecycle_controller_attributes:
+          LCAttributes.1.AutoUpdate: Disabled
+      tags: all-attributes

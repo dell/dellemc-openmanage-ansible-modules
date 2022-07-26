@@ -16,6 +16,7 @@
       hostname: "{{hostname}}"
       username: "{{username}}"
       password: "{{password}}"
+      ca_path: "/path/to/ca_cert.pem"
       ipv4_configuration:
         enable: true
         enable_dhcp: false
@@ -54,6 +55,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       job_id: "{{ facts_result.job_info.Id }}"
     register: job_result
     failed_when: job_result.job_info.LastRunStatus.Name == 'Failed'

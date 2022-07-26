@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 6.0.0
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -18,12 +18,39 @@ DOCUMENTATION = """
 module: idrac_network
 short_description: Configures the iDRAC network attributes
 version_added: "2.1.0"
+deprecated:
+  removed_at_date: "2024-07-31"
+  why: Replaced with M(dellemc.openmanage.idrac_attributes).
+  alternative: Use M(dellemc.openmanage.idrac_attributes) instead.
+  removed_from_collection: dellemc.openmanage
 description:
     - This module allows to configure iDRAC network settings.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
-  - dellemc.openmanage.network_share_options
 options:
+    share_name:
+        type: str
+        description:
+          - (deprecated)Network share or a local path.
+          - This option is deprecated and will be removed in the later version.
+    share_user:
+        type: str
+        description:
+          - (deprecated)Network share user name. Use the format 'user@domain' or 'domain\\user' if user is part of a domain.
+            This option is mandatory for CIFS share.
+          - This option is deprecated and will be removed in the later version.
+    share_password:
+        type: str
+        description:
+          - (deprecated)Network share user password. This option is mandatory for CIFS share.
+          - This option is deprecated and will be removed in the later version.
+        aliases: ['share_pwd']
+    share_mnt:
+        type: str
+        description:
+          - (deprecated)Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for network shares.
+          - This option is deprecated and will be removed in the later version.
     setup_idrac_nic_vlan:
         type: str
         description: Allows to configure VLAN on iDRAC.
@@ -127,10 +154,6 @@ EXAMPLES = """
        idrac_user: "user_name"
        idrac_password:  "user_password"
        ca_path: "/path/to/ca_cert.pem"
-       share_name: "192.168.0.1:/share"
-       share_password:  "share_pwd"
-       share_user: "share_user"
-       share_mnt: "/mnt/share"
        register_idrac_on_dns: Enabled
        dns_idrac_name: None
        auto_config: None
@@ -210,6 +233,8 @@ error_info:
   }
 '''
 
+import os
+import tempfile
 import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -231,13 +256,8 @@ except ImportError:
 
 def run_idrac_network_config(idrac, module):
     idrac.use_redfish = True
-    upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                    mount_point=module.params['share_mnt'],
-                                                    isFolder=True,
-                                                    creds=UserCredentials(
-                                                        module.params['share_user'],
-                                                        module.params['share_password'])
-                                                    )
+    share_path = tempfile.gettempdir() + os.sep
+    upd_share = file_share_manager.create_share_obj(share_path=share_path, isFolder=True)
     if not upd_share.IsValid:
         module.fail_json(msg="Unable to access the share. Ensure that the share name, "
                              "share mount, and share credentials provided are correct.")
@@ -349,7 +369,7 @@ def run_idrac_network_config(idrac, module):
 def main():
     specs = {
         # Export Destination
-        "share_name": {"required": True, "type": 'str'},
+        "share_name": {"required": False, "type": 'str'},
         "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
         "share_user": {"required": False, "type": 'str'},
         "share_mnt": {"required": False, "type": 'str'},

@@ -21,6 +21,7 @@
         hostname: "{{hostname}}"
         username: "{{username}}"
         password: "{{password}}"
+        ca_path: "/path/to/ca_cert.pem"
         command: "unassign"
         name: "Profile 00003"
       register: result
@@ -36,6 +37,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         job_id: "{{ result.job_id }}"
       register: job_result
       failed_when: job_result.job_info.LastRunStatus.Name in "{{ failed_states }}"

@@ -24,6 +24,7 @@
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password}}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "http://192.168.0.1/path_to_folder/"
        reboot: True
        job_wait: True
@@ -35,6 +36,7 @@
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password}}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "192.168.0.1:/complete_share_path"
        reboot: True
        job_wait: True
@@ -46,6 +48,7 @@
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password}}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "\\\\192.168.0.1\\share_path"
        share_user: "{{ share_user }}"
        share_password: "{{ share_password }}"
@@ -59,6 +62,7 @@
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
        share_name: "https://downloads.dell.com"
        reboot: False
        job_wait: True
