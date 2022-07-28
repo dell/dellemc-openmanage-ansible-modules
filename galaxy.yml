@@ -18,7 +18,7 @@ description: Dell EMC OpenManage Ansible Modules allows data center and IT
   capabilities in-built into the Integrated Dell Remote Access Controller
   (iDRAC), OpenManage Enterprise and OpenManage Enterprise Modular.
 
-license_file: 'COPYING.md'
+license_file: LICENSE
 
 tags: ['dellemc', 'openmanage', 'infrastructure', 'idrac', 'ome', 'openmanage_enterprise',
        'redfish', 'redfish_api', 'poweredge_servers', 'automation', 'devops']

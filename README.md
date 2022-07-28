@@ -13,7 +13,6 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 ## Table of Contents
 
   * [Code of Conduct](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/CODE_OF_CONDUCT.md)
-  * [Maintainer Guide](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/MAINTAINER_GUIDE.md)
   * [Committer Guide](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/COMMITTER_GUIDE.md)
   * [Contributing Guide](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/CONTRIBUTING.md)
   * [Maintainers](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/MAINTAINERS.md)
