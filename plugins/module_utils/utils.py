@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell EMC OpenManage Ansible Modules
-# Version 5.3.0
+# Version 6.0.0
 # Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -39,6 +39,7 @@ MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_RESET_URI = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 
 import time
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 
 def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
@@ -214,3 +215,14 @@ def reset_idrac(idrac_restobj, wait_time_sec=300, res_id=MANAGER_ID, interval=30
         reset = False
         reset_msg = RESET_FAIL
     return reset, track_failed, reset_msg
+
+
+def get_manager_res_id(idrac):
+    try:
+        resp = idrac.invoke_request(MANAGERS_URI, "GET")
+        membs = resp.json_data.get("Members")
+        res_uri = membs[0].get('@odata.id')
+        res_id = res_uri.split("/")[-1]
+    except HTTPError:
+        res_id = MANAGER_ID
+    return res_id

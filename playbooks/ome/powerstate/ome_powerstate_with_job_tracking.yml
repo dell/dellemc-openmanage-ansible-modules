@@ -16,6 +16,7 @@
       hostname:  "{{ hostname }}"
       username: "{{ username }}"
       password:  "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       power_state: "off"
       device_id: 11111
     register: result
@@ -26,6 +27,7 @@
       hostname: "{{ hostname }}"
       username: "{{ username }}"
       password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
       job_id: "{{result.job_status.Id}}"
     register: job_result
     failed_when: "'job_info' not in job_result"

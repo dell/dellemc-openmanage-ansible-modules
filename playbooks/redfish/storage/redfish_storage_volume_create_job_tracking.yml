@@ -17,6 +17,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "present"
         name: "VD_BOSS"
         controller_id: "AHCI.Slot.6-1"

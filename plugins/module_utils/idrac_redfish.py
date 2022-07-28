@@ -237,6 +237,7 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: object
         """
+        time.sleep(5)
         response = self.invoke_request(job_uri, "GET")
         while job_wait:
             response = self.invoke_request(job_uri, "GET")

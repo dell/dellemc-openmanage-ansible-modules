@@ -10,6 +10,6 @@ You may obtain a copy of the License at
 
 # Support
 
-TBD - Add a Channel 
-
-You can also interact with us on [GitHub](https://github.com/dell/dellemc-openmanage-ansible-modules) by creating a [GitHub Issue](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).
+  * To report any issue, create an issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).
+  * If any requirements have not been addressed, then create an issue [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues).
+  * To provide feedback to the development team, send an email to **OpenManageAnsible@Dell.com**.
