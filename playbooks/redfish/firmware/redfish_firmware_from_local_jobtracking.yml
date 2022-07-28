@@ -18,6 +18,7 @@
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         image_uri: "/home/firmware_repo/component.exe"
       register: result
 

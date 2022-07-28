@@ -20,10 +20,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v1
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Install ansible (${{ matrix.ansible-version }})
         run: pip install pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
@@ -50,7 +50,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.8, 3.9, '3.10']
-        ansible-version: [stable-2.11, stable-2.12, stable-2.13, devel]
+        ansible-version: [stable-2.11, stable-2.12, stable-2.13]
         exclude:
           - ansible-version: stable-2.11
             python-version: '3.10'
@@ -103,12 +103,12 @@ jobs:
         ansible-version: [stable-2.11, stable-2.12, stable-2.13, devel]
 
     steps:
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v1
         with:
           # it is just required to run that once as "ansible-test sanity" in the docker image
           # will run on all python versions it supports.
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Install ansible (${{ matrix.ansible-version }}) version
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check

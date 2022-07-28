@@ -20,6 +20,7 @@
       hostname: "{{hostname}}"
       username: "{{username}}"
       password: "{{password}}"
+      ca_path: "/path/to/ca_cert.pem"
       port: "{{ ome_webserver_port }}"
       webserver_port: "{{ new_port }}"
       webserver_timeout: 21

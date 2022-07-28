@@ -15,7 +15,7 @@ Become one of the contributors to this project! We thrive to build a welcoming a
 ## Table of Contents
 
 * [Become a contributor](#Become-a-contributor)
-* [Contributor agreement](#Contributor Agreement)
+* [Contributor agreement](#Contributor-agreement)
 * [Submitting issues](#Submitting-issues)
 * [Triage issues](#Triage-issues)
 * [Your first contribution](#Your-first-contribution)
@@ -23,7 +23,7 @@ Become one of the contributors to this project! We thrive to build a welcoming a
 * [Signing your commits](#Signing-your-commits)
 * [Pull requests](#Pull-requests)
 * [Code reviews](#Code-reviews)
-* [TODOs in the code](#TODOs-in-the-code)
+* [Code Style](#Code-style)
 
 ## Become a contributor
 
@@ -56,15 +56,15 @@ By making a contribution to this project, I certify that:
 
 ## Submitting issues
 
-All issues related to the associated Ansible modules, roles, playbooks, regardless of the service/repository the issue belongs to (see table above), should be submitted [here](https://github.com/dell/<<repo>>/issues). Issues will be triaged and labels will be used to indicate the type of issue. This section outlines the types of issues that can be submitted.  
+All issues related to the associated Ansible modules, roles, playbooks, regardless of the service/repository the issue belongs to (see table above), should be submitted [here](https://github.com/dell/dellemc-openmanage-ansible-modules/issues). Issues will be triaged and labels will be used to indicate the type of issue. This section outlines the types of issues that can be submitted.  
 
 ### Report bugs
 
 We aim to track and document everything related to the repository via the Issues page. The code and documentation are released with no warranties or SLAs and are intended to be supported through a community driven process.
 
-Before submitting a new issue, make sure someone hasn't already reported the problem. Look through the [existing issues](https://github.com/dell/<<repo>>/issues) for similar issues.
+Before submitting a new issue, make sure someone hasn't already reported the problem. Look through the [existing issues](https://github.com/dell/dellemc-openmanage-ansible-modules/issues) for similar issues.
 
-Report a bug by submitting a [bug report](https://github.com/dell/<<repo>>/issues/new?labels=type%2Fbug%2C+needs-triage&template=bug_report.md&title=%5BBUG%5D%3A). Make sure that you provide as much information as possible on how to reproduce the bug.
+Report a bug by submitting a [bug report](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/new?labels=type%2Fbug%2C+needs-triage&template=bug_report.md&title=%5BBUG%5D%3A). Make sure that you provide as much information as possible on how to reproduce the bug.
 
 When opening a Bug please include the following information to help with debugging:
 
@@ -77,11 +77,11 @@ An Issue __must__ be created before submitting any pull request. Any pull reques
 
 ### Feature request
 
-If you have an idea of how to improve this project, submit a [feature request](https://github.com/dell/<<repo>>/issues/new?labels=type%2Ffeature-request%2C+needs-triage&template=feature_request.md&title=%5BFEATURE%5D%3A).
+If you have an idea of how to improve this project, submit a [feature request](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/new?labels=type%2Ffeature-request%2C+needs-triage&template=feature_request.md&title=%5BFEATURE%5D%3A).
 
 ### Answering questions
 
-If you have a question and you can't find the answer in the documentation or issues, the next step is to submit a [question.](https://github.com/dell/<<repo>>/issues/new?labels=type%2Fquestion&template=ask-a-question.md&title=%5BQUESTION%5D%3A)
+If you have a question and you can't find the answer in the documentation or issues, the next step is to submit a [question.](https://github.com/dell/dellemc-openmanage-ansible-modules/issues/new?labels=type%2Fquestion&template=ask-a-question.md&title=%5BQUESTION%5D%3A)
 
 We'd love your help answering questions being asked by other CSM users.
 
@@ -106,6 +106,12 @@ Unsure where to begin contributing? Start by browsing issues labeled `beginner f
 * [Help wanted](https://github.com/dell/dellemc-openmanage-ansible-modules/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) issues are problems we would like the community to help us with regardless of complexity.
 
 When you're ready to contribute, it's time to create a pull request.
+
+## Testing
+See [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/tests/README.md) for further information on testing.
+
+## Debugging
+To debug OpenManage Ansible Modules using IDE, see [here](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/docs/DEBUG.md)
 
 ## Branching
 
@@ -183,6 +189,9 @@ A pull request must satisfy following for it to be merged:
 ## Code Style
 
 For the Python code in the repository, we expect the code styling outlined in [Ansible python guide]( https://docs.ansible.com/ansible/latest/dev_guide/developing_python_3.html). In addition to this, we have the following supplements:
+* Contributions should adhere to ansible Coding standard guidelines as we follow these standards.
+* Should include [test](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/tests/) scripts for your changes.
+* Do not submit a contribution request on our deprecated modules. They are just meant for backward compatibility.
 
 ### Handle Errors
 TBD

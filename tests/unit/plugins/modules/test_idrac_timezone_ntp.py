@@ -2,7 +2,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Version 6.0.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -62,21 +62,27 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     def test_main_idrac_timezone_config_success_Case(self, idrac_connection_configure_timezone_mock, idrac_default_args,
                                                      mocker, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename"})
-        message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
+        idrac_default_args.update({"share_name": None})
+        message = {'changed': False, 'msg': {'Status': "Success", "Message": "No changes found to commit!"}}
         mocker.patch(MODULE_PATH +
                      'idrac_timezone_ntp.run_idrac_timezone_config', return_value=(message, False))
         result = self._run_module(idrac_default_args)
         assert result == {'msg': 'Successfully configured the iDRAC time settings.',
-                          'timezone_ntp_status': (
-                              {'changed': False,
-                               'msg': {'Status': 'Success', 'message': 'No changes found to commit!'}},
-                              False), 'changed': False}
+                          'timezone_ntp_status': ({'changed': False,
+                                                   'msg': {'Status': 'Success',
+                                                           'Message': 'No changes found to commit!'}}, False),
+                          'changed': False}
+        status_msg = {"Status": "Success", "Message": "No changes found to commit!",
+                      "msg": {"Status": "Success", "Message": "No changes found to commit!"}}
+        mocker.patch(MODULE_PATH +
+                     'idrac_timezone_ntp.run_idrac_timezone_config', return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully configured the iDRAC time settings."
 
     def test_run_idrac_timezone_config_success_case01(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
                                    "ntp_server_2": "ntp server2", "ntp_server_3": "ntp server3"})
         message = {"changes_applicable": True, "message": "changes are applicable"}
@@ -87,8 +93,8 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     def test_run_idrac_timezone_config_success_case02(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
                                    "ntp_server_2": "ntp server2", "ntp_server_3": "ntp server3"})
         message = {"changes_applicable": True, "message": "changes found to commit!", "changed": True,
@@ -104,8 +110,8 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     def test_run_idrac_timezone_config_success_case03(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
                                    "ntp_server_2": "ntp server2", "ntp_server_3": "ntp server3"})
         message = {"changes_applicable": False, "Message": "No changes found to commit!", "changed": False,
@@ -121,8 +127,8 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     def test_run_idrac_timezone_config_success_case04(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
                                    "ntp_server_2": "ntp server2", "ntp_server_3": "ntp server3"})
         message = {"changes_applicable": False, "Message": "No changes found to commit!", "changed": False,
@@ -138,8 +144,8 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     def test_run_idrac_timezone_config_success_case05(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "setup_idrac_timezone": None,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "setup_idrac_timezone": None,
                                    "enable_ntp": None, "ntp_server_1": None, "ntp_server_2": None,
                                    "ntp_server_3": None})
         message = {"changes_applicable": False, "Message": "No changes found to commit!", "changed": False,
@@ -157,8 +163,8 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     def test_run_idrac_timezone_config_failed_case01(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
                                    "ntp_server_2": "ntp server2", "ntp_server_3": "ntp server3"})
         message = {'Status': 'Failed', "Data": {'Message': 'status failed in checking Data'}}
@@ -170,8 +176,8 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     def test_run_idrac_timezone_config_failed_case02(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
                                    "ntp_server_2": "ntp server2", "ntp_server_3": "ntp server3"})
         message = {"changes_applicable": False, "Message": "No changes were applied", "changed": False,
@@ -187,8 +193,8 @@ class TestConfigTimezone(FakeAnsibleModule):
 
     def test_run_idrac_timezone_config_failed_case03(self, idrac_connection_configure_timezone_mock,
                                                      idrac_default_args, idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "setup_idrac_timezone": "setuptimezone",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "setup_idrac_timezone": "setuptimezone",
                                    "enable_ntp": "Enabled", "ntp_server_1": "ntp server1",
                                    "ntp_server_2": "ntp server2", "ntp_server_3": "ntp server3"})
         message = {'Status': 'Failed', "Data": {'Message': "Failed to found changes"}}
@@ -203,7 +209,7 @@ class TestConfigTimezone(FakeAnsibleModule):
     def test_main_idrac_configure_timezone_exception_handling_case(self, exc_type, mocker, idrac_default_args,
                                                                    idrac_connection_configure_timezone_mock,
                                                                    idrac_file_manager_config_timesone_mock):
-        idrac_default_args.update({"share_name": "sharename"})
+        idrac_default_args.update({"share_name": None})
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(

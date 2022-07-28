@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.0
+# Version 6.0.0
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -19,6 +19,11 @@ DOCUMENTATION = """
 module: dellemc_configure_idrac_services
 short_description: Configures the iDRAC services related attributes
 version_added: "1.0.0"
+deprecated:
+  removed_at_date: "2024-07-31"
+  why: Replaced with M(dellemc.openmanage.idrac_attributes).
+  alternative: Use M(dellemc.openmanage.idrac_attributes) instead.
+  removed_from_collection: dellemc.openmanage
 description:
     - This module allows to configure the iDRAC services related attributes.
 options:
@@ -53,21 +58,28 @@ options:
         type: path
         version_added: 5.0.0
     share_name:
-        required: True
         type: str
-        description: Network share or a local path.
+        description:
+          - (deprecated)Network share or a local path.
+          - This option is deprecated and will be removed in the later version.
     share_user:
         type: str
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
+        description:
+          - (deprecated)Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+          - This option is deprecated and will be removed in the later version.
     share_password:
         type: str
-        description: Network share user password. This option is mandatory for CIFS Network Share.
+        description:
+          - (deprecated)Network share user password. This option is mandatory for CIFS Network Share.
+          - This option is deprecated and will be removed in the later version.
         aliases: ['share_pwd']
     share_mnt:
         type: str
-        description: Local mount path of the network share with read-write permission for ansible user.
+        description:
+          - (deprecated)Local mount path of the network share with read-write permission for ansible user.
             This option is mandatory for Network Share.
+          - This option is deprecated and will be removed in the later version.
     enable_web_server:
         type: str
         description: Whether to Enable or Disable webserver configuration for iDRAC.
@@ -141,8 +153,6 @@ EXAMPLES = """
        idrac_user: "user_name"
        idrac_password:  "user_password"
        ca_path: "/path/to/ca_cert.pem"
-       share_name: "192.168.0.1:/share"
-       share_mnt: "/mnt/share"
        enable_web_server: "Enabled"
        http_port: 80
        https_port: 443
@@ -209,6 +219,8 @@ error_info:
   }
 '''
 
+import os
+import tempfile
 import json
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
 from ansible.module_utils.basic import AnsibleModule
@@ -236,13 +248,8 @@ def run_idrac_services_config(idrac, module):
     module -- Ansible module
     """
     idrac.use_redfish = True
-    upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                    mount_point=module.params['share_mnt'],
-                                                    isFolder=True,
-                                                    creds=UserCredentials(
-                                                        module.params['share_user'],
-                                                        module.params['share_password'])
-                                                    )
+    share_path = tempfile.gettempdir() + os.sep
+    upd_share = file_share_manager.create_share_obj(share_path=share_path, isFolder=True)
     if not upd_share.IsValid:
         module.fail_json(msg="Unable to access the share. Ensure that the share name, "
                              "share mount, and share credentials provided are correct.")
@@ -332,7 +339,7 @@ def main():
             validate_certs=dict(type='bool', default=True),
             ca_path=dict(type='path'),
             # Export Destination
-            share_name=dict(required=True, type='str'),
+            share_name=dict(required=False, type='str'),
             share_password=dict(required=False, type='str', aliases=['share_pwd'], no_log=True),
             share_user=dict(required=False, type='str'),
             share_mnt=dict(required=False, type='str'),
@@ -372,8 +379,6 @@ def main():
                                               "No changes were applied" in status.get('Message')):
                     msg = status.get('Message')
                     changed = False
-                elif status.get('Status') == "Failed":
-                    module.fail_json(msg="Failed to configure the iDRAC services.")
                 module.exit_json(msg=msg, service_status=status, changed=changed)
             else:
                 module.fail_json(msg="Failed to configure the iDRAC services.")
