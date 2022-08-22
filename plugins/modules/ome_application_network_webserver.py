@@ -168,6 +168,8 @@ def main():
         required_one_of=[["webserver_port", "webserver_timeout"]],
         supports_check_mode=True
     )
+
+    port_change = False
     try:
         with RestOME(module.params, req_session=False) as rest_obj:
             updated_payload, port_change = get_updated_payload(rest_obj, module)
