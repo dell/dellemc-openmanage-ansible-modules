@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Dell OpenManage Ansible Modules
+# Version 6.1.0
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -43,9 +43,11 @@ options:
     type: str
 requirements:
   - "python >= 3.8.6"
-author: "Felix Stephen A (@felixs88)"
+author:
+  - "Felix Stephen A (@felixs88)"
+  - "Kritika Bhateja (@Kritika-Bhateja)"
 notes:
-  - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise.
   - This module supports C(check_mode).
 '''
 
@@ -156,9 +158,8 @@ CONFIG_COMPLIANCE_URI = "TemplateService/Baselines({0})/DeviceConfigComplianceRe
 COMPLIANCE_URI = "TemplateService/Baselines({0})/DeviceConfigComplianceReports({1})/DeviceComplianceDetails"
 
 
-def validate_device(module, rest_obj, device_id=None, service_tag=None, base_id=None):
-    device = rest_obj.get_all_report_details(CONFIG_COMPLIANCE_URI.format(base_id))
-    for each in device["report_list"]:
+def validate_device(module, report, device_id=None, service_tag=None, base_id=None):
+    for each in report.get("value"):
         if each["Id"] == device_id:
             break
         if each["ServiceTag"] == service_tag:
@@ -190,24 +191,28 @@ def compliance_report(module, rest_obj):
     device_id = module.params.get("device_id")
     device_service_tag = module.params.get("device_service_tag")
     baseline_id, template_id = get_baseline_id(module, baseline_name, rest_obj)
-    baseline_report = rest_obj.invoke_request("GET", CONFIG_COMPLIANCE_URI.format(baseline_id))
     report = []
-    if (device_id is not None and baseline_id is not None) \
-            or (device_service_tag is not None and baseline_id is not None):
-        if not baseline_report.json_data.get("value") and template_id == 0:
+    if device_id:
+        compliance_uri = COMPLIANCE_URI.format(baseline_id, device_id)
+        baseline_report = rest_obj.invoke_request("GET", compliance_uri)
+        if not baseline_report.json_data.get("ComplianceAttributeGroups") and template_id == 0:
             module.fail_json(msg="The compliance report of the device not found as "
                                  "there is no template associated with the baseline.")
-        device_id = validate_device(module, rest_obj, device_id=device_id,
-                                    service_tag=device_service_tag, base_id=baseline_id)
-        report = list(filter(lambda d: d['Id'] in [device_id], baseline_report.json_data["value"]))
+        device_compliance = baseline_report.json_data.get("ComplianceAttributeGroups")
     else:
-        report = baseline_report.json_data.get("value")
-    device_compliance = report
-    if device_compliance:
-        for each in device_compliance:
-            compliance_uri = COMPLIANCE_URI.format(baseline_id, each["Id"])
-            attr_group = rest_obj.invoke_request("GET", compliance_uri)
-            each["ComplianceAttributeGroups"] = attr_group.json_data.get("ComplianceAttributeGroups")
+        baseline_report = rest_obj.get_all_items_with_pagination(CONFIG_COMPLIANCE_URI.format(baseline_id))
+        if device_service_tag:
+            device_id = validate_device(module, baseline_report, device_id=device_id,
+                                        service_tag=device_service_tag, base_id=baseline_id)
+            report = list(filter(lambda d: d['Id'] in [device_id], baseline_report.get("value")))
+        else:
+            report = baseline_report.get("value")
+        device_compliance = report
+        if device_compliance:
+            for each in device_compliance:
+                compliance_uri = COMPLIANCE_URI.format(baseline_id, each["Id"])
+                attr_group = rest_obj.invoke_request("GET", compliance_uri)
+                each["ComplianceAttributeGroups"] = attr_group.json_data.get("ComplianceAttributeGroups")
     return device_compliance
 
 

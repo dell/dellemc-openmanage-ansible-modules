@@ -10,10 +10,12 @@ authors:
 - Sajna N Shetty <Sajna_Shetty@Dell.com>
 - Anooja Vardhineni <Anooja_Vardhineni@Dellteam.com>
 - Husniya Hameed <Husniya.Hameed@Dellteam.com>
+- Abhishek Sinha <Abhishek.Sinha10@Dell.com>
+- Kritika Bhateja <Kritika.Bhateja@Dell.com>
 
-description: Dell EMC OpenManage Ansible Modules allows data center and IT
+description: Dell OpenManage Ansible Modules allows data center and IT
   administrators to use RedHat Ansible to automate and orchestrate the
-  configuration, deployment, and update of Dell EMC PowerEdge Servers and
+  configuration, deployment, and update of Dell PowerEdge Servers and
   modular infrastructure by leveraging the management automation
   capabilities in-built into the Integrated Dell Remote Access Controller
   (iDRAC), OpenManage Enterprise and OpenManage Enterprise Modular.

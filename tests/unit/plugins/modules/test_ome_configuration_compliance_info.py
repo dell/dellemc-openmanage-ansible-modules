@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.2.0
+# Dell OpenManage Ansible Modules
+# Version 6.1.0
 # Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -32,6 +32,7 @@ def ome_connection_mock_for_compliance_info(mocker, ome_response_mock):
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     ome_connection_mock_obj.get_all_report_details.return_value = {"report_list": []}
+    ome_connection_mock_obj.get_all_items_with_pagination.return_value = {"value": []}
     return ome_connection_mock_obj
 
 
@@ -39,15 +40,15 @@ class TestBaselineComplianceInfo(FakeAnsibleModule):
     module = ome_configuration_compliance_info
 
     def test_validate_device(self, ome_connection_mock_for_compliance_info):
-        report_list = [{"Id": 25011, "ServiceTag": "FGHREF"}]
-        ome_connection_mock_for_compliance_info.get_all_report_details.return_value = {"report_list": report_list}
+        value_list = [{"Id": 25011, "ServiceTag": "FGHREF"}]
+        report = ome_connection_mock_for_compliance_info.get_all_items_with_pagination.return_value = {"value": value_list}
         f_module = self.get_module_mock(params={'baseline': "baseline_one", "device_id": 25011})
-        device = self.module.validate_device(f_module, ome_connection_mock_for_compliance_info,
+        device = self.module.validate_device(f_module, report,
                                              device_id=25011, service_tag=None, base_id=None)
-        service_tag = self.module.validate_device(f_module, ome_connection_mock_for_compliance_info,
+        service_tag = self.module.validate_device(f_module, report,
                                                   device_id=None, service_tag="FGHREF", base_id=None)
         with pytest.raises(Exception) as exc:
-            self.module.validate_device(f_module, ome_connection_mock_for_compliance_info,
+            self.module.validate_device(f_module, report,
                                         device_id=25012, service_tag=None, base_id=None)
         assert device == 25011
         assert service_tag == 25011
@@ -66,6 +67,8 @@ class TestBaselineComplianceInfo(FakeAnsibleModule):
         assert base_id == 1
 
     def test_compliance_report(self, ome_connection_mock_for_compliance_info, mocker, ome_response_mock):
+        value_list = [{"Id": 25011, "TemplateId": 1}]
+        ome_connection_mock_for_compliance_info.get_all_items_with_pagination.return_value = {"value": value_list}
         mocker.patch(MODULE_PATH + "get_baseline_id", return_value=25011)
         f_module = self.get_module_mock(params={'baseline': "baseline_one"})
         ome_response_mock.json_data = {"value": [{"Id": 25011, "TemplateId": 1}]}

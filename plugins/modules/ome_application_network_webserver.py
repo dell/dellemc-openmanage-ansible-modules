@@ -3,7 +3,7 @@
 
 #
 # Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Version 6.1.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -168,6 +168,8 @@ def main():
         required_one_of=[["webserver_port", "webserver_timeout"]],
         supports_check_mode=True
     )
+
+    port_change = False
     try:
         with RestOME(module.params, req_session=False) as rest_obj:
             updated_payload, port_change = get_updated_payload(rest_obj, module)
