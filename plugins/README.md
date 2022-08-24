@@ -1,6 +1,6 @@
 # dellemc.openmanage collections Plugins Directory
 
-Here are the list of modules and module_utils supported by Dell EMC.
+Here are the list of modules and module_utils supported by Dell.
 
 ```
 ├── doc_fragments
@@ -26,6 +26,7 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── dellemc_system_lockdown_mode.py
     ├── idrac_attributes.py
     ├── idrac_bios.py
+    ├── idrac_boot.py
     ├── idrac_certificates.py
     ├── idrac_firmware.py
     ├── idrac_firmware_info.py
@@ -64,6 +65,7 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── ome_device_network_services.py
     ├── ome_device_power_settings.py
     ├── ome_device_quick_deploy.py
+    ├── ome_devices.py
     ├── ome_diagnostics.py
     ├── ome_discovery.py
     ├── ome_domain_user_groups.py

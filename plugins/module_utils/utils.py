@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Dell EMC OpenManage Ansible Modules
-# Version 6.0.0
+# Dell OpenManage Ansible Modules
+# Version 6.1.0
 # Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -29,14 +29,20 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-RESET_UNTRACK = " iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
-RESET_SUCCESS = " iDRAC has been reset successfully."
-RESET_FAIL = " Unable to reset the iDRAC. For changes to reflect, manually reset the iDRAC."
+CHANGES_MSG = "Changes found to be applied."
+NO_CHANGES_MSG = "No changes found to be applied."
+RESET_UNTRACK = "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
+RESET_SUCCESS = "iDRAC has been reset successfully."
+RESET_FAIL = "Unable to reset the iDRAC. For changes to reflect, manually reset the iDRAC."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_RESET_URI = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
+SYSTEM_RESET_URI = "/redfish/v1/Systems/{res_id}/Actions/ComputerSystem.Reset"
+MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
+MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
+
 
 import time
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -226,3 +232,66 @@ def get_manager_res_id(idrac):
     except HTTPError:
         res_id = MANAGER_ID
     return res_id
+
+
+def wait_for_idrac_job_completion(idrac, uri, job_wait=True, wait_timeout=120, sleep_time=10):
+    max_sleep_time = wait_timeout
+    sleep_interval = sleep_time
+    job_msg = "The job is not complete after {0} seconds.".format(wait_timeout)
+    if job_wait:
+        while max_sleep_time:
+            if max_sleep_time > sleep_interval:
+                max_sleep_time = max_sleep_time - sleep_interval
+            else:
+                sleep_interval = max_sleep_time
+                max_sleep_time = 0
+            time.sleep(sleep_interval)
+            job_resp = idrac.invoke_request(uri, "GET")
+            if job_resp.json_data.get("PercentComplete") == 100:
+                time.sleep(10)
+                return job_resp, ""
+            if job_resp.json_data.get("JobState") == "RebootFailed":
+                time.sleep(10)
+                return job_resp, job_msg
+    else:
+        job_resp = idrac.invoke_request(uri, "GET")
+        time.sleep(10)
+        return job_resp, ""
+    return {}, "The job is not complete after {0} seconds.".format(wait_timeout)
+
+
+def idrac_system_reset(idrac, res_id, payload=None, job_wait=True, wait_time_sec=300, interval=30):
+    track_failed, reset, job_resp = True, False, {}
+    reset_msg = RESET_UNTRACK
+    try:
+        idrac.invoke_request(SYSTEM_RESET_URI.format(res_id=res_id), 'POST', data=payload)
+        time.sleep(10)
+        if wait_time_sec:
+            resp = idrac.invoke_request(MANAGER_JOB_URI, "GET")
+            job = list(filter(lambda d: d["JobState"] in ["RebootPending"], resp.json_data["Members"]))
+            if job:
+                job_resp, msg = wait_for_idrac_job_completion(idrac, MANAGER_JOB_ID_URI.format(job[0]["Id"]),
+                                                              job_wait=job_wait, wait_timeout=wait_time_sec)
+                if "job is not complete" in msg:
+                    reset, reset_msg = False, msg
+                if not msg:
+                    reset = True
+    except Exception:
+        reset = False
+        reset_msg = RESET_FAIL
+    return reset, track_failed, reset_msg, job_resp
+
+
+def get_system_res_id(idrac):
+    res_id = SYSTEM_ID
+    error_msg = ""
+    try:
+        resp = idrac.invoke_request(SYSTEMS_URI, "GET")
+    except HTTPError:
+        error_msg = "Unable to complete the request because the resource URI " \
+                    "does not exist or is not implemented."
+    else:
+        member = resp.json_data.get("Members")
+        res_uri = member[0].get('@odata.id')
+        res_id = res_uri.split("/")[-1]
+    return res_id, error_msg
