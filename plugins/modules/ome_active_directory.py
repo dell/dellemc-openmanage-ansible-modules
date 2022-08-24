@@ -16,8 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: ome_active_directory
-short_description: "Configure Active Directory groups to be used with Directory Services on OpenManage Enterprise
-and OpenManage Enterprise Modular"
+short_description: Configure Active Directory groups to be used with Directory Services
 description: "This module allows to add, modify, and delete OpenManage Enterprise connection with Active Directory
 Service."
 version_added: "4.0.0"

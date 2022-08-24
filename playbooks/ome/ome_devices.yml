@@ -1,0 +1,60 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OpenManage Ansible device operations.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Refresh Inventory
+      ome_devices:
+        hostname:  "{{ hostname }}"
+        username: "{{ username }}"
+        password:  "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_action: refresh_inventory
+        device_service_tags:
+          - 2HB7NX2
+
+    - name: Clear iDRAC job queue
+      ome_devices:
+        hostname:  "{{ hostname }}"
+        username: "{{ username }}"
+        password:  "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_action: clear_idrac_job_queue
+        device_service_tags:
+          - 2HB7NX2
+
+    - name: Reset iDRAC using the service tag
+      ome_devices:
+        hostname:  "{{ hostname }}"
+        username: "{{ username }}"
+        password:  "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        device_action: reset_idrac
+        device_service_tags:
+          - 2H7HNX2
+
+    - name: Remove devices using servicetags
+      ome_devices:
+        hostname:  "{{ hostname }}"
+        username: "{{ username }}"
+        password:  "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: absent
+        device_service_tags:
+          - SVCTAG1
+          - SVCTAF2
+
+    - name: Remove devices using IDs
+      ome_devices:
+        hostname:  "{{ hostname }}"
+        username: "{{ username }}"
+        password:  "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: absent
+        device_ids:
+          - 10235

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Dell OpenManage Ansible Modules
+# Version 6.1.0
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -16,9 +16,9 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: ome_device_group
-short_description: Add devices to a static device group on OpenManage Enterprise
+short_description: Add or remove device(s) from a static device group on OpenManage Enterprise
 version_added: "3.3.0"
-description: This module allows to add devices to a static device group on OpenManage Enterprise.
+description: This module allows to add or remove device(s) from a static device group on OpenManage Enterprise.
 extends_documentation_fragment:
   - dellemc.openmanage.oment_auth_options
 options:
@@ -26,36 +26,36 @@ options:
     type: str
     description:
       - C(present) allows to add the device(s) to a static device group.
-      - C(absent) currently, this feature is not supported.
+      - C(absent) allows to remove the device(s) from a static device group.
     choices: [present, absent]
     default: present
   name:
     type: str
     description:
-      - Name of the static group to which device(s) need to be added.
+      - Name of the static group.
       - I(name) is mutually exclusive with I(group_id).
   group_id:
     type: int
     description:
-      - ID of the static device group to which device(s) need to be added.
+      - ID of the static device.
       - I(group_id) is mutually exclusive with I(name).
   device_ids:
     type: list
     elements: int
     description:
-      - List of ID(s) of the device(s) to be added to the device group.
+      - List of ID(s) of the device(s) to be added or removed from the device group.
       - I(device_ids) is mutually exclusive with I(device_service_tags) and I(ip_addresses).
   device_service_tags:
     type: list
     elements: str
     description:
-      - List of service tag(s) of the device(s) to be added to the device group.
+      - List of service tag(s) of the device(s) to be added or removed from the device group.
       - I(device_service_tags) is mutually exclusive with I(device_ids) and I(ip_addresses).
   ip_addresses:
     type: list
     elements: str
     description:
-      - List of IPs of the device(s) to be added to the device group.
+      - List of IPs of the device(s) to be added or removed from the device group.
       - I(ip_addresses) is mutually exclusive with I(device_ids) and I(device_service_tags).
       - "Supported  IP address range formats:"
       - "    - 192.35.0.1"
@@ -75,8 +75,9 @@ requirements:
 author:
   - "Felix Stephen (@felixs88)"
   - "Sajna Shetty(@Sajna-Shetty)"
+  - "Abhishek Sinha (@Abhishek-Dell)"
 notes:
-  - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise.
   - This module supports C(check_mode).
 """
 
@@ -153,7 +154,87 @@ EXAMPLES = """
       - fe80::ffff:ffff:ffff:ffff
       - ::ffff:192.0.2.0/125
       - fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff
+
+- name: Remove devices from a static device group by using the group name and device IDs
+  dellemc.openmanage.ome_device_group:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "absent"
+    name: "Storage Services"
+    device_ids:
+      - 11111
+      - 11112
+      - 11113
+
+- name: Remove devices from a static device group by using the group name and device service tags
+  dellemc.openmanage.ome_device_group:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "absent"
+    name: "Storage Services"
+    device_service_tags:
+      - GHRT2RL
+      - KJHDF3S
+      - LKIJNG6
+
+- name: Remove devices from a static device group by using the group ID and device service tags
+  dellemc.openmanage.ome_device_group:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "absent"
+    group_id: 12345
+    device_service_tags:
+      - GHRT2RL
+      - KJHDF3S
+
+- name: Remove devices from a static device group by using the group name and IPv4 addresses
+  dellemc.openmanage.ome_device_group:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "absent"
+    name: "Storage Services"
+    ip_addresses:
+      - 192.35.0.1
+      - 192.35.0.5
+
+- name: Remove devices from a static device group by using the group ID and IPv6 addresses
+  dellemc.openmanage.ome_device_group:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "absent"
+    group_id: 12345
+    ip_addresses:
+      - fe80::ffff:ffff:ffff:ffff
+      - fe80::ffff:ffff:ffff:2222
+
+- name: Remove devices from a static device group by using the group ID and supported IPv4 and IPv6 address formats.
+  dellemc.openmanage.ome_device_group:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: "absent"
+    group_id: 12345
+    ip_addresses:
+      - 192.35.0.1
+      - 10.36.0.0-192.36.0.255
+      - 192.37.0.0/24
+      - fe80::ffff:ffff:ffff:ffff
+      - ::ffff:192.0.2.0/125
+      - fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff
+
 """
+
 
 RETURN = """
 ---
@@ -161,7 +242,8 @@ msg:
   type: str
   description: Overall status of the device group settings.
   returned: always
-  sample: "Successfully added member(s) to the device group."
+  sample:
+  - "Successfully added member(s) to the device group."
 group_id:
   type: int
   description: ID of the group.
@@ -212,7 +294,9 @@ except ImportError:
 GROUP_URI = "GroupService/Groups"
 DEVICE_URI = "DeviceService/Devices"
 ADD_MEMBER_URI = "GroupService/Actions/GroupService.AddMemberDevices"
+REMOVE_MEMBER_URI = "GroupService/Actions/GroupService.RemoveMemberDevices"
 ADD_STATIC_GROUP_MESSAGE = "Devices can be added only to the static device groups created using OpenManage Enterprise."
+REMOVE_STATIC_GROUP_MESSAGE = "Devices can be removed only from the static device groups created using OpenManage Enterprise."
 NETADDR_ERROR = "The module requires python's netaddr be installed on the ansible controller to work on IP Addresses."
 INVALID_IP_FORMAT = "The format {0} of the IP address provided is not supported or invalid."
 IP_NOT_EXISTS = "The IP addresses provided do not exist in OpenManage Enterprise."
@@ -226,7 +310,9 @@ def validate_group(group_resp, module, identifier, identifier_val):
     system_groups = group_resp["TypeId"]
     membership_id = group_resp["MembershipTypeId"]
     if system_groups != 3000 or (system_groups == 3000 and membership_id == 24):
-        module.fail_json(msg=ADD_STATIC_GROUP_MESSAGE)
+        msg = ADD_STATIC_GROUP_MESSAGE if module.params.get("state", "present") == "present" else \
+            REMOVE_STATIC_GROUP_MESSAGE
+        module.fail_json(msg=msg)
 
 
 def get_group_id(rest_obj, module):
@@ -365,6 +451,27 @@ def add_member_to_group(module, rest_obj, group_id, device_id, key):
     return response, added_ips
 
 
+def get_current_member_of_group(rest_obj, group_id):
+    group_device = rest_obj.get_all_report_details("{0}({1})/Devices".format(GROUP_URI, group_id))
+
+    device_id_list = [each["Id"] for each in group_device["report_list"]]
+    return device_id_list
+
+
+def remove_member_from_group(module, rest_obj, group_id, device_id, current_device_list):
+    payload_device_list = [each_id for each_id in device_id if each_id in current_device_list]
+
+    if module.check_mode and payload_device_list:
+        module.exit_json(msg="Changes found to be applied.", changed=True, group_id=group_id)
+
+    if not payload_device_list:
+        module.exit_json(msg="No changes found to be applied.", group_id=group_id)
+
+    payload = {"GroupId": group_id, "MemberDeviceIds": payload_device_list}
+    response = rest_obj.invoke_request("POST", REMOVE_MEMBER_URI, data=payload)
+    return response
+
+
 def main():
     specs = {
         "name": {"type": "str"},
@@ -402,8 +509,10 @@ def main():
                                      group_id=group_id, changed=True, ip_addresses_added=added_ips)
                 module.exit_json(msg="Successfully added member(s) to the device group.",
                                  group_id=group_id, changed=True)
-            elif module.params["state"] == "absent":
-                module.fail_json(msg="Currently, this feature is not supported.")
+            else:
+                current_device_list = get_current_member_of_group(rest_obj, group_id)
+                resp = remove_member_from_group(module, rest_obj, group_id, device_id, current_device_list)
+                module.exit_json(msg="Successfully removed member(s) from the device group.", changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
