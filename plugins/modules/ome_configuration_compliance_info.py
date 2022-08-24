@@ -199,7 +199,9 @@ def compliance_report(module, rest_obj):
                                  "there is no template associated with the baseline.")
         device_id = validate_device(module, rest_obj, device_id=device_id,
                                     service_tag=device_service_tag, base_id=baseline_id)
-        report = list(filter(lambda d: d['Id'] in [device_id], baseline_report.json_data["value"]))
+        compliance_uri = COMPLIANCE_URI.format(baseline_id, device_id)
+        attr_group = rest_obj.invoke_request("GET", compliance_uri)
+        return attr_group.json_data.get("ComplianceAttributeGroups")
     else:
         report = baseline_report.json_data.get("value")
     device_compliance = report
