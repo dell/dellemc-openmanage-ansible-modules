@@ -1,0 +1,56 @@
+---
+- hosts: idrac
+  connection: local
+  name: Dell OpenManage Ansible iDRAC boot operations.
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    virtual_media_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia/CD/Actions/VirtualMedia.InsertMedia"
+    file_location: "192.168.0.1:/nfsshare/path/to/boot_image.iso"
+    nfs_dir: "192.168.0.1:/nfsshare"
+    iso_file: "boot_image.iso"
+    ca_path: "/path/to/ca_cert.pem"
+    boot_source_mode: "legacy" #other options are UEFI
+
+  gather_facts: False
+
+  tasks:
+
+# Mount the ISO image as a virtual media CD.
+  - name: "Insert virtual media"
+    ansible.builtin.uri:
+      url: "https://{{ idrac_ip }}{{ virtual_media_uri }}"
+      user: "{{ idrac_user }}"
+      password: "{{ idrac_password }}"
+      method: "POST"
+      body_format: json
+      body:
+        Image: "{{ file_location }}"
+        Inserted: true
+        WriteProtected: true
+      use_proxy: yes
+      status_code: 204
+      return_content: no
+      ca_path: "{{ ca_path }}"
+      force_basic_auth: yes
+      headers:
+        Content-Type: "application/json"
+        Accept: "application/json"
+    tags: 
+      - virtual_media
+      - vm_boot
+
+# One-time boot with virtual media.
+  - name: Boot once from mounted CD.
+    dellemc.openmanage.idrac_boot:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "{{ ca_path }}"
+      boot_source_override_mode: "{{ boot_source_mode }}"
+      boot_source_override_target: cd
+      boot_source_override_enabled: once
+    tags:
+      - boot_cd
+      - vm_boot
+
+# Eject the virtual media after boot.

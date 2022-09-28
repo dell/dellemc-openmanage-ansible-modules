@@ -1,0 +1,69 @@
+---
+- hosts: ome
+  connection: local
+  name: Dell OpenManage Ansible group device operations.
+  gather_facts: False
+  vars:
+    group_name: Dell iDRAC Servers
+    device_action: refresh_inventory #other options are clear_idrac_job_queue, reset_idrac
+    validate_certs: True
+    ca_path: "/path/to/ca_cert.pem"
+
+  tasks:
+    - name: Retrieve group ID based on group name.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/api/GroupService/Groups?Name={{ group_name }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: yes
+        status_code: 200
+        return_content: yes
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: group_id
+
+    - name: Assign group ID to a variable.
+      set_fact:
+        group_id_value: "{{ group_id.json.value[0].Id }}"
+
+    - name: Retrieve all devices under the group ID.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/api/GroupService/Groups({{ group_id_value }})/AllLeafDevices"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        method: "GET"
+        use_proxy: yes
+        status_code: 200
+        return_content: yes
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path }}"
+        force_basic_auth: yes
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json"
+      register: all_devices
+
+    - name: Empty list to store device IDs.
+      set_fact:
+        devices_list: []
+
+    - name: Add devices retrieved from a group to the list.
+      set_fact:
+        devices_list: "{{ devices_list + [item.Id] }}"
+      with_items:
+        - "{{ all_devices.json.value }}"
+
+    - name: Perform device action tasks on devices.
+      dellemc.openmanage.ome_devices:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path }}"
+        device_action: "{{ device_action }}"
+        device_ids: "{{ devices_list }}"

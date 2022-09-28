@@ -175,6 +175,16 @@ EXAMPLES = """
     boot_source_override_mode: uefi
     boot_source_override_target: uefi_target
     uefi_target_boot_source_override: "VenHw(3A191845-5F86-4E78-8FCE-C4CFF59F9DAA)"
+
+- name: Configure the boot source override mode as pxe.
+  dellemc.openmanage.idrac_boot:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    boot_source_override_mode: legacy
+    boot_source_override_target: pxe
+    boot_source_override_enabled: continuous
 """
 
 
