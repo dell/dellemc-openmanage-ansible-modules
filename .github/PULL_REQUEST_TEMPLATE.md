@@ -1,9 +1,14 @@
-##### SUMMARY
-<!--- Describe the change below, including rationale and design decisions -->
+# Description
+A few sentences describing the overall goals of the pull request's commits.
 
-<!--- HINT: Include "Fixes #000" if you are fixing an existing issue -->
+# GitHub Issues
+List the GitHub issues impacted by this PR:
 
-##### ISSUE TYPE
+| GitHub Issue # |
+| -------------- |
+| |
+
+# ISSUE TYPE
 <!--- Pick one below and delete the rest -->
 - Bugfix Pull Request
 - Docs Pull Request
@@ -13,15 +18,11 @@
 ##### COMPONENT NAME
 <!--- Write the short name of the module, plugin, task or feature below -->
 
-##### ISSUES
-<!--- List the issues addressed or fixed by this PR below, if any -->
-
 ##### OUTPUT
 <!--- Paste the functionality test result below -->
 ```paste below
 
 ```
-
 ##### ADDITIONAL INFORMATION
 <!--- Include additional information to help people understand the change here -->
 <!--- A step-by-step reproduction of the problem is helpful if there is no related issue -->
@@ -30,3 +31,13 @@
 ```paste below
 
 ```
+# Checklist:
+
+- [ ] I have performed a self-review of my own code to ensure there are no formatting, vetting, linting, or security issues
+- [ ] I have verified that new and existing unit tests pass locally with my changes
+- [ ] I have not allowed coverage numbers to degenerate
+- [ ] I have maintained at least 90% code coverage
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] I have maintained backward compatibility

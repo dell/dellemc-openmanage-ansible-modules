@@ -36,7 +36,44 @@
          PxeDev1VlanPriority: x
     tags: 
         - pxeconfig
- 
+
+  - name: Configure attributes of the BIOS at Maintenance window
+    idrac_bios:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
+       apply_time: AtMaintenanceWindowStart
+       maintenance_window:
+         start_time: "2022-09-30T05:15:40-05:00"
+         duration: 600
+       attributes:
+         BootMode: "Bios"
+         OneTimeBootMode: "Enabled"
+         BootSeqRetry: "Enabled"
+    tags:
+        - at_maintenance_start
+
+  - name: Clear pending BIOS attributes
+    idrac_bios:
+       idrac_ip:   "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
+       clear_pending: yes
+    tags:
+      - clear_pending
+
+  - name: Reset BIOS attributes to default settings.
+    idrac_bios:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_pwd }}"
+      ca_path: "/path/to/ca_cert.pem"
+      reset_bios: yes
+    tags:
+      - reset_bios
+
   - name: Configure Boot Sources
     idrac_bios:
        idrac_ip:   "{{ idrac_ip }}"

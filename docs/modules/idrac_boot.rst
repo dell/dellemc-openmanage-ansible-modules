@@ -234,6 +234,16 @@ Examples
         boot_source_override_target: uefi_target
         uefi_target_boot_source_override: "VenHw(3A191845-5F86-4E78-8FCE-C4CFF59F9DAA)"
 
+    - name: Configure the boot source override mode as pxe.
+      dellemc.openmanage.idrac_boot:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        boot_source_override_mode: legacy
+        boot_source_override_target: pxe
+        boot_source_override_enabled: continuous
+
 
 
 Return Values
@@ -243,15 +253,15 @@ msg (success, str, Successfully updated the boot settings.)
   Successfully updated the boot settings.
 
 
-job (success, dict, AnsibleMapping([('ActualRunningStartTime', '2019-06-19T00:57:24'), ('ActualRunningStopTime', '2019-06-19T01:00:27'), ('CompletionTime', '2019-06-19T01:00:27'), ('Description', 'Job Instance'), ('EndTime', 'TIME_NA'), ('Id', 'JID_609237056489'), ('JobState', 'Completed'), ('JobType', 'BIOSConfiguration'), ('Message', 'Job completed successfully.'), ('MessageArgs', []), ('MessageId', 'PR19'), ('Name', 'Configure: BIOS.Setup.1-1'), ('PercentComplete', 100), ('StartTime', '2019-06-19T00:55:05'), ('TargetSettingsURI', None)]))
+job (success, dict, {'ActualRunningStartTime': '2019-06-19T00:57:24', 'ActualRunningStopTime': '2019-06-19T01:00:27', 'CompletionTime': '2019-06-19T01:00:27', 'Description': 'Job Instance', 'EndTime': 'TIME_NA', 'Id': 'JID_609237056489', 'JobState': 'Completed', 'JobType': 'BIOSConfiguration', 'Message': 'Job completed successfully.', 'MessageArgs': [], 'MessageId': 'PR19', 'Name': 'Configure: BIOS.Setup.1-1', 'PercentComplete': 100, 'StartTime': '2019-06-19T00:55:05', 'TargetSettingsURI': None})
   Configured job details.
 
 
-boot (success, dict, AnsibleMapping([('BootOptions', AnsibleMapping([('Description', 'Collection of BootOptions'), ('Members', [AnsibleMapping([('BootOptionEnabled', False), ('BootOptionReference', 'HardDisk.List.1-1'), ('Description', 'Current settings of the Legacy Boot option'), ('DisplayName', 'Hard drive C:'), ('Id', 'HardDisk.List.1-1'), ('Name', 'Legacy Boot option'), ('UefiDevicePath', 'VenHw(D6C0639F-C705-4EB9-AA4F-5802D8823DE6)')])]), ('Name', 'Boot Options Collection')])), ('BootOrder', ['HardDisk.List.1-1']), ('BootSourceOverrideEnabled', 'Disabled'), ('BootSourceOverrideMode', 'Legacy'), ('BootSourceOverrideTarget', 'None'), ('UefiTargetBootSourceOverride', None)]))
+boot (success, dict, {'BootOptions': {'Description': 'Collection of BootOptions', 'Members': [{'BootOptionEnabled': False, 'BootOptionReference': 'HardDisk.List.1-1', 'Description': 'Current settings of the Legacy Boot option', 'DisplayName': 'Hard drive C:', 'Id': 'HardDisk.List.1-1', 'Name': 'Legacy Boot option', 'UefiDevicePath': 'VenHw(D6C0639F-C705-4EB9-AA4F-5802D8823DE6)'}], 'Name': 'Boot Options Collection'}, 'BootOrder': ['HardDisk.List.1-1'], 'BootSourceOverrideEnabled': 'Disabled', 'BootSourceOverrideMode': 'Legacy', 'BootSourceOverrideTarget': 'None', 'UefiTargetBootSourceOverride': None})
   Configured boot settings details.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 
