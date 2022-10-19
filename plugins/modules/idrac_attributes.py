@@ -427,7 +427,7 @@ def fetch_idrac_uri_attr(idrac, module, res_id):
     if dell_attributes:
         for item in dell_attributes:
             uri = item.get('@odata.id')
-            attr_id = uri.split("/")[-1]
+            attr_id = uri.split("/")[-2]
             uri_dict[attr_id] = uri
         idrac_attr = module.params.get("idrac_attributes")
         system_attr = module.params.get("system_attributes")
