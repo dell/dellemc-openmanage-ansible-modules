@@ -56,6 +56,8 @@ Parameters
 
     ``ChangePDStateToOffline`` - To set the disk status to offline. *target* is required for this operation.
 
+    ``LockVirtualDisk`` - To encrypt the virtual disk. *volume_id* is required for this operation.
+
 
   target (optional, list, None)
     Fully Qualified Device Descriptor (FQDD) of the target physical drive.
@@ -70,7 +72,7 @@ Parameters
   volume_id (optional, list, None)
     Fully Qualified Device Descriptor (FQDD) of the volume.
 
-    Applicable if *command* is ``AssignSpare``, ``BlinkTarget``, and ``UnBlinkTarget``.
+    Applicable if *command* is ``AssignSpare``, ``BlinkTarget``, ``UnBlinkTarget`` or ``LockVirtualDisk``.
 
     *volume_id* or *target* is required when the *command* is ``BlinkTarget`` or ``UnBlinkTarget``, if both are specified *target* is considered.
 
@@ -162,7 +164,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - This module always reports as changes found when ``ReKey``, ``BlinkTarget``, and ``UnBlinkTarget``.
    - This module supports ``check_mode``.
 
@@ -372,6 +374,17 @@ Examples
       tags:
         - pd-state-offline
 
+    - name: Lock virtual drive
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "192.168.0.1:443"
+        username: "user_name"
+        password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "LockVirtualDisk"
+        volume_id: "Disk.Virtual.0:RAID.SL.3-1"
+      tags:
+        - lock
+
 
 
 Return Values
@@ -408,4 +421,5 @@ Authors
 
 - Jagadeesh N V (@jagadeeshnv)
 - Felix Stephen (@felixs88)
+- Husniya Hameed (@husniya_hameed)
 

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 5.5.0
+# Dell OpenManage Ansible Modules
+# Version 6.3.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -49,9 +49,10 @@ options:
       - C(ConvertToNonRAID) - Converts the disk form Raid to non-Raid. I(target) is required for this operation.
       - C(ChangePDStateToOnline) - To set the disk status to online. I(target) is required for this operation.
       - C(ChangePDStateToOffline) - To set the disk status to offline. I(target) is required for this operation.
+      - C(LockVirtualDisk) - To encrypt the virtual disk. I(volume_id) is required for this operation.
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare,
       EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
-      ChangePDStateToOnline, ChangePDStateToOffline]
+      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk]
     default: AssignSpare
     type: str
   target:
@@ -69,7 +70,7 @@ options:
   volume_id:
     description:
       - Fully Qualified Device Descriptor (FQDD) of the volume.
-      - Applicable if I(command) is C(AssignSpare), C(BlinkTarget), and C(UnBlinkTarget).
+      - Applicable if I(command) is C(AssignSpare), C(BlinkTarget), C(UnBlinkTarget) or C(LockVirtualDisk).
       - I(volume_id) or I(target) is required when the I(command) is C(BlinkTarget) or C(UnBlinkTarget),
         if both are specified I(target) is considered.
       - To know the number of volumes to which a hot spare can be assigned, refer iDRAC Redfish API documentation.
@@ -130,8 +131,9 @@ requirements:
 author:
   - "Jagadeesh N V (@jagadeeshnv)"
   - "Felix Stephen (@felixs88)"
+  - "Husniya Hameed (@husniya_hameed)"
 notes:
-    - Run this module from a system that has direct access to Dell EMC iDRAC.
+    - Run this module from a system that has direct access to Dell iDRAC.
     - This module always reports as changes found when C(ReKey), C(BlinkTarget), and C(UnBlinkTarget).
     - This module supports C(check_mode).
 '''
@@ -333,6 +335,17 @@ EXAMPLES = r'''
     target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
   tags:
     - pd-state-offline
+
+- name: Lock virtual drive
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "LockVirtualDisk"
+    volume_id: "Disk.Virtual.0:RAID.SL.3-1"
+  tags:
+    - lock
 '''
 
 RETURN = r'''
@@ -420,6 +433,7 @@ NO_CHANGES_FOUND = "No changes found to be applied."
 TARGET_ERR_MSG = "The Fully Qualified Device Descriptor (FQDD) of the target {0} must be only one."
 PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
+PHYSICAL_DISK_ERR = "Volume is not encryption capable."
 
 
 def check_id_exists(module, redfish_obj, key, item_id, uri):
@@ -611,6 +625,41 @@ def target_identify_pattern(module, redfish_obj):
     return resp
 
 
+def lock_virtual_disk(module, redfish_obj):
+    volume, command = module.params.get("volume_id"), module.params["command"]
+    resp, job_uri, job_id = None, None, None
+    controller_id = volume[0].split(":")[-1]
+    check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
+    volume_uri = VOLUME_URI + "/{volume_id}"
+    try:
+        volume_resp = redfish_obj.invoke_request("GET", volume_uri.format(system_id=SYSTEM_ID,
+                                                                          controller_id=controller_id,
+                                                                          volume_id=volume[0]))
+        links = volume_resp.json_data.get("Links")
+        if links:
+            for disk in volume_resp.json_data.get("Links").get("Drives"):
+                drive_link = disk["@odata.id"]
+                drive_resp = redfish_obj.invoke_request("GET", drive_link)
+                encryption_ability = drive_resp.json_data.get("EncryptionAbility")
+                if encryption_ability != "SelfEncryptingDrive":
+                    module.fail_json(msg=PHYSICAL_DISK_ERR)
+        lock_status = volume_resp.json_data.get("Oem").get("Dell").get("DellVolume").get("LockStatus")
+    except HTTPError:
+        module.fail_json(msg=PD_ERROR_MSG.format(controller_id))
+    else:
+        if lock_status == "Unlocked" and module.check_mode:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
+        elif lock_status == "Locked":
+            module.exit_json(msg=NO_CHANGES_FOUND)
+        else:
+            resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
+                                                                             action="LockVirtualDisk"),
+                                              data={"TargetFQDD": volume[0]})
+            job_uri = resp.headers.get("Location")
+            job_id = job_uri.split("/")[-1]
+    return resp, job_uri, job_id
+
+
 def validate_inputs(module):
     module_params = module.params
     command = module_params.get("command")
@@ -628,8 +677,8 @@ def validate_inputs(module):
         if not all([key, key_id]):
             module.fail_json(msg="All of the following: key, key_id are "
                                  "required for '{0}' operation.".format(command))
-    elif command in ["AssignSpare", "UnassignSpare", "BlinkTarget", "UnBlinkTarget"]:
-        target, volume = module_params.get("target"), module_params.get("volume")
+    elif command in ["AssignSpare", "UnassignSpare", "BlinkTarget", "UnBlinkTarget", "LockVirtualDisk"]:
+        target, volume = module_params.get("target"), module_params.get("volume_id")
         if target is not None and not 1 >= len(target):
             module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
         if volume is not None and not 1 >= len(volume):
@@ -646,7 +695,7 @@ def main():
                     "choices": ["ResetConfig", "AssignSpare", "SetControllerKey", "RemoveControllerKey",
                                 "ReKey", "UnassignSpare", "EnableControllerEncryption", "BlinkTarget",
                                 "UnBlinkTarget", "ConvertToRAID", "ConvertToNonRAID", "ChangePDStateToOnline",
-                                "ChangePDStateToOffline"]},
+                                "ChangePDStateToOffline", "LockVirtualDisk"]},
         "controller_id": {"required": False, "type": "str"},
         "volume_id": {"required": False, "type": "list", "elements": "str"},
         "target": {"required": False, "type": "list", "elements": "str", "aliases": ["drive_id"]},
@@ -668,7 +717,8 @@ def main():
             ["command", "BlinkTarget", ["target", "volume_id"], True],
             ["command", "UnBlinkTarget", ["target", "volume_id"], True], ["command", "ConvertToRAID", ["target"]],
             ["command", "ConvertToNonRAID", ["target"]], ["command", "ChangePDStateToOnline", ["target"]],
-            ["command", "ChangePDStateToOffline", ["target"]]
+            ["command", "ChangePDStateToOffline", ["target"]],
+            ["command", "LockVirtualDisk", ["volume_id"]]
         ],
         supports_check_mode=True)
     validate_inputs(module)
@@ -690,6 +740,8 @@ def main():
                 resp, job_uri, job_id = convert_raid_status(module, redfish_obj)
             elif command == "ChangePDStateToOnline" or command == "ChangePDStateToOffline":
                 resp, job_uri, job_id = change_pd_status(module, redfish_obj)
+            elif command == "LockVirtualDisk":
+                resp, job_uri, job_id = lock_virtual_disk(module, redfish_obj)
             oem_job_url = JOB_URI_OEM.format(job_id=job_id)
             job_wait = module.params["job_wait"]
             if job_wait:

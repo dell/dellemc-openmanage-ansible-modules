@@ -203,3 +203,14 @@
       target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
     tags:
       - pd-state-offline
+
+  - name: Lock virtual drive
+    idrac_redfish_storage_controller:
+      baseuri: "{{ baseuri }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      command: "LockVirtualDisk"
+      volume_id: "Disk.Virtual.0:RAID.SL.3-1"
+    tags:
+      - lock

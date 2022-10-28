@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Dell OpenManage Ansible Modules
+# Version 6.3.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -67,8 +67,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.validate_inputs(f_module)
         assert ex.value.args[0] == "The Fully Qualified Device Descriptor (FQDD) of the target " \
                                    "physical disk must be only one."
-        param.update({"volume": ["Disk.Virtual.0:RAID.Mezzanine.1C-0",
-                                 "Disk.Virtual.0:RAID.Mezzanine.1C-1"], "target": None})
+        param.update({"volume_id": ["Disk.Virtual.0:RAID.Mezzanine.1C-0",
+                                    "Disk.Virtual.0:RAID.Mezzanine.1C-1"], "target": None})
         with pytest.raises(Exception) as ex:
             self.module.validate_inputs(f_module)
         assert ex.value.args[0] == "The Fully Qualified Device Descriptor (FQDD) of the target " \
@@ -223,6 +223,26 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         redfish_response_mock.json_data = {"Oem": {"Dell": {"DellPhysicalDisk": {"RaidStatus": "Online"}}}}
         with pytest.raises(Exception) as ex:
             self.module.change_pd_status(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "No changes found to be applied."
+
+    def test_lock_virtual_disk(self, redfish_str_controller_conn, redfish_response_mock, mocker):
+        param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
+                 "command": "LockVirtualDisk",
+                 "volume_id": "Disk.Virtual.0:RAID.SL.3-1"}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.check_id_exists", return_value=None)
+        redfish_response_mock.json_data = {"Oem": {"Dell": {"DellVolume": {"LockStatus": "Unlocked"}}}}
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        result = self.module.lock_virtual_disk(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+        f_module.check_mode = True
+        with pytest.raises(Exception) as ex:
+            self.module.lock_virtual_disk(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Changes found to be applied."
+        f_module.check_mode = False
+        redfish_response_mock.json_data = {"Oem": {"Dell": {"DellVolume": {"LockStatus": "Locked"}}}}
+        with pytest.raises(Exception) as ex:
+            self.module.lock_virtual_disk(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
 
     @pytest.mark.parametrize("exc_type", [RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,

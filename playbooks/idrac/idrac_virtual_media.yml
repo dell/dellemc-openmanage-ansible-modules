@@ -1,0 +1,107 @@
+---
+- hosts: idrac
+  connection: local
+  name: Configure the boot order settings
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+
+  - name: Insert image file to Remote File Share 1 using CIFS share.
+    idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      virtual_media:
+        - insert: true
+          image: "//192.168.0.2/file_path/file.iso"
+          username: "username"
+          password: "password"
+    tags: insert-media-cifs
+
+  - name: Insert image file to Remote File Share 2 using NFS share.
+    idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      virtual_media:
+        - index: 2
+          insert: true
+          image: "192.168.0.4:/file_path/file.iso"
+    tags: insert-media-nfs
+
+  - name: Insert image file to Remote File Share 1 and 2 using HTTP.
+    idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      force: true
+      virtual_media:
+        - index: 1
+          insert: true
+          image: "http://192.168.0.4/file_path/file.img"
+        - index: 2
+          insert: true
+          image: "http://192.168.0.4/file_path/file.img"
+    tags: insert-media-http
+
+  - name: Insert image file using HTTPS.
+    idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      force: true
+      virtual_media:
+        - index: 1
+          insert: true
+          image: "https://192.168.0.5/file_path/file.img"
+          username: username
+          password: password
+    tags: insert-media-http
+
+  - name: Eject multiple virtual media.
+    idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      virtual_media:
+        - index: 1
+          insert: false
+        - index: 2
+          insert: false
+    tags: eject-media
+
+  - name: Ejection of image file from Remote File Share 1.
+    idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      force: true
+      virtual_media:
+          insert: false
+    tags: eject-media-rfs1
+
+  - name: Insertion and ejection of image file in single task.
+    idrac_virtual_media:
+      idrac_ip: "{{ idrac_ip }}"
+      idrac_user: "{{ idrac_user }}"
+      idrac_password: "{{ idrac_password }}"
+      ca_path: "/path/to/ca_cert.pem"
+      force: true
+      virtual_media:
+        - index: 1
+          insert: true
+          image: https://192.168.0.5/file/file.iso
+          username: username
+          password: password
+        - index: 2
+          insert: false
+    tags: insert-eject-media
