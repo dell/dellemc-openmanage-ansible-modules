@@ -257,7 +257,7 @@ def get_payload_data(each, vr_members, vr_id):
     vr_mem = vr_members[each["index"] - 1]
 
     if each["insert"]:
-        exist_vr_mem = {k: vr_mem[k] for k in ["Inserted", "Image", "UserName", "Password"] if vr_mem.get(k) is not None}
+        exist_vr_mem = dict((k, vr_mem[k]) for k in ["Inserted", "Image", "UserName", "Password"] if vr_mem.get(k) is not None)
         input_vr_mem = {"Inserted": each["insert"], "Image": each["image"]}
         if each["image"].startswith("//") or each["image"].lower().startswith("https://"):
             username, password, domain = each.get("username"), each.get("password"), each.get("domain")
