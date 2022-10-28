@@ -70,9 +70,6 @@ jobs:
           name: collection
           path: .cache/collection-tarballs
 
-      - name: Install pytest
-        run: pip install pytest==7.1.3
-
       - name: Setup Unit test Pre-requisites
         run: |
           ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
