@@ -283,14 +283,14 @@ def get_payload_data(each, vr_members, vr_id):
     else:
         if vr_id == "manager":
             for vr_v in vr_members:
-                exist_vr_mem = {k: vr_v[k] for k in ["Inserted"]}
+                exist_vr_mem = dict((k, vr_v[k]) for k in ["Inserted"])
                 input_vr_mem = {"Inserted": each.get("insert")}
                 is_change = bool(set(exist_vr_mem.items()) ^ set(input_vr_mem.items()))
                 if is_change:
                     vr_mem = vr_v
                     break
         else:
-            exist_vr_mem = {k: vr_mem[k] for k in ["Inserted"]}
+            exist_vr_mem = dict((k, vr_mem[k]) for k in ["Inserted"])
             input_vr_mem = {"Inserted": each.get("insert")}
             is_change = bool(set(exist_vr_mem.items()) ^ set(input_vr_mem.items()))
 
