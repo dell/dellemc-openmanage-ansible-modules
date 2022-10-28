@@ -35,6 +35,7 @@ You may obtain a copy of the License at
 - [idrac_system_info](modules/idrac_system_info.rst)
 - [idrac_timezone_ntp](modules/idrac_timezone_ntp.rst)
 - [idrac_user](modules/idrac_user.rst)
+- [idrac_virtual_media](modules/idrac_virtual_media.rst)
 - [redfish_event_subscription](modules/redfish_event_subscription.rst)
 - [redfish_firmware](modules/redfish_firmware.rst)
 - [redfish_powerstate](modules/redfish_powerstate.rst)
