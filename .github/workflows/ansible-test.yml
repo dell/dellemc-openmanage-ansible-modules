@@ -81,7 +81,7 @@ jobs:
 
 
       - name: Run Unit tests using ansible-test
-        run: ansible-test units -v --color --python ${{ matrix.python-version }} --coverage
+        run: ansible-test units -v --color --python ${{ matrix.python-version }} --coverage -vvvv
         working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
 
       #- name: Generate coverage report
