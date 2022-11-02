@@ -236,7 +236,7 @@ def main():
                   "choices": ['present', 'absent']},
         "user_id": {"required": False, "type": 'int'},
         "name": {"required": False, "type": 'str'},
-        "attributes": {"required": False, "type": 'dict'},
+        "attributes": {"required": False, "type": 'dict', "default": {}},
     }
     specs.update(ome_auth_params)
     module = AnsibleModule(
@@ -247,8 +247,6 @@ def main():
 
     try:
         _validate_inputs(module)
-        if module.params.get("attributes") is None:
-            module.params["attributes"] = {}
         with RestOME(module.params, req_session=True) as rest_obj:
             method, path, payload = _get_resource_parameters(module, rest_obj)
             resp = rest_obj.invoke_request(method, path, data=payload)
