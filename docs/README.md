@@ -19,6 +19,7 @@ You may obtain a copy of the License at
 - [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)
 - [idrac_attributes](modules/idrac_attributes.rst)
 - [idrac_bios](modules/idrac_bios.rst)
+- [idrac_boot](modules/idrac_boot.rst)
 - [idrac_certificates](modules/idrac_certificates.rst)
 - [idrac_firmware](modules/idrac_firmware.rst)
 - [idrac_firmware_info](modules/idrac_firmware_info.rst)
