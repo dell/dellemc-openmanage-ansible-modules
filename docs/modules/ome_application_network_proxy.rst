@@ -104,7 +104,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module does not support ``check_mode``.
 
 
@@ -158,11 +158,11 @@ msg (always, str, Successfully updated network proxy configuration.)
   Overall status of the network proxy configuration change.
 
 
-proxy_configuration (success, dict, AnsibleMapping([('EnableAuthentication', True), ('EnableProxy', True), ('IpAddress', '192.168.0.2'), ('Password', None), ('PortNumber', 444), ('Username', 'root')]))
+proxy_configuration (success, dict, {'EnableAuthentication': True, 'EnableProxy': True, 'IpAddress': '192.168.0.2', 'Password': None, 'PortNumber': 444, 'Username': 'root'})
   Updated application network proxy configuration.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to complete the request because the input value for  PortNumber  is missing or an invalid value is entered.'), ('MessageArgs', ['PortNumber']), ('MessageId', 'CGEN6002'), ('RelatedProperties', []), ('Resolution', 'Enter a valid value and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the request because the input value for  PortNumber  is missing or an invalid value is entered.', 'MessageArgs': ['PortNumber'], 'MessageId': 'CGEN6002', 'RelatedProperties': [], 'Resolution': 'Enter a valid value and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of the HTTP error.
 
 

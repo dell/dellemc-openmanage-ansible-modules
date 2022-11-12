@@ -96,7 +96,7 @@ Notes
 
 .. note::
    - This module requires 'Administrator' privilege for *idrac_user*.
-   - Run this module from a system that has direct access to Dell EMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
 
 
@@ -126,11 +126,11 @@ msg (always, str, Successfully configured the iDRAC LC attributes.)
   Overall status of iDRAC LC attributes configuration.
 
 
-lc_attribute_status (success, dict, AnsibleMapping([('CompletionTime', '2020-03-30T00:06:53'), ('Description', 'Job Instance'), ('EndTime', None), ('Id', 'JID_1234512345'), ('JobState', 'Completed'), ('JobType', 'ImportConfiguration'), ('Message', 'Successfully imported and applied Server Configuration Profile.'), ('MessageArgs', []), ('MessageArgs@odata.count', 0), ('MessageId', 'SYS053'), ('Name', 'Import Configuration'), ('PercentComplete', 100), ('StartTime', 'TIME_NOW'), ('Status', 'Success'), ('TargetSettingsURI', None), ('retval', True)]))
+lc_attribute_status (success, dict, {'CompletionTime': '2020-03-30T00:06:53', 'Description': 'Job Instance', 'EndTime': None, 'Id': 'JID_1234512345', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'SYS053', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
   Collect System Inventory on Restart (CSIOR) property for all iDRAC/LC jobs is configured.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

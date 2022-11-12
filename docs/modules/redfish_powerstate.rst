@@ -133,7 +133,7 @@ msg (always, str, Successfully performed the reset type operation 'On'.)
   Overall status of the reset operation.
 
 
-error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to complete the operation because the resource /redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset entered in not found.'), ('MessageArgs', ['/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset']), ('MessageArgs@odata.count', 1), ('MessageId', 'IDRAC.2.1.SYS403'), ('RelatedProperties', []), ('RelatedProperties@odata.count', 0), ('Resolution', 'Enter the correct resource and retry the operation. For information about valid resource, see the Redfish Users Guide available on the support site.'), ('Severity', 'Critical')])]), ('code', 'Base.1.5.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information')]))]))
+error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the operation because the resource /redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset entered in not found.', 'MessageArgs': ['/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset'], 'MessageArgs@odata.count': 1, 'MessageId': 'IDRAC.2.1.SYS403', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'Enter the correct resource and retry the operation. For information about valid resource, see the Redfish Users Guide available on the support site.', 'Severity': 'Critical'}], 'code': 'Base.1.5.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
   Details of the HTTP error.
 
 

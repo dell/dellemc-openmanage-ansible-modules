@@ -279,11 +279,11 @@ msg (always, str, Successfully updated the local access settings.)
   Overall status of the device local access settings.
 
 
-location_details (success, dict, AnsibleMapping([('SettingType', 'LocalAccessConfiguration'), ('EnableChassisDirect', False), ('EnableChassisPowerButton', False), ('EnableKvmAccess', True), ('EnableLcdOverridePin', False), ('LcdAccess', 'VIEW_ONLY'), ('LcdCustomString', 'LCD Text'), ('LcdLanguage', 'en'), ('LcdOverridePin', ''), ('LcdPinLength', None), ('LcdPresence', 'Present'), ('LedPresence', None), ('QuickSync', AnsibleMapping([('EnableInactivityTimeout', True), ('EnableQuickSyncWifi', False), ('EnableReadAuthentication', False), ('QuickSyncAccess', 'READ_ONLY'), ('QuickSyncHardware', 'Present'), ('TimeoutLimit', 7), ('TimeoutLimitUnit', 'MINUTES')]))]))
+location_details (success, dict, {'SettingType': 'LocalAccessConfiguration', 'EnableChassisDirect': False, 'EnableChassisPowerButton': False, 'EnableKvmAccess': True, 'EnableLcdOverridePin': False, 'LcdAccess': 'VIEW_ONLY', 'LcdCustomString': 'LCD Text', 'LcdLanguage': 'en', 'LcdOverridePin': '', 'LcdPinLength': None, 'LcdPresence': 'Present', 'LedPresence': None, 'QuickSync': {'EnableInactivityTimeout': True, 'EnableQuickSyncWifi': False, 'EnableReadAuthentication': False, 'QuickSyncAccess': 'READ_ONLY', 'QuickSyncHardware': 'Present', 'TimeoutLimit': 7, 'TimeoutLimitUnit': 'MINUTES'}})
   returned when local access settings are updated successfully.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

@@ -42,7 +42,7 @@ Parameters
   state (optional, str, present)
     ``present`` Allows to perform the *device_action* on the target devices.
 
-    ``absent`` Removes the device from OpenManage Enterprise. No job is triggered. *job_wait*, *job_schedule*, *job_name*, and *job_description* are not applicable to this operation.
+    ``absent`` Removes the device from OpenManage Enterprise. Job is not triggered. *job_wait*, *job_schedule*, *job_name*, and *job_description* are not applicable to this operation.
 
 
   device_action (optional, str, refresh_inventory)

@@ -119,7 +119,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - Module will report success based on the iDRAC firmware update parent job status if there are no individual component jobs present.
    - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the module will return success with a proper message.
    - This module supports ``check_mode``.
@@ -202,7 +202,7 @@ msg (always, str, Successfully updated the firmware.)
   Overall firmware update status.
 
 
-update_status (success, dict, AnsibleMapping([('InstanceID', 'JID_XXXXXXXXXXXX'), ('JobState', 'Completed'), ('Message', 'Job completed successfully.'), ('MessageId', 'REDXXX'), ('Name', 'Repository Update'), ('JobStartTime', 'NA'), ('Status', 'Success')]))
+update_status (success, dict, {'InstanceID': 'JID_XXXXXXXXXXXX', 'JobState': 'Completed', 'Message': 'Job completed successfully.', 'MessageId': 'REDXXX', 'Name': 'Repository Update', 'JobStartTime': 'NA', 'Status': 'Success'})
   Firmware Update job and progress details from the iDRAC.
 
 

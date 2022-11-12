@@ -245,11 +245,11 @@ msg (always, str, Successfully updated the attributes.)
   Status of the attribute update operation.
 
 
-invalid_attributes (on invalid attributes or values., dict, AnsibleMapping([('LCAttributes.1.AutoUpdate', 'Invalid value for Enumeration.'), ('LCAttributes.1.StorageHealthRollupStatus', 'Read only Attribute cannot be modified.'), ('SNMP.1.AlertPort', 'Not a valid integer.'), ('SNMP.1.AlertPorty', 'Attribute does not exist.'), ('SysLog.1.PowerLogInterval', 'Integer out of valid range.'), ('ThermalSettings.1.AirExhaustTemp', 'Invalid value for Enumeration.')]))
+invalid_attributes (on invalid attributes or values., dict, {'LCAttributes.1.AutoUpdate': 'Invalid value for Enumeration.', 'LCAttributes.1.StorageHealthRollupStatus': 'Read only Attribute cannot be modified.', 'SNMP.1.AlertPort': 'Not a valid integer.', 'SNMP.1.AlertPorty': 'Attribute does not exist.', 'SysLog.1.PowerLogInterval': 'Integer out of valid range.', 'ThermalSettings.1.AirExhaustTemp': 'Invalid value for Enumeration.'})
   Dict of invalid attributes provided.
 
 
-error_info (when attribute value is invalid., dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', "The value 'false' for the property LCAttributes.1.BIOSRTDRequested is of a different type than the property can accept."), ('MessageArgs', ['false', 'LCAttributes.1.BIOSRTDRequested']), ('MessageArgs@odata.count', 2), ('MessageId', 'Base.1.12.PropertyValueTypeError'), ('RelatedProperties', ['#/Attributes/LCAttributes.1.BIOSRTDRequested']), ('RelatedProperties@odata.count', 1), ('Resolution', 'Correct the value for the property in the request body and resubmit the request if the operation failed.'), ('Severity', 'Warning')])]), ('code', 'Base.1.12.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information')]))]))
+error_info (when attribute value is invalid., dict, {'error': {'@Message.ExtendedInfo': [{'Message': "The value 'false' for the property LCAttributes.1.BIOSRTDRequested is of a different type than the property can accept.", 'MessageArgs': ['false', 'LCAttributes.1.BIOSRTDRequested'], 'MessageArgs@odata.count': 2, 'MessageId': 'Base.1.12.PropertyValueTypeError', 'RelatedProperties': ['#/Attributes/LCAttributes.1.BIOSRTDRequested'], 'RelatedProperties@odata.count': 1, 'Resolution': 'Correct the value for the property in the request body and resubmit the request if the operation failed.', 'Severity': 'Warning'}], 'code': 'Base.1.12.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
   Error information of the operation.
 
 

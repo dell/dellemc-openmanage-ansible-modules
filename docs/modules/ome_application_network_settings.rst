@@ -131,7 +131,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise or OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - To configure other network settings such as network address, web server, and so on, refer to the respective OpenManage Enterprise application network setting modules.
    - This module supports ``check_mode``.
 
@@ -213,11 +213,11 @@ msg (always, str, Successfully updated the session timeout settings.)
   Overall status of the Session timeout settings.
 
 
-session_inactivity_setting (success, dict, [AnsibleMapping([('SessionType', 'API'), ('MaxSessions', 32), ('SessionTimeout', 99600), ('MinSessionTimeout', 60000), ('MaxSessionTimeout', 86400000), ('MinSessionsAllowed', 1), ('MaxSessionsAllowed', 100), ('MaxSessionsConfigurable', True), ('SessionTimeoutConfigurable', True)]), AnsibleMapping([('SessionType', 'GUI'), ('MaxSessions', 6), ('SessionTimeout', 99600), ('MinSessionTimeout', 60000), ('MaxSessionTimeout', 7200000), ('MinSessionsAllowed', 1), ('MaxSessionsAllowed', 6), ('MaxSessionsConfigurable', True), ('SessionTimeoutConfigurable', True)]), AnsibleMapping([('SessionType', 'SSH'), ('MaxSessions', 4), ('SessionTimeout', 99600), ('MinSessionTimeout', 60000), ('MaxSessionTimeout', 10800000), ('MinSessionsAllowed', 1), ('MaxSessionsAllowed', 4), ('MaxSessionsConfigurable', True), ('SessionTimeoutConfigurable', True)]), AnsibleMapping([('SessionType', 'Serial'), ('MaxSessions', 1), ('SessionTimeout', 99600), ('MinSessionTimeout', 60000), ('MaxSessionTimeout', 86400000), ('MinSessionsAllowed', 1), ('MaxSessionsAllowed', 1), ('MaxSessionsConfigurable', False), ('SessionTimeoutConfigurable', True)]), AnsibleMapping([('SessionType', 'UniversalTimeout'), ('MaxSessions', 0), ('SessionTimeout', -1), ('MinSessionTimeout', -1), ('MaxSessionTimeout', 86400000), ('MinSessionsAllowed', 0), ('MaxSessionsAllowed', 0), ('MaxSessionsConfigurable', False), ('SessionTimeoutConfigurable', True)])])
+session_inactivity_setting (success, dict, [{'SessionType': 'API', 'MaxSessions': 32, 'SessionTimeout': 99600, 'MinSessionTimeout': 60000, 'MaxSessionTimeout': 86400000, 'MinSessionsAllowed': 1, 'MaxSessionsAllowed': 100, 'MaxSessionsConfigurable': True, 'SessionTimeoutConfigurable': True}, {'SessionType': 'GUI', 'MaxSessions': 6, 'SessionTimeout': 99600, 'MinSessionTimeout': 60000, 'MaxSessionTimeout': 7200000, 'MinSessionsAllowed': 1, 'MaxSessionsAllowed': 6, 'MaxSessionsConfigurable': True, 'SessionTimeoutConfigurable': True}, {'SessionType': 'SSH', 'MaxSessions': 4, 'SessionTimeout': 99600, 'MinSessionTimeout': 60000, 'MaxSessionTimeout': 10800000, 'MinSessionsAllowed': 1, 'MaxSessionsAllowed': 4, 'MaxSessionsConfigurable': True, 'SessionTimeoutConfigurable': True}, {'SessionType': 'Serial', 'MaxSessions': 1, 'SessionTimeout': 99600, 'MinSessionTimeout': 60000, 'MaxSessionTimeout': 86400000, 'MinSessionsAllowed': 1, 'MaxSessionsAllowed': 1, 'MaxSessionsConfigurable': False, 'SessionTimeoutConfigurable': True}, {'SessionType': 'UniversalTimeout', 'MaxSessions': 0, 'SessionTimeout': -1, 'MinSessionTimeout': -1, 'MaxSessionTimeout': 86400000, 'MinSessionsAllowed': 0, 'MaxSessionsAllowed': 0, 'MaxSessionsConfigurable': False, 'SessionTimeoutConfigurable': True}])
   Returned when session inactivity timeout settings are updated successfully.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CUSR1233'), ('RelatedProperties', []), ('Message', 'The number of allowed concurrent sessions for API must be between 1 and 100 sessions.'), ('MessageArgs', ['API', '1', '100']), ('Severity', 'Critical'), ('Resolution', 'Enter values in the correct range and retry the operation.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CUSR1233', 'RelatedProperties': [], 'Message': 'The number of allowed concurrent sessions for API must be between 1 and 100 sessions.', 'MessageArgs': ['API', '1', '100'], 'Severity': 'Critical', 'Resolution': 'Enter values in the correct range and retry the operation.'}]}})
   Details of the HTTP Error.
 
 

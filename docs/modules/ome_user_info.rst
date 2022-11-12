@@ -79,7 +79,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports ``check_mode``.
 
 
@@ -125,7 +125,7 @@ msg (on error, str, Unable to retrieve the account details.)
   Over all status of fetching user facts.
 
 
-user_info (success, dict, AnsibleMapping([('192.168.0.1', AnsibleMapping([('Id', '1814'), ('UserTypeId', 1), ('DirectoryServiceId', 0), ('Description', 'user name description'), ('Name', 'user_name'), ('Password', None), ('UserName', 'user_name'), ('RoleId', '10'), ('Locked', False), ('IsBuiltin', True), ('Enabled', True)]))]))
+user_info (success, dict, {'192.168.0.1': {'Id': '1814', 'UserTypeId': 1, 'DirectoryServiceId': 0, 'Description': 'user name description', 'Name': 'user_name', 'Password': None, 'UserName': 'user_name', 'RoleId': '10', 'Locked': False, 'IsBuiltin': True, 'Enabled': True}})
   Details of the user.
 
 

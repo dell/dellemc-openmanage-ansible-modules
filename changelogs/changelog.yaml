@@ -2,7 +2,7 @@ ancestor: null
 releases:
   2.1.0:
     changes:
-      release_summary: The `Dell EMC OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_
+      release_summary: The `Dell OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_
         are available on Ansible Galaxy as a collection.
     release_date: '2020-07-29'
   2.1.1:

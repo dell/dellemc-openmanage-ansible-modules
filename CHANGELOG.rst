@@ -1,6 +1,6 @@
-=================================================
-Dell EMC OpenManage Ansible Modules Release Notes
-=================================================
+=============================================
+Dell OpenManage Ansible Modules Release Notes
+=============================================
 
 .. contents:: Topics
 
@@ -854,4 +854,4 @@ v2.1.0
 Release Summary
 ---------------
 
-The `Dell EMC OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_ are available on Ansible Galaxy as a collection.
+The `Dell OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_ are available on Ansible Galaxy as a collection.

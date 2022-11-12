@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
 # Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -48,7 +48,7 @@ requirements:
 author:
   - Jagadeesh N V(@jagadeeshnv)
 notes:
-  - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise or Dell EMC OpenManage Enterprise Modular.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise or Dell OpenManage Enterprise Modular.
   - This module supports C(check_mode).
 """
 

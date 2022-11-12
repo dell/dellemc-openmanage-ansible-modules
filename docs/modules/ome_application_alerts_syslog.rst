@@ -89,7 +89,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise or Dell EMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -142,11 +142,11 @@ msg (always, str, Successfully updated the syslog forwarding settings.)
   Overall status of the syslog forwarding operation.
 
 
-syslog_details (on success, list, [AnsibleMapping([('DestinationAddress', '192.168.10.43'), ('Enabled', False), ('Id', 1), ('PortNumber', 514)]), AnsibleMapping([('DestinationAddress', '192.168.10.46'), ('Enabled', True), ('Id', 2), ('PortNumber', 514)]), AnsibleMapping([('DestinationAddress', '192.168.10.44'), ('Enabled', True), ('Id', 3), ('PortNumber', 514)]), AnsibleMapping([('DestinationAddress', '192.168.10.42'), ('Enabled', True), ('Id', 4), ('PortNumber', 515)])])
+syslog_details (on success, list, [{'DestinationAddress': '192.168.10.43', 'Enabled': False, 'Id': 1, 'PortNumber': 514}, {'DestinationAddress': '192.168.10.46', 'Enabled': True, 'Id': 2, 'PortNumber': 514}, {'DestinationAddress': '192.168.10.44', 'Enabled': True, 'Id': 3, 'PortNumber': 514}, {'DestinationAddress': '192.168.10.42', 'Enabled': True, 'Id': 4, 'PortNumber': 515}])
   Syslog forwarding settings list applied.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CAPP1108'), ('RelatedProperties', []), ('Message', 'Unable to update the Syslog settings because the request contains an invalid number of configurations. The request must contain no more than 4 configurations but contains 5.'), ('MessageArgs', ['4', '5']), ('Severity', 'Warning'), ('Resolution', 'Enter only the required number of configurations as identified in the message and retry the operation.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CAPP1108', 'RelatedProperties': [], 'Message': 'Unable to update the Syslog settings because the request contains an invalid number of configurations. The request must contain no more than 4 configurations but contains 5.', 'MessageArgs': ['4', '5'], 'Severity': 'Warning', 'Resolution': 'Enter only the required number of configurations as identified in the message and retry the operation.'}]}})
   Details of the HTTP Error.
 
 

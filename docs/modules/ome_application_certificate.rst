@@ -148,11 +148,11 @@ msg (always, str, Successfully generated certificate signing request.)
   Overall status of the certificate signing request.
 
 
-csr_status (on success, dict, AnsibleMapping([('CertificateData', '-----BEGIN CERTIFICATE REQUEST-----GHFSUEKLELE af3u4h2rkdkfjasczjfefhkrr/frjrfrjfrxnvzklf/nbcvxmzvndlskmcvbmzkdk kafhaksksvklhfdjtrhhffgeth/tashdrfstkm@kdjFGD/sdlefrujjfvvsfeikdf yeufghdkatbavfdomehtdnske/tahndfavdtdfgeikjlagmdfbandfvfcrfgdtwxc qwgfrteyupojmnsbajdkdbfs/ujdfgthedsygtamnsuhakmanfuarweyuiwruefjr etwuwurefefgfgurkjkdmbvfmvfvfk==-----END CERTIFICATE REQUEST-----')]))
+csr_status (on success, dict, {'CertificateData': '-----BEGIN CERTIFICATE REQUEST-----GHFSUEKLELE af3u4h2rkdkfjasczjfefhkrr/frjrfrjfrxnvzklf/nbcvxmzvndlskmcvbmzkdk kafhaksksvklhfdjtrhhffgeth/tashdrfstkm@kdjFGD/sdlefrujjfvvsfeikdf yeufghdkatbavfdomehtdnske/tahndfavdtdfgeikjlagmdfbandfvfcrfgdtwxc qwgfrteyupojmnsbajdkdbfs/ujdfgthedsygtamnsuhakmanfuarweyuiwruefjr etwuwurefefgfgurkjkdmbvfmvfvfk==-----END CERTIFICATE REQUEST-----'})
   Details of the generated certificate.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CSEC9002'), ('RelatedProperties', []), ('Message', 'Unable to upload the certificate because the certificate file provided is invalid.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Make sure the CA certificate and private key are correct and retry the operation.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CSEC9002', 'RelatedProperties': [], 'Message': 'Unable to upload the certificate because the certificate file provided is invalid.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Make sure the CA certificate and private key are correct and retry the operation.'}]}})
   Details of the HTTP error.
 
 
