@@ -16,7 +16,7 @@ import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_os_deployment
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from mock import MagicMock
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args, exit_json, \
+from units.utils import set_module_args, exit_json, \
     fail_json, AnsibleFailJson, AnsibleExitJson
 from pytest import importorskip
 
