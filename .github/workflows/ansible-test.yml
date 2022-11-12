@@ -54,6 +54,8 @@ jobs:
         exclude:
           - ansible-version: stable-2.11
             python-version: '3.10'
+          - ansible-version: stable-2.14
+            python-version: '3.8'
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
