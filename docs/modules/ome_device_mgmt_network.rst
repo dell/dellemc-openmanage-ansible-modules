@@ -291,7 +291,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -408,7 +408,7 @@ msg (always, str, Successfully applied the network settings.)
   Overall status of the network config operation.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CGEN1004'), ('RelatedProperties', []), ('Message', 'Unable to complete the request because IPV4 Settings Capability is not Supported does not exist or is not applicable for the resource URI.'), ('MessageArgs', ['IPV4 Settings Capability is not Supported']), ('Severity', 'Critical'), ('Resolution', "Check the request resource URI. Refer to the OpenManage Enterprise-Modular User's Guide for more information about resource URI and its properties.")])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CGEN1004', 'RelatedProperties': [], 'Message': 'Unable to complete the request because IPV4 Settings Capability is not Supported does not exist or is not applicable for the resource URI.', 'MessageArgs': ['IPV4 Settings Capability is not Supported'], 'Severity': 'Critical', 'Resolution': "Check the request resource URI. Refer to the OpenManage Enterprise-Modular User's Guide for more information about resource URI and its properties."}]}})
   Details of the HTTP Error.
 
 

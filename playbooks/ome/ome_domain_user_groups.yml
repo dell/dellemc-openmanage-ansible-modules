@@ -1,7 +1,7 @@
 ---
 - hosts: ome
   connection: local
-  name: Dell EMC OpenManage Ansible AD directory user group operation.
+  name: Dell OpenManage Ansible AD directory user group operation.
   gather_facts: False
 
   collections:

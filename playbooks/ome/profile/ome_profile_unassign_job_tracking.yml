@@ -1,7 +1,7 @@
 ---
 - hosts: ome
   connection: local
-  name: Dell EMC OpenManage Ansible profile operations.
+  name: Dell OpenManage Ansible profile operations.
   gather_facts: False
   vars:
     retries_count: 120

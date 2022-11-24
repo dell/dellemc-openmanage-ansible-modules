@@ -129,7 +129,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -183,11 +183,11 @@ msg (always, str, Successfully updated the power settings.)
   Overall status of the device power settings.
 
 
-power_details (success, dict, AnsibleMapping([('EnableHotSpare', True), ('EnablePowerCapSettings', True), ('MaxPowerCap', '3424'), ('MinPowerCap', '3291'), ('PowerCap', '3425'), ('PrimaryGrid', 'GRID_1'), ('RedundancyPolicy', 'NO_REDUNDANCY'), ('SettingType', 'Power')]))
+power_details (success, dict, {'EnableHotSpare': True, 'EnablePowerCapSettings': True, 'MaxPowerCap': '3424', 'MinPowerCap': '3291', 'PowerCap': '3425', 'PrimaryGrid': 'GRID_1', 'RedundancyPolicy': 'NO_REDUNDANCY', 'SettingType': 'Power'})
   returned when power settings are updated successfully.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

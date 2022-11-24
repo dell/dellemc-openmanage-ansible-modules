@@ -19,6 +19,23 @@
        job_wait: True
        apply_update: True
 
+  - name: Update firmware from repository on a HTTP/HTTP/FTP repository via proxy
+    idrac_firmware:
+       idrac_ip: "{{ idrac_ip }}"
+       idrac_user: "{{ idrac_user }}"
+       idrac_password:  "{{ idrac_password }}"
+       ca_path: "/path/to/ca_cert.pem"
+       share_name: "https://downloads.dell.com"
+       reboot: True
+       job_wait: True
+       apply_update: True
+       proxy_support: ParametersProxy
+       proxy_server: 192.168.1.10
+       proxy_type: HTTP
+       proxy_port: 80
+       proxy_uname: "proxy_user"
+       proxy_passwd: "proxy_pwd"
+
   - name: Update firmware from repository on a internally hosted HTTP repository.
     idrac_firmware:
        idrac_ip: "{{ idrac_ip }}"
@@ -58,7 +75,7 @@
        catalog_file_name: "Catalog.xml"
 
   - name: Firmware compliance report using HTTPS repository.
-    idrac_firmare:
+    idrac_firmware:
        idrac_ip: "{{ idrac_ip }}"
        idrac_user: "{{ idrac_user }}"
        idrac_password: "{{ idrac_password }}"

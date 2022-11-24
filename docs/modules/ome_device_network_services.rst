@@ -135,7 +135,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -204,11 +204,11 @@ msg (always, str, Successfully updated the network services settings.)
   Overall status of the network services settings.
 
 
-network_services_details (success, dict, AnsibleMapping([('EnableRemoteRacadm', True), ('SettingType', 'NetworkServices'), ('SnmpConfiguration', AnsibleMapping([('PortNumber', 161), ('SnmpEnabled', True), ('SnmpV1V2Credential', AnsibleMapping([('CommunityName', 'public')]))])), ('SshConfiguration', AnsibleMapping([('IdleTimeout', 60), ('MaxAuthRetries', 3), ('MaxSessions', 1), ('PortNumber', 22), ('SshEnabled', False)]))]))
+network_services_details (success, dict, {'EnableRemoteRacadm': True, 'SettingType': 'NetworkServices', 'SnmpConfiguration': {'PortNumber': 161, 'SnmpEnabled': True, 'SnmpV1V2Credential': {'CommunityName': 'public'}}, 'SshConfiguration': {'IdleTimeout': 60, 'MaxAuthRetries': 3, 'MaxSessions': 1, 'PortNumber': 22, 'SshEnabled': False}})
   returned when network services settings are updated successfully.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CAPP1042'), ('RelatedProperties', []), ('Message', 'Unable to update the network configuration because the SNMP PortNumber is already in use.'), ('MessageArgs', ['SNMP PortNumber']), ('Severity', 'Informational'), ('Resolution', 'Enter a different port number and retry the operation.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CAPP1042', 'RelatedProperties': [], 'Message': 'Unable to update the network configuration because the SNMP PortNumber is already in use.', 'MessageArgs': ['SNMP PortNumber'], 'Severity': 'Informational', 'Resolution': 'Enter a different port number and retry the operation.'}]}})
   Details of the HTTP Error.
 
 

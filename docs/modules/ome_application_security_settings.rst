@@ -134,7 +134,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise or OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -208,7 +208,7 @@ job_id (When security configuration properties are provided, int, 10123)
   Job ID of the security configuration task.
 
 
-error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to process the request because the domain information cannot be retrieved.'), ('MessageArgs', []), ('MessageId', 'CGEN8007'), ('RelatedProperties', []), ('Resolution', 'Verify the status of the database and domain configuration, and then retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to process the request because the domain information cannot be retrieved.', 'MessageArgs': [], 'MessageId': 'CGEN8007', 'RelatedProperties': [], 'Resolution': 'Verify the status of the database and domain configuration, and then retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of http error.
 
 

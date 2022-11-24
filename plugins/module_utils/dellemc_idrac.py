@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Dell EMC OpenManage Ansible Modules
-# Version 5.0.1
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -55,7 +55,7 @@ class iDRACConnection:
 
     def __init__(self, module_params):
         if not HAS_OMSDK:
-            raise ImportError("Dell EMC OMSDK library is required for this module")
+            raise ImportError("Dell OMSDK library is required for this module")
         self.idrac_ip = module_params['idrac_ip']
         self.idrac_user = module_params['idrac_user']
         self.idrac_pwd = module_params['idrac_password']

@@ -114,7 +114,7 @@ Notes
 
 .. note::
    - This module initiates the refresh inventory task. It may take a minute for new names to be reflected. If the task exceeds 300 seconds to refresh, the task times out.
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -192,7 +192,7 @@ msg (always, str, Successfully renamed the slot(s).)
   Overall status of the slot rename operation.
 
 
-slot_info (if at least one slot renamed, list, [AnsibleMapping([('ChassisId', 10053), ('ChassisServiceTag', 'ABCD123'), ('DeviceName', ''), ('DeviceType', 1000), ('JobId', 15746), ('SlotId', '10072'), ('SlotName', 'slot_op2'), ('SlotNumber', '6'), ('SlotType', 2000)]), AnsibleMapping([('ChassisId', 10053), ('ChassisName', 'MX-ABCD123'), ('ChassisServiceTag', 'ABCD123'), ('DeviceType', '3000'), ('JobId', 15747), ('SlotId', '10070'), ('SlotName', 'slot_op2'), ('SlotNumber', '4'), ('SlotType', '2000')]), AnsibleMapping([('ChassisId', '10053'), ('ChassisName', 'MX-PQRS123'), ('ChassisServiceTag', 'PQRS123'), ('DeviceId', '10054'), ('DeviceServiceTag', 'XYZ5678'), ('DeviceType', '1000'), ('JobId', 15761), ('SlotId', '10067'), ('SlotName', 'a1'), ('SlotNumber', '1'), ('SlotType', '2000')])])
+slot_info (if at least one slot renamed, list, [{'ChassisId': 10053, 'ChassisServiceTag': 'ABCD123', 'DeviceName': '', 'DeviceType': 1000, 'JobId': 15746, 'SlotId': '10072', 'SlotName': 'slot_op2', 'SlotNumber': '6', 'SlotType': 2000}, {'ChassisId': 10053, 'ChassisName': 'MX-ABCD123', 'ChassisServiceTag': 'ABCD123', 'DeviceType': '3000', 'JobId': 15747, 'SlotId': '10070', 'SlotName': 'slot_op2', 'SlotNumber': '4', 'SlotType': '2000'}, {'ChassisId': '10053', 'ChassisName': 'MX-PQRS123', 'ChassisServiceTag': 'PQRS123', 'DeviceId': '10054', 'DeviceServiceTag': 'XYZ5678', 'DeviceType': '1000', 'JobId': 15761, 'SlotId': '10067', 'SlotName': 'a1', 'SlotNumber': '1', 'SlotType': '2000'}])
   Information of the slots that are renamed successfully.
 
   The ``DeviceServiceTag`` and ``DeviceId`` options are available only if *device_options* is used.
@@ -200,7 +200,7 @@ slot_info (if at least one slot renamed, list, [AnsibleMapping([('ChassisId', 10
   ``NOTE`` Only the slots which were renamed are listed.
 
 
-rename_failed_slots (if at least one slot renaming fails, list, [AnsibleMapping([('ChassisId', '12345'), ('ChassisName', 'MX-ABCD123'), ('ChassisServiceTag', 'ABCD123'), ('DeviceType', '4000'), ('JobId', 1234), ('JobStatus', 'Aborted'), ('SlotId', '10061'), ('SlotName', 'c2'), ('SlotNumber', '1'), ('SlotType', '4000')]), AnsibleMapping([('ChassisId', '10053'), ('ChassisName', 'MX-PQRS123'), ('ChassisServiceTag', 'PQRS123'), ('DeviceType', '1000'), ('JobId', 0), ('JobStatus', 'HTTP Error 400: Bad Request'), ('SlotId', '10069'), ('SlotName', 'b2'), ('SlotNumber', '3'), ('SlotType', '2000')])])
+rename_failed_slots (if at least one slot renaming fails, list, [{'ChassisId': '12345', 'ChassisName': 'MX-ABCD123', 'ChassisServiceTag': 'ABCD123', 'DeviceType': '4000', 'JobId': 1234, 'JobStatus': 'Aborted', 'SlotId': '10061', 'SlotName': 'c2', 'SlotNumber': '1', 'SlotType': '4000'}, {'ChassisId': '10053', 'ChassisName': 'MX-PQRS123', 'ChassisServiceTag': 'PQRS123', 'DeviceType': '1000', 'JobId': 0, 'JobStatus': 'HTTP Error 400: Bad Request', 'SlotId': '10069', 'SlotName': 'b2', 'SlotNumber': '3', 'SlotType': '2000'}])
   Information of the valid slots that are not renamed.
 
   ``JobStatus`` is shown if rename job fails.
@@ -208,7 +208,7 @@ rename_failed_slots (if at least one slot renaming fails, list, [AnsibleMapping(
   ``NOTE`` Only slots which were not renamed are listed.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CGEN1014'), ('RelatedProperties', []), ('Message', 'Unable to complete the operation because an invalid value is entered for the property Invalid json type: STRING for Edm.Int64 property: Id .'), ('MessageArgs', ['Invalid json type: STRING for Edm.Int64 property: Id']), ('Severity', 'Critical'), ('Resolution', "Enter a valid value for the property and retry the operation. For more information about valid values, see the OpenManage Enterprise-Modular User's Guide available on the support site.")])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CGEN1014', 'RelatedProperties': [], 'Message': 'Unable to complete the operation because an invalid value is entered for the property Invalid json type: STRING for Edm.Int64 property: Id .', 'MessageArgs': ['Invalid json type: STRING for Edm.Int64 property: Id'], 'Severity': 'Critical', 'Resolution': "Enter a valid value for the property and retry the operation. For more information about valid values, see the OpenManage Enterprise-Modular User's Guide available on the support site."}]}})
   Details of the HTTP Error.
 
 
