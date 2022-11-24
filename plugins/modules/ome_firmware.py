@@ -61,6 +61,7 @@ options:
       - This is applicable to I(device_service_tag), I(device_id), and I(baseline_name).
     type: list
     elements: str
+    default: []
   devices:
     description:
       - This option allows to select components on each device for firmware update.
@@ -81,6 +82,7 @@ options:
       components:
         description: The target components to be updated. If not specified, all applicable device components are considered.
         type: list
+        default: []
         elements: str
   schedule:
     type: str
