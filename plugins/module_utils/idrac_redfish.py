@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Dell EMC OpenManage Ansible Modules
-# Version 5.5.0
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,

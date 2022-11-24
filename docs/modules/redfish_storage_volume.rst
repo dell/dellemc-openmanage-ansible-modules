@@ -252,11 +252,11 @@ msg (always, str, Successfully submitted create volume task.)
   Overall status of the storage configuration operation.
 
 
-task (success, dict, AnsibleMapping([('id', 'JID_XXXXXXXXXXXXX'), ('uri', '/redfish/v1/TaskService/Tasks/JID_XXXXXXXXXXXXX')]))
+task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/TaskService/Tasks/JID_XXXXXXXXXXXXX'})
   Returns ID and URI of the created task.
 
 
-error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to perform configuration operations because a configuration job for the device already exists.'), ('MessageArgs', []), ('MessageArgs@odata.count', 0), ('MessageId', 'IDRAC.1.6.STOR023'), ('RelatedProperties', []), ('RelatedProperties@odata.count', 0), ('Resolution', 'Wait for the current job for the device to complete or cancel the current job before attempting more configuration operations on the device.'), ('Severity', 'Informational')])]), ('code', 'Base.1.2.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information')]))]))
+error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to perform configuration operations because a configuration job for the device already exists.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'IDRAC.1.6.STOR023', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'Wait for the current job for the device to complete or cancel the current job before attempting more configuration operations on the device.', 'Severity': 'Informational'}], 'code': 'Base.1.2.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
   Details of a http error.
 
 

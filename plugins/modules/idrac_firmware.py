@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 5.1.0
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -72,15 +72,54 @@ options:
           - Packages that do not require a reboot are applied immediately irrespective of I (reboot).
         type: bool
         default: False
+    proxy_support:
+        description:
+          - Specifies if a proxy should be used.
+          - Proxy parameters are applicable on C(HTTP), C(HTTPS), and C(FTP) share type of repositories.
+          - C(ParametersProxy), sets the proxy parameters for the current firmware operation.
+          - C(DefaultProxy), iDRAC uses the proxy values set by default.
+          - Default Proxy can be set in the Lifecycle Controller attributes using M(dellemc.openmanage.idrac_attributes).
+          - C(Off), will not use the proxy.
+          - For iDRAC7 and iDRAC8 based servers, use proxy server with basic authentication.
+          - "For iDRAC9 based servers, ensure that you use digest authentication for the proxy server,
+          basic authentication is not supported."
+        choices: ["ParametersProxy", "DefaultProxy", "Off"]
+        type: str
+        default: "Off"
+    proxy_server:
+        description:
+          - The IP address of the proxy server.
+          - "This IP will not be validated. The download job will be created even for invalid I(proxy_server).
+          Please check the results of the job for error details."
+          - This is required when I(proxy_support) is C(ParametersProxy).
+        type: str
+    proxy_port:
+        description:
+          - The Port for the proxy server.
+          - This is required when I(proxy_support) is C(ParametersProxy).
+        type: int
+    proxy_type:
+        description:
+          - The proxy type of the proxy server.
+          - This is required when I(proxy_support) is C(ParametersProxy).
+        choices: [HTTP, SOCKS]
+        type: str
+    proxy_uname:
+        description: The user name for the proxy server.
+        type: str
+    proxy_passwd:
+        description: The password for the proxy server.
+        type: str
 
 requirements:
-    - "omsdk >= 1.2.488"
+    - "omsdk >= 1.2.502"
     - "python >= 3.8.6"
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Felix Stephen (@felixs88)"
+    - "Jagadeesh N V (@jagadeeshnv)"
 notes:
-    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - Run this module from a system that has direct access to Dell iDRAC.
     - Module will report success based on the iDRAC firmware update parent job status if there are no individual
         component jobs present.
     - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the
@@ -138,13 +177,30 @@ EXAMPLES = """
        job_wait: True
        apply_update: True
 
+- name: Update firmware from repository on a HTTPS via proxy
+  dellemc.openmanage.idrac_firmware:
+       idrac_ip: "192.168.0.1"
+       idrac_user: "user_name"
+       idrac_password: "user_password"
+       ca_path: "/path/to/ca_cert.pem"
+       share_name: "https://downloads.dell.com"
+       reboot: True
+       job_wait: True
+       apply_update: True
+       proxy_support: ParametersProxy
+       proxy_server: 192.168.1.10
+       proxy_type: HTTP
+       proxy_port: 80
+       proxy_uname: "proxy_user"
+       proxy_passwd: "proxy_pwd"
+
 - name: Update firmware from repository on a FTP
   dellemc.openmanage.idrac_firmware:
        idrac_ip: "192.168.0.1"
        idrac_user: "user_name"
        idrac_password: "user_password"
        ca_path: "/path/to/ca_cert.pem"
-       share_name: "ftp://ftp.dell.com"
+       share_name: "ftp://ftp.mydomain.com"
        reboot: True
        job_wait: True
        apply_update: True
@@ -176,6 +232,7 @@ update_status:
 import os
 import json
 import time
+import socket
 from ssl import SSLError
 from xml.etree import ElementTree as ET
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
@@ -195,6 +252,7 @@ except ImportError:
 SHARE_TYPE = {'nfs': 'NFS', 'cifs': 'CIFS', 'ftp': 'FTP',
               'http': 'HTTP', 'https': 'HTTPS', 'tftp': 'TFTP'}
 CERT_WARN = {True: 'On', False: 'Off'}
+PROXY_SUPPORT = {"DefaultProxy": "Use_Default_Settings", "Off": "Off", "ParametersProxy": "Use_Custom_Settings"}
 IDRAC_PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService"
 PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/DellSoftwareInstallationService/Actions/" \
        "DellSoftwareInstallationService.InstallFromRepository"
@@ -202,6 +260,9 @@ GET_REPO_BASED_UPDATE_LIST_PATH = "/redfish/v1/Dell/Systems/System.Embedded.1/De
                                   "Actions/DellSoftwareInstallationService.GetRepoBasedUpdateList"
 JOB_URI = "/redfish/v1/JobService/Jobs/{job_id}"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+LOG_SERVICE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog"
+iDRAC9_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
+iDRAC8_LC_LOG = "/redfish/v1/Managers/iDRAC.Embedded.1/Logs/Lclog"
 MESSAGE = "Firmware versions on server match catalog, applicable updates are not present in the repository."
 EXIT_MESSAGE = "The catalog in the repository specified in the operation has the same firmware versions " \
                "as currently present on the server."
@@ -345,16 +406,59 @@ def handle_HTTP_error(module, httperr):
         module.fail_json(msg=err_message)
 
 
-def update_firmware_url_redfish(module, idrac, share_name, apply_update, reboot, job_wait, payload, repo_urls):
+def get_error_syslog(idrac, curr_time, uri):
+    error_log_found = False
+    msg = None
+    # 'SYS226' Unable to transfer a file, Catalog/Catalog.xml, because of the
+    # reason described by the code 404 sent by the HTTP remote host server.
+    # 'SYS252' Unable to transfer a file, Catalog/Catalog.xml, because the file is
+    # not available at the remote host location.
+    # 'SYS261' Unable to transfer the file, Catalog/catalog.xml, because initial network
+    # connection to the remote host server is not successfully started.
+    error_log_ids = ['SYS229', 'SYS227', 'RED132', 'JCP042', 'RED068', 'RED137']
+    intrvl = 5
+    retries = 60 // intrvl
+    try:
+        if not curr_time:
+            resp = idrac.invoke_request(LOG_SERVICE_URI, "GET")
+            uri = resp.json_data.get('Entries').get('@odata.id')
+            curr_time = resp.json_data.get('DateTime')
+        fltr = "?$filter=Created%20ge%20'{0}'".format(curr_time)
+        fltr_uri = "{0}{1}".format(uri, fltr)
+        while retries:
+            resp = idrac.invoke_request(fltr_uri, "GET")
+            logs_list = resp.json_data.get("Members")
+            for log in logs_list:
+                for err_id in error_log_ids:
+                    if err_id in log.get('MessageId'):
+                        error_log_found = True
+                        msg = log.get('Message')
+                        break
+                if msg or error_log_found:
+                    break
+            if msg or error_log_found:
+                break
+            retries = retries - 1
+            time.sleep(intrvl)
+        else:
+            msg = "No Error log found."
+            error_log_found = False
+    except Exception as ex:
+        msg = "No Error log found."
+        error_log_found = False
+    return error_log_found, msg
+
+
+def update_firmware_url_redfish(module, idrac, share_path, apply_update, reboot, job_wait, payload, repo_urls):
     """Update firmware through HTTP/HTTPS/FTP and return the job details."""
-    repo_url = urlparse(share_name)
+    repo_url = urlparse(share_path)
     job_details, status = {}, {}
     ipaddr = repo_url.netloc
     share_type = repo_url.scheme
     sharename = repo_url.path.strip('/')
-    payload['IPAddress'] = ipaddr
     if repo_url.path:
         payload['ShareName'] = sharename
+    payload['IPAddress'] = ipaddr
     payload['ShareType'] = SHARE_TYPE[share_type]
     install_url = PATH
     get_repo_url = GET_REPO_BASED_UPDATE_LIST_PATH
@@ -363,8 +467,18 @@ def update_firmware_url_redfish(module, idrac, share_name, apply_update, reboot,
         install_url = actions.get("#DellSoftwareInstallationService.InstallFromRepository", {}).get("target", PATH)
         get_repo_url = actions.get("#DellSoftwareInstallationService.GetRepoBasedUpdateList", {}).\
             get("target", GET_REPO_BASED_UPDATE_LIST_PATH)
+    try:
+        log_resp = idrac.invoke_request(LOG_SERVICE_URI, "GET")
+        log_uri = log_resp.json_data.get('Entries').get('@odata.id')
+        curr_time = log_resp.json_data.get('DateTime')
+    except Exception:
+        log_uri = iDRAC9_LC_LOG
+        curr_time = None
     resp = idrac.invoke_request(install_url, method="POST", data=payload)
+    error_log_found, msg = get_error_syslog(idrac, curr_time, log_uri)
     job_id = get_jobid(module, resp)
+    if error_log_found:
+        module.exit_json(msg=msg, failed=True, job_id=job_id)
     resp, msg = wait_for_job_completion(module, JOB_URI.format(job_id=job_id), job_wait, reboot, apply_update)
     if not msg:
         status = resp.json_data
@@ -388,17 +502,25 @@ def update_firmware_url_omsdk(module, idrac, share_name, catalog_file_name, appl
     ipaddr = repo_url.netloc
     share_type = repo_url.scheme
     sharename = repo_url.path.strip('/')
+    proxy_support = PROXY_SUPPORT[module.params["proxy_support"]]
+    proxy_type = module.params.get("proxy_type") if module.params.get("proxy_type") is not None else "HTTP"
+    proxy_server = module.params.get("proxy_server") if module.params.get("proxy_server") is not None else ""
+    proxy_port = module.params.get("proxy_port") if module.params.get("proxy_port") is not None else 80
+    proxy_uname = module.params.get("proxy_uname")
+    proxy_passwd = module.params.get("proxy_passwd")
     if ipaddr == "downloads.dell.com":
-        status = idrac.update_mgr.update_from_dell_repo_url(ipaddress=ipaddr, share_type=share_type,
-                                                            share_name=sharename, catalog_file=catalog_file_name,
-                                                            apply_update=apply_update, reboot_needed=reboot,
-                                                            ignore_cert_warning=ignore_cert_warning, job_wait=job_wait)
+        status = idrac.update_mgr.update_from_dell_repo_url(
+            ipaddress=ipaddr, share_type=share_type, share_name=sharename, catalog_file=catalog_file_name,
+            apply_update=apply_update, reboot_needed=reboot, ignore_cert_warning=ignore_cert_warning, job_wait=job_wait,
+            proxy_support=proxy_support, proxy_type=proxy_type, proxy_server=proxy_server, proxy_port=proxy_port,
+            proxy_uname=proxy_uname, proxy_passwd=proxy_passwd)
         get_check_mode_status(status, module)
     else:
-        status = idrac.update_mgr.update_from_repo_url(ipaddress=ipaddr, share_type=share_type,
-                                                       share_name=sharename, catalog_file=catalog_file_name,
-                                                       apply_update=apply_update, reboot_needed=reboot,
-                                                       ignore_cert_warning=ignore_cert_warning, job_wait=job_wait)
+        status = idrac.update_mgr.update_from_repo_url(
+            ipaddress=ipaddr, share_type=share_type, share_name=sharename, catalog_file=catalog_file_name,
+            apply_update=apply_update, reboot_needed=reboot, ignore_cert_warning=ignore_cert_warning, job_wait=job_wait,
+            proxy_support=proxy_support, proxy_type=proxy_type, proxy_server=proxy_server,
+            proxy_port=proxy_port, proxy_uname=proxy_uname, proxy_passwd=proxy_passwd)
         get_check_mode_status(status, module)
     return status, job_details
 
@@ -434,8 +556,8 @@ def update_firmware_omsdk(idrac, module):
             upd_share = FileOnShare(remote="{0}{1}{2}".format(share_name, os.sep, catalog_file_name),
                                     mount_point=module.params['share_mnt'], isFolder=False,
                                     creds=UserCredentials(share_user, share_pwd))
-            msg['update_status'] = idrac.update_mgr.update_from_repo(upd_share, apply_update=apply_update,
-                                                                     reboot_needed=reboot, job_wait=job_wait)
+            msg['update_status'] = idrac.update_mgr.update_from_repo(
+                upd_share, apply_update=apply_update, reboot_needed=reboot, job_wait=job_wait,)
             get_check_mode_status(msg['update_status'], module)
 
         json_data, repo_status, failed = msg['update_status']['job_details'], False, False
@@ -512,6 +634,20 @@ def update_firmware_redfish(idrac, module, repo_urls):
             payload['Password'] = share_pwd
 
         if share_name.lower().startswith(('http://', 'https://', 'ftp://')):
+            proxy = module.params.get("proxy_support")
+            if proxy == "ParametersProxy":
+                proxy_dict = {"proxy_server": "ProxyServer",
+                              "proxy_port": "ProxyPort",
+                              "proxy_support": "ProxySupport",
+                              "proxy_type": "ProxyType",
+                              "proxy_uname": "ProxyUname",
+                              "proxy_passwd": "ProxyPasswd"}
+                for pk, pv in proxy_dict.items():
+                    prm = module.params.get(pk)
+                    if prm is not None:
+                        payload[pv] = prm
+            elif proxy == "DefaultProxy":
+                payload["ProxySupport"] = module.params.get("proxy_support")
             msg['update_status'], job_details = update_firmware_url_redfish(
                 module, idrac, share_name, apply_update, reboot, job_wait, payload, repo_urls)
             if job_details:
@@ -596,19 +732,30 @@ def update_firmware_redfish(idrac, module, repo_urls):
 def main():
     specs = {
         "share_name": {"required": True, "type": 'str'},
-        "share_user": {"required": False, "type": 'str'},
-        "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
-        "share_mnt": {"required": False, "type": 'str'},
+        "share_user": {"type": 'str'},
+        "share_password": {"type": 'str', "aliases": ['share_pwd'], "no_log": True},
+        "share_mnt": {"type": 'str'},
 
-        "catalog_file_name": {"required": False, "type": 'str', "default": "Catalog.xml"},
-        "reboot": {"required": False, "type": 'bool', "default": False},
-        "job_wait": {"required": False, "type": 'bool', "default": True},
-        "ignore_cert_warning": {"required": False, "type": 'bool', "default": True},
-        "apply_update": {"required": False, "type": 'bool', "default": True},
+        "catalog_file_name": {"type": 'str', "default": "Catalog.xml"},
+        "reboot": {"type": 'bool', "default": False},
+        "job_wait": {"type": 'bool', "default": True},
+        "ignore_cert_warning": {"type": 'bool', "default": True},
+        "apply_update": {"type": 'bool', "default": True},
+        # proxy params
+        "proxy_support": {"default": 'Off', "type": 'str', "choices": ["Off", "ParametersProxy", "DefaultProxy"]},
+        "proxy_type": {"type": 'str', "choices": ["HTTP", "SOCKS"]},
+        "proxy_server": {"type": 'str'},
+        "proxy_port": {"type": 'int'},
+        "proxy_uname": {"type": 'str'},
+        "proxy_passwd": {"type": 'str', "no_log": True},
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
+        required_if=[
+            # ['proxy_type', 'SOCKS', ('proxy_port',)],
+            ['proxy_support', 'ParametersProxy', ('proxy_server', 'proxy_type', 'proxy_port',)],
+        ],
         supports_check_mode=True)
 
     redfish_check = False

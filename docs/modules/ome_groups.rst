@@ -122,10 +122,10 @@ Notes
 -----
 
 .. note::
-   - This module manages only static device groups on Dell EMC OpenManage Enterprise.
+   - This module manages only static device groups on Dell OpenManage Enterprise.
    - If a device group with the name *parent_group_name* does not exist, a new device group with the same name is created.
    - Make sure the entered parent group is not the descendant of the provided group.
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports ``check_mode``.
 
 
@@ -187,7 +187,7 @@ msg (always, str, Successfully deleted the device group(s).)
   Overall status of the device group operation.
 
 
-group_status (success, dict, AnsibleMapping([('Description', 'my group description'), ('Id', 12123), ('MembershipTypeId', 12), ('Name', 'group 1'), ('ParentId', 12345), ('TypeId', 3000), ('IdOwner', 30), ('CreatedBy', 'admin'), ('CreationTime', '2021-01-01 10:10:10.100'), ('DefinitionDescription', 'UserDefined'), ('DefinitionId', 400), ('GlobalStatus', 5000), ('HasAttributes', False), ('UpdatedBy', ''), ('UpdatedTime', '2021-01-01 11:11:10.100'), ('Visible', True)]))
+group_status (success, dict, {'Description': 'my group description', 'Id': 12123, 'MembershipTypeId': 12, 'Name': 'group 1', 'ParentId': 12345, 'TypeId': 3000, 'IdOwner': 30, 'CreatedBy': 'admin', 'CreationTime': '2021-01-01 10:10:10.100', 'DefinitionDescription': 'UserDefined', 'DefinitionId': 400, 'GlobalStatus': 5000, 'HasAttributes': False, 'UpdatedBy': '', 'UpdatedTime': '2021-01-01 11:11:10.100', 'Visible': True})
   Details of the device group operation status.
 
 
@@ -199,7 +199,7 @@ invalid_groups (when I(state) is C(absent), list, [1234, 5678])
   List of the invalid device group IDs or names.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CGRP9013'), ('RelatedProperties', []), ('Message', 'Unable to update group  12345  with the provided parent  54321  because a group/parent relationship already exists.'), ('MessageArgs', ['12345', '54321']), ('Severity', 'Warning'), ('Resolution', 'Make sure the entered parent ID does not create a bidirectional relationship and retry the operation.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CGRP9013', 'RelatedProperties': [], 'Message': 'Unable to update group  12345  with the provided parent  54321  because a group/parent relationship already exists.', 'MessageArgs': ['12345', '54321'], 'Severity': 'Warning', 'Resolution': 'Make sure the entered parent ID does not create a bidirectional relationship and retry the operation.'}]}})
   Details of the HTTP Error.
 
 

@@ -100,7 +100,7 @@ Notes
 
 .. note::
    - The module will always report change when *enable_authentication* is ``True``.
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise or OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - This module support ``check_mode``.
 
 
@@ -146,11 +146,11 @@ msg (always, str, Successfully updated the SMTP settings.)
   Overall status of the SMTP settings update.
 
 
-smtp_details (success, dict, AnsibleMapping([('DestinationAddress', 'localhost'), ('PortNumber', 25), ('UseCredentials', True), ('UseSSL', False), ('Credential', AnsibleMapping([('User', 'admin'), ('Password', None)]))]))
+smtp_details (success, dict, {'DestinationAddress': 'localhost', 'PortNumber': 25, 'UseCredentials': True, 'UseSSL': False, 'Credential': {'User': 'admin', 'Password': None}})
   returned when SMTP settings are updated successfully.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'CAPP1106'), ('RelatedProperties', []), ('Message', 'Unable to update the SMTP settings because the entered credential is invalid or empty.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Either enter valid credentials or disable the Use Credentials option and retry the operation.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CAPP1106', 'RelatedProperties': [], 'Message': 'Unable to update the SMTP settings because the entered credential is invalid or empty.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Either enter valid credentials or disable the Use Credentials option and retry the operation.'}]}})
   Details of the HTTP Error.
 
 

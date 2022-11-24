@@ -70,7 +70,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports ``check_mode``.
 
 
@@ -107,7 +107,7 @@ msg (on error, str, Successfully fetched firmware baseline information.)
   Overall baseline information.
 
 
-baseline_info (success, dict, AnsibleMapping([('@odata.id', '/api/UpdateService/Baselines(239)'), ('@odata.type', '#UpdateService.Baselines'), ('CatalogId', 22), ('ComplianceSummary', AnsibleMapping([('ComplianceStatus', 'CRITICAL'), ('NumberOfCritical', 1), ('NumberOfDowngrade', 0), ('NumberOfNormal', 0), ('NumberOfWarning', 0)])), ('Description', 'baseline_description'), ('DeviceComplianceReports@odata.navigationLink', '/api/UpdateService/Baselines(239)/DeviceComplianceReports'), ('DowngradeEnabled', True), ('Id', 239), ('Is64Bit', True), ('LastRun', '2020-05-22 16:42:40.307'), ('Name', 'baseline_name'), ('RepositoryId', 12), ('RepositoryName', 'HTTP DELL'), ('RepositoryType', 'DELL_ONLINE'), ('Targets', [AnsibleMapping([('Id', 10342), ('Type', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))])]), ('TaskId', 41415), ('TaskStatusId', 2060)]))
+baseline_info (success, dict, {'@odata.id': '/api/UpdateService/Baselines(239)', '@odata.type': '#UpdateService.Baselines', 'CatalogId': 22, 'ComplianceSummary': {'ComplianceStatus': 'CRITICAL', 'NumberOfCritical': 1, 'NumberOfDowngrade': 0, 'NumberOfNormal': 0, 'NumberOfWarning': 0}, 'Description': 'baseline_description', 'DeviceComplianceReports@odata.navigationLink': '/api/UpdateService/Baselines(239)/DeviceComplianceReports', 'DowngradeEnabled': True, 'Id': 239, 'Is64Bit': True, 'LastRun': '2020-05-22 16:42:40.307', 'Name': 'baseline_name', 'RepositoryId': 12, 'RepositoryName': 'HTTP DELL', 'RepositoryType': 'DELL_ONLINE', 'Targets': [{'Id': 10342, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}], 'TaskId': 41415, 'TaskStatusId': 2060})
   Details of the baselines.
 
 

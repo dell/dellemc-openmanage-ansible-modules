@@ -78,7 +78,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -118,11 +118,11 @@ msg (always, str, Port breakout configuration job submitted successfully.)
   Overall status of the port configuration.
 
 
-breakout_status (success, dict, AnsibleMapping([('Builtin', False), ('CreatedBy', 'root'), ('Editable', True), ('EndTime', None), ('Id', 11111), ('JobDescription', ''), ('JobName', 'Breakout Port'), ('JobStatus', AnsibleMapping([('Id', 1112), ('Name', 'New')])), ('JobType', AnsibleMapping([('Id', 3), ('Internal', False), ('Name', 'DeviceAction_Task')])), ('LastRun', None), ('LastRunStatus', AnsibleMapping([('Id', 1113), ('Name', 'NotRun')])), ('NextRun', None), ('Params', [AnsibleMapping([('JobId', 11111), ('Key', 'operationName'), ('Value', 'CONFIGURE_PORT_BREAK_OUT')]), AnsibleMapping([('JobId', 11111), ('Key', 'interfaceId'), ('Value', '2HB7NX2:phy-port1/1/11')]), AnsibleMapping([('JobId', 11111), ('Key', 'breakoutType'), ('Value', '1X40GE')])]), ('Schedule', 'startnow'), ('StartTime', None), ('State', 'Enabled'), ('Targets', [AnsibleMapping([('Data', ''), ('Id', 11112), ('JobId', 34206), ('TargetType', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))])]), ('UpdatedBy', None), ('UserGenerated', True), ('Visible', True)]))
+breakout_status (success, dict, {'Builtin': False, 'CreatedBy': 'root', 'Editable': True, 'EndTime': None, 'Id': 11111, 'JobDescription': '', 'JobName': 'Breakout Port', 'JobStatus': {'Id': 1112, 'Name': 'New'}, 'JobType': {'Id': 3, 'Internal': False, 'Name': 'DeviceAction_Task'}, 'LastRun': None, 'LastRunStatus': {'Id': 1113, 'Name': 'NotRun'}, 'NextRun': None, 'Params': [{'JobId': 11111, 'Key': 'operationName', 'Value': 'CONFIGURE_PORT_BREAK_OUT'}, {'JobId': 11111, 'Key': 'interfaceId', 'Value': '2HB7NX2:phy-port1/1/11'}, {'JobId': 11111, 'Key': 'breakoutType', 'Value': '1X40GE'}], 'Schedule': 'startnow', 'StartTime': None, 'State': 'Enabled', 'Targets': [{'Data': '', 'Id': 11112, 'JobId': 34206, 'TargetType': {'Id': 1000, 'Name': 'DEVICE'}}], 'UpdatedBy': None, 'UserGenerated': True, 'Visible': True})
   Details of the OpenManage Enterprise jobs.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

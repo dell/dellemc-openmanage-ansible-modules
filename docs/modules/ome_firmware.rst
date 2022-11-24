@@ -61,7 +61,7 @@ Parameters
     This option is mutually exclusive with *dup_file* and *device_group_names*.
 
 
-  components (optional, list, None)
+  components (optional, list, [])
     List of components to be updated.
 
     If not provided, all components applicable are considered.
@@ -89,7 +89,7 @@ Parameters
       This option is mutually exclusive with *id*.
 
 
-    components (optional, list, None)
+    components (optional, list, [])
       The target components to be updated. If not specified, all applicable device components are considered.
 
 
@@ -141,7 +141,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports ``check_mode``.
 
 
@@ -296,11 +296,11 @@ msg (always, str, Successfully submitted the firmware update job.)
   Overall firmware update status.
 
 
-update_status (success, dict, AnsibleMapping([('LastRun', 'None'), ('CreatedBy', 'user'), ('Schedule', 'startnow'), ('LastRunStatus', AnsibleMapping([('Id', 1111), ('Name', 'NotRun')])), ('Builtin', False), ('Editable', True), ('NextRun', 'None'), ('JobStatus', AnsibleMapping([('Id', 1111), ('Name', 'New')])), ('JobName', 'Firmware Update Task'), ('Visible', True), ('State', 'Enabled'), ('JobDescription', 'dup test'), ('Params', [AnsibleMapping([('Value', 'true'), ('Key', 'signVerify'), ('JobId', 11111)]), AnsibleMapping([('Value', 'false'), ('Key', 'stagingValue'), ('JobId', 11112)]), AnsibleMapping([('Value', 'false'), ('Key', 'complianceUpdate'), ('JobId', 11113)]), AnsibleMapping([('Value', 'INSTALL_FIRMWARE'), ('Key', 'operationName'), ('JobId', 11114)])]), ('Targets', [AnsibleMapping([('TargetType', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')])), ('Data', 'DCIM:INSTALLED#701__NIC.Mezzanine.1A-1-1=1234567654321'), ('Id', 11115), ('JobId', 11116)])]), ('StartTime', 'None'), ('UpdatedBy', 'None'), ('EndTime', 'None'), ('Id', 11117), ('JobType', AnsibleMapping([('Internal', False), ('Id', 5), ('Name', 'Update_Task')]))]))
+update_status (success, dict, {'LastRun': 'None', 'CreatedBy': 'user', 'Schedule': 'startnow', 'LastRunStatus': {'Id': 1111, 'Name': 'NotRun'}, 'Builtin': False, 'Editable': True, 'NextRun': 'None', 'JobStatus': {'Id': 1111, 'Name': 'New'}, 'JobName': 'Firmware Update Task', 'Visible': True, 'State': 'Enabled', 'JobDescription': 'dup test', 'Params': [{'Value': 'true', 'Key': 'signVerify', 'JobId': 11111}, {'Value': 'false', 'Key': 'stagingValue', 'JobId': 11112}, {'Value': 'false', 'Key': 'complianceUpdate', 'JobId': 11113}, {'Value': 'INSTALL_FIRMWARE', 'Key': 'operationName', 'JobId': 11114}], 'Targets': [{'TargetType': {'Id': 1000, 'Name': 'DEVICE'}, 'Data': 'DCIM:INSTALLED#701__NIC.Mezzanine.1A-1-1=1234567654321', 'Id': 11115, 'JobId': 11116}], 'StartTime': 'None', 'UpdatedBy': 'None', 'EndTime': 'None', 'Id': 11117, 'JobType': {'Internal': False, 'Id': 5, 'Name': 'Update_Task'}})
   The firmware update job and progress details from the OME.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

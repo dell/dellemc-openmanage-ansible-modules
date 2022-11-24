@@ -26,7 +26,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk >= 1.2.488
+- omsdk >= 1.2.502
 - python >= 3.8.6
 
 
@@ -80,6 +80,52 @@ Parameters
     Packages that do not require a reboot are applied immediately irrespective of I (reboot).
 
 
+  proxy_support (optional, str, Off)
+    Specifies if a proxy should be used.
+
+    Proxy parameters are applicable on ``HTTP``, ``HTTPS``, and ``FTP`` share type of repositories.
+
+    ``ParametersProxy``, sets the proxy parameters for the current firmware operation.
+
+    ``DefaultProxy``, iDRAC uses the proxy values set by default.
+
+    Default Proxy can be set in the Lifecycle Controller attributes using :ref:`dellemc.openmanage.idrac_attributes <dellemc.openmanage.idrac_attributes_module>`.
+
+    ``Off``, will not use the proxy.
+
+    For iDRAC7 and iDRAC8 based servers, use proxy server with basic authentication.
+
+    For iDRAC9 based servers, ensure that you use digest authentication for the proxy server, basic authentication is not supported.
+
+
+  proxy_server (optional, str, None)
+    The IP address of the proxy server.
+
+    This IP will not be validated. The download job will be created even for invalid *proxy_server*. Please check the results of the job for error details.
+
+    This is required when *proxy_support* is ``ParametersProxy``.
+
+
+  proxy_port (optional, int, None)
+    The Port for the proxy server.
+
+    This is required when *proxy_support* is ``ParametersProxy``.
+
+
+  proxy_type (optional, str, None)
+    The proxy type of the proxy server.
+
+    This is required when *proxy_support* is ``ParametersProxy``.
+
+
+  proxy_uname (optional, str, None)
+    The user name for the proxy server.
+
+
+  proxy_passwd (optional, str, None)
+    The password for the proxy server.
+
+
   idrac_ip (True, str, None)
     iDRAC IP Address.
 
@@ -119,7 +165,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - Module will report success based on the iDRAC firmware update parent job status if there are no individual component jobs present.
    - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the module will return success with a proper message.
    - This module supports ``check_mode``.
@@ -182,13 +228,30 @@ Examples
            job_wait: True
            apply_update: True
 
+    - name: Update firmware from repository on a HTTPS via proxy
+      dellemc.openmanage.idrac_firmware:
+           idrac_ip: "192.168.0.1"
+           idrac_user: "user_name"
+           idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
+           share_name: "https://downloads.dell.com"
+           reboot: True
+           job_wait: True
+           apply_update: True
+           proxy_support: ParametersProxy
+           proxy_server: 192.168.1.10
+           proxy_type: HTTP
+           proxy_port: 80
+           proxy_uname: "proxy_user"
+           proxy_passwd: "proxy_pwd"
+
     - name: Update firmware from repository on a FTP
       dellemc.openmanage.idrac_firmware:
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
-           share_name: "ftp://ftp.dell.com"
+           share_name: "ftp://ftp.mydomain.com"
            reboot: True
            job_wait: True
            apply_update: True
@@ -202,7 +265,7 @@ msg (always, str, Successfully updated the firmware.)
   Overall firmware update status.
 
 
-update_status (success, dict, AnsibleMapping([('InstanceID', 'JID_XXXXXXXXXXXX'), ('JobState', 'Completed'), ('Message', 'Job completed successfully.'), ('MessageId', 'REDXXX'), ('Name', 'Repository Update'), ('JobStartTime', 'NA'), ('Status', 'Success')]))
+update_status (success, dict, {'InstanceID': 'JID_XXXXXXXXXXXX', 'JobState': 'Completed', 'Message': 'Job completed successfully.', 'MessageId': 'REDXXX', 'Name': 'Repository Update', 'JobStartTime': 'NA', 'Status': 'Success'})
   Firmware Update job and progress details from the iDRAC.
 
 
@@ -221,4 +284,5 @@ Authors
 
 - Rajeev Arakkal (@rajeevarakkal)
 - Felix Stephen (@felixs88)
+- Jagadeesh N V (@jagadeeshnv)
 

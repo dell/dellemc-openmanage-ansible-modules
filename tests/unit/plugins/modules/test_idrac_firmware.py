@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 5.2.0
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -225,7 +225,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "shrmnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True,
-                                   "apply_update": True
+                                   "apply_update": True, "proxy_support": "Off",
                                    })
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
@@ -308,7 +308,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "sharemnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True,
-                                   "apply_update": True
+                                   "apply_update": True, "proxy_support": "Off",
                                    })
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
@@ -355,7 +355,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "sharemnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True,
-                                   "apply_update": True})
+                                   "apply_update": True, "proxy_support": "Off", })
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
                                                                                "body": {"PackageList": [{}]}}}}},
@@ -463,7 +463,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_mnt": "sharmnt",
                                    "reboot": True, "job_wait": False, "ignore_cert_warning": True,
                                    "share_type": "http", "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
-                                   "idrac_password": "idrac_password", "idrac_port": 443
+                                   "idrac_password": "idrac_password", "idrac_port": 443, "proxy_support": "Off",
                                    })
         mocker.patch(MODULE_PATH + "idrac_firmware.get_jobid",
                      return_value="23451")
@@ -516,7 +516,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_mnt": "sharmnt",
                                    "reboot": True, "job_wait": False, "ignore_cert_warning": True,
                                    "share_type": "http", "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
-                                   "idrac_password": "idrac_password", "idrac_port": 443
+                                   "idrac_password": "idrac_password", "idrac_port": 443, "proxy_support": "Off",
                                    })
         mocker.patch(MODULE_PATH + "idrac_firmware.get_jobid",
                      return_value="23451")
@@ -585,7 +585,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_mnt": "sharmnt", "apply_update": False,
                                    "reboot": False, "job_wait": True, "ignore_cert_warning": True,
                                    "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
-                                   "idrac_password": "idrac_password", "idrac_port": 443})
+                                   "idrac_password": "idrac_password", "idrac_port": 443, "proxy_support": "Off", })
         mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson", return_value=("INSTANCENAME", False, False))
         # mocker.patch(MODULE_PATH + "idrac_firmware.re")
         idrac_connection_firmware_redfish_mock.success = True

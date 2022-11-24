@@ -92,7 +92,7 @@ Parameters
 
     *job_wait* is not applicable. The module waits till the completion of this task.
 
-    This feature is deprecated, please use :ref:`idrac_boot <idrac_boot_module>` for configuring boot sources.
+    This feature is deprecated, please use :ref:`dellemc.openmanage.idrac_boot <dellemc.openmanage.idrac_boot_module>` for configuring boot sources.
 
 
   clear_pending (optional, bool, None)
@@ -128,7 +128,7 @@ Parameters
 
     ``graceful_restart`` Gracefully reboot the host system.
 
-    This is applicable for *attributes*, and *reset_bios*.
+    This is applicable for *reset_bios*, and *attributes* when *apply_time* is ``Immediate``.
 
 
   job_wait (optional, bool, True)
@@ -314,7 +314,7 @@ msg (success, dict, {'CompletionTime': '2020-04-20T18:50:20', 'Description': 'Jo
   Status of the job for *boot_sources* or status of the action performed on bios.
 
 
-invalid_attributes (on invalid attributes or values., dict, {'NumLock': 'Invalid value for Enumeration.', 'SystemModelName': 'Read only Attribute cannot be modified.', 'AlertPort': 'Not a valid integer.', 'AssetTag': 'Attribute does not exist.', 'PowerLogInterval': 'Integer out of valid range.', 'AirExhaustTemp': 'Invalid value for Enumeration.'})
+invalid_attributes (on invalid attributes or values., dict, {'PxeDev1VlanId': 'Not a valid integer.', 'AcPwrRcvryUserDelay': 'Integer out of valid range.', 'BootSeqRetry': 'Invalid value for Enumeration.', 'Proc1Brand': 'Read only Attribute cannot be modified.', 'AssetTag': 'Attribute does not exist.'})
   Dict of invalid attributes provided.
 
 

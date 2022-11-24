@@ -26,6 +26,6 @@ sections:
   - Bugfixes
 - - known_issues
   - Known Issues
-title: Dell EMC OpenManage Ansible Modules
+title: Dell OpenManage Ansible Modules
 trivial_section_name: trivial
 use_fqcn: true

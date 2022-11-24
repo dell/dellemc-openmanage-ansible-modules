@@ -1,5 +1,5 @@
 ### Overview
-Dell EMC OpenManage Ansible Modules unit test scripts are located under
+Dell OpenManage Ansible Modules unit test scripts are located under
  [unit](./tests/unit) directory.
 
 ### Implementing the unit tests
@@ -10,10 +10,10 @@ Any contribution must have an associated unit test. This section covers the
  addition to the tested module name. For example: test_ome_user
 
 ### Prerequisites
-* Dell EMC OpenManage collections - to install run `ansible-galaxy collection
+* Dell OpenManage collections - to install run `ansible-galaxy collection
  install dellemc.openmanage`
 * To run the unittest for iDRAC modules, install OpenManage Python Software Development Kit (OMSDK) using
-`pip install omsdk --upgrade` or from [Dell EMC OpenManage Python SDK](https://github.com/dell/omsdk)
+`pip install omsdk --upgrade` or from [Dell OpenManage Python SDK](https://github.com/dell/omsdk)
 
 ### Executing unit tests
 You can execute them manually by using any tool of your choice, like `pytest` or `ansible-test`.
@@ -21,7 +21,7 @@ You can execute them manually by using any tool of your choice, like `pytest` or
 #### Executing with `ansible-test`
 * Clone [Ansible repository](https://github.com/ansible/ansible) from GitHub to local $ANSIBLE_DIR.
 * Copy `compat` directory from the cloned repository path.
- `$ANSIBLE_DIR/test/units/` to the location of the installed Dell EMC OpenManage collection `$ANSIBLE_COLLECTIONS_PATHS/ansible_collections/dellemc/openmanage/tests/unit`.
+ `$ANSIBLE_DIR/test/units/` to the location of the installed Dell OpenManage collection `$ANSIBLE_COLLECTIONS_PATHS/ansible_collections/dellemc/openmanage/tests/unit`.
 * Copy `utils.py` file from `$ANSIBLE_DIR/test/units/modules` tests location to the location of the installed collection `$ANSIBLE_COLLECTIONS_PATHS/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules`
 * Edit the copied `utils.py` to refer the above `compat` package as below:
 ```python

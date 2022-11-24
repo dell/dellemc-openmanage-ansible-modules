@@ -1,9 +1,39 @@
-=================================================
-Dell EMC OpenManage Ansible Modules Release Notes
-=================================================
+=============================================
+Dell OpenManage Ansible Modules Release Notes
+=============================================
 
 .. contents:: Topics
 
+
+v7.0.0
+======
+
+Release Summary
+---------------
+
+Rebranded from Dell EMC to Dell, enhanced idrac_firmware module to support proxy, and added support to retrieve iDRAC local user details.
+
+Major Changes
+-------------
+
+- Rebranded from Dell EMC to Dell.
+- idrac_firmware - This module is enhanced to support proxy.
+- idrac_user_info - This module allows to retrieve iDRAC Local user information details.
+
+Known Issues
+------------
+
+- idrac_firmware - Issue(249879) - Firmware update of iDRAC9-based Servers fails if SOCKS proxy with authentication is used.
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_user_info - Retrieve iDRAC Local user details.
 
 v6.3.0
 ======
@@ -854,4 +884,4 @@ v2.1.0
 Release Summary
 ---------------
 
-The `Dell EMC OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_ are available on Ansible Galaxy as a collection.
+The `Dell OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_ are available on Ansible Galaxy as a collection.

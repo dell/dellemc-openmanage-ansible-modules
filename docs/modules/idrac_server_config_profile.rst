@@ -141,7 +141,7 @@ Notes
 
 .. note::
    - This module requires 'Administrator' privilege for *idrac_user*.
-   - Run this module from a system that has direct access to Dell EMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
    - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
 
@@ -360,11 +360,11 @@ msg (always, str, Successfully imported the Server Configuration Profile)
   Status of the import or export SCP job.
 
 
-scp_status (success, dict, AnsibleMapping([('Id', 'JID_XXXXXXXXX'), ('JobState', 'Completed'), ('JobType', 'ImportConfiguration'), ('Message', 'Successfully imported and applied Server Configuration Profile.'), ('MessageArgs', []), ('MessageId', 'XXX123'), ('Name', 'Import Configuration'), ('PercentComplete', 100), ('StartTime', 'TIME_NOW'), ('Status', 'Success'), ('TargetSettingsURI', None), ('retval', True)]))
+scp_status (success, dict, {'Id': 'JID_XXXXXXXXX', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageArgs': [], 'MessageId': 'XXX123', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
   SCP operation job and progress details from the iDRAC.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

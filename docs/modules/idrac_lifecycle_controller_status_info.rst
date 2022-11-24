@@ -12,7 +12,7 @@ idrac_lifecycle_controller_status_info -- Get the status of the Lifecycle Contro
 Synopsis
 --------
 
-This module shows the status of the Lifecycle Controller on a Dell EMC PowerEdge server.
+This module shows the status of the Lifecycle Controller on a Dell PowerEdge server.
 
 
 
@@ -67,7 +67,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
 
 
@@ -96,11 +96,11 @@ msg (always, str, Successfully fetched the lifecycle controller status.)
   Overall status of fetching lifecycle controller status.
 
 
-lc_status_info (success, dict, AnsibleMapping([('msg', AnsibleMapping([('LCReady', True), ('LCStatus', 'Ready')]))]))
-  Displays the status of the Lifecycle Controller on a Dell EMC PowerEdge server.
+lc_status_info (success, dict, {'msg': {'LCReady': True, 'LCStatus': 'Ready'}})
+  Displays the status of the Lifecycle Controller on a Dell PowerEdge server.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

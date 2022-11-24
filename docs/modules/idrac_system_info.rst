@@ -67,7 +67,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
 
 
@@ -96,11 +96,11 @@ msg (always, str, Successfully fetched the system inventory details.)
   Overall system inventory information status.
 
 
-system_info (success, dict, AnsibleMapping([('BIOS', [AnsibleMapping([('BIOSReleaseDate', '11/26/2019'), ('FQDD', 'BIOS.Setup.1-1'), ('InstanceID', 'DCIM:INSTALLED#741__BIOS.Setup.1-1'), ('Key', 'DCIM:INSTALLED#741__BIOS.Setup.1-1'), ('SMBIOSPresent', 'True'), ('VersionString', '2.4.8')])])]))
+system_info (success, dict, {'BIOS': [{'BIOSReleaseDate': '11/26/2019', 'FQDD': 'BIOS.Setup.1-1', 'InstanceID': 'DCIM:INSTALLED#741__BIOS.Setup.1-1', 'Key': 'DCIM:INSTALLED#741__BIOS.Setup.1-1', 'SMBIOSPresent': 'True', 'VersionString': '2.4.8'}]})
   Details of the PowerEdge Server System Inventory.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 
