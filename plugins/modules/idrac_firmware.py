@@ -112,7 +112,7 @@ options:
         type: str
 
 requirements:
-    - "omsdk >= 1.2.502"
+    - "omsdk >= 1.2.503"
     - "python >= 3.8.6"
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
