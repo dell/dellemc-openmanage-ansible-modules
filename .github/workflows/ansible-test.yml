@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.10, stable-2.11, stable-2.12, stable-2.13]
+        ansible-version: [stable-2.10, stable-2.11, stable-2.12, stable-2.13, stable-2.14]
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -26,7 +26,7 @@ jobs:
           python-version: 3.9
 
       - name: Install ansible (${{ matrix.ansible-version }})
-        run: pip install pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
 
       - name: Build a collection tarball
         run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
@@ -50,10 +50,12 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.8, 3.9, '3.10']
-        ansible-version: [stable-2.11, stable-2.12, stable-2.13]
+        ansible-version: [stable-2.11, stable-2.12, stable-2.13, stable-2.14]
         exclude:
           - ansible-version: stable-2.11
             python-version: '3.10'
+          - ansible-version: stable-2.14
+            python-version: '3.8'
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
@@ -100,7 +102,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.11, stable-2.12, stable-2.13, devel]
+        ansible-version: [stable-2.11, stable-2.12, stable-2.13, stable-2.14, devel]
 
     steps:
       - name: Set up Python 3.9

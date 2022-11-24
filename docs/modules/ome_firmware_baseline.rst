@@ -138,7 +138,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise or OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - *device_group_names* option is not applicable for OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
@@ -227,7 +227,7 @@ msg (always, str, Successfully created the firmware baseline.)
   Overall status of the firmware baseline operation.
 
 
-baseline_status (success, dict, AnsibleMapping([('CatalogId', 123), ('Description', 'BASELINE DESCRIPTION'), ('DeviceComplianceReports', []), ('DowngradeEnabled', True), ('Id', 23), ('Is64Bit', True), ('Name', 'my_baseline'), ('RepositoryId', 123), ('RepositoryName', 'catalog123'), ('RepositoryType', 'HTTP'), ('Targets', [AnsibleMapping([('Id', 10083), ('Type', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))]), AnsibleMapping([('Id', 10076), ('Type', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))])]), ('TaskId', 11235), ('TaskStatusId', 2060)]))
+baseline_status (success, dict, {'CatalogId': 123, 'Description': 'BASELINE DESCRIPTION', 'DeviceComplianceReports': [], 'DowngradeEnabled': True, 'Id': 23, 'Is64Bit': True, 'Name': 'my_baseline', 'RepositoryId': 123, 'RepositoryName': 'catalog123', 'RepositoryType': 'HTTP', 'Targets': [{'Id': 10083, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}, {'Id': 10076, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}], 'TaskId': 11235, 'TaskStatusId': 2060})
   Details of the baseline status.
 
 
@@ -239,7 +239,7 @@ baseline_id (When I(state) is C(absent), int, 10123)
   ID of the deleted baseline.
 
 
-error_info (on http error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to retrieve baseline list either because the device ID(s) entered are invalid'), ('Resolution', 'Make sure the entered device ID(s) are valid and retry the operation.'), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on http error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to retrieve baseline list either because the device ID(s) entered are invalid', 'Resolution': 'Make sure the entered device ID(s) are valid and retry the operation.', 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of http error.
 
 

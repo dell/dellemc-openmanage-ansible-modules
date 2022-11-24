@@ -446,7 +446,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module does not support ``check_mode``.
    - If *state* is ``present``, then Idempotency is not supported.
 
@@ -633,7 +633,7 @@ msg (always, str, Successfully deleted 1 discovery job(s).)
   Overall status of the discovery operation.
 
 
-discovery_status (when I(state) is C(present), dict, AnsibleMapping([('Completed', ['192.168.24.17', '192.168.24.20', '192.168.24.22']), ('Failed', ['192.168.24.15', '192.168.24.16', '192.168.24.18', '192.168.24.19', '192.168.24.21', 'host123']), ('DiscoveredDevicesByType', [AnsibleMapping([('Count', 3), ('DeviceType', 'SERVER')])]), ('DiscoveryConfigDiscoveredDeviceCount', 3), ('DiscoveryConfigEmailRecipient', 'myemail@dell.com'), ('DiscoveryConfigExpectedDeviceCount', 9), ('DiscoveryConfigGroupId', 125), ('JobDescription', 'D1'), ('JobEnabled', True), ('JobEndTime', '2021-01-01 06:27:29.99'), ('JobId', 12666), ('JobName', 'D1'), ('JobNextRun', None), ('JobProgress', '100'), ('JobSchedule', 'startnow'), ('JobStartTime', '2021-01-01 06:24:10.071'), ('JobStatusId', 2090), ('LastUpdateTime', '2021-01-01 06:27:30.001'), ('UpdatedBy', 'admin')]))
+discovery_status (when I(state) is C(present), dict, {'Completed': ['192.168.24.17', '192.168.24.20', '192.168.24.22'], 'Failed': ['192.168.24.15', '192.168.24.16', '192.168.24.18', '192.168.24.19', '192.168.24.21', 'host123'], 'DiscoveredDevicesByType': [{'Count': 3, 'DeviceType': 'SERVER'}], 'DiscoveryConfigDiscoveredDeviceCount': 3, 'DiscoveryConfigEmailRecipient': 'myemail@dell.com', 'DiscoveryConfigExpectedDeviceCount': 9, 'DiscoveryConfigGroupId': 125, 'JobDescription': 'D1', 'JobEnabled': True, 'JobEndTime': '2021-01-01 06:27:29.99', 'JobId': 12666, 'JobName': 'D1', 'JobNextRun': None, 'JobProgress': '100', 'JobSchedule': 'startnow', 'JobStartTime': '2021-01-01 06:24:10.071', 'JobStatusId': 2090, 'LastUpdateTime': '2021-01-01 06:27:30.001', 'UpdatedBy': 'admin'})
   Details of the discovery job created or modified.
 
   If *job_wait* is true, Completed and Failed IPs are also listed.
@@ -643,7 +643,7 @@ discovery_ids (when discoveries with duplicate name exist for I(state) is C(pres
   IDs of the discoveries with duplicate names.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

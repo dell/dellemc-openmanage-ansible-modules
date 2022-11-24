@@ -148,7 +148,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
 
 
@@ -208,11 +208,11 @@ msg (always, str, Successfully created user account details.)
   Status of the iDRAC user configuration.
 
 
-status (success, dict, AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Successfully Completed Request'), ('MessageArgs', []), ('MessageArgs@odata.count', 0), ('MessageId', 'Base.1.5.Success'), ('RelatedProperties', []), ('RelatedProperties@odata.count', 0), ('Resolution', 'None'), ('Severity', 'OK')]), AnsibleMapping([('Message', 'The operation successfully completed.'), ('MessageArgs', []), ('MessageArgs@odata.count', 0), ('MessageId', 'IDRAC.2.1.SYS413'), ('RelatedProperties', []), ('RelatedProperties@odata.count', 0), ('Resolution', 'No response action is required.'), ('Severity', 'Informational')])])]))
+status (success, dict, {'@Message.ExtendedInfo': [{'Message': 'Successfully Completed Request', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'Base.1.5.Success', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'None', 'Severity': 'OK'}, {'Message': 'The operation successfully completed.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'IDRAC.2.1.SYS413', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'No response action is required.', 'Severity': 'Informational'}]})
   Configures the iDRAC users attributes.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('MessageId', 'GEN1234'), ('RelatedProperties', []), ('Message', 'Unable to process the request because an error occurred.'), ('MessageArgs', []), ('Severity', 'Critical'), ('Resolution', 'Retry the operation. If the issue persists, contact your system administrator.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
 

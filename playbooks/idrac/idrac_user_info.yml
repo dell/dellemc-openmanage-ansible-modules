@@ -1,0 +1,32 @@
+---
+- hosts: idrac
+  connection: local
+  name: Fetching idrac user facts.
+  gather_facts: False
+
+  collections:
+    - dellemc.openmanage
+
+  tasks:
+    - name: Retrieve basic details of all accounts.
+      idrac_user_info:
+        idrac_ip: 198.162.0.1
+        idrac_user: idrac_user
+        idrac_password: idrac_password
+        ca_path: "/path/to/ca_cert.pem"
+
+    - name: Retreive user details of a specific user_id
+      idrac_user_info:
+        idrac_ip: 198.162.0.1
+        idrac_user: idrac_user
+        idrac_password: idrac_password
+        ca_path: "/path/to/ca_cert.pem"
+        user_id: 1
+
+    - name: Retreive user details of a specific username
+      idrac_user_info:
+        idrac_ip: 198.162.0.1
+        idrac_user: idrac_user
+        idrac_password: idrac_password
+        ca_path: "/path/to/ca_cert.pem"
+        username: user_name

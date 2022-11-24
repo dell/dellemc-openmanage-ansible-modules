@@ -87,7 +87,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports ``check_mode``.
 
 
@@ -136,7 +136,7 @@ msg (always, str, Successfully fetched the job info)
   Overall status of the job facts operation.
 
 
-job_info (success, dict, AnsibleMapping([('value', [AnsibleMapping([('Builtin', False), ('CreatedBy', 'system'), ('Editable', True), ('EndTime', None), ('Id', 12345), ('JobDescription', 'Refresh Inventory for Device'), ('JobName', 'Refresh Inventory for Device'), ('JobStatus', AnsibleMapping([('Id', 2080), ('Name', 'New')])), ('JobType', AnsibleMapping([('Id', 8), ('Internal', False), ('Name', 'Inventory_Task')])), ('LastRun', '2000-01-29 10:51:34.776'), ('LastRunStatus', AnsibleMapping([('Id', 2060), ('Name', 'Completed')])), ('NextRun', None), ('Params', []), ('Schedule', ''), ('StartTime', None), ('State', 'Enabled'), ('Targets', [AnsibleMapping([('Data', "''"), ('Id', 123123), ('JobId', 12345), ('TargetType', AnsibleMapping([('Id', 1000), ('Name', 'DEVICE')]))])]), ('UpdatedBy', None), ('Visible', True)])])]))
+job_info (success, dict, {'value': [{'Builtin': False, 'CreatedBy': 'system', 'Editable': True, 'EndTime': None, 'Id': 12345, 'JobDescription': 'Refresh Inventory for Device', 'JobName': 'Refresh Inventory for Device', 'JobStatus': {'Id': 2080, 'Name': 'New'}, 'JobType': {'Id': 8, 'Internal': False, 'Name': 'Inventory_Task'}, 'LastRun': '2000-01-29 10:51:34.776', 'LastRunStatus': {'Id': 2060, 'Name': 'Completed'}, 'NextRun': None, 'Params': [], 'Schedule': '', 'StartTime': None, 'State': 'Enabled', 'Targets': [{'Data': "''", 'Id': 123123, 'JobId': 12345, 'TargetType': {'Id': 1000, 'Name': 'DEVICE'}}], 'UpdatedBy': None, 'Visible': True}]})
   Details of the OpenManage Enterprise jobs.
 
 

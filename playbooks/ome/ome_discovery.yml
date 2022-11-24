@@ -1,7 +1,7 @@
 ---
 - hosts: ome
   connection: local
-  name: Dell EMC OpenManage Ansible discovery operations.
+  name: Dell OpenManage Ansible discovery operations.
   gather_facts: False
 
   collections:

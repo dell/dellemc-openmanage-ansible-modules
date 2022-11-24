@@ -114,7 +114,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -174,11 +174,11 @@ fabric_id (success, str, 1312cceb-c3dd-4348-95c1-d8541a17d776)
   Returns the ID when an fabric is created, modified or deleted.
 
 
-additional_info (when I(state=present) and additional information present in response., dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('RelatedProperties', []), ('Message', 'Fabric update is successful. The OverrideLLDPConfiguration attribute is not provided in the payload, so it preserves the previous value.'), ('MessageArgs', []), ('Severity', 'Informational'), ('Resolution', 'Please update the Fabric with the OverrideLLDPConfiguration as Disabled or Enabled if necessary.')])])]))]))
+additional_info (when I(state=present) and additional information present in response., dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'RelatedProperties': [], 'Message': 'Fabric update is successful. The OverrideLLDPConfiguration attribute is not provided in the payload, so it preserves the previous value.', 'MessageArgs': [], 'Severity': 'Informational', 'Resolution': 'Please update the Fabric with the OverrideLLDPConfiguration as Disabled or Enabled if necessary.'}]}})
   Additional details of the fabric operation.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.'), ('@Message.ExtendedInfo', [AnsibleMapping([('RelatedProperties', []), ('Message', 'Unable to perform operation, because the fabric manager was not reachable.'), ('MessageArgs', []), ('Severity', 'Warning'), ('Resolution', 'Make sure of the following and retry the operation: 1) There is at least one advanced I/O Module in power-on mode. For example, MX9116n Ethernet Switch and MX5108n Ethernet Switch. However, if an advanced I/O Module is available in the power-on mode, make sure that the network profile is not set when the fabric manager is in the switch-over mode. 2) If the issue persists, wait for few minutes and retry the operation.')])])]))]))
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'RelatedProperties': [], 'Message': 'Unable to perform operation, because the fabric manager was not reachable.', 'MessageArgs': [], 'Severity': 'Warning', 'Resolution': 'Make sure of the following and retry the operation: 1) There is at least one advanced I/O Module in power-on mode. For example, MX9116n Ethernet Switch and MX5108n Ethernet Switch. However, if an advanced I/O Module is available in the power-on mode, make sure that the network profile is not set when the fabric manager is in the switch-over mode. 2) If the issue persists, wait for few minutes and retry the operation.'}]}})
   Details of the HTTP Error.
 
 

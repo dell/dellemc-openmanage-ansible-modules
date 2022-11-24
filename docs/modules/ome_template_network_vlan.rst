@@ -142,7 +142,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports ``check_mode``.
 
 
@@ -217,7 +217,7 @@ msg (always, str, Successfully applied the network settings to template.)
   Overall status of the template vlan operation.
 
 
-error_info (on HTTP error, dict, AnsibleMapping([('error', AnsibleMapping([('@Message.ExtendedInfo', [AnsibleMapping([('Message', 'Unable to complete the request because TemplateId  does not exist or is not applicable for the resource URI.'), ('MessageArgs', ['TemplateId']), ('MessageId', 'CGEN1004'), ('RelatedProperties', []), ('Resolution', "Check the request resource URI. Refer to the OpenManage Enterprise-Modular User's Guide for more information about resource URI and its properties."), ('Severity', 'Critical')])]), ('code', 'Base.1.0.GeneralError'), ('message', 'A general error has occurred. See ExtendedInfo for more information.')]))]))
+error_info (on HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the request because TemplateId  does not exist or is not applicable for the resource URI.', 'MessageArgs': ['TemplateId'], 'MessageId': 'CGEN1004', 'RelatedProperties': [], 'Resolution': "Check the request resource URI. Refer to the OpenManage Enterprise-Modular User's Guide for more information about resource URI and its properties.", 'Severity': 'Critical'}], 'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.'}})
   Details of the HTTP Error.
 
 
