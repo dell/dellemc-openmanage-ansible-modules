@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
+# Version 7.1.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -41,6 +41,7 @@ requirements:
     - "urllib3"
 author:
     - "Felix Stephen (@felixs88)"
+    - "Shivam Sharma (@Shivam-Sharma)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
     - This module does not support C(check_mode).
@@ -177,7 +178,7 @@ def firmware_update(obj, module):
         headers = {"If-Match": resp_inv.headers.get("etag")}
         headers.update({"Content-Type": ctype})
         upload_status = obj.invoke_request("POST", push_uri, data=data, headers=headers, dump=False,
-                                           api_timeout=100)
+                                           api_timeout=module.params["timeout"])
         if upload_status.status_code == 201:
             payload = {"ImageURI": upload_status.headers.get("location")}
             update_status = obj.invoke_request("POST", update_uri, data=payload)
@@ -190,7 +191,7 @@ def main():
     specs = {
         "image_uri": {"required": True, "type": "str"},
         "transfer_protocol": {"type": "str", "default": "HTTP",
-                              "choices": ["CIFS", "FTP", "HTTP", "HTTPS", "NSF", "OEM", "SCP", "SFTP", "TFTP"]},
+                              "choices": ["CIFS", "FTP", "HTTP", "HTTPS", "NSF", "OEM", "SCP", "SFTP", "TFTP"]}
     }
     specs.update(redfish_auth_params)
     module = AnsibleModule(

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
+# Version 7.1.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -33,6 +33,7 @@ import json
 import re
 import time
 import os
+import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
@@ -108,6 +109,18 @@ class iDRACRedfishAPI(object):
         self.session_id = None
         self.protocol = 'https'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+
+        try:
+            data = socket.getaddrinfo(self.ipaddress, self.port)
+            if "AF_INET6" == data[0][0]._name_:
+                ip_byte = socket.inet_pton(socket.AF_INET6, self.ipaddress)
+                ip_addr = socket.inet_ntop(socket.AF_INET6, ip_byte)
+                self.ipaddress = "[{0}]".format(ip_addr)
+        except socket.gaierror:
+            msg = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
+                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL " \
+                  "handshake.".format(self.ipaddress)
+            raise URLError(msg)
 
     def _get_url(self, uri):
         return "{0}://{1}:{2}{3}".format(self.protocol, self.ipaddress, self.port, uri)

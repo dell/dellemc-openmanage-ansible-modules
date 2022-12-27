@@ -20,8 +20,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk >= 1.2.488
-- python >= 3.8.6
+- omsdk >= 1.2.503
+- python >= 3.9.6
 
 
 
@@ -93,7 +93,7 @@ Parameters
 
 
   smtp_ip_address (optional, str, None)
-    SMTP IP address for communication.
+    Enter the IPv4 or IPv6 address of the SMTP server or the FQDN or DNS name.
 
 
   smtp_port (optional, str, None)
@@ -149,6 +149,7 @@ Notes
 .. note::
    - This module requires 'Administrator' privilege for *idrac_user*.
    - Run this module from a system that has direct access to Dell iDRAC.
+   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
    - This module supports ``check_mode``.
 
 

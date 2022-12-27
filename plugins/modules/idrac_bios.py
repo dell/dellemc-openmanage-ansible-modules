@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 6.2.0
+# Version 7.1.0
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -128,7 +128,7 @@ options:
         default: 1200
 requirements:
     - "omsdk >= 1.2.490"
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
@@ -137,6 +137,7 @@ notes:
     - omsdk is required to be installed only for I(boot_sources) operation.
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
 """
 
@@ -810,7 +811,8 @@ def main():
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
-        module.exit_json(msg=str(err), unreachable=True)
+        message = err.reason if err.reason else str(err)
+        module.exit_json(msg=message, unreachable=True)
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError) as e:
         module.fail_json(msg=str(e))

@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
+# Version 7.1.0
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -59,11 +59,12 @@ options:
         choices: [Enabled, Disabled]
 requirements:
     - "omsdk >= 1.2.488"
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module does not support C(check_mode).
 """
 

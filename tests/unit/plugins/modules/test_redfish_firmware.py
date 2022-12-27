@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
+# Version 7.1.0
 # Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -220,7 +220,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_firmware._get_update_service_target',
                      return_value=('2134', 'http://dell.com', 'redfish'))
         redfish_default_args.update({"image_uri": "http://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"})
+                                     "transfer_protocol": "HTTP", "timeout": 300})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
@@ -236,7 +236,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
         redfish_default_args.update({"image_uri": "nhttp://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"})
+                                     "transfer_protocol": "HTTP", "timeout": 300})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
@@ -257,7 +257,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
         redfish_default_args.update({"image_uri": "nhttp://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"})
+                                     "transfer_protocol": "HTTP", "timeout": 300})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 201
         redfish_response_mock.success = True

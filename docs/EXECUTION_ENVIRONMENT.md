@@ -57,7 +57,7 @@ netaddr>=0.7.19
 
 3. Build the Docker image using the following syntax:
 
-`ansible-builder build -f<path>/execution-environment.yml --container-runtime=<container> -c build_context --tag <container.io>/<org_name or username>/<imagename>:<tag>`
+`ansible-builder build -f <path>/execution-environment.yml --container-runtime=<container> -c build_context --tag <container.io>/<org_name or username>/<imagename>:<tag>`
 
  In this tutorial, the following command is used to build the Docker image with the name "*execution_environment*".
 
@@ -86,7 +86,7 @@ runner-example/
 └── project
     └── testplaybook.yml
 ```
-    
+
 2. Create a host file with the following entries:
 
 ```yaml
@@ -94,7 +94,7 @@ runner-example/
 192.168.0.1
 
 [idrac:vars]
-ansible_python_interpreter=/usr/bin/python3.8
+ansible_python_interpreter=/usr/bin/python3.9
 user=user
 password=password
 ```
@@ -106,17 +106,13 @@ password=password
   name: Get system inventory
   gather_facts: False
 
-  collections:
-    - dellemc.openmanage
-
   tasks:
-  - name: Get system inventory.
-    idrac_system_info:
-       idrac_ip: "{{ inventory_hostname  }}"
-       idrac_user: "{{ user }}"
-       idrac_password:  "{{ password }}"
-       validate_certs: False
-
+    - name: Get system inventory.
+      dellemc.openmanage.idrac_system_info:
+        idrac_ip: "{{ inventory_hostname  }}"
+        idrac_user: "{{ user }}"
+        idrac_password:  "{{ password }}"
+        validate_certs: false
 ```
 4. Run the playbook using the following command:
 
@@ -180,7 +176,7 @@ Output:
 
 ```yaml
 REPOSITORY                                      TAG       IMAGE ID       CREATED          SIZE
-docker.io/delluser/execution_environment          latest    6ea6337881f5   36 seconds ago   908MB
+docker.io/delluser/execution_environment        latest    6ea6337881f5   36 seconds ago   908MB
 <none>                                          <none>    bab8f0c1f372   3 hours ago      959MB
 <none>                                          <none>    26e61b6f31b6   3 hours ago      779MB
 ```
@@ -227,8 +223,8 @@ Now that you uploaded the image to a registry, you can now create the execution 
 
 1. Log in to Ansible Automation Platform.
 2. On the navigation pane, click **Administration > Execution Environments**.
-2.	On the **Execution Environments** page, click **Add**.
-3.	On the **Create new execution environment** page, enter the following details, and click **Save**.
+3. On the **Execution Environments** page, click **Add**.
+4. On the **Create new execution environment** page, enter the following details, and click **Save**.
     - **Name**: Enter a name for the execution environment (required).
     - **Image**:  Enter the image name (required). The image name requires its full location (repo), the registry, image name, and version tag
     - **Pull**: From the **Pull** drop-down list, select **Only pull the image if not present before running**.
@@ -263,16 +259,16 @@ This tutorial uses a custom credential type. The following are the input configu
 
 ```yaml
 fields:
-   -id: username
+  - id: username
     type: string
     label: Username
-   -Id: password
+  - id: password
     type: string
     label: Password
     secret: true
-Required:
-   -username
-   -password
+required:
+  - username
+  - password
 ```
 
 **Injector configuration:**
@@ -326,7 +322,7 @@ You can add an Ansible python interpreter to a Template or Inventory.
 `ansible_python_interpreter: /usr/bin/python<version>`
 
 ```yaml
-ansible_python_interpreter: /usr/bin/python3.8
+ansible_python_interpreter: /usr/bin/python3.9
 ```
 
 ## Documentation references

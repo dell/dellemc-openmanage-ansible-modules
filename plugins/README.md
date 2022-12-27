@@ -10,6 +10,8 @@ Here are the list of modules and module_utils supported by Dell.
     ├── omem_auth_options.py
     ├── oment_auth_options.py
     └── redfish_auth_options.py
+├── inventory
+    └── ome_inventory.py
 ├── module_utils
     ├── dellemc_idrac.py
     ├── idrac_redfish.py
@@ -86,7 +88,9 @@ Here are the list of modules and module_utils supported by Dell.
     ├── ome_profile.py
     ├── ome_server_interface_profile_info.py
     ├── ome_server_interface_profiles.py
+    ├── ome_smart_fabric_info.py
     ├── ome_smart_fabric.py
+    ├── ome_smart_fabric_uplink_info.py
     ├── ome_smart_fabric_uplink.py
     ├── ome_template.py
     ├── ome_template_identity_pool.py
