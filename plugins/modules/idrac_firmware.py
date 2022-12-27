@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
+# Version 7.1.0
 # Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -113,7 +113,7 @@ options:
 
 requirements:
     - "omsdk >= 1.2.503"
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Rajeev Arakkal (@rajeevarakkal)"
     - "Felix Stephen (@felixs88)"
@@ -124,6 +124,7 @@ notes:
         component jobs present.
     - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the
         module will return success with a proper message.
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
 '''
 
@@ -784,7 +785,10 @@ def main():
                 status = update_firmware_omsdk(idrac, module)
     except HTTPError as err:
         module.fail_json(msg=str(err), update_status=json.load(err))
-    except (RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
+    except URLError as err:
+        message = err.reason if err.reason else err(str)
+        module.exit_json(msg=message, unreachable=True)
+    except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError, SSLError) as e:
         module.fail_json(msg=str(e))
     except Exception as exc:

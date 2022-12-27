@@ -1,0 +1,14 @@
+---
+# To set host variables and multiple group variables.
+plugin: dellemc.openmanage.ome_inventory
+hostname: "192.168.0.4"
+username: username
+password: password
+host_vars:
+  idrac_user: username
+  idrac_password: password
+group_vars:
+  group_name:
+    attribute: value
+  group_name_one:
+    new_attribute: new_value
