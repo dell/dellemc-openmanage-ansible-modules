@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
+# Version 7.1.0
 # Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -29,6 +29,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 import os
+import socket
 try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
@@ -81,6 +82,14 @@ class iDRACConnection:
             raise RuntimeError(msg)
 
     def __enter__(self):
+        try:
+            data = socket.getaddrinfo(self.idrac_ip, self.idrac_port)
+            if "AF_INET6" == data[0][0]._name_:
+                ip_byte = socket.inet_pton(socket.AF_INET6, self.idrac_ip)
+                ip_addr = socket.inet_ntop(socket.AF_INET6, ip_byte)
+                self.idrac_ip = "{0}".format(ip_addr)
+        except socket.gaierror:
+            pass
         self.sdk.importPath()
         protopref = ProtoPreference(ProtocolEnum.WSMAN)
         protopref.include_only(ProtocolEnum.WSMAN)

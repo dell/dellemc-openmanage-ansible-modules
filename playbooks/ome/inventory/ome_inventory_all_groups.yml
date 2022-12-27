@@ -1,0 +1,6 @@
+---
+# To retrieve all the groups host details.
+plugin: dellemc.openmanage.ome_inventory
+hostname: "192.168.0.1"
+username: username
+password: password

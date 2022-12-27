@@ -1,6 +1,6 @@
 namespace: dellemc
 name: openmanage
-version: 7.0.0
+version: 7.1.0
 readme: README.md
 authors:
 - Jagadeesh N V <Jagadeesh_N_V@Dell.com>
@@ -19,7 +19,7 @@ description: Dell OpenManage Ansible Modules allows data center and IT
 
 license_file: LICENSE
 
-tags: ['dellemc', 'openmanage', 'infrastructure', 'idrac', 'ome', 'openmanage_enterprise',
+tags: ['dell', 'dellemc', 'openmanage', 'infrastructure', 'idrac', 'ome', 'openmanage_enterprise',
        'redfish', 'redfish_api', 'poweredge_servers', 'automation', 'devops']
 
 dependencies: {}

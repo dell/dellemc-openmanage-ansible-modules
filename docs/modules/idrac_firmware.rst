@@ -26,8 +26,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk >= 1.2.502
-- python >= 3.8.6
+- omsdk >= 1.2.503
+- python >= 3.9.6
 
 
 
@@ -168,6 +168,7 @@ Notes
    - Run this module from a system that has direct access to Dell iDRAC.
    - Module will report success based on the iDRAC firmware update parent job status if there are no individual component jobs present.
    - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the module will return success with a proper message.
+   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
    - This module supports ``check_mode``.
 
 
