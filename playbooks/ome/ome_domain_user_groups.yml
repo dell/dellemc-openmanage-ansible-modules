@@ -2,15 +2,12 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible AD directory user group operation.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
 
     - name: Create Active Directory user groups.
-      ome_domain_user_groups:
+      dellemc.openmanage.ome_domain_user_groups:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -24,7 +21,7 @@
       tags: user-group-add
 
     - name: Create Active Directory user groups with different domain format.
-      ome_domain_user_groups:
+      dellemc.openmanage.ome_domain_user_groups:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -38,7 +35,7 @@
       tags: user-group-add-domain
 
     - name: Update Active Directory user groups.
-      ome_domain_user_groups:
+      dellemc.openmanage.ome_domain_user_groups:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -49,7 +46,7 @@
       tags: user-group-update
 
     - name: Remove Active Directory user groups.
-      ome_domain_user_groups:
+      dellemc.openmanage.ome_domain_user_groups:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -57,3 +54,40 @@
         state: "absent"
         group_name: "Administrators"
       tags: user-group-remove
+
+    - name: Create LDAP user groups.
+      dellemc.openmanage.ome_domain_user_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: present
+        group_name: group_name1
+        directory_id: 10779
+        directory_type: LDAP
+        role: VIEWER
+        domain_username: domain_username
+        domain_password: domain_password
+
+    - name: Create LDAP user groups with different domain format.
+      dellemc.openmanage.ome_domain_user_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: present
+        group_name: group_name1
+        directory_name: directory_name
+        directory_type: LDAP
+        role: administrator
+        domain_username: domain\\username
+        domain_password: domain_password
+
+    - name: Remove LDAP user groups.
+      dellemc.openmanage.ome_domain_user_groups:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "absent"
+        group_name: group_name1

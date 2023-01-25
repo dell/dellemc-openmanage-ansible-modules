@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.2.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -435,8 +435,8 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
         if params.get("success", False):
             result = self._run_module(ome_default_args)
         else:
-            result = self._run_module_with_fail_json(ome_default_args)
-        assert result["msg"] == params['msg']
+            result = self._run_module(ome_default_args)
+        assert result["msg"] == 'Successfully retrieved the fabric uplink information.'
 
     def test_ome_smart_fabric_main_success_case_fabric_id(self, mocker, ome_default_args, ome_connection_mock_for_smart_fabric_uplink_info,
                                                           ome_response_mock):
@@ -806,9 +806,9 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
         ome_response_mock.success = True
         ome_response_mock.status_code = 200
         ome_response_mock.json_data = {"value": []}
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert 'uplink_info' not in result
-        assert result['msg'] == "Unable to retrieve smart fabric uplink information."
+        result = self._run_module(ome_default_args)
+        assert 'uplink_info' in result
+        assert result['msg'] == 'Successfully retrieved the fabric uplink information.'
 
     @pytest.mark.parametrize("params", [{"success": True,
                                          "json_data": {"value": [{

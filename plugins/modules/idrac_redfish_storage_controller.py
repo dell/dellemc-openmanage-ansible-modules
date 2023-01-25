@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 6.3.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -50,10 +50,10 @@ options:
       - C(ChangePDStateToOnline) - To set the disk status to online. I(target) is required for this operation.
       - C(ChangePDStateToOffline) - To set the disk status to offline. I(target) is required for this operation.
       - C(LockVirtualDisk) - To encrypt the virtual disk. I(volume_id) is required for this operation.
+      - C(OnlineCapacityExpansion) - To expand the size of virtual disk. I(volume_id), and I(target) or I(size) is required for this operation.
     choices: [ResetConfig, AssignSpare, SetControllerKey, RemoveControllerKey, ReKey, UnassignSpare,
       EnableControllerEncryption, BlinkTarget, UnBlinkTarget, ConvertToRAID, ConvertToNonRAID,
-      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk]
-    default: AssignSpare
+      ChangePDStateToOnline, ChangePDStateToOffline, LockVirtualDisk, OnlineCapacityExpansion]
     type: str
   target:
     description:
@@ -62,6 +62,7 @@ options:
         C(ChangePDStateToOnline), C(ChangePDStateToOffline), C(ConvertToRAID), or C(ConvertToNonRAID).
       - If I(volume_id) is not specified or empty, this physical drive will be
         assigned as a global hot spare when I(command) is C(AssignSpare).
+      - When I(command) is C(OnlineCapacityExpansion), then I(target) is mutually exclusive with I(size).
       - "Notes: Global or Dedicated hot spare can be assigned only once for a physical disk,
         Re-assign cannot be done when I(command) is C(AssignSpare)."
     type: list
@@ -81,6 +82,7 @@ options:
       - Fully Qualified Device Descriptor (FQDD) of the storage controller. For example-'RAID.Slot.1-1'.
       - This option is mandatory when I(command) is C(ResetConfig), C(SetControllerKey),
         C(RemoveControllerKey), C(ReKey), or C(EnableControllerEncryption).
+      - This option is mandatory for I(attributes).
     type: str
   key:
     description:
@@ -115,9 +117,59 @@ options:
     choices: [LKM, SEKM]
     default: LKM
     type: str
+  size:
+    description:
+      - Capacity of the virtual disk to be expanded in MB.
+      - Check mode and Idempotency is not supported for I(size).
+      - Minimum Online Capacity Expansion size must be greater than 100 MB of the current size.
+      - When I(command) is C(OnlineCapacityExpansion), then I(size) is mutually exclusive with I(target).
+    type: int
+  attributes:
+    type: dict
+    description:
+      - Dictionary of controller attributes and value pair.
+      - This feature is only supported for iDRAC9 with firmware version 6.00.00.00 and above
+      - I(controller_id) is required for this operation.
+      - I(apply_time) and I(maintenance_window) is applicable for I(attributes).
+      - I(attributes) is mutually exclusive with I(command).
+      - Use U(https://I(idrac_ip)/redfish/v1/Schemas/DellOemStorageController.json) to view the attributes.
+  apply_time:
+    type: str
+    description:
+      - Apply time of the I(attributes).
+      - This is applicable only to I(attributes).
+      - "C(Immediate) Allows the user to immediately reboot the host and apply the changes. I(job_wait)
+      is applicable."
+      - C(OnReset) Allows the user to apply the changes on the next reboot of the host server.
+      - "C(AtMaintenanceWindowStart) Allows the user to apply at the start of a maintenance window as specified
+      in I(maintenance_window)."
+      - "C(InMaintenanceWindowOnReset) Allows to apply after a manual reset but within the maintenance window as
+      specified in I(maintenance_window)."
+    choices: [Immediate, OnReset, AtMaintenanceWindowStart, InMaintenanceWindowOnReset]
+    default: Immediate
+  maintenance_window:
+    type: dict
+    description:
+      - Option to schedule the maintenance window.
+      - This is required when I(apply_time) is C(AtMaintenanceWindowStart) or C(InMaintenanceWindowOnReset).
+    suboptions:
+       start_time:
+           type: str
+           description:
+              - The start time for the maintenance window to be scheduled.
+              - "The format is YYYY-MM-DDThh:mm:ss<offset>"
+              - "<offset> is the time offset from UTC that the current timezone set in
+              iDRAC in the format: +05:30 for IST."
+           required: True
+       duration:
+           type: int
+           description:
+              - The duration in seconds for the maintenance window.
+           default: 900
   job_wait:
     description:
       - Provides the option if the module has to wait for the job to be completed.
+      - This is applicable for I(attributes) when I(apply_time) is C(Immediate).
     type: bool
     default: False
   job_wait_timeout:
@@ -127,14 +179,16 @@ options:
     type: int
     default: 120
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Jagadeesh N V (@jagadeeshnv)"
   - "Felix Stephen (@felixs88)"
   - "Husniya Hameed (@husniya_hameed)"
+  - "Abhishek Sinha (@Abhishek-Dell)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
-    - This module always reports as changes found when C(ReKey), C(BlinkTarget), and C(UnBlinkTarget).
+    - This module is supported on iDRAC9.
+    - This module always reports as changes found when I(command) is C(ReKey), C(BlinkTarget), and C(UnBlinkTarget).
     - This module supports C(check_mode).
 '''
 
@@ -346,6 +400,60 @@ EXAMPLES = r'''
     volume_id: "Disk.Virtual.0:RAID.SL.3-1"
   tags:
     - lock
+
+- name: Online Capacity Expansion of a volume using target
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "{{ baseuri }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "OnlineCapacityExpansion"
+    volume_id: "Disk.Virtual.0:RAID.Integrated.1-1"
+    target:
+    - "Disk.Bay.2:Enclosure.Internal.0-0:RAID.Integrated.1-1"
+  tags:
+    - oce_target
+
+- name: Online Capacity Expansion of a volume using size
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "{{ baseuri }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "OnlineCapacityExpansion"
+    volume_id: "Disk.Virtual.0:RAID.Integrated.1-1"
+    size: 362785
+  tags:
+    - oce_size
+
+- name: Set controller attributes.
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    controller_id: "RAID.Slot.1-1"
+    attributes:
+      ControllerMode: "HBA"
+    apply_time: "OnReset"
+  tags:
+    - controller-attribute
+
+- name: Configure controller attributes at Maintenance window
+  dellemc.openmanage.idrac_redfish_storage_controller:
+    baseuri: "192.168.0.1:443"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    controller_id: "RAID.Slot.1-1"
+    attributes:
+      CheckConsistencyMode: Normal
+      CopybackMode: "Off"
+      LoadBalanceMode: Disabled
+    apply_time: AtMaintenanceWindowStart
+    maintenance_window:
+      start_time: "2022-09-30T05:15:40-05:00"
+      duration: 1200
 '''
 
 RETURN = r'''
@@ -425,6 +533,10 @@ CONTROLLER_URI = "/redfish/v1/Dell/Systems/{system_id}/Storage/DellController/{c
 VOLUME_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Volumes"
 PD_URI = "/redfish/v1/Systems/System.Embedded.1/Storage/{controller_id}/Drives/{drive_id}"
 JOB_URI_OEM = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/Jobs/{job_id}"
+CONTROLLERS_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Controllers/{controller_id}"
+MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
+SETTINGS_URI = "/redfish/v1/Systems/{system_id}/Storage/{controller_id}/Controllers/{controller_id}/Settings"
+OCE_MIN_PD_RAID_MAPPING = {'RAID0': 1, 'RAID5': 1, 'RAID6': 1, 'RAID10': 2}
 
 JOB_SUBMISSION = "Successfully submitted the job that performs the '{0}' operation."
 JOB_COMPLETION = "Successfully performed the '{0}' operation."
@@ -432,8 +544,23 @@ CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 TARGET_ERR_MSG = "The Fully Qualified Device Descriptor (FQDD) of the target {0} must be only one."
 PD_ERROR_MSG = "Unable to locate the physical disk with the ID: {0}"
+VD_ERROR_MSG = "Unable to locate the virtual disk with the ID: {0}"
 ENCRYPT_ERR_MSG = "The storage controller '{0}' does not support encryption."
 PHYSICAL_DISK_ERR = "Volume is not encryption capable."
+OCE_RAID_TYPE_ERR = "Online Capacity Expansion is not supported for {0} virtual disks."
+OCE_SIZE_100MB = "Minimum Online Capacity Expansion size must be greater than 100 MB of the current size {0}."
+OCE_TARGET_EMPTY = "Provided list of targets is empty."
+OCE_TARGET_RAID1_ERR = "Cannot add more than two disks to RAID1 virtual disk."
+UNSUPPORTED_APPLY_TIME = "Apply time {0} is not supported."
+MAINTENANCE_OFFSET = "The maintenance time must be post-fixed with local offset to {0}."
+MAINTENANCE_TIME = "The specified maintenance time window occurs in the past, " \
+                   "provide a future time to schedule the maintenance window."
+HBA_MODE = "Other attributes cannot be updated when ControllerMode is provided as input."
+INVALID_ATTRIBUTES = "The following attributes are invalid: {0}"
+CONTROLLER_ID_REQUIRED = "controller_id is required to perform this operation."
+JOB_COMPLETION_ATTRIBUTES = "Successfully applied the controller attributes."
+JOB_SUBMISSION_ATTRIBUTES = "Successfully submitted the job that configures the controller attributes."
+ERR_MSG = "Unable to configure the controller attribute(s) settings."
 
 
 def check_id_exists(module, redfish_obj, key, item_id, uri):
@@ -441,9 +568,9 @@ def check_id_exists(module, redfish_obj, key, item_id, uri):
     try:
         resp = redfish_obj.invoke_request("GET", uri.format(system_id=SYSTEM_ID, controller_id=item_id))
         if not resp.success:
-            module.fail_json(msg=msg)
+            module.exit_json(msg=msg, failed=True)
     except HTTPError as err:
-        module.fail_json(msg=msg, error_info=json.load(err))
+        module.exit_json(msg=msg, error_info=json.load(err), failed=True)
 
 
 def ctrl_key(module, redfish_obj):
@@ -660,6 +787,68 @@ def lock_virtual_disk(module, redfish_obj):
     return resp, job_uri, job_id
 
 
+def online_capacity_expansion(module, redfish_obj):
+    payload = None
+    volume_id = module.params.get("volume_id")
+    target = module.params.get("target")
+    size = module.params.get("size")
+    if not isinstance(volume_id, list):
+        volume_id = [volume_id]
+    if len(volume_id) != 1:
+        module.exit_json(msg=TARGET_ERR_MSG.format("virtual drive"), failed=True)
+
+    controller_id = volume_id[0].split(":")[-1]
+    volume_uri = VOLUME_URI + "/{volume_id}"
+    try:
+        volume_resp = redfish_obj.invoke_request("GET", volume_uri.format(system_id=SYSTEM_ID,
+                                                                          controller_id=controller_id,
+                                                                          volume_id=volume_id[0]))
+    except HTTPError as err:
+        module.exit_json(msg=VD_ERROR_MSG.format(volume_id[0]), failed=True)
+
+    try:
+        raid_type = volume_resp.json_data.get("RAIDType")
+        if raid_type in ['RAID50', 'RAID60']:
+            module.exit_json(msg=OCE_RAID_TYPE_ERR.format(raid_type), failed=True)
+
+        if target is not None:
+            if not target:
+                module.exit_json(msg=OCE_TARGET_EMPTY, failed=True)
+
+            if raid_type == 'RAID1':
+                module.fail_json(msg=OCE_TARGET_RAID1_ERR)
+
+            current_pd = []
+            links = volume_resp.json_data.get("Links")
+            if links:
+                for disk in volume_resp.json_data.get("Links").get("Drives"):
+                    drive = disk["@odata.id"].split('/')[-1]
+                    current_pd.append(drive)
+            drives_to_add = [each_drive for each_drive in target if each_drive not in current_pd]
+            if module.check_mode and drives_to_add and len(drives_to_add) % OCE_MIN_PD_RAID_MAPPING[raid_type] == 0:
+                module.exit_json(msg=CHANGES_FOUND, changed=True)
+            elif len(drives_to_add) == 0 or len(drives_to_add) % OCE_MIN_PD_RAID_MAPPING[raid_type] != 0:
+                module.exit_json(msg=NO_CHANGES_FOUND)
+            payload = {"TargetFQDD": volume_id[0], "PDArray": drives_to_add}
+
+        elif size:
+            vd_size = volume_resp.json_data.get("CapacityBytes")
+            vd_size_MB = vd_size // (1024 * 1024)
+            if (size - vd_size_MB) < 100:
+                module.exit_json(msg=OCE_SIZE_100MB.format(vd_size_MB), failed=True)
+            payload = {"TargetFQDD": volume_id[0], "Size": size}
+
+        resp = redfish_obj.invoke_request("POST", RAID_ACTION_URI.format(system_id=SYSTEM_ID,
+                                          action="OnlineCapacityExpansion"),
+                                          data=payload)
+        job_uri = resp.headers.get("Location")
+        job_id = job_uri.split("/")[-1]
+        return resp, job_uri, job_id
+    except HTTPError as err:
+        err = json.load(err).get("error").get("@Message.ExtendedInfo", [{}])[0].get("Message")
+        module.exit_json(msg=err, failed=True)
+
+
 def validate_inputs(module):
     module_params = module.params
     command = module_params.get("command")
@@ -689,13 +878,109 @@ def validate_inputs(module):
             module.fail_json(msg=TARGET_ERR_MSG.format("physical disk"))
 
 
+def get_current_time(redfish_obj):
+    try:
+        resp = redfish_obj.invoke_request("GET", MANAGER_URI)
+        curr_time = resp.json_data.get("DateTime")
+        date_offset = resp.json_data.get("DateTimeLocalOffset")
+    except Exception:
+        return None, None
+    return curr_time, date_offset
+
+
+def validate_time(module, redfish_obj, mtime):
+    curr_time, date_offset = get_current_time(redfish_obj)
+    if not mtime.endswith(date_offset):
+        module.exit_json(failed=True, status_msg=MAINTENANCE_OFFSET.format(date_offset))
+    if mtime < curr_time:
+        module.exit_json(failed=True, status_msg=MAINTENANCE_TIME)
+
+
+def get_attributes(module, redfish_obj):
+    resp_data = {}
+    controller_id = module.params["controller_id"]
+    try:
+        resp = redfish_obj.invoke_request("GET", CONTROLLERS_URI.format(system_id=SYSTEM_ID,
+                                                                        controller_id=controller_id))
+        resp_data = resp.json_data
+    except HTTPError:
+        resp_data = {}
+    return resp_data
+
+
+def check_attr_exists(module, curr_attr, inp_attr):
+    invalid_attr = []
+    pending_attr = {}
+    diff = 0
+    for each in inp_attr:
+        if each not in curr_attr.keys():
+            invalid_attr.append(each)
+        elif curr_attr[each] != inp_attr[each]:
+            diff = 1
+            pending_attr[each] = inp_attr[each]
+    if invalid_attr:
+        module.exit_json(msg=INVALID_ATTRIBUTES.format(invalid_attr), failed=True)
+    if diff and module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    elif not diff:
+        module.exit_json(msg=NO_CHANGES_FOUND)
+    return pending_attr
+
+
+def get_redfish_apply_time(module, redfish_obj, apply_time, time_settings):
+    time_set = {}
+    if time_settings:
+        if 'Maintenance' in apply_time:
+            if apply_time not in time_settings:
+                module.exit_json(failed=True, status_msg=UNSUPPORTED_APPLY_TIME.format(apply_time))
+            else:
+                time_set['ApplyTime'] = apply_time
+                m_win = module.params.get('maintenance_window')
+                validate_time(module, redfish_obj, m_win.get('start_time'))
+                time_set['MaintenanceWindowStartTime'] = m_win.get('start_time')
+                time_set['MaintenanceWindowDurationInSeconds'] = m_win.get('duration')
+        else:
+            time_set['ApplyTime'] = apply_time
+    return time_set
+
+
+def apply_attributes(module, redfish_obj, pending, time_settings):
+    payload = {"Oem": {"Dell": {"DellStorageController": pending}}}
+    apply_time = module.params.get('apply_time')
+    time_set = get_redfish_apply_time(module, redfish_obj, apply_time, time_settings)
+    if time_set:
+        payload["@Redfish.SettingsApplyTime"] = time_set
+    try:
+        resp = redfish_obj.invoke_request("PATCH", SETTINGS_URI.format(system_id=SYSTEM_ID,
+                                                                       controller_id=module.params["controller_id"]),
+                                          data=payload)
+    except HTTPError as err:
+        err = json.load(err).get("error")
+        module.exit_json(msg=ERR_MSG, error_info=err, failed=True)
+    job_id = resp.headers["Location"].split("/")[-1]
+    return job_id, time_set
+
+
+def set_attributes(module, redfish_obj):
+    resp_data = get_attributes(module, redfish_obj)
+    curr_attr = resp_data.get("Oem").get("Dell").get("DellStorageController")
+    inp_attr = module.params.get("attributes")
+    if inp_attr.get("ControllerMode") and len(inp_attr.keys()) > 1:
+        module.exit_json(msg=HBA_MODE, failed=True)
+    pending = check_attr_exists(module, curr_attr, inp_attr)
+    time_settings = resp_data.get("@Redfish.Settings", {}).get("SupportedApplyTimes", [])
+    job_id, time_set = apply_attributes(module, redfish_obj, pending, time_settings)
+    return job_id, time_set
+
+
 def main():
     specs = {
-        "command": {"required": False, "default": "AssignSpare",
+        "attributes": {"type": 'dict'},
+        "command": {"required": False,
                     "choices": ["ResetConfig", "AssignSpare", "SetControllerKey", "RemoveControllerKey",
                                 "ReKey", "UnassignSpare", "EnableControllerEncryption", "BlinkTarget",
                                 "UnBlinkTarget", "ConvertToRAID", "ConvertToNonRAID", "ChangePDStateToOnline",
-                                "ChangePDStateToOffline", "LockVirtualDisk"]},
+                                "ChangePDStateToOffline", "LockVirtualDisk", "OnlineCapacityExpansion"]},
         "controller_id": {"required": False, "type": "str"},
         "volume_id": {"required": False, "type": "list", "elements": "str"},
         "target": {"required": False, "type": "list", "elements": "str", "aliases": ["drive_id"]},
@@ -703,12 +988,20 @@ def main():
         "key_id": {"required": False, "type": "str"},
         "old_key": {"required": False, "type": "str", "no_log": True},
         "mode": {"required": False, "choices": ["LKM", "SEKM"], "default": "LKM"},
+        "apply_time": {"type": 'str', "default": 'Immediate',
+                       "choices": ['Immediate', 'OnReset', 'AtMaintenanceWindowStart', 'InMaintenanceWindowOnReset']},
+        "maintenance_window": {"type": 'dict',
+                               "options": {"start_time": {"type": 'str', "required": True},
+                                           "duration": {"type": 'int', "required": False, "default": 900}}},
         "job_wait": {"required": False, "type": "bool", "default": False},
-        "job_wait_timeout": {"required": False, "type": "int", "default": 120}
+        "job_wait_timeout": {"required": False, "type": "int", "default": 120},
+        "size": {"required": False, "type": "int"}
     }
     specs.update(redfish_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
+        mutually_exclusive=[('attributes', 'command'), ("target", "size")],
+        required_one_of=[('attributes', 'command')],
         required_if=[
             ["command", "SetControllerKey", ["controller_id", "key", "key_id"]],
             ["command", "ReKey", ["controller_id", "mode"]], ["command", "ResetConfig", ["controller_id"]],
@@ -718,10 +1011,15 @@ def main():
             ["command", "UnBlinkTarget", ["target", "volume_id"], True], ["command", "ConvertToRAID", ["target"]],
             ["command", "ConvertToNonRAID", ["target"]], ["command", "ChangePDStateToOnline", ["target"]],
             ["command", "ChangePDStateToOffline", ["target"]],
-            ["command", "LockVirtualDisk", ["volume_id"]]
+            ["command", "LockVirtualDisk", ["volume_id"]], ["command", "OnlineCapacityExpansion", ["volume_id"]],
+            ["command", "OnlineCapacityExpansion", ["target", "size"], True],
+            ["command", "LockVirtualDisk", ["volume_id"]],
+            ["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
+            ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]
         ],
         supports_check_mode=True)
-    validate_inputs(module)
+    if not bool(module.params["attributes"]):
+        validate_inputs(module)
     try:
         command = module.params["command"]
         with Redfish(module.params, req_session=True) as redfish_obj:
@@ -742,6 +1040,33 @@ def main():
                 resp, job_uri, job_id = change_pd_status(module, redfish_obj)
             elif command == "LockVirtualDisk":
                 resp, job_uri, job_id = lock_virtual_disk(module, redfish_obj)
+            elif command == "OnlineCapacityExpansion":
+                resp, job_uri, job_id = online_capacity_expansion(module, redfish_obj)
+
+            if module.params["attributes"]:
+                controller_id = module.params["controller_id"]
+                if controller_id is None:
+                    module.exit_json(msg=CONTROLLER_ID_REQUIRED, failed=True)
+                check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
+                job_id, time_set = set_attributes(module, redfish_obj)
+                job_uri = JOB_URI_OEM.format(job_id=job_id)
+                if time_set["ApplyTime"] == "Immediate" and module.params["job_wait"]:
+                    resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=module.params["job_wait"],
+                                                        wait_timeout=module.params["job_wait_timeout"])
+                    job_data = strip_substr_dict(resp.json_data)
+                    if job_data["JobState"] == "Failed":
+                        changed, failed = False, True
+                    else:
+                        changed, failed = True, False
+                    module.exit_json(msg=JOB_COMPLETION_ATTRIBUTES, task={"id": job_id, "uri": job_uri},
+                                     status=job_data, changed=changed, failed=failed)
+                else:
+                    resp, msg = wait_for_job_completion(redfish_obj, job_uri, job_wait=False,
+                                                        wait_timeout=module.params["job_wait_timeout"])
+                    job_data = strip_substr_dict(resp.json_data)
+                module.exit_json(msg=JOB_SUBMISSION_ATTRIBUTES, task={"id": job_id, "uri": job_uri},
+                                 status=job_data)
+
             oem_job_url = JOB_URI_OEM.format(job_id=job_id)
             job_wait = module.params["job_wait"]
             if job_wait:
