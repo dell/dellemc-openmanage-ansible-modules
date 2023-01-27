@@ -1026,13 +1026,13 @@ releases:
   7.1.0:
     changes:
       major_changes:
-        - ome_smart_fabric_info - This module allows to retrieve smart fabric inventory
-          OpenManage Enterprise Modular.
-        - ome_smart_fabric_uplink_info - This module allows to retrieve the details of
-          fabric uplink on OpenManage Enterprise Modular.
+        - ome_smart_fabric_info - This module retrieves the list of smart fabrics in
+          the inventory of OpenManage Enterprise Modular.
+        - ome_smart_fabric_uplink_info - This module retrieve details of fabric uplink
+          on OpenManage Enterprise Modular.
         - ome_inventory - This plugin allows to create a inventory from the group on
           OpenManage Enterprise.
-        - Support for Ipv6 address for OMSDK dependent iDRAC modules.
+        - Support for IPv6 address for OMSDK dependent iDRAC modules.
       minor_changes:
         - redfish_firmware - This module supports timeout option.
       known_issues:
@@ -1058,13 +1058,10 @@ releases:
       release_summary: Support for retrieving smart fabric and smart fabric uplink
         information and support for IPv6 address for OMSDK dependent iDRAC modules.
     modules:
-      - description: Support for retrieving smart fabric and smart fabric uplink
-          information, support for IPv6 address for OMSDK dependent iDRAC modules, and
-          OpenManage Enterprise inventory plugin.
+      - description: Retrieves the information of smart fabrics inventoried by OpenManage Enterprise Modular
         name: ome_smart_fabric_info
         namespace: ''
-      - description: This module allows to retrieve the details of fabric uplink on
-          OpenManage Enterprise Modular.
+      - description: Retrieve details of fabric uplink on OpenManage Enterprise Modular.
         name: ome_smart_fabric_uplink_info
         namespace: ''
     release_date: '2022-12-28'
@@ -1112,12 +1109,10 @@ releases:
         profiles with attributes, retrieving network configuration of a template, configuring
         controller attributes, configuring online capacity expansion, and importing the LDAP directory.
     modules:
-      - description: This module retrieves the network configuration of a template on
-          OpenManage Enterprise or OpenManage Enterprise Modular.
+      - description: Retrieves network configuration of template.
         name: ome_template_network_vlan_info
         namespace: ''
-      - description: This module retrieves profiles with attributes on OpenManage Enterprise or
-          OpenManage Enterprise Modular.
+      - description: Retrieve profiles with attribute details
         name: ome_profile_info
         namespace: ''
     release_date: '2023-01-30'

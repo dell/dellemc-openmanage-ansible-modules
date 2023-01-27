@@ -38,8 +38,8 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.ome_profile_info - This module retrieves profiles with attributes on OpenManage Enterprise or OpenManage Enterprise Modular.
-- dellemc.openmanage.ome_template_network_vlan_info - This module retrieves the network configuration of a template on OpenManage Enterprise or OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_profile_info - Retrieve profiles with attribute details
+- dellemc.openmanage.ome_template_network_vlan_info - Retrieves network configuration of template.
 
 v7.1.0
 ======
@@ -52,10 +52,10 @@ Support for retrieving smart fabric and smart fabric uplink information and supp
 Major Changes
 -------------
 
-- Support for Ipv6 address for OMSDK dependent iDRAC modules.
+- Support for IPv6 address for OMSDK dependent iDRAC modules.
 - ome_inventory - This plugin allows to create a inventory from the group on OpenManage Enterprise.
-- ome_smart_fabric_info - This module allows to retrieve smart fabric inventory OpenManage Enterprise Modular.
-- ome_smart_fabric_uplink_info - This module allows to retrieve the details of fabric uplink on OpenManage Enterprise Modular.
+- ome_smart_fabric_info - This module retrieves the list of smart fabrics in the inventory of OpenManage Enterprise Modular.
+- ome_smart_fabric_uplink_info - This module retrieve details of fabric uplink on OpenManage Enterprise Modular.
 
 Minor Changes
 -------------
@@ -75,8 +75,8 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.ome_smart_fabric_info - Support for retrieving smart fabric and smart fabric uplink information, support for IPv6 address for OMSDK dependent iDRAC modules, and OpenManage Enterprise inventory plugin.
-- dellemc.openmanage.ome_smart_fabric_uplink_info - This module allows to retrieve the details of fabric uplink on OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_smart_fabric_info - Retrieves the information of smart fabrics inventoried by OpenManage Enterprise Modular
+- dellemc.openmanage.ome_smart_fabric_uplink_info - Retrieve details of fabric uplink on OpenManage Enterprise Modular.
 
 v7.0.0
 ======
