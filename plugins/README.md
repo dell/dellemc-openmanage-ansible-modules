@@ -86,6 +86,7 @@ Here are the list of modules and module_utils supported by Dell.
     ├── ome_network_vlan_info.py
     ├── ome_powerstate.py
     ├── ome_profile.py
+    ├── ome_profile_info.py
     ├── ome_server_interface_profile_info.py
     ├── ome_server_interface_profiles.py
     ├── ome_smart_fabric_info.py
@@ -96,6 +97,7 @@ Here are the list of modules and module_utils supported by Dell.
     ├── ome_template_identity_pool.py
     ├── ome_template_info.py
     ├── ome_template_network_vlan.py
+    ├── ome_template_network_vlan_info.py
     ├── ome_user.py
     ├── ome_user_info.py
     ├── redfish_event_subscription.py

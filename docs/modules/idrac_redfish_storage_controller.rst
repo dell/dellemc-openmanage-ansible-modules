@@ -20,14 +20,14 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python >= 3.9.6
 
 
 
 Parameters
 ----------
 
-  command (optional, str, AssignSpare)
+  command (optional, str, None)
     These actions may require a system reset, depending on the capabilities of the controller.
 
     ``ResetConfig`` - Deletes all the virtual disks and unassigns all hot spares on physical disks. *controller_id* is required for this operation.
@@ -58,6 +58,8 @@ Parameters
 
     ``LockVirtualDisk`` - To encrypt the virtual disk. *volume_id* is required for this operation.
 
+    ``OnlineCapacityExpansion`` - To expand the size of virtual disk. *volume_id*, and *target* or *size* is required for this operation.
+
 
   target (optional, list, None)
     Fully Qualified Device Descriptor (FQDD) of the target physical drive.
@@ -65,6 +67,8 @@ Parameters
     This is mandatory when *command* is ``AssignSpare``, ``UnassisgnSpare``, ``ChangePDStateToOnline``, ``ChangePDStateToOffline``, ``ConvertToRAID``, or ``ConvertToNonRAID``.
 
     If *volume_id* is not specified or empty, this physical drive will be assigned as a global hot spare when *command* is ``AssignSpare``.
+
+    When *command* is ``OnlineCapacityExpansion``, then *target* is mutually exclusive with *size*.
 
     Notes: Global or Dedicated hot spare can be assigned only once for a physical disk, Re-assign cannot be done when *command* is ``AssignSpare``.
 
@@ -83,6 +87,8 @@ Parameters
     Fully Qualified Device Descriptor (FQDD) of the storage controller. For example-'RAID.Slot.1-1'.
 
     This option is mandatory when *command* is ``ResetConfig``, ``SetControllerKey``, ``RemoveControllerKey``, ``ReKey``, or ``EnableControllerEncryption``.
+
+    This option is mandatory for *attributes*.
 
 
   key (optional, str, None)
@@ -119,8 +125,67 @@ Parameters
     ``LKM`` to choose mode as local key mode.
 
 
+  size (optional, int, None)
+    Capacity of the virtual disk to be expanded in MB.
+
+    Check mode and Idempotency is not supported for *size*.
+
+    Minimum Online Capacity Expansion size must be greater than 100 MB of the current size.
+
+    When *command* is ``OnlineCapacityExpansion``, then *size* is mutually exclusive with *target*.
+
+
+  attributes (optional, dict, None)
+    Dictionary of controller attributes and value pair.
+
+    This feature is only supported for iDRAC9 with firmware version 6.00.00.00 and above
+
+    *controller_id* is required for this operation.
+
+    *apply_time* and *maintenance_window* is applicable for *attributes*.
+
+    *attributes* is mutually exclusive with *command*.
+
+    Use https://*idrac_ip*/redfish/v1/Schemas/DellOemStorageController.json to view the attributes.
+
+
+  apply_time (optional, str, Immediate)
+    Apply time of the *attributes*.
+
+    This is applicable only to *attributes*.
+
+    ``Immediate`` Allows the user to immediately reboot the host and apply the changes. *job_wait* is applicable.
+
+    ``OnReset`` Allows the user to apply the changes on the next reboot of the host server.
+
+    ``AtMaintenanceWindowStart`` Allows the user to apply at the start of a maintenance window as specified in *maintenance_window*.
+
+    ``InMaintenanceWindowOnReset`` Allows to apply after a manual reset but within the maintenance window as specified in *maintenance_window*.
+
+
+  maintenance_window (optional, dict, None)
+    Option to schedule the maintenance window.
+
+    This is required when *apply_time* is ``AtMaintenanceWindowStart`` or ``InMaintenanceWindowOnReset``.
+
+
+    start_time (True, str, None)
+      The start time for the maintenance window to be scheduled.
+
+      The format is YYYY-MM-DDThh:mm:ss<offset>
+
+      <offset> is the time offset from UTC that the current timezone set in iDRAC in the format: +05:30 for IST.
+
+
+    duration (optional, int, 900)
+      The duration in seconds for the maintenance window.
+
+
+
   job_wait (optional, bool, False)
     Provides the option if the module has to wait for the job to be completed.
+
+    This is applicable for *attributes* when *apply_time* is ``Immediate``.
 
 
   job_wait_timeout (optional, int, 120)
@@ -165,7 +230,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module always reports as changes found when ``ReKey``, ``BlinkTarget``, and ``UnBlinkTarget``.
+   - This module is supported on iDRAC9.
+   - This module always reports as changes found when *command* is ``ReKey``, ``BlinkTarget``, and ``UnBlinkTarget``.
    - This module supports ``check_mode``.
 
 
@@ -385,6 +451,60 @@ Examples
       tags:
         - lock
 
+    - name: Online Capacity Expansion of a volume using target
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "OnlineCapacityExpansion"
+        volume_id: "Disk.Virtual.0:RAID.Integrated.1-1"
+        target:
+        - "Disk.Bay.2:Enclosure.Internal.0-0:RAID.Integrated.1-1"
+      tags:
+        - oce_target
+
+    - name: Online Capacity Expansion of a volume using size
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "OnlineCapacityExpansion"
+        volume_id: "Disk.Virtual.0:RAID.Integrated.1-1"
+        size: 362785
+      tags:
+        - oce_size
+
+    - name: Set controller attributes.
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "192.168.0.1:443"
+        username: "user_name"
+        password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        controller_id: "RAID.Slot.1-1"
+        attributes:
+          ControllerMode: "HBA"
+        apply_time: "OnReset"
+      tags:
+        - controller-attribute
+
+    - name: Configure controller attributes at Maintenance window
+      dellemc.openmanage.idrac_redfish_storage_controller:
+        baseuri: "192.168.0.1:443"
+        username: "user_name"
+        password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        controller_id: "RAID.Slot.1-1"
+        attributes:
+          CheckConsistencyMode: Normal
+          CopybackMode: "Off"
+          LoadBalanceMode: Disabled
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 1200
+
 
 
 Return Values
@@ -422,4 +542,5 @@ Authors
 - Jagadeesh N V (@jagadeeshnv)
 - Felix Stephen (@felixs88)
 - Husniya Hameed (@husniya_hameed)
+- Abhishek Sinha (@Abhishek-Dell)
 

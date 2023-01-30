@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.2.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -328,12 +328,12 @@ def main():
 
             if fabric_id is None and fabric_name is None and uplink_id is None and uplink_name is None:
                 uplink_info = get_all_uplink_details(module, rest_obj)
+                if not bool(uplink_info):
+                    module.exit_json(msg=SUCCESS_MSG, uplink_info=uplink_info)
 
-            if uplink_info:
-                uplink_info_strip = strip_uplink_info(uplink_info)
-                module.exit_json(msg=SUCCESS_MSG, uplink_info=uplink_info_strip)
-            else:
-                module.fail_json(msg=UNSUCCESS_MSG)
+            uplink_info_strip = strip_uplink_info(uplink_info)
+            module.exit_json(msg=SUCCESS_MSG, uplink_info=uplink_info_strip)
+
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
