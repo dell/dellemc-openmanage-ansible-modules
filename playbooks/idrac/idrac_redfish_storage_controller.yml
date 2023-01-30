@@ -2,215 +2,269 @@
 - hosts: idrac
   connection: local
   name: Dell OpenManage Ansible iDRAC Redfish Storage Controller service.
-  gather_facts: False
+  gather_facts: false
 
   collections:
     - dellemc.openmanage
 
   tasks:
-  - name: Assign dedicated hot spare.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      volume_id:
-        - "Disk.Virtual.0:RAID.Slot.1-1"
-      target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
-    tags:
-      - assign_dedicated_hot_spare
+    - name: Assign dedicated hot spare.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        volume_id:
+          - "Disk.Virtual.0:RAID.Slot.1-1"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      tags:
+        - assign_dedicated_hot_spare
 
-  - name: Assign global hot spare.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
-    tags:
-      - assign_global_hot_spare
+    - name: Assign global hot spare.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      tags:
+        - assign_global_hot_spare
 
-  - name: Unassign hot spare
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
-      command: UnassignSpare
-    tags:
-      - un-assign-hot-spare
+    - name: Unassign hot spare
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+        command: UnassignSpare
+      tags:
+        - un-assign-hot-spare
 
-  - name: Set controller encryption key.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "SetControllerKey"
-      controller_id: "RAID.Slot.1-1"
-      key: "PassPhrase@123"
-      key_id: "mykeyid123"
-    tags:
-      - set_controller_key
+    - name: Set controller encryption key.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "SetControllerKey"
+        controller_id: "RAID.Slot.1-1"
+        key: "PassPhrase@123"
+        key_id: "mykeyid123"
+      tags:
+        - set_controller_key
 
-  - name: Rekey in LKM mode.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "ReKey"
-      controller_id: "RAID.Slot.1-1"
-      key: "NewPassPhrase@123"
-      key_id: "newkeyid123"
-      old_key: "OldPassPhrase@123"
-    tags:
-      - rekey_lkm
+    - name: Rekey in LKM mode.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ReKey"
+        controller_id: "RAID.Slot.1-1"
+        key: "NewPassPhrase@123"
+        key_id: "newkeyid123"
+        old_key: "OldPassPhrase@123"
+      tags:
+        - rekey_lkm
 
-  - name: Rekey in SEKM mode.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "ReKey"
-      controller_id: "RAID.Slot.1-1"
-      mode: "SEKM"
-    tags:
-      - rekey_sekm
+    - name: Rekey in SEKM mode.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ReKey"
+        controller_id: "RAID.Slot.1-1"
+        mode: "SEKM"
+      tags:
+        - rekey_sekm
 
-  - name: Remove controller key.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "RemoveControllerKey"
-      controller_id: "RAID.Slot.1-1"
-    tags:
-      - remove_controller_key
+    - name: Remove controller key.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "RemoveControllerKey"
+        controller_id: "RAID.Slot.1-1"
+      tags:
+        - remove_controller_key
 
-  - name: Reset controller configuration.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "ResetConfig"
-      controller_id: "RAID.Slot.1-1"
-    tags:
-      - reset_config
+    - name: Reset controller configuration.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ResetConfig"
+        controller_id: "RAID.Slot.1-1"
+      tags:
+        - reset_config
 
-  - name: Enable controller encryption
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "EnableControllerEncryption"
-      controller_id: "RAID.Slot.1-1"
-      mode: "LKM"
-      key: "your_Key@123"
-      key_id: "your_Keyid@123"
-    tags:
-      - enable-encrypt
+    - name: Enable controller encryption
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "EnableControllerEncryption"
+        controller_id: "RAID.Slot.1-1"
+        mode: "LKM"
+        key: "your_Key@123"
+        key_id: "your_Keyid@123"
+      tags:
+        - enable-encrypt
 
-  - name: Blink physical disk.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "BlinkTarget"
-      target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
-    tags:
-      - blink-target
+    - name: Blink physical disk.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "BlinkTarget"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      tags:
+        - blink-target
 
-  - name: Blink virtual drive.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "BlinkTarget"
-      volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
-    tags:
-      - blink-volume
+    - name: Blink virtual drive.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "BlinkTarget"
+        volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+      tags:
+        - blink-volume
 
-  - name: Unblink physical disk.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "UnBlinkTarget"
-      target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
-    tags:
-      - unblink-target
+    - name: Unblink physical disk.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "UnBlinkTarget"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      tags:
+        - unblink-target
 
-  - name: Unblink virtual drive.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "UnBlinkTarget"
-      volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
-    tags:
-      - unblink-drive
+    - name: Unblink virtual drive.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "UnBlinkTarget"
+        volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+      tags:
+        - unblink-drive
 
-  - name: Convert physical disk to RAID
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "ConvertToRAID"
-      target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
-    tags:
-      - convert-raid
+    - name: Convert physical disk to RAID
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ConvertToRAID"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      tags:
+        - convert-raid
 
-  - name: Convert physical disk to non-RAID
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "ConvertToNonRAID"
-      target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
-    tags:
-      - convert-non-raid
+    - name: Convert physical disk to non-RAID
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ConvertToNonRAID"
+        target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      tags:
+        - convert-non-raid
 
-  - name: Change physical disk state to online.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "ChangePDStateToOnline"
-      target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
-    tags:
-      - pd-state-online
+    - name: Change physical disk state to online.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ChangePDStateToOnline"
+        target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      tags:
+        - pd-state-online
 
-  - name: Change physical disk state to offline.
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "ChangePDStateToOnline"
-      target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
-    tags:
-      - pd-state-offline
+    - name: Change physical disk state to offline.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "ChangePDStateToOnline"
+        target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
+      tags:
+        - pd-state-offline
 
-  - name: Lock virtual drive
-    idrac_redfish_storage_controller:
-      baseuri: "{{ baseuri }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      command: "LockVirtualDisk"
-      volume_id: "Disk.Virtual.0:RAID.SL.3-1"
-    tags:
-      - lock
+    - name: Lock virtual drive
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "LockVirtualDisk"
+        volume_id: "Disk.Virtual.0:RAID.SL.3-1"
+      tags:
+        - lock
+
+    - name: Online Capacity Expansion of a volume using target
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "OnlineCapacityExpansion"
+        volume_id: "Disk.Virtual.0:RAID.Integrated.1-1"
+        target:
+          - "Disk.Bay.3:Enclosure.Internal.0-0:RAID.Integrated.1-1"
+      tags:
+        - oce_target
+
+    - name: Online Capacity Expansion of a volume using size
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "OnlineCapacityExpansion"
+        volume_id: "Disk.Virtual.0:RAID.Integrated.1-1"
+        size: 363786
+      tags:
+        - oce_size
+
+    - name: Set controller attributes.
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        controller_id: "RAID.Slot.1-1"
+        attributes:
+          ControllerMode: "HBA"
+        apply_time: "OnReset"
+      tags:
+        - controller
+
+    - name: Configure Controller attributes at Maintenance window
+      idrac_redfish_storage_controller:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        controller_id: "RAID.Slot.1-1"
+        attributes:
+          CheckConsistencyMode: Normal
+          CopybackMode: "Off"
+          LoadBalanceMode: Disabled
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 1200

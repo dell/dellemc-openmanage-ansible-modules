@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.2.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -74,7 +74,7 @@ class TestOMEADUser(FakeAnsibleModule):
     def test_delete_directory_user(self, ome_conn_mock_ad, ome_response_mock, ome_default_args, mocker):
         ome_response_mock.status_code = 204
         msg, changed = self.module.delete_directory_user(ome_conn_mock_ad, 15011)
-        assert msg == "Successfully deleted the active directory user group."
+        assert msg == "Successfully deleted the domain user group."
         assert changed is True
 
     def test_get_role(self, ome_conn_mock_ad, ome_response_mock, ome_default_args, mocker):
@@ -100,13 +100,15 @@ class TestOMEADUser(FakeAnsibleModule):
 
     def test_search_directory(self, ome_conn_mock_ad, ome_response_mock, ome_default_args, mocker):
         f_module = self.get_module_mock(params={"state": "present", "group_name": "Administrator",
-                                                "domain_username": "admin@dev0", "domain_password": "password"})
+                                                "domain_username": "admin@dev0", "domain_password": "password",
+                                                "directory_type": "LDAP"})
         ome_response_mock.json_data = [{"CommonName": "Administrator", "ObjectGuid": "object_id"}]
         obj_id, name = self.module.search_directory(f_module, ome_conn_mock_ad, 16011)
         assert obj_id == "object_id"
 
         f_module = self.get_module_mock(params={"state": "present", "group_name": "Admin",
-                                                "domain_username": "admin@dev0", "domain_password": "password"})
+                                                "domain_username": "admin@dev0", "domain_password": "password",
+                                                "directory_type": "AD"})
         with pytest.raises(Exception) as err:
             self.module.search_directory(f_module, ome_conn_mock_ad, 16011)
         assert err.value.args[0] == "Unable to complete the operation because the entered " \
@@ -173,26 +175,50 @@ class TestOMEADUser(FakeAnsibleModule):
         resp, msg = self.module.directory_user(f_module, ome_conn_mock_ad)
         assert msg == "imported"
 
+    @pytest.mark.parametrize("params", [{
+        "module_args": {"state": "present", "group_name": "group1",
+                        "domain_username": "admin@dev0", "domain_password": "password",
+                        "directory_type": "LDAP"},
+        "directory_user": ([{"UserName": "Group1", "Id": 15011, "RoleId": "10", "Enabled": True}], 'imported'),
+        "msg": "Successfully imported the domain user group."},
+        {
+        "module_args": {"state": "absent", "group_name": "group1",
+                        "domain_username": "admin@dev0", "domain_password": "password",
+                        "directory_type": "LDAP"},
+        "get_directory_user": ({"UserName": "Group1", "Id": 15011, "RoleId": "10", "Enabled": True}),
+        "delete_directory_user": ("Successfully deleted the domain user group.", True),
+        "msg": "Successfully deleted the domain user group."}])
+    def test_main_success(self, params, ome_conn_mock_ad, ome_response_mock, ome_default_args, mocker):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = {"Name": "LDAP2"}
+        ome_conn_mock_ad.strip_substr_dict.return_value = params.get("directory_user", (None, 1))[0]
+        mocker.patch(MODULE_PATH + 'directory_user', return_value=params.get("directory_user", (None, 1)))
+        mocker.patch(MODULE_PATH + 'get_directory_user', return_value=params.get("get_directory_user", (None, 1)))
+        mocker.patch(MODULE_PATH + 'delete_directory_user', return_value=params.get("delete_directory_user", (None, 1)))
+        ome_default_args.update(params['module_args'])
+        result = self._run_module(ome_default_args)
+        assert result['msg'] == params['msg']
+
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
-    def test_ome_domain_exception(self, exc_type, mocker, ome_default_args,
-                                  ome_conn_mock_ad, ome_response_mock):
-        ome_default_args.update({"state": "absent"})
+    def test_main_exception_failure_case(self, exc_type, mocker, ome_default_args,
+                                         ome_conn_mock_ad, ome_response_mock):
+        ome_default_args.update({"state": "absent", "group_name": "group1"})
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
         json_str = to_text(json.dumps({"info": "error_details"}))
         if exc_type == URLError:
             mocker.patch(MODULE_PATH + 'get_directory_user', side_effect=exc_type("url open error"))
-            result = self._run_module_with_fail_json(ome_default_args)
-            assert result["failed"] is True
+            result = self._run_module(ome_default_args)
+            assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'get_directory_user', side_effect=exc_type("exception message"))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            mocker.patch(MODULE_PATH + 'get_directory_user',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
-                                              {"accept-type": "application/json"}, StringIO(json_str)))
+            mocker.patch(MODULE_PATH + 'get_directory_user', side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                                                                  {"accept-type": "application/json"},
+                                                                                  StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result

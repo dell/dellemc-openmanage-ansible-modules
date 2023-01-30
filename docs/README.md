@@ -1,5 +1,5 @@
 <!--
-Copyright (c) 2022 Dell Inc., or its subsidiaries. All Rights Reserved.
+Copyright (c) 2023 Dell Inc., or its subsidiaries. All Rights Reserved.
 
 Licensed under the GPL, Version 3.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ You may obtain a copy of the License at
 - [ome_device_network_services](modules/ome_device_network_services.rst)
 - [ome_device_power_settings](modules/ome_device_power_settings.rst)
 - [ome_device_quick_deploy](modules/ome_device_quick_deploy.rst)
+- [ome_devices](modules/ome_devices.rst)
 - [ome_diagnostics](modules/ome_diagnostics.rst)
 - [ome_discovery](modules/ome_discovery.rst)
 - [ome_domain_user_groups](modules/ome_domain_user_groups.rst)
@@ -82,6 +83,7 @@ You may obtain a copy of the License at
 - [ome_network_vlan_info](modules/ome_network_vlan_info.rst)
 - [ome_powerstate](modules/ome_powerstate.rst)
 - [ome_profile](modules/ome_profile.rst)
+- [ome_profile_info](modules/ome_profile_info.rst)
 - [ome_server_interface_profile_info](modules/ome_server_interface_profile_info.rst)
 - [ome_server_interface_profiles](modules/ome_server_interface_profiles.rst)
 - [ome_smart_fabric_info](modules/ome_smart_fabric_info.rst)
@@ -92,6 +94,7 @@ You may obtain a copy of the License at
 - [ome_template_identity_pool](modules/ome_template_identity_pool.rst)
 - [ome_template_info](modules/ome_template_info.rst)
 - [ome_template_network_vlan](modules/ome_template_network_vlan.rst)
+- [ome_template_network_vlan_info](modules/ome_template_network_vlan_info.rst)
 - [ome_user](modules/ome_user.rst)
 - [ome_user_info](modules/ome_user_info.rst)
  

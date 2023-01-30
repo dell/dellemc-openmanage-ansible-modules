@@ -261,7 +261,7 @@ class RestOME(object):
             device_id = device_info["Id"]
         return {"Id": device_id, "value": device_info}
 
-    def get_all_items_with_pagination(self, uri):
+    def get_all_items_with_pagination(self, uri, query_param=None):
         """
          This implementation mainly to get all available items from ome for pagination
          supported GET uri
@@ -269,7 +269,7 @@ class RestOME(object):
         :return: dict.
         """
         try:
-            resp = self.invoke_request('GET', uri)
+            resp = self.invoke_request('GET', uri, query_param=query_param)
             data = resp.json_data
             total_items = data.get("value", [])
             total_count = data.get('@odata.count', 0)

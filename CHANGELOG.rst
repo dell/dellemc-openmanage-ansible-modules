@@ -5,21 +5,57 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v7.2.0
+======
+
+Release Summary
+---------------
+
+Support for retrieving the inventory and host details of all child groups using parent groups, retrieving inventory of System and Plugin Groups, retrieving profiles with attributes, retrieving network configuration of a template, configuring controller attributes, configuring online capacity expansion, and importing the LDAP directory.
+
+Major Changes
+-------------
+
+- idrac_redfish_storage_controller - This module is enhanced to configure controller attributes and online capacity expansion.
+- ome_domian_user_groups - This module allows to import the LDAP directory groups.
+- ome_inventory - This plugin is enhanced to support inventory retrieval of System and Plugin Groups of OpenManage Enterprise.
+- ome_profile_info - This module allows to retrieve profiles with attributes on OpenManage Enterprise or OpenManage Enterprise Modular.
+- ome_template_network_vlan_info - This module allows to retrieve the network configuration of a template on OpenManage Enterprise or OpenManage Enterprise Modular.
+
+Known Issues
+------------
+
+- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_inventory - Issue(256257) - All hosts are not retrieved for ``Modular System`` group and corresponding child groups.
+- ome_inventory - Issue(256589) - All hosts are not retrieved for ``Custom Groups`` group and corresponding child groups.
+- ome_inventory - Issue(256593) - All hosts are not retrieved for ``PLUGIN GROUPS`` group and corresponding child groups.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_profile_info - Retrieve profiles with attribute details
+- dellemc.openmanage.ome_template_network_vlan_info - Retrieves network configuration of template.
+
 v7.1.0
 ======
 
 Release Summary
 ---------------
 
-Support for retrieving smart fabric and smart fabric uplink information, support for IPv6 address for OMSDK dependent iDRAC modules, and OpenManage Enterprise inventory plugin.
+Support for retrieving smart fabric and smart fabric uplink information and support for IPv6 address for OMSDK dependent iDRAC modules.
 
 Major Changes
 -------------
 
 - Support for IPv6 address for OMSDK dependent iDRAC modules.
 - ome_inventory - This plugin allows to create a inventory from the group on OpenManage Enterprise.
-- ome_smart_fabric_info - This module allows to retrieve smart fabric details of OpenManage Enterprise Modular.
-- ome_smart_fabric_uplink_info - This module allows to retrieve smart fabric uplink details of OpenManage Enterprise Modular.
+- ome_smart_fabric_info - This module retrieves the list of smart fabrics in the inventory of OpenManage Enterprise Modular.
+- ome_smart_fabric_uplink_info - This module retrieve details of fabric uplink on OpenManage Enterprise Modular.
 
 Minor Changes
 -------------
@@ -39,8 +75,8 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.ome_smart_fabric_info - This module allows to retrieve smart fabric details of OpenManage Enterprise Modular.
-- dellemc.openmanage.ome_smart_fabric_uplink_info - This module allows to retrieve fabric uplink details of OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_smart_fabric_info - Retrieves the information of smart fabrics inventoried by OpenManage Enterprise Modular
+- dellemc.openmanage.ome_smart_fabric_uplink_info - Retrieve details of fabric uplink on OpenManage Enterprise Modular.
 
 v7.0.0
 ======

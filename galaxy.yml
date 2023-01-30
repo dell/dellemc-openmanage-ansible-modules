@@ -1,11 +1,11 @@
 namespace: dellemc
 name: openmanage
-version: 7.1.0
+version: 7.2.0
 readme: README.md
 authors:
-- Jagadeesh N V <Jagadeesh_N_V@Dell.com>
-- Felix Stephen <Felix_S@Dell.com>
-- Sachin Apagundi <Sachin_Apagundi@Dell.com>
+- Jagadeesh N V <Jagadeesh.N.V@Dell.com>
+- Felix Stephen <Felix.S@Dell.com>
+- Sachin Apagundi <Sachin.Apagundi@Dell.com>
 - Husniya Hameed <Husniya.Hameed@Dellteam.com>
 - Abhishek Sinha <Abhishek.Sinha10@Dell.com>
 - Kritika Bhateja <Kritika.Bhateja@Dell.com>

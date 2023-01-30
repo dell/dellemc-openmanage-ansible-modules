@@ -145,5 +145,5 @@ Status
 Authors
 ~~~~~~~
 
-- Kritika Bhateja(@Kritika-Bhateja)
+- Kritika Bhateja(@Kritka-Bhateja)
 
