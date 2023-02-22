@@ -2,24 +2,21 @@
 - hosts: idrac
   connection: local
   name: Dell OpenManage Ansible iDRAC Certificates management.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
     - name: Update iDRAC attributes
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
-        idrac_password:  "{{ idrac_password }}"
+        idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
         idrac_attributes:
           SNMP.1.AgentCommunity: Enabled
       tags: idrac
 
     - name: Update System attributes
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -29,7 +26,7 @@
       tags: system
 
     - name: Update Lifecycle Controller attributes
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -39,7 +36,7 @@
       tags: lc
 
     - name: Configure the iDRAC attributes for email alert settings.
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -51,7 +48,7 @@
       tags: email-alerts
 
     - name: Configure the iDRAC attributes for SNMP alert settings.
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -63,7 +60,7 @@
       tags: snmp-alerts
 
     - name: Configure the iDRAC attributes for SMTP alert settings.
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -77,7 +74,7 @@
       tags: smtp-alerts
 
     - name: Configure the iDRAC attributes for webserver settings.
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -88,7 +85,7 @@
       tags: webserver-settings
 
     - name: Configure the iDRAC attributes for SNMP settings.
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -102,7 +99,7 @@
       tags: snmp-settings
 
     - name: Configure the iDRAC LC attributes for collecting system inventory.
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -112,7 +109,7 @@
       tags: collect-inventory
 
     - name: Configure the iDRAC system attributes for LCD settings.
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
@@ -125,7 +122,7 @@
       tags: lcd-config
 
     - name: Configure the iDRAC attributes for Timezone settings.
-      idrac_attributes:
+      dellemc.openmanage.idrac_attributes:
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"

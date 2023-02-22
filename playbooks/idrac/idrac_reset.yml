@@ -2,18 +2,14 @@
 - hosts: idrac
   connection: local
   name: Reset iDRAC
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
-  - name: Reset iDRAC
-    idrac_reset:
-       idrac_ip:   "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_password:  "{{ idrac_password }}"
-       ca_path: "/path/to/ca_cert.pem"
-
-    tags:
-      - idrac_reset
+    - name: Reset iDRAC
+      dellemc.openmanage.idrac_reset:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      tags:
+        - idrac_reset

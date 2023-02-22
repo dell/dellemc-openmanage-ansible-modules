@@ -2,34 +2,31 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible Module for Device compliance information
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
-  - name: Retrieve the compliance report of all of the devices in the specified configuration compliance baseline.
-    ome_configuration_compliance_info:
-      hostname: "{{ hostname }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      baseline: baseline_name
+    - name: Retrieve the compliance report of all of the devices in the specified configuration compliance baseline.
+      dellemc.openmanage.ome_configuration_compliance_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline: baseline_name
 
-  - name: Retrieve the compliance report for a specific device associated with the baseline using the device ID.
-    ome_configuration_compliance_info:
-      hostname: "{{ hostname }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      baseline: baseline_name
-      device_id: 10001
+    - name: Retrieve the compliance report for a specific device associated with the baseline using the device ID.
+      dellemc.openmanage.ome_configuration_compliance_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline: baseline_name
+        device_id: 10001
 
-  - name: Retrieve the compliance report for a specific device associated with the baseline using the device service tag.
-    ome_configuration_compliance_info:
-      hostname: "{{ hostname }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      baseline: baseline_name
-      device_service_tag: 2HFGH3
+    - name: Retrieve the compliance report for a specific device associated with the baseline using the device service tag.
+      dellemc.openmanage.ome_configuration_compliance_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline: baseline_name
+        device_service_tag: 2HFGH3

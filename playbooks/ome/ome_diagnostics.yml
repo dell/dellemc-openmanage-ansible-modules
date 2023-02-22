@@ -2,14 +2,11 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible diagnostics operation.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
     - name: Application log extraction using CIFS share location
-      ome_diagnostics:
+      dellemc.openmanage.ome_diagnostics:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -25,7 +22,7 @@
       tags: app-cifs-log
 
     - name: Application log extraction using NFS share location
-      ome_diagnostics:
+      dellemc.openmanage.ome_diagnostics:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -39,7 +36,7 @@
       tags: app-nfs-log
 
     - name: Support assist log extraction using CIFS share location
-      ome_diagnostics:
+      dellemc.openmanage.ome_diagnostics:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -58,7 +55,7 @@
       tags: tsr-cifs-log
 
     - name: Support assist log extraction using NFS share location
-      ome_diagnostics:
+      dellemc.openmanage.ome_diagnostics:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"

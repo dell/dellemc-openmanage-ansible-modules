@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.3.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -263,7 +263,7 @@ class iDRACRedfishAPI(object):
         return response
 
     def export_scp(self, export_format=None, export_use=None, target=None,
-                   job_wait=False, share=None):
+                   job_wait=False, share=None, include_in_export="Default"):
         """
         This method exports system configuration details from the system.
         :param export_format: XML or JSON.
@@ -288,6 +288,21 @@ class iDRACRedfishAPI(object):
             payload["ShareParameters"]["Username"] = share["username"]
         if share.get("password") is not None:
             payload["ShareParameters"]["Password"] = share["password"]
+        if share.get("ignore_certificate_warning") is not None:
+            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
+        if share.get("proxy_support") is not None:
+            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
+        if share.get("proxy_type") is not None:
+            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
+        if share.get("proxy_port") is not None:
+            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
+        if share.get("proxy_server") is not None:
+            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
+        if share.get("proxy_username") is not None:
+            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
+        if share.get("proxy_password") is not None:
+            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
+        payload["IncludeInExport"] = include_in_export
         response = self.invoke_request(EXPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
@@ -324,6 +339,20 @@ class iDRACRedfishAPI(object):
             payload["ShareParameters"]["Username"] = share["username"]
         if share.get("password") is not None:
             payload["ShareParameters"]["Password"] = share["password"]
+        if share.get("ignore_certificate_warning") is not None:
+            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
+        if share.get("proxy_support") is not None:
+            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
+        if share.get("proxy_type") is not None:
+            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
+        if share.get("proxy_port") is not None:
+            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
+        if share.get("proxy_server") is not None:
+            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
+        if share.get("proxy_username") is not None:
+            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
+        if share.get("proxy_password") is not None:
+            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
         response = self.invoke_request(IMPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
@@ -348,6 +377,20 @@ class iDRACRedfishAPI(object):
             payload["ShareParameters"]["Username"] = share["username"]
         if share.get("password") is not None:
             payload["ShareParameters"]["Password"] = share["password"]
+        if share.get("ignore_certificate_warning") is not None:
+            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
+        if share.get("proxy_support") is not None:
+            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
+        if share.get("proxy_type") is not None:
+            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
+        if share.get("proxy_port") is not None:
+            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
+        if share.get("proxy_server") is not None:
+            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
+        if share.get("proxy_username") is not None:
+            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
+        if share.get("proxy_password") is not None:
+            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
         response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
@@ -364,6 +407,21 @@ class iDRACRedfishAPI(object):
         """
         payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}}
         response = self.invoke_request(IMPORT_URI, "POST", data=payload)
+        if response.status_code == 202 and job_wait:
+            task_uri = response.headers["Location"]
+            response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
+        return response
+
+    def import_preview_scp(self, import_buffer=None, target=None, job_wait=False):
+        """
+        This method imports preview system configuration details to the system.
+        :param import_buffer: import buffer payload content xml or json format
+        :param target: IDRAC or NIC or ALL or BIOS or RAID.
+        :param job_wait: True or False decide whether to wait till the job completion.
+        :return: json response
+        """
+        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}}
+        response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)

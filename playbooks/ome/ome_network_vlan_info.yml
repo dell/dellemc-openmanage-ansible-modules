@@ -2,21 +2,18 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible OpenManage Enterprise network vlan details.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
     - name: Retrieve information about all network VLANs(s) available in the device.
-      ome_network_vlan_info:
+      dellemc.openmanage.ome_network_vlan_info:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
 
     - name: Retrieve information about a network VLAN using the VLAN ID.
-      ome_network_vlan_info:
+      dellemc.openmanage.ome_network_vlan_info:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
@@ -24,7 +21,7 @@
         id: 12345
 
     - name: Retrieve information about a network VLAN using the VLAN name.
-      ome_network_vlan_info:
+      dellemc.openmanage.ome_network_vlan_info:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"

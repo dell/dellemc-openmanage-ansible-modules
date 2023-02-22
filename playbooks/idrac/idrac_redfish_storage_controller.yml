@@ -4,15 +4,13 @@
   name: Dell OpenManage Ansible iDRAC Redfish Storage Controller service.
   gather_facts: false
 
-  collections:
-    - dellemc.openmanage
-
   tasks:
     - name: Assign dedicated hot spare.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        command: "AssignSpare"
         ca_path: "/path/to/ca_cert.pem"
         volume_id:
           - "Disk.Virtual.0:RAID.Slot.1-1"
@@ -21,17 +19,18 @@
         - assign_dedicated_hot_spare
 
     - name: Assign global hot spare.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
+        command: "AssignSpare"
         ca_path: "/path/to/ca_cert.pem"
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - assign_global_hot_spare
 
     - name: Unassign hot spare
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -42,7 +41,7 @@
         - un-assign-hot-spare
 
     - name: Set controller encryption key.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -55,7 +54,7 @@
         - set_controller_key
 
     - name: Rekey in LKM mode.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -69,7 +68,7 @@
         - rekey_lkm
 
     - name: Rekey in SEKM mode.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -81,7 +80,7 @@
         - rekey_sekm
 
     - name: Remove controller key.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -92,7 +91,7 @@
         - remove_controller_key
 
     - name: Reset controller configuration.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -103,7 +102,7 @@
         - reset_config
 
     - name: Enable controller encryption
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -117,7 +116,7 @@
         - enable-encrypt
 
     - name: Blink physical disk.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -128,7 +127,7 @@
         - blink-target
 
     - name: Blink virtual drive.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -139,7 +138,7 @@
         - blink-volume
 
     - name: Unblink physical disk.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -150,7 +149,7 @@
         - unblink-target
 
     - name: Unblink virtual drive.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -161,7 +160,7 @@
         - unblink-drive
 
     - name: Convert physical disk to RAID
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -172,7 +171,7 @@
         - convert-raid
 
     - name: Convert physical disk to non-RAID
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -183,7 +182,7 @@
         - convert-non-raid
 
     - name: Change physical disk state to online.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -194,7 +193,7 @@
         - pd-state-online
 
     - name: Change physical disk state to offline.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -205,7 +204,7 @@
         - pd-state-offline
 
     - name: Lock virtual drive
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -216,7 +215,7 @@
         - lock
 
     - name: Online Capacity Expansion of a volume using target
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -229,7 +228,7 @@
         - oce_target
 
     - name: Online Capacity Expansion of a volume using size
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -241,7 +240,7 @@
         - oce_size
 
     - name: Set controller attributes.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -254,7 +253,7 @@
         - controller
 
     - name: Configure Controller attributes at Maintenance window
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"

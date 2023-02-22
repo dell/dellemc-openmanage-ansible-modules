@@ -1,0 +1,24 @@
+---
+# tasks file for idrac_export_server_config_profile
+- name: Pre-req
+  ansible.builtin.include_tasks: pre_req.yml
+
+- name: Local path
+  ansible.builtin.include_tasks: scp_export_local.yml
+  when: share_type == 'Local'
+
+- name: NFS
+  ansible.builtin.include_tasks: scp_export_nfs.yml
+  when: share_type == 'NFS'
+
+- name: CIFS
+  ansible.builtin.include_tasks: scp_export_cifs.yml
+  when: share_type == 'CIFS'
+
+- name: HTTP
+  ansible.builtin.include_tasks: scp_export_http.yml
+  when: share_type == 'HTTP'
+
+- name: HTTPS
+  ansible.builtin.include_tasks: scp_export_https.yml
+  when: share_type == 'HTTPS'

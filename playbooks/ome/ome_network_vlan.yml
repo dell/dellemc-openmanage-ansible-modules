@@ -2,17 +2,14 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible VLAN operations.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
-    - name: "Create a VLAN range"
-      ome_network_vlan:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Create a VLAN range
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan1"
@@ -22,11 +19,11 @@
         vlan_maximum: 40
       tags: create_vlan_range
 
-    - name: "Create a VLAN with a single value"
-      ome_network_vlan:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Create a VLAN with a single value
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan2"
@@ -36,11 +33,11 @@
         vlan_maximum: 127
       tags: create_vlan_single
 
-    - name: "Modify a VLAN"
-      ome_network_vlan:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Modify a VLAN
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan1"
@@ -51,11 +48,11 @@
         vlan_maximum: 50
       tags: modify_vlan
 
-    - name: "Delete a VLAN"
-      ome_network_vlan:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Delete a VLAN
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "vlan1"

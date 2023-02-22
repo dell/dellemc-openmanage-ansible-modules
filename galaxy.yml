@@ -1,14 +1,14 @@
 namespace: dellemc
 name: openmanage
-version: 7.2.0
+version: 7.3.0
 readme: README.md
 authors:
-- Jagadeesh N V <Jagadeesh.N.V@Dell.com>
-- Felix Stephen <Felix.S@Dell.com>
-- Sachin Apagundi <Sachin.Apagundi@Dell.com>
-- Husniya Hameed <Husniya.Hameed@Dellteam.com>
-- Abhishek Sinha <Abhishek.Sinha10@Dell.com>
-- Kritika Bhateja <Kritika.Bhateja@Dell.com>
+  - Jagadeesh N V <Jagadeesh.N.V@Dell.com>
+  - Felix Stephen <Felix.S@Dell.com>
+  - Sachin Apagundi <Sachin.Apagundi@Dell.com>
+  - Husniya Hameed <Husniya.Hameed@Dellteam.com>
+  - Abhishek Sinha <Abhishek.Sinha10@Dell.com>
+  - Kritika Bhateja <Kritika.Bhateja@Dell.com>
 
 description: Dell OpenManage Ansible Modules allows data center and IT
   administrators to use RedHat Ansible to automate and orchestrate the
@@ -19,8 +19,21 @@ description: Dell OpenManage Ansible Modules allows data center and IT
 
 license_file: LICENSE
 
-tags: ['dell', 'dellemc', 'openmanage', 'infrastructure', 'idrac', 'ome', 'openmanage_enterprise',
-       'redfish', 'redfish_api', 'poweredge_servers', 'automation', 'devops']
+tags:
+  [
+    "dell",
+    "dellemc",
+    "openmanage",
+    "infrastructure",
+    "idrac",
+    "ome",
+    "openmanage_enterprise",
+    "redfish",
+    "redfish_api",
+    "poweredge_servers",
+    "automation",
+    "devops",
+  ]
 
 dependencies: {}
 

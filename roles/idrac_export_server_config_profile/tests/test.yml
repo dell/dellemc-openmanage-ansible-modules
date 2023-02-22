@@ -1,0 +1,6 @@
+---
+- name: Exporitng idrac server config profile for iDRAC
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_export_server_config_profile

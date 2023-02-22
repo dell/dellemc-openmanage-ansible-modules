@@ -2,17 +2,14 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible discovery operations.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
     - name: Discover servers in a range
-      ome_discovery:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_server_1"
         discovery_config_targets:
@@ -27,10 +24,10 @@
         - server_discovery
 
     - name: Discover chassis in a range
-      ome_discovery:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_chassis_1"
         discovery_config_targets:
@@ -45,10 +42,10 @@
         - chassis_discovery
 
     - name: Discover switches in a range
-      ome_discovery:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discover_switch_1"
         discovery_config_targets:
@@ -62,10 +59,10 @@
         - switch_discovery
 
     - name: Discover storage in a range
-      ome_discovery:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discover_storage_1"
         discovery_config_targets:
@@ -82,10 +79,10 @@
         - storage_discovery
 
     - name: Delete a discovery job
-      ome_discovery:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         discovery_job_name: "Discovery-123"
@@ -93,10 +90,10 @@
         - delete_discovery
 
     - name: Schedule the discovery of multiple devices ignoring partial failure and enable trap to receive alerts
-      ome_discovery:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         state: "present"
         discovery_job_name: "Discovery-123"
@@ -136,18 +133,18 @@
               password: ipmi_pwd
         schedule: RunLater
         cron: "0 0 9 ? * MON,WED,FRI *"
-        ignore_partial_failure: True
-        trap_destination: True
-        community_string: True
+        ignore_partial_failure: true
+        trap_destination: true
+        community_string: true
         email_recipient: test_email@company.com
       tags:
         - schedule_discovery
 
     - name: Discover servers with ca check enabled
-      ome_discovery:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_discovery:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_server_ca1"
         discovery_config_targets:
@@ -158,13 +155,13 @@
             wsman:
               username: user
               password: password
-              ca_check: True
+              ca_check: true
               certificate_data: "{{ lookup('ansible.builtin.file', '/path/to/certificate_data_file') }}"
       tags:
         - server_ca_check
 
     - name: Discover chassis with ca check enabled data
-      ome_discovery:
+      dellemc.openmanage.ome_discovery:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
@@ -178,12 +175,12 @@
             redfish:
               username: user
               password: password
-              ca_check: True
-              certificate_data: "-----BEGIN CERTIFICATE-----\r\n
-              ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
-              ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
-              ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
-              aqwertyuiopasdfghjklzxcvbnmasdasagasvv=\r\n
-              -----END CERTIFICATE-----"
+              ca_check: true
+              certificate_data: "  -----BEGIN CERTIFICATE-----
+                ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv
+                ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv
+                ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv
+                aqwertyuiopasdfghjklzxcvbnmasdasagasvv=
+                -----END CERTIFICATE----- "
       tags:
         - chassis_ca_check_data

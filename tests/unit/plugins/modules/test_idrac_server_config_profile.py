@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.3.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -56,9 +56,9 @@ class TestServerConfigProfile(FakeAnsibleModule):
 
     def test_run_export_import_http(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
         idrac_default_args.update({"share_name": "192.168.0.1:/share", "share_user": "sharename",
-                                   "share_password": "sharepswd", "command": "export",
-                                   "job_wait": True, "scp_components": "IDRAC",
-                                   "scp_file": "scp_file.xml", "end_host_power_state": "On",
+                                   "share_password": "sharepswd", "command": "export", "proxy_type": False,
+                                   "job_wait": True, "scp_components": "IDRAC", "include_in_export": "default",
+                                   "scp_file": "scp_file.xml", "end_host_power_state": "On", "proxy_port": 80,
                                    "shutdown_type": "Graceful", "export_format": "XML", "export_use": "Default"})
         f_module = self.get_module_mock(params=idrac_default_args)
         export_response = {"msg": "Successfully exported the Server Configuration Profile.",
@@ -109,7 +109,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
     def test_export_scp_redfish(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
         idrac_default_args.update({"share_name": "192.168.0.1:/share", "share_user": "sharename",
                                    "share_password": "sharepswd", "command": "import",
-                                   "job_wait": False, "scp_components": "IDRAC",
+                                   "job_wait": False, "scp_components": "IDRAC", "include_in_export": "default",
                                    "scp_file": "scp_file.xml", "end_host_power_state": "On",
                                    "shutdown_type": "Graceful", "export_format": "XML",
                                    "export_use": "Default", "validate_certs": False})
@@ -354,3 +354,19 @@ class TestServerConfigProfile(FakeAnsibleModule):
         with patch("{0}.open".format(builtin_module_name), mock_open(read_data=str(resp_return_value["return_data"]))) as mock_file:
             result = self.module.wait_for_response(idrac_scp_redfish_mock, f_module, share, idrac_scp_redfish_mock)
         assert result.job_resp == resp_return_value["return_job"]
+
+    def test_get_proxy_details(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"share_name": "/local-share", "share_user": "sharename", "command": "export",
+                                   "share_password": "sharepswd", "scp_components": "IDRAC",
+                                   "job_wait": False, "end_host_power_state": "On", "scp_file": "scp_file.xml",
+                                   "shutdown_type": "Graceful", "export_format": "JSON", "idrac_port": 443,
+                                   "export_use": "Default", "validate_certs": False, "proxy_support": True,
+                                   "proxy_server": "192.168.0.1", "proxy_type": "http", "proxy_port": 80})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        result = self.module.get_proxy_share(f_module)
+        assert result["proxy_type"] == "HTTP"
+        idrac_default_args.update({"proxy_server": None})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        with pytest.raises(Exception) as ex:
+            self.module.get_proxy_share(f_module)
+        assert ex.value.args[0] == "proxy_support is enabled but all of the following are missing: proxy_server"

@@ -53,4 +53,4 @@ Install the collection from the github repository using the latest commit on the
 ```ansible-galaxy collection install git+https://github.com/dell/dellemc-openmanage-ansible-modules.git,collections```
 
 ## About
-Dell OpenManage Ansible Modules is 100% open source and community-driven. All components are available under [GPL-3.0 license](https://www.gnu.org/licenses/gpl-3.0.html) on GitHub.
+Dell OpenManage Ansible Modules is 100% open source and community-driven. All components are available under [GPL-3.0-only](https://www.gnu.org/licenses/gpl-3.0.html) on GitHub.

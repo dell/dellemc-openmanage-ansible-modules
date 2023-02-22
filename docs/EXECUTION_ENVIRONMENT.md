@@ -104,7 +104,7 @@ password=password
 - hosts: idrac
   connection: local
   name: Get system inventory
-  gather_facts: False
+  gather_facts: false
 
   tasks:
     - name: Get system inventory.

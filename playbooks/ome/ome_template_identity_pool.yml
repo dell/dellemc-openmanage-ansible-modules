@@ -2,18 +2,14 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible template identity pool attach and detach operation.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
-
     - name: Attach an identity pool to a template.
-      ome_template_identity_pool:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_template_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         template_name: template_name
         identity_pool_name: identity_pool_name
@@ -21,10 +17,10 @@
         - attach
 
     - name: Detach an identity pool from a template.
-      ome_template_identity_pool:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_template_identity_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         template_name: template_name
       tags:
