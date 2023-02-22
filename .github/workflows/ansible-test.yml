@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.10, stable-2.11, stable-2.12, stable-2.13, stable-2.14]
+        ansible-version: [stable-2.11, stable-2.12, stable-2.13, stable-2.14]
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -102,7 +102,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.11, stable-2.12, stable-2.13, stable-2.14, devel]
+        ansible-version: [stable-2.11, stable-2.12, stable-2.13, stable-2.14]
 
     steps:
       - name: Set up Python 3.9
