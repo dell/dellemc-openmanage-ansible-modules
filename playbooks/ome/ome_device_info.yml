@@ -2,21 +2,18 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible device inventory details.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
     - name: Retrieve basic inventory of all devices.
-      ome_device_info:
-        hostname:  "{{ hostname }}"
+      dellemc.openmanage.ome_device_info:
+        hostname: "{{ hostname }}"
         username: "{{ username }}"
-        password:  "{{ password }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
 
     - name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering.
-      ome_device_info:
+      dellemc.openmanage.ome_device_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -26,8 +23,8 @@
           filter: "Id eq 33333 or Id eq 11111"
 
     - name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222.
-      ome_device_info:
-        hostname:  "{{ hostname }}"
+      dellemc.openmanage.ome_device_info:
+        hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
@@ -36,9 +33,9 @@
           device_id:
             - 11111
             - 22222
-            
+
     - name: Retrieve inventory details of specified devices identified by service tags MXL1234 and MXL4567.
-      ome_device_info:
+      dellemc.openmanage.ome_device_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -50,7 +47,7 @@
             - MXL4567
 
     - name: Retrieve details of specified inventory type of specified devices identified by ID and service tags.
-      ome_device_info:
+      dellemc.openmanage.ome_device_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -65,7 +62,7 @@
           inventory_type: "serverDeviceCards"
 
     - name: Retrieve subsystem health of specified devices identified by service tags.
-      ome_device_info:
+      dellemc.openmanage.ome_device_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -75,5 +72,3 @@
           device_service_tag:
             - MXL1234
             - MXL4567
-        
- 

@@ -2,17 +2,14 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible configuration compliance baseline.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
     - name: Create a configuration compliance baseline using device IDs
-      ome_configuration_compliance_baseline:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
@@ -25,10 +22,10 @@
         - create_compliance_baseline_device_id
 
     - name: Create a configuration compliance baseline using device service tags
-      ome_configuration_compliance_baseline:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
@@ -41,10 +38,10 @@
         - create_compliance_baseline_tags
 
     - name: Create a configuration compliance baseline using group names
-      ome_configuration_compliance_baseline:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
@@ -58,10 +55,10 @@
         - create_compliance_baseline_group_id
 
     - name: Delete the configuration compliance baselines
-      ome_configuration_compliance_baseline:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_configuration_compliance_baseline:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         command: delete
         names:
@@ -71,7 +68,7 @@
         - delete_compliance_baseline
 
     - name: Modify a configuration compliance baseline using group names
-      ome_configuration_compliance_baseline:
+      dellemc.openmanage.ome_configuration_compliance_baseline:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
@@ -85,7 +82,7 @@
           - Group1
 
     - name: Remediate specific non-compliant devices to a configuration compliance baseline using device IDs
-      ome_configuration_compliance_baseline:
+      dellemc.openmanage.ome_configuration_compliance_baseline:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
@@ -96,7 +93,7 @@
           - 1111
 
     - name: Remediate specific non-compliant devices to a configuration compliance baseline using device service tags
-      ome_configuration_compliance_baseline:
+      dellemc.openmanage.ome_configuration_compliance_baseline:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
@@ -109,7 +106,7 @@
           - "SVCTAG2"
 
     - name: Remediate all the non-compliant devices to a configuration compliance baseline
-      ome_configuration_compliance_baseline:
+      dellemc.openmanage.ome_configuration_compliance_baseline:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
