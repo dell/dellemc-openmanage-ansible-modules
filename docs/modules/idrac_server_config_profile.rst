@@ -12,7 +12,7 @@ idrac_server_config_profile -- Export or Import iDRAC Server Configuration Profi
 Synopsis
 --------
 
-Export the Server Configuration Profile (SCP) from the iDRAC or import from a network share (CIFS, NFS, HTTP, HTTPS) or a local file.
+Export the Server Configuration Profile (SCP) from the iDRAC or import from a network share (CIFS, NFS, HTTP, HTTPS) or a local path.
 
 
 
@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python >= 3.9.14
 
 
 
@@ -39,10 +39,12 @@ Parameters
     Whether to wait for job completion or not.
 
 
-  share_name (True, str, None)
+  share_name (optional, str, None)
     Network share or local path.
 
     CIFS, NFS, HTTP, and HTTPS network share types are supported.
+
+    *share_name* is mutually exclusive with *import_buffer*.
 
 
   share_user (optional, str, None)
@@ -63,7 +65,7 @@ Parameters
     *export_format* is used if the valid extension file is not provided for ``import``.
 
 
-  scp_components (optional, str, ALL)
+  scp_components (optional, list, ALL)
     If ``ALL``, this module exports or imports all components configurations from SCP file.
 
     If ``IDRAC``, this module exports or imports iDRAC configuration from SCP file.
@@ -73,6 +75,8 @@ Parameters
     If ``NIC``, this module exports or imports NIC configuration from SCP file.
 
     If ``RAID``, this module exports or imports RAID configuration from SCP file.
+
+    When *command* is ``export`` or ``import`` *target* with multiple components is supported only on iDRAC9 with firmware 6.10.00.00 and above.
 
 
   shutdown_type (optional, str, Graceful)
@@ -98,7 +102,83 @@ Parameters
 
 
   export_use (optional, str, Default)
-    Specify the type of server configuration profile (SCP) to be exported. This option is applicable for ``export`` command.
+    Specify the type of Server Configuration Profile (SCP) to be exported.
+
+    This option is applicable when *command* is ``export``.
+
+    ``Default`` Creates a non-destructive snapshot of the configuration.
+
+    ``Replace`` Replaces a server with another or restores the servers settings to a known baseline.
+
+    ``Clone`` Clones settings from one server to another server with the identical hardware setup. All settings except I/O identity are updated (e.g. will reset RAID). The settings in this export will be destructive when uploaded to another system.
+
+
+  ignore_certificate_warning (optional, str, ignore)
+    If ``ignore``, it ignores the certificate warnings.
+
+    If ``showerror``, it shows the certificate warnings.
+
+    *ignore_certificate_warning* is considered only when *share_name* is of type HTTPS and is supported only on iDRAC9.
+
+
+  include_in_export (optional, str, default)
+    This option is applicable when *command* is ``export``.
+
+    If ``default``, it exports the default Server Configuration Profile.
+
+    If ``readonly``, it exports the SCP with readonly attributes.
+
+    If ``passwordhashvalues``, it exports the SCP with password hash values.
+
+    If ``customtelemetry``, exports the SCP with custom telemetry attributes supported only in the iDRAC9.
+
+
+  import_buffer (optional, str, None)
+    Used to import the buffer input of xml or json into the iDRAC.
+
+    This option is applicable when *command* is ``import`` and ``preview``.
+
+    *import_buffer* is mutually exclusive with *share_name*.
+
+
+  proxy_support (optional, bool, False)
+    Proxy to be enabled or disabled.
+
+    *proxy_support* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+
+
+  proxy_type (optional, str, http)
+    ``http`` to select HTTP type proxy.
+
+    ``socks4`` to select SOCKS4 type proxy.
+
+    *proxy_type* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+
+
+  proxy_server (optional, str, None)
+    *proxy_server* is required when *share_name* is of type HTTPS or HTTP and *proxy_support* is ``true``.
+
+    *proxy_server* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+
+
+  proxy_port (optional, str, 80)
+    Proxy port to authenticate.
+
+    *proxy_port* is required when *share_name* is of type HTTPS or HTTP and *proxy_support* is ``true``.
+
+    *proxy_port* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+
+
+  proxy_username (optional, str, None)
+    Proxy username to authenticate.
+
+    *proxy_username* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
+
+
+  proxy_password (optional, str, None)
+    Proxy password to authenticate.
+
+    *proxy_password* is considered only when *share_name* is of type HTTP or HTTPS and is supported only on iDRAC9.
 
 
   idrac_ip (True, str, None)
@@ -144,6 +224,7 @@ Notes
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
    - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
+   - For ``import`` operation, ``check_mode`` is supported only when *target* is ``ALL``.
 
 
 
@@ -162,11 +243,12 @@ Examples
         idrac_password: "user_password"
         ca_path: "/path/to/ca_cert.pem"
         share_name: "/scp_folder"
-        scp_components: IDRAC
+        scp_components:
+          - IDRAC
         scp_file: example_file
         export_format: JSON
         export_use: Clone
-        job_wait: True
+        job_wait: true
 
     - name: Import SCP with IDRAC components in JSON format from a local path
       dellemc.openmanage.idrac_server_config_profile:
@@ -176,11 +258,12 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         share_name: "/scp_folder"
         command: import
-        scp_components: "IDRAC"
+        scp_components:
+          - IDRAC
         scp_file: example_file.json
         shutdown_type: Graceful
         end_host_power_state: "On"
-        job_wait: False
+        job_wait: false
 
     - name: Export SCP with BIOS components in XML format to a NFS share path with auto-generated file name
       dellemc.openmanage.idrac_server_config_profile:
@@ -189,10 +272,11 @@ Examples
         idrac_password: "user_password"
         ca_path: "/path/to/ca_cert.pem"
         share_name: "192.168.0.2:/share"
-        scp_components: "BIOS"
+        scp_components:
+          - BIOS
         export_format: XML
         export_use: Default
-        job_wait: True
+        job_wait: true
 
     - name: Import SCP with BIOS components in XML format from a NFS share path
       dellemc.openmanage.idrac_server_config_profile:
@@ -202,11 +286,12 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         share_name: "192.168.0.2:/share"
         command: import
-        scp_components: "BIOS"
+        scp_components:
+          - BIOS
         scp_file: 192.168.0.1_20210618_162856.xml
         shutdown_type: NoReboot
         end_host_power_state: "Off"
-        job_wait: False
+        job_wait: false
 
     - name: Export SCP with RAID components in XML format to a CIFS share path with share user domain name
       dellemc.openmanage.idrac_server_config_profile:
@@ -217,12 +302,12 @@ Examples
         share_name: "\\\\192.168.0.2\\share"
         share_user: share_username@domain
         share_password: share_password
-        share_mnt: /mnt/cifs
         scp_file: example_file.xml
-        scp_components: "RAID"
+        scp_components:
+          - RAID
         export_format: XML
         export_use: Default
-        job_wait: True
+        job_wait: true
 
     - name: Import SCP with RAID components in XML format from a CIFS share path
       dellemc.openmanage.idrac_server_config_profile:
@@ -233,13 +318,13 @@ Examples
         share_name: "\\\\192.168.0.2\\share"
         share_user: share_username
         share_password: share_password
-        share_mnt: /mnt/cifs
         command: import
-        scp_components: "RAID"
+        scp_components:
+          - RAID
         scp_file: example_file.xml
         shutdown_type: Forced
         end_host_power_state: "On"
-        job_wait: True
+        job_wait: true
 
     - name: Export SCP with ALL components in JSON format to a HTTP share path
       dellemc.openmanage.idrac_server_config_profile:
@@ -251,9 +336,10 @@ Examples
         share_user: share_username
         share_password: share_password
         scp_file: example_file.json
-        scp_components: ALL
+        scp_components:
+          - ALL
         export_format: JSON
-        job_wait: False
+        job_wait: false
 
     - name: Import SCP with ALL components in JSON format from a HTTP share path
       dellemc.openmanage.idrac_server_config_profile:
@@ -268,7 +354,7 @@ Examples
         scp_file: example_file.json
         shutdown_type: Graceful
         end_host_power_state: "On"
-        job_wait: True
+        job_wait: true
 
     - name: Export SCP with ALL components in XML format to a HTTPS share path without SCP file name
       dellemc.openmanage.idrac_server_config_profile:
@@ -279,10 +365,11 @@ Examples
         share_name: "https://192.168.0.4/share"
         share_user: share_username
         share_password: share_password
-        scp_components: ALL
+        scp_components:
+          - ALL
         export_format: XML
         export_use: Replace
-        job_wait: True
+        job_wait: true
 
     - name: Import SCP with ALL components in XML format from a HTTPS share path
       dellemc.openmanage.idrac_server_config_profile:
@@ -297,9 +384,9 @@ Examples
         scp_file: 192.168.0.1_20160618_164647.xml
         shutdown_type: Graceful
         end_host_power_state: "On"
-        job_wait: False
+        job_wait: false
 
-    - name: Preview SCP with ALL components in XML format from a CIFS share path
+    - name: Preview SCP with IDRAC components in XML format from a CIFS share path
       dellemc.openmanage.idrac_server_config_profile:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -309,11 +396,12 @@ Examples
         share_user: share_username
         share_password: share_password
         command: preview
-        scp_components: "ALL"
+        scp_components:
+          - ALL
         scp_file: example_file.xml
-        job_wait: True
+        job_wait: true
 
-    - name: Preview SCP with ALL components in JSON format from a NFS share path
+    - name: Preview SCP with IDRAC components in JSON format from a NFS share path
       dellemc.openmanage.idrac_server_config_profile:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -321,11 +409,12 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         share_name: "192.168.0.2:/share"
         command: preview
-        scp_components: "IDRAC"
+        scp_components:
+          - IDRAC
         scp_file: example_file.xml
-        job_wait: True
+        job_wait: true
 
-    - name: Preview SCP with ALL components in XML format from a HTTP share path
+    - name: Preview SCP with IDRAC components in XML format from a HTTP share path
       dellemc.openmanage.idrac_server_config_profile:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -335,11 +424,12 @@ Examples
         share_user: share_username
         share_password: share_password
         command: preview
-        scp_components: "ALL"
+        scp_components:
+          - ALL
         scp_file: example_file.xml
-        job_wait: True
+        job_wait: true
 
-    - name: Preview SCP with ALL components in XML format from a local path
+    - name: Preview SCP with IDRAC components in XML format from a local path
       dellemc.openmanage.idrac_server_config_profile:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
@@ -347,9 +437,72 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         share_name: "/scp_folder"
         command: preview
-        scp_components: "IDRAC"
+        scp_components:
+          - IDRAC
         scp_file: example_file.json
-        job_wait: False
+        job_wait: false
+
+    - name: Import SCP with IDRAC components in XML format from the XML content.
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: import
+        scp_components:
+          - IDRAC
+        job_wait: True
+        import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
+          Disabled</Attribute></Component></SystemConfiguration>"
+
+    - name: Export SCP with ALL components in XML format using HTTP proxy.
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        scp_components:
+          - ALL
+        share_name: "http://192.168.0.1/http-share"
+        proxy_support: true
+        proxy_server: 192.168.0.5
+        proxy_port: 8080
+        proxy_username: proxy_username
+        proxy_password: proxy_password
+        proxy_type: http
+        include_in_export: passwordhashvalues
+        job_wait: true
+
+    - name: Import SCP with IDRAC and BIOS components in XML format using SOCKS4 proxy
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: import
+        scp_components:
+          - IDRAC
+          - BIOS
+        share_name: "https://192.168.0.1/http-share"
+        proxy_support: true
+        proxy_server: 192.168.0.6
+        proxy_port: 8080
+        proxy_type: socks4
+        scp_file: filename.xml
+        job_wait: true
+
+    - name: Import SCP with IDRAC components in JSON format from the JSON content.
+      dellemc.openmanage.idrac_server_config_profile:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: import
+        scp_components:
+          - IDRAC
+        job_wait: true
+        import_buffer: "{\"SystemConfiguration\": {\"Components\": [{\"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\":
+          [{\"Name\": \"SNMP.1#AgentCommunity\",\"Value\": \"public1\"}]}]}}"
 
 
 

@@ -1,0 +1,112 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars:
+    local_path: "{{ lookup('env', 'local_path') }}"
+    local_filename: "{{ lookup('env', 'local_filename') }}"
+    nfs_filename: "{{ lookup('env', 'nfs_filename') }}"
+    cifs_filename: "{{ lookup('env', 'cifs_filename') }}"
+    https_filename: "{{ lookup('env', 'https_filename') }}"
+    http_filename: "{{ lookup('env', 'http_filename') }}"
+    nfs_mount_path: "{{ lookup('env', 'nfs_mount_path') }}"
+    cifs_mount_path: "{{ lookup('env', 'cifs_mount_path') }}"
+
+    nfs_url: "{{ lookup('env', 'NFS_URL') }}"
+    cifs_url: "{{ lookup('env', 'CIFS_URL') }}"
+    cifs_username: "{{ lookup('env', 'CIFS_USERNAME') }}"
+    cifs_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+
+    https_url: "{{ lookup('env', 'HTTPS_URL') }}"
+    https_username: "{{ lookup('env', 'HTTPS_USERNAME') }}"
+    https_password: "{{ lookup('env', 'HTTPS_PASSWORD') }}"
+
+    http_url: "{{ lookup('env', 'HTTP_URL') }}"
+    http_username: "{{ lookup('env', 'HTTP_USERNAME') }}"
+    http_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
+  tasks:
+    - name: Checking exported file exists in Local path
+      ansible.builtin.stat:
+        path: "{{ local_path }}/{{ local_filename }}"
+      register: local_file
+
+    - name: Mounting NFS volume to localhost
+      ansible.posix.mount:
+        src: "{{ nfs_url }}"
+        path: "{{ nfs_mount_path }}"
+        state: mounted
+        fstype: nfs
+      delegate_to: localhost
+      register: nfs_mount
+
+    - name: Checking file exists in NFS mount localhost
+      ansible.builtin.stat:
+        path: "{{ nfs_mount_path }}/{{ nfs_filename }}"
+      delegate_to: localhost
+      register: nfs_file
+
+    - name: Mounting CIFS volume to localhost
+      ansible.posix.mount:
+        src: "{{ cifs_url }}"
+        path: "{{ cifs_mount_path }}"
+        opts: "username={{ cifs_username }},password={{ cifs_password }}"
+        state: mounted
+        fstype: cifs
+      delegate_to: localhost
+      register: cifs_mount
+      no_log: true
+
+    - name: Checking file exists in CIFS mount localhost
+      ansible.builtin.stat:
+        path: "{{ cifs_mount_path }}/{{ cifs_filename }}"
+      delegate_to: localhost
+      register: cifs_file
+
+    - name: Downloading HTTP file to localhost
+      ansible.builtin.get_url:
+        url: "{{ http_url }}/{{ http_filename }}"
+        dest: .
+        validate_certs: false
+        username: "{{ http_username }}"
+        password: "{{ http_password }}"
+        mode: '0755'
+      delegate_to: localhost
+      register: http_file_download
+      no_log: true
+      changed_when: false
+
+    - name: Checking file exists in current location
+      ansible.builtin.stat:
+        path: "{{ http_filename }}"
+      delegate_to: localhost
+      register: http_file
+
+    - name: Downloading HTTPS file to localhost
+      ansible.builtin.get_url:
+        url: "{{ https_url }}/{{ https_filename }}"
+        dest: .
+        validate_certs: false
+        username: "{{ https_username }}"
+        password: "{{ https_password }}"
+        mode: '0755'
+      delegate_to: localhost
+      register: https_file_download
+      no_log: true
+      changed_when: false
+
+    - name: Checking file exists in current location
+      ansible.builtin.stat:
+        path: "{{ https_filename }}"
+      delegate_to: localhost
+      register: https_file
+
+    - name: Verifying file exists
+      ansible.builtin.assert:
+        that:
+          - local_file.stat.exists
+          - nfs_file.stat.exists
+          - cifs_file.stat.exists
+          - http_file.stat.exists
+          - https_file.stat.exists

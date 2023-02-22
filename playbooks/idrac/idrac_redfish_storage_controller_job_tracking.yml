@@ -1,31 +1,29 @@
 ---
 - hosts: idrac
   connection: local
-  name: iDRAC Redfish storage controller service with job tracking.
-  gather_facts: False
+  name: Redfish storage controller service with job tracking for iDRAC.
+  gather_facts: false
   vars:
-      retries_count: 100
-      polling_interval: 10
-      all_ctrl_task_tags:
-        - assign_dedicated_hot_spare
-        - assign_global_hot_spare
-        - set_controller_key
-        - rekey_lkm
-        - rekey_sekm
-        - remove_controller_key
-        - reset_config
+    retries_count: 100
+    polling_interval: 10
+    all_ctrl_task_tags:
+      - assign_dedicated_hot_spare
+      - assign_global_hot_spare
+      - set_controller_key
+      - rekey_lkm
+      - rekey_sekm
+      - remove_controller_key
+      - reset_config
 
-  collections:
-    - dellemc.openmanage
-
-# Use a single tag to run each task with job tracker
+  # Use a single tag to run each task with job tracker
   tasks:
     - name: Assign dedicated hot spare.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
+        command: "AssignSpare"
         volume_id:
           - "Disk.Virtual.0:RAID.Slot.1-1"
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
@@ -34,18 +32,19 @@
         - assign_dedicated_hot_spare
 
     - name: Assign global hot spare.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
+        command: "AssignSpare"
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       register: result
       tags:
         - assign_global_hot_spare
 
     - name: Set controller encryption key.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -59,7 +58,7 @@
         - set_controller_key
 
     - name: Rekey in LKM mode.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -74,7 +73,7 @@
         - rekey_lkm
 
     - name: Rekey in SEKM mode.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -87,7 +86,7 @@
         - rekey_sekm
 
     - name: Remove controller key.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -99,7 +98,7 @@
         - remove_controller_key
 
     - name: Reset controller configuration.
-      idrac_redfish_storage_controller:
+      dellemc.openmanage.idrac_redfish_storage_controller:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -110,17 +109,17 @@
       tags:
         - reset_config
 
-    - name: "iDRAC Job tracking"
-      uri:
+    - name: Job tracking iDRAC
+      ansible.builtin.uri:
         url: "https://{{ baseuri }}{{ result.task.uri }}"
         user: "{{ username }}"
         password: "{{ password }}"
         method: "GET"
-        use_proxy: yes
+        use_proxy: true
         status_code: 200, 202
-        return_content: yes
-        validate_certs: no
-        force_basic_auth: yes
+        return_content: true
+        validate_certs: false
+        force_basic_auth: true
         headers:
           Content-Type: "application/json"
           Accept: "application/json"
@@ -130,8 +129,8 @@
       delay: "{{ polling_interval }}"
       tags: "{{ all_ctrl_task_tags }}"
 
-    - name: "iDRAC job result."
-      set_fact:
+    - name: Job result of iDRAC
+      ansible.builtin.set_fact:
         job_details: "{{ result.json }}"
       failed_when: result.json.Message == "Failed"
       changed_when: result.json.Message != "Failed"

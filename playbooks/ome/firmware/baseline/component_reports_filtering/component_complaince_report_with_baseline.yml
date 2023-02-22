@@ -2,25 +2,21 @@
 - hosts: ome
   connection: local
   gather_facts: false
-  name: "OME - Ansible Modules"
-
-  collections:
-    - dellemc.openmanage
+  name: OME - Ansible Modules
 
   tasks:
+    - name: "Retrieve baseline information for specific baseline."
+      dellemc.openmanage.ome_firmware_baseline_compliance_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "baseline_name"
+      register: result
 
-  - name: "Retrieve baseline information for specific baseline."
-    ome_firmware_baseline_compliance_info:
-      hostname: "{{ hostname }}"
-      username: "{{ username }}"
-      password: "{{ password }}"
-      ca_path: "/path/to/ca_cert.pem"
-      baseline_name: "baseline_name"
-    register: result
-
-  - name: "Filter out device compliance reports."
-    loop: "{{ result.baseline_compliance_info }}" 
-    debug:
-       msg: "{{item.ComponentComplianceReports}}"
-    loop_control:
-       label: "{{ item.DeviceId }}"
+    - name: Filter out device compliance reports.
+      loop: "{{ result.baseline_compliance_info }}"
+      ansible.builtin.debug:
+        msg: "{{ item.ComponentComplianceReports }}"
+      loop_control:
+        label: "{{ item.DeviceId }}"

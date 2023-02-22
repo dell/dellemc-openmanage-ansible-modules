@@ -1,0 +1,3 @@
+---
+# vars file for idrac_export_server_config_profile
+job_wait: true

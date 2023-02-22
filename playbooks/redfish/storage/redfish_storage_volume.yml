@@ -7,13 +7,9 @@
     retries_count: 15
     polling_interval: 5
 
-  collections:
-    - dellemc.openmanage
-
   tasks:
-
     - name: Create a volume with supported options.
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -33,9 +29,9 @@
       register: result
       tags:
         - create_volume1
-        
+
     - name: Create a volume with minimum options.
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -44,12 +40,12 @@
         controller_id: "RAID.Slot.1-1"
         volume_type: "NonRedundant"
         drives:
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-        tags:
-          - create_volume2
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      tags:
+        - create_volume2
 
     - name: Modify a volume's encryption type settings.
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -60,9 +56,9 @@
         encrypted: true
       tags:
         - modify_volume
-        
+
     - name: Initialize an existing volume.
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -72,9 +68,9 @@
         initialize_type: "Slow"
       tags:
         - initialize_volume
-        
+
     - name: Delete an existing volume.
-      redfish_storage_volume:
+      dellemc.openmanage.redfish_storage_volume:
         baseuri: "{{ baseuri }}"
         username: "{{ username }}"
         password: "{{ password }}"

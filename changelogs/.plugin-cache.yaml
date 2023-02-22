@@ -1,4 +1,9 @@
-objects: {}
+objects:
+  role:
+    idrac_export_server_config_profile:
+      description: Role to export iDRAC Server Configuration Profile (SCP).
+      name: idrac_export_server_config_profile
+      version_added: 7.3.0
 plugins:
   become: {}
   cache: {}
@@ -6,7 +11,11 @@ plugins:
   cliconf: {}
   connection: {}
   httpapi: {}
-  inventory: {}
+  inventory:
+    ome_inventory:
+      description: Group inventory plugin on OpenManage Enterprise.
+      name: ome_inventory
+      version_added: 7.1.0
   lookup: {}
   module:
     dellemc_configure_idrac_eventing:
@@ -45,11 +54,27 @@ plugins:
       name: dellemc_system_lockdown_mode
       namespace: ''
       version_added: 1.0.0
+    idrac_attributes:
+      description: Configure the iDRAC attributes.
+      name: idrac_attributes
+      namespace: ''
+      version_added: 6.0.0
     idrac_bios:
-      description: Configure the BIOS attributes
+      description: Modify and clear BIOS attributes, reset BIOS settings and configure
+        boot sources
       name: idrac_bios
       namespace: ''
       version_added: 2.1.0
+    idrac_boot:
+      description: Configure the boot order settings.
+      name: idrac_boot
+      namespace: ''
+      version_added: 6.1.0
+    idrac_certificates:
+      description: Configure certificates for iDRAC
+      name: idrac_certificates
+      namespace: ''
+      version_added: 5.5.0
     idrac_firmware:
       description: Firmware update from a repository on a network share (CIFS, NFS,
         HTTP, HTTPS, FTP)
@@ -92,7 +117,8 @@ plugins:
       namespace: ''
       version_added: 2.1.0
     idrac_redfish_storage_controller:
-      description: Configures the storage controller settings
+      description: Configures the physical disk, virtual disk, and storage controller
+        settings
       name: idrac_redfish_storage_controller
       namespace: ''
       version_added: 2.1.0
@@ -126,17 +152,42 @@ plugins:
       name: idrac_user
       namespace: ''
       version_added: 2.1.0
+    idrac_user_info:
+      description: Retrieve details of all users or a specific user on iDRAC.
+      name: idrac_user_info
+      namespace: ''
+      version_added: 7.0.0
+    idrac_virtual_media:
+      description: Configure the Remote File Share settings.
+      name: idrac_virtual_media
+      namespace: ''
+      version_added: 6.3.0
     ome_active_directory:
       description: Configure Active Directory groups to be used with Directory Services
-        on OpenManage Enterprise
       name: ome_active_directory
       namespace: ''
       version_added: 4.0.0
+    ome_application_alerts_smtp:
+      description: This module allows to configure SMTP or email configurations
+      name: ome_application_alerts_smtp
+      namespace: ''
+      version_added: 4.3.0
+    ome_application_alerts_syslog:
+      description: Configure syslog forwarding settings on OpenManage Enterprise and
+        OpenManage Enterprise Modular
+      name: ome_application_alerts_syslog
+      namespace: ''
+      version_added: 4.3.0
     ome_application_certificate:
       description: This module allows to generate a CSR and upload the certificate
       name: ome_application_certificate
       namespace: ''
       version_added: 2.1.0
+    ome_application_console_preferences:
+      description: Configure console preferences on OpenManage Enterprise.
+      name: ome_application_console_preferences
+      namespace: ''
+      version_added: 5.2.0
     ome_application_network_address:
       description: Updates the network configuration on OpenManage Enterprise
       name: ome_application_network_address
@@ -147,6 +198,12 @@ plugins:
       name: ome_application_network_proxy
       namespace: ''
       version_added: 2.1.0
+    ome_application_network_settings:
+      description: This module allows you to configure the session inactivity timeout
+        settings
+      name: ome_application_network_settings
+      namespace: ''
+      version_added: 4.4.0
     ome_application_network_time:
       description: Updates the network time on OpenManage Enterprise
       name: ome_application_network_time
@@ -157,6 +214,11 @@ plugins:
       name: ome_application_network_webserver
       namespace: ''
       version_added: 2.1.0
+    ome_application_security_settings:
+      description: Configure the login security properties
+      name: ome_application_security_settings
+      namespace: ''
+      version_added: 4.4.0
     ome_chassis_slots:
       description: Rename sled slots on OpenManage Enterprise Modular
       name: ome_chassis_slots
@@ -174,7 +236,8 @@ plugins:
       namespace: ''
       version_added: 3.2.0
     ome_device_group:
-      description: Add devices to a static device group on OpenManage Enterprise
+      description: Add or remove device(s) from a static device group on OpenManage
+        Enterprise
       name: ome_device_group
       namespace: ''
       version_added: 3.3.0
@@ -184,6 +247,43 @@ plugins:
       name: ome_device_info
       namespace: ''
       version_added: 2.0.0
+    ome_device_local_access_configuration:
+      description: Configure local access settings on OpenManage Enterprise Modular.
+      name: ome_device_local_access_configuration
+      namespace: ''
+      version_added: 4.4.0
+    ome_device_location:
+      description: Configure device location settings on OpenManage Enterprise Modular
+      name: ome_device_location
+      namespace: ''
+      version_added: 4.2.0
+    ome_device_mgmt_network:
+      description: Configure network settings of devices on OpenManage Enterprise
+        Modular
+      name: ome_device_mgmt_network
+      namespace: ''
+      version_added: 4.2.0
+    ome_device_network_services:
+      description: Configure chassis network services settings on OpenManage Enterprise
+        Modular
+      name: ome_device_network_services
+      namespace: ''
+      version_added: 4.3.0
+    ome_device_power_settings:
+      description: Configure chassis power settings on OpenManage Enterprise Modular
+      name: ome_device_power_settings
+      namespace: ''
+      version_added: 4.2.0
+    ome_device_quick_deploy:
+      description: Configure Quick Deploy settings on OpenManage Enterprise Modular.
+      name: ome_device_quick_deploy
+      namespace: ''
+      version_added: 5.0.0
+    ome_devices:
+      description: Perform device-specific operations on target devices
+      name: ome_devices
+      namespace: ''
+      version_added: 6.1.0
     ome_diagnostics:
       description: Export technical support logs(TSR) to network share location
       name: ome_diagnostics
@@ -195,13 +295,13 @@ plugins:
       namespace: ''
       version_added: 3.3.0
     ome_domain_user_groups:
-      description: Create, modify, or delete an Active Directory user group on OpenManage
-        Enterprise and OpenManage Enterprise Modular.
+      description: Create, modify, or delete an Active Directory/LDAP user group on
+        OpenManage Enterprise and OpenManage Enterprise Modular
       name: ome_domain_user_groups
       namespace: ''
       version_added: 4.0.0
     ome_firmware:
-      description: Firmware update of PowerEdge devices and its components through
+      description: Update firmware on PowerEdge devices and its components through
         OpenManage Enterprise
       name: ome_firmware
       namespace: ''
@@ -272,17 +372,44 @@ plugins:
       name: ome_profile
       namespace: ''
       version_added: 3.1.0
+    ome_profile_info:
+      description: Retrieve profiles with attribute details
+      name: ome_profile_info
+      namespace: ''
+      version_added: 7.2.0
+    ome_server_interface_profile_info:
+      description: Retrieves the information of server interface profile on OpenManage
+        Enterprise Modular.
+      name: ome_server_interface_profile_info
+      namespace: ''
+      version_added: 5.1.0
+    ome_server_interface_profiles:
+      description: Configure server interface profiles
+      name: ome_server_interface_profiles
+      namespace: ''
+      version_added: 5.1.0
     ome_smart_fabric:
       description: Create, modify or delete a fabric on OpenManage Enterprise Modular
       name: ome_smart_fabric
       namespace: ''
       version_added: 2.1.0
+    ome_smart_fabric_info:
+      description: Retrieves the information of smart fabrics inventoried by OpenManage
+        Enterprise Modular
+      name: ome_smart_fabric_info
+      namespace: ''
+      version_added: 7.1.0
     ome_smart_fabric_uplink:
       description: Create, modify or delete a uplink for a fabric on OpenManage Enterprise
         Modular
       name: ome_smart_fabric_uplink
       namespace: ''
       version_added: 2.1.0
+    ome_smart_fabric_uplink_info:
+      description: Retrieve details of fabric uplink on OpenManage Enterprise Modular.
+      name: ome_smart_fabric_uplink_info
+      namespace: ''
+      version_added: 7.1.0
     ome_template:
       description: Create, modify, deploy, delete, export, import and clone a template
         on OpenManage Enterprise
@@ -306,6 +433,11 @@ plugins:
       name: ome_template_network_vlan
       namespace: ''
       version_added: 2.0.0
+    ome_template_network_vlan_info:
+      description: Retrieves network configuration of template.
+      name: ome_template_network_vlan_info
+      namespace: ''
+      version_added: 7.2.0
     ome_user:
       description: Create, modify or delete a user on OpenManage Enterprise
       name: ome_user
@@ -317,6 +449,11 @@ plugins:
       name: ome_user_info
       namespace: ''
       version_added: 2.0.0
+    redfish_event_subscription:
+      description: Manage Redfish Subscriptions
+      name: redfish_event_subscription
+      namespace: ''
+      version_added: 4.1.0
     redfish_firmware:
       description: To perform a component firmware update using the image file available
         on the local or remote system
@@ -337,4 +474,4 @@ plugins:
   shell: {}
   strategy: {}
   vars: {}
-version: 4.0.0
+version: 7.3.0

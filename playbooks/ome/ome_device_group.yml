@@ -2,17 +2,14 @@
 - hosts: ome
   connection: local
   name: Dell OpenManage Ansible device inventory details.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
     - name: Add devices to a static device group by using the group name and device IDs
-      ome_device_group:
-        hostname:  "{{ hostname }}"
+      dellemc.openmanage.ome_device_group:
+        hostname: "{{ hostname }}"
         username: "{{ username }}"
-        password:  "{{ password }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         name: "Storage Services"
         device_ids:
@@ -21,7 +18,7 @@
       tags: device-id
 
     - name: Add devices to a static device group by using the group name and device service tags
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -33,7 +30,7 @@
       tags: device-service-tags
 
     - name: Add devices to a static device group by using the group ID and device service tags
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -45,7 +42,7 @@
       tags: group_id_device-service-tags
 
     - name: Add devices to a static device group by using the group name and IPv4 addresses
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -57,7 +54,7 @@
       tags: group_name_ipv4
 
     - name: Add devices to a static device group by using the group ID and IPv6 addresses
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -69,7 +66,7 @@
       tags: group_id_ipv6
 
     - name: Add devices to a static device group by using the group ID and supported IPv4 and IPv6 address formats.
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -83,12 +80,12 @@
           - ::ffff:192.0.2.0/125
           - fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff
       tags: group_id_ipv4_ipv6
-    
+
     - name: Remove devices from a static device group by using the group name and device IDs
-      ome_device_group:
-        hostname:  "{{ hostname }}"
+      dellemc.openmanage.ome_device_group:
+        hostname: "{{ hostname }}"
         username: "{{ username }}"
-        password:  "{{ password }}"
+        password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "Storage Services"
@@ -98,7 +95,7 @@
       tags: device-id
 
     - name: Remove devices from a static device group by using the group name and device service tags
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -111,7 +108,7 @@
       tags: device-service-tags
 
     - name: Remove devices from a static device group by using the group ID and device service tags
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -124,7 +121,7 @@
       tags: group_id_device-service-tags
 
     - name: Remove devices from a static device group by using the group name and IPv4 addresses
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -137,7 +134,7 @@
       tags: group_name_ipv4
 
     - name: Remove devices from a static device group by using the group ID and IPv6 addresses
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -150,7 +147,7 @@
       tags: group_id_ipv6
 
     - name: Remove devices from a static device group by using the group ID and supported IPv4 and IPv6 address formats.
-      ome_device_group:
+      dellemc.openmanage.ome_device_group:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"

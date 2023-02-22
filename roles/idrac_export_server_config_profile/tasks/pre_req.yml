@@ -1,0 +1,13 @@
+- name: Initializing share_type
+  ansible.builtin.set_fact:
+    share_type: ''
+
+- name: Checking network share type is CIFS, HTTPS, HTTP
+  ansible.builtin.set_fact:
+    share_type: "{{ item.key if share_parameters.share_name.startswith(item.value) else share_type }}"
+  with_dict: { 'HTTPS': 'https://', 'HTTP': 'http://', 'CIFS': '\\'}
+
+- name: Checking network share type is NFS, Local
+  ansible.builtin.set_fact:
+    share_type: "{{ 'NFS' if ':' in share_parameters.share_name else 'Local' }}"
+  when: share_type == ''

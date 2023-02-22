@@ -2,85 +2,82 @@
 - hosts: idrac
   connection: local
   name: Update Firmware Inventory
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
-  - name: Update firmware from repository on a HTTP/HTTP/FTP repository
-    idrac_firmware:
-       idrac_ip: "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_password:  "{{ idrac_password }}"
-       ca_path: "/path/to/ca_cert.pem"
-       share_name: "https://downloads.dell.com"
-       reboot: True
-       job_wait: True
-       apply_update: True
+    - name: Update firmware from repository on a HTTP/HTTP/FTP repository
+      dellemc.openmanage.idrac_firmware:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "https://downloads.dell.com"
+        reboot: true
+        job_wait: true
+        apply_update: true
 
-  - name: Update firmware from repository on a HTTP/HTTP/FTP repository via proxy
-    idrac_firmware:
-       idrac_ip: "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_password:  "{{ idrac_password }}"
-       ca_path: "/path/to/ca_cert.pem"
-       share_name: "https://downloads.dell.com"
-       reboot: True
-       job_wait: True
-       apply_update: True
-       proxy_support: ParametersProxy
-       proxy_server: 192.168.1.10
-       proxy_type: HTTP
-       proxy_port: 80
-       proxy_uname: "proxy_user"
-       proxy_passwd: "proxy_pwd"
+    - name: Update firmware from repository on a HTTP/HTTP/FTP repository via proxy
+      dellemc.openmanage.idrac_firmware:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "https://downloads.dell.com"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        proxy_support: ParametersProxy
+        proxy_server: 192.168.1.10
+        proxy_type: HTTP
+        proxy_port: 80
+        proxy_uname: "proxy_user"
+        proxy_passwd: "proxy_pwd"
 
-  - name: Update firmware from repository on a internally hosted HTTP repository.
-    idrac_firmware:
-       idrac_ip: "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_password: "{{ idrac_password}}"
-       ca_path: "/path/to/ca_cert.pem"
-       share_name: "http://192.168.0.1/path_to_folder/"
-       reboot: True
-       job_wait: True
-       apply_update: True
-       catalog_file_name: "Catalog.xml"
+    - name: Update firmware from repository on a internally hosted HTTP repository.
+      dellemc.openmanage.idrac_firmware:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "http://192.168.0.1/path_to_folder/"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "Catalog.xml"
 
-  - name: Update firmware from repository on a NFS Share
-    idrac_firmware:
-       idrac_ip: "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_password: "{{ idrac_password}}"
-       ca_path: "/path/to/ca_cert.pem"
-       share_name: "192.168.0.1:/complete_share_path"
-       reboot: True
-       job_wait: True
-       apply_update: True
-       catalog_file_name: "Catalog.xml"
+    - name: Update firmware from repository on a NFS Share
+      dellemc.openmanage.idrac_firmware:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "192.168.0.1:/complete_share_path"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "Catalog.xml"
 
-  - name: Update firmware from repository on a CIFS Share
-    idrac_firmware:
-       idrac_ip: "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_password: "{{ idrac_password}}"
-       ca_path: "/path/to/ca_cert.pem"
-       share_name: "\\\\192.168.0.1\\share_path"
-       share_user: "{{ share_user }}"
-       share_password: "{{ share_password }}"
-       share_mnt: "/mnt/cifs_share"
-       reboot: False
-       job_wait: True
-       catalog_file_name: "Catalog.xml"
+    - name: Update firmware from repository on a CIFS Share
+      dellemc.openmanage.idrac_firmware:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "\\\\192.168.0.1\\share_path"
+        share_user: "{{ share_user }}"
+        share_password: "{{ share_password }}"
+        share_mnt: "/mnt/cifs_share"
+        reboot: false
+        job_wait: true
+        catalog_file_name: "Catalog.xml"
 
-  - name: Firmware compliance report using HTTPS repository.
-    idrac_firmware:
-       idrac_ip: "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_password: "{{ idrac_password }}"
-       ca_path: "/path/to/ca_cert.pem"
-       share_name: "https://downloads.dell.com"
-       reboot: False
-       job_wait: True
-       apply_update: False
+    - name: Firmware compliance report using HTTPS repository.
+      dellemc.openmanage.idrac_firmware:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "https://downloads.dell.com"
+        reboot: false
+        job_wait: true
+        apply_update: false
