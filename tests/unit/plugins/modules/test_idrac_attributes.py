@@ -13,14 +13,11 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
-import os
-import tempfile
 from io import StringIO
 
 import pytest
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_attributes
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock

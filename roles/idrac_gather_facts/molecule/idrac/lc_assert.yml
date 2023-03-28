@@ -1,0 +1,28 @@
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    idrac_lc_attributes: "{{ idrac.lifecycle_controller_attributes }}"
+
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    api_idrac_lc_attributes: "{{ api_idrac.api_lifecycle_controller_attributes }}"
+
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ idrac_lc_attributes.keys() | list | symmetric_difference((api_idrac_lc_attributes.keys() | list)) }}"
+
+- name: Set a Diff of dict
+  ansible.builtin.set_fact:
+    diff_data: "{{ diff_data | combine({item: idrac_lc_attributes[item]}) }}"
+  loop: "{{ idrac_lc_attributes.keys() }}"
+  when:
+    - diff_keys | length == 0
+    - idrac_lc_attributes[item] != api_idrac_lc_attributes[item]
+    - item not in exclude_keys
+
+- name: Assert the difference in Keys
+  ansible.builtin.assert:
+    that:
+      - "{{ (diff_keys | length) == 0 }}"
+      - "{{ (diff_data | length) == 0 }}"
+    fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+    success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

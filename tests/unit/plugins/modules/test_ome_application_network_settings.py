@@ -16,12 +16,11 @@ import json
 
 import pytest
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.urls import SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_settings
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 SUCCESS_MSG = "Successfully updated the session timeout settings."
 NO_CHANGES = "No changes found to be applied."

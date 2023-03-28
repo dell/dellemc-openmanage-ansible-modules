@@ -114,7 +114,7 @@ def main():
 
     try:
         with iDRACConnection(module.params) as idrac:
-            job_id, msg, failed = module.params.get('job_id'), {}, False
+            job_id, msg = module.params.get('job_id'), {}
             msg = idrac.job_mgr.get_job_status(job_id)
             if msg.get('Status') == "Found Fault":
                 module.fail_json(msg="Job ID is invalid.")

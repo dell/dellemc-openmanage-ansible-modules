@@ -45,7 +45,7 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 
 
 import time
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.six.moves.urllib.error import HTTPError
 
 
 def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
@@ -265,8 +265,8 @@ def reset_idrac(idrac_restobj, wait_time_sec=300, res_id=MANAGER_ID, interval=30
     track_failed = True
     reset_msg = "iDRAC reset triggered successfully."
     try:
-        resp = idrac_restobj.invoke_request(IDRAC_RESET_URI.format(res_id=res_id), 'POST',
-                                            data={"ResetType": "GracefulRestart"})
+        idrac_restobj.invoke_request(IDRAC_RESET_URI.format(res_id=res_id), 'POST',
+                                     data={"ResetType": "GracefulRestart"})
         if wait_time_sec:
             track_failed, reset_msg = wait_after_idrac_reset(idrac_restobj, wait_time_sec, interval)
         reset = True

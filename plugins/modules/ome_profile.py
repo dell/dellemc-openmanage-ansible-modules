@@ -600,7 +600,7 @@ def assign_profile(module, rest_obj):
     ad_opts = mparam.get("attributes")
     for opt in ad_opts_list:
         if ad_opts and ad_opts.get(opt):
-            diff = attributes_check(module, rest_obj, ad_opts, prof['Id'])
+            attributes_check(module, rest_obj, ad_opts, prof['Id'])
             payload[opt] = ad_opts.get(opt)
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
@@ -710,7 +710,7 @@ def modify_profile(module, rest_obj):
     if diff:
         if module.check_mode:
             module.exit_json(msg=CHANGES_MSG, changed=True)
-        resp = rest_obj.invoke_request('PUT', PROFILE_VIEW + "({0})".format(payload['Id']), data=payload)
+        rest_obj.invoke_request('PUT', PROFILE_VIEW + "({0})".format(payload['Id']), data=payload)
         module.exit_json(msg="Successfully modified the profile.", changed=True)
     module.exit_json(msg=NO_CHANGES_MSG)
 
@@ -724,7 +724,7 @@ def delete_profile(module, rest_obj):
                 module.fail_json(msg="Profile has to be in an unassigned state for it to be deleted.")
             if module.check_mode:
                 module.exit_json(msg=CHANGES_MSG, changed=True)
-            resp = rest_obj.invoke_request('DELETE', PROFILE_VIEW + "({0})".format(prof['Id']))
+            rest_obj.invoke_request('DELETE', PROFILE_VIEW + "({0})".format(prof['Id']))
             module.exit_json(msg="Successfully deleted the profile.", changed=True)
         else:
             module.exit_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
@@ -732,7 +732,7 @@ def delete_profile(module, rest_obj):
         payload = mparam.get('filters')
         if module.check_mode:
             module.exit_json(msg=CHANGES_MSG, changed=True)
-        resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='Delete'), data=payload)
+        rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='Delete'), data=payload)
         module.exit_json(msg="Successfully completed the delete operation.", changed=True)
 
 

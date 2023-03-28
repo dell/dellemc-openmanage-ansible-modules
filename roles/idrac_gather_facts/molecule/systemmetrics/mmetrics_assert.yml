@@ -1,0 +1,38 @@
+- name: Get Memory information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_system }}/Memory/{{ memory_data.Id }}/MemoryMetrics"
+    validate_certs: "{{ validate_certs }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: response_memory_metrics
+  no_log: true
+
+- name: Set Memory Metrics facts
+  ansible.builtin.set_fact:
+    api_memory_metrics: "{{ response_memory_metrics.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ memory_data.keys() | list | symmetric_difference((api_memory_metrics.keys() | list)) }}"
+
+- name: Set a diff of dict
+  ansible.builtin.set_fact:
+    diff_data: "{{ diff_data | combine({item: memory_data[item]}) }}"
+  loop: "{{ memory_data.keys() }}"
+  when:
+    - diff_keys | length == 0
+    - memory_data[item] != api_memory_metrics[item]
+    - item not in exclude_keys
+
+- name: Assert the difference in Keys
+  ansible.builtin.assert:
+    that:
+      - "{{ (diff_keys | length) == 0 }}"
+      - "{{ (diff_data | length) == 0 }}"
+    fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+    success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

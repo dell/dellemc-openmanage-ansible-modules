@@ -1,0 +1,14 @@
+hostname: idrac_host
+username: idrac_user
+password: idrac_password
+os_name: RHEL
+os_version: 9.1
+# kickstart_file: "/home/jag/os_deploy/rhel_9.txt"
+rhel_rootpw: "plaintext_password"
+rhel_iscrypted: false
+rhel_timezone: ["Asia/Kolkata"]
+rhel_lang: en_IN
+rhel_network:
+  - --device=em1
+  - --bootproto=dhcp
+  - --hostname=redhatbox

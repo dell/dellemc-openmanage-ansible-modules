@@ -1,0 +1,12 @@
+- name: Exporting certificate.
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path }}"
+    command: "export"
+    certificate_type: "{{ certificate_type }}"
+    certificate_path: "{{ certificate_path }}"
+  register: idrac_certificate_out
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

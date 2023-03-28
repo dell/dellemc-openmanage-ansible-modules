@@ -1,0 +1,20 @@
+---
+- name: Get Fan information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_chassis }}/ThermalSubsystem/Fans?$expand=*($levels=1)"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: fan_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Set Fan facts
+  ansible.builtin.set_fact:
+    fan: "{{ fan_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"

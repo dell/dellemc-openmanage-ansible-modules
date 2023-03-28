@@ -1,0 +1,75 @@
+---
+argument_specs:
+  main:
+    version_added: "7.4.0"
+    short_description: Role to get the facts from the iDRAC Server.
+    description: Role to fetch the server facts about a different components available in the PowerEdge Servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      username:
+        required: true
+        type: str
+        description: iDRAC username.
+      password:
+        required: true
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(False), the SSL certificates will not be validated.
+          - Configure C(False) only on personally controlled sites where self-signed certificates are used.
+          - Prior to collection version 5.0.0, I(validate_certs) is C(False) by default.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      http_timeout:
+        description: The socket level timeout in seconds.
+        type: int
+        default: 30
+      computer_system_id:
+        description: Computer system id
+        type: str
+      manager_id:
+        description: Manager/BMC id
+        type: str
+      target:
+        description:
+          - I(target) component for which information needs to be gathered.
+        type: list
+        choices:
+          [
+            "IDRAC",
+            "System",
+            "BIOS",
+            "Controller",
+            "CPU",
+            "Enclosure",
+            "EnclosureEMM",
+            "Fan",
+            "Firmware",
+            "HostNIC",
+            "License",
+            "Memory",
+            "NIC",
+            "PCIeSSDBackPlane",
+            "PowerSupply",
+            "PresenceAndStatusSensor",
+            "Sensors_Battery",
+            "Sensors_Intrusion",
+            "Sensors_Voltage",
+            "VirtualDisk",
+            "PCIeDevice",
+            "PhysicalDisk",
+            "SystemMetrics",
+          ]
+        default: System
