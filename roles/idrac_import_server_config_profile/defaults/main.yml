@@ -1,0 +1,15 @@
+---
+# defaults file for idrac_import_server_config_profile
+
+https_port: 443
+validate_certs: true
+https_timeout: 30
+end_host_power_state: 'On'
+shutdown_type: Graceful
+share_parameters:
+  proxy_support: false
+  proxy_type: http
+  proxy_port: "80"
+  ignore_certificate_warning: ignore
+target:
+  - 'ALL'

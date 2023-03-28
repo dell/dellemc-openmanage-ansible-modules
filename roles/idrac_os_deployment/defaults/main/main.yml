@@ -1,0 +1,7 @@
+---
+https_port: 443
+https_timeout: 30
+validate_certs: true
+os_wait_time: 30
+eject_iso: true
+os_wait: true

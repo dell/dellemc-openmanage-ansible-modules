@@ -1,0 +1,65 @@
+---
+- name: Converge idrac_gather_facts for Voltage Sensors
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'hostname') }}"
+    username: "{{ lookup('env', 'username') }}"
+    password: "{{ lookup('env', 'password') }}"
+    validate_certs: false
+    target:
+      - Sensors_Voltage
+    uri_method: "GET"
+    uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    uri_body_format: "json"
+    uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+
+  tasks:
+    - name: Gather Facts for the voltage sensor component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert power supply dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ voltages | length > 0 }}"
+
+    - name: Get Sensor Voltage information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_chassis }}/Power#/Voltages"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ uri_headers }}"
+        body_format: "{{ uri_body_format }}"
+        status_code: "{{ uri_status_code }}"
+        return_content: "{{ uri_return_content }}"
+      register: voltage_result
+      no_log: true
+
+    - name: Set Sensor Voltage facts
+      ansible.builtin.set_fact:
+        "api_response":
+          "{{ voltage_result.json.Voltages | ansible.utils.remove_keys(target=['@odata.context',
+          '@odata.id', '@odata.type']) }}"
+
+    - name: Call assertion
+      ansible.builtin.include_tasks: sensorsvoltage_assert.yml
+      with_items: "{{ voltages }}"
+      loop_control:
+        loop_var: sensorsvoltage_data
+        index_var: index
+      when: voltages | length > 0

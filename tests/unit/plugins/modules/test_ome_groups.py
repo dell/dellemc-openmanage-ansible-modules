@@ -20,7 +20,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_groups
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MULTIPLE_GROUPS_MSG = "Provide only one unique device group when state is present."
 NONEXIST_GROUP_ID = "A device group with the provided ID does not exist."

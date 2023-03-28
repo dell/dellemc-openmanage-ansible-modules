@@ -1,0 +1,23 @@
+---
+- name: Get Memory information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_system }}/Memory?$expand=*($levels=1)"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: memory_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Set Memory facts
+  ansible.builtin.set_fact:
+    memory:
+      "{{ memory_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+      'AllowedSpeedsMHz@odata.count', 'CPUAffinity@odata.count', 'Processors@odata.count', 'MaxTDPMilliWatts@odata.count',
+      'OperatingMemoryModes@odata.count']) }}"

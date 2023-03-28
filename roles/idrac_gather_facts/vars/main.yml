@@ -1,0 +1,18 @@
+---
+# vars file for idrac_gather_facts
+invalid_sys_id_message: "Invalid computer system id : %s, valid values are %s"
+invalid_manager_id_message: "Invalid computer manager id : %s, valid values are %s"
+
+uri_method: "GET"
+uri_headers:
+  Accept: "application/json"
+  Content-Type: "application/json"
+  OData-Version: "4.0"
+uri_body_format: "json"
+uri_status_code:
+  - 200
+  - 400
+  - 401
+  - 404
+  - -1
+uri_return_content: true

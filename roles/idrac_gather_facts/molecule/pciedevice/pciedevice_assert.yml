@@ -1,0 +1,40 @@
+- name: Fetching PCIeDevice info
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_chassis }}/PCIeDevices/{{ pci_data.Id }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  no_log: true
+  register: pci_result
+
+- name: Set pcie device facts
+  ansible.builtin.set_fact:
+    api_response: "{{ pci_result.json | ansible.utils.remove_keys(target=[
+      '@odata.context', '@odata.id', '@odata.type', 'Links', '@odata.etag']) }}"
+
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ pci_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+
+- name: Set a diff of dict
+  ansible.builtin.set_fact:
+    diff_data: "{{ diff_data | combine({item: pci_data[item]}) }}"
+  loop: "{{ pci_data.keys() }}"
+  when:
+    - diff_keys | length == 0
+    - pci_data[item] != api_response[item]
+    - item not in exclude_keys
+
+- name: Assert the difference in Keys
+  ansible.builtin.assert:
+    that:
+      - "{{ (diff_keys | length) == 0 }}"
+      - "{{ (diff_data | length) == 0 }}"
+    fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+    success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

@@ -1,0 +1,193 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Performing operation on the iDRAC device using default reset_type
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        resource_id: "System.Embedded.1"
+
+    - name: Asserting after performing opeartion using default reset_type
+      ansible.builtin.assert:
+        that: |-
+          ( idrac_server_powerstate_out.msg == "Successfully performed the reset type operation 'On'." )
+          or
+          ( idrac_server_powerstate_out.msg == "The device is already powered on." )
+
+    - name: Performing operation On the iDRAC with invalid resource_id
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        resource_id: "System.Embedded.0"
+      ignore_errors: true
+      register: error_msg
+
+    - name: Asserting after performing opeartion with invalid resource_id
+      ansible.builtin.assert:
+        that:
+          - idrac_server_powerstate_out.msg == "Invalid device Id 'System.Embedded.0' is provided"
+          - not idrac_server_powerstate_out.changed
+
+    - name: Performing operation 'On' with invalid hostname
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "randomHostname"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        resource_id: "System.Embedded.1"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: error_msg
+
+    - name: Asserting after performing opeartion with invalid hostname
+      ansible.builtin.assert:
+        that:
+          - idrac_server_powerstate_out.msg == "<urlopen error [Errno -2] Name or service not known>"
+
+    - name: Performing operation 'On' with invalid username
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "WrongUsername123"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        resource_id: "System.Embedded.1"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: error_msg
+
+    - name: Asserting after performing opeartion with invalid username
+      ansible.builtin.assert:
+        that:
+          - '"HTTP Error 401" in idrac_server_powerstate_out.msg'
+
+    - name: Performing operation 'On' with invalid password
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "WrongPassword@123"
+        validate_certs: false
+        resource_id: "System.Embedded.1"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: error_msg
+
+    - name: Asserting after performing opeartion with invalid password
+      ansible.builtin.assert:
+        that: |-
+          ('"HTTP Error 401" in idrac_server_powerstate_out.msg')
+          or
+          ('"urlopen error timed out" in idrac_server_powerstate_out.msg')
+
+    - name: Performing operation 'On' with invalid validate_certs
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: 'someStringValue'
+        resource_id: "System.Embedded.1"
+      ignore_errors: true
+      ignore_unreachable: true
+      register: error_msg
+
+    - name: Asserting after performing opeartion with invalid validate_certs
+      ansible.builtin.assert:
+        that:
+          - '"Valid booleans include" in idrac_server_powerstate_out.msg'
+
+    - name: Performing operation 'ForceOn' on iDRAC server
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: 'false'
+        reset_type: 'ForceOn'
+        resource_id: "System.Embedded.1"
+      ignore_errors: true
+      register: error_msg
+
+    - name: Asserting after performing opeartion "ForceOn"
+      ansible.builtin.assert:
+        that:
+          - '"The target device does not support a force on operation." in idrac_server_powerstate_out.msg'
+
+    - name: Fetching all the resource_id using URI
+      ansible.builtin.uri:
+        url: "https://{{ lookup('env', 'IDRAC_IP') }}:{{ https_port }}/redfish/v1/Systems/"
+        user: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        headers: 'Accept=application/json'
+      register: uri_out
+      no_log: true
+
+    - name: Processing resource_id
+      ansible.builtin.set_fact:
+        resource_id_list: "{{ uri_out.json | json_query(query) }}"
+      vars:
+        query: Members[*]."@odata.id"
+
+    - name: Splitting the resource_id and picking last
+      ansible.builtin.set_fact:
+        resource_id_list_split: "{{ [item | split('/') | last] + resource_id_list_split | default([]) }}"
+      loop: "{{ resource_id_list }}"
+
+    - name: Count resource_id
+      ansible.builtin.set_fact:
+        number_of_resource_id: "{{ resource_id_list_split | length }}"
+
+    - name: Performing Operation 'On' without resource_id when iDRAC has secondary resource_id
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        resource_id: "{{ null | default(omit) }}"
+      when: number_of_resource_id > '1'
+
+    - name: Asserting after performing opeartion without resource_id when iDRAC has secondary resource_id
+      ansible.builtin.assert:
+        that:
+          - idrac_server_powerstate_out.msg == "Multiple devices exists in the system, but option 'resource_id' is not specified."
+      when: number_of_resource_id > '1'
+
+    - name: Performing Operation 'On' with valid secondary resource_id
+      ansible.builtin.import_role:
+        name: idrac_server_powerstate
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        reset_type: 'On'
+        resource_id: "{{ resource_id_list[1] }}"
+      when: number_of_resource_id > '1'
+
+    - name: Asserting after performing opeartion with valid secondary resource_id
+      ansible.builtin.assert:
+        that: |-
+          ( idrac_server_powerstate_out.msg == "Successfully performed the reset type operation 'On'." )
+          or
+          ( idrac_server_powerstate_out.msg == "The device is already powered on." )
+      when: number_of_resource_id > '1'

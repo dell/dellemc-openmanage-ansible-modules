@@ -1,0 +1,54 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  vars:
+    ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
+    cert_export_path: "{{ lookup('env', 'certificate_path') }}"
+
+  tasks:
+    - name: Export a Client Trust Certificate
+      ansible.builtin.import_role:
+        name: idrac_certificate
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        ca_path: "{{ ca_cert_path }}"
+        command: "export"
+        certificate_type: "CLIENT_TRUST_CERTIFICATE"
+        certificate_path: "{{ cert_export_path }}"
+
+    - name: Setting up Client Trust certificate path for exported file
+      ansible.builtin.stat:
+        path: "{{ idrac_certificate_out.certificate_path }}"
+      register: ctc_cert_file
+      no_log: true
+
+    - name: Verifying CTC export certificate
+      ansible.builtin.assert:
+        that:
+          - ctc_cert_file.stat.exists
+          - not idrac_certificate_out.changed
+          - not idrac_certificate_out.failed
+          - idrac_certificate_out.msg == "Successfully performed the 'export' operation."
+
+    - name: Import a CTC certificate
+      ansible.builtin.import_role:
+        name: idrac_certificate
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        ca_path: "{{ ca_cert_path }}"
+        command: "import"
+        certificate_type: "CLIENT_TRUST_CERTIFICATE"
+        certificate_path: "{{ ctc_cert_file.stat.path }}"
+
+    - name: Verifying CTC import certificate
+      ansible.builtin.assert:
+        that:
+          - idrac_certificate_out.msg == "No changes found to be applied." or idrac_certificate_out.msg == "Successfully performed the 'import' operation."
+          - not idrac_certificate_out.failed

@@ -1,0 +1,39 @@
+---
+- name: Converge idrac_gather_facts for Presence and Status Sensor
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'hostname') }}"
+    username: "{{ lookup('env', 'username') }}"
+    password: "{{ lookup('env', 'password') }}"
+    validate_certs: false
+    target:
+      - PresenceAndStatusSensor
+    uri_method: "GET"
+    uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    uri_body_format: "json"
+    uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+    api_system: "/redfish/v1/Systems/System.Embedded.1"
+
+  tasks:
+    - name: Gather Facts for the Presence and Status Sensor
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Call assertion
+      ansible.builtin.include_tasks: passensor_assert.yml
+      with_items: "{{ presence_and_status_sensor }}"
+      loop_control:
+        loop_var: passensor_data
+      when: presence_and_status_sensor | length > 0

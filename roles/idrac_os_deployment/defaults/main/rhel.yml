@@ -1,0 +1,16 @@
+rhel_keyboard: us
+rhel_lang: en_US
+rhel_timezone: ["America/New_York", "--utc"]
+rhel_rootpw: ""
+rhel_iscrypted: false
+rhel_reboot: true
+rhel_install_source: cdrom # nfs --server=nfs://10.1.2.3 --dir=/ins/tree
+rhel_bootloader: [] # RHEL 8 and 9 have different defaults
+rhel_zerombr: true
+rhel_clearpart: ["--all", "--initlabel"]
+rhel_autopart: []
+rhel_firstboot: ["--disable"]
+rhel_firewall: ["--enabled"]
+rhel_selinux: ["--enforcing"]
+rhel_packages: ["@^minimal-environment"]
+rhel_network: false

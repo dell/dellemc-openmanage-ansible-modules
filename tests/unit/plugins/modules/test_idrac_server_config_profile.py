@@ -14,11 +14,10 @@ __metaclass__ = type
 import pytest
 import sys
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_server_config_profile
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants,\
-    AnsibleExitJson
-from mock import MagicMock, patch, Mock, mock_open
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from mock import MagicMock, patch, mock_open
 from pytest import importorskip
-from ansible.module_utils.six.moves.urllib.parse import urlparse, ParseResult
+from ansible.module_utils.six.moves.urllib.parse import ParseResult
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
 importorskip("omsdk.sdkfile")

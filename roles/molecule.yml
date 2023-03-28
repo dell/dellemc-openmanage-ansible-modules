@@ -1,0 +1,36 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: centos
+    image: quay.io/centos/centos:stream8
+    pre_build_image: true
+provisioner:
+  name: ansible
+  env:
+    RUNON: ""
+    idrac_server_powerstate_wait_seconds: "180"
+verifier:
+  name: ansible
+lint: |
+  set -e
+  yamllint .
+  ansible-lint .
+scenario:
+  test_sequence:
+    - dependency
+    - lint
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - check
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy

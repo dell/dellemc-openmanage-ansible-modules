@@ -247,10 +247,8 @@ try:
                                              Selection_NICTypes, Failover_NICTypes,
                                              AutoDetect_NICTypes, Autoneg_NICTypes,
                                              Speed_NICTypes, Duplex_NICTypes, DHCPEnable_IPv4Types,
-                                             DNSFromDHCP_IPv4Types, Enable_IPv4Types,
-                                             DNSFromDHCP_IPv4StaticTypes)
+                                             Enable_IPv4Types, DNSFromDHCP_IPv4StaticTypes)
     from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
 

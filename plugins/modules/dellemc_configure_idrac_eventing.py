@@ -195,7 +195,6 @@ try:
                                              AlertEnable_IPMILanTypes,
                                              SMTPAuthentication_RemoteHostsTypes)
     from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
 

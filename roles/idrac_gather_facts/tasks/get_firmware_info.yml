@@ -1,0 +1,22 @@
+---
+- name: Get Firmware information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}/redfish/v1/UpdateService/FirmwareInventory?$expand=*($levels=1)"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: firmware_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Set Firmware facts
+  ansible.builtin.set_fact:
+    firmware:
+      "{{ firmware_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+      'Classifications@odata.count', 'IdentityInfoType@odata.count', 'IdentityInfoValue@odata.count']) }}"

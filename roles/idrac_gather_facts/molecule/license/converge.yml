@@ -1,0 +1,43 @@
+---
+- name: Converge idrac_gather_facts for License
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'hostname') }}"
+    username: "{{ lookup('env', 'username') }}"
+    password: "{{ lookup('env', 'password') }}"
+    validate_certs: false
+    target:
+      - License
+    uri_method: "GET"
+    uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    uri_body_format: "json"
+    uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+
+  tasks:
+    - name: Gather Facts for the License component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert license dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ license | length > 0 }}"
+
+    - name: Call assertion
+      ansible.builtin.include_tasks: license_assert.yml
+      with_items: "{{ license }}"
+      loop_control:
+        loop_var: license_data
+      when: license | length > 0

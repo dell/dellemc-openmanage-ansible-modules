@@ -1,0 +1,12 @@
+---
+# vars file for idrac_os_deployment
+idrac_os_deployment_ignore_errors: true
+rhel_ks_filename: "ks.cfg"
+rhel_ks_dest_prefix: "cdrom:/"
+idrac_osd_cleanup_custom_iso: true
+idrac_osd_mount_path: "/mnt"
+idrac_osd_std_log: true
+supported_os:
+  - RHEL
+supported_os_version:
+  RHEL: ["8", "9"]

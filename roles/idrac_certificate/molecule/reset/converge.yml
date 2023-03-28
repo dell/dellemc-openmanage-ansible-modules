@@ -1,0 +1,26 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  vars:
+    ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
+    cert_export_path: "{{ lookup('env', 'certificate_path') }}"
+
+  tasks:
+    - name: Reset CA certificate
+      ansible.builtin.import_role:
+        name: idrac_certificate
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        ca_path: "{{ ca_cert_path }}"
+        command: "reset"
+        certificate_type: "CA"
+
+    - name: Verifying reset CA certificate
+      ansible.builtin.assert:
+        that:
+          - idrac_certificate_out.msg == "Successfully performed the 'reset' operation.iDRAC has been reset successfully."
+          - idrac_certificate_out.changed
