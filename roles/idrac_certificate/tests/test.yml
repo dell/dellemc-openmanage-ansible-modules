@@ -1,0 +1,6 @@
+---
+- name: This role is to generate certificate signing request, import, and export certificates on iDRAC.
+- hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_certificate

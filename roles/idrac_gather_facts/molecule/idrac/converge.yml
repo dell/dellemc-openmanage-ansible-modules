@@ -1,0 +1,87 @@
+---
+- name: Converge idrac_gather_facts for idrac
+  hosts: all
+  connection: local
+  gather_facts: true
+  vars:
+    hostname: "{{ lookup('env', 'hostname') }}"
+    username: "{{ lookup('env', 'username') }}"
+    password: "{{ lookup('env', 'password') }}"
+    validate_certs: false
+    target:
+      - IDRAC
+    uri_method: "GET"
+    uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    uri_body_format: "json"
+    uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    uri_return_content: true
+    diff_data: {}
+    exclude_keys: ["ServerOS.1.ServerPoweredOnTime", "SystemInfo.1.SysTime"]
+
+  tasks:
+    - name: Gather Facts for idrac component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Get System information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_manager }}/Oem/Dell/DellAttributes/System.Embedded.1"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ uri_headers }}"
+        body_format: "{{ uri_body_format }}"
+        status_code: "{{ uri_status_code }}"
+        return_content: "{{ uri_return_content }}"
+      register: response_sys_attr
+      no_log: true
+
+    - name: Get Manager information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_manager }}/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ uri_headers }}"
+        body_format: "{{ uri_body_format }}"
+        status_code: "{{ uri_status_code }}"
+        return_content: "{{ uri_return_content }}"
+      register: response_mgr_attr
+      no_log: true
+
+    - name: Get Lifecycle controller information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_manager }}/Oem/Dell/DellAttributes/LifecycleController.Embedded.1"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ uri_headers }}"
+        body_format: "{{ uri_body_format }}"
+        status_code: "{{ uri_status_code }}"
+        return_content: "{{ uri_return_content }}"
+      register: response_lc_attr
+      no_log: true
+
+    - name: Set System, Manager, Lifecycle controller facts
+      ansible.builtin.set_fact:
+        api_idrac:
+          api_system_attributes: "{{ response_sys_attr.json.Attributes }}"
+          api_manager_attributes: "{{ response_mgr_attr.json.Attributes }}"
+          api_lifecycle_controller_attributes: "{{ response_lc_attr.json.Attributes }}"
+
+    - name: Call assertion For System Attributes
+      ansible.builtin.include_tasks: system_assert.yml

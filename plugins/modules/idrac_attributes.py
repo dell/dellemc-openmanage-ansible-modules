@@ -262,7 +262,7 @@ import json
 import re
 from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_manager_res_id
 from ansible.module_utils.basic import AnsibleModule
@@ -510,7 +510,7 @@ def main():
                 res_id = get_manager_res_id(idrac)
             diff, uri_dict, idrac_response_attr, system_response_attr, lc_response_attr = fetch_idrac_uri_attr(idrac, module, res_id)
             process_check_mode(module, diff)
-            resp = update_idrac_attributes(idrac, module, uri_dict, idrac_response_attr, system_response_attr, lc_response_attr)
+            update_idrac_attributes(idrac, module, uri_dict, idrac_response_attr, system_response_attr, lc_response_attr)
             module.exit_json(msg=SUCCESS_MSG, changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))

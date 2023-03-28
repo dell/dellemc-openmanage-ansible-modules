@@ -1,0 +1,6 @@
+---
+- name: Call Role Gather Facts
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_gather_facts

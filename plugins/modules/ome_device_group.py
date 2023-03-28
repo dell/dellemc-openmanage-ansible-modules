@@ -281,7 +281,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError
 
 try:
     from netaddr import IPAddress, IPNetwork, IPRange
@@ -511,7 +511,7 @@ def main():
                                  group_id=group_id, changed=True)
             else:
                 current_device_list = get_current_member_of_group(rest_obj, group_id)
-                resp = remove_member_from_group(module, rest_obj, group_id, device_id, current_device_list)
+                remove_member_from_group(module, rest_obj, group_id, device_id, current_device_list)
                 module.exit_json(msg="Successfully removed member(s) from the device group.", changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))

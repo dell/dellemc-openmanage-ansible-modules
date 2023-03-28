@@ -16,7 +16,7 @@ __metaclass__ = type
 
 import pytest
 from ansible.module_utils import basic
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args, exit_json, \
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import exit_json, \
     fail_json, AnsibleFailJson, AnsibleExitJson
 from mock import MagicMock
 

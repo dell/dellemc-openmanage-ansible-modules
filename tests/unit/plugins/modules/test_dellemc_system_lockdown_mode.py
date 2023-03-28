@@ -14,8 +14,8 @@ __metaclass__ = type
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_system_lockdown_mode
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from mock import MagicMock, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from mock import MagicMock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")

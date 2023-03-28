@@ -216,7 +216,7 @@ class iDRACRedfishAPI(object):
         This method fetches the connected server generation.
         :return: 14, 4.11.11.11
         """
-        model, firmware_version = None, None
+        firmware_version = None
         response = self.invoke_request(MANAGER_URI, 'GET')
         if response.status_code == 200:
             generation = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())

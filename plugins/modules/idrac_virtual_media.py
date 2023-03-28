@@ -313,7 +313,7 @@ def _validate_params(module, vr_members, rd_version):
 
 
 def virtual_media_operation(idrac, module, payload, vr_id):
-    err_payload, inserted = [], []
+    err_payload = []
     force = module.params["force"]
 
     for i in payload:

@@ -1,0 +1,32 @@
+- name: Custom iso file permission
+  become: true
+  delegate_to: "{{ idrac_osd_host }}"
+  ansible.builtin.file:
+    path: "{{ custom_iso }}"
+    mode: '0755'
+
+- name: Copy custom iso to mounted path
+  become: true
+  delegate_to: "{{ idrac_osd_host }}"
+  ansible.builtin.copy:
+    src: "{{ custom_iso }}"
+    remote_src: true
+    dest: "{{ idrac_osd_mount_path }}/custom_iso_mount"
+    mode: '0755'
+
+- name: Remove custom iso from tmp
+  become: true
+  delegate_to: "{{ idrac_osd_host }}"
+  ansible.builtin.file:
+    path: "{{ custom_iso }}"
+    state: absent
+  failed_when: false
+
+- name: Remove the extracted directory
+  become: true
+  delegate_to: "{{ idrac_osd_host }}"
+  ansible.builtin.file:
+    path: "{{ iso_extract_dir.path }}"
+    state: absent
+  failed_when: false
+  no_log: "{{ idrac_osd_std_log }}"

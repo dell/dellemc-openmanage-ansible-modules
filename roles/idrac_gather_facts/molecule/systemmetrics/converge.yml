@@ -1,0 +1,105 @@
+---
+- name: Converge idrac_gather_facts for Power Supply
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'hostname') }}"
+    username: "{{ lookup('env', 'username') }}"
+    password: "{{ lookup('env', 'password') }}"
+    validate_certs: false
+    target:
+      - SystemMetrics
+    uri_method: "GET"
+    uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    uri_body_format: "json"
+    uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+
+  tasks:
+    - name: Gather Facts for the System Metrics component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert power metrics dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ power_metrics | length > 0 }}"
+
+    - name: Assert thermal metrics dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ thermal_metrics | length > 0 }}"
+
+    - name: Assert memory metrics dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ memory_metrics | length > 0 }}"
+
+    - name: Get Thermal Metrics information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_chassis }}/ThermalSubsystem/ThermalMetrics"
+        validate_certs: "{{ validate_certs }}"
+        method: "{{ uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ uri_headers }}"
+        body_format: "{{ uri_body_format }}"
+        status_code: "{{ uri_status_code }}"
+        return_content: "{{ uri_return_content }}"
+      register: response_thermal_metrics
+      no_log: true
+
+    - name: Set Thermal Metrics facts
+      ansible.builtin.set_fact:
+        api_thermal_metrics: "{{ response_thermal_metrics.json |
+          ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri', 'TemperatureReadingsCelsius@odata.count']) }}"
+
+    - name: Call assertion for thermal metrics
+      ansible.builtin.include_tasks: tmetrics_assert.yml
+
+    - name: Call assertion for memory metrics
+      ansible.builtin.include_tasks: mmetrics_assert.yml
+      with_items: "{{ memory_metrics }}"
+      loop_control:
+        loop_var: memory_data
+      when: memory_metrics | length > 0
+
+    - name: Get Power Supply information.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_chassis }}/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
+        validate_certs: "{{ validate_certs }}"
+        method: "{{ uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ uri_headers }}"
+        body_format: "{{ uri_body_format }}"
+        status_code: "{{ uri_status_code }}"
+        return_content: "{{ uri_return_content }}"
+      register: response_power_supply
+      no_log: true
+
+    - name: Set query
+      ansible.builtin.set_fact:
+        jq: "[*].Id"
+
+    - name: Get Power Supply Metrics ids
+      ansible.builtin.set_fact:
+        psu_ids: "{{ power_result.json.Members | json_query(jq) }}"
+
+    - name: Call assertion for Power metrics
+      ansible.builtin.include_tasks: psmetrics_assert.yml
+      with_items: "{{ power_metrics }}"
+      loop_control:
+        loop_var: power_data
+        index_var: index
+      when: power_metrics | length > 0

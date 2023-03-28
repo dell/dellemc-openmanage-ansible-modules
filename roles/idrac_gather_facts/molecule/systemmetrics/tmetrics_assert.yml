@@ -1,0 +1,20 @@
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ thermal_metrics.keys() | list | symmetric_difference((api_thermal_metrics.keys() | list)) }}"
+
+- name: Set a diff of dict
+  ansible.builtin.set_fact:
+    diff_data: "{{ diff_data | combine({item: thermal_metrics[item]}) }}"
+  loop: "{{ thermal_metrics.keys() }}"
+  when:
+    - diff_keys | length == 0
+    - thermal_metrics[item] != api_thermal_metrics[item]
+    - item not in exclude_keys
+
+- name: Assert the difference in Keys
+  ansible.builtin.assert:
+    that:
+      - "{{ (diff_keys | length) == 0 }}"
+      - "{{ (diff_data | length) == 0 }}"
+    fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+    success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

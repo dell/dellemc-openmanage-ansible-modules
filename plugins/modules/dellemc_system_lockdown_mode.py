@@ -145,7 +145,6 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 try:
     from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
 

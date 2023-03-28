@@ -18,10 +18,9 @@ from io import StringIO
 import pytest
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.urls import SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_alerts_smtp
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants, \
-    AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 SUCCESS_MSG = "Successfully updated the SMTP settings."
 SMTP_URL = "AlertService/AlertDestinations/SMTPConfiguration"

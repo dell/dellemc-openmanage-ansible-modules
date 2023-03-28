@@ -1,0 +1,23 @@
+---
+- name: Get BIOS information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_system }}/Bios"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: bios_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Set BIOS facts
+  ansible.builtin.set_fact:
+    bios:
+      "{{ bios_result.json | ansible.utils.remove_keys(target=['@odata.context',
+      '@odata.type', '@odata.id', 'SettingsObject', 'Actions', 'AttributeRegistry', 'Description',
+      'Id', 'Links', 'Name']) }}"

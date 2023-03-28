@@ -102,10 +102,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.11, stable-2.12, stable-2.13, stable-2.14]
+        ansible-version: [stable-2.11, stable-2.12, stable-2.13, stable-2.14, devel]
 
     steps:
-      - name: Set up Python 3.9
+      - name: Set up Python 
         uses: actions/setup-python@v1
         with:
           # it is just required to run that once as "ansible-test sanity" in the docker image
@@ -139,7 +139,7 @@ jobs:
         fail-fast: false
         matrix:
           python-version: [3.9, '3.10']
-          ansible-version: [stable-2.13, stable-2.14]
+          ansible-version: [stable-2.12, stable-2.13, stable-2.14]
 
       steps:
         # Important: This sets up your GITHUB_WORKSPACE environment variable

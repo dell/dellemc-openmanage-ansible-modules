@@ -1,0 +1,31 @@
+eula --agreed
+lang {{ rhel_lang }}
+keyboard {{ rhel_keyboard }}
+timezone {{ rhel_timezone|join(' ') }}
+{% if rhel_iscrypted is defined and rhel_iscrypted == true %}
+rootpw {{ rhel_rootpw }} --iscrypted
+{% else %}
+rootpw {{ rhel_rootpw }} --plaintext
+{% endif %}
+{{ rhel_install_source }}
+bootloader --append="rhgb quiet crashkernel=1G-4G:192M,4G-64G:256M,64G-:512M" {{ rhel_bootloader|join(' ') }} 
+{% if rhel_zerombr is defined and rhel_zerombr == true %}
+zerombr
+{% endif %}
+{% set my_dict = {'clearpart': rhel_clearpart, 'autopart': rhel_autopart, 'firstboot': rhel_firstboot,
+'network': rhel_network, 'firewall': rhel_firewall, 'selinux': rhel_selinux} %}
+{% for key,value in my_dict.items() %}
+{% if value is defined and value != false %}
+{{ ([key] + value)|join(' ') }}
+{% endif %}
+{% endfor %}
+{% if rhel_reboot is defined and rhel_reboot == true %}
+reboot
+{% endif %}
+{% if rhel_packages is defined and rhel_packages != false and rhel_packages != [] %}
+%packages
+{% for pkg in rhel_packages %}
+{{ pkg }}
+{% endfor %}
+%end
+{% endif %}

@@ -15,8 +15,8 @@ __metaclass__ = type
 import pytest
 import os
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_idrac_storage_volume
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from mock import MagicMock, Mock
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")

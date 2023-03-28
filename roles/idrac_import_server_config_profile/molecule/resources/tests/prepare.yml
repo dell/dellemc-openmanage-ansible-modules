@@ -1,0 +1,18 @@
+---
+- name: "Cleanup config"
+  ansible.builtin.import_role:
+    name: idrac_import_server_config_profile
+  vars:
+    hostname: "{{ lookup('env', 'HOSTNAME') }}"
+    username: "{{ lookup('env', 'USERNAME') }}"
+    password: "{{ lookup('env', 'PASSWORD') }}"
+    validate_certs: false
+    import_buffer: "{ \"SystemConfiguration\": {\"Components\": [
+      { \"FQDD\": \"iDRAC.Embedded.1\",\"Attributes\": [{ \"Name\": \"Time.1#Timezone\",
+      \"Value\": \"UTC\",
+      \"Set On Import\": \"True\",
+      \"Comment\": \"Read and Write\" }]},{ \"FQDD\":
+          \"RAID.Integrated.1-1\",\"Attributes\": [{ \"Name\": \"RAIDrebuildRate\",
+          \"Value\": \"31\",
+          \"Set On Import\": \"True\",
+          \"Comment\": \"Read and Write\" }]}]}}"

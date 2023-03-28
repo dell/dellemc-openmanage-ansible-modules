@@ -33,7 +33,6 @@ import socket
 try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
-    from omsdk.sdkfile import FileOnShare, file_share_manager
     from omsdk.sdkprotopref import ProtoPreference, ProtocolEnum
     from omsdk.http.sdkwsmanbase import WsManOptions
     HAS_OMSDK = True

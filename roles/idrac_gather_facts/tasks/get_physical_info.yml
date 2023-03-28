@@ -1,0 +1,50 @@
+---
+- name: Get Storage information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_system }}/Storage"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: disk_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Get all storage controller ids.
+  ansible.builtin.set_fact:
+    storage_ids_list: "{{ disk_result.json | default('') | json_query(jquery) }}"
+  vars:
+    jquery: 'Members[*]."@odata.id"'
+  no_log: true
+
+- name: Get PhysicalDisk information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ item }}?$expand=*($levels=1)"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  loop: "{{ storage_ids_list }}"
+  register: result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Set query
+  ansible.builtin.set_fact:
+    jq: "[*].json.Drives"
+
+- name: Set Physical Disk facts
+  ansible.builtin.set_fact:
+    physical_disk:
+      "{{ result.results | json_query(jq) | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+      'Actions', 'Assembly', 'Links', 'DellDriveSMARTAttributes', 'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"

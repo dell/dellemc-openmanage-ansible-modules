@@ -1,0 +1,66 @@
+# tasks file for idrac_os_deployment
+
+- name: Role to deploy OS
+  block:
+    - name: Set OS variables
+      ansible.builtin.set_fact:
+        idrac_osd_host: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+        os_key: "{{ os_name | lower }}"
+
+    - name: Check supported OS.
+      ansible.builtin.fail:
+        msg: "OS {{ os_name }} or version {{ os_version }} is not supported."
+      when:
+        - (os_name not in supported_os) or (os_version | string | split('.') | first) not in supported_os_version[os_name]
+
+    - name: Initial probe destination
+      ansible.builtin.include_tasks: probe_dest.yml
+
+    - name: Install packages on controller
+      ansible.builtin.include_tasks: install_packages.yml
+      when: not dest_iso_exists
+
+    - name: Generate kickstart file
+      ansible.builtin.include_tasks: kickstart_generator.yml
+      when:
+        - kickstart_file is not defined
+        - not dest_iso_exists
+
+    - name: Get the iso
+      ansible.builtin.include_tasks: get_iso.yml
+      when: not dest_iso_exists
+
+    - name: Edit rhel iso script
+      ansible.builtin.include_tasks: "{{ os_key }}_iso_edit.yml"
+      when: not dest_iso_exists
+
+    - name: Copy iso to destination share
+      ansible.builtin.include_tasks: copy_dest_iso.yml
+      when: not dest_iso_exists
+
+    - name: Start virtual media
+      ansible.builtin.include_tasks: virtual_media_wait.yml
+
+    - name: Unmount and clean up
+      ansible.builtin.include_tasks: unmount_cleanup.yml
+
+  rescue:
+    - name: Clean up
+      ansible.builtin.include_tasks: clean_up.yml
+
+    - name: Compile the failure message
+      ansible.builtin.set_fact:
+        idrac_os_deployment_failure: "{{ ansible_failed_result | combine({'failed_task_name': ansible_failed_task.name}) }}"
+      no_log: true
+      when: ansible_failed_task.name not in idrac_osd_no_loggers
+
+    - name: Compile the failure message for no logs
+      ansible.builtin.set_fact:
+        idrac_os_deployment_failure: "{{ {'msg': ansible_failed_result.msg} | combine({'failed_task_name': ansible_failed_task.name}) }}"
+      no_log: true
+      when: ansible_failed_task.name in idrac_osd_no_loggers
+
+    - name: On failure
+      ansible.builtin.debug:
+        var: idrac_os_deployment_failure
+      failed_when: true

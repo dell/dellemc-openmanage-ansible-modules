@@ -5,6 +5,37 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v7.4.0
+======
+
+Release Summary
+---------------
+
+- Role to support the Import server configuration profile, Manage iDRAC power states, Manage iDRAC certificate,
+  Gather facts from iDRAC and Deploy operating system is added.
+- Plugin OME inventory is enhanced to support the environment variables for the input parameters.
+
+
+Known Issues
+------------
+
+- idrac_os_deployment- Issue(260496) - OS installation will support only NFS and CIFS share to store the custom ISO in the destination_path, HTTP/HTTPS/FTP not supported
+- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_user - Issue(192043) The module may error out with the message ``Unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Roles
+---------
+
+- dellemc.openmanage.idrac_certificate - Role to manage the iDRAC certificates - generate CSR, import/export certificates, and reset configuration - for PowerEdge servers.
+- dellemc.openmanage.idrac_gather_facts - Role to gather facts from the iDRAC Server.
+- dellemc.openmanage.idrac_import_server_config_profile - Role to import iDRAC Server Configuration Profile (SCP).
+- dellemc.openmanage.idrac_os_deployment - Role to deploy specified operating system and version on the servers.
+- dellemc.openmanage.idrac_server_powerstate - Role to manage the different power states of the specified device.
+
 v7.3.0
 ======
 
@@ -457,7 +488,7 @@ Support to provide custom or organizational CA signed certificate for SSL valida
 Major Changes
 -------------
 
-- All modules can read custom or organizational CA signed certificate from the environment variables. Please refer to `SSL Certificate Validation <https://github.com/dell/dellemc-openmanage-ansible-modules#ssl-certificate-validation>` _ section in the `README.md <https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/README.md#SSL-Certificate-Validation>` _ for modification to existing playbooks or setting environment variable.
+- All modules can read custom or organizational CA signed certificate from the environment variables. Please refer to `SSL Certificate Validation <https://github.com/dell/dellemc-openmanage-ansible-modules#ssl-certificate-validation>` _ section in the `README.md <https://github.com/dell/dellemc-openmanage-ansible-modules /blob/collections/README.md#SSL-Certificate-Validation>` _ for modification to existing playbooks or setting environment variable.
 
 Bugfixes
 --------

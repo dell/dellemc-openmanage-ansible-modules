@@ -1,0 +1,4 @@
+exclude_paths:
+  - changelogs/
+  - .github/
+  - roles/idrac_gather_facts/molecule/*/*_assert.yml

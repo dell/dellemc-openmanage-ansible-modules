@@ -1,0 +1,46 @@
+---
+- name: Get controller id
+  ansible.builtin.set_fact:
+    ctrl_id: "{{ pd_data.Id | split(':') | last }}"
+
+- name: Get Storage information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_system }}/Storage/{{ ctrl_id }}/Drives/{{ pd_data.Id }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  no_log: true
+  register: disk_result
+
+- name: Filter Physical Disk data
+  ansible.builtin.set_fact:
+    api_response: "{{ disk_result.json | ansible.utils.remove_keys(target=[
+      '@odata.context', '@odata.id', '@odata.type', 'Actions', 'Assembly', 'Links', 'DellDriveSMARTAttributes',
+      'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"
+
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ pd_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+
+- name: Set a Diff of dict
+  ansible.builtin.set_fact:
+    diff_data: "{{ diff_data | combine({item: pd_data[item]}) }}"
+  loop: "{{ pd_data.keys() }}"
+  when:
+    - diff_keys | length == 0
+    - pd_data[item] != api_response[item]
+    - item not in exclude_keys
+
+- name: Assert the difference in Keys
+  ansible.builtin.assert:
+    that:
+      - "{{ (diff_keys | length) == 0 }}"
+      - "{{ (diff_data | length) == 0 }}"
+    fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+    success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

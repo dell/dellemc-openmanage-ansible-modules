@@ -413,7 +413,7 @@ def apply_boot_settings(module, idrac, payload, res_id):
 
 
 def configure_boot_settings(module, idrac, res_id):
-    job_resp, diff_change, payload = {}, [], {"Boot": {}}
+    job_resp, payload = {}, {"Boot": {}}
     boot_order = module.params.get("boot_order")
     override_mode = module.params.get("boot_source_override_mode")
     override_enabled = module.params.get("boot_source_override_enabled")
@@ -457,7 +457,7 @@ def configure_boot_settings(module, idrac, res_id):
 
 def configure_idrac_boot(module, idrac, res_id):
     boot_options = module.params.get("boot_options")
-    inv_boot_options, diff_change, payload, job_resp, boot_attr = [], [], {}, {}, {}
+    inv_boot_options, diff_change, payload, job_resp = [], [], {}, {}
     if boot_options is not None:
         boot_option_data = get_existing_boot_options(idrac, res_id)
         for each in boot_options:
@@ -552,7 +552,7 @@ def main():
         if err.code == 401:
             module.fail_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]))
         module.fail_json(msg=str(err), error_info=json.load(err))
-    except URLError as err:
+    except URLError:
         module.exit_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
             ConnectionError, KeyError, TypeError, IndexError) as e:

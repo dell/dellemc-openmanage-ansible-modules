@@ -17,8 +17,7 @@ import json
 from ssl import SSLError
 from io import StringIO
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_device_group
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants, \
-    AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
@@ -32,7 +31,6 @@ INVALID_IP_FORMAT = "The format {0} of the IP address provided is not supported 
 IP_NOT_EXISTS = "The IP addresses provided do not exist in OpenManage Enterprise."
 try:
     from netaddr import IPAddress, IPNetwork, IPRange
-    from netaddr.core import AddrFormatError
 
     HAS_NETADDR = True
 except ImportError:

@@ -1,0 +1,70 @@
+---
+argument_specs:
+  main:
+    version_added: "7.4.0"
+    short_description: Role to manage the different power states of the specified device.
+    description: Role to manage the different power states of the specified device using iDRACs (iDRAC7/8 and iDRAC9 only) for Dell PowerEdge servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: iDRAC IP Address.
+      username:
+        required: true
+        type: str
+        description: iDRAC username.
+      password:
+        required: true
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The HTTPS socket level timeout in seconds.
+        type: int
+        default: 30
+      resource_id:
+        description:
+          - The unique identifier of the device being managed.
+          - This option is mandatory for I(hostname) with multiple devices.
+        type: str
+      reset_type:
+        description:
+          - This option resets the device.
+          - If C(ForceOff), Turns off the device immediately.
+          - If C(ForceOn), Turns on the device immediately.
+          - If C(ForceRestart), Turns off the device immediately, and then restarts the device.
+          - If C(GracefulRestart), Performs graceful shutdown of the device, and then restarts the device.
+          - If C(GracefulShutdown), Performs a graceful shutdown of the device, and the turns off the device.
+          - If C(Nmi), Sends a diagnostic interrupt to the device. This is usually a non-maskable interrupt (NMI) on x86 device.
+          - If C(On), Turns on the device.
+          - If C(PowerCycle), Performs power cycle on the device.
+          - If C(PushPowerButton), Simulates the pressing of a physical power button on the device.
+          - When a power control operation is performed, which is not supported on the device,
+            an error message is displayed with the list of operations that can be performed.
+        type: str
+        default: "On"
+        choices:
+          [
+            "ForceOff",
+            "ForceOn",
+            "ForceRestart",
+            "GracefulRestart",
+            "GracefulShutdown",
+            "Nmi",
+            "On",
+            "PowerCycle",
+            "PushPowerButton"
+          ]

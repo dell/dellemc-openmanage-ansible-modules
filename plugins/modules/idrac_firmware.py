@@ -233,19 +233,17 @@ update_status:
 import os
 import json
 import time
-import socket
 from ssl import SSLError
 from xml.etree import ElementTree as ET
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.parse import urlparse
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 try:
     from omsdk.sdkcreds import UserCredentials
     from omsdk.sdkfile import FileOnShare
-    from omsdk.http.sdkwsmanbase import WsManProtocolBase
     HAS_OMSDK = True
 except ImportError:
     HAS_OMSDK = False
@@ -444,7 +442,7 @@ def get_error_syslog(idrac, curr_time, uri):
         else:
             msg = "No Error log found."
             error_log_found = False
-    except Exception as ex:
+    except Exception:
         msg = "No Error log found."
         error_log_found = False
     return error_log_found, msg

@@ -1,0 +1,29 @@
+- name: Get Power information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_chassis }}//PowerSubsystem/PowerSupplies/{{ psu_ids[index] }}/Metrics"
+    validate_certs: "{{ validate_certs }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: response_power_metrics
+  no_log: true
+
+- name: Set Power Supply Metrics facts
+  ansible.builtin.set_fact:
+    api_power_metrics: "{{ response_power_metrics.json |
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ power_data.keys() | list | symmetric_difference((api_power_metrics.keys() | list)) }}"
+
+- name: Assert the difference in Keys
+  ansible.builtin.assert:
+    that:
+      - "{{ (diff_keys | length) == 0 }}"
+    fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }}"
+    success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }}"

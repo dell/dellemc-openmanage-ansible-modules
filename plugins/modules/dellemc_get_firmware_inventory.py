@@ -89,13 +89,6 @@ ansible_facts:
 import traceback
 from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
-try:
-    from omsdk.sdkfile import LocalFile
-    from omsdk.catalog.sdkupdatemgr import UpdateManager
-    from omdrivers.helpers.iDRAC.UpdateHelper import UpdateHelper
-    HAS_OMSDK = True
-except ImportError:
-    HAS_OMSDK = False
 
 
 def run_get_firmware_inventory(idrac, module):

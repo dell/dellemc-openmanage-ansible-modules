@@ -1,0 +1,21 @@
+---
+# handlers file for idrac_os_deployment
+- name: Unmount the share paths
+  become: true
+  delegate_to: localhost
+  ansible.posix.mount:
+    state: unmounted
+    path: "{{ item }}"
+  with_items:
+    - "{{ idrac_osd_mount_path }}/custom_iso_mount"
+    - "{{ idrac_osd_mount_path }}/source_iso_mount"
+  failed_when: false
+
+- name: Clean up the working directory
+  become: true
+  delegate_to: localhost
+  ansible.builtin.file:
+    path: "{{ working_dir.path }}"
+    state: absent
+  failed_when: false
+  when: working_dir is defined

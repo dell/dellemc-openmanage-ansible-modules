@@ -233,8 +233,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import \
-    get_rest_items, strip_substr_dict, job_tracking, apply_diff_key
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict, job_tracking
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import CHANGES_MSG, NO_CHANGES_MSG
 
 DEVICE_URI = "DeviceService/Devices"

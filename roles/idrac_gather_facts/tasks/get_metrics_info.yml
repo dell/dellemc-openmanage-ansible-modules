@@ -1,0 +1,108 @@
+---
+- name: Get Power Supply information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_chassis }}/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
+    validate_certs: "{{ validate_certs }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: power_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Get Power Supply Metrics ids
+  ansible.builtin.set_fact:
+    power_metrics_ids: "{{ power_result.json.Members | json_query(jquery) }}"
+  vars:
+    jquery: "[*].Metrics"
+  no_log: true
+
+- name: Get Power Supply Metrics information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ item['@odata.id'] }}"
+    validate_certs: "{{ validate_certs }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  loop: "{{ power_metrics_ids }}"
+  register: power_metrics_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Get Thermal Metrics information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_chassis }}/ThermalSubsystem/ThermalMetrics"
+    validate_certs: "{{ validate_certs }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: thermal_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Get Memory information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_system }}/Memory?$expand=*($levels=1)"
+    validate_certs: "{{ validate_certs }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: memory_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Get Memory Metrics ids
+  ansible.builtin.set_fact:
+    memory_metrics_ids: "{{ memory_result.json.Members | json_query(jquery) }}"
+  vars:
+    jquery: "[*].Metrics"
+  no_log: true
+
+- name: Get Memory Metrics information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ item['@odata.id'] }}"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  loop: "{{ memory_metrics_ids }}"
+  register: memory_metrics_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Set j query
+  ansible.builtin.set_fact:
+    jquery: "[*].json"
+
+- name: Set Power Supply/Thermal/Memory Metrics facts
+  ansible.builtin.set_fact:
+    power_metrics:
+      "{{ power_metrics_result.results | json_query(jquery) | flatten |
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
+    thermal_metrics:
+      "{{ thermal_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri',
+      'TemperatureReadingsCelsius@odata.count']) }}"
+    memory_metrics:
+      "{{ memory_metrics_result.results | json_query(jquery) | flatten |
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"

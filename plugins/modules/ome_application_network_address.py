@@ -428,7 +428,7 @@ import socket
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 IP_CONFIG = "ApplicationService/Network/AddressConfiguration"
@@ -598,7 +598,7 @@ def get_network_config_data(rest_obj, module):
             return int_adp, "POST", POST_IP_CONFIG
         else:
             return pri_adp, "POST", POST_IP_CONFIG
-    except HTTPError as err:
+    except HTTPError:
         pass
     except Exception as err:
         raise err

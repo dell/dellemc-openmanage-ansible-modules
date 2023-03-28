@@ -753,7 +753,7 @@ def target_identify_pattern(module, redfish_obj):
 
 
 def lock_virtual_disk(module, redfish_obj):
-    volume, command = module.params.get("volume_id"), module.params["command"]
+    volume = module.params.get("volume_id")
     resp, job_uri, job_id = None, None, None
     controller_id = volume[0].split(":")[-1]
     check_id_exists(module, redfish_obj, "controller_id", controller_id, CONTROLLER_URI)
@@ -803,7 +803,7 @@ def online_capacity_expansion(module, redfish_obj):
         volume_resp = redfish_obj.invoke_request("GET", volume_uri.format(system_id=SYSTEM_ID,
                                                                           controller_id=controller_id,
                                                                           volume_id=volume_id[0]))
-    except HTTPError as err:
+    except HTTPError:
         module.exit_json(msg=VD_ERROR_MSG.format(volume_id[0]), failed=True)
 
     try:

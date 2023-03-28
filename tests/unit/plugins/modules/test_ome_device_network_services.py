@@ -13,7 +13,6 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
-import pdb
 
 import pytest
 from ssl import SSLError
@@ -22,8 +21,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_device_network_services
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_device_network_services.'
 

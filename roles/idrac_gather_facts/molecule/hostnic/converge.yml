@@ -1,0 +1,43 @@
+---
+- name: Converge idrac_gather_facts for HostNIC
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'hostname') }}"
+    username: "{{ lookup('env', 'username') }}"
+    password: "{{ lookup('env', 'password') }}"
+    validate_certs: false
+    target:
+      - HostNIC
+    uri_method: "GET"
+    uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    uri_body_format: "json"
+    uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+
+  tasks:
+    - name: Gather Facts for the HostNIC component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert hostnic dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ hostnic | length > 0 }}"
+
+    - name: Call assertion
+      ansible.builtin.include_tasks: hostnic_assert.yml
+      with_items: "{{ hostnic }}"
+      loop_control:
+        loop_var: hostnic_data
+      when: hostnic | length > 0

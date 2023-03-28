@@ -159,7 +159,6 @@ import json
 try:
     from omdrivers.enums.iDRAC.iDRAC import NTPEnable_NTPConfigGroupTypes
     from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
 

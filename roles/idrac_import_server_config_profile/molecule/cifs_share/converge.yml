@@ -1,0 +1,43 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Importing SCP from CIFS with ALL components"
+      ansible.builtin.import_role:
+        name: "idrac_import_server_config_profile"
+      vars:
+        hostname: "{{ lookup('env', 'HOSTNAME') }}"
+        username: "{{ lookup('env', 'USERNAME') }}"
+        password: "{{ lookup('env', 'PASSWORD') }}"
+        validate_certs: false
+        share_parameters:
+          share_name: "{{ lookup('env', 'CIFS_URL') }}"
+          share_user: "{{ lookup('env', 'CIFS_USERNAME') }}"
+          share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+          scp_file: "{{ lookup('env', 'cifs_filename') }}"
+
+    - name: Verifying Import SCP from CIFS with ALL components
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg == "Successfully imported the Server Configuration Profile."
+          - idrac_import_server_config_profile_out.scp_status.JobState == "Completed"
+          - idrac_import_server_config_profile_out.scp_status.Message == "Successfully imported and applied Server Configuration Profile."
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Verifying Import SCP from CIFS with ALL components in check mode
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg == "Changes found to be applied."
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+
+    - name: Verifying Import SCP from CIFS with ALL components in idempotence mode
+      ansible.builtin.assert:
+        that:
+          - idrac_import_server_config_profile_out.msg ==  "Successfully imported the Server Configuration Profile."
+          - idrac_import_server_config_profile_out.scp_status.JobState == "Completed"
+          - idrac_import_server_config_profile_out.scp_status.Message == "No changes were applied since the
+            current component configuration matched the requested configuration."
+      when: not ansible_check_mode and not idrac_import_server_config_profile_out.changed

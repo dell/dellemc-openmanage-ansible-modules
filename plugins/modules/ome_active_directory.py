@@ -397,7 +397,7 @@ def delete_ad(module, rest_obj, ad):
     ad = rest_obj.strip_substr_dict(ad)
     if module.check_mode:
         module.exit_json(msg=CHANGES_FOUND, active_directory=ad, changed=True)
-    resp = rest_obj.invoke_request('POST', DELETE_AD, data={"AccountProviderIds": [int(ad['Id'])]})
+    rest_obj.invoke_request('POST', DELETE_AD, data={"AccountProviderIds": [int(ad['Id'])]})
     module.exit_json(msg=DELETE_SUCCESS, active_directory=ad, changed=True)
 
 

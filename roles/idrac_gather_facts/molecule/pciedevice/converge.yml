@@ -1,0 +1,43 @@
+---
+- name: Converge idrac_gather_facts for PCIeDevice component
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'hostname') }}"
+    username: "{{ lookup('env', 'username') }}"
+    password: "{{ lookup('env', 'password') }}"
+    validate_certs: false
+    target:
+      - PCIeDevice
+    uri_method: "GET"
+    uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    uri_body_format: "json"
+    uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+
+  tasks:
+    - name: Gather Facts for the PCIeDevice
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert pcie device dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ pcie_device | length > 0 }}"
+
+    - name: Call assertion
+      ansible.builtin.include_tasks: pciedevice_assert.yml
+      with_items: "{{ pcie_device }}"
+      loop_control:
+        loop_var: pci_data
+      when: pcie_device | length > 0

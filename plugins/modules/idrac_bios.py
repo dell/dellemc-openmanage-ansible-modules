@@ -562,7 +562,7 @@ def track_log_entry(redfish_obj):
         else:
             # msg = "{0}{1}".format(BIOS_RESET_TRIGGERED, "LOOPOVER")
             msg = BIOS_RESET_TRIGGERED
-    except Exception as ex:
+    except Exception:
         # msg = "{0}{1}".format(BIOS_RESET_TRIGGERED, str(ex))
         msg = BIOS_RESET_TRIGGERED
     return msg
@@ -574,7 +574,7 @@ def reset_bios(module, redfish_obj):
         module.exit_json(status_msg=BIOS_RESET_PENDING, failed=True)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    resp = redfish_obj.invoke_request(RESET_BIOS_DEFAULT, "POST", data="{}", dump=True)
+    redfish_obj.invoke_request(RESET_BIOS_DEFAULT, "POST", data="{}", dump=True)
     reset_success = reset_host(module, redfish_obj)
     if not reset_success:
         module.exit_json(failed=True, status_msg="{0} {1}".format(RESET_TRIGGERRED, HOST_RESTART_FAILED))
@@ -599,7 +599,7 @@ def clear_pending_bios(module, redfish_obj):
             module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
     if module.check_mode:
         module.exit_json(status_msg=CHANGES_MSG, changed=True)
-    resp = redfish_obj.invoke_request(CLEAR_PENDING_URI, "POST", data="{}", dump=False)
+    redfish_obj.invoke_request(CLEAR_PENDING_URI, "POST", data="{}", dump=False)
     module.exit_json(status_msg=SUCCESS_CLEAR, changed=True)
 
 
@@ -699,7 +699,7 @@ def apply_attributes(module, redfish_obj, pending, rf_settings):
         payload["@Redfish.SettingsApplyTime"] = rf_set
     resp = redfish_obj.invoke_request(BIOS_SETTINGS, "PATCH", data=payload)
     if rf_set:
-        tmp_resp = redfish_obj.invoke_request(resp.headers["Location"], "GET")
+        redfish_obj.invoke_request(resp.headers["Location"], "GET")
         job_id = resp.headers["Location"].split("/")[-1]
     else:
         if aplytm == "Immediate":

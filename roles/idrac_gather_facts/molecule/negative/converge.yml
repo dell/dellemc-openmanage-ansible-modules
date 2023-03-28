@@ -1,0 +1,92 @@
+---
+- name: Converge for negative scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: To check for wrong hostname
+      ansible.builtin.import_role:
+        name: idrac_gather_facts
+      vars:
+        hostname: "randomHostname"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+      ignore_errors: true
+      ignore_unreachable: true
+      register: err
+
+    - name: Asserting after performing opeartion with invalid hostname
+      ansible.builtin.assert:
+        that:
+          - connection.status == -1
+
+    - name: To check for wrong username
+      ansible.builtin.import_role:
+        name: idrac_gather_facts
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "randomUsername"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        target: ["Bios"]
+      ignore_errors: true
+      ignore_unreachable: true
+      register: err1
+
+    - name: Asserting after performing opeartion with invalid username
+      ansible.builtin.assert:
+        that:
+          - connection.status == 401
+
+    - name: To check for wrong password
+      ansible.builtin.import_role:
+        name: idrac_gather_facts
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "randomPassword"
+        validate_certs: false
+        target: ["Bios"]
+      ignore_errors: true
+      ignore_unreachable: true
+      register: err2
+
+    - name: Asserting after performing opeartion with invalid password
+      ansible.builtin.assert:
+        that:
+          - connection.status == -1
+
+    - name: To check for wrong system id
+      ansible.builtin.import_role:
+        name: idrac_gather_facts
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        computer_system_id: "randomSystemID"
+      ignore_errors: true
+      register: err4
+
+    - name: Asserting after performing operation with invalid system id
+      ansible.builtin.assert:
+        that:
+          - "{{ computer_system_id not in system_ids }}"
+
+    - name: To check for wrong manager id
+      ansible.builtin.import_role:
+        name: idrac_gather_facts
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        manager_id: "randomManagerID"
+        target: ["Firmware"]
+      ignore_errors: true
+      register: err5
+
+    - name: Asserting after performing operation with invalid manager id
+      ansible.builtin.assert:
+        that:
+          - "{{ manager_id not in manager_ids }}"

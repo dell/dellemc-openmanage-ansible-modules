@@ -365,7 +365,7 @@ def get_actions_map(idrac, idrac_service_uri):
         resp = idrac.invoke_request(idrac_service_uri, 'GET')
         srvc_data = resp.json_data
         actions = dict((k, v.get('target')) for k, v in srvc_data.get('Actions').items())
-    except Exception as exc:
+    except Exception:
         actions = idrac_service_actions
     return actions
 

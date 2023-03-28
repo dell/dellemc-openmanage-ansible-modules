@@ -1,0 +1,149 @@
+---
+- name: Set default facts
+  ansible.builtin.set_fact:
+    idrac: {}
+    system: {}
+    bios: {}
+    controller: []
+    cpu: []
+    enclosure: []
+    enclosure_emm: []
+    fan: []
+    firmware: []
+    hostnic: []
+    license: []
+    memory: []
+    nic: []
+    backplane: []
+    power_supply: []
+    presence_and_status_sensor: []
+    sensor_battery: {}
+    intrusion_sensor: {}
+    voltages: []
+    virtual_disk: []
+    pcie_device: {}
+    physical_disk: []
+    power_metrics: []
+    thermal_metrics: []
+    memory_metrics: []
+
+- name: Get connection
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}/redfish/v1/Systems"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: connection
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  no_log: true
+
+- name: Fail when hostname or certificate is incorrect or invalid.
+  ansible.builtin.fail:
+    msg: "{{ connection.msg }}"
+  when: connection.status == -1
+
+- name: Fail when credentials are incorrect or invalid.
+  ansible.builtin.fail:
+    msg: "The authentication credentials included with this request are missing or invalid."
+  when: connection.status == 401
+
+- name: Get System, Manager and Chassis resource id.
+  ansible.builtin.include_tasks: get_resource_id.yml
+
+- name: Gather System, Manager, Lifecycle controller facts.
+  ansible.builtin.include_tasks: get_attributes_info.yml
+  when: target is defined and "IDRAC" in target
+
+- name: Gather System facts.
+  ansible.builtin.include_tasks: get_system_info.yml
+  when: target is defined and "System" in target
+
+- name: Gather BIOS facts.
+  ansible.builtin.include_tasks: get_bios_info.yml
+  when: target is defined and "BIOS" in target
+
+- name: Gather Controller facts.
+  ansible.builtin.include_tasks: get_controller_info.yml
+  when: target is defined and "Controller" in target
+
+- name: Gather CPU facts.
+  ansible.builtin.include_tasks: get_cpu_info.yml
+  when: target is defined and "CPU" in target
+
+- name: Gather Enclosure facts.
+  ansible.builtin.include_tasks: get_enclosure_info.yml
+  when: target is defined and "Enclosure" in target
+
+- name: Gather Enclosure EMM facts.
+  ansible.builtin.include_tasks: get_enclosure_emm_info.yml
+  when: target is defined and "EnclosureEMM" in target
+
+- name: Gather Fan facts.
+  ansible.builtin.include_tasks: get_fan_info.yml
+  when: target is defined and "Fan" in target
+
+- name: Gather Firmware facts.
+  ansible.builtin.include_tasks: get_firmware_info.yml
+  when: target is defined and "Firmware" in target
+
+- name: Gather HostNIC facts.
+  ansible.builtin.include_tasks: get_host_nic_info.yml
+  when: target is defined and "HostNIC" in target
+
+- name: Gather License facts.
+  ansible.builtin.include_tasks: get_license_info.yml
+  when: target is defined and "License" in target
+
+- name: Gather Memory facts.
+  ansible.builtin.include_tasks: get_memory_info.yml
+  when: target is defined and "Memory" in target
+
+- name: Gather NIC facts.
+  ansible.builtin.include_tasks: get_nic_info.yml
+  when: target is defined and "NIC" in target
+
+- name: Gather PCIeSSDBackPlane facts.
+  ansible.builtin.include_tasks: get_backplane_info.yml
+  when: target is defined and "PCIeSSDBackPlane" in target
+
+- name: Gather PowerSupply facts.
+  ansible.builtin.include_tasks: get_power_supply_info.yml
+  when: target is defined and "PowerSupply" in target
+
+- name: Gather PresenceAndStatusSensor facts.
+  ansible.builtin.include_tasks: get_pas_sensor_info.yml
+  when: target is defined and "PresenceAndStatusSensor" in target
+
+- name: Gather Sensors Battery facts.
+  ansible.builtin.include_tasks: get_battery_info.yml
+  when: target is defined and "Sensors_Battery" in target
+
+- name: Gather Sensors Intrusion facts.
+  ansible.builtin.include_tasks: get_intrusion_info.yml
+  when: target is defined and "Sensors_Intrusion" in target
+
+- name: Gather Sensors Voltage facts.
+  ansible.builtin.include_tasks: get_voltage_info.yml
+  when: target is defined and "Sensors_Voltage" in target
+
+- name: Gather VirtualDisk facts.
+  ansible.builtin.include_tasks: get_virtual_disk_info.yml
+  when: target is defined and "VirtualDisk" in target
+
+- name: Gather PCIeDevice facts.
+  ansible.builtin.include_tasks: get_pcie_device_info.yml
+  when: target is defined and "PCIeDevice" in target
+
+- name: Gather PhysicalDisk facts.
+  ansible.builtin.include_tasks: get_physical_info.yml
+  when: target is defined and "PhysicalDisk" in target
+
+- name: Gather SystemMetrics facts.
+  ansible.builtin.include_tasks: get_metrics_info.yml
+  when: target is defined and "SystemMetrics" in target
