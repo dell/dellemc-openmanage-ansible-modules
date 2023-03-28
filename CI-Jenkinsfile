@@ -1,8 +1,0 @@
-@Library(['imsselib@main','jenkins-global-lib']) _
-ci_pipeline{ 
-   AGENT = "BlackDuck_Lx"
-   base_scan_type = 'package_signature'
-   package_scan_type = 'pip'
-   product_name = 'Dell OpenManage Ansible Modules for PowerEdge Servers (OMAM)'
-   requirements_path = './requirements.txt'
-}
