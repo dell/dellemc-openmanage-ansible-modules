@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2018-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -31,7 +31,7 @@ options:
     description:
       - Select C(present) to create or modify a user account.
       - Select C(absent) to remove a user account.
-      - Ensure Lifecycle Controller is available because the user operation
+      - Ensure Lifecycle Controller is available because the user operation
         uses the capabilities of Lifecycle Controller.
     choices: [present, absent]
     default: present
@@ -59,7 +59,13 @@ options:
         access virtual console, access virtual media, and execute debug commands.
       - A user with C(ReadOnly) privilege can only log in to iDRAC.
       - A user with C(None), no privileges assigned.
+      - Will be ignored, if custom_privilege parameter is provided.
     choices: [Administrator, ReadOnly, Operator, None]
+  custom_privilege:
+    type: int
+    description:
+      - The privilege level assigned to the user.
+    version_added: "8.1.0"
   ipmi_lan_privilege:
     type: str
     description: The Intelligent Platform Management Interface LAN privilege level assigned to the user.
@@ -211,7 +217,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
-PRIVILEGE = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
+USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
 ACCESS = {0: "Disabled", 1: "Enabled"}
 
 
@@ -270,10 +276,13 @@ def get_payload(module, slot_id, action=None):
     :param slot_id: slot id for user slot
     :return: json data with slot id
     """
+    user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
+        module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
+
     slot_payload = {"Users.{0}.UserName": module.params["user_name"],
                     "Users.{0}.Password": module.params["user_password"],
                     "Users.{0}.Enable": ACCESS.get(module.params["enable"]),
-                    "Users.{0}.Privilege": PRIVILEGE.get(module.params["privilege"]),
+                    "Users.{0}.Privilege": user_privilege,
                     "Users.{0}.IpmiLanPrivilege": module.params["ipmi_lan_privilege"],
                     "Users.{0}.IpmiSerialPrivilege": module.params["ipmi_serial_privilege"],
                     "Users.{0}.SolEnable": ACCESS.get(module.params["sol_enable"]),
@@ -385,6 +394,7 @@ def main():
         "user_name": {"required": True},
         "user_password": {"required": False, "no_log": True},
         "privilege": {"required": False, "choices": ['Administrator', 'ReadOnly', 'Operator', 'None']},
+        "custom_privilege": {"required": False, "type": "int"},
         "ipmi_lan_privilege": {"required": False, "choices": ['Administrator', 'Operator', 'User', 'No Access']},
         "ipmi_serial_privilege": {"required": False, "choices": ['Administrator', 'Operator', 'User', 'No Access']},
         "enable": {"required": False, "type": "bool"},
