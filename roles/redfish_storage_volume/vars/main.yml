@@ -1,0 +1,9 @@
+---
+# vars file for redfish_storage_volume
+volume_type_map:
+  RAID0: "NonRedundant"
+  RAID1: "Mirrored"
+  RAID5: "StripedWithParity"
+  RAID10: "SpannedMirrors"
+  RAID50: "SpannedStripesWithParity"
+polling_interval: 30

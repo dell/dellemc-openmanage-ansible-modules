@@ -1,0 +1,56 @@
+---
+# tasks file for redfish_storage_volume
+- name: Setting up parameters
+  ansible.builtin.set_fact:
+    baseuri: "{{ hostname }}:{{ https_port }}"
+  no_log: true
+
+- name: Get the volume type from the mapping
+  ansible.builtin.set_fact:
+    volume_type: "{{ volume_type_map[raid_type] }}"
+  no_log: true
+  when: raid_type is defined
+
+- name: Performing the operation on redfish storage volume
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "{{ baseuri }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: "{{ validate_certs }}"
+    state: "{{ state | default(omit) }}"
+    controller_id: "{{ controller_id | default(omit) }}"
+    volume_type: "{{ volume_type | default(omit) }}"
+    drives: "{{ drives | default([]) }}"
+    name: "{{ name | default(omit) }}"
+    volume_id: "{{ volume_id | default(omit) }}"
+    initialize_type: "{{ initialization_type | default(omit) }}"
+    command: "{{ command | default(omit) }}"
+    encryption_types: "{{ encryption_types | default(omit) }}"
+    encrypted: "{{ encrypted | default(omit) }}"
+    block_size_bytes: "{{ block_size_bytes | default(omit) | int }}"
+    capacity_bytes: "{{ capacity_bytes | default(omit) }}"
+    optimum_io_size_bytes: "{{ optimum_to_size_bytes | default(omit) | int }}"
+  register: redfish_storage_volume_out
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+
+- name: Checking job status
+  ansible.builtin.uri:
+    url: "https://{{ baseuri }}{{ redfish_storage_volume_out.task.uri }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    method: "GET"
+    use_proxy: true
+    status_code: 200, 202
+    return_content: true
+    validate_certs: false
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+  register: job_result
+  failed_when: "'json' not in job_result"
+  until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
+  retries: "{{ job_wait_timeout // polling_interval }}"
+  delay: "{{ polling_interval }}"
+  no_log: true
+  when: job_wait is true and not ansible_check_mode

@@ -3,7 +3,6 @@
   become: true
   ansible.builtin.yum:
     name:
-      - genisoimage
       - xorriso
       - syslinux
       - isomd5sum
@@ -15,7 +14,6 @@
   become: true
   ansible.builtin.apt:
     name:
-      - genisoimage
       - xorriso
       - syslinux-utils
       - isomd5sum
@@ -27,10 +25,16 @@
     iso_share_type: null
     downloaded_iso: false
 
-- name: Checking network share type is CIFS, HTTPS, HTTP, FTP
+- name: Checking network share type is CIFS, HTTPS, HTTP
   ansible.builtin.set_fact:
     iso_share_type: "{{ item.value if source_iso.path.startswith(item.key) }}"
-  with_dict: {'https://': 'HTTPS', 'http://': 'HTTP', 'ftp://': 'FTP', '//': 'CIFS', '\\': 'CIFS'}
+  with_dict:
+    {
+      "https://": "HTTPS",
+      "http://": "HTTP",
+      "//": "CIFS",
+      '\\': "CIFS",
+    }
   when: not iso_share_type
 
 - name: Checking network share type is NFS, Local
@@ -47,7 +51,7 @@
     state: present
   when:
     - ansible_facts['os_family']|lower == 'redhat'
-    - iso_share_type in ['HTTP', 'HTTPS', 'FTP']
+    - iso_share_type in ['HTTP', 'HTTPS']
 
 - name: Install wget for Ubuntu Ansible Controller
   delegate_to: "{{ idrac_osd_host }}"
@@ -58,4 +62,4 @@
     state: present
   when:
     - ansible_facts['os_family']|lower == 'debian'
-    - iso_share_type in ['HTTP', 'HTTPS', 'FTP']
+    - iso_share_type in ['HTTP', 'HTTPS']

@@ -1,7 +1,16 @@
-- name: Check if rootpw exists
+- name: Check if rootpw exists for RHEL
   ansible.builtin.fail:
-    msg: "Please provide the root password."
-  when: rhel_rootpw | length == 0
+    msg: "Please provide the root password for RHEL."
+  when:
+    - os_name == 'RHEL'
+    - rhel_rootpw | length == 0
+
+- name: Check if rootpw exists for ESXi
+  ansible.builtin.fail:
+    msg: "Please provide the root password for ESXi."
+  when:
+    - os_name == 'ESXi'
+    - esxi_rootpw | length == 0
 
 - name: Generate kickstart file
   delegate_to: "{{ idrac_osd_host }}"
