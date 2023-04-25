@@ -1,0 +1,56 @@
+- name: Copy KS to extracted
+  become: true
+  ansible.builtin.copy:
+    src: "{{ kickstart_file }}"
+    dest: "{{ iso_dir }}/{{ esxi_ks_filename }}"
+    mode: "0755"
+  delegate_to: "{{ idrac_osd_host }}"
+
+- name: Set KickStart location
+  ansible.builtin.set_fact:
+    ks_location: "{{ esxi_ks_dest_prefix }}{{ esxi_ks_filename }}"
+
+- name: Enable kickstart file in BIOS bootloader
+  become: true
+  delegate_to: "{{ idrac_osd_host }}"
+  ansible.builtin.lineinfile:
+    path: "{{ iso_dir }}/BOOT.CFG"
+    regexp: "^kernelopt="
+    line: "kernelopt=runweasel ks={{ ks_location }}"
+  failed_when: false
+
+- name: Enable kickstart file in UEFI bootloader
+  become: true
+  delegate_to: "{{ idrac_osd_host }}"
+  ansible.builtin.lineinfile:
+    path: "{{ iso_dir }}/EFI/BOOT/BOOT.CFG"
+    regexp: "^kernelopt="
+    line: "kernelopt=runweasel ks={{ ks_location }}"
+  register: uefi_result
+
+- name: Fail on UEFI edit failure
+  ansible.builtin.fail:
+    msg: "UEFI bootloader settings could not be changed"
+  when: uefi_result.failed
+
+- name: Remove source iso if downloaded
+  become: true
+  delegate_to: "{{ idrac_osd_host }}"
+  ansible.builtin.file:
+    path: "{{ src_iso }}"
+    state: absent
+  when: downloaded_iso
+  failed_when: false
+
+- name: Compile custom ISO
+  become: true
+  ansible.builtin.command:
+    cmd:
+      "mkisofs -relaxed-filenames -J -R -o {{ custom_iso }} -b ISOLINUX.BIN -c BOOT.CAT
+      -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot
+      -eltorito-platform efi -b EFIBOOT.IMG -no-emul-boot {{ iso_dir }}"
+  register: mkisofs_output
+  changed_when: mkisofs_output.rc == 0
+  failed_when: mkisofs_output.rc != 0
+  no_log: "{{ idrac_osd_std_log }}"
+  delegate_to: "{{ idrac_osd_host }}"

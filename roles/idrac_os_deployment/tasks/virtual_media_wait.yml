@@ -16,6 +16,7 @@
     virtual_media:
       - insert: false
   failed_when: false
+  delegate_to: "{{ idrac_osd_host }}"
 
 - name: Load the custom iso to Virtual Media slot 1
   dellemc.openmanage.idrac_virtual_media:
@@ -27,6 +28,7 @@
         username: "{{ destination_path.username | default(omit) }}"
         password: "{{ destination_path.password | default(omit) }}"
   register: idrac_vm_insert
+  delegate_to: "{{ idrac_osd_host }}"
 
 - name: Virtual Media mount failed
   ansible.builtin.fail:
@@ -42,6 +44,7 @@
     reset_type: force_restart
   register: idrac_boot_once
   failed_when: false
+  delegate_to: "{{ idrac_osd_host }}"
 
 - name: Boot once iDRAC error
   ansible.builtin.fail:
@@ -57,6 +60,7 @@
   ansible.builtin.wait_for:
     timeout: "{{ (os_wait_time * 60) }}"
   when: os_wait
+  delegate_to: "{{ idrac_osd_host }}"
 
 - name: Eject the custom iso
   dellemc.openmanage.idrac_virtual_media:
@@ -65,3 +69,10 @@
     virtual_media:
       - insert: false
   when: os_wait and eject_iso
+  delegate_to: "{{ idrac_osd_host }}"
+
+- name: OS install complete message
+  ansible.builtin.set_fact:
+    idrac_os_deployment_message: "Successfully deployed the Operating System."
+  when: os_wait
+  changed_when: true

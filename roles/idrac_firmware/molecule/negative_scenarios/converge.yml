@@ -1,0 +1,206 @@
+---
+- name: Converge idrac_firmware for negative scenarios
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Updating firmware with an invalid hostname
+      ansible.builtin.import_role:
+        name: idrac_firmware
+      vars:
+        hostname: "invalidHostname"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        share_name: "{{ lookup('env', 'httpshare') }}"
+        catalog_file_name: "Catalog.xml"
+        reboot: true
+        job_wait: true
+        apply_update: true
+      ignore_errors: true
+      register: result
+
+    - name: "Verifying Updating firmware with an invalid hostname"
+      ansible.builtin.assert:
+        that:
+          - "'unreachable iDRAC IP' in idrac_firmware_out.msg"
+
+    - name: Updating firmware with an invalid username
+      ansible.builtin.import_role:
+        name: idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "invalidUsername"
+        password: "{{ lookup('env', 'password') }}"
+        share_name: "{{ lookup('env', 'httpshare') }}"
+        catalog_file_name: "Catalog.xml"
+        reboot: true
+        job_wait: true
+        apply_update: true
+      ignore_errors: true
+      register: result
+
+    - name: "Verifying Updating firmware with an invalid username"
+      ansible.builtin.assert:
+        that:
+          - "'Incorrect username' in idrac_firmware_out.msg"
+
+    - name: Updating firmware with an invalid password
+      ansible.builtin.import_role:
+        name: idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "invalidPassword"
+        share_name: "{{ lookup('env', 'httpshare') }}"
+        catalog_file_name: "Catalog.xml"
+        reboot: true
+        job_wait: true
+        apply_update: true
+      ignore_errors: true
+      register: result
+
+    - name: "Verifying Updating firmware with an invalid password"
+      ansible.builtin.assert:
+        that:
+          - "'password' in idrac_firmware_out.msg"
+
+    - name: Updating firmware with an invalid ca_path
+      ansible.builtin.import_role:
+        name: idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        share_name: "{{ lookup('env', 'httpshare') }}"
+        ca_path: "{{ lookup('env', 'capath') }}"
+        catalog_file_name: "Catalog.xml"
+        reboot: true
+        job_wait: true
+        apply_update: true
+      ignore_errors: true
+      register: result
+
+    - name: "Verifying Updating firmware with an invalid ca_path"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Firmware update failed."
+
+    - name: Updating firmware with catalog file without extension
+      ansible.builtin.import_role:
+        name: idrac_firmware
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        share_name: "{{ lookup('env', 'httpshare') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: Catalog
+      ignore_errors: true
+      register: result
+
+    - name: "Verifying Updating firmware with catalog file without extension"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "catalog_file_name should be an XML file."
+
+    - name: Update firmware from repository on HTTPS Share with invalid share_user
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "invalidUser"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "Catalog.xml"
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_user"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+
+    - name: Update firmware from repository on HTTPS Share with invalid share_password
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "invalidPassword"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "Catalog.xml"
+      register: result
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_password"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+
+    - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_uname
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsproxy') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        proxy_support: "ParametersProxy"
+        proxy_server: "{{ lookup('env', 'proxyserver') }}"
+        proxy_type: "HTTP"
+        proxy_port: 3128
+        proxy_uname: "invalidUname"
+        proxy_passwd: "{{ lookup('env', 'proxypass') }}"
+        catalog_file_name: "Catalog.xml"
+
+    - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_uname"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+
+    - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_passwd
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsproxy') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        proxy_support: "ParametersProxy"
+        proxy_server: "{{ lookup('env', 'proxyserver') }}"
+        proxy_type: "HTTP"
+        proxy_port: 3128
+        proxy_uname: "{{ lookup('env', 'proxyuname') }}"
+        proxy_passwd: "invalidPasswd"
+        catalog_file_name: "Catalog.xml"
+
+    - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_passwd"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."

@@ -1,0 +1,10 @@
+---
+- name: Manage iDRAC server power cycle
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+  vars:
+    reset_type: "On"
+  roles:
+    - dellemc.openmanage.idrac_server_powerstate

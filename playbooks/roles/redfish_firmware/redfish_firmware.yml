@@ -1,0 +1,9 @@
+---
+- name: Firmware update using DUP file
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/firmware.yml
+  roles:
+    - dellemc.openmanage.redfish_firmware

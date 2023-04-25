@@ -1,0 +1,20 @@
+galaxy_info:
+  author: "Sachin Apagundi"
+  description: Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP).
+  company: Dell Technologies
+  license: GPL-3.0-only
+  min_ansible_version: "2.13"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+    - name: SLES
+      versions:
+        - "15SP3"
+        - "15SP4"
+    - name: EL
+      versions:
+        - "9"
+        - "8"
+  galaxy_tags: []
+dependencies: []

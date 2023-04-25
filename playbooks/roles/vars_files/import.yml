@@ -1,0 +1,11 @@
+share_parameters:
+  share_name: "{{ repo_url }}/scp_share"
+  share_user: "{{ repo_details.username }}"
+  share_password: "{{ repo_details.password }}"
+  scp_file: "filename.xml"
+  proxy_support: false
+  proxy_server: "{{ proxy_params.server }}"
+  proxy_port: "{{ proxy_params.port }}"
+  proxy_type: socks4
+  ignore_certificate_warning: ignore
+target: ["ALL"]

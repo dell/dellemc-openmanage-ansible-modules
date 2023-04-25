@@ -1,0 +1,54 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: To check the behaviour of Mirrored.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        volume_type: "Mirrored"
+        name: "VD"
+        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+
+    - name: Asserting operation with check mode.
+      ansible.builtin.assert:
+        that: redfish_storage_volume_out.msg == "Changes found to be applied."
+      when: ansible_check_mode
+
+    - name: Asserting operation with normal mode.
+      ansible.builtin.assert:
+        that: redfish_storage_volume_out.msg == "Successfully submitted create volume task."
+      when: not ansible_check_mode
+
+    - name: Asserting operation with idempotence.
+      ansible.builtin.assert:
+        that: redfish_storage_volume_out.msg == "No changes found to be applied."
+      when: not ansible_check_mode and not redfish_storage_volume_out.changed
+
+    - name: To check the behaviour of delete virtual disk.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: absent
+        volume_id: "{{ lookup('env', 'VOLUME_ID') }}"
+
+    - name: Asserting operation of delete volume with check mode.
+      ansible.builtin.assert:
+        that: redfish_storage_volume_out.msg == "No changes found to be applied."
+      when: ansible_check_mode

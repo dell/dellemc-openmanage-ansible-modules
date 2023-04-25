@@ -9,29 +9,27 @@
     - "{{ idrac_osd_mount_path }}/source_iso_mount"
   failed_when: false
 
-- name: Create working directory
-  ansible.builtin.tempfile:
-    state: directory
-    prefix: omam_osd
-  register: working_dir
-
-- name: Initializing destination iso path type
-  ansible.builtin.set_fact:
-    idrac_osd_no_loggers:
-      - Set download command
-      - Mounting dest CIFS volume
-      - Mounting CIFS volume to localhost
-      - Download iso from http, https or ftp
-      - Initializing iso path type and aliasing idrac opts
-    dest_iso_share_type: null
-    dest_iso_exists: false
-    custom_iso: "{{ working_dir.path }}/{{ os_key }}_{{ os_version }}_{{ hostname }}.iso"
-
 - name: Checking network share type is CIFS
   ansible.builtin.set_fact:
     dest_iso_share_type: "{{ item.value if destination_path.path.startswith(item.key) }}"
-  with_dict: {'//': 'CIFS', '\\': 'CIFS'}
+  with_dict: { "//": "CIFS", '\\': "CIFS" }
   when: not dest_iso_share_type
+
+- name: Checking network share type is HTTP or HTTPS
+  ansible.builtin.set_fact:
+    dest_iso_share_type: "{{ item.value if destination_path.path.startswith(item.key) }}"
+  with_dict: { "https://": "HTTPS", "http://": "HTTP" }
+  when: not dest_iso_share_type
+
+- name: Checking http_path, ssh_user, ssh_pass is not empty and dest_os is only linux/windows for HTTP/HTTPS
+  ansible.builtin.fail:
+    msg: "Please check http_path, ssh_user, ssh_pass is not empty and dest_os is only linux/windows for HTTP/HTTPS."
+  when: |
+    - ((dest_iso_share_type == 'HTTP') or (dest_iso_share_type == 'HTTPS'))
+    and (
+    (ssh_user == '' or ssh_pass == '' or http_path == '')
+    or
+    ((dest_os|lower != 'linux') and (dest_os|lower != 'windows')) )
 
 - name: Default is NFS
   ansible.builtin.set_fact:

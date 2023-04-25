@@ -1,0 +1,12 @@
+state: "present"
+raid_type: "RAID1"
+name: "VD0"
+controller_id: "RAID.Slot.1-1"
+drives:
+  - Disk.Bay.5:Enclosure.Internal.0-1:RAID.Slot.1-1
+  - Disk.Bay.6:Enclosure.Internal.0-1:RAID.Slot.1-1
+block_size_bytes: 512
+capacity_bytes: 299439751168
+optimum_io_size_bytes: 65536
+encryption_types: NativeDriveEncryption
+encrypted: true

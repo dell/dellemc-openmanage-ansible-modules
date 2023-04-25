@@ -1,0 +1,16 @@
+# Role idrac_firmware Vars
+share_name: "{{ repo_url }}/firmware_repo/"
+catalog_file_name: "MyCatalog.xml"
+reboot: true
+job_wait: true
+apply_update: true
+proxy_support: ParametersProxy
+proxy_server: "{{ proxy_params.server }}"
+proxy_type: HTTP
+proxy_port: "{{ proxy_params.port }}"
+proxy_uname: "{{ proxy_params.username }}"
+proxy_passwd: "{{ proxy_params.password }}"
+
+# Role redfish_firmware Vars
+image_uri: "{{ repo_url }}/firmware_repo/component.exe"
+transfer_protocol: "HTTP"

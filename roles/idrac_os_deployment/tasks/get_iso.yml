@@ -11,34 +11,35 @@
 
 - name: Set download command
   ansible.builtin.set_fact:
-    idrac_osd_wget_cmd: "wget {{ source_iso.path }} --directory-prefix={{ working_dir.path }}
-     --no-check-certificate{% if source_iso.username is defined and source_iso.username %}
-     --user={{ source_iso.username }} --password={{ source_iso.password }}{%endif %}"
-  when: iso_share_type in ['HTTP', 'HTTPS', 'FTP']
+    idrac_osd_wget_cmd:
+      "wget {{ source_iso.path }} --directory-prefix={{ working_dir.path }}
+      --no-check-certificate{% if source_iso.username is defined and source_iso.username %}
+      --user={{ source_iso.username }} --password={{ source_iso.password }}{%endif %}"
+  when: iso_share_type in ['HTTP', 'HTTPS']
   no_log: true
 
-- name: Download iso from http, https or ftp
+- name: Download iso from http, https
   become: true
   delegate_to: "{{ idrac_osd_host }}"
   ansible.builtin.command: "{{ idrac_osd_wget_cmd }}"
   register: wget_iso_cmd
-  when: iso_share_type in ['HTTP', 'HTTPS', 'FTP']
+  when: iso_share_type in ['HTTP', 'HTTPS']
   changed_when: wget_iso_cmd.rc == 0
   failed_when: false
   no_log: true
 
-- name: Dowload iso failed
+- name: Download iso failed
   ansible.builtin.fail:
     msg: "Download of ISO from {{ source_iso.path }} failed. Please check the source URI or credentials."
   when:
-    - iso_share_type in ['HTTP', 'HTTPS', 'FTP']
+    - iso_share_type in ['HTTP', 'HTTPS']
     - wget_iso_cmd.failed or wget_iso_cmd.rc != 0
 
 - name: Set local path of source iso
   ansible.builtin.set_fact:
     src_iso: "{{ working_dir.path }}/{{ source_iso.path | basename }}"
     downloaded_iso: true
-  when: iso_share_type in ['HTTP', 'HTTPS', 'FTP']
+  when: iso_share_type in ['HTTP', 'HTTPS']
 
 - name: Mounting NFS volume to localhost
   become: true
@@ -114,8 +115,9 @@
   ansible.builtin.file:
     path: "{{ working_dir.path }}/{{ iso_basename }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
   register: iso_extract_dir
+  delegate_to: "{{ idrac_osd_host }}"
 
 - name: Extract iso
   delegate_to: "{{ idrac_osd_host }}"

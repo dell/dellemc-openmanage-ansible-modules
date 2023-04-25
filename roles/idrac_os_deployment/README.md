@@ -1,19 +1,25 @@
 # idrac_os_deployment
 
-Role to deploy specified operating system and version on the servers.
-This Role performs the following.
-1. Download iso as a local copy
-2. Create a kickstart file using jinja template
-3. Extract ISO
-4. Enable to use kickstart file in the extracted ISO
-5. Compile custom ISO
-6. Copy ISO to destination share location
-7. Mount the ISO as virtual media (virtual CD) in idrac
-8. Set boot target to cd and enable a reboot to cd once
-9. Track for the OS deployment using the specified time
-10. Eject the virtual media
+Role to deploy operating system and version on the servers.</br>
+
+The role perform the following operations:
+1. Downloads the source ISO as a local copy in the ansible controller machine.
+1. Create a mount and extract the ISO using the `xorriso` library.
+1. Create a kickstart file using jinja template based on the os name and version .
+1. Enable the extracted ISO to use kickstart file by modifying the boot configurations for bios and uefi.
+1. Compile the iso to generate a custom iso by embedding the kickstart file in an iso using the `mkisofs`, `isohybrid` and `implantisomd5` commands.
+1. Copy the custom ISO generated to destination share location as specfied to the role input. Based on the input a following method is used to copy the destination to a shared repository.
+    - CIFS/NFS  uses the file mount to copy the ISO to a destination location.
+    - HTTP/HTTPS uses the SSH to copy/transfer the ISO to a location where the web server content is served.
+1. Using an iDRAC `idrac_virtual_media` module mount the custom ISO as virtual media (virtual CD) in an iDRAC.
+1.  Using an iDRAC `idrac_boot` module set the boot target to CD and enable a reboot to CD once.
+1. Track for the OS deployment for the specified amount of user input time.
+1. Eject the virtual media after the specfied time is finished.
 
 ## Requirements
+
+### Prereq
+To Support the HTTP/HTTPS repository as a destination an ssh to a target machine should be enabled to copy the custom iso into a https share location.
 
 ### Development
 Requirements to develop and contribute to the role.
@@ -28,7 +34,6 @@ Requirements to use the role.
 ```
 ansible
 python
-genisoimage
 xorriso
 syslinux
 isomd5sum
@@ -118,7 +123,7 @@ ansible.posix
     <td></td>
     <td></td>
     <td>str</td>
-    <td>The operating system version to match the jinja template of the kickstart file.<br>Currently only C(RHEL) supported.</td>
+    <td>The operating system version to match the jinja template of the kickstart file.</td>
   </tr>
   </tr>
     <tr>
@@ -127,7 +132,7 @@ ansible.posix
     <td></td>
     <td></td>
     <td>str</td>
-    <td>The operating system name to match the jinja template of the kickstart file.<br>Supported versions for C(RHEL) are 9.x and 8.x</td>
+    <td>The operating system name to match the jinja template of the kickstart file.<br>Supported versions for RHEL are 9.x and 8.x and for ESXi is 8.x.</td>
   </tr>  
   </tr>
   <tr>
@@ -152,7 +157,7 @@ ansible.posix
       <td></td>
       <td></td>
       <td>path</td>
-      <td>Local path or network share path of the ISO.<br>CIFS, NFS, HTTP, HTTPS, and FTP shares are supported.</td>
+      <td>Local path or network share path of the ISO.<br>CIFS, NFS, HTTP and HTTPS shares are supported.</td>
     </tr>
     <tr>
       <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;username</td>
@@ -176,7 +181,7 @@ ansible.posix
     <td></td>
     <td></td>
     <td>dict</td>
-    <td>Local path or network path to download the ISO.<br>Share need to have a write permission to copy the generated ISO.<br>Only CIFS and NFS are supported.<br></td>
+    <td>Local path or network path to place the custom ISO.<br>Share need to have a write permission to copy the generated ISO.<br>When the path is of HTTP/HTTPS we use ssh to copy the custom iso into a destination location/folder where the web server content is served.<br>When the path is of CIFS/NFS we mount the folders and copy the custom iso into the shared location.</br>CIFS, NFS, HTTP and HTTPS shares are supported.<br></td>
   </tr>
     <tr>
       <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;path</td>
@@ -226,7 +231,67 @@ ansible.posix
     <td>bool</td>
     <td>Eject the virtual media (ISO) after the tracking of OS deployment is finished.</td>
   </tr>
+  <tr>
+    <td>http_path</td>
+    <td>false</td>
+    <td></td>
+    <td></td>
+    <td>str</td>
+    <td>Path to the web server where the custom iso has to be transfered via ssh</br> this is required in case the destination path is HTTP/HTTPS</td>
+  </tr>
+  <tr>
+    <td>ssh_user</td>
+    <td>false</td>
+    <td></td>
+    <td></td>
+    <td>str</td>
+    <td>Username for SSH login into the target machine where the custom iso will be copied to serve from the http/https repository.</br> This is required in case the destination path is HTTP/HTTPS</td>
+  </tr>
+  <tr>
+    <td>ssh_pass</td>
+    <td>false</td>
+    <td></td>
+    <td></td>
+    <td>str</td>
+    <td>Password for SSH login into the target machine where the custom iso will be copied to serve from the http/https repository.</br> This is required in case the destination path is HTTP/HTTPS</td>
+  </tr>
+    <tr>
+    <td>dest_os</td>
+    <td>false</td>
+    <td>linux</td>
+    <td>linux <br> windows</td>
+    <td>str</td>
+    <td>Operating system in which the custom iso will be transfered using ssh.</br>This is used custom ISO is tranfered via ssh to the destination folder from where http/https web server serves the content.</td>
+  </tr>
 </tbody>
+</table>
+
+## Variables
+<table>
+<thead>
+  <tr>
+    <th>Name</th>
+    <th>Sample</th>
+    <th>Description</th>
+  </tr>
+</thead>
+  <tbody>
+    <tr>
+      <td>dest_owner</td>
+      <td>user</td>
+      <td>Custom iso file owner.</br>This is used custom ISO is tranfered via ssh to the destination folder from where http/https web server serves the content.</td>
+    </tr>
+     <tr>
+      <td>dest_group</td>
+      <td>group</td>
+      <td>Custom iso file group.</br>This is used custom ISO is tranfered via ssh to the destination folder from where http/https web server serves the content.</td>
+    </tr>
+    <tr>
+      <td>dest_mode</td>
+      <td>0644</td>
+      <td>Custom iso file permission.</br>This is used custom ISO is tranfered via ssh to the destination folder from where http/https web server serves the content.</td>
+    </tr>
+  </tbody>
 </table>
 
 ## Fact variables
@@ -247,6 +312,12 @@ ansible.posix
     </tr>
   </tbody>
 </table>
+
+## Env Varaibles
+
+When we have to SSH into a machine a fingerprint has to be added into the ansible controller machine for it to connect succesfully, if you trust the machine you are copying you use the below environment variable disable the fingerprint check.
+
+```export ANSIBLE_HOST_KEY_CHECKING=False```
 
 ## Examples 
 -----
@@ -288,10 +359,29 @@ ansible.posix
       path: //192.168.0.2/path/cifsshare
       username: cifs_user
       password: password
+
+- name: Install ESXi OS with kickstart file
+  ansible.builtin.import_role:
+    name: idrac_os_deployment
+  vars:
+    hostname: 192.168.0.1
+    username: root
+    password: password
+    ca_path: path/to/ca
+    os_name: ESXi
+    os_version: 8
+    kickstart_file: "/path/to/esxi_ks.cfg"
+    source_iso:
+      path: //192.168.0.2/cifs_share/path/to/VMware-Installer-8.x-86_64.iso
+      username: administrator
+      password: password
+    destination_path:
+      path: 192.1.2.3:/path/to/nfshare
 ```
 
 ## Author Information
 ------------------
 
 Dell Technologies <br>
-Jagadeesh N V (Jagadeesh.N.V@Dell.com)  2023
+Jagadeesh N V (Jagadeesh.N.V@Dell.com) 2023 <br>
+Abhishek Sinha (Abhishek.Sinha10@Dell.com) 2023
