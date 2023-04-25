@@ -1,0 +1,20 @@
+esxi_keyboard: null
+esxi_rootpw: ""
+esxi_iscrypted: false
+esxi_reboot: true
+esxi_install_type: install
+esxi_install_options: ["--firstdisk", "--overwritevmfs"]
+esxi_clearpart: ["--alldrives", "--overwritevmfs"]
+esxi_network: false
+esxi_partition: false
+esxi_serial_num: null
+esxi_firstboot:
+  interpreter: busybox
+  args:
+    - vim-cmd hostsvc/enable_ssh
+    - vim-cmd hostsvc/start_ssh
+    - vim-cmd hostsvc/enable_esx_shell
+    - vim-cmd hostsvc/start_esx_shell
+    - esxcli system settings advanced set -o /UserVars/SuppressShellWarning -i 1
+esxi_prescript: null
+esxi_postscript: null

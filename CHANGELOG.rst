@@ -5,6 +5,36 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v7.5.0
+======
+
+Release Summary
+---------------
+
+- redfish_firmware - This module is enhanced to include job tracking.
+- ome_template - This module is enhanced to include job tracking.
+- Role to support the iDRAC and Redfish firmware update and manage storage volume configuration is added.
+- Role to deploy the iDRAC operating system is enhanced to support ESXi version 8.X and HTTP or HTTPS for the destination.
+
+
+Known Issues
+------------
+
+- idrac_os_deployment- Issue(260496) - OS installation will support only NFS and CIFS share to store the custom ISO in the destination_path, HTTP/HTTPS/FTP not supported
+- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_user - Issue(192043) The module may error out with the message ``Unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Roles
+---------
+
+- dellemc.openmanage.idrac_firmware - Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP).
+- dellemc.openmanage.redfish_firmware - Update a component firmware using the image file available on the local or remote system.
+- dellemc.openmanage.redfish_storage_volume - Role to manage the storage volume configuration.
+
 v7.4.0
 ======
 

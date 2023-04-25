@@ -1,0 +1,9 @@
+---
+- name: Manage certificates in iDRAC
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/certificates.yml
+  roles:
+    - dellemc.openmanage.idrac_certificate
