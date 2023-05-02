@@ -1,0 +1,132 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: To check the behaviour of invalid hostname.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'INVALID_IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        volume_type: "NonRedundant"
+        name: "VD"
+        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: result
+
+    - name: Asserting after performing operation.
+      ansible.builtin.assert:
+        that: |-
+          redfish_storage_volume_out.msg == "<urlopen error [Errno -2] Name or service not known>"
+
+    - name: To check the behaviour of invalid credentials.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'INVALID_IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        volume_type: "NonRedundant"
+        name: "VD"
+        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: result
+
+    - name: Asserting after performing operation for invalid credentials.
+      ansible.builtin.assert:
+        that: |-
+          redfish_storage_volume_out.msg == "HTTP Error 401: Unauthorized"
+
+    - name: To check the behaviour of invalid span count.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        volume_type: "SpannedStripesWithParity"
+        name: "VD"
+        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: result
+
+    - name: Asserting after performing operation for invalid span count.
+      ansible.builtin.assert:
+        that: |-
+          redfish_storage_volume_out.msg == "HTTP Error 400: Bad Request"
+
+    - name: To check the behaviour of invalid certificate path.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: true
+        ca_path: "{{ lookup('env', 'INVALID_CERT_PATH') }}"
+        state: present
+        volume_type: "SpannedStripesWithParity"
+        name: "VD"
+        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: result
+
+    - name: Asserting after performing operation for invalid certificate path.
+      ansible.builtin.assert:
+        that: |-
+          "certificate verify failed" in redfish_storage_volume_out.msg
+
+    - name: To check the behaviour of invalid volume type.
+      ansible.builtin.import_role:
+        name: redfish_storage_volume
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        volume_type: "InvalidMirrored"
+        name: "VD"
+        controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+        drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
+        capacity_bytes: 214748364800
+        optimum_io_size_bytes: 65536
+        encrypted: false
+        job_wait: false
+      ignore_errors: true
+      register: result
+
+    - name: Asserting after performing operation for invalid volume type.
+      ansible.builtin.assert:
+        that: |-
+          redfish_storage_volume_out.msg == "value of volume_type must be one of: NonRedundant, Mirrored,
+          StripedWithParity, SpannedMirrors, SpannedStripesWithParity, got: InvalidMirrored"

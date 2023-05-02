@@ -1,0 +1,14 @@
+os_name: RHEL
+os_version: 9
+source_iso:
+  path: "{{ repo_url }}/iso/Rhel-9.iso"
+  username: "username"
+  password: "password"
+destination_path:
+  path: "{{ repo_url }}/iso"
+  username: "username"
+  password: "password"
+http_path: "/www/http/repo"
+dest_os: "linux"
+ssh_user: "ssh_username"
+ssh_pass: "ssh_password"

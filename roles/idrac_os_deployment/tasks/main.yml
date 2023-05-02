@@ -7,11 +7,36 @@
         idrac_osd_host: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
         os_key: "{{ os_name | lower }}"
 
-    - name: Check supported OS.
+    - name: Gather OS family facts
+      ansible.builtin.setup:
+        gather_subset:
+          - 'os_family'
+      delegate_to: "{{ idrac_osd_host }}"
+
+    - name: Create working directory
+      delegate_to: "{{ idrac_osd_host }}"
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: omam_osd
+      register: working_dir
+
+    - name: Initializing destination iso path type
+      ansible.builtin.set_fact:
+        idrac_osd_no_loggers:
+          - Set download command
+          - Mounting dest CIFS volume
+          - Mounting CIFS volume to localhost
+          - Download iso from http, https or ftp
+          - Initializing iso path type and aliasing idrac opts
+        dest_iso_share_type: null
+        dest_iso_exists: false
+        custom_iso: "{{ working_dir.path }}/{{ os_key }}_{{ os_version }}_{{ hostname }}.iso"
+
+    - name: Check supported OS and version.
       ansible.builtin.fail:
         msg: "OS {{ os_name }} or version {{ os_version }} is not supported."
       when:
-        - (os_name not in supported_os) or (os_version | string | split('.') | first) not in supported_os_version[os_name]
+        - (os_name not in supported_os_version.keys()) or (os_version | string | split('.') | first) not in supported_os_version[os_name]
 
     - name: Initial probe destination
       ansible.builtin.include_tasks: probe_dest.yml
@@ -30,7 +55,7 @@
       ansible.builtin.include_tasks: get_iso.yml
       when: not dest_iso_exists
 
-    - name: Edit rhel iso script
+    - name: Edit OS iso script
       ansible.builtin.include_tasks: "{{ os_key }}_iso_edit.yml"
       when: not dest_iso_exists
 
@@ -41,26 +66,30 @@
     - name: Start virtual media
       ansible.builtin.include_tasks: virtual_media_wait.yml
 
-    - name: Unmount and clean up
-      ansible.builtin.include_tasks: unmount_cleanup.yml
-
   rescue:
-    - name: Clean up
-      ansible.builtin.include_tasks: clean_up.yml
-
     - name: Compile the failure message
       ansible.builtin.set_fact:
         idrac_os_deployment_failure: "{{ ansible_failed_result | combine({'failed_task_name': ansible_failed_task.name}) }}"
       no_log: true
-      when: ansible_failed_task.name not in idrac_osd_no_loggers
+      when: idrac_osd_no_loggers is defined and ansible_failed_task.name not in idrac_osd_no_loggers
 
     - name: Compile the failure message for no logs
       ansible.builtin.set_fact:
         idrac_os_deployment_failure: "{{ {'msg': ansible_failed_result.msg} | combine({'failed_task_name': ansible_failed_task.name}) }}"
       no_log: true
-      when: ansible_failed_task.name in idrac_osd_no_loggers
+      when: idrac_osd_no_loggers is defined and ansible_failed_task.name in idrac_osd_no_loggers
+
+  always:
+    - name: Clean up
+      ansible.builtin.include_tasks: clean_up.yml
 
     - name: On failure
       ansible.builtin.debug:
         var: idrac_os_deployment_failure
       failed_when: true
+      when: idrac_os_deployment_failure is defined
+
+    - name: On Success
+      ansible.builtin.debug:
+        var: idrac_os_deployment_message
+      when: idrac_os_deployment_message is defined
