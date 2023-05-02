@@ -162,15 +162,6 @@ jobs:
         - name: Install ansible posix
           run: ansible-galaxy collection install ansible.posix
 
-        - name: Download migrated collection artifacts
-          uses: actions/download-artifact@v1
-          with:
-            name: collection
-            path: .cache/collection-tarballs
-
-        - name: Install collection build
-          run: ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
-
         - name: Run Ansible lint
           run: ansible-lint --show-relpath
           working-directory: /home/runner/work/dellemc-openmanage-ansible-modules/dellemc-openmanage-ansible-modules

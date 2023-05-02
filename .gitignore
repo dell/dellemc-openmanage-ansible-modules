@@ -7,6 +7,3 @@ __pycache__/
 .idea/
 *.bak
 rstdocgen.sh
-node_modules
-demo
-.vscode
