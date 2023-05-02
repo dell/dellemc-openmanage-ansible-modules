@@ -1,7 +1,7 @@
 ---
 argument_specs:
   main:
-    version_added: "7.5.0"
+    version_added: "7.4.0"
     short_description: Role to deploy specified operating system and version on the servers.
     description: Role to deploy specified operating system and version on the servers.
     options:
@@ -38,12 +38,13 @@ argument_specs:
         type: str
         description:
           - The operating system name to match the jinja template of the kickstart file.
+          - Currently only C(RHEL) supported.
         required: true
       os_version:
         type: str
         description:
           - The operating system version to match the jinja template of the kickstart file.
-          - Supported versions for RHEL are 9.x and 8.x and for ESXi is 8.x.
+          - Supported versions for C(RHEL) are 9.x and 8.x
         required: true
       source_iso:
         type: dict
@@ -54,7 +55,7 @@ argument_specs:
             type: path
             description:
               - Local path or network share path of the ISO.
-              - CIFS, NFS, HTTP and HTTPS shares are supported.
+              - CIFS, NFS, HTTP, HTTPS, and FTP shares are supported.
             required: true
           username:
             type: str
@@ -67,7 +68,7 @@ argument_specs:
         description:
           - Share path to mount the ISO to iDRAC.
           - Share needs to have a write permission to copy the generated ISO.
-          - CIFS, NFS, HTTP and HTTPS shares are supported.
+          - Only CIFS and NFS are supported.
         required: true
         options:
           path:
@@ -100,17 +101,3 @@ argument_specs:
           - Eject the virtual media (ISO) after the tracking of OS deployment is finished.
         default: true
         type: bool
-      http_path:
-        description: Path to copy custom_iso in http or https share
-        type: str
-      dest_os:
-        description: HTTP/HTTPS share based on linux/Windows.
-        type: str
-        choices: ['linux', 'windows']
-        default: 'linux'
-      ssh_user:
-        description: Username for SSH login into the target machine where the custom iso will be copied to serve from the http/https repository.
-        type: str
-      ssh_pass:
-        description: Password for SSH login into the target machine where the custom iso will be copied to serve from the http/https repository.
-        type: str

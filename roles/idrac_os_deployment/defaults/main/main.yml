@@ -5,7 +5,3 @@ validate_certs: true
 os_wait_time: 30
 eject_iso: true
 os_wait: true
-http_path: ""
-dest_os: "linux"
-ssh_user: ""
-ssh_pass: ""

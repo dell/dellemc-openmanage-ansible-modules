@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.5.0
-# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -39,13 +39,13 @@ options:
   template_id:
     description:
       - ID of the existing template.
-      - This option is applicable when I(command) is C(modify), C(deploy), C(delete), C(clone) and C(export).
+      - This option is applicable when I(command) is C(modify), C(deploy), C(delete) and C(export).
       - This option is mutually exclusive with I(template_name).
     type: int
   template_name:
     description:
       - Name of the existing template.
-      - This option is applicable when I(command) is C(modify), C(deploy), C(delete), C(clone) and C(export).
+      - This option is applicable when I(command) is C(modify), C(deploy), C(delete) and C(export).
       - This option is mutually exclusive with I(template_id).
     type: str
   device_id:
@@ -120,24 +120,9 @@ options:
         and servers. This is applicable when I(command) is C(create).
       - >-
         Refer OpenManage Enterprise API Reference Guide for more details.
-  job_wait:
-    type: bool
-    description:
-      - Provides the option to wait for job completion.
-      - This option is applicable when I(command) is C(create), or C(deploy).
-    default: true
-  job_wait_timeout:
-    type: int
-    description:
-      - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
-    default: 1200
 requirements:
     - "python >= 3.8.6"
-author:
-    - "Jagadeesh N V (@jagadeeshnv)"
-    - "Husniya Hameed (@husniya_hameed)"
-    - "Kritika Bhateja (@Kritika-Bhateja)"
+author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -471,19 +456,6 @@ install OS using its image"
       Name: "Configuration Compliance"
       Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
       Type: 2
-
-- name: Create a template from a reference device with Job wait as false
-  dellemc.openmanage.ome_template:
-    hostname: "192.168.0.1"
-    username: "username"
-    password: "password"
-    ca_path: "/path/to/ca_cert.pem"
-    device_id: 25123
-    attributes:
-      Name: "New Template"
-      Description: "New Template description"
-      Fqdds: iDRAC,BIOS,
-    job_wait: false
 '''
 
 RETURN = r'''
@@ -544,13 +516,12 @@ error_info:
 '''
 
 import json
-import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import apply_diff_key, job_tracking
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import apply_diff_key
 
 
 TEMPLATES_URI = "TemplateService/Templates"
@@ -560,24 +531,12 @@ TEMPLATE_ATTRIBUTES = "TemplateService/Templates({template_id})/AttributeDetails
 DEVICE_URI = "DeviceService/Devices"
 GROUP_URI = "GroupService/Groups"
 PROFILE_URI = "ProfileService/Profiles"
-JOB_URI = "JobService/Jobs({job_id})"
 SEPRTR = ','
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_FOUND = "Changes found to be applied."
 TEMPLATE_NAME_EXISTS = "Template with name '{name}' already exists."
 DEPLOY_DEV_ASSIGNED = "The device(s) '{dev}' have been assigned the template(s) '{temp}' " \
                       "respectively. Please unassign the profiles from the devices."
-MSG_DICT = {'create_when_job_wait_true': "Successfully created a template with ID {0}",
-            'create_when_job_wait_false': "Successfully submitted a template creation with job ID {0}",
-            'modify': "Successfully modified the template with ID {0}",
-            'deploy_when_job_wait_false': "Successfully submitted a template deployment with job ID {0}",
-            'deploy_when_job_wait_true': "Successfully deployed the template with ID {0}",
-            'fail': 'Failed to {command} template.',
-            'delete': "Deleted successfully",
-            'export': "Exported successfully",
-            'import': "Imported successfully",
-            'clone': "Cloned successfully",
-            'timed_out': "Template operation is in progress. Task excited after 'job_wait_timeout'."}
 
 
 def get_profiles(rest_obj):
@@ -956,49 +915,31 @@ def fail_module(module, **failmsg):
     module.fail_json(**failmsg)
 
 
-def exit_module(rest_obj, module, response, time_out=False):
+def exit_module(module, response):
     password_no_log(module.params.get("attributes"))
     resp = None
-    changed_flag = True
+    my_change = True
     command = module.params.get('command')
     result = {}
     if command in ["create", "modify", "deploy", "import", "clone"]:
         result["return_id"] = response.json_data
         resp = result["return_id"]
-        if command == 'deploy':
-            if time_out:
-                command = 'timed_out'
-                changed_flag = False
-            elif not result["return_id"]:
-                result["failed"] = True
-                command = 'deploy_fail'
-                changed_flag = False
-            elif module.params["job_wait"]:
-                command = 'deploy_when_job_wait_true'
-            else:
-                command = 'deploy_when_job_wait_false'
-        elif command == 'create':
-            if time_out:
-                resp = get_job_id(rest_obj, resp)
-                command = 'timed_out'
-                changed_flag = False
-            elif module.params["job_wait"]:
-                command = 'create_when_job_wait_true'
-            else:
-                time.sleep(5)
-                resp = get_job_id(rest_obj, resp)
-                command = 'create_when_job_wait_false'
+        if command == 'deploy' and result["return_id"] == 0:
+            result["failed"] = True
+            command = 'deploy_fail'
+            my_change = False
     if command == 'export':
-        changed_flag = False
+        my_change = False
         result = response.json_data
-    message = MSG_DICT.get(command).format(resp)
-    module.exit_json(msg=message, changed=changed_flag, **result)
-
-
-def get_job_id(rest_obj, template_id):
-    template = rest_obj.invoke_request("GET", TEMPLATE_PATH.format(template_id=template_id))
-    job_id = template.json_data.get("TaskId")
-    return job_id
+    msg_dict = {'create': "Successfully created a template with ID {0}".format(resp),
+                'modify': "Successfully modified the template with ID {0}".format(resp),
+                'deploy': "Successfully created the template-deployment job with ID {0}".format(resp),
+                'deploy_fail': 'Failed to deploy template.',
+                'delete': "Deleted successfully",
+                'export': "Exported successfully",
+                'import': "Imported successfully",
+                'clone': "Cloned successfully"}
+    module.exit_json(msg=msg_dict.get(command), changed=my_change, **result)
 
 
 def main():
@@ -1013,8 +954,6 @@ def main():
         "device_service_tag": {"required": False, "type": 'list', "default": [], "elements": 'str'},
         "device_group_names": {"required": False, "type": 'list', "default": [], "elements": 'str'},
         "attributes": {"required": False, "type": 'dict'},
-        "job_wait": {"required": False, "type": "bool", "default": True},
-        "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
     specs.update(ome_auth_params)
     module = AnsibleModule(
@@ -1037,38 +976,10 @@ def main():
         _validate_inputs(module)
         with RestOME(module.params, req_session=True) as rest_obj:
             path, payload, rest_method = _get_resource_parameters(module, rest_obj)
+            # module.exit_json(payload=payload, path=path)
             resp = rest_obj.invoke_request(rest_method, path, data=payload)
-            job_wait = module.params["job_wait"]
-            job_id = None
-            if job_wait:
-                if module.params["command"] == "create":
-                    template_id = resp.json_data
-                    count = 30
-                    sleep_time = 5
-                    while count > 0:
-                        try:
-                            job_id = get_job_id(rest_obj, template_id)
-                            if job_id:
-                                break
-                            time.sleep(sleep_time)
-                            count = count - sleep_time
-                        except HTTPError:
-                            time.sleep(sleep_time)
-                            count = count - sleep_time
-                            continue
-                elif module.params["command"] == "deploy":
-                    job_id = resp.json_data
-                if job_id:
-                    job_uri = JOB_URI.format(job_id=job_id)
-                    job_failed, msg, job_dict, wait_time = job_tracking(rest_obj, job_uri, max_job_wait_sec=module.params["job_wait_timeout"])
-                    if job_failed:
-                        if job_dict.get('LastRunStatus').get('Name') == "Running":
-                            exit_module(rest_obj, module, resp, True)
-                        else:
-                            message = MSG_DICT.get('fail').format(command=module.params["command"])
-                            module.fail_json(msg=message)
             if resp.success:
-                exit_module(rest_obj, module, resp)
+                exit_module(module, resp)
     except HTTPError as err:
         fail_module(module, msg=str(err), error_info=json.load(err))
     except URLError as err:

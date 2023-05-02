@@ -8,10 +8,7 @@ You may obtain a copy of the License at
     https://www.gnu.org/licenses/gpl-3.0.txt
 -->
 ## Playbooks and Tutorials
-* For the latest sample playbooks and example for idrac, see [idrac playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks/idrac).
-* For the latest sample playbooks and examples for redfish, see [redfish playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks/redfish).
-* For the latest sample playbooks and examples for ome, see [ome playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks/ome).
-* For the latest sample playbooks and examples for roles, see [roles playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks/roles).
+* For the latest sample playbooks and examples, see [playbooks](https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/playbooks).
 * For the tutorials and sample use cases, see the tutorials available at [developer.dell.com](https://developer.dell.com/).
 
 ## Module documentations
@@ -39,5 +36,5 @@ You may obtain a copy of the License at
        ```export REQUESTS_CA_BUNDLE=/usr/share/ssl-certs/ca-cert.pem```
 
 ### Ignore SSL certificate validation
-It is common to run a test environment without a proper SSL certificate configuration. To disable the certificate validation for a module, set the validate_certs module argument to ```false``` in the playbook.
+It is common to run a test environment without a proper SSL certificate configuration. To disable the certificate validation for a module, set the validate_certs module argument to ```False``` in the playbook.
 
