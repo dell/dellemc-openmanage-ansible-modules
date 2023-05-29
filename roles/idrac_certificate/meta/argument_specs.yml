@@ -2,8 +2,9 @@
 argument_specs:
   main:
     version_added: "7.4.0"
-    short_description: Role to manage the iDRAC certificates - Generate CSR, Import/Export certificates, and Reset configuration - for PowerEdge servers.
-    description: This role allows to generate certificate signing request, import, and export certificates on iDRAC.
+    short_description: This role allows to generate certificate signing request, import, and export certificates on iDRAC
+    description:
+      - Role to manage the iDRAC certificates - Generate CSR, Import/Export certificates, and Reset configuration - for PowerEdge servers.
     options:
       hostname:
         required: true

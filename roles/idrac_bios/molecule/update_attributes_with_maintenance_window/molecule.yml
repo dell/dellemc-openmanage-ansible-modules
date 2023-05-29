@@ -1,0 +1,8 @@
+---
+scenario:
+  test_sequence:
+    - lint
+    - create
+    - check
+    - converge
+    - destroy

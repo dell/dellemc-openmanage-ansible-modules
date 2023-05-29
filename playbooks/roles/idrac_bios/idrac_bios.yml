@@ -1,0 +1,9 @@
+---
+- name: Manage bios configurations in iDRAC
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/bios.yml
+  roles:
+    - dellemc.openmanage.idrac_bios

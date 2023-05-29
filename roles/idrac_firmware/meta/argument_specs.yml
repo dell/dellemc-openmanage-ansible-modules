@@ -2,8 +2,9 @@
 argument_specs:
   main:
     version_added: "7.5.0"
-    short_description: Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP).
-    description: Update the Firmware by connecting to a network share (CIFS, NFS, HTTP, HTTPS, FTP) that contains a catalog of available updates.
+    short_description: Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP)
+    description:
+      - Update the Firmware by connecting to a network share (CIFS, NFS, HTTP, HTTPS, FTP) that contains a catalog of available updates.
     options:
       hostname:
         required: true

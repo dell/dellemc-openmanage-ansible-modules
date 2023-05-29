@@ -1,0 +1,6 @@
+---
+- name: Executing iDRAC storage controller role
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_storage_controller

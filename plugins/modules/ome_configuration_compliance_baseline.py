@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.6.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -107,7 +107,9 @@ options:
     default: 10800
 requirements:
     - "python >= 3.8.6"
-author: "Sajna Shetty(@Sajna-Shetty)"
+author:
+    - "Sajna Shetty(@Sajna-Shetty)"
+    - "Abhishek Sinha(@Abhishek-Dell)"
 notes:
     - This module supports C(check_mode).
     - Ensure that the devices have the required licenses to perform the baseline compliance operations.
@@ -294,6 +296,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.compat.version import LooseVersion
 
 COMPLIANCE_BASELINE = "TemplateService/Baselines"
 REMEDIATE_BASELINE = "TemplateService/Actions/TemplateService.Remediate"
@@ -744,11 +747,10 @@ def create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj):
             "RunLater": False
         }
     }
-    pattern = re.compile(r'(1|2|3)\.(0|1|2|3|4)\.?')
-    if pattern.match(ome_version):
-        payload["TargetIds"] = noncomplaint_devices
-    else:
+    if LooseVersion(ome_version) >= "3.5":
         payload["DeviceIds"] = noncomplaint_devices
+    else:
+        payload["TargetIds"] = noncomplaint_devices
     return payload
 
 

@@ -1,0 +1,5 @@
+---
+# defaults file for idrac_attributes
+validate_certs: true
+https_timeout: 30
+https_port: 443

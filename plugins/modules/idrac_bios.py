@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 7.6.0
+# Copyright (C) 2018-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -133,6 +133,7 @@ author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
     - "Jagadeesh N V (@jagadeeshnv)"
+    - "Shivam Sharma (@shivam-sharma)"
 notes:
     - omsdk is required to be installed only for I(boot_sources) operation.
     - This module requires 'Administrator' privilege for I(idrac_user).
@@ -344,6 +345,7 @@ UNSUPPORTED_APPLY_TIME = "Apply time {0} is not supported."
 MAINTENANCE_OFFSET = "The maintenance time must be post-fixed with local offset to {0}."
 MAINTENANCE_TIME = "The specified maintenance time window occurs in the past, " \
                    "provide a future time to schedule the maintenance window."
+NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
 POWER_CHECK_RETRIES = 30
 POWER_CHECK_INTERVAL = 10
 
@@ -759,6 +761,11 @@ def attributes_config(module, redfish_obj):
                      job_id=job_id, changed=True)
 
 
+def validate_negative_job_time_out(module):
+    if module.params.get("job_wait_timeout") <= 0:
+        module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
+
+
 def main():
     specs = {
         "share_name": {"type": 'str'},
@@ -786,6 +793,7 @@ def main():
         required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
                      ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
         supports_check_mode=True)
+    validate_negative_job_time_out(module)
     try:
         msg = {}
         if module.params.get("boot_sources") is not None:

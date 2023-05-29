@@ -1,3 +1,15 @@
 tests/unit/plugins/modules/test_ome_server_interface_profiles.py compile-2.6!skip
 plugins/modules/idrac_attributes.py compile-2.6!skip
 plugins/modules/idrac_attributes.py import-2.6!skip
+plugins/modules/ome_configuration_compliance_baseline.py compile-3.8!skip
+plugins/modules/ome_configuration_compliance_baseline.py import-3.8!skip
+tests/unit/plugins/modules/test_ome_configuration_compliance_baseline.py compile-3.8!skip
+tests/unit/plugins/modules/test_ome_configuration_compliance_baseline.py import-3.8!skip
+plugins/modules/ome_configuration_compliance_baseline.py compile-3.9!skip
+plugins/modules/ome_configuration_compliance_baseline.py import-3.9!skip
+tests/unit/plugins/modules/test_ome_configuration_compliance_baseline.py compile-3.9!skip
+tests/unit/plugins/modules/test_ome_configuration_compliance_baseline.py import-3.9!skip
+plugins/modules/ome_configuration_compliance_baseline.py compile-3.10!skip
+plugins/modules/ome_configuration_compliance_baseline.py import-3.10!skip
+tests/unit/plugins/modules/test_ome_configuration_compliance_baseline.py compile-3.10!skip
+tests/unit/plugins/modules/test_ome_configuration_compliance_baseline.py import-3.10!skip

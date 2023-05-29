@@ -48,7 +48,7 @@ class TestOsDeployment(FakeAnsibleModule):
     @pytest.fixture
     def omsdk_mock(self, mocker):
         mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.UserCredentials')
-        mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.WsManOptions')
+        mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.ProtoPreference')
 
     @pytest.fixture
     def fileonshare_mock(self, mocker):

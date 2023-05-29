@@ -585,3 +585,10 @@ class TestConfigBios(FakeAnsibleModule):
         ]
         result = self.module.check_params(params.get('each'), fields)
         assert result == params.get('message')
+
+    def test_validate_negative_job_time_out(self, idrac_default_args):
+        idrac_default_args.update({"job_wait": True, "job_wait_timeout": -5})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        with pytest.raises(Exception) as ex:
+            self.module.validate_negative_job_time_out(f_module)
+        assert ex.value.args[0] == "The parameter job_wait_timeout value cannot be negative or zero."
