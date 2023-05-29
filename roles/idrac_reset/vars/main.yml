@@ -1,0 +1,39 @@
+---
+# vars file for idrac_reset
+uri_headers:
+  Accept: "application/json"
+  Content-Type: "application/json"
+  OData-Version: "4.0"
+uri_headers_xml:
+  Content-Type: "application/xml"
+uri_body_format: "json"
+force_basic_auth: true
+uri_status_code:
+  - 200
+  - 400
+  - 401
+  - 404
+  - -1
+delay: 30
+retries: 10
+delay_for_idrac_connection: 60
+wait_for_idrac_reachable: 360
+connect_timeout: 10
+sleep_interval: 5
+uri_return_content: true
+idrac_restarted_success: "iDRAC restart operation completed successfully"
+idrac_reset_success: "iDRAC reset operation completed successfully"
+idrac_reset_trigger: "iDRAC reset operation triggered successfully"
+idrac_restart_trigger: "iDRAC restart operation triggered successfully"
+lifecycle_status_api: "/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+graceful_restart_api: "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset"
+reset_api: "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.ResetToDefaults"
+get_remote_services_api_status_code:
+  LCStatus:
+    "0": "Ready"
+    "1": "Not Initialized"
+    "2": "Reloading Data"
+    "3": "Disabled"
+    "4": "In Recovery"
+    "5": "In Use"
+    "U": "Unknown"

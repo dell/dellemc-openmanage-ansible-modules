@@ -5,6 +5,6 @@
   vars_files:
     - ../vars_files/credentials.yml
   vars:
-    target: "System"
+    target: "{{ gather_facts_target }}"
   roles:
-    - dellemc.openmanage.idrac_server_powerstate
+    - dellemc.openmanage.idrac_gather_facts
