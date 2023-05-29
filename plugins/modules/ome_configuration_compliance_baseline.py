@@ -290,7 +290,6 @@ error_info:
 
 import json
 import time
-import re
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
