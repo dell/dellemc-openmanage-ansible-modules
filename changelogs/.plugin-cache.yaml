@@ -1,15 +1,68 @@
 objects:
   role:
+    idrac_attributes:
+      description: Role to configure the iDRAC attribute
+      name: idrac_attributes
+      version_added: 7.6.0
+    idrac_bios:
+      description: Modify and clear BIOS attributes, and reset BIOS settings
+      name: idrac_bios
+      version_added: 7.6.0
+    idrac_certificate:
+      description: Role to manage the iDRAC certificates - Generate CSR, Import/Export
+        certificates, and Reset configuration - for PowerEdge servers.
+      name: idrac_certificate
+      version_added: 7.4.0
     idrac_export_server_config_profile:
       description: Role to export iDRAC Server Configuration Profile (SCP).
       name: idrac_export_server_config_profile
       version_added: 7.3.0
+    idrac_firmware:
+      description: Firmware update from a repository on a network share (CIFS, NFS,
+        HTTP, HTTPS, FTP).
+      name: idrac_firmware
+      version_added: 7.5.0
+    idrac_gather_facts:
+      description: Role to get the facts from the iDRAC Server.
+      name: idrac_gather_facts
+      version_added: 7.4.0
+    idrac_import_server_config_profile:
+      description: Import iDRAC Server Configuration Profile (SCP).
+      name: idrac_import_server_config_profile
+      version_added: 7.4.0
+    idrac_os_deployment:
+      description: Role to deploy specified operating system and version on the servers.
+      name: idrac_os_deployment
+      version_added: 7.5.0
+    idrac_reset:
+      description: Role to reset and restart iDRAC
+      name: idrac_reset
+      version_added: 7.6.0
+    idrac_server_powerstate:
+      description: Role to manage the different power states of the specified device.
+      name: idrac_server_powerstate
+      version_added: 7.4.0
+    idrac_storage_controller:
+      description: Configures the physical disk, virtual disk, and storage controller
+        settings
+      name: idrac_storage_controller
+      version_added: 7.6.0
+    redfish_firmware:
+      description: Update a component firmware using the image file available on the
+        local or remote system.
+      name: redfish_firmware
+      version_added: 7.5.0
+    redfish_storage_volume:
+      description: Role to manage the storage volume configuration.
+      name: redfish_storage_volume
+      version_added: 7.5.0
 plugins:
   become: {}
   cache: {}
   callback: {}
   cliconf: {}
   connection: {}
+  filter: {}
   httpapi: {}
   inventory:
     ome_inventory:
@@ -473,5 +526,6 @@ plugins:
   netconf: {}
   shell: {}
   strategy: {}
+  test: {}
   vars: {}
-version: 7.3.0
+version: 7.6.0

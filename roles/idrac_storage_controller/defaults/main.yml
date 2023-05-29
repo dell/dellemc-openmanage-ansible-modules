@@ -1,0 +1,7 @@
+---
+apply_time: Immediate
+duration: 900
+https_port: 443
+https_timeout: 30
+task_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+validate_certs: true

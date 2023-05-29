@@ -1,0 +1,13 @@
+attributes:
+  BootMode: "Bios"
+  OneTimeBootMode: "Enabled"
+  BootSeqRetry: "Enabled"
+apply_time: "Immediate"
+maintenance_window:
+  start_time: "2022-09-30T05:15:40-05:00"
+  duration: 600
+clear_pending: false
+reset_bios: false
+reset_type: "graceful_restart"
+job_wait: true
+job_wait_timeout: 1200

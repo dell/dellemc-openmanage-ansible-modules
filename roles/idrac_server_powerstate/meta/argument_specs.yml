@@ -2,8 +2,9 @@
 argument_specs:
   main:
     version_added: "7.4.0"
-    short_description: Role to manage the different power states of the specified device.
-    description: Role to manage the different power states of the specified device using iDRACs (iDRAC7/8 and iDRAC9 only) for Dell PowerEdge servers.
+    short_description: Role to manage the different power states of the specified device
+    description:
+      - Role to manage the different power states of the specified device using iDRACs (iDRAC7/8 and iDRAC9 only) for Dell PowerEdge servers.
     options:
       hostname:
         required: true

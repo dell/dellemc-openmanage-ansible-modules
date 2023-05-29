@@ -2,8 +2,9 @@
 argument_specs:
   main:
     version_added: "7.5.0"
-    short_description: Role to deploy specified operating system and version on the servers.
-    description: Role to deploy specified operating system and version on the servers.
+    short_description: Role to deploy specified operating system and version on the servers
+    description:
+      - Role to deploy specified operating system and version on the servers.
     options:
       hostname:
         required: true

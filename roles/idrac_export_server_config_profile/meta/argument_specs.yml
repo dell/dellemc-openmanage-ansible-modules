@@ -2,8 +2,9 @@
 argument_specs:
   main:
     version_added: "7.3.0"
-    short_description: Role to export iDRAC Server Configuration Profile (SCP).
-    description: Role to export the Server Configuration Profile (SCP) from the iDRAC to a network share (CIFS, NFS, HTTP, HTTPS) or a local path.
+    short_description: Role to export iDRAC Server Configuration Profile (SCP)
+    description:
+      - Role to export the Server Configuration Profile (SCP) from the iDRAC to a network share (CIFS, NFS, HTTP, HTTPS) or a local path.
     options:
       idrac_ip:
         required: true

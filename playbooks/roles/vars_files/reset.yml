@@ -1,0 +1,3 @@
+wait_for_idrac: true
+force_restart: false
+reset_to_default: "Default"

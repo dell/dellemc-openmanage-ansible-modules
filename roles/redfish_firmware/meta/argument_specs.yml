@@ -2,7 +2,7 @@
 argument_specs:
   main:
     version_added: "7.5.0"
-    short_description: Update a component firmware using the image file available on the local or remote system.
+    short_description: Update a component firmware using the image file available on the local or remote system
     description:
       - This module allows the firmware update of only one component at a time. If the module is run for more than one component, an error message is returned.
       - Depending on the component, the firmware update is applied after an automatic or manual reboot.

@@ -1,0 +1,5 @@
+python3-dnf
+xorriso
+syslinux
+isomd5sum
+nfs-utils

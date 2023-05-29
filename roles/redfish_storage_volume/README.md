@@ -1,4 +1,4 @@
-# idrac_server_powerstate
+# redfish_storage_volume
 
 Role to create, modify, initialize, or delete a single storage volume.
 

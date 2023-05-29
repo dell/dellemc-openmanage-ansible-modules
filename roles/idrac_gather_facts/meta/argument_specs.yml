@@ -2,8 +2,9 @@
 argument_specs:
   main:
     version_added: "7.4.0"
-    short_description: Role to get the facts from the iDRAC Server.
-    description: Role to fetch the server facts about a different components available in the PowerEdge Servers.
+    short_description: Role to get the facts from the iDRAC Server
+    description:
+      - Role to fetch the server facts about a different components available in the PowerEdge Servers.
     options:
       hostname:
         required: true

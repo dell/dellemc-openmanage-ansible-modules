@@ -14,6 +14,10 @@ Update the idrac IP's, hostnames in the `inventory` file.
 
 ```
 .
+├── idrac_attributes
+│   └── idrac_attributes.yml
+├── idrac_bios
+│   └── idrac_bios.yml
 ├── idrac_certificate
 │   └── idrac_certificate.yml
 ├── idrac_export_server_config_profile
@@ -26,8 +30,12 @@ Update the idrac IP's, hostnames in the `inventory` file.
 │   └── idrac_import_server_config_profile.yml
 ├── idrac_os_deployment
 │   └── idrac_os_deployment.yml
+├── idrac_reset
+│   └── idrac_reset.yml
 ├── idrac_server_powerstate
 │   └── idrac_server_powerstate.yml
+├── idrac_storage_controller
+│   └── idrac_storage_controller.yml
 ├── inventory
 ├── README.md
 ├── redfish_firmware
@@ -35,11 +43,14 @@ Update the idrac IP's, hostnames in the `inventory` file.
 ├── redfish_storage_volume
 │   └── redfish_storage_volume.yml
 └── vars_files
+    ├── bios.yml
     ├── certificates.yml
     ├── credentials.yml
     ├── export.yml
     ├── firmware.yml
     ├── import.yml
     ├── osd.yml
+    ├── reset.yml
+    └── storage_controller.yml
     └── storage.yml
 ```

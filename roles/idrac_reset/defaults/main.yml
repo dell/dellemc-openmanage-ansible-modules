@@ -1,0 +1,7 @@
+---
+# defaults file for idrac_reset
+validate_certs: true
+https_timeout: 30
+https_port: 443
+wait_for_idrac: true
+force_reset: false

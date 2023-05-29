@@ -1,0 +1,9 @@
+---
+- name: Reset iDRAC
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/reset.yml
+  roles:
+    - dellemc.openmanage.idrac_reset

@@ -1,0 +1,6 @@
+---
+- name: Tests for idrac attributes
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_attributes

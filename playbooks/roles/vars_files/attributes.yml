@@ -1,0 +1,8 @@
+idrac_attributes:
+  SNMP.1.AgentCommunity: test
+  SNMP.1.AgentEnable: Enabled
+  SNMP.1.DiscoveryPort: 161
+system_attributes:
+  ServerOS.1.HostName: demohostname
+lifecycle_controller_attributes:
+  LCAttributes.1.AutoUpdate: Disabled

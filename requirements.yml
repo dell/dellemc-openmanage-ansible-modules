@@ -1,2 +1,6 @@
 collections:
-  - name: dellemc.openmanage
+  - dellemc.openmanage
+  - ansible.posix
+  - community.general
+  - ansible.utils
+  - ansible.windows

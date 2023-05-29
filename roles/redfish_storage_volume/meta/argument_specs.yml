@@ -2,8 +2,9 @@
 argument_specs:
   main:
     version_added: "7.5.0"
-    short_description: Role to manage the storage volume configuration.
-    description: Role to create, modify, initialize, or delete a single storage volume.
+    short_description: Role to manage the storage volume configuration
+    description:
+      - Role to create, modify, initialize, or delete a single storage volume.
     options:
       hostname:
         required: true
