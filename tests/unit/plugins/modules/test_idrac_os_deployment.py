@@ -99,7 +99,7 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
                   "ca_path": "/path/to/ca_cert.pem",
-                  "share_name": None, "share_password": "dummy_share_password",
+                  "share_name": "", "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }
         set_module_args(params)
