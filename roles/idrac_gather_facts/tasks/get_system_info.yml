@@ -34,7 +34,5 @@
 - name: Set system facts
   ansible.builtin.set_fact:
     system:
-      "{{ system_result.json | json_query(jquery) | combine(os_result.json.Attributes) |
+      "{{ system_result.json.Oem.Dell.DellSystem | combine(os_result.json.Attributes) |
       ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
-  vars:
-    jquery: "Oem.Dell.DellSystem"

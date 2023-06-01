@@ -16,9 +16,7 @@
 
 - name: Get Power Supply Metrics ids
   ansible.builtin.set_fact:
-    power_metrics_ids: "{{ power_result.json.Members | json_query(jquery) }}"
-  vars:
-    jquery: "[*].Metrics"
+    power_metrics_ids: "{{ power_result.json.Members | selectattr('Metrics', 'defined') | map(attribute='Metrics') | flatten }}"
   no_log: true
 
 - name: Get Power Supply Metrics information.
@@ -69,9 +67,7 @@
 
 - name: Get Memory Metrics ids
   ansible.builtin.set_fact:
-    memory_metrics_ids: "{{ memory_result.json.Members | json_query(jquery) }}"
-  vars:
-    jquery: "[*].Metrics"
+    memory_metrics_ids: "{{ memory_result.json.Members | selectattr('Metrics', 'defined') | map(attribute='Metrics') | flatten }}"
   no_log: true
 
 - name: Get Memory Metrics information.
@@ -91,18 +87,14 @@
   delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
   no_log: true
 
-- name: Set j query
-  ansible.builtin.set_fact:
-    jquery: "[*].json"
-
 - name: Set Power Supply/Thermal/Memory Metrics facts
   ansible.builtin.set_fact:
     power_metrics:
-      "{{ power_metrics_result.results | json_query(jquery) | flatten |
+      "{{ power_metrics_result.results | selectattr('json', 'defined') | map(attribute='json') | flatten |
       ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
     thermal_metrics:
       "{{ thermal_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri',
       'TemperatureReadingsCelsius@odata.count']) }}"
     memory_metrics:
-      "{{ memory_metrics_result.results | json_query(jquery) | flatten |
+      "{{ memory_metrics_result.results | selectattr('json', 'defined') | map(attribute='json') | flatten |
       ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri']) }}"
