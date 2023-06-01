@@ -1383,5 +1383,5 @@ releases:
       minor_changes:
         - Updated the idrac_gather_facts role to use jinja template filters.
       release_summary:
-        - Removed the dependency of community general collections.
+        Removed the dependency of community general collections.
     release_date: "2023-06-01"

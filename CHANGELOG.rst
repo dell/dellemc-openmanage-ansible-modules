@@ -8,6 +8,11 @@ Dell OpenManage Ansible Modules Release Notes
 v7.6.1
 ======
 
+Release Summary
+---------------
+
+Removed the dependency of community general collections.
+
 Minor Changes
 -------------
 
