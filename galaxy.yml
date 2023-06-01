@@ -1,6 +1,6 @@
 namespace: dellemc
 name: openmanage
-version: 7.6.0
+version: 7.6.1
 readme: README.md
 authors:
   - Jagadeesh N V <Jagadeesh.N.V@Dell.com>
@@ -38,7 +38,6 @@ tags:
 
 dependencies: {
   "ansible.posix": ">=1.5.4",
-  "community.general": ">=7.0.0",
   "ansible.utils": ">=2.10.2",
   "ansible.windows": ">=1.14.0"
 }

@@ -1,6 +1,5 @@
 collections:
   - dellemc.openmanage
   - ansible.posix
-  - community.general
   - ansible.utils
   - ansible.windows

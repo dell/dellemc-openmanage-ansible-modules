@@ -17,17 +17,13 @@
 
 - name: Get first System Id from the system response
   ansible.builtin.set_fact:
-    api_system: "{{ system_api_result.json | default('') | json_query(jquery) }}"
-  vars:
-    jquery: 'Members[0]."@odata.id"'
+    api_system: "{{ system_api_result.json.Members[0]['@odata.id'] | default('') }}"
   when: computer_system_id == ''
   no_log: true
 
 - name: Get all system Ids
   ansible.builtin.set_fact:
-    system_ids_list: "{{ system_api_result.json | default('') | json_query(jquery) }}"
-  vars:
-    jquery: 'Members[*]."@odata.id"'
+    system_ids_list: "{{ system_api_result.json.Members | map('dict2items') | flatten | map(attribute='value') }}"
   when: computer_system_id != ''
   no_log: true
 
@@ -61,17 +57,13 @@
 
 - name: Get first manager resource id from manager response.
   ansible.builtin.set_fact:
-    api_manager: "{{ manager_api_result.json | default('') | json_query(jquery) }}"
-  vars:
-    jquery: 'Members[0]."@odata.id"'
+    api_manager: "{{ manager_api_result.json.Members[0]['@odata.id'] | default('') }}"
   when: manager_id == ''
   no_log: true
 
 - name: Get all manager resource ids.
   ansible.builtin.set_fact:
-    manager_ids_list: "{{ manager_api_result.json | default('') | json_query(jquery) }}"
-  vars:
-    jquery: 'Members[*]."@odata.id"'
+    manager_ids_list: "{{ manager_api_result.json.Members | map('dict2items') | flatten | map(attribute='value') }}"
   when: manager_id != ''
   no_log: true
 
@@ -105,7 +97,5 @@
 
 - name: Get first chassis resource id from manager response.
   ansible.builtin.set_fact:
-    api_chassis: "{{ chassis_api_result.json | default('') | json_query(jquery) }}"
-  vars:
-    jquery: 'Members[0]."@odata.id"'
+    api_chassis: "{{ chassis_api_result.json.Members[0]['@odata.id'] | default('') }}"
   no_log: true
