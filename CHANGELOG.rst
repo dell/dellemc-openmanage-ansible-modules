@@ -5,6 +5,27 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v7.6.1
+======
+
+Release Summary
+---------------
+
+Removed the dependency of community general collections.
+
+Minor Changes
+-------------
+
+- Updated the idrac_gather_facts role to use jinja template filters.
+
+Known Issues
+------------
+
+- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
 v7.6.0
 ======
 
