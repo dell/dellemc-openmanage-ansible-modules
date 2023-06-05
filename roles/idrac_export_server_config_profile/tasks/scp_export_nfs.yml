@@ -16,3 +16,4 @@
     scp_file: "{{ share_parameters.scp_file | default(omit) }}"
     job_wait: "{{ job_wait }}"
   register: out_scp
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

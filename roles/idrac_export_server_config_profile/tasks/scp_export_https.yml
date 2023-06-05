@@ -25,3 +25,4 @@
     ignore_certificate_warning: "{{ share_parameters.ignore_certificate_warning | default(omit) }}"
     job_wait: "{{ job_wait }}"
   register: out_scp
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

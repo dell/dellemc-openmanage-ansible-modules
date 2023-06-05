@@ -2,8 +2,9 @@
 argument_specs:
   main:
     version_added: "7.4.0"
-    short_description: Import iDRAC Server Configuration Profile (SCP).
-    description: The role performs Import operation of Server Configuration Profile.
+    short_description: Import iDRAC Server Configuration Profile (SCP)
+    description:
+      - The role performs Import operation of Server Configuration Profile.
     options:
       hostname:
         required: true
