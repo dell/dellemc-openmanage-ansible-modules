@@ -518,7 +518,8 @@ from datetime import datetime
 from os.path import exists
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
+    strip_substr_dict
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.parse import urlparse
@@ -535,6 +536,9 @@ IN_EXPORTS = {"default": "Default", "readonly": "IncludeReadOnly", "passwordhash
 SCP_ALL_ERR_MSG = "The option ALL cannot be used with options IDRAC, BIOS, NIC, or RAID."
 MUTUALLY_EXCLUSIVE = "import_buffer is mutually exclusive with {0}."
 PROXY_ERR_MSG = "proxy_support is enabled but all of the following are missing: proxy_server"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+SUCCESS_COMPLETE = "Successfully applied the iDRAC attributes update."
+SCHEDULED_SUCCESS = "Successfully scheduled the job for the iDRAC attributes update."
 
 
 def get_scp_file_format(module):
@@ -555,7 +559,8 @@ def get_scp_file_format(module):
 def response_format_change(response, params, file_name):
     resp = {}
     if params["job_wait"]:
-        response = response.json_data
+        if hasattr(response, "json_data"):
+            response = response.json_data
         response.pop("Description", None)
         response.pop("Name", None)
         response.pop("EndTime", None)
@@ -646,6 +651,11 @@ def run_export_import_scp_http(idrac, module):
                                               host_powerstate=module.params["end_host_power_state"],
                                               job_wait=module.params["job_wait"],
                                               target=scp_target, share=share, )
+        job_id = scp_response.headers["Location"].split("/")[-1]
+        if module.params["job_wait"]:
+            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
+                idrac, iDRAC_JOB_URI.format(job_id=job_id))
+            scp_response = job_dict
     elif command == "export":
         scp_file_name_format = get_scp_file_format(module)
         share["file_name"] = scp_file_name_format
@@ -807,6 +817,11 @@ def import_scp_redfish(module, idrac, http_share):
                                               job_wait=module.params["job_wait"],
                                               target=scp_targets,
                                               import_buffer=buffer_text, share=share_dict, )
+        job_id = scp_response.headers["Location"].split("/")[-1]
+        if module.params["job_wait"]:
+            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(
+                idrac, iDRAC_JOB_URI.format(job_id=job_id))
+            scp_response = job_dict
     else:
         scp_response = idrac.import_scp(import_buffer=import_buffer, target=scp_targets, job_wait=module.params["job_wait"])
     scp_response = response_format_change(scp_response, module.params, share.get("file_name"))
