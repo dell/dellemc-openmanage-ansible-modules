@@ -1,6 +1,5 @@
 ---
-- name: Deploy specified operating system on the servers
-  hosts: localhost
-  remote_user: root
+- name: Operating System Deployment on iDRAC
+  hosts: idrac
   roles:
     - idrac_os_deployment

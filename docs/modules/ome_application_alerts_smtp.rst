@@ -42,9 +42,9 @@ Parameters
   enable_authentication (True, bool, None)
     Enable or disable authentication to access the SMTP server.
 
-    The *credentials* are mandatory if *enable_authentication* is ``True``.
+    The *credentials* are mandatory if *enable_authentication* is ``true``.
 
-    The module will always report change when this is ``True``.
+    The module will always report change when this is ``true``.
 
 
   credentials (optional, dict, None)
@@ -77,11 +77,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -99,7 +99,7 @@ Notes
 -----
 
 .. note::
-   - The module will always report change when *enable_authentication* is ``True``.
+   - The module will always report change when *enable_authentication* is ``true``.
    - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - This module support ``check_mode``.
 

@@ -102,7 +102,7 @@ Parameters
   job_wait_timeout (optional, int, 10800)
     The maximum wait time of *job_wait* in seconds.The job will only be tracked for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   hostname (True, str, None)
@@ -122,11 +122,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -294,4 +294,5 @@ Authors
 ~~~~~~~
 
 - Sajna Shetty(@Sajna-Shetty)
+- Abhishek Sinha(@Abhishek-Dell)
 

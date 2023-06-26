@@ -67,12 +67,12 @@ options:
                   - "The format is YYYY-MM-DDThh:mm:ss<offset>"
                   - "<offset> is the time offset from UTC that the current timezone set in
                   iDRAC in the format: +05:30 for IST."
-               required: True
+               required: true
            duration:
                type: int
                description:
                   - The duration in seconds for the maintenance window.
-               required: True
+               required: true
     attributes:
         type: dict
         description:
@@ -124,7 +124,7 @@ options:
         type: int
         description:
           - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-          - This option is applicable when I(job_wait) is C(True).
+          - This option is applicable when I(job_wait) is C(true).
         default: 1200
 requirements:
     - "omsdk >= 1.2.490"
@@ -190,15 +190,15 @@ EXAMPLES = """
     idrac_user: "user_name"
     idrac_password:  "user_password"
     ca_path: "/path/to/ca_cert.pem"
-    clear_pending: yes
+    clear_pending: true
 
 - name: Reset BIOS attributes to default settings.
   dellemc.openmanage.idrac_bios:
     idrac_ip: "{{ idrac_ip }}"
     idrac_user: "{{ idrac_user }}"
     idrac_password: "{{ idrac_pwd }}"
-    validate_certs: False
-    reset_bios: yes
+    validate_certs: false
+    reset_bios: true
 
 - name: Configure boot sources
   dellemc.openmanage.idrac_bios:

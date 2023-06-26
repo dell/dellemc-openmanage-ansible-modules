@@ -60,13 +60,13 @@ Parameters
   downgrade_enabled (optional, bool, None)
     Indicates whether firmware downgrade is allowed for the devices in the baseline.
 
-    This value will be set to ``True`` by default, if not provided during baseline creation.
+    This value will be set to ``true`` by default, if not provided during baseline creation.
 
 
   is_64_bit (optional, bool, None)
     Indicates if the repository contains 64-bit DUPs.
 
-    This value will be set to ``True`` by default, if not provided during baseline creation.
+    This value will be set to ``true`` by default, if not provided during baseline creation.
 
 
   device_ids (optional, list, None)
@@ -96,7 +96,7 @@ Parameters
   job_wait_timeout (optional, int, 600)
     The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   hostname (True, str, None)
@@ -116,11 +116,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -190,7 +190,7 @@ Examples
         device_group_names:
           - "Group1"
           - "Group2"
-        job_wait: no
+        job_wait: false
 
     - name: Modify an existing baseline
       dellemc.openmanage.ome_firmware_baseline:
@@ -206,8 +206,8 @@ Examples
           - "Group3"
           - "Group4"
           - "Group5"
-        downgrade_enabled: no
-        is_64_bit: yes
+        downgrade_enabled: false
+        is_64_bit: true
 
     - name: Delete a baseline
       dellemc.openmanage.ome_firmware_baseline:

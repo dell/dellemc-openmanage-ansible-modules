@@ -35,7 +35,7 @@ options:
         type: str
 requirements:
     - "python >= 3.8.6"
-author: "Jagadeesh N V(@jagadeeshnv)"
+author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).

@@ -278,7 +278,7 @@ dellemc.openmanage
     username: "username"
     password: "password"
     idrac_attributes:
-      Time.1.TimeZone: CST6CDT
+      Time.1.Timezone: CST6CDT
       NTPConfigGroup.1.NTPEnable: Enabled
       NTPConfigGroup.1.NTP1: 192.168.0.5
       NTPConfigGroup.1.NTP2: 192.168.0.6

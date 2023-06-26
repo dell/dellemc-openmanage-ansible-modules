@@ -104,7 +104,7 @@ Parameters
   job_wait_timeout (optional, int, 120)
     The maximum wait time of *job_wait* in seconds. The job is  tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   hostname (True, str, None)
@@ -124,11 +124,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -171,13 +171,13 @@ Examples
         nic_teaming: LACP
         nic_configuration:
           - nic_identifier: NIC.Mezzanine.1A-1-1
-            team: no
+            team: false
             untagged_network: 2
             tagged_networks:
               names:
                 - vlan1
           - nic_identifier: NIC.Mezzanine.1A-2-1
-            team: yes
+            team: true
             untagged_network: 3
             tagged_networks:
               names:
@@ -195,13 +195,13 @@ Examples
         nic_teaming: NoTeaming
         nic_configuration:
           - nic_identifier: NIC.Mezzanine.1A-1-1
-            team: no
+            team: false
             untagged_network: 2
             tagged_networks:
               names:
                 - vlan2
           - nic_identifier: NIC.Mezzanine.1A-2-1
-            team: yes
+            team: true
             untagged_network: 3
             tagged_networks:
               names:

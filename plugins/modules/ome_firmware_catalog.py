@@ -96,9 +96,9 @@ options:
   check_certificate:
     type: bool
     description:
-      - The certificate warnings are ignored when I(repository_type) is HTTPS. If C(True). If not, certificate warnings
+      - The certificate warnings are ignored when I(repository_type) is HTTPS. If C(true). If not, certificate warnings
        are not ignored.
-    default: False
+    default: false
   job_wait:
     description:
       - Provides the option to wait for job completion.
@@ -109,7 +109,7 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 600
     version_added: 3.4.0
@@ -138,7 +138,7 @@ EXAMPLES = r'''
     source: "downloads.dell.com"
     source_path: "catalog"
     file_name: "catalog.gz"
-    check_certificate: True
+    check_certificate: true
 
 - name: Create a catalog from HTTP repository
   dellemc.openmanage.ome_firmware_catalog:
@@ -191,7 +191,7 @@ EXAMPLES = r'''
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "DELL_ONLINE"
-    check_certificate: True
+    check_certificate: true
 
 - name: Modify a catalog using a repository from CIFS share
   dellemc.openmanage.ome_firmware_catalog:

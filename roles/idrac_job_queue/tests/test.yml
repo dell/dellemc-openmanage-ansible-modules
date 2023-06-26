@@ -1,0 +1,6 @@
+---
+- name: Testing for idrac job queue
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_job_queue

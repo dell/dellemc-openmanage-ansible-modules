@@ -160,7 +160,7 @@ options:
               - "The format is YYYY-MM-DDThh:mm:ss<offset>"
               - "<offset> is the time offset from UTC that the current timezone set in
               iDRAC in the format: +05:30 for IST."
-           required: True
+           required: true
        duration:
            type: int
            description:
@@ -171,11 +171,11 @@ options:
       - Provides the option if the module has to wait for the job to be completed.
       - This is applicable for I(attributes) when I(apply_time) is C(Immediate).
     type: bool
-    default: False
+    default: false
   job_wait_timeout:
     description:
       - The maximum wait time of job completion in seconds before the job tracking is stopped.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 120
 requirements:

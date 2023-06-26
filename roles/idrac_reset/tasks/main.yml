@@ -16,6 +16,7 @@
       return_content: "{{ uri_return_content }}"
       force_basic_auth: "{{ force_basic_auth }}"
       timeout: "{{ https_timeout }}"
+  no_log: true
 
 - name: Get connection
   ansible.builtin.uri:

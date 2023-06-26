@@ -25,7 +25,7 @@ options:
   power_state:
     description: Desired end power state.
     type: str
-    required: True
+    required: true
     choices: ['on', 'off', 'coldboot', 'warmboot', 'shutdown']
   device_service_tag:
     description:

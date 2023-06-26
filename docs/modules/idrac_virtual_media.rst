@@ -32,9 +32,9 @@ Parameters
 
 
     insert (True, bool, None)
-      ``True`` connects the remote image file.
+      ``true`` connects the remote image file.
 
-      ``False`` ejects the remote image file if connected.
+      ``false`` ejects the remote image file if connected.
 
 
     image (optional, path, None)
@@ -42,13 +42,13 @@ Parameters
 
       The file name with .img extension is redirected as a virtual floppy and a file name with .iso extension is redirected as a virtual CDROM.
 
-      This option is required when *insert* is ``True``.
+      This option is required when *insert* is ``true``.
 
       The following are the examples of the share location: CIFS share: //192.168.0.1/file_path/image_name.iso, NFS share: 192.168.0.2:/file_path/image_name.img, HTTP share: http://192.168.0.3/file_path/image_name.iso, HTTPS share: https://192.168.0.4/file_path/image_name.img
 
-      CIFS share is not supported by iDRAC7 and iDRAC8.
+      CIFS share is not supported by iDRAC8.
 
-      HTTPS share with credentials is not supported by iDRAC7 and iDRAC8.
+      HTTPS share with credentials is not supported by iDRAC8.
 
 
     index (optional, int, None)
@@ -70,12 +70,12 @@ Parameters
 
 
     media_type (optional, str, None)
-      Type of the image file. This is applicable when *insert* is ``True``.
+      Type of the image file. This is applicable when *insert* is ``true``.
 
 
 
   force (optional, bool, False)
-    ``True`` ejects the image file if already connected and inserts the file provided in *image*. This is applicable when *insert* is ``True``.
+    ``true`` ejects the image file if already connected and inserts the file provided in *image*. This is applicable when *insert* is ``true``.
 
 
   resource_id (optional, str, None)
@@ -99,11 +99,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)

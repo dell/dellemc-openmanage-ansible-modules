@@ -94,25 +94,25 @@ Parameters
 
     If test fails, module will error out.
 
-    If ``yes``, *domain_username* and *domain_password* has to be provided.
+    If ``true``, *domain_username* and *domain_password* has to be provided.
 
 
   domain_password (optional, str, None)
     Provide the domain password.
 
-    This is applicable when *test_connection* is ``yes``.
+    This is applicable when *test_connection* is ``true``.
 
 
   domain_username (optional, str, None)
     Provide the domain username either in the UPN (username@domain) or NetBIOS (domain\\username) format.
 
-    This is applicable when *test_connection* is ``yes``.
+    This is applicable when *test_connection* is ``true``.
 
 
   validate_certificate (optional, bool, False)
     Enables validation of SSL certificate of the domain controller.
 
-    The module will always report change when this is ``yes``.
+    The module will always report change when this is ``true``.
 
 
   certificate_file (optional, path, None)
@@ -120,7 +120,7 @@ Parameters
 
     The certificate should be a Root CA Certificate encoded in Base64 format.
 
-    This is applicable when *validate_certificate* is ``yes``.
+    This is applicable when *validate_certificate* is ``true``.
 
 
   hostname (True, str, None)
@@ -140,11 +140,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -162,7 +162,7 @@ Notes
 -----
 
 .. note::
-   - The module will always report change when *validate_certificate* is ``yes``.
+   - The module will always report change when *validate_certificate* is ``true``.
    - Run this module from a system that has direct access to OpenManage Enterprise.
    - This module supports ``check_mode``.
 
@@ -186,7 +186,7 @@ Examples
         domain_server:
           - domainname.com
         group_domain: domainname.com
-        test_connection: yes
+        test_connection: true
         domain_username: user@domainname
         domain_password: domain_password
 
@@ -201,7 +201,7 @@ Examples
         domain_server:
           - 192.68.20.181
         group_domain: domainname.com
-        validate_certificate: yes
+        validate_certificate: true
         certificate_file: "/path/to/certificate/file.cer"
 
     - name: Modify domain controller IP address, network_timeout and group_domain
@@ -233,10 +233,10 @@ Examples
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
-        test_connection: yes
+        test_connection: true
         domain_username: user@domainname
         domain_password: domain_password
-        validate_certificate: yes
+        validate_certificate: true
         certificate_file: "/path/to/certificate/file.cer"
 
 

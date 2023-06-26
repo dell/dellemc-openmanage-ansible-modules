@@ -1,38 +1,36 @@
 ---
 - name: Get system resource api id
   ansible.builtin.uri:
-    url: "https://{{ hostname }}/redfish/v1/Systems"
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
+    timeout: "{{ https_timeout }}"
+    force_basic_auth: true
     headers: "{{ uri_headers }}"
     body_format: "{{ uri_body_format }}"
     status_code: "{{ uri_status_code }}"
     return_content: "{{ uri_return_content }}"
   register: system_api_result
   delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
-  no_log: true
 
 - name: Get first System Id from the system response
   ansible.builtin.set_fact:
     api_system: "{{ system_api_result.json.Members[0]['@odata.id'] | default('') }}"
   when: computer_system_id == ''
-  no_log: true
 
 - name: Get all system Ids
   ansible.builtin.set_fact:
     system_ids_list: "{{ system_api_result.json.Members | map('dict2items') | flatten | map(attribute='value') }}"
   when: computer_system_id != ''
-  no_log: true
 
 - name: Split system ids from the string
   ansible.builtin.set_fact:
     system_ids: '{{ (system_ids | default([])) + ([item | split("/") | last]) }}'
   with_list: "{{ system_ids_list }}"
   when: computer_system_id != ''
-  no_log: true
 
 - name: Fail when system id is incorrect
   ansible.builtin.fail:
@@ -41,38 +39,36 @@
 
 - name: Get manager resource api id
   ansible.builtin.uri:
-    url: "https://{{ hostname }}/redfish/v1/Managers"
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
+    timeout: "{{ https_timeout }}"
+    force_basic_auth: true
     headers: "{{ uri_headers }}"
     body_format: "{{ uri_body_format }}"
     status_code: "{{ uri_status_code }}"
     return_content: "{{ uri_return_content }}"
   register: manager_api_result
   delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
-  no_log: true
 
 - name: Get first manager resource id from manager response.
   ansible.builtin.set_fact:
     api_manager: "{{ manager_api_result.json.Members[0]['@odata.id'] | default('') }}"
   when: manager_id == ''
-  no_log: true
 
 - name: Get all manager resource ids.
   ansible.builtin.set_fact:
     manager_ids_list: "{{ manager_api_result.json.Members | map('dict2items') | flatten | map(attribute='value') }}"
   when: manager_id != ''
-  no_log: true
 
 - name: Split manager ids from the string
   ansible.builtin.set_fact:
     manager_ids: '{{ (manager_ids | default([])) + ([item | split("/") | last]) }}'
   with_list: "{{ manager_ids_list }}"
   when: manager_id != ''
-  no_log: true
 
 - name: Fail when manager id is incorrect
   ansible.builtin.fail:
@@ -81,21 +77,21 @@
 
 - name: Get chassis resource api id
   ansible.builtin.uri:
-    url: "https://{{ hostname }}/redfish/v1/Chassis"
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Chassis"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
+    timeout: "{{ https_timeout }}"
+    force_basic_auth: true
     headers: "{{ uri_headers }}"
     body_format: "{{ uri_body_format }}"
     status_code: "{{ uri_status_code }}"
     return_content: "{{ uri_return_content }}"
   register: chassis_api_result
   delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
-  no_log: true
 
 - name: Get first chassis resource id from manager response.
   ansible.builtin.set_fact:
     api_chassis: "{{ chassis_api_result.json.Members[0]['@odata.id'] | default('') }}"
-  no_log: true

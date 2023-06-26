@@ -30,7 +30,7 @@ options:
     share_name:
         description: Network share path of update repository. CIFS, NFS, HTTP, HTTPS and FTP share types are supported.
         type: str
-        required: True
+        required: true
     share_user:
         description: Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
@@ -47,31 +47,31 @@ options:
     job_wait:
         description: Whether to wait for job completion or not.
         type: bool
-        default: True
+        default: true
     catalog_file_name:
         description: Catalog file name relative to the I(share_name).
         type: str
         default: 'Catalog.xml'
     ignore_cert_warning:
         description: Specifies if certificate warnings are ignored when HTTPS share is used.
-            If C(True) option is set, then the certificate warnings are ignored.
+            If C(true) option is set, then the certificate warnings are ignored.
         type: bool
-        default: True
+        default: true
     apply_update:
         description:
-          - If I(apply_update) is set to C(True), then the packages are applied.
-          - If I(apply_update) is set to C(False), no updates are applied, and a catalog report
+          - If I(apply_update) is set to C(true), then the packages are applied.
+          - If I(apply_update) is set to C(false), no updates are applied, and a catalog report
             of packages is generated and returned.
         type: bool
-        default: True
+        default: true
     reboot:
         description:
           - Provides the option to apply the update packages immediately or in the next reboot.
-          - If I(reboot) is set to C(True),  then the packages  are applied immediately.
-          - If I(reboot) is set to C(False), then the packages are staged and applied in the next reboot.
+          - If I(reboot) is set to C(true),  then the packages  are applied immediately.
+          - If I(reboot) is set to C(false), then the packages are staged and applied in the next reboot.
           - Packages that do not require a reboot are applied immediately irrespective of I (reboot).
         type: bool
-        default: False
+        default: false
     proxy_support:
         description:
           - Specifies if a proxy should be used.
@@ -80,7 +80,7 @@ options:
           - C(DefaultProxy), iDRAC uses the proxy values set by default.
           - Default Proxy can be set in the Lifecycle Controller attributes using M(dellemc.openmanage.idrac_attributes).
           - C(Off), will not use the proxy.
-          - For iDRAC7 and iDRAC8 based servers, use proxy server with basic authentication.
+          - For iDRAC8 based servers, use proxy server with basic authentication.
           - "For iDRAC9 based servers, ensure that you use digest authentication for the proxy server,
           basic authentication is not supported."
         choices: ["ParametersProxy", "DefaultProxy", "Off"]
@@ -137,9 +137,9 @@ EXAMPLES = """
        idrac_password: "user_password"
        ca_path: "/path/to/ca_cert.pem"
        share_name: "192.168.0.0:/share"
-       reboot: True
-       job_wait: True
-       apply_update: True
+       reboot: true
+       job_wait: true
+       apply_update: true
        catalog_file_name: "Catalog.xml"
 
 - name: Update firmware from repository on a CIFS Share
@@ -151,9 +151,9 @@ EXAMPLES = """
        share_name: "full_cifs_path"
        share_user: "share_user"
        share_password: "share_password"
-       reboot: True
-       job_wait: True
-       apply_update: True
+       reboot: true
+       job_wait: true
+       apply_update: true
        catalog_file_name: "Catalog.xml"
 
 - name: Update firmware from repository on a HTTP
@@ -163,9 +163,9 @@ EXAMPLES = """
        idrac_password: "user_password"
        ca_path: "/path/to/ca_cert.pem"
        share_name: "http://downloads.dell.com"
-       reboot: True
-       job_wait: True
-       apply_update: True
+       reboot: true
+       job_wait: true
+       apply_update: true
 
 - name: Update firmware from repository on a HTTPS
   dellemc.openmanage.idrac_firmware:
@@ -174,9 +174,9 @@ EXAMPLES = """
        idrac_password: "user_password"
        ca_path: "/path/to/ca_cert.pem"
        share_name: "https://downloads.dell.com"
-       reboot: True
-       job_wait: True
-       apply_update: True
+       reboot: true
+       job_wait: true
+       apply_update: true
 
 - name: Update firmware from repository on a HTTPS via proxy
   dellemc.openmanage.idrac_firmware:
@@ -185,9 +185,9 @@ EXAMPLES = """
        idrac_password: "user_password"
        ca_path: "/path/to/ca_cert.pem"
        share_name: "https://downloads.dell.com"
-       reboot: True
-       job_wait: True
-       apply_update: True
+       reboot: true
+       job_wait: true
+       apply_update: true
        proxy_support: ParametersProxy
        proxy_server: 192.168.1.10
        proxy_type: HTTP
@@ -202,9 +202,9 @@ EXAMPLES = """
        idrac_password: "user_password"
        ca_path: "/path/to/ca_cert.pem"
        share_name: "ftp://ftp.mydomain.com"
-       reboot: True
-       job_wait: True
-       apply_update: True
+       reboot: true
+       job_wait: true
+       apply_update: true
 """
 
 RETURN = """

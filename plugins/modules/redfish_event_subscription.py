@@ -30,7 +30,7 @@ options:
           - The HTTPS URI of the destination to send events.
           - HTTPS is required.
         type: str
-        required: True
+        required: true
     event_type:
         description:
           - Specifies the event type to be subscribed.

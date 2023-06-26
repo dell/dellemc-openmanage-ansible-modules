@@ -80,16 +80,16 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 10800
   ignore_partial_failure:
     description:
       - "Provides the option to ignore partial failures. Partial failures occur when there is a combination of both
       discovered and undiscovered IPs."
-      - If C(False), then the partial failure is not ignored, and the module will error out.
-      - If C(True), then the partial failure is ignored.
-      - This option is only applicable if I(job_wait) is C(True).
+      - If C(false), then the partial failure is not ignored, and the module will error out.
+      - If C(true), then the partial failure is ignored.
+      - This option is only applicable if I(job_wait) is C(true).
     type: bool
     default: false
   discovery_config_targets:
@@ -496,9 +496,9 @@ EXAMPLES = r'''
           password: ipmi_pwd
     schedule: RunLater
     cron: "0 0 9 ? * MON,WED,FRI *"
-    ignore_partial_failure: True
-    trap_destination: True
-    community_string: True
+    ignore_partial_failure: true
+    trap_destination: true
+    community_string: true
     email_recipient: test_email@company.com
 
 - name: Discover servers with ca check enabled
@@ -516,7 +516,7 @@ EXAMPLES = r'''
         wsman:
           username: user
           password: password
-          ca_check: True
+          ca_check: true
           certificate_data: "{{ lookup('ansible.builtin.file', '/path/to/certificate_data_file') }}"
 
 - name: Discover chassis with ca check enabled data
@@ -534,7 +534,7 @@ EXAMPLES = r'''
         redfish:
           username: user
           password: password
-          ca_check: True
+          ca_check: true
           certificate_data: "-----BEGIN CERTIFICATE-----\r\n
           ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
           ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n

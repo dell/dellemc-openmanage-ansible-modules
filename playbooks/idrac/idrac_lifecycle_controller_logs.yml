@@ -12,4 +12,4 @@
         idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
         share_name: "{{ playbook_dir }}"
-        job_wait: "True"
+        job_wait: true

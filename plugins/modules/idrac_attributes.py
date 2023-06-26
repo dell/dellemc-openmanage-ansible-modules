@@ -32,7 +32,7 @@ options:
       To view the list of attributes in Attribute Registry for iDRAC9 and above,
       see, U(https://I(idrac_ip)/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1)
       and U(https://I(idrac_ip)/redfish/v1/Registries/ManagerAttributeRegistry)."
-      - "For iDRAC7 and iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
+      - "For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
       If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName>
       (for Example, 'SNMP.1#AgentCommunity') then the equivalent attribute name for Redfish is
       <GroupName>.<Instance>.<AttributeName> (for Example, 'SNMP.1.AgentCommunity')."
@@ -43,7 +43,7 @@ options:
       part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and above,
       see, U(https://I(idrac_ip)/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/System.Embedded.1)
       and U(https://I(idrac_ip)/redfish/v1/Registries/ManagerAttributeRegistry)."
-      - "For iDRAC7 and iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
+      - "For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
       If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName>
       (for Example, 'ThermalSettings.1#ThermalProfile') then the equivalent attribute name for Redfish is
       <GroupName>.<Instance>.<AttributeName> (for Example, 'ThermalSettings.1.ThermalProfile')."
@@ -54,7 +54,7 @@ options:
       part of the Integrated Dell Remote Access Controller Attribute Registry.To view the list of attributes in Attribute Registry for iDRAC9 and above,
       see, U(https://I(idrac_ip)/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/LifecycleController.Embedded.1)
       and U(https://I(idrac_ip)/redfish/v1/Registries/ManagerAttributeRegistry)."
-      - "For iDRAC7 and iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
+      - "For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile.
       If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName>
       (for Example, 'LCAttributes.1#AutoUpdate') then the equivalent attribute name for Redfish is
       <GroupName>.<Instance>.<AttributeName> (for Example, 'LCAttributes.1.AutoUpdate')."
@@ -69,7 +69,7 @@ author:
 notes:
   - Run this module from a system that has direct access to Dell iDRAC.
   - This module supports C(check_mode).
-  - For iDRAC7 and iDRAC8 based servers, the value provided for the attributes are not be validated.
+  - For iDRAC8 based servers, the value provided for the attributes are not be validated.
     Ensure appropriate values are passed.
 '''
 
@@ -188,7 +188,7 @@ EXAMPLES = """
     idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     idrac_attributes:
-      Time.1.TimeZone: CST6CDT
+      Time.1.Timezone: CST6CDT
       NTPConfigGroup.1.NTPEnable: Enabled
       NTPConfigGroup.1.NTP1: 192.168.0.5
       NTPConfigGroup.1.NTP2: 192.168.0.6

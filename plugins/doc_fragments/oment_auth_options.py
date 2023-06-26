@@ -20,26 +20,26 @@ options:
   hostname:
     description: OpenManage Enterprise IP address or hostname.
     type: str
-    required: True
+    required: true
   username:
     description: OpenManage Enterprise username.
     type: str
-    required: True
+    required: true
   password:
     description: OpenManage Enterprise password.
     type: str
-    required: True
+    required: true
   port:
     description: OpenManage Enterprise HTTPS port.
     type: int
     default: 443
   validate_certs:
     description:
-     - If C(False), the SSL certificates will not be validated.
-     - Configure C(False) only on personally controlled sites where self-signed certificates are used.
-     - Prior to collection version C(5.0.0), the I(validate_certs) is C(False) by default.
+     - If C(false), the SSL certificates will not be validated.
+     - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+     - Prior to collection version C(5.0.0), the I(validate_certs) is C(false) by default.
     type: bool
-    default: True
+    default: true
     version_added: 5.0.0
   ca_path:
     description:

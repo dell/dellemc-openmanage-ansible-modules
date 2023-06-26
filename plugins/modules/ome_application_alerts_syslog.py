@@ -31,14 +31,14 @@ options:
         description: The ID of the syslog server.
         type: int
         choices: [1, 2, 3, 4]
-        required: True
+        required: true
       enabled:
         description: Enable or disable syslog forwarding.
         type: bool
       destination_address:
         description:
           - The IP address, FQDN or hostname of the syslog server.
-          - This is required if I(enabled) is C(True).
+          - This is required if I(enabled) is C(true).
         type: str
       port_number:
         description: The UDP port number of the syslog server.

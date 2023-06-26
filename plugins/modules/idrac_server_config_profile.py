@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.4.0
+# Version 8.0.0
 # Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -35,7 +35,7 @@ options:
   job_wait:
     description: Whether to wait for job completion or not.
     type: bool
-    required: True
+    required: true
   share_name:
     description:
       - Network share or local path.
@@ -139,7 +139,7 @@ options:
       - Proxy to be enabled or disabled.
       - I(proxy_support) is considered only when I(share_name) is of type HTTP or HTTPS and is supported only on iDRAC9.
     type: bool
-    default: False
+    default: false
     version_added: 7.3.0
   proxy_type:
     description:
@@ -187,7 +187,7 @@ notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
-    - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers,
+    - To import Server Configuration Profile (SCP) on the iDRAC8-based servers,
       the servers must have iDRAC Enterprise license or later.
     - For C(import) operation, C(check_mode) is supported only when I(target) is C(ALL).
 '''
@@ -409,7 +409,7 @@ EXAMPLES = r'''
     command: import
     scp_components:
       - IDRAC
-    job_wait: True
+    job_wait: true
     import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
       Disabled</Attribute></Component></SystemConfiguration>"
 
@@ -518,7 +518,7 @@ from datetime import datetime
 from os.path import exists
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking, \
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import idrac_redfish_job_tracking,\
     strip_substr_dict
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError

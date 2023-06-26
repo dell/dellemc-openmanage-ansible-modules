@@ -104,7 +104,7 @@ Parameters
 
 
   check_certificate (optional, bool, False)
-    The certificate warnings are ignored when *repository_type* is HTTPS. If ``True``. If not, certificate warnings are not ignored.
+    The certificate warnings are ignored when *repository_type* is HTTPS. If ``true``. If not, certificate warnings are not ignored.
 
 
   job_wait (optional, bool, True)
@@ -116,7 +116,7 @@ Parameters
   job_wait_timeout (optional, int, 600)
     The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   hostname (True, str, None)
@@ -136,11 +136,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -184,7 +184,7 @@ Examples
         source: "downloads.dell.com"
         source_path: "catalog"
         file_name: "catalog.gz"
-        check_certificate: True
+        check_certificate: true
 
     - name: Create a catalog from HTTP repository
       dellemc.openmanage.ome_firmware_catalog:
@@ -237,7 +237,7 @@ Examples
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "DELL_ONLINE"
-        check_certificate: True
+        check_certificate: true
 
     - name: Modify a catalog using a repository from CIFS share
       dellemc.openmanage.ome_firmware_catalog:

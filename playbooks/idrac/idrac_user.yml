@@ -16,9 +16,9 @@
         user_password: "user_password"
         privilege: "Administrator"
         ipmi_lan_privilege: "User"
-        enable: "true"
-        sol_enable: "true"
-        protocol_enable: "true"
+        enable: true
+        sol_enable: true
+        protocol_enable: true
         authentication_protocol: "MD5"
         privacy_protocol: "DES"
       tags:
@@ -35,9 +35,9 @@
         new_user_name: "new_user_name"
         privilege: "Administrator"
         ipmi_lan_privilege: "User"
-        enable: "true"
-        sol_enable: "true"
-        protocol_enable: "true"
+        enable: true
+        sol_enable: true
+        protocol_enable: true
         authentication_protocol: "MD5"
         privacy_protocol: "DES"
       tags:

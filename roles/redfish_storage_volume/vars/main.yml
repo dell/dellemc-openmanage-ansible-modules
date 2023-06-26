@@ -7,3 +7,4 @@ volume_type_map:
   RAID10: "SpannedMirrors"
   RAID50: "SpannedStripesWithParity"
 polling_interval: 30
+redfish_storage_volume_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

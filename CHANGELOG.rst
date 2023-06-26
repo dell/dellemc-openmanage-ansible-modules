@@ -5,6 +5,46 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v8.0.0
+======
+
+Release Summary
+---------------
+
+Role ``idrac_boot`` and ``idrac_job_queue`` is added to manage the boot order settings and iDRAC lifecycle controller job queue respectively. ``Role idrac_os_deployment`` is enhanced to remove the auto installations of required libraries and to support custom ISO and kickstart file as input. Dropped support for iDRAC7 based Dell PowerEdge Servers.
+
+Minor Changes
+-------------
+
+- All the module documentation and examples are updated to use true or false for Boolean values.
+- Role ``idrac_os_deployment`` is enhanced to remove the auto installation of required libraries and to support custom ISO and kickstart file as input.
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- The ``dellemc_get_firmware_inventory`` module is removed and replaced with the module ``idrac_firmware_info``.
+- The ``dellemc_get_system_inventory`` module is removed and replaced with the module ``idrac_system_info``.
+
+Bugfixes
+--------
+
+- Job tracking is fixed for iDRAC SCP import (https://github.com/dell/dellemc-openmanage-ansible-modules/pull/504).
+- OMSDK is handled for import error ``SNIMissingWarning`` that is undefined (https://github.com/dell/omsdk/issues/33).
+
+Known Issues
+------------
+
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Roles
+---------
+
+- dellemc.openmanage.idrac_boot - Configure the boot order settings
+- dellemc.openmanage.idrac_job_queue - Role to manage the iDRAC lifecycle controller job queue.
+
 v7.6.1
 ======
 
@@ -21,7 +61,7 @@ Minor Changes
 Known Issues
 ------------
 
-- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
 - ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
 - ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
@@ -40,7 +80,7 @@ Release Summary
 Known Issues
 ------------
 
-- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
 - ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
 - ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
@@ -68,7 +108,7 @@ Known Issues
 ------------
 
 - idrac_os_deployment- Issue(260496) - OS installation will support only NFS and CIFS share to store the custom ISO in the destination_path, HTTP/HTTPS/FTP not supported
-- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
 - idrac_user - Issue(192043) The module may error out with the message ``Unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
 - ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
@@ -97,7 +137,7 @@ Known Issues
 ------------
 
 - idrac_os_deployment- Issue(260496) - OS installation will support only NFS and CIFS share to store the custom ISO in the destination_path, HTTP/HTTPS/FTP not supported
-- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
 - idrac_user - Issue(192043) The module may error out with the message ``Unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
 - ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
@@ -129,7 +169,7 @@ Major Changes
 Known Issues
 ------------
 
-- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
 - idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
 - ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
@@ -164,7 +204,7 @@ Major Changes
 Known Issues
 ------------
 
-- idrac_redfish_storage_contoller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
 - idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
 - ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.

@@ -158,7 +158,7 @@ EXAMPLES = r'''
       common_mac_addresses: "::"
     server_initiated_discovery:
       device_discovery_approval_policy: Automatic
-      set_trap_destination: True
+      set_trap_destination: true
     mx7000_onboarding_preferences: all
     builtin_appliance_share:
       share_options: CIFS
@@ -213,7 +213,7 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     server_initiated_discovery:
       device_discovery_approval_policy: Automatic
-      set_trap_destination: True
+      set_trap_destination: true
     mx7000_onboarding_preferences: chassis
     email_sender_settings: "admin@dell.com"
     trap_forwarding_format: Original

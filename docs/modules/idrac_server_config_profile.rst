@@ -198,11 +198,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -223,7 +223,7 @@ Notes
    - This module requires 'Administrator' privilege for *idrac_user*.
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
-   - To import Server Configuration Profile (SCP) on the iDRAC7 and iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
+   - To import Server Configuration Profile (SCP) on the iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
    - For ``import`` operation, ``check_mode`` is supported only when *target* is ``ALL``.
 
 
@@ -451,7 +451,7 @@ Examples
         command: import
         scp_components:
           - IDRAC
-        job_wait: True
+        job_wait: true
         import_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
           Disabled</Attribute></Component></SystemConfiguration>"
 

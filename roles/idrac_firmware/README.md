@@ -160,7 +160,7 @@ dellemc.openmanage
     <td>Off</td>
     <td>"ParametersProxy", "DefaultProxy", "Off"</td>
     <td>str</td>
-    <td>- Specifies if a proxy should be used.</br>- Proxy parameters are applicable on C(HTTP), C(HTTPS), and C(FTP) share type of repositories.</br> - C(ParametersProxy), sets the proxy parameters for the current firmware operation.</br>- C(DefaultProxy), iDRAC uses the proxy values set by default.</br>- Default Proxy can be set in the Lifecycle Controller attributes using M(dellemc.openmanage.idrac_attributes).</br>- C(Off), will not use the proxy.</br>- For iDRAC7 and iDRAC8 based servers, use proxy server with basic authentication.</br>- For iDRAC9 based servers, ensure that you use digest authentication for the proxy server, basic authentication is not supported.
+    <td>- Specifies if a proxy should be used.</br>- Proxy parameters are applicable on C(HTTP), C(HTTPS), and C(FTP) share type of repositories.</br> - C(ParametersProxy), sets the proxy parameters for the current firmware operation.</br>- C(DefaultProxy), iDRAC uses the proxy values set by default.</br>- Default Proxy can be set in the Lifecycle Controller attributes using M(dellemc.openmanage.idrac_attributes).</br>- C(Off), will not use the proxy.</br>- For iDRAC8 based servers, use proxy server with basic authentication.</br>- For iDRAC9 based servers, ensure that you use digest authentication for the proxy server, basic authentication is not supported.
     </td>
   </tr>
   <tr>

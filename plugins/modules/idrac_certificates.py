@@ -59,31 +59,31 @@ options:
       common_name:
         description: The common name of the certificate.
         type: str
-        required: True
+        required: true
       organization_unit:
         description: The name associated with an organizational unit. For example department name.
         type: str
-        required: True
+        required: true
       locality_name:
         description: The city or other location where the entity applying for certification is located.
         type: str
-        required: True
+        required: true
       state_name:
         description: The state where the entity applying for certification is located.
         type: str
-        required: True
+        required: true
       country_code:
         description: The country code of the country where the entity applying for certification is located.
         type: str
-        required: True
+        required: true
       email_address:
         description: The email associated with the CSR.
         type: str
-        required: True
+        required: true
       organization_name:
         description: The name associated with an organization.
         type: str
-        required: True
+        required: true
       subject_alt_name:
         description: The alternative domain names associated with the request.
         type: list
@@ -97,11 +97,11 @@ options:
       - To reset the iDRAC after the certificate operation.
       - This is applicable when I(command) is C(import) or C(reset).
     type: bool
-    default: True
+    default: true
   wait:
     description:
       - Maximum wait time for iDRAC to start after the reset, in seconds.
-      - This is applicable when I(command) is C(import) or C(reset) and I(reset) is C(True).
+      - This is applicable when I(command) is C(import) or C(reset) and I(reset) is C(true).
     type: int
     default: 300
 requirements:

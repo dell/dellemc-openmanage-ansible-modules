@@ -193,7 +193,7 @@ EXAMPLES = r'''
     name_prefix: "omam_profile"
     number_of_profiles: 1
     boot_to_network_iso:
-      boot_to_network: True
+      boot_to_network: true
       share_type: NFS
       share_ip: "192.168.0.1"
       iso_path: "path/to/my_iso.iso"
@@ -210,7 +210,7 @@ EXAMPLES = r'''
     name_prefix: "omam_profile"
     number_of_profiles: 1
     boot_to_network_iso:
-      boot_to_network: True
+      boot_to_network: true
       share_type: CIFS
       share_ip: "192.168.0.2"
       share_user: "username"
@@ -230,7 +230,7 @@ EXAMPLES = r'''
     new_name: "modified profile"
     description: "new description"
     boot_to_network_iso:
-      boot_to_network: True
+      boot_to_network: true
       share_type: NFS
       share_ip: "192.168.0.3"
       iso_path: "path/to/my_iso.iso"
@@ -266,7 +266,7 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     filters:
-      SelectAll: True
+      SelectAll: true
       Filters: =contains(ProfileName,'Profile 00002')
 
 - name: Delete profiles using profile list filter
@@ -291,7 +291,7 @@ EXAMPLES = r'''
     name: "Profile 00001"
     device_id: 12456
     boot_to_network_iso:
-      boot_to_network: True
+      boot_to_network: true
       share_type: NFS
       share_ip: "192.168.0.1"
       iso_path: "path/to/my_iso.iso"
@@ -305,10 +305,10 @@ EXAMPLES = r'''
         ShutdownType: 0
         TimeToWaitBeforeShutdown: 300
         EndHostPowerState: 1
-        StrictCheckingVlan: True
+        StrictCheckingVlan: true
       Schedule:
-        RunNow: True
-        RunLater: False
+        RunNow: true
+        RunLater: false
 
 - name: Unassign a profile using profile name
   dellemc.openmanage.ome_profile:
@@ -327,7 +327,7 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     command: "unassign"
     filters:
-      SelectAll: True
+      SelectAll: true
       Filters: =contains(ProfileName,'Profile 00003')
 
 - name: Unassign profiles using profile list filter

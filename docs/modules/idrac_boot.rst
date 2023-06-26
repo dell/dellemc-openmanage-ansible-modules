@@ -75,7 +75,7 @@ Parameters
 
     ``continuous`` The system boots to the target specified in the *boot_source_override_target* until this property is set to Disabled.
 
-    The state is set to ``once`` for the one-time boot override and ``continuous`` for the remain-active-until—canceled override. If the state is set ``once``, the value is reset to ``disabled`` after the *boot_source_override_target* actions have completed successfully.
+    The state is set to ``once`` for the one-time boot override and ``continuous`` for the remain-active-until—canceled override. If the state is set ``once`` or ``continuous``, the value is reset to ``disabled`` after the *boot_source_override_target* actions have completed successfully.
 
     Changes to this options do not alter the BIOS persistent boot order configuration.
 
@@ -117,9 +117,9 @@ Parameters
   reset_type (optional, str, graceful_restart)
     ``none`` Host system is not rebooted and *job_wait* is not applicable.
 
-    ``force_reset`` Forcefully reboot the Host system.
+    ``force_restart`` Forcefully reboot the Host system.
 
-    ``graceful_reset`` Gracefully reboot the Host system.
+    ``graceful_restart`` Gracefully reboot the Host system.
 
 
   job_wait (optional, bool, True)
@@ -131,7 +131,7 @@ Parameters
   job_wait_timeout (optional, int, 900)
     The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   resource_id (optional, str, None)
@@ -155,11 +155,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)

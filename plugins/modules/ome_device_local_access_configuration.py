@@ -50,18 +50,18 @@ options:
         type: bool
         description:
           - Enables or disables the chassis power button.
-          - If C(False), the chassis cannot be turn on or turn off using the power button.
+          - If C(false), the chassis cannot be turn on or turn off using the power button.
       enable_lcd_override_pin:
         type: bool
         description:
           - Enables or disables the LCD override pin.
-          - This is required when I(enable_chassis_power_button) is C(False).
+          - This is required when I(enable_chassis_power_button) is C(false).
       disabled_button_lcd_override_pin:
         type: int
         description:
           - The six digit LCD override pin to change the power state of the chassis.
-          - This is required when I(enable_lcd_override_pin) is C(True).
-          - The module will always report change when I(disabled_button_lcd_override_pin) is C(True).
+          - This is required when I(enable_lcd_override_pin) is C(true).
+          - The module will always report change when I(disabled_button_lcd_override_pin) is C(true).
   quick_sync:
     type: dict
     description:
@@ -84,7 +84,7 @@ options:
         description:
           - Inactivity timeout in seconds or minutes.
           - The range is 120 to 3600 in seconds, or 2 to 60 in minutes.
-          - This option is required when I(enable_inactivity_timeout) is C(True).
+          - This option is required when I(enable_inactivity_timeout) is C(true).
       timeout_limit_unit:
         type: str
         choices: [SECONDS, MINUTES]
@@ -92,7 +92,7 @@ options:
           - Inactivity timeout limit unit.
           - C(SECONDS) to set I(timeout_limit) in seconds.
           - C(MINUTES) to set I(timeout_limit) in minutes.
-          - This option is required when I(enable_inactivity_timeout) is C(True).
+          - This option is required when I(enable_inactivity_timeout) is C(true).
       enable_read_authentication:
         type: bool
         description: Enables or disables the option to log in using your user credentials and to read the
@@ -135,7 +135,7 @@ author:
 notes:
   - Run this module from a system that has direct access to OpenManage Enterprise Modular.
   - This module supports C(check_mode).
-  - The module will always report change when I(enable_chassis_power_button) is C(True).
+  - The module will always report change when I(enable_chassis_power_button) is C(true).
 """
 
 EXAMPLES = """

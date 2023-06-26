@@ -166,11 +166,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -218,7 +218,7 @@ Examples
           common_mac_addresses: "::"
         server_initiated_discovery:
           device_discovery_approval_policy: Automatic
-          set_trap_destination: True
+          set_trap_destination: true
         mx7000_onboarding_preferences: all
         builtin_appliance_share:
           share_options: CIFS
@@ -273,7 +273,7 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         server_initiated_discovery:
           device_discovery_approval_policy: Automatic
-          set_trap_destination: True
+          set_trap_destination: true
         mx7000_onboarding_preferences: chassis
         email_sender_settings: "admin@dell.com"
         trap_forwarding_format: Original

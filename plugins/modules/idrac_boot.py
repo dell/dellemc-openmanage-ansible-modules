@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 6.1.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.0.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -69,7 +69,7 @@ options:
       - C(continuous) The system boots to the target specified in the I(boot_source_override_target)
         until this property is set to Disabled.
       - The state is set to C(once) for the one-time boot override and C(continuous) for the
-        remain-active-until—canceled override. If the state is set C(once), the value is reset
+        remain-active-until—canceled override. If the state is set C(once) or C(continuous), the value is reset
         to C(disabled) after the I(boot_source_override_target) actions have completed successfully.
       - Changes to this options do not alter the BIOS persistent boot order configuration.
       - This is mutually exclusive with I(boot_options).
@@ -101,8 +101,8 @@ options:
     type: str
     description:
       - C(none) Host system is not rebooted and I(job_wait) is not applicable.
-      - C(force_reset) Forcefully reboot the Host system.
-      - C(graceful_reset) Gracefully reboot the Host system.
+      - C(force_restart) Forcefully reboot the Host system.
+      - C(graceful_restart) Gracefully reboot the Host system.
     choices: [graceful_restart, force_restart, none]
     default: graceful_restart
   job_wait:
@@ -115,7 +115,7 @@ options:
     type: int
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     default: 900
   resource_id:
     type: str
@@ -551,7 +551,7 @@ def main():
     except HTTPError as err:
         if err.code == 401:
             module.fail_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]))
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError:
         module.exit_json(msg=AUTH_ERROR_MSG.format(module.params["idrac_ip"]), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,

@@ -1,0 +1,10 @@
+---
+- name: Manage the iDRAC lifecycle controller job queue.
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+  vars:
+    clear_job_queue: true
+  roles:
+    - dellemc.openmanage.idrac_job_queue

@@ -12,8 +12,6 @@ You may obtain a copy of the License at
 ### iDRAC Modules
 - [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)
 - [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)
-- [dellemc_get_firmware_inventory](modules/dellemc_get_firmware_inventory.rst)
-- [dellemc_get_system_inventory](modules/dellemc_get_system_inventory.rst)
 - [dellemc_idrac_lc_attributes](modules/dellemc_idrac_lc_attributes.rst)
 - [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)
 - [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)

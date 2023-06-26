@@ -33,7 +33,7 @@ argument_specs:
         description:
           - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
         type: path
-      http_timeout:
+      https_timeout:
         description: The socket level timeout in seconds.
         type: int
         default: 30

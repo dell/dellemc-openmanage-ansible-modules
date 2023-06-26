@@ -74,11 +74,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -119,7 +119,7 @@ Examples
           UserName: "user1"
           Password: "UserPassword"
           RoleId: "10"
-          Enabled: True
+          Enabled: true
 
     - name: Create user with all parameters
       dellemc.openmanage.ome_user:
@@ -132,10 +132,10 @@ Examples
           Description: "user2 description"
           Password: "UserPassword"
           RoleId: "10"
-          Enabled: True
+          Enabled: true
           DirectoryServiceId: 0
           UserTypeId: 1
-          Locked: False
+          Locked: false
           Name: "user2"
 
     - name: Modify existing user
@@ -148,7 +148,7 @@ Examples
         attributes:
           UserName: "user3"
           RoleId: "10"
-          Enabled: True
+          Enabled: true
           Description: "Modify user Description"
 
     - name: Delete existing user using id

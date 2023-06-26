@@ -62,7 +62,7 @@ options:
         description:
           - "Enable or disable the automatic request to obtain an IPv4 address from the IPv4 Dynamic Host Configuration
           Protocol (DHCP) server."
-          - "C(NOTE) If this option is C(True), the values provided for I(static_ip_address), I(static_subnet_mask),
+          - "C(NOTE) If this option is C(true), the values provided for I(static_ip_address), I(static_subnet_mask),
           and I(static_gateway) are not applied for these fields. However, the module may report changes."
         type: bool
       static_ip_address:
@@ -84,7 +84,7 @@ options:
         description:
           - This option allows to automatically request and obtain IPv4 address for the DNS Server from the DHCP server.
           - This option is applicable when I(enable_dhcp) is true.
-          - "C(NOTE) If this option is C(True), the values provided for I(static_preferred_dns_server) and
+          - "C(NOTE) If this option is C(true), the values provided for I(static_preferred_dns_server) and
           I(static_alternate_dns_server) are not applied for these fields. However, the module may report changes."
         type: bool
       static_preferred_dns_server:
@@ -114,7 +114,7 @@ options:
           advertisements(RA)"
           - "If I(enable_auto_configuration) is C(true), OpenManage Enterprise Modular retrieves IP configuration
           (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network."
-          - "C(NOTE) If this option is C(True), the values provided for I(static_ip_address), I(static_prefix_length),
+          - "C(NOTE) If this option is C(true), the values provided for I(static_ip_address), I(static_prefix_length),
           and I(static_gateway) are not applied for these fields. However, the module may report changes."
         type: bool
       static_ip_address:
@@ -136,7 +136,7 @@ options:
         description:
           - This option allows to automatically request and obtain a IPv6 address for the DNS server from the DHCP server.
           - This option is applicable when I(enable_auto_configuration) is true
-          - "C(NOTE) If this option is C(True), the values provided for I(static_preferred_dns_server) and I(static_alternate_dns_server)
+          - "C(NOTE) If this option is C(true), the values provided for I(static_preferred_dns_server) and I(static_alternate_dns_server)
           are not applied for these fields. However, the module may report changes."
         type: bool
       static_preferred_dns_server:
@@ -267,7 +267,7 @@ EXAMPLES = """
       use_dhcp_for_dns_domain_name: false
       dns_name: "MX-SVCTAG"
       dns_domain_name: "dnslocaldomain"
-      auto_negotiation: no
+      auto_negotiation: false
       network_speed: 100_MB
 
 - name: Network settings for server

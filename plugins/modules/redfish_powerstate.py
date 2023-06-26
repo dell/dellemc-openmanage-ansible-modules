@@ -29,7 +29,7 @@ options:
        For example- U(https://<I(baseuri)>/redfish/v1/Systems/<I(resource_id)>).
       - This option is mandatory for I(base_uri) with multiple devices.
       - To get the device details, use the API U(https://<I(baseuri)>/redfish/v1/Systems).
-    required:  False
+    required:  false
     type: str
   reset_type:
     description:
@@ -46,7 +46,7 @@ options:
       - If C(PushPowerButton), Simulates the pressing of a physical power button on the device.
       - When a power control operation is performed, which is not supported on the device, an error message is displayed
        with the list of operations that can be performed.
-    required:  True
+    required:  true
     type: str
     choices: ["ForceOff", "ForceOn", "ForceRestart", "GracefulRestart", "GracefulShutdown",
                "Nmi", "On", "PowerCycle", "PushPowerButton"]

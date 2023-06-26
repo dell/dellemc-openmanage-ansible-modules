@@ -22,7 +22,7 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
     share_name:
-        required: True
+        required: true
         description: CIFS or NFS Network share.
         type: str
     share_user:
@@ -34,7 +34,7 @@ options:
         type: str
         aliases: ['share_pwd']
     iso_image:
-        required: True
+        required: true
         description: Network ISO name.
         type: str
     expose_duration:

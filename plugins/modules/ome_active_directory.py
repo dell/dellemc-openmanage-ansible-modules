@@ -92,34 +92,34 @@ options:
       - Enables testing the connection to the domain controller.
       - The connection to the domain controller is tested with the provided Active Directory service details.
       - If test fails, module will error out.
-      - If C(yes), I(domain_username) and I(domain_password) has to be provided.
-    default: no
+      - If C(true), I(domain_username) and I(domain_password) has to be provided.
+    default: false
   domain_password:
     type: str
     description:
       - Provide the domain password.
-      - This is applicable when I(test_connection) is C(yes).
+      - This is applicable when I(test_connection) is C(true).
   domain_username:
     type: str
     description:
       - Provide the domain username either in the UPN (username@domain) or NetBIOS (domain\\\\username) format.
-      - This is applicable when I(test_connection) is C(yes).
+      - This is applicable when I(test_connection) is C(true).
   validate_certificate:
     type: bool
     description:
       - Enables validation of SSL certificate of the domain controller.
-      - The module will always report change when this is C(yes).
-    default: no
+      - The module will always report change when this is C(true).
+    default: false
   certificate_file:
     type: path
     description:
       - Provide the full path of the SSL certificate.
       - The certificate should be a Root CA Certificate encoded in Base64 format.
-      - This is applicable when I(validate_certificate) is C(yes).
+      - This is applicable when I(validate_certificate) is C(true).
 requirements:
   - "python >= 3.8.6"
 notes:
-  - The module will always report change when I(validate_certificate) is C(yes).
+  - The module will always report change when I(validate_certificate) is C(true).
   - Run this module from a system that has direct access to OpenManage Enterprise.
   - This module supports C(check_mode).
 """
@@ -136,7 +136,7 @@ EXAMPLES = """
     domain_server:
       - domainname.com
     group_domain: domainname.com
-    test_connection: yes
+    test_connection: true
     domain_username: user@domainname
     domain_password: domain_password
 
@@ -151,7 +151,7 @@ EXAMPLES = """
     domain_server:
       - 192.68.20.181
     group_domain: domainname.com
-    validate_certificate: yes
+    validate_certificate: true
     certificate_file: "/path/to/certificate/file.cer"
 
 - name: Modify domain controller IP address, network_timeout and group_domain
@@ -183,10 +183,10 @@ EXAMPLES = """
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
-    test_connection: yes
+    test_connection: true
     domain_username: user@domainname
     domain_password: domain_password
-    validate_certificate: yes
+    validate_certificate: true
     certificate_file: "/path/to/certificate/file.cer"
 """
 

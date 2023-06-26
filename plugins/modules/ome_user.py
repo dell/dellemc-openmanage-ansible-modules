@@ -72,7 +72,7 @@ EXAMPLES = r'''
       UserName: "user1"
       Password: "UserPassword"
       RoleId: "10"
-      Enabled: True
+      Enabled: true
 
 - name: Create user with all parameters
   dellemc.openmanage.ome_user:
@@ -85,10 +85,10 @@ EXAMPLES = r'''
       Description: "user2 description"
       Password: "UserPassword"
       RoleId: "10"
-      Enabled: True
+      Enabled: true
       DirectoryServiceId: 0
       UserTypeId: 1
-      Locked: False
+      Locked: false
       Name: "user2"
 
 - name: Modify existing user
@@ -101,7 +101,7 @@ EXAMPLES = r'''
     attributes:
       UserName: "user3"
       RoleId: "10"
-      Enabled: True
+      Enabled: true
       Description: "Modify user Description"
 
 - name: Delete existing user using id

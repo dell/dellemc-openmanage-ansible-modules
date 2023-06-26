@@ -61,12 +61,12 @@ options:
     type: bool
     description:
       - Indicates whether firmware downgrade is allowed for the devices in the baseline.
-      - This value will be set to C(True) by default, if not provided during baseline creation.
+      - This value will be set to C(true) by default, if not provided during baseline creation.
   is_64_bit:
     type: bool
     description:
       - Indicates if the repository contains 64-bit DUPs.
-      - This value will be set to C(True) by default, if not provided during baseline creation.
+      - This value will be set to C(true) by default, if not provided during baseline creation.
   device_ids:
     type: list
     elements: int
@@ -95,7 +95,7 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 600
     version_added: 3.4.0
@@ -147,7 +147,7 @@ EXAMPLES = r'''
     device_group_names:
       - "Group1"
       - "Group2"
-    job_wait: no
+    job_wait: false
 
 - name: Modify an existing baseline
   dellemc.openmanage.ome_firmware_baseline:
@@ -163,8 +163,8 @@ EXAMPLES = r'''
       - "Group3"
       - "Group4"
       - "Group5"
-    downgrade_enabled: no
-    is_64_bit: yes
+    downgrade_enabled: false
+    is_64_bit: true
 
 - name: Delete a baseline
   dellemc.openmanage.ome_firmware_baseline:
