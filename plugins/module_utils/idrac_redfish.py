@@ -354,9 +354,6 @@ class iDRACRedfishAPI(object):
         if share.get("proxy_password") is not None:
             payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
         response = self.invoke_request(IMPORT_URI, "POST", data=payload)
-        if response.status_code == 202 and job_wait:
-            task_uri = response.headers["Location"]
-            response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
         return response
 
     def import_preview(self, import_buffer=None, target=None, share=None, job_wait=False):
