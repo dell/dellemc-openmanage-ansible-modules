@@ -1,5 +1,8 @@
 galaxy_info:
-  author: Sachin Apagundi
+  author: |
+    "Sachin Apagundi
+    Abhishek Sinha
+    Jagadeesh N V"
   description: Role to deploy the operating system on idrac servers.
   company: Dell Technologies
   license: GPL-3.0-only
