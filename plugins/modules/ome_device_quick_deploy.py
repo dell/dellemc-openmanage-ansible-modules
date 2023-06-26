@@ -36,7 +36,7 @@ options:
       - I(device_service_tag) is mutually exclusive with I(device_id).
   setting_type:
     type: str
-    required: True
+    required: true
     choices: [ServerQuickDeploy, IOMQuickDeploy]
     description:
       - The type of the Quick Deploy settings to be applied.
@@ -45,16 +45,16 @@ options:
   job_wait:
     type: bool
     description: Determines whether to wait for the job completion or not.
-    default: True
+    default: true
   job_wait_timeout:
     type: int
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     default: 120
   quick_deploy_options:
     type: dict
-    required: True
+    required: true
     description: The Quick Deploy settings for server and IOM quick deploy.
     suboptions:
       password:
@@ -70,7 +70,7 @@ options:
         choices: [Static, DHCP]
         description:
           - IPv4 network type.
-          - I(ipv4_network_type) is required if I(ipv4_enabled) is C(True).
+          - I(ipv4_network_type) is required if I(ipv4_enabled) is C(true).
           - C(Static) to configure the static IP settings.
           - C(DHCP) to configure the Dynamic IP settings.
       ipv4_subnet_mask:
@@ -91,7 +91,7 @@ options:
         choices: [Static, DHCP]
         description:
           - IPv6 network type.
-          - I(ipv6_network_type) is required if I(ipv6_enabled) is C(True).
+          - I(ipv6_network_type) is required if I(ipv6_enabled) is C(true).
           - C(Static) to configure the static IP settings.
           - C(DHCP) to configure the Dynamic IP settings.
       ipv6_prefix_length:
@@ -111,7 +111,7 @@ options:
         suboptions:
           slot_id:
             type: int
-            required: True
+            required: true
             description: The ID of the slot.
           slot_ipv4_address:
             type: str
@@ -147,11 +147,11 @@ EXAMPLES = """
     ca_path: "/path/to/ca_cert.pem"
     quick_deploy_options:
       password: "password"
-      ipv4_enabled: True
+      ipv4_enabled: true
       ipv4_network_type: Static
       ipv4_subnet_mask: 255.255.255.0
       ipv4_gateway: 192.168.0.1
-      ipv6_enabled: True
+      ipv6_enabled: true
       ipv6_network_type: Static
       ipv6_prefix_length: 1
       ipv6_gateway: "::"
@@ -175,11 +175,11 @@ EXAMPLES = """
     ca_path: "/path/to/ca_cert.pem"
     quick_deploy_options:
       password: "password"
-      ipv4_enabled: True
+      ipv4_enabled: true
       ipv4_network_type: Static
       ipv4_subnet_mask: 255.255.255.0
       ipv4_gateway: 192.168.0.1
-      ipv6_enabled: True
+      ipv6_enabled: true
       ipv6_network_type: Static
       ipv6_prefix_length: 1
       ipv6_gateway: "::"

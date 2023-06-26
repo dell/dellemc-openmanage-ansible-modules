@@ -60,7 +60,7 @@ options:
       - Select this option to mask the personal identification information such as IPAddress,
         DNS, alert destination, email, gateway, inet6, MacAddress, netmask etc.
       - This option is applicable for C(application) of I(log_type).
-    default: False
+    default: false
   log_selectors:
     type: list
     description:
@@ -75,17 +75,17 @@ options:
     elements: str
   share_address:
     type: str
-    required: True
+    required: true
     description: Network share IP address.
   share_name:
     type: str
-    required: True
+    required: true
     description:
       - Network share path.
       - Filename is auto generated and should not be provided as part of I(share_name).
   share_type:
     type: str
-    required: True
+    required: true
     description: Network share type
     choices: [NFS, CIFS]
   share_user:
@@ -108,7 +108,7 @@ options:
     description:
       - Whether to wait for the Job completion or not.
       - The maximum wait time is I(job_wait_timeout).
-    default: True
+    default: true
   job_wait_timeout:
     type: int
     description:
@@ -120,13 +120,13 @@ options:
     description:
       - Test the availability of the network share location.
       - I(job_wait) and I(job_wait_timeout) options are not applicable for I(test_connection).
-    default: False
+    default: false
   lead_chassis_only:
     type: bool
     description:
       - Extract the logs from Lead chassis only.
       - I(lead_chassis_only) is only applicable when I(log_type) is C(application) on OpenManage Enterprise Modular.
-    default: False
+    default: false
 requirements:
   - "python >= 3.8.6"
 author:

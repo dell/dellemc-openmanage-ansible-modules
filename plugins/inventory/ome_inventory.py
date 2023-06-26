@@ -26,7 +26,7 @@ options:
     env:
      - name: OME_HOSTNAME
     type: str
-    required: True
+    required: true
   username:
     description:
     - OpenManage Enterprise or OpenManage Enterprise Modular username.
@@ -34,7 +34,7 @@ options:
     env:
      - name: OME_USERNAME
     type: str
-    required: True
+    required: true
   password:
     description:
     - OpenManage Enterprise or OpenManage Enterprise Modular password.
@@ -42,7 +42,7 @@ options:
     env:
     - name: OME_PASSWORD
     type: str
-    required: True
+    required: true
   port:
     description:
     - OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
@@ -51,11 +51,11 @@ options:
     default: 443
   validate_certs:
     description:
-    - If C(False), the SSL certificates will not be validated.
-    - Configure C(False) only on personally controlled sites where self-signed certificates are used.
-    - Prior to collection version C(5.0.0), the I(validate_certs) is C(False) by default.
+    - If C(false), the SSL certificates will not be validated.
+    - Configure C(false) only on personally controlled sites where self-signed certificates are used.
+    - Prior to collection version C(5.0.0), the I(validate_certs) is C(false) by default.
     type: bool
-    default: True
+    default: true
   ca_path:
     description:
     - The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.

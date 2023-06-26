@@ -28,7 +28,7 @@ options:
       - Network share or local path.
       - CIFS, NFS network share types are supported.
     type: str
-    required: True
+    required: true
   share_user:
     type: str
     description: Network share user in the format 'user@domain' or 'domain\\user' if user is
@@ -40,7 +40,7 @@ options:
   job_wait:
     description: Whether to wait for the running job completion or not.
     type: bool
-    default: True
+    default: true
 
 requirements:
   - "omsdk >= 1.2.488"

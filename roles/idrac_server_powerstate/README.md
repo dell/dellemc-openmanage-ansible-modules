@@ -1,6 +1,6 @@
 # idrac_server_powerstate
 
-Role to to manage the different power states of the specified device using iDRACs (iDRAC7/8 and iDRAC9 only) for Dell PowerEdge servers. 
+Role to to manage the different power states of the specified device using iDRACs (iDRAC8 and iDRAC9 only) for Dell PowerEdge servers. 
 
 ## Requirements
 

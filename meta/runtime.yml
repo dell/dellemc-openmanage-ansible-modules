@@ -3,13 +3,13 @@ requires_ansible: ">=2.11.0"
 plugin_routing:
   modules:
     dellemc_get_firmware_inventory:
-      deprecation:
-        removal_date: "2023-01-15"
-        warning_text: dellemc_get_firmware_inventory will be removed in a future release of this collection. Use dellemc.openmanage.idrac_firmware_info instead.
+      tombstone:
+        removal_version: 8.0.0
+        warning_text: Use dellemc.openmanage.idrac_firmware_info instead.
     dellemc_get_system_inventory:
-      deprecation:
-        removal_date: "2023-01-15"
-        warning_text: dellemc_get_system_inventory will be removed in a future release of this collection. Use dellemc.openmanage.idrac_system_info instead.
+      tombstone:
+        removal_version: 8.0.0
+        warning_text: Use dellemc.openmanage.idrac_system_info instead.
     dellemc_configure_idrac_eventing:
       deprecation:
         removal_date: "2024-07-31"

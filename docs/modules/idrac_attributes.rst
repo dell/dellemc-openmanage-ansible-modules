@@ -30,19 +30,19 @@ Parameters
   idrac_attributes (optional, dict, None)
     Dictionary of iDRAC attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and above, see, https://*idrac_ip*/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/iDRAC.Embedded.1 and https://*idrac_ip*/redfish/v1/Registries/ManagerAttributeRegistry.
 
-    For iDRAC7 and iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName> (for Example, 'SNMP.1#AgentCommunity') then the equivalent attribute name for Redfish is <GroupName>.<Instance>.<AttributeName> (for Example, 'SNMP.1.AgentCommunity').
+    For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName> (for Example, 'SNMP.1#AgentCommunity') then the equivalent attribute name for Redfish is <GroupName>.<Instance>.<AttributeName> (for Example, 'SNMP.1.AgentCommunity').
 
 
   system_attributes (optional, dict, None)
     Dictionary of System attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry. To view the list of attributes in Attribute Registry for iDRAC9 and above, see, https://*idrac_ip*/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/System.Embedded.1 and https://*idrac_ip*/redfish/v1/Registries/ManagerAttributeRegistry.
 
-    For iDRAC7 and iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName> (for Example, 'ThermalSettings.1#ThermalProfile') then the equivalent attribute name for Redfish is <GroupName>.<Instance>.<AttributeName> (for Example, 'ThermalSettings.1.ThermalProfile').
+    For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName> (for Example, 'ThermalSettings.1#ThermalProfile') then the equivalent attribute name for Redfish is <GroupName>.<Instance>.<AttributeName> (for Example, 'ThermalSettings.1.ThermalProfile').
 
 
   lifecycle_controller_attributes (optional, dict, None)
     Dictionary of Lifecycle Controller attributes and value. The attributes should be part of the Integrated Dell Remote Access Controller Attribute Registry.To view the list of attributes in Attribute Registry for iDRAC9 and above, see, https://*idrac_ip*/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellAttributes/LifecycleController.Embedded.1 and https://*idrac_ip*/redfish/v1/Registries/ManagerAttributeRegistry.
 
-    For iDRAC7 and iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName> (for Example, 'LCAttributes.1#AutoUpdate') then the equivalent attribute name for Redfish is <GroupName>.<Instance>.<AttributeName> (for Example, 'LCAttributes.1.AutoUpdate').
+    For iDRAC8 based servers, derive the manager attribute name from Server Configuration Profile. If the manager attribute name in Server Configuration Profile is <GroupName>.<Instance>#<AttributeName> (for Example, 'LCAttributes.1#AutoUpdate') then the equivalent attribute name for Redfish is <GroupName>.<Instance>.<AttributeName> (for Example, 'LCAttributes.1.AutoUpdate').
 
 
   resource_id (optional, str, None)
@@ -66,11 +66,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -90,7 +90,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
-   - For iDRAC7 and iDRAC8 based servers, the value provided for the attributes are not be validated. Ensure appropriate values are passed.
+   - For iDRAC8 based servers, the value provided for the attributes are not be validated. Ensure appropriate values are passed.
 
 
 
@@ -215,7 +215,7 @@ Examples
         idrac_password: "user_password"
         ca_path: "/path/to/ca_cert.pem"
         idrac_attributes:
-          Time.1.TimeZone: CST6CDT
+          Time.1.Timezone: CST6CDT
           NTPConfigGroup.1.NTPEnable: Enabled
           NTPConfigGroup.1.NTP1: 192.168.0.5
           NTPConfigGroup.1.NTP2: 192.168.0.6

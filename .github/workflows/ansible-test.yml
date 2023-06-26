@@ -75,7 +75,7 @@ jobs:
       - name: Setup Unit test Pre-requisites
         run: |
           ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
-          git clone https://github.com/ansible/ansible.git
+          git clone -b ${{ matrix.ansible-version }} --single-branch https://github.com/ansible/ansible.git
           cp -rf ansible/test/units/compat /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/
           cp -rf ansible/test/units/modules/utils.py /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/
           sed -i 's/units/ansible_collections.dellemc.openmanage.tests.unit/' /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/utils.py

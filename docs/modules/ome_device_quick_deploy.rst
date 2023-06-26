@@ -58,7 +58,7 @@ Parameters
   job_wait_timeout (optional, int, 120)
     The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   quick_deploy_options (True, dict, None)
@@ -78,7 +78,7 @@ Parameters
     ipv4_network_type (optional, str, None)
       IPv4 network type.
 
-      *ipv4_network_type* is required if *ipv4_enabled* is ``True``.
+      *ipv4_network_type* is required if *ipv4_enabled* is ``true``.
 
       ``Static`` to configure the static IP settings.
 
@@ -104,7 +104,7 @@ Parameters
     ipv6_network_type (optional, str, None)
       IPv6 network type.
 
-      *ipv6_network_type* is required if *ipv6_enabled* is ``True``.
+      *ipv6_network_type* is required if *ipv6_enabled* is ``true``.
 
       ``Static`` to configure the static IP settings.
 
@@ -162,11 +162,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -209,11 +209,11 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         quick_deploy_options:
           password: "password"
-          ipv4_enabled: True
+          ipv4_enabled: true
           ipv4_network_type: Static
           ipv4_subnet_mask: 255.255.255.0
           ipv4_gateway: 192.168.0.1
-          ipv6_enabled: True
+          ipv6_enabled: true
           ipv6_network_type: Static
           ipv6_prefix_length: 1
           ipv6_gateway: "::"
@@ -237,11 +237,11 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         quick_deploy_options:
           password: "password"
-          ipv4_enabled: True
+          ipv4_enabled: true
           ipv4_network_type: Static
           ipv4_subnet_mask: 255.255.255.0
           ipv4_gateway: 192.168.0.1
-          ipv6_enabled: True
+          ipv6_enabled: true
           ipv6_network_type: Static
           ipv6_prefix_length: 1
           ipv6_gateway: "::"

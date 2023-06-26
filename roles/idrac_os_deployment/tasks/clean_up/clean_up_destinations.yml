@@ -1,0 +1,25 @@
+---
+- name: Remove custom iso from mounted path
+  delegate_to: "{{ idrac_os_deployment_delegate }}"
+  when: destination.protocol in ['nfs', 'cifs']
+  ansible.builtin.file:
+    state: absent
+    path: "{{ destination.mountpoint }}/{{ idrac_os_deployment_custom_iso_filename }}"
+
+- name: Remove custom iso from HTTP or HTTPS share on Linux
+  delegate_to: "{{ destination.hostname }}"
+  when:
+    - destination.protocol in ['http', 'https']
+    - destination.os_type is undefined or destination.os_type == 'linux'
+  ansible.builtin.file:
+    path: "{{ destination.mountpoint }}/{{ idrac_os_deployment_custom_iso_filename }}"
+    state: absent
+
+- name: Remove custom iso to HTTP or HTTPS share on windows
+  delegate_to: "{{ destination.hostname }}"
+  when:
+    - destination.protocol in ['http', 'https']
+    - destination.os_type is undefined or destination.os_type == 'windows'
+  ansible.windows.win_file:
+    path: "{{ destination.mountpoint }}/{{ idrac_os_deployment_custom_iso_filename }}"
+    state: absent

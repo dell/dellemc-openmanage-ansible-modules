@@ -109,7 +109,7 @@ Parameters
   wait (optional, int, 300)
     Maximum wait time for iDRAC to start after the reset, in seconds.
 
-    This is applicable when *command* is ``import`` or ``reset`` and *reset* is ``True``.
+    This is applicable when *command* is ``import`` or ``reset`` and *reset* is ``true``.
 
 
   idrac_ip (True, str, None)
@@ -129,11 +129,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)

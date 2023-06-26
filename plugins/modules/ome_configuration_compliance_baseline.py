@@ -102,7 +102,7 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds.The job will only be tracked for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 10800
 requirements:

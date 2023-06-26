@@ -33,22 +33,22 @@ options:
         required: true
         type: bool
         description:
-          - C(True) connects the remote image file.
-          - C(False) ejects the remote image file if connected.
+          - C(true) connects the remote image file.
+          - C(false) ejects the remote image file if connected.
       image:
         type: path
         description:
           - The path of the image file. The supported file types are .img and .iso.
           - The file name with .img extension is redirected as a virtual floppy and a file name with .iso extension is
             redirected as a virtual CDROM.
-          - This option is required when I(insert) is C(True).
+          - This option is required when I(insert) is C(true).
           - "The following are the examples of the share location:
             CIFS share: //192.168.0.1/file_path/image_name.iso,
             NFS share: 192.168.0.2:/file_path/image_name.img,
             HTTP share: http://192.168.0.3/file_path/image_name.iso,
             HTTPS share: https://192.168.0.4/file_path/image_name.img"
-          - CIFS share is not supported by iDRAC7 and iDRAC8.
-          - HTTPS share with credentials is not supported by iDRAC7 and iDRAC8.
+          - CIFS share is not supported by iDRAC8.
+          - HTTPS share with credentials is not supported by iDRAC8.
       index:
         type: int
         description:
@@ -67,12 +67,12 @@ options:
           - This module always reports as the changes found when I(password) is provided.
       media_type:
         type: str
-        description: Type of the image file. This is applicable when I(insert) is C(True).
+        description: Type of the image file. This is applicable when I(insert) is C(true).
         choices: [CD, DVD, USBStick]
   force:
     type: bool
-    description: C(True) ejects the image file if already connected and inserts the file provided in I(image).
-      This is applicable when I(insert) is C(True).
+    description: C(true) ejects the image file if already connected and inserts the file provided in I(image).
+      This is applicable when I(insert) is C(true).
     default: false
   resource_id:
     type: str

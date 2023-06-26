@@ -81,7 +81,7 @@ argument_specs:
           - C(DefaultProxy), iDRAC uses the proxy values set by default.
           - Default Proxy can be set in the Lifecycle Controller attributes using M(dellemc.openmanage.idrac_attributes).
           - C(Off), will not use the proxy.
-          - For iDRAC7 and iDRAC8 based servers, use proxy server with basic authentication.
+          - For iDRAC8 based servers, use proxy server with basic authentication.
           - For iDRAC9 based servers, ensure that you use digest authentication for the proxy server, basic authentication is not supported.
         choices: ["ParametersProxy", "DefaultProxy", "Off"]
         type: str

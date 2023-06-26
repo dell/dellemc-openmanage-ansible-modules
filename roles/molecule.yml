@@ -18,14 +18,9 @@ provisioner:
     redfish_firmware_http_auto_reboot: "http://dl.dell.com/FOLDER06878175M/2/Diagnostics_Application_0G1JH_WN64_6.0_A00_01.EXE"
 verifier:
   name: ansible
-lint: |
-  set -e
-  yamllint .
-  ansible-lint .
 scenario:
   test_sequence:
     - dependency
-    - lint
     - cleanup
     - destroy
     - syntax

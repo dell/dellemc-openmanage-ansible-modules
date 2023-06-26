@@ -38,8 +38,8 @@ options:
   enable_authentication:
     description:
       - Enable or disable authentication to access the SMTP server.
-      - The I(credentials) are mandatory if I(enable_authentication) is C(True).
-      - The module will always report change when this is C(True).
+      - The I(credentials) are mandatory if I(enable_authentication) is C(true).
+      - The module will always report change when this is C(true).
     type: bool
     required: true
   credentials:
@@ -59,7 +59,7 @@ options:
 requirements:
     - "python >= 3.8.6"
 notes:
-  - The module will always report change when I(enable_authentication) is C(True).
+  - The module will always report change when I(enable_authentication) is C(true).
   - Run this module from a system that has direct access to Dell OpenManage Enterprise
     or OpenManage Enterprise Modular.
   - This module support C(check_mode).

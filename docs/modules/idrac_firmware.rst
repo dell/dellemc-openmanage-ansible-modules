@@ -61,21 +61,21 @@ Parameters
 
 
   ignore_cert_warning (optional, bool, True)
-    Specifies if certificate warnings are ignored when HTTPS share is used. If ``True`` option is set, then the certificate warnings are ignored.
+    Specifies if certificate warnings are ignored when HTTPS share is used. If ``true`` option is set, then the certificate warnings are ignored.
 
 
   apply_update (optional, bool, True)
-    If *apply_update* is set to ``True``, then the packages are applied.
+    If *apply_update* is set to ``true``, then the packages are applied.
 
-    If *apply_update* is set to ``False``, no updates are applied, and a catalog report of packages is generated and returned.
+    If *apply_update* is set to ``false``, no updates are applied, and a catalog report of packages is generated and returned.
 
 
   reboot (optional, bool, False)
     Provides the option to apply the update packages immediately or in the next reboot.
 
-    If *reboot* is set to ``True``,  then the packages  are applied immediately.
+    If *reboot* is set to ``true``,  then the packages  are applied immediately.
 
-    If *reboot* is set to ``False``, then the packages are staged and applied in the next reboot.
+    If *reboot* is set to ``false``, then the packages are staged and applied in the next reboot.
 
     Packages that do not require a reboot are applied immediately irrespective of I (reboot).
 
@@ -93,7 +93,7 @@ Parameters
 
     ``Off``, will not use the proxy.
 
-    For iDRAC7 and iDRAC8 based servers, use proxy server with basic authentication.
+    For iDRAC8 based servers, use proxy server with basic authentication.
 
     For iDRAC9 based servers, ensure that you use digest authentication for the proxy server, basic authentication is not supported.
 
@@ -143,11 +143,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -188,9 +188,9 @@ Examples
            idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
            share_name: "192.168.0.0:/share"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
            catalog_file_name: "Catalog.xml"
 
     - name: Update firmware from repository on a CIFS Share
@@ -202,9 +202,9 @@ Examples
            share_name: "full_cifs_path"
            share_user: "share_user"
            share_password: "share_password"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
            catalog_file_name: "Catalog.xml"
 
     - name: Update firmware from repository on a HTTP
@@ -214,9 +214,9 @@ Examples
            idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
            share_name: "http://downloads.dell.com"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
 
     - name: Update firmware from repository on a HTTPS
       dellemc.openmanage.idrac_firmware:
@@ -225,9 +225,9 @@ Examples
            idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
            share_name: "https://downloads.dell.com"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
 
     - name: Update firmware from repository on a HTTPS via proxy
       dellemc.openmanage.idrac_firmware:
@@ -236,9 +236,9 @@ Examples
            idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
            share_name: "https://downloads.dell.com"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
            proxy_support: ParametersProxy
            proxy_server: 192.168.1.10
            proxy_type: HTTP
@@ -253,9 +253,9 @@ Examples
            idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
            share_name: "ftp://ftp.mydomain.com"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
 
 
 

@@ -1,12 +1,4 @@
 ---
-dependency:
-  name: galaxy
-driver:
-  name: docker
-platforms:
-  - name: centos8
-    image: quay.io/centos/centos:stream8
-    pre_build_image: true
 provisioner:
   name: ansible
   env:
@@ -18,9 +10,3 @@ provisioner:
     http_filename: "exported_scp_http.xml"
     nfs_mount_path: "/tmp/nfs"
     cifs_mount_path: "/tmp/cifs"
-verifier:
-  name: ansible
-lint: |
-  set -e
-  yamllint .
-  ansible-lint .

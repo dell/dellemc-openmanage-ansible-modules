@@ -24,12 +24,12 @@ extends_documentation_fragment:
   - dellemc.openmanage.omem_auth_options
 options:
   target_port:
-    required: True
+    required: true
     description: "The ID of the port in the switch to breakout. Enter the port ID in the format: service tag:port.
       For example, 2HB7NX2:ethernet1/1/13."
     type: str
   breakout_type:
-    required: True
+    required: true
     description:
       - The preferred breakout type. For example, 4X10GE.
       - To revoke the default breakout configuration, enter 'HardwareDefault'.

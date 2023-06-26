@@ -214,11 +214,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -271,7 +271,7 @@ Examples
         name_prefix: "omam_profile"
         number_of_profiles: 1
         boot_to_network_iso:
-          boot_to_network: True
+          boot_to_network: true
           share_type: NFS
           share_ip: "192.168.0.1"
           iso_path: "path/to/my_iso.iso"
@@ -288,7 +288,7 @@ Examples
         name_prefix: "omam_profile"
         number_of_profiles: 1
         boot_to_network_iso:
-          boot_to_network: True
+          boot_to_network: true
           share_type: CIFS
           share_ip: "192.168.0.2"
           share_user: "username"
@@ -308,7 +308,7 @@ Examples
         new_name: "modified profile"
         description: "new description"
         boot_to_network_iso:
-          boot_to_network: True
+          boot_to_network: true
           share_type: NFS
           share_ip: "192.168.0.3"
           iso_path: "path/to/my_iso.iso"
@@ -344,7 +344,7 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         filters:
-          SelectAll: True
+          SelectAll: true
           Filters: =contains(ProfileName,'Profile 00002')
 
     - name: Delete profiles using profile list filter
@@ -369,7 +369,7 @@ Examples
         name: "Profile 00001"
         device_id: 12456
         boot_to_network_iso:
-          boot_to_network: True
+          boot_to_network: true
           share_type: NFS
           share_ip: "192.168.0.1"
           iso_path: "path/to/my_iso.iso"
@@ -383,10 +383,10 @@ Examples
             ShutdownType: 0
             TimeToWaitBeforeShutdown: 300
             EndHostPowerState: 1
-            StrictCheckingVlan: True
+            StrictCheckingVlan: true
           Schedule:
-            RunNow: True
-            RunLater: False
+            RunNow: true
+            RunLater: false
 
     - name: Unassign a profile using profile name
       dellemc.openmanage.ome_profile:
@@ -405,7 +405,7 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         command: "unassign"
         filters:
-          SelectAll: True
+          SelectAll: true
           Filters: =contains(ProfileName,'Profile 00003')
 
     - name: Unassign profiles using profile list filter

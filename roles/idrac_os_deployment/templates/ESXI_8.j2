@@ -1,0 +1,39 @@
+accepteula
+{% if esxi_keyboard is defined and esxi_keyboard != None %}
+keyboard "{{ esxi_keyboard }}"
+{% endif %}
+{% if esxi_iscrypted is defined and esxi_iscrypted == true %}
+rootpw {{ esxi_rootpw }} --iscrypted
+{% else %}
+rootpw {{ esxi_rootpw }}
+{% endif %}
+{{ ([esxi_install_type] + esxi_install_options)|join(' ') }}
+{% set esxicmds = {'clearpart': esxi_clearpart, 'network': esxi_network, 'partition': esxi_partition} %}
+{% for key,value in esxicmds.items() %}
+{% if value is defined and value != false %}
+{{ ([key] + value)|join(' ') }}
+{% endif %}
+{% endfor %}
+{% if esxi_serial_num is defined and esxi_serial_num != None %}
+serialnum --esx={{ esxi_serial_num }}
+{% endif %}
+{# boolean cmds #}
+{% set boolcmds = {'reboot': esxi_reboot, 'paranoid': esxi_paranoid, 'dryrun': esxi_dryrun} %}
+{% for key,value in boolcmds.items() %}
+{% if value is defined and value == true %}
+{{ key }}
+{% endif %}
+{% endfor %}
+{# scripts logic #}
+{% set scripts = {'pre': esxi_prescript, 'post': esxi_postscript, 'firstboot': esxi_firstboot} %}
+{% for key,value in scripts.items() %}
+{% if value is defined and value != None %}
+{% set xkey = value %}
+{% endif %}
+{% if xkey is defined and xkey.args != None %}
+%{{ key }} --interpreter={{ xkey.interpreter | default('busybox') }}
+{% for cmd in xkey.args %}
+{{ cmd }}
+{% endfor %}
+{% endif %}
+{% endfor %}

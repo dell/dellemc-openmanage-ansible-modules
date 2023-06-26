@@ -18,7 +18,7 @@ class ModuleDocFragment(object):
     DOCUMENTATION = r'''
 options:
     share_name:
-        required: True
+        required: true
         type: str
         description: Network share or a local path.
     share_user:
