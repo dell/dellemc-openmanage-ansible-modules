@@ -21,8 +21,6 @@ Here are the list of modules and module_utils supported by Dell.
 └── modules
     ├── dellemc_configure_idrac_eventing.py
     ├── dellemc_configure_idrac_services.py
-    ├── dellemc_get_firmware_inventory.py
-    ├── dellemc_get_system_inventory.py
     ├── dellemc_idrac_lc_attributes.py
     ├── dellemc_idrac_storage_volume.py
     ├── dellemc_system_lockdown_mode.py

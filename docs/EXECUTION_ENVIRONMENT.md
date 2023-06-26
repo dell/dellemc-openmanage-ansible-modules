@@ -1,4 +1,4 @@
-# Build execution environment with Dell OpenManage Ansible Modules
+# Using Ansible Automation Platform with Dell OpenManage Ansible Modules
 Creating automation execution environments using the OpenManage Ansible Modules enables your automation teams to define, build, and update their automation environment themselves. Execution environments provide a common language to communicate automation dependency between automation developers, architects, and platform administrators.
 
 In this tutorial, you will learn how to build the execution environment image, push the image to a registry, and then create the execution environment in Ansible Automation Platform.
@@ -13,59 +13,73 @@ While Ansible Galaxy is good for testing the latest and greatest developer conte
 - Premium support enables you to get help directly from Red Hat if you have any issue with an official Red Hat collection or certified partner collection.
 - Red Hat subscription provides free and unlimited access to any content available.
 
-## Why AWX
-Ansible AWX provides an open-source version of Ansible Automation Platform and is the foundation on which Ansible Automation Platform was developed. With Ansible AWX, you have all the enterprise features for an unlimited number of nodes. However, one drawback to note is that Ansible AWX undergoes minimal testing and quality engineering testing.
 
 ## Workflow
 In this tutorial, you will learn how to:
-1. [Build custom execution environment image.](#build-custom-execution-environment-image)
+1. [Build execution environment image.](#build-execution-environment-image)
 2. [Use Ansible Runner to verify the execution environment (Optional).](#use-ansible-runner-to-verify-the-execution-environment)
 3. [Upload the execution environment to a registry.](#upload-the-execution-environment-to-a-registry)
 4. [Create execution environment in Ansible Automation Platform.](#create-execution-environment-in-ansible-automation-platform)
 
-## Build custom execution environment image
-Build a custom image with the required OpenManage Ansible collections ([dellemc.openmanage](https://github.com/dell/dellemc-openmanage-ansible-modules) ) and libraries (omsdk and netaddr), and then upload it to a registry of your choice. In this tutorial, you will learn how to create a Docker image.
+## Build execution environment image
+Build a image with the required Ansible collections and libraries, and then upload it to a registry of your choice. In this tutorial, you will learn how to create a Podman image.
 
 1. Create the following files in your local directory:
-   - *execution_environment.yml*
-   - *requirement.yml* 
+   - *execution-environment.yml*
+   - *requirements.yml* 
    - *requirements.txt*
 2. For installing OpenManage collections and their dependencies, copy the metadata from the [dellemc.openmanage](https://github.com/dell/dellemc-openmanage-ansible-modules) GitHub repository.
 
-The following are the sample files:
+    The following are the sample files:
 
-**execution_environment.yml**
+    **execution-environment.yml**
 
-```yaml
-version: 1
-dependencies:
-  galaxy: requirements.yml
-  python: requirements.txt
-```
+    ```yaml
+    version: 1
+    dependencies:
+      galaxy: requirements.yml
+      python: requirements.txt
+      system: bindep.txt
+    ```
+    
+    We can have a build args updated to the latest base and builder image as per your requirement. Following is an example to point to the redhat image.
 
-**requirement.yml**
-```yaml
-collections:
-  - name: dellemc.openmanage
-```
 
-**requirements.txt**
-```yaml
-omsdk
-netaddr>=0.7.19
-```
+    ```yaml
+    EE_BUILDER_IMAGE: 'registry.redhat.io/ansible-automation-platform-23/ansible-builder-rhel8:latest'
+    EE_BASE_IMAGE: 'registry.redhat.io/ansible-automation-platform-23/ee-minimal-rhel8:latest'
+    ```
 
-3. Build the Docker image using the following syntax:
+    **requirements.yml**
+    ```yaml
+    collections:
+      - dellemc.openmanage
+      - ansible.utils
+      - ansible.windows
+    ```
+    Note: The content of the *requirements.yml* can be found [here](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/requirements.yml)
 
-`ansible-builder build -f <path>/execution-environment.yml --container-runtime=<container> -c build_context --tag <container.io>/<org_name or username>/<imagename>:<tag>`
+    **requirements.txt**
+    ```yaml
+    omsdk
+    netaddr>=0.7.19
+    jmespath
+    ```
 
- In this tutorial, the following command is used to build the Docker image with the name "*execution_environment*".
+    Note: The content of the *requirements.txt* can be found [here](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/requirements.txt)
 
-```yaml
-ansible-builder build -f execution-environment.yml --container-runtime=docker -c build_context --tag docker.io/delluser/execution_environment:<tag>
-docker build -f context/Dockerfile -t docker.io/delluser/execution_environment context
-Complete! The build context can be found at: /context
-```
+3. Build the Podman image using the following syntax:
+
+    `ansible-builder build -f <path>/execution-environment.yml --container-runtime=<container> -c build_context --tag <container.io>/<org_name or username>/<imagename>:<tag>`
+
+    In this tutorial, the following command is used to build the Docker image with the name "*execution-environment*".
+
+    ```yaml
+    $ ansible-builder build -f execution-environment.yml --container-runtime=podman -c build_context --tag quay.io/delluser/dell-openmanage-ee:<tag>
+
+    podman build -f context/Containerfile -t quay.io/delluser/dell-openmanage-ee context
+    Complete! The build context can be found at: /context
+    ```
 
 ## Use Ansible Runner to verify the execution environment
 
@@ -117,7 +131,7 @@ password=password
 4. Run the playbook using the following command:
 
 ```yaml
-ansible-runner run --process-isolation --process-isolation-executable docker --container-image docker.io/delluser/execution_environment -p sysinfo.yml ./runner-example/ -v
+ansible-runner run --process-isolation --process-isolation-executable podman --container-image quay.io/delluser/dell-openmanage-ee -p sysinfo.yml ./runner-example/ -v
 No config file found; using defaults
 
 PLAY [Get system inventory] ****************************************************
@@ -163,33 +177,33 @@ runner-example/
 
 Now that you have built the image, you can upload the execution environment image to a registry. The following steps describe how to upload the image to a Docker registry. You can upload the image to a registry of your choice (https://quay.io or https://docker.io).
 
-1. Log in to docker.io.
+1. Log in to quay.io.
 ```yaml
-docker login docker.io
+podman login quay.io
 ```
 2. To view the list of images, run the following command:
 
 ```yaml
-docker image list
+podman image list
 ```   
 Output:
 
 ```yaml
 REPOSITORY                                      TAG       IMAGE ID       CREATED          SIZE
-docker.io/delluser/execution_environment        latest    6ea6337881f5   36 seconds ago   908MB
+quay.io/delluser/dell-openmanage-ee             latest    6ea6337881f5   36 seconds ago   908MB
 <none>                                          <none>    bab8f0c1f372   3 hours ago      959MB
 <none>                                          <none>    26e61b6f31b6   3 hours ago      779MB
 ```
 3. Upload the image to the repository using the following command:
 
 ```yaml
-docker push docker.io/delluser/execution_environment
+podman push quay.io/delluser/dell-openmanage-ee
 ```
 Output:
 
 ```yaml
 Using default tag: latest
-The push refers to repository [docker.io/delluser/execution_environment]
+The push refers to repository [quay.io/delluser/dell-openmanage-ee]
 6a938007b4eb: Pushed
 c1a7a8b69adb: Pushed
 75f55eeed6f1: Pushed
@@ -213,7 +227,6 @@ aadc47c09f66: Layer already exists
 101e6c349551: Layer already exists
 latest: digest: sha256:7be5110235abf72e0547cac016a506d59313addefc445d35e5dff68edb0a9ad6 size: 4726
                                           <none>    26e61b6f31b6   3 hours ago      779MB
-
 ```
 
 ## Create execution environment in Ansible Automation Platform
@@ -244,7 +257,7 @@ A Project is a logical collection of Ansible playbooks.
     -  In the **Source Control URL**, specify the source control URL. That is your repository link.
 
 ###   Create Credential Types   
-This tutorial uses a custom credential type. You can create credential types depending on your data center environment. For more information, see [Credential Types](https://docs.ansible.com/automation-controller/4.0.0/html/userguide/credentials.html#credential-types). 
+This tutorial uses a custom credential type. You can create credential types depending on your data center environment. For more information, see [Credential Types](https://docs.ansible.com/automation-controller/4.2.1/html/userguide/credentials.html#credential-types). 
 
 To create a credential type:
 
@@ -291,7 +304,7 @@ extra_vars:
 1.	On the navigation pane, click **Resources > Inventories**.
 2.	On the **Inventories** page, click **Add**.
 3.	On the **Create New Inventory** page, enter the details and click **Save**.
-4.	Add groups and hosts to the inventory.
+4.	Add Groups and Hosts to the inventory.
 
 ## Create Job Templates
 
@@ -328,16 +341,3 @@ ansible_python_interpreter: /usr/bin/python3.9
 ## Documentation references
 - [https://www.redhat.com/en/technologies/management/ansible](https://www.redhat.com/en/technologies/management/ansible)
 - [https://www.redhat.com/en/blog/what-ansible-automation-hub-and-why-should-you-use-it](https://www.redhat.com/en/blog/what-ansible-automation-hub-and-why-should-you-use-it)
-- [https://becloudready.com/ansible-awx-vs-ansible-tower-the-key-to-automation/](https://becloudready.com/ansible-awx-vs-ansible-tower-the-key-to-automation/)
-
-
-
-
-
-
-
-
-
-
-
-

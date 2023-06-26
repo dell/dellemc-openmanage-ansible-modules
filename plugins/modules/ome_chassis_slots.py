@@ -44,7 +44,7 @@ options:
       slot_name:
         type: str
         description: Provide name for the slot.
-        required: True
+        required: true
   slot_options:
     type: list
     elements: dict
@@ -55,7 +55,7 @@ options:
       chassis_service_tag:
         type: str
         description: Service tag of the chassis.
-        required: True
+        required: true
       slots:
         type: list
         elements: dict
@@ -66,11 +66,11 @@ options:
           slot_number:
             type: int
             description: The slot number of the slot to be renamed.
-            required: True
+            required: true
           slot_name:
             type: str
             description: Provide name for the slot.
-            required: True
+            required: true
 requirements:
   - "python >= 3.8.6"
 notes:

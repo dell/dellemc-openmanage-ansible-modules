@@ -25,18 +25,18 @@ extends_documentation_fragment:
   - dellemc.openmanage.oment_auth_options
 options:
   baseline:
-    required: True
+    required: true
     description:
       - The name of the created baseline.
       - A compliance report is generated even when the template is not associated with the baseline.
     type: str
   device_id:
-    required: False
+    required: false
     description:
       - The ID of the target device which is associated with the I(baseline).
     type: int
   device_service_tag:
-    required: False
+    required: false
     description:
       - The device service tag of the target device associated with the I(baseline).
       - I(device_service_tag) is mutually exclusive with I(device_id).

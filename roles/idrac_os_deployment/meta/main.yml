@@ -1,13 +1,9 @@
 galaxy_info:
-  role_name: idrac_os_deployment
-  author: |
-    "Jagadeesh N V
-    Abhishek Sinha"
-  description: The role helps to deploy the operating system on server.
+  author: Sachin Apagundi
+  description: Role to deploy the operating system on idrac servers.
   company: Dell Technologies
   license: GPL-3.0-only
   min_ansible_version: "2.13"
-  galaxy_tags: []
   platforms:
     - name: EL
       versions:
@@ -16,4 +12,5 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - jammy
+  galaxy_tags: []
 dependencies: []

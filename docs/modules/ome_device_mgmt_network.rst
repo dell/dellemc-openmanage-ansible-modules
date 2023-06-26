@@ -64,7 +64,7 @@ Parameters
     enable_dhcp (optional, bool, None)
       Enable or disable the automatic request to obtain an IPv4 address from the IPv4 Dynamic Host Configuration Protocol (DHCP) server.
 
-      ``NOTE`` If this option is ``True``, the values provided for *static_ip_address*, *static_subnet_mask*, and *static_gateway* are not applied for these fields. However, the module may report changes.
+      ``NOTE`` If this option is ``true``, the values provided for *static_ip_address*, *static_subnet_mask*, and *static_gateway* are not applied for these fields. However, the module may report changes.
 
 
     static_ip_address (optional, str, None)
@@ -90,7 +90,7 @@ Parameters
 
       This option is applicable when *enable_dhcp* is true.
 
-      ``NOTE`` If this option is ``True``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
+      ``NOTE`` If this option is ``true``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
 
 
     static_preferred_dns_server (optional, str, None)
@@ -121,7 +121,7 @@ Parameters
 
       If *enable_auto_configuration* is ``true``, OpenManage Enterprise Modular retrieves IP configuration (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network.
 
-      ``NOTE`` If this option is ``True``, the values provided for *static_ip_address*, *static_prefix_length*, and *static_gateway* are not applied for these fields. However, the module may report changes.
+      ``NOTE`` If this option is ``true``, the values provided for *static_ip_address*, *static_prefix_length*, and *static_gateway* are not applied for these fields. However, the module may report changes.
 
 
     static_ip_address (optional, str, None)
@@ -147,7 +147,7 @@ Parameters
 
       This option is applicable when *enable_auto_configuration* is true
 
-      ``NOTE`` If this option is ``True``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
+      ``NOTE`` If this option is ``true``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
 
 
     static_preferred_dns_server (optional, str, None)
@@ -269,11 +269,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -334,7 +334,7 @@ Examples
           use_dhcp_for_dns_domain_name: false
           dns_name: "MX-SVCTAG"
           dns_domain_name: "dnslocaldomain"
-          auto_negotiation: no
+          auto_negotiation: false
           network_speed: 100_MB
 
     - name: Network settings for server

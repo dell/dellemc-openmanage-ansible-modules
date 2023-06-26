@@ -89,7 +89,7 @@ ansible.utils
     <td>- The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.</td>
   </tr>
   <tr>
-    <td>http_timeout</td>
+    <td>https_timeout</td>
     <td>false</td>
     <td>30</td>
     <td></td>

@@ -23,7 +23,7 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
     job_id:
-        required: True
+        required: true
         type: str
         description: JOB ID in the format "JID_123456789012".
 requirements:

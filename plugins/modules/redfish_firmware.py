@@ -30,7 +30,7 @@ options:
             - Firmware Image location URI or local path.
             - For example- U(http://<web_address>/components.exe) or /home/firmware_repo/component.exe.
         type: str
-        required: True
+        required: true
     transfer_protocol:
         description: Protocol used to transfer the firmware image file. Applicable for URI based update.
         type: str
@@ -39,12 +39,12 @@ options:
     job_wait:
         description: Provides the option to wait for job completion.
         type: bool
-        default: True
+        default: true
     job_wait_timeout:
         type: int
         description:
             - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-            - This option is applicable when I(job_wait) is C(True).
+            - This option is applicable when I(job_wait) is C(true).
             - "Note: If a firmware update needs a reboot, the job will get scheduled and waits for
               no of seconds specfied in I(job_wait_time). to reduce the wait time either give
               I(job_wait_time) minimum or make I(job_wait)as false and retrigger."

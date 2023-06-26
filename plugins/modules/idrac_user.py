@@ -37,7 +37,7 @@ options:
     default: present
   user_name:
     type: str
-    required: True
+    required: true
     description: Provide the I(user_name) of the account to be created, deleted or modified.
   user_password:
     type: str

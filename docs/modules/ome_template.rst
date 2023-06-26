@@ -46,7 +46,7 @@ Parameters
   template_id (optional, int, None)
     ID of the existing template.
 
-    This option is applicable when *command* is ``modify``, ``deploy``, ``delete`` and ``export``.
+    This option is applicable when *command* is ``modify``, ``deploy``, ``delete``, ``clone`` and ``export``.
 
     This option is mutually exclusive with *template_name*.
 
@@ -54,7 +54,7 @@ Parameters
   template_name (optional, str, None)
     Name of the existing template.
 
-    This option is applicable when *command* is ``modify``, ``deploy``, ``delete`` and ``export``.
+    This option is applicable when *command* is ``modify``, ``deploy``, ``delete``, ``clone`` and ``export``.
 
     This option is mutually exclusive with *template_id*.
 
@@ -109,6 +109,18 @@ Parameters
     Refer OpenManage Enterprise API Reference Guide for more details.
 
 
+  job_wait (optional, bool, True)
+    Provides the option to wait for job completion.
+
+    This option is applicable when *command* is ``create``, or ``deploy``.
+
+
+  job_wait_timeout (optional, int, 1200)
+    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+
+    This option is applicable when *job_wait* is ``true``.
+
+
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
@@ -126,11 +138,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -488,6 +500,19 @@ Examples
           Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
           Type: 2
 
+    - name: Create a template from a reference device with Job wait as false
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25123
+        attributes:
+          Name: "New Template"
+          Description: "New Template description"
+          Fqdds: iDRAC,BIOS,
+        job_wait: false
+
 
 
 Return Values
@@ -544,4 +569,6 @@ Authors
 ~~~~~~~
 
 - Jagadeesh N V (@jagadeeshnv)
+- Husniya Hameed (@husniya_hameed)
+- Kritika Bhateja (@Kritika-Bhateja)
 

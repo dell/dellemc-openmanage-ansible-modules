@@ -88,17 +88,17 @@ Parameters
   job_wait_timeout (optional, int, 10800)
     The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   ignore_partial_failure (optional, bool, False)
     Provides the option to ignore partial failures. Partial failures occur when there is a combination of both discovered and undiscovered IPs.
 
-    If ``False``, then the partial failure is not ignored, and the module will error out.
+    If ``false``, then the partial failure is not ignored, and the module will error out.
 
-    If ``True``, then the partial failure is ignored.
+    If ``true``, then the partial failure is ignored.
 
-    This option is only applicable if *job_wait* is ``True``.
+    This option is only applicable if *job_wait* is ``true``.
 
 
   discovery_config_targets (optional, list, None)
@@ -424,11 +424,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -578,9 +578,9 @@ Examples
               password: ipmi_pwd
         schedule: RunLater
         cron: "0 0 9 ? * MON,WED,FRI *"
-        ignore_partial_failure: True
-        trap_destination: True
-        community_string: True
+        ignore_partial_failure: true
+        trap_destination: true
+        community_string: true
         email_recipient: test_email@company.com
 
     - name: Discover servers with ca check enabled
@@ -598,7 +598,7 @@ Examples
             wsman:
               username: user
               password: password
-              ca_check: True
+              ca_check: true
               certificate_data: "{{ lookup('ansible.builtin.file', '/path/to/certificate_data_file') }}"
 
     - name: Discover chassis with ca check enabled data
@@ -616,7 +616,7 @@ Examples
             redfish:
               username: user
               password: password
-              ca_check: True
+              ca_check: true
               certificate_data: "-----BEGIN CERTIFICATE-----\r\n
               ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
               ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n

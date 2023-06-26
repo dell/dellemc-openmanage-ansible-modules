@@ -1,6 +1,6 @@
 ---
 # tasks file for idrac_bios
-- name: Perforing idrac_bios operation
+- name: Performing idrac_bios operation
   block:
     - name: Set delegate_to
       ansible.builtin.set_fact:
@@ -26,6 +26,7 @@
           timeout: "{{ https_timeout }}"
           job_wait: "{{ job_wait }}"
           job_wait_timeout: "{{ job_wait_timeout }}"
+      no_log: true
 
     - name: Performing clear pending operation
       dellemc.openmanage.idrac_bios:
@@ -64,3 +65,7 @@
         - { "key": "attributes", "value": "{{ attributes_out }}" }
         - { "key": "reset_bios", "value": "{{ reset_bios_out }}" }
       no_log: true
+
+    - name: Printing idrac_bios_out
+      ansible.builtin.debug:
+        var: idrac_bios_out

@@ -58,21 +58,21 @@ Parameters
     enable_chassis_power_button (True, bool, None)
       Enables or disables the chassis power button.
 
-      If ``False``, the chassis cannot be turn on or turn off using the power button.
+      If ``false``, the chassis cannot be turn on or turn off using the power button.
 
 
     enable_lcd_override_pin (optional, bool, None)
       Enables or disables the LCD override pin.
 
-      This is required when *enable_chassis_power_button* is ``False``.
+      This is required when *enable_chassis_power_button* is ``false``.
 
 
     disabled_button_lcd_override_pin (optional, int, None)
       The six digit LCD override pin to change the power state of the chassis.
 
-      This is required when *enable_lcd_override_pin* is ``True``.
+      This is required when *enable_lcd_override_pin* is ``true``.
 
-      The module will always report change when *disabled_button_lcd_override_pin* is ``True``.
+      The module will always report change when *disabled_button_lcd_override_pin* is ``true``.
 
 
 
@@ -101,7 +101,7 @@ Parameters
 
       The range is 120 to 3600 in seconds, or 2 to 60 in minutes.
 
-      This option is required when *enable_inactivity_timeout* is ``True``.
+      This option is required when *enable_inactivity_timeout* is ``true``.
 
 
     timeout_limit_unit (optional, str, None)
@@ -111,7 +111,7 @@ Parameters
 
       ``MINUTES`` to set *timeout_limit* in minutes.
 
-      This option is required when *enable_inactivity_timeout* is ``True``.
+      This option is required when *enable_inactivity_timeout* is ``true``.
 
 
     enable_read_authentication (optional, bool, None)
@@ -177,11 +177,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -201,7 +201,7 @@ Notes
 .. note::
    - Run this module from a system that has direct access to OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
-   - The module will always report change when *enable_chassis_power_button* is ``True``.
+   - The module will always report change when *enable_chassis_power_button* is ``true``.
 
 
 

@@ -53,7 +53,7 @@ options:
           - ID of the NIC or port number.
           - C(Note) This will not be validated.
         type: str
-        required: True
+        required: true
       team:
         description:
           - Group two or more ports. The ports must be connected to the same pair of Ethernet switches.
@@ -86,7 +86,7 @@ options:
               - The I(names) can be retrieved using the M(dellemc.openmanage.ome_network_vlan_info)
             type: list
             elements: str
-            required: True
+            required: true
   job_wait:
     description:
       - Provides the option to wait for job completion.
@@ -95,7 +95,7 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is  tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 120
 requirements:
@@ -120,13 +120,13 @@ EXAMPLES = r'''
     nic_teaming: LACP
     nic_configuration:
       - nic_identifier: NIC.Mezzanine.1A-1-1
-        team: no
+        team: false
         untagged_network: 2
         tagged_networks:
           names:
             - vlan1
       - nic_identifier: NIC.Mezzanine.1A-2-1
-        team: yes
+        team: true
         untagged_network: 3
         tagged_networks:
           names:
@@ -144,13 +144,13 @@ EXAMPLES = r'''
     nic_teaming: NoTeaming
     nic_configuration:
       - nic_identifier: NIC.Mezzanine.1A-1-1
-        team: no
+        team: false
         untagged_network: 2
         tagged_networks:
           names:
             - vlan2
       - nic_identifier: NIC.Mezzanine.1A-2-1
-        team: yes
+        team: true
         untagged_network: 3
         tagged_networks:
           names:

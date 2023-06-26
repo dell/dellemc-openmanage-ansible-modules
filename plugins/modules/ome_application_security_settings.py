@@ -75,7 +75,7 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 120
   fips_mode_enable:
@@ -148,7 +148,7 @@ EXAMPLES = r'''
     username: "username"
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
-    fips_mode_enable: yes
+    fips_mode_enable: true
 '''
 
 RETURN = r'''

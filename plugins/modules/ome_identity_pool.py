@@ -32,7 +32,7 @@ options:
     choices: [present, absent]
   pool_name:
     type: str
-    required: True
+    required: true
     description:
       - This option is mandatory for I(state) when creating, modifying and deleting an identity pool.
   new_pool_name:

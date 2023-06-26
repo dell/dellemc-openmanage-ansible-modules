@@ -1,0 +1,25 @@
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:n1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/DCIM_JobService">
+  <s:Header>
+    <wsa:To s:mustUnderstand="true">https://{{ hostname }}:{{ https_port }}/wsman</wsa:To>
+    <wsman:ResourceURI s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/DCIM_JobService</wsman:ResourceURI>
+    <wsa:ReplyTo>
+      <wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
+    </wsa:ReplyTo>
+    <wsa:Action s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/DCIM_JobService/DeleteJobQueue</wsa:Action>
+    <wsman:MaxEnvelopeSize s:mustUnderstand="true">524288</wsman:MaxEnvelopeSize>
+    <wsa:MessageID s:mustUnderstand="true">urn:uuid:{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=32') | to_uuid }}</wsa:MessageID>
+    <wsman:OperationTimeout>PT12.0S</wsman:OperationTimeout>
+    <wsman:SelectorSet>
+      <wsman:Selector Name="__cimnamespace">root/dcim</wsman:Selector>
+      <wsman:Selector Name="SystemName">Idrac</wsman:Selector>
+      <wsman:Selector Name="SystemCreationClassName">DCIM_ComputerSystem</wsman:Selector>
+      <wsman:Selector Name="Name">JobService</wsman:Selector>
+      <wsman:Selector Name="CreationClassName">DCIM_JobService</wsman:Selector>
+    </wsman:SelectorSet>
+  </s:Header>
+  <s:Body>
+    <n1:DeleteJobQueue_INPUT>
+      <n1:JobID>JID_CLEARALL</n1:JobID>
+    </n1:DeleteJobQueue_INPUT>
+  </s:Body>
+</s:Envelope>

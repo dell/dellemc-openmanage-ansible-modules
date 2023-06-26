@@ -33,7 +33,7 @@ options:
     default: present
   group_name:
     type: str
-    required: True
+    required: true
     description:
       - The desired Active Directory/LDAP user group name to be imported or removed.
       - "Examples for user group name: Administrator or Account Operators or Access Control Assistance Operator."
