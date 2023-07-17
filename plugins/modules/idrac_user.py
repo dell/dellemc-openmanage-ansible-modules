@@ -219,6 +219,9 @@ ACCOUNT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/"
 ATTRIBUTE_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Attributes/"
 USER_ROLES = {"Administrator": 511, "Operator": 499, "ReadOnly": 1, "None": 0}
 ACCESS = {0: "Disabled", 1: "Enabled"}
+INVALID_PRIVILAGE_MSG = "custom_privilege value should be from 0 to 511."
+INVALID_PRIVILAGE_MIN = 0
+INVALID_PRIVILAGE_MAX = 511
 
 
 def compare_payload(json_payload, idrac_attr):
@@ -387,6 +390,14 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
     return response, msg
 
 
+def validate_input(module):
+    if module.params["state"] == "present":
+        user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
+            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
+        if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
+            module.fail_json(msg=INVALID_PRIVILAGE_MSG)
+
+
 def main():
     specs = {
         "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
@@ -408,6 +419,7 @@ def main():
         argument_spec=specs,
         supports_check_mode=True)
     try:
+        validate_input(module)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             user_attr, slot_uri, slot_id, empty_slot_id, empty_slot_uri = get_user_account(module, idrac)
             if module.params["state"] == "present":
