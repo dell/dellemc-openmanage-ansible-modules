@@ -59,6 +59,12 @@ Parameters
     Email associated with the issuer. This option is applicable for ``generate_csr``.
 
 
+  subject_alternative_names (optional, str, None)
+    Subject alternative name required for the certificate signing request generation.
+
+    Supports up to 4 comma separated values starting from primary, secondary, Tertiary and Quaternary values.
+
+
   upload_file (optional, str, None)
     Local path of the certificate file to be uploaded. This option is applicable for ``upload``. Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
 
@@ -130,6 +136,22 @@ Examples
         country: "US"
         email: "support@dell.com"
 
+    - name: Generate a certificate signing request with subject alternative names
+      dellemc.openmanage.ome_application_certificate:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "generate_csr"
+        distinguished_name: "hostname.com"
+        subject_alternative_names: "hostname_chassis.com"
+        department_name: "Remote Access Group"
+        business_name: "Dell Inc."
+        locality: "Round Rock"
+        country_state: "Texas"
+        country: "US"
+        email: "support@dell.com"
+
     - name: Upload the certificate
       dellemc.openmanage.ome_application_certificate:
         hostname: "192.168.0.1"
@@ -170,4 +192,5 @@ Authors
 ~~~~~~~
 
 - Felix Stephen (@felixs88)
+- Kritika Bhateja (@Kritika-Bhateja-03)
 

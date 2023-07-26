@@ -31,8 +31,6 @@ options:
     description:
       - Select C(present) to create or modify a user account.
       - Select C(absent) to remove a user account.
-      - Ensure Lifecycle Controller is available because the user operation
-        uses the capabilities of Lifecycle Controller.
     choices: [present, absent]
     default: present
   user_name:
@@ -393,7 +391,7 @@ def remove_user_account(module, idrac, slot_uri, slot_id):
 def validate_input(module):
     if module.params["state"] == "present":
         user_privilege = module.params["custom_privilege"] if "custom_privilege" in module.params and \
-            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"])
+            module.params["custom_privilege"] is not None else USER_ROLES.get(module.params["privilege"], 0)
         if INVALID_PRIVILAGE_MIN > user_privilege or user_privilege > INVALID_PRIVILAGE_MAX:
             module.fail_json(msg=INVALID_PRIVILAGE_MSG)
 

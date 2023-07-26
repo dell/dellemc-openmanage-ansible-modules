@@ -99,6 +99,10 @@ Parameters
     This option is applicable when *job_wait* is ``true``.
 
 
+  filter_no_reboot_required (optional, bool, None)
+    Select only components with no reboot required allows to create a firmware/driver baseline that consists of only the components of the target devices that don't require a reboot of the target devices.
+
+
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
@@ -165,6 +169,20 @@ Examples
           - 1010
           - 2020
 
+    - name: Create baseline for device IDs with no reboot required
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "baseline_name"
+        baseline_description: "baseline_description"
+        catalog_name: "catalog_name"
+        filter_no_reboot_required: true
+        device_ids:
+          - 1010
+          - 2020
+
     - name: Create baseline for servicetags
       dellemc.openmanage.ome_firmware_baseline:
         hostname: "192.168.0.1"
@@ -174,6 +192,20 @@ Examples
         baseline_name: "baseline_name"
         baseline_description: "baseline_description"
         catalog_name: "catalog_name"
+        device_service_tags:
+          - "SVCTAG1"
+          - "SVCTAG2"
+
+    - name: Create baseline for servicetags with no reboot required
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "baseline_name"
+        baseline_description: "baseline_description"
+        catalog_name: "catalog_name"
+        filter_no_reboot_required: true
         device_service_tags:
           - "SVCTAG1"
           - "SVCTAG2"
@@ -209,6 +241,16 @@ Examples
         downgrade_enabled: false
         is_64_bit: true
 
+    - name: Modify no reboot filter in existing baseline
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "existing_baseline_name"
+        new_baseline_name: "new_baseline_name"
+        filter_no_reboot_required: true
+
     - name: Delete a baseline
       dellemc.openmanage.ome_firmware_baseline:
         hostname: "192.168.0.1"
@@ -227,7 +269,7 @@ msg (always, str, Successfully created the firmware baseline.)
   Overall status of the firmware baseline operation.
 
 
-baseline_status (success, dict, {'CatalogId': 123, 'Description': 'BASELINE DESCRIPTION', 'DeviceComplianceReports': [], 'DowngradeEnabled': True, 'Id': 23, 'Is64Bit': True, 'Name': 'my_baseline', 'RepositoryId': 123, 'RepositoryName': 'catalog123', 'RepositoryType': 'HTTP', 'Targets': [{'Id': 10083, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}, {'Id': 10076, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}], 'TaskId': 11235, 'TaskStatusId': 2060})
+baseline_status (success, dict, {'CatalogId': 123, 'Description': 'BASELINE DESCRIPTION', 'DeviceComplianceReports': [], 'DowngradeEnabled': True, 'FilterNoRebootRequired': True, 'Id': 23, 'Is64Bit': True, 'Name': 'my_baseline', 'RepositoryId': 123, 'RepositoryName': 'catalog123', 'RepositoryType': 'HTTP', 'Targets': [{'Id': 10083, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}, {'Id': 10076, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}], 'TaskId': 11235, 'TaskStatusId': 2060})
   Details of the baseline status.
 
 
@@ -257,4 +299,5 @@ Authors
 ~~~~~~~
 
 - Jagadeesh N V(@jagadeeshnv)
+- Kritika Bhateja (@Kritika-Bhateja-03)
 
