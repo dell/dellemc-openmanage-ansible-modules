@@ -97,6 +97,7 @@ jobs:
 
   sanity:
     name: Sanity (Ⓐ${{ matrix.ansible }} with ${{ matrix.python }})
+    needs: [build]
     strategy:
       matrix:
         python: ['3.8', '3.9', '3.10']
