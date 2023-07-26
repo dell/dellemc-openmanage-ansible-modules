@@ -363,7 +363,7 @@ def main():
             "skip": {"type": 'int', "required": False},
             "filter": {"type": 'str', "required": False},
         }},
-        "fetch_execution_history" : {"type": 'bool', "default": False},
+        "fetch_execution_history": {"type": 'bool', "default": False},
     }
     specs.update(ome_auth_params)
     module = AnsibleModule(

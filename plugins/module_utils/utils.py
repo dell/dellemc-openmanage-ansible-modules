@@ -370,6 +370,7 @@ def get_all_data_with_pagination(ome_obj, uri, query_param=None):
         resp, report_list = None, []
     return {"resp_obj": resp, "report_list": report_list}
 
+
 def remove_key(data, remove_char='@odata.'):
     '''
     :param data: the dict/list to be stripped of unwanted keys
