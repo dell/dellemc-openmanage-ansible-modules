@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 6.1.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -45,6 +45,7 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 
 
 import time
+from copy import deepcopy
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 
 
@@ -348,3 +349,45 @@ def get_system_res_id(idrac):
         res_uri = member[0].get('@odata.id')
         res_id = res_uri.split("/")[-1]
     return res_id, error_msg
+
+
+def get_all_data_with_pagination(ome_obj, uri, query_param=None):
+    """To get all the devices with pagination based on the filter provided."""
+    try:
+        query, resp, report_list = "", None, []
+        resp = ome_obj.invoke_request('GET', uri, query_param=query_param)
+        next_uri = resp.json_data.get("@odata.nextLink", None)
+        report_list = resp.json_data.get("value")
+        if query_param is not None:
+            for k, v in query_param.items():
+                query += "{0}={1}".format(k, v.replace(" ", "%20"))
+        while next_uri is not None:
+            next_uri_query = "{0}&{1}".format(next_uri.strip("/api"), query) if query else next_uri.strip("/api")
+            resp = ome_obj.invoke_request('GET', next_uri_query)
+            report_list.extend(resp.json_data.get("value"))
+            next_uri = resp.json_data.get("@odata.nextLink", None)
+    except Exception:
+        resp, report_list = None, []
+    return {"resp_obj": resp, "report_list": report_list}
+
+def remove_key(data, remove_char='@odata.'):
+    '''
+    :param data: the dict/list to be stripped of unwanted keys
+    :param remove_char: the substring to be checked among the keys
+    :return: dict/list
+    '''
+    try:
+        data_copy = deepcopy(data)
+        for each_key in data_copy:
+            if remove_char in each_key:
+                data.pop(each_key, None)
+            elif isinstance(data_copy[each_key], dict):
+                data[each_key] = remove_key(data_copy[each_key])
+            elif isinstance(data_copy[each_key], list):
+                tmp_list = []
+                for each_key_list in data_copy[each_key]:
+                    tmp_list.append(remove_key(each_key_list))
+                data[each_key] = tmp_list
+    except Exception:
+        pass
+    return data

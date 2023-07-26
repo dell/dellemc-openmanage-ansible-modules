@@ -37,6 +37,7 @@ argument_specs:
         type: int
         default: 30
       share_parameters:
+        description: Network share parameters.
         type: dict
         options:
           share_name:

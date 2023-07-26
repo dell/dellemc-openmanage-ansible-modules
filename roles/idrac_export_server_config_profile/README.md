@@ -101,7 +101,7 @@ dellemc.openmanage
     <td></td>
     <td></td>
     <td>dict</td>
-    <td></td>
+    <td>Network share parameters.</td>
   </tr>
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;share_name</td>

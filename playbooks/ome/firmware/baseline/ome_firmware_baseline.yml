@@ -18,6 +18,20 @@
           - 1010
           - 2020
 
+    - name: Create baseline for device IDs with no reboot required
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "baseline_name"
+        baseline_description: "baseline_description"
+        catalog_name: "catalog_name"
+        filter_no_reboot_required: true
+        device_ids:
+          - 1010
+          - 2020
+
     - name: Create baseline for servicetags
       dellemc.openmanage.ome_firmware_baseline:
         hostname: "{{ hostname }}"
@@ -27,6 +41,20 @@
         baseline_name: "baseline_name"
         baseline_description: "baseline_description"
         catalog_name: "catalog_name"
+        device_service_tags:
+          - "SVCTAG1"
+          - "SVCTAG2"
+
+    - name: Create baseline for servicetags with no reboot required
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "baseline_name"
+        baseline_description: "baseline_description"
+        catalog_name: "catalog_name"
+        filter_no_reboot_required: true
         device_service_tags:
           - "SVCTAG1"
           - "SVCTAG2"
@@ -61,6 +89,17 @@
           - "Group5"
         downgrade_enabled: false
         is_64_bit: true
+        filter_no_reboot_required: true
+
+    - name: Modify no reboot filter in existing baseline
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "existing_baseline_name"
+        new_baseline_name: "new_baseline_name"
+        filter_no_reboot_required: true
 
     - name: Delete a baseline
       dellemc.openmanage.ome_firmware_baseline:

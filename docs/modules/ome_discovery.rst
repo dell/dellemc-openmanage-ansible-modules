@@ -643,6 +643,10 @@ discovery_ids (when discoveries with duplicate name exist for I(state) is C(pres
   IDs of the discoveries with duplicate names.
 
 
+job_detailed_status (All time., list, [{'ElapsedTime': '00:00:00', 'EndTime': None, 'ExecutionHistoryId': 564873, 'Id': 656893, 'IdBaseEntity': 0, 'JobStatus': {'Id': 2050, 'Name': 'Running'}, 'Key': '192.96.24.1', 'Progress': '0', 'StartTime': '2023-07-04 06:23:54.008', 'Value': 'Running\nDiscovery of target 192.96.24.1 started.\nDiscovery target resolved to IP  192.96.24.1 .'}])
+  Detailed last execution history of a job.
+
+
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
@@ -662,4 +666,5 @@ Authors
 
 - Jagadeesh N V (@jagadeeshnv)
 - Sajna Shetty (@Sajna-Shetty)
+- Abhishek Sinha (@Abhishek-Dell)
 

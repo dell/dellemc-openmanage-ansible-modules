@@ -64,13 +64,12 @@
             timeout: "{{ https_timeout }}"
           register: wsman_envelope_for_idrac_lc_status
           delegate_to: "{{ task_delgate }}"
-          ignore_errors: true
 
         - name: Parse lifecycle controller status response
           ansible.builtin.set_fact:
             idrac_lc_status: "{{ idrac_lc_status | default({}) | combine({item.key: get_remote_services_api_status_code[item.key][item.value]}) }}"
           with_dict:
-            LCStatus: "{{ wsman_envelope_for_idrac_lc_status.content | trim | regex_findall('(?<=<n1:LCStatus>).*(?=<\/n1:LCStatus>)') | first }}"
+            LCStatus: "{{ wsman_envelope_for_idrac_lc_status.content | trim | regex_findall('(?<=<n1:LCStatus>).*(?=</n1:LCStatus>)') | first }}"
           when: wsman_envelope_for_idrac_lc_status.content is search(".*<n1:ReturnValue>0</n1:ReturnValue>.*")
 
         - name: Checking lifecycle controller status

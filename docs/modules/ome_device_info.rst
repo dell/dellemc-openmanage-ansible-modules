@@ -203,5 +203,6 @@ Status
 Authors
 ~~~~~~~
 
-- Sajna Shetty(@Sajna-Shetty)
+- Sajna Shetty (@Sajna-Shetty)
+- Felix Stephen (@felixs88)
 

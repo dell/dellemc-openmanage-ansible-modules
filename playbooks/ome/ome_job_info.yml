@@ -30,3 +30,12 @@
           top: 2
           skip: 1
           filter: "JobType/Id eq 8"
+
+    - name: Get detail job execution history with last execution detail for a job.
+      dellemc.openmanage.ome_job_info:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        job_id: 12345
+        fetch_execution_history: true

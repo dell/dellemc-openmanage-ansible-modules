@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -54,13 +54,21 @@ options:
   email:
     description: Email associated with the issuer. This option is applicable for C(generate_csr).
     type: str
+  subject_alternative_names:
+    description:
+      - Subject alternative name required for the certificate signing request generation.
+      - Supports up to 4 comma separated values starting from primary, secondary, Tertiary and Quaternary values.
+    type: str
+    version_added: 8.1.0
   upload_file:
     type: str
     description: Local path of the certificate file to be uploaded. This option is applicable for C(upload).
         Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
 requirements:
     - "python >= 3.8.6"
-author: "Felix Stephen (@felixs88)"
+author:
+  - "Felix Stephen (@felixs88)"
+  - "Kritika Bhateja (@Kritika-Bhateja-03)"
 '''
 
 EXAMPLES = r'''
@@ -73,6 +81,22 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     command: "generate_csr"
     distinguished_name: "hostname.com"
+    department_name: "Remote Access Group"
+    business_name: "Dell Inc."
+    locality: "Round Rock"
+    country_state: "Texas"
+    country: "US"
+    email: "support@dell.com"
+
+- name: Generate a certificate signing request with subject alternative names
+  dellemc.openmanage.ome_application_certificate:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "generate_csr"
+    distinguished_name: "hostname.com"
+    subject_alternative_names: "hostname1.chassis.com, hostname2.chassis.com"
     department_name: "Remote Access Group"
     business_name: "Dell Inc."
     locality: "Round Rock"
@@ -134,7 +158,6 @@ error_info:
 
 import json
 import os
-from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -151,7 +174,8 @@ def get_resource_parameters(module):
                    "DepartmentName": module.params["department_name"],
                    "BusinessName": module.params["business_name"],
                    "Locality": module.params["locality"], "State": module.params["country_state"],
-                   "Country": module.params["country"], "Email": module.params["email"]}
+                   "Country": module.params["country"], "Email": module.params["email"],
+                   "San": module.params["subject_alternative_names"]}
     else:
         file_path = module.params["upload_file"]
         uri = csr_uri.format("UploadCertificate")
@@ -175,6 +199,7 @@ def main():
         "country": {"required": False, "type": "str"},
         "email": {"required": False, "type": "str"},
         "upload_file": {"required": False, "type": "str"},
+        "subject_alternative_names": {"required": False, "type": "str"}
     }
     specs.update(ome_auth_params)
     module = AnsibleModule(
@@ -202,7 +227,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))
