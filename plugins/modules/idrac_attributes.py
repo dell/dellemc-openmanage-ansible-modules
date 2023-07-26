@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -260,7 +260,6 @@ error_info:
 
 import json
 import re
-from ssl import SSLError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
@@ -285,7 +284,7 @@ def xml_data_conversion(attrbite, fqdd=None):
     attr = ""
     json_data = {}
     for k, v in attrbite.items():
-        key = re.sub(r"(?<=\d)\.", "#", k)
+        key = re.sub(r"\.(?!\d)", "#", k)
         attr += '<Attribute Name="{0}">{1}</Attribute>'.format(key, v)
         json_data[key] = str(v)
     root = component.format(fqdd, attr)
@@ -516,7 +515,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
+    except (IOError, ValueError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
 
 

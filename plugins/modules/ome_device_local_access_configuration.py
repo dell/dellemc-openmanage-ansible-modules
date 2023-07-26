@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -57,11 +57,12 @@ options:
           - Enables or disables the LCD override pin.
           - This is required when I(enable_chassis_power_button) is C(false).
       disabled_button_lcd_override_pin:
-        type: int
+        type: str
         description:
           - The six digit LCD override pin to change the power state of the chassis.
           - This is required when I(enable_lcd_override_pin) is C(true).
           - The module will always report change when I(disabled_button_lcd_override_pin) is C(true).
+          - 'The value must be specified in quotes. ex: "001100".'
   quick_sync:
     type: dict
     description:
@@ -132,6 +133,7 @@ requirements:
   - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
+  - "Shivam Sharma (@ShivamSh3)"
 notes:
   - Run this module from a system that has direct access to OpenManage Enterprise Modular.
   - This module supports C(check_mode).
@@ -152,7 +154,7 @@ EXAMPLES = """
     chassis_power_button:
       enable_chassis_power_button: false
       enable_lcd_override_pin: true
-      disabled_button_lcd_override_pin: 123456
+      disabled_button_lcd_override_pin: "123456"
 
 - name: Configure Quick sync and LCD settings of the chassis using device service tag.
   dellemc.openmanage.ome_device_local_access_configuration:
@@ -184,7 +186,7 @@ EXAMPLES = """
     chassis_power_button:
       enable_chassis_power_button: false
       enable_lcd_override_pin: true
-      disabled_button_lcd_override_pin: 123456
+      disabled_button_lcd_override_pin: "123456"
     quick_sync:
       quick_sync_access: READ_WRITE
       enable_read_authentication: true
@@ -417,7 +419,7 @@ def main():
     chassis_power = {
         "enable_chassis_power_button": {"type": "bool", "required": True},
         "enable_lcd_override_pin": {"type": "bool", "required": False},
-        "disabled_button_lcd_override_pin": {"type": "int", "required": False, "no_log": True}}
+        "disabled_button_lcd_override_pin": {"type": "str", "required": False, "no_log": True}}
     quick_sync_options = {
         "quick_sync_access": {"type": "str", "required": False, "choices": ["DISABLED", "READ_ONLY", "READ_WRITE"]},
         "enable_inactivity_timeout": {"type": "bool", "required": False},
@@ -470,7 +472,7 @@ def main():
                 resp_data["QuickSync"]["TimeoutLimitUnit"] = "MINUTES"
             module.exit_json(msg=SUCCESS_MSG, local_access_settings=resp_data, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:

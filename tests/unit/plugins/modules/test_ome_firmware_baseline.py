@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -45,6 +45,7 @@ payload_out1 = {
     "CatalogId": 12,
     "RepositoryId": 23,
     "DowngradeEnabled": True,
+    'FilterNoRebootRequired': True,
     "Is64Bit": True,
     "Targets": [
         {"Id": 123,
@@ -56,6 +57,7 @@ payload_out1 = {
 payload_out2 = {
     "Name": "baseline1",
     "CatalogId": 12,
+    'FilterNoRebootRequired': False,
     "RepositoryId": 23, 'Description': None, 'DowngradeEnabled': True, 'Is64Bit': True,
     "Targets": [
         {"Id": 123,
@@ -361,12 +363,14 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
                       "baseline_name": "baseline1",
                       "baseline_description": "baseline_description",
                       "downgrade_enabled": True,
-                      "is_64_bit": True}
+                      "is_64_bit": True,
+                      "filter_no_reboot_required": True}
     payload_param2 = {"catalog_name": "cat1",
                       "baseline_name": "baseline1",
                       "baseline_description": None,
                       "downgrade_enabled": None,
-                      "is_64_bit": None}
+                      "is_64_bit": None,
+                      "filter_no_reboot_required": False}
 
     @pytest.mark.parametrize("params", [{"inp": payload_param1, "out": payload_out1},
                                         {"inp": payload_param2, "out": payload_out2}])

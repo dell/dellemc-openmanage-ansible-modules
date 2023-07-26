@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.2.0
+# Version 8.1.0
 # Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -954,6 +954,10 @@ def apply_attributes(module, redfish_obj, pending, time_settings):
         resp = redfish_obj.invoke_request("PATCH", SETTINGS_URI.format(system_id=SYSTEM_ID,
                                                                        controller_id=module.params["controller_id"]),
                                           data=payload)
+        if resp.status_code == 202 and "error" in resp.json_data:
+            msg_err_id = resp.json_data.get("error").get("@Message.ExtendedInfo", [{}])[0].get("MessageId")
+            if "Created" not in msg_err_id:
+                module.exit_json(msg=ERR_MSG, error_info=resp.json_data, failed=True)
     except HTTPError as err:
         err = json.load(err).get("error")
         module.exit_json(msg=ERR_MSG, error_info=err, failed=True)

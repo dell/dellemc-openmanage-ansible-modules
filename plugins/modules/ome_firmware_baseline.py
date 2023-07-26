@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,8 @@ short_description: Create, modify, or delete a firmware baseline on OpenManage E
 description: This module allows to create, modify, or delete a firmware baseline on OpenManage Enterprise or OpenManage Enterprise Modular.
 version_added: "2.0.0"
 author:
-  - Jagadeesh N V(@jagadeeshnv)
+  - "Jagadeesh N V(@jagadeeshnv)"
+  - "Kritika Bhateja (@Kritika-Bhateja-03)"
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
@@ -99,6 +100,14 @@ options:
     type: int
     default: 600
     version_added: 3.4.0
+  filter_no_reboot_required:
+    description:
+      - Select only components with no reboot required allows to create a
+        firmware/driver baseline that consists of only the components of the
+        target devices that don't require a reboot of the target devices.
+    type: bool
+    version_added: 8.1.0
+
 requirements:
     - "python >= 3.8.6"
 notes:
@@ -122,6 +131,20 @@ EXAMPLES = r'''
       - 1010
       - 2020
 
+- name: Create baseline for device IDs with no reboot required
+  dellemc.openmanage.ome_firmware_baseline:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    baseline_name: "baseline_name"
+    baseline_description: "baseline_description"
+    catalog_name: "catalog_name"
+    filter_no_reboot_required: true
+    device_ids:
+      - 1010
+      - 2020
+
 - name: Create baseline for servicetags
   dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
@@ -131,6 +154,20 @@ EXAMPLES = r'''
     baseline_name: "baseline_name"
     baseline_description: "baseline_description"
     catalog_name: "catalog_name"
+    device_service_tags:
+      - "SVCTAG1"
+      - "SVCTAG2"
+
+- name: Create baseline for servicetags with no reboot required
+  dellemc.openmanage.ome_firmware_baseline:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    baseline_name: "baseline_name"
+    baseline_description: "baseline_description"
+    catalog_name: "catalog_name"
+    filter_no_reboot_required: true
     device_service_tags:
       - "SVCTAG1"
       - "SVCTAG2"
@@ -166,6 +203,16 @@ EXAMPLES = r'''
     downgrade_enabled: false
     is_64_bit: true
 
+- name: Modify no reboot filter in existing baseline
+  dellemc.openmanage.ome_firmware_baseline:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    baseline_name: "existing_baseline_name"
+    new_baseline_name: "new_baseline_name"
+    filter_no_reboot_required: true
+
 - name: Delete a baseline
   dellemc.openmanage.ome_firmware_baseline:
     hostname: "192.168.0.1"
@@ -192,6 +239,7 @@ baseline_status:
     "Description": "BASELINE DESCRIPTION",
     "DeviceComplianceReports": [],
     "DowngradeEnabled": true,
+    "FilterNoRebootRequired": true,
     "Id": 23,
     "Is64Bit": true,
     "Name": "my_baseline",
@@ -267,7 +315,6 @@ GROUP_ID = 6000
 
 import json
 import time
-from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -329,7 +376,7 @@ def get_dev_ids(module, rest_obj, param, devkey):
     targets = []
     if values:
         devlist = values
-        device_resp = dict([(device[devkey], device) for device in devlist])
+        device_resp = {device[devkey]: device for device in devlist}
         for st in paramlist:
             if st in device_resp:
                 djson = device_resp[st]
@@ -353,7 +400,7 @@ def get_group_ids(module, rest_obj):
     targets = []
     if values:
         grplist = values
-        device_resp = dict([(str(grp['Name']), grp) for grp in grplist])
+        device_resp = {str(grp['Name']): grp for grp in grplist}
         for st in grp_name_list:
             if st in device_resp:
                 djson = device_resp[st]
@@ -413,6 +460,7 @@ def _get_baseline_payload(module, rest_obj):
         "Targets": targets
     }
     baseline_payload['Description'] = module.params.get("baseline_description")
+    baseline_payload['FilterNoRebootRequired'] = module.params.get("filter_no_reboot_required")
     de = module.params.get("downgrade_enabled")
     baseline_payload['DowngradeEnabled'] = de if de is not None else True
     sfb = module.params.get("is_64_bit")
@@ -434,26 +482,29 @@ def create_baseline(module, rest_obj):
 
 
 def update_modify_payload(module, rest_obj, modify_payload, current_baseline):
-    paylist = ['Name', "CatalogId", "RepositoryId", 'Description', 'DowngradeEnabled', 'Is64Bit']
+    paylist = ['Name', "CatalogId", "RepositoryId", 'Description', 'DowngradeEnabled', 'Is64Bit',
+               'FilterNoRebootRequired']
     diff_tuple = recursive_diff(modify_payload, current_baseline)
     diff = 0
-    payload = dict([(item, current_baseline.get(item)) for item in paylist])
-    if diff_tuple:
-        if diff_tuple[0]:
+    payload = {item: current_baseline.get(item) for item in paylist}
+    try:
+        if diff_tuple and diff_tuple[0]:
             diff += 1
             payload.update(diff_tuple[0])
-    payload['Targets'] = current_baseline.get('Targets', [])
-    inp_targets_list = get_target_list(module, rest_obj)
-    if inp_targets_list:
-        inp_target_dict = dict([(item['Id'], item['Type']['Id']) for item in inp_targets_list])
-        cur_target_dict = dict([(item['Id'], item['Type']['Id']) for item in current_baseline.get('Targets', [])])
-        diff_tuple = recursive_diff(inp_target_dict, cur_target_dict)
-        if diff_tuple:
-            diff += 1
-            payload['Targets'] = inp_targets_list
-    if diff == 0:
-        module.exit_json(msg=NO_CHANGES_MSG)
-    payload['Id'] = current_baseline['Id']
+        payload['Targets'] = current_baseline.get('Targets', [])
+        inp_targets_list = get_target_list(module, rest_obj)
+        if inp_targets_list:
+            inp_target_dict = {item['Id']: item['Type']['Id'] for item in inp_targets_list}
+            cur_target_dict = {item['Id']: item['Type']['Id'] for item in current_baseline.get('Targets', [])}
+            diff_tuple = recursive_diff(inp_target_dict, cur_target_dict)
+            if diff_tuple:
+                diff += 1
+                payload['Targets'] = inp_targets_list
+        if diff == 0:
+            module.exit_json(msg=NO_CHANGES_MSG)
+        payload['Id'] = current_baseline['Id']
+    except (IndexError, TypeError) as err:
+        module.fail_json(msg=str(err))
     return payload
 
 
@@ -478,6 +529,8 @@ def modify_baseline(module, rest_obj, baseline_list):
         modify_payload['DowngradeEnabled'] = module.params.get("downgrade_enabled")
     if module.params.get("is_64_bit") is not None:
         modify_payload['Is64Bit'] = module.params.get("is_64_bit")
+    if module.params.get("filter_no_reboot_required") is not None:
+        modify_payload['FilterNoRebootRequired'] = module.params.get("filter_no_reboot_required")
     payload = update_modify_payload(module, rest_obj, modify_payload, current_baseline)
     if module.check_mode:
         module.exit_json(msg=CHANGES_FOUND, changed=True)
@@ -512,7 +565,8 @@ def main():
         "device_service_tags": {"type": 'list', "elements": 'str'},
         "device_group_names": {"type": 'list', "elements": 'str'},
         "job_wait": {"type": 'bool', "default": True},
-        "job_wait_timeout": {"type": 'int', "default": 600}
+        "job_wait_timeout": {"type": 'int', "default": 600},
+        "filter_no_reboot_required": {"type": 'bool'}
     }
     specs.update(ome_auth_params)
     module = AnsibleModule(
@@ -542,7 +596,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

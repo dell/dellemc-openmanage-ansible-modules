@@ -66,6 +66,19 @@ class TestOmeJobInfo(FakeAnsibleModule):
         assert result['changed'] is False
         assert 'job_info' in result
 
+    def test_get_execution_history_and_last_execution_detail_of_a_job(self, ome_default_args,
+                                                                      ome_connection_job_info_mock,
+                                                                      ome_response_mock):
+        ome_default_args.update({"job_id": 1, "fetch_execution_history": True})
+        ome_response_mock.success = True
+        ome_response_mock.json_data = {"value": [{"job_id": 1}]}
+        ome_response_mock.status_code = 200
+        result = self._run_module(ome_default_args)
+        assert result['changed'] is False
+        assert 'job_info' in result
+        assert 'LastExecutionDetail' in result['job_info']
+        assert 'ExecutionHistories' in result['job_info']
+
     def test_job_info_success_case03(self, ome_default_args, ome_connection_job_info_mock,
                                      ome_response_mock):
         ome_default_args.update({"system_query_options": {"filter": "abc"}})
@@ -98,7 +111,7 @@ class TestOmeJobInfo(FakeAnsibleModule):
                 MODULE_PATH + 'ome_job_info._get_query_parameters',
                 side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
-        if not exc_type == URLError:
+        if exc_type != URLError:
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:

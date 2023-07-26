@@ -38,8 +38,6 @@ Parameters
 
     Select ``absent`` to remove a user account.
 
-    Ensure Lifecycle Controller is available because the user operation uses the capabilities of Lifecycle Controller.
-
 
   user_name (True, str, None)
     Provide the *user_name* of the account to be created, deleted or modified.

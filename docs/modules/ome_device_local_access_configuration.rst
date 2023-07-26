@@ -67,12 +67,14 @@ Parameters
       This is required when *enable_chassis_power_button* is ``false``.
 
 
-    disabled_button_lcd_override_pin (optional, int, None)
+    disabled_button_lcd_override_pin (optional, str, None)
       The six digit LCD override pin to change the power state of the chassis.
 
       This is required when *enable_lcd_override_pin* is ``true``.
 
       The module will always report change when *disabled_button_lcd_override_pin* is ``true``.
+
+      The value must be specified in quotes. ex: "001100".
 
 
 
@@ -225,7 +227,7 @@ Examples
         chassis_power_button:
           enable_chassis_power_button: false
           enable_lcd_override_pin: true
-          disabled_button_lcd_override_pin: 123456
+          disabled_button_lcd_override_pin: "123456"
 
     - name: Configure Quick sync and LCD settings of the chassis using device service tag.
       dellemc.openmanage.ome_device_local_access_configuration:
@@ -257,7 +259,7 @@ Examples
         chassis_power_button:
           enable_chassis_power_button: false
           enable_lcd_override_pin: true
-          disabled_button_lcd_override_pin: 123456
+          disabled_button_lcd_override_pin: "123456"
         quick_sync:
           quick_sync_access: READ_WRITE
           enable_read_authentication: true
@@ -301,4 +303,5 @@ Authors
 ~~~~~~~
 
 - Felix Stephen (@felixs88)
+- Shivam Sharma (@ShivamSh3)
 

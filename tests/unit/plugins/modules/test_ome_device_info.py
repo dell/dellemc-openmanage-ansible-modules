@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -61,13 +61,17 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
                                                            validate_device_inputs_mock, ome_connection_mock,
                                                            get_device_resource_parameters_mock, ome_response_mock):
         quer_param_mock = mocker.patch(MODULE_PATH + 'ome_device_info._get_query_parameters')
-        quer_param_mock.return_value = {"filter": "Type eq '1000'"}
-        ome_response_mock.json_data = {"value": [{"device_id1": "details", "device_id2": "details"}]}
+        quer_param_mock.return_value = {"filter": "Type eq 1000"}
+        ome_response_mock.json_data = {
+            "value": [{"device_id1": "details", "device_id2": "details"}],
+            "@odata.context": "/api/$metadata#Collection(DeviceService.Device)",
+            "@odata.count": 2,
+        }
         ome_response_mock.status_code = 200
         result = self._run_module(ome_default_args)
         assert result['changed'] is False
         assert 'device_info' in result
-        assert result["device_info"] == {"value": [{"device_id1": "details", "device_id2": "details"}]}
+        assert "@odata.context" in result["device_info"]
 
     def test_main_basic_inventory_failure_case(self, ome_default_args, module_mock, validate_device_inputs_mock,
                                                ome_connection_mock,

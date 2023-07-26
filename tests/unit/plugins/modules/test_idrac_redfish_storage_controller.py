@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.2.0
+# Version 8.1.0
 # Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -508,6 +508,20 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                                                         time_settings)
         assert job_id == "JID_XXXXXXXXXXXXX"
         assert time_set == {'ApplyTime': "Immediate"}
+        redfish_response_mock.status_code = 202
+        redfish_response_mock.json_data = {"error": {"@Message.ExtendedInfo": [
+            {"Message": "The value 'abcd' for the property PatrolReadMode is not in the list of acceptable values.",
+             "MessageArgs": ["abcd", "PatrolReadMode"], "MessageArgs@odata.count": 2,
+             "MessageId": "Base.1.12.PropertyValueNotInList",
+             "RelatedProperties": ["#/Oem/Dell/DellStorageController/PatrolReadMode"],
+             "RelatedProperties@odata.count": 1,
+             "Resolution": "Choose a value from the enumeration list that the implementation can support and"
+                           "resubmit the request if the operation failed.", "Severity": "Warning"}
+        ]}}
+        with pytest.raises(Exception) as ex:
+            self.module.apply_attributes(f_module, redfish_str_controller_conn, {"CheckConsistencyMode": "StopOnError"},
+                                         time_settings)
+        assert ex.value.args[0] == "Unable to configure the controller attribute(s) settings."
 
     def test_set_attributes(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",

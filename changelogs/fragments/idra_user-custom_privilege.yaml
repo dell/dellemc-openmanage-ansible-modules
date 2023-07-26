@@ -1,2 +1,0 @@
-minor_changes:
-  - idrac_user - Add `custom_privilges` parameter to define custom priviliges instead of only relying on pre-defined roles.

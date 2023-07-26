@@ -1427,3 +1427,34 @@ releases:
         name: idrac_job_queue
         namespace: null
     release_date: '2023-06-30'
+  8.1.0:
+    changes:
+      bugfixes:
+        - The Chassis Power PIN value must be of six numerical digits input from the module. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/492).
+        - idrac_attributes module can now support modification of IPv6 attributes on iDRAC 8. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/488).
+        - ome_device_info is limited to 50 responses with a query filter. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/499).
+      known_issues:
+        - ome_device_network_services - Issue(212681) - The module does not provide
+          a proper error message if unsupported values are provided for the following
+          parameters- port_number, community_name, max_sessions, max_auth_retries, and
+          idle_timeout.
+        - ome_device_power_settings - Issue(212679) - The module displays the following
+          message if the value provided for the parameter ``power_cap`` is not within
+          the supported range of 0 to 32767, ``Unable to complete the request because
+          PowerCap does not exist or is not applicable for the resource URI.``
+        - ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by
+          OpenManage Enterprise Modular, it does not allow the creation of multiple
+          uplinks of the same name. If an uplink is created using the same name as an
+          existing uplink, the existing uplink is modified.
+      minor_changes:
+        - Module ``ome_application_certificate`` is enhanced to support subject alternative names.
+        - Module ``idrac_user`` is enhanced to configure custom privileges for an user.
+        - Module ``ome_firmware_baseline`` is enhanced to support the option to select only components with no reboot required.
+        - Module ``ome_discovery`` is enhanced to add detailed job information of each IP discovered.
+        - Module ``ome_job_info`` is enhanced to return last execution details and execution histories.
+      release_summary:
+        "- Support for subject alternative names while generating certificate signing requests on OME.\n- Create a user on 
+          iDRAC using custom privileges.\n- Create a firmware baseline on OME with the filter option of no reboot 
+          required.\n- Retrieve all server items in the output for ome_device_info.\n- Enhancement to add detailed job 
+          information for ome_discovery and ome_job_info."
+    release_date: '2023-07-30'

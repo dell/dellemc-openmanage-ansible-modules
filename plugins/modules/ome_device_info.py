@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.1.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -60,7 +60,9 @@ options:
 
 requirements:
     - "python >= 3.8.6"
-author: "Sajna Shetty(@Sajna-Shetty)"
+author:
+  - "Sajna Shetty (@Sajna-Shetty)"
+  - "Felix Stephen (@felixs88)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -196,6 +198,7 @@ device_info:
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -389,9 +392,13 @@ def main():
             if device_facts.get("basic_inventory"):
                 query_param = _get_query_parameters(module.params)
                 if query_param is not None:
-                    resp = rest_obj.invoke_request('GET', device_facts["basic_inventory"], query_param=query_param)
-                    device_facts = resp.json_data
-                    resp_status.append(resp.status_code)
+                    device_report = get_all_data_with_pagination(rest_obj, device_facts["basic_inventory"], query_param)
+                    if not device_report.get("report_list", []):
+                        module.exit_json(msg="No devices present.", device_info=[])
+                    device_facts = {"@odata.context": device_report["resp_obj"].json_data["@odata.context"],
+                                    "@odata.count": len(device_report["report_list"]),
+                                    "value": device_report["report_list"]}
+                    resp_status.append(device_report["resp_obj"].status_code)
                 else:
                     device_report = rest_obj.get_all_report_details(DEVICE_RESOURCE_COLLECTION[DEVICE_LIST]["resource"])
                     device_facts = {"@odata.context": device_report["resp_obj"].json_data["@odata.context"],

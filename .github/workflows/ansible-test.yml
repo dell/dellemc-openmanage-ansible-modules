@@ -96,40 +96,30 @@ jobs:
 # https://docs.ansible.com/ansible/latest/dev_guide/testing_sanity.html
 
   sanity:
-    name: Sanity Tests
-    runs-on: ubuntu-latest
+    name: Sanity (Ⓐ${{ matrix.ansible }} with ${{ matrix.python }})
     needs: [build]
     strategy:
-      fail-fast: false
       matrix:
-        ansible-version: [stable-2.12, stable-2.13, stable-2.14, stable-2.15, devel]
-
+        python: ['3.8', '3.9', '3.10']
+        ansible:
+          - stable-2.13
+          - stable-2.14
+          - stable-2.15
+          - devel
+        exclude:
+          - ansible: stable-2.14
+            python: '3.8'
+          - ansible: stable-2.15
+            python: '3.8'
+    runs-on: ubuntu-latest
     steps:
-      - name: Set up Python 
-        uses: actions/setup-python@v1
+      - name: Perform sanity testing
+        uses: ansible-community/ansible-test-gh-action@release/v1
         with:
-          # it is just required to run that once as "ansible-test sanity" in the docker image
-          # will run on all python versions it supports.
-          python-version: 3.10.12
-
-      - name: Install ansible (${{ matrix.ansible-version }}) version
-        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
-
-      - name: Download migrated collection artifacts
-        uses: actions/download-artifact@v1
-        with:
-          name: collection
-          path: .cache/collection-tarballs
-
-      - name: Setup Sanity test Pre-requisites
-        run: ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
-
-      # run ansible-test sanity inside of Docker.
-      # The docker container has all the pinned dependencies that are required
-      # and all python versions ansible supports.
-      - name: Run sanity tests
-        run: ansible-test sanity --docker -v --color
-        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+          ansible-core-version: ${{ matrix.ansible }}
+          target-python-version:  ${{ matrix.python }}
+          testing-type: sanity
+          pull-request-change-detection: true
 
   lint:
       name: Ansible lint
