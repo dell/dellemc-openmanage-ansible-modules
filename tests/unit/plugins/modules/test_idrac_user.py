@@ -50,6 +50,17 @@ class TestIDRACUser(FakeAnsibleModule):
         resp = self.module.get_payload(f_module, 1, action="update")
         assert resp["Users.1.UserName"] == idrac_default_args["new_user_name"]
 
+    def test_get_payload_2(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
+                                   "user_name": "test", "user_password": "password",
+                                   "privilege": "Administrator", "custom_privilege": 17, "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        resp = self.module.get_payload(f_module, 1)
+        assert resp["Users.1.Privilege"] == idrac_default_args["custom_privilege"]
+
     def test_convert_payload_xml(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
                                    "user_name": "test", "user_password": "password",

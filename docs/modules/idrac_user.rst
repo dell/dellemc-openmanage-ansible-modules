@@ -66,6 +66,12 @@ Parameters
 
     A user with ``None``, no privileges assigned.
 
+    Will be ignored, if custom_privilege parameter is provided.
+
+
+  custom_privilege (optional, int, None)
+    The privilege level assigned to the user.
+
 
   ipmi_lan_privilege (optional, str, None)
     The Intelligent Platform Management Interface LAN privilege level assigned to the user.
