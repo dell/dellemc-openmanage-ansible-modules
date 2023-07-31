@@ -255,7 +255,7 @@ catalog_status:
         "BaseLocation": null,
         "BundlesCount": 0,
         "Filename": "catalog.gz",
-        "Id": 0,
+        "Id": 12,
         "LastUpdated": null,
         "ManifestIdentifier": null,
         "ManifestVersion": null,
@@ -411,7 +411,7 @@ def exit_catalog(module, rest_obj, catalog_resp, operation, msg):
         if job_failed is True:
             msg = job_message
             # module.fail_json(msg=job_message, catalog_status=catalog)
-            # catalog_resp = catalog
+            ## catalog_resp = catalog
         else:
             msg = CATALOG_UPDATED.format(operation=operation)
     time.sleep(SETTLING_TIME)
