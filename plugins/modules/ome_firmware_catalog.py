@@ -18,7 +18,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_firmware_catalog
 short_description: Create, modify, or delete a firmware catalog on OpenManage Enterprise or OpenManage Enterprise Modular
-version_added: "2.0.0"
+version_added: "8.2.0"
 description: This module allows to create, modify, or delete a firmware catalog on OpenManage Enterprise or OpenManage Enterprise Modular.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
@@ -354,6 +354,7 @@ import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -391,24 +392,31 @@ def check_existing_catalog(module, rest_obj, state, name=None):
 
 def get_updated_catalog_info(module, rest_obj, catalog_resp):
     try:
-        catalog, all_catalog = check_existing_catalog(module, rest_obj, "present", name=catalog_resp["Repository"]["Name"])
+        catalog_list, all_catalog = check_existing_catalog(module, rest_obj, "present", name=catalog_resp["Repository"]["Name"])
+        # catalog_uri = CATALOG_URI_ID.format(Id=catalog_resp['Id'])
+        # resp = rest_obj.invoke_request('GET', catalog_uri)
+        # catalog = resp.json_data
+        catalog = catalog_list[0]
     except Exception:
         catalog = catalog_resp
-    return catalog[0]
+    return catalog
 
 
 def exit_catalog(module, rest_obj, catalog_resp, operation, msg):
+    job_failed = False
     if module.params.get("job_wait"):
         job_failed, job_message = rest_obj.job_tracking(
             catalog_resp.get('TaskId'), job_wait_sec=module.params["job_wait_timeout"], sleep_time=JOB_POLL_INTERVAL)
-        catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
+        # catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
         if job_failed is True:
-            module.fail_json(msg=job_message, catalog_status=catalog)
-        catalog_resp = catalog
-        msg = CATALOG_UPDATED.format(operation=operation)
+            msg = job_message
+            # module.fail_json(msg=job_message, catalog_status=catalog)
+            # catalog_resp = catalog
+        else:
+            msg = CATALOG_UPDATED.format(operation=operation)
     time.sleep(SETTLING_TIME)
     catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
-    module.exit_json(msg=msg, catalog_status=catalog, changed=True)
+    module.exit_json(failed=job_failed, msg=msg, catalog_status=strip_substr_dict(catalog), changed=True)
 
 
 def _get_catalog_payload(params, name):
