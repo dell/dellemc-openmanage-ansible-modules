@@ -392,31 +392,24 @@ def check_existing_catalog(module, rest_obj, state, name=None):
 
 def get_updated_catalog_info(module, rest_obj, catalog_resp):
     try:
-        catalog_list, all_catalog = check_existing_catalog(module, rest_obj, "present", name=catalog_resp["Repository"]["Name"])
-        # catalog_uri = CATALOG_URI_ID.format(Id=catalog_resp['Id'])
-        # resp = rest_obj.invoke_request('GET', catalog_uri)
-        # catalog = resp.json_data
-        catalog = catalog_list[0]
+        catalog, all_catalog = check_existing_catalog(module, rest_obj, "present", name=catalog_resp["Repository"]["Name"])
     except Exception:
         catalog = catalog_resp
-    return catalog
+    return catalog[0]
 
 
 def exit_catalog(module, rest_obj, catalog_resp, operation, msg):
-    job_failed = False
     if module.params.get("job_wait"):
         job_failed, job_message = rest_obj.job_tracking(
             catalog_resp.get('TaskId'), job_wait_sec=module.params["job_wait_timeout"], sleep_time=JOB_POLL_INTERVAL)
-        # catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
+        catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
         if job_failed is True:
-            msg = job_message
-            # module.fail_json(msg=job_message, catalog_status=catalog)
-            # catalog_resp = catalog
-        else:
-            msg = CATALOG_UPDATED.format(operation=operation)
+            module.fail_json(msg=job_message, catalog_status=catalog)
+        catalog_resp = catalog
+        msg = CATALOG_UPDATED.format(operation=operation)
     time.sleep(SETTLING_TIME)
     catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
-    module.exit_json(failed=job_failed, msg=msg, catalog_status=strip_substr_dict(catalog), changed=True)
+    module.exit_json(msg=msg, catalog_status=strip_substr_dict(catalog), changed=True)
 
 
 def _get_catalog_payload(params, name):
