@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -109,7 +109,7 @@ class RestOME(object):
             if "AF_INET6" == data[0][0]._name_:
                 self.hostname = "[{0}]".format(self.hostname)
         except Exception:
-            msg = "Unable to resolve hostname or IP with OME {0}.".format(self.hostname)
+            msg = "Unable to resolve hostname or IP {0}.".format(self.hostname)
             raise URLError(msg)
 
     def _get_base_url(self):

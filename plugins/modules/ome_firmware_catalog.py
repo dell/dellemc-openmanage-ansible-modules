@@ -18,7 +18,7 @@ DOCUMENTATION = r'''
 ---
 module: ome_firmware_catalog
 short_description: Create, modify, or delete a firmware catalog on OpenManage Enterprise or OpenManage Enterprise Modular
-version_added: "8.2.0"
+version_added: "2.0.0"
 description: This module allows to create, modify, or delete a firmware catalog on OpenManage Enterprise or OpenManage Enterprise Modular.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
