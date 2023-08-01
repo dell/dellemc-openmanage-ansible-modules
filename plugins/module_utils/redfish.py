@@ -106,7 +106,7 @@ class Redfish(object):
         try:
             ip_addr, port = self.hostname, self.protocol
             if ']:' in ip_addr:
-                ip_addr, port = self.hostname.split(']:')
+                ip_addr, port = ip_addr.split(']:')
 
             ip_addr = ip_addr.strip('[]')
             if ip_addr.count(':') == 1:
