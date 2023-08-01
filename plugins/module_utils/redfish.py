@@ -31,6 +31,7 @@ __metaclass__ = type
 
 import json
 import os
+import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
@@ -101,6 +102,32 @@ class Redfish(object):
         self.protocol = 'https'
         self.root_uri = '/redfish/v1/'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+
+        try:
+            ip_addr, port = self.hostname, self.protocol
+            # IPV6 with bracket and port
+            if ']:' in self.hostname:
+                ip_addr, port = self.hostname.split(']:')
+                ip_addr = ip_addr.strip('[')
+            # IPV6 with bracket and without port
+            else:
+                ip_addr = self.hostname.strip('][')
+
+            try:
+                # IPV6 without bracket and port
+                socket.getaddrinfo(ip_addr, port)
+            except Exception:
+                # IPV4 with port
+                ip_addr, port = self.hostname.split(':')
+
+            data = socket.getaddrinfo(ip_addr, port)
+            if "AF_INET6" == data[0][0]._name_:
+                self.hostname = "[{0}]".format(ip_addr)
+        except socket.gaierror:
+            msg = "Unable to communicate with iDRAC IP {0}. This may be due to one of the following: " \
+                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL " \
+                  "handshake.".format(self.hostname)
+            raise URLError(msg)
 
     def _get_base_url(self):
         """builds base url"""
