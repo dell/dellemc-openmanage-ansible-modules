@@ -105,28 +105,18 @@ class Redfish(object):
 
         try:
             ip_addr, port = self.hostname, self.protocol
-            # IPV6 with bracket and port
-            if ']:' in self.hostname:
+            if ']:' in ip_addr:
                 ip_addr, port = self.hostname.split(']:')
-                ip_addr = ip_addr.strip('[')
-            # IPV6 with bracket and without port
-            else:
-                ip_addr = self.hostname.strip('][')
 
-            try:
-                # IPV6 without bracket and port
-                socket.getaddrinfo(ip_addr, port)
-            except Exception:
-                # IPV4 with port
-                ip_addr, port = self.hostname.split(':')
+            ip_addr = ip_addr.strip('[]')
+            if ip_addr.count(':') == 1:
+                ip_addr, port = ip_addr.split(':')
 
             data = socket.getaddrinfo(ip_addr, port)
             if "AF_INET6" == data[0][0]._name_:
                 self.hostname = "[{0}]".format(ip_addr)
         except socket.gaierror:
-            msg = "Unable to communicate with iDRAC IP {0}. This may be due to one of the following: " \
-                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL " \
-                  "handshake.".format(self.hostname)
+            msg = "Unable to resolve hostname or IP {0}.".format(self.hostname)
             raise URLError(msg)
 
     def _get_base_url(self):
