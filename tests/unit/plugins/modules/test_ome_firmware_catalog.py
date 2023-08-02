@@ -867,9 +867,8 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
                                        {"hostname": "ABCD:ABCD:ABCD:EF12:3456:7890"}])
     def test_ome_catalog_invalid_hostname(self, ome_default_args, param):
         # To verify invalid IP or hostname in module_utils/ome
-        ome_default_args.update({"hostname": param['hostname'],"catalog_name": "catalog1", "repository_type": "HTTPS"})
+        ome_default_args.update({"hostname": param['hostname'], "catalog_name": "catalog1", "repository_type": "HTTPS"})
         result = self._run_module(ome_default_args)
         assert result["unreachable"] is True
         assert "Unable to resolve hostname or IP" in result['msg']
         assert param['hostname'] in result['msg']
-
