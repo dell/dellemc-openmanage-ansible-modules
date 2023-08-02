@@ -50,6 +50,8 @@ SESSION_RESOURCE_COLLECTION = {
     "SESSION_ID": "/redfish/v1/Sessions/{Id}",
 }
 
+HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
+
 
 class OpenURLResponse(object):
     """Handles HTTPResponse"""
@@ -116,7 +118,7 @@ class Redfish(object):
                 ip_addr, port = data[0][4][0], data[0][4][1]
                 self.hostname = "[{0}]:{1}".format(ip_addr, port)
         except (socket.gaierror, IndexError):
-            msg = "Unable to resolve hostname or IP {0}.".format(self.hostname)
+            msg = HOST_UNRESOLVED_MSG.format(self.hostname)
             raise URLError(msg)
 
     def _get_base_url(self):
