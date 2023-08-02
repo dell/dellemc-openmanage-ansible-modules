@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.5.0
+# Version 8.2.0
 # Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -57,8 +57,10 @@ author:
     - "Husniya Hameed (@husniya_hameed)"
     - "Shivam Sharma (@Shivam-Sharma)"
     - "Kritika Bhateja (@Kritika_Bhateja)"
+    - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
+    - This module supports both IPv4 and IPv6 address for *hostname*.
     - This module does not support C(check_mode).
 """
 

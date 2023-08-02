@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -107,15 +107,15 @@ class Redfish(object):
             ip_addr, port = self.hostname, self.protocol
             if ']:' in ip_addr:
                 ip_addr, port = ip_addr.split(']:')
-
             ip_addr = ip_addr.strip('[]')
             if ip_addr.count(':') == 1:
                 ip_addr, port = ip_addr.split(':')
 
             data = socket.getaddrinfo(ip_addr, port)
             if "AF_INET6" == data[0][0]._name_:
-                self.hostname = "[{0}]".format(ip_addr)
-        except socket.gaierror:
+                ip_addr, port = data[0][4][0], data[0][4][1]
+                self.hostname = "[{0}]:{1}".format(ip_addr, port)
+        except (socket.gaierror, IndexError):
             msg = "Unable to resolve hostname or IP {0}.".format(self.hostname)
             raise URLError(msg)
 
