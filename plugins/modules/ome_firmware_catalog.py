@@ -354,7 +354,7 @@ import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -409,7 +409,7 @@ def exit_catalog(module, rest_obj, catalog_resp, operation, msg):
         msg = CATALOG_UPDATED.format(operation=operation)
     time.sleep(SETTLING_TIME)
     catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
-    module.exit_json(msg=msg, catalog_status=strip_substr_dict(catalog), changed=True)
+    module.exit_json(msg=msg, catalog_status=remove_key(catalog), changed=True)
 
 
 def _get_catalog_payload(params, name):
