@@ -160,6 +160,7 @@ Notes
 .. note::
    - If *repository_password* is provided, then the module always reports the changed status.
    - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
+   - This module supports both IPv4 and IPv6 address for *hostname*.
    - This module supports ``check_mode``.
 
 
