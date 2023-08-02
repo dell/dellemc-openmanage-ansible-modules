@@ -55,6 +55,7 @@ SESSION_RESOURCE_COLLECTION = {
 
 JOB_URI = "JobService/Jobs({job_id})"
 JOB_SERVICE_URI = "JobService/Jobs"
+HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
 
 
 class OpenURLResponse(object):
@@ -109,7 +110,7 @@ class RestOME(object):
             if "AF_INET6" == data[0][0]._name_:
                 self.hostname = "[{0}]".format(self.hostname)
         except Exception:
-            msg = "Unable to resolve hostname or IP {0}.".format(self.hostname)
+            msg = HOST_UNRESOLVED_MSG.format(self.hostname)
             raise URLError(msg)
 
     def _get_base_url(self):
