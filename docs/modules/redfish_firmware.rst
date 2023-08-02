@@ -22,7 +22,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python \>= 3.8.6
+- python >= 3.8.6
 - urllib3
 
 
@@ -33,7 +33,7 @@ Parameters
   image_uri (True, str, None)
     Firmware Image location URI or local path.
 
-    For example- \ http://%3Cweb_address%3E/components.exe\  or /home/firmware\_repo/component.exe.
+    For example- http://<web_address>/components.exe or /home/firmware_repo/component.exe.
 
 
   transfer_protocol (optional, str, HTTP)
@@ -45,15 +45,15 @@ Parameters
 
 
   job_wait_timeout (optional, int, 3600)
-    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
+    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
+    This option is applicable when *job_wait* is ``true``.
 
-    Note: If a firmware update needs a reboot, the job will get scheduled and waits for no of seconds specfied in \ :emphasis:`job\_wait\_time`\ . to reduce the wait time either give \ :emphasis:`job\_wait\_time`\  minimum or make \ :emphasis:`job\_wait`\ as false and retrigger.
+    Note: If a firmware update needs a reboot, the job will get scheduled and waits for no of seconds specfied in *job_wait_time*. to reduce the wait time either give *job_wait_time* minimum or make *job_wait*as false and retrigger.
 
 
   baseuri (True, str, None)
-    IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
+    IP address of the target out-of-band controller. For example- <ipaddress>:<port>.
 
 
   username (True, str, None)
@@ -65,11 +65,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`false`\ , the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -88,8 +88,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Redfish APIs.
-   - This module supports both IPv4 and IPv6 address for \*hostname\*.
-   - This module does not support \ :literal:`check\_mode`\ .
+   - This module supports both IPv4 and IPv6 address for *hostname*.
+   - This module does not support ``check_mode``.
 
 
 
