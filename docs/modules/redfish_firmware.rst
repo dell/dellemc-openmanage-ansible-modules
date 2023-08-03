@@ -88,7 +88,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Redfish APIs.
-   - This module supports both IPv4 and IPv6 address for *hostname*.
+   - This module supports both IPv4 and IPv6 address for *baseuri*.
    - This module does not support ``check_mode``.
 
 
