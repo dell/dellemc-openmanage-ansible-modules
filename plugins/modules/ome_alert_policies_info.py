@@ -48,66 +48,53 @@ EXAMPLES = """
     username: "username"
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
-    policy_name: ""
+    policy_name: "Mobile Push Notification - Critical Alerts"
 """
 
 RETURN = '''
 ---
-msg:
-  type: str
-  description: Detailed information of the network VLAN(s).
+policies:
+  type: list
+  description: Retrieve information of the OME alert policies.
   returned: success
-  sample: {
-  "msg": "Successfully retrieved the network VLAN information.",
-  "network_vlan_info": [
-        {
-            "CreatedBy": "admin",
-            "CreationTime": "2020-09-02 18:48:42.129",
-            "Description": "Description of Logical Network - 1",
-            "Id": 20057,
-            "InternalRefNWUUId": "42b9903d-93f8-4184-adcf-0772e4492f71",
-            "Name": "Network VLAN - 1",
-            "Type": {
-                "Description": "This is the network for general purpose traffic. QOS Priority : Bronze.",
-                "Id": 1,
-                "Name": "General Purpose (Bronze)",
-                "NetworkTrafficType": "Ethernet",
-                "QosType": {
-                    "Id": 4,
-                    "Name": "Bronze"
-                },
-                "VendorCode": "GeneralPurpose"
+  sample: [
+    {
+        "Id": 10006,
+        "Name": "Mobile Push Notification - Critical Alerts",
+        "Description": "This policy is applicable to critical alerts. Associated actions will be taken when a critical alert is received.",
+        "Enabled": true,
+        "DefaultPolicy": true,
+        "PolicyData": {
+            "Catalogs": [],
+            "Severities": [
+                16
+            ],
+            "MessageIds": [],
+            "Devices": [],
+            "DeviceTypes": [],
+            "Groups": [],
+            "AllTargets": false,
+            "Schedule": {
+                "StartTime": null,
+                "EndTime": null,
+                "CronString": null,
+                "Interval": false
             },
-            "UpdatedBy": null,
-            "UpdatedTime": "2020-09-02 18:48:42.129",
-            "VlanMaximum": 111,
-            "VlanMinimum": 111
+            "Actions": [
+                {
+                    "Id": 5,
+                    "Name": "Mobile",
+                    "ParameterDetails": [],
+                    "TemplateId": 112
+                }
+            ],
+            "UndiscoveredTargets": []
         },
-        {
-            "CreatedBy": "admin",
-            "CreationTime": "2020-09-02 18:49:11.507",
-            "Description": "Description of Logical Network - 2",
-            "Id": 20058,
-            "InternalRefNWUUId": "e46ccb3f-ef57-4617-ac76-46c56594005c",
-            "Name": "Network VLAN - 2",
-            "Type": {
-                "Description": "This is the network for general purpose traffic. QOS Priority : Silver.",
-                "Id": 2,
-                "Name": "General Purpose (Silver)",
-                "NetworkTrafficType": "Ethernet",
-                "QosType": {
-                    "Id": 3,
-                    "Name": "Silver"
-                },
-                "VendorCode": "GeneralPurpose"
-            },
-            "UpdatedBy": null,
-            "UpdatedTime": "2020-09-02 18:49:11.507",
-            "VlanMaximum": 112,
-            "VlanMinimum": 112
-        }
-    ]
-}
+        "State": true,
+        "Visible": true,
+        "Owner": null,
+    }
+]
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -158,18 +145,18 @@ class OMEAlertPolicyInfo(object):
                     break
         return value
 
-    def perform_module_operation(self):
+    def perform_module_operation(self) -> None:
         try:
             with RestOME(self.module.params, req_session=True) as rest_obj:
                 resp = self.get_alert_policy_info(rest_obj)
                 self.result = remove_key(resp)
                 self.module.exit_json(policies=self.result)
         except HTTPError as err:
-            self.module.fail_json(msg=str(err), error_info=json.load(err))
+            self.module.fail_json(error_info=json.load(err))
         except URLError as err:
-            self.module.exit_json(msg=str(err), unreachable=True)
+            self.module.exit_json(error_info=json.load(err), unreachable=True)
         except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-            self.module.fail_json(msg=str(err))
+            self.module.fail_json(json.load(err))
 
 
 def get_module_parameters():
