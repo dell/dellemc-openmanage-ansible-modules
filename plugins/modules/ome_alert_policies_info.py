@@ -162,14 +162,14 @@ class OMEAlertPolicyInfo():
                 result = self.get_alert_policy_info(rest_obj)
                 self.module.exit_json(policies=result)
         except HTTPError as err:
-            self.module.fail_json(cderror_info=json.load(err))
+            self.module.fail_json(error_info=json.load(err))
         except URLError as err:
             self.module.exit_json(error_info=str(err), unreachable=True)
         except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
             self.module.fail_json(error_info=str(err))
 
 
-def get_module_parameters() -> AnsibleModule:
+def get_module_parameters() -> AnsibleModule :
     specs = {
         "policy_name": {"type": 'str'}
     }
