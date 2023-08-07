@@ -3,8 +3,6 @@
   connection: local
   name: Dell OpenManage Ansible User service.
   gather_facts: false
-  vars:
-    ansible_python_interpreter: /usr/bin/python3.9
 
   tasks:
     - name: Get action details of all alert policies.
