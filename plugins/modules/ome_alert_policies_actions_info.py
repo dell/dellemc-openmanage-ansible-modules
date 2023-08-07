@@ -21,11 +21,12 @@ description: This module retrieves the information on actions of alert policies 
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - This module supports both IPv4 and IPv6 address for *hostname*.
 '''
 
 EXAMPLES = r'''
@@ -221,6 +222,26 @@ actions:
         "ParameterDetails": []
     }
 ]
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
 '''
 
 import json

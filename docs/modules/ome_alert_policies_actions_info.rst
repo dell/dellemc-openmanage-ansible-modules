@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python >= 3.9.6
 
 
 
@@ -67,6 +67,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+   - This module supports both IPv4 and IPv6 address for *hostname*.
 
 
 
@@ -93,6 +94,10 @@ Return Values
 
 actions (success, list, [{'Name': 'Email', 'Description': 'Email', 'Disabled': False, 'ParameterDetails': [{'Id': 1, 'Name': 'subject', 'Value': 'Device Name: $name,  Device IP Address: $ip,  Severity: $severity', 'Type': 'string', 'TemplateParameterTypeDetails': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 2, 'Name': 'to', 'Value': '', 'Type': 'string', 'TemplateParameterTypeDetails': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 3, 'Name': 'from', 'Value': 'admin1@dell.com', 'Type': 'string', 'TemplateParameterTypeDetails': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 4, 'Name': 'message', 'Value': 'Event occurred for Device Name: $name, Device IP Address: $ip, Service Tag: $identifier, UTC Time: $time, Severity: $severity, Message ID: $messageId, $message', 'Type': 'string', 'TemplateParameterTypeDetails': [{'Name': 'maxLength', 'Value': '255'}]}]}, {'Id': 60, 'Name': 'Trap', 'Description': 'Trap', 'Disabled': False, 'ParameterDetails': [{'Id': 1, 'Name': 'localhost:162', 'Value': 'true', 'Type': 'boolean', 'TemplateParameterTypeDetails': []}]}, {'Id': 90, 'Name': 'Syslog', 'Description': 'Syslog', 'Disabled': False, 'ParameterDetails': [{'Id': 1, 'Name': 'localhost.scomdev.com:555', 'Value': 'true', 'Type': 'boolean', 'TemplateParameterTypeDetails': []}, {'Id': 2, 'Name': 'localhost.scomdev.com:555', 'Value': 'true', 'Type': 'boolean', 'TemplateParameterTypeDetails': []}]}, {'Id': 100, 'Name': 'Ignore', 'Description': 'Ignore', 'Disabled': False, 'ParameterDetails': []}, {'Id': 70, 'Name': 'SMS', 'Description': 'SMS', 'Disabled': False, 'ParameterDetails': [{'Id': 1, 'Name': 'to', 'Value': '', 'Type': 'string', 'TemplateParameterTypeDetails': [{'Name': 'maxLength', 'Value': '255'}]}]}, {'Id': 110, 'Name': 'PowerControl', 'Description': 'Power Control Action Template', 'Disabled': False, 'ParameterDetails': [{'Id': 1, 'Name': 'powercontrolaction', 'Value': 'poweroff', 'Type': 'singleSelect', 'TemplateParameterTypeDetails': [{'Name': 'option', 'Value': 'powercycle'}, {'Name': 'option', 'Value': 'poweroff'}, {'Name': 'option', 'Value': 'poweron'}, {'Name': 'option', 'Value': 'gracefulshutdown'}]}]}, {'Id': 111, 'Name': 'RemoteCommand', 'Description': 'RemoteCommand', 'Disabled': True, 'ParameterDetails': [{'Id': 1, 'Name': 'remotecommandaction', 'Value': None, 'Type': 'singleSelect', 'TemplateParameterTypeDetails': []}]}, {'Id': 112, 'Name': 'Mobile', 'Description': 'Mobile', 'Disabled': False, 'ParameterDetails': []}])
   Returns the alert policies action information collected from the Device.
+
+
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+  Details of the HTTP Error.
 
 
 
