@@ -1,7 +1,7 @@
 ---
 - hosts: ome
   connection: local
-  name: Dell OpenManage Ansible Alert policy categories info.
+  name: Dell OpenManage Ansible Alert policy categories info
   gather_facts: false
 
   tasks:
