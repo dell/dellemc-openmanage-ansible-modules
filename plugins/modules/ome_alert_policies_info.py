@@ -16,9 +16,11 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_alert_policies_info
-short_description: Retrieves alert policy using policy_name.
+short_description: Retrieves information of one or more OME alert policies.
 version_added: "8.2.0"
-description: Retrieves alert policy using policy_name.
+description:
+  - A list of information about a specific OME alert policy using the policy name.
+  - A list of all the OME alert policies with their information when the policy name is not provided.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
@@ -31,18 +33,19 @@ author: "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports both IPv4 and IPv6 address for *hostname*.
+    - This module does not support C(check_mode).
 '''
 
 EXAMPLES = """
 ---
-- name: Retrieve information about all ome_alert_policies
+- name: Retrieve information about all OME alert policies.
   dellemc.openmanage.ome_alert_policies_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
 
-- name: Retrieve information about specific alert policy using policy name
+- name: Retrieve information about a specific OME alert policy using the policy name.
   dellemc.openmanage.ome_alert_policies_info:
     hostname: "192.168.0.1"
     username: "username"
@@ -55,7 +58,7 @@ RETURN = '''
 ---
 policies:
   type: list
-  description: Retrieve information of the OME alert policies.
+  description: Retrieve information about all the OME alert policies.
   returned: success
   sample: [
     {
@@ -128,38 +131,45 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 ALERT_POLICY_URI = "AlertService/AlertPolicies"
 
 
-class OMEAlertPolicyInfo(object):
+class OMEAlertPolicyInfo():
 
     def __init__(self) -> None:
-        self.result = []
         self.module = get_module_parameters()
 
-    def get_alert_policy_info(self, rest_obj) -> list:
+    def get_all_alert_policy_info(self, rest_obj) -> list:
         resp = rest_obj.invoke_request("GET", ALERT_POLICY_URI)
         value = resp.json_data["value"]
+        return remove_key(value)
 
-        if policy_name := self.module.params.get("policy_name"):
-            for each_dict in value:
-                if each_dict["Name"] == policy_name:
-                    value = [each_dict]
+    def get_alert_policy_info(self, rest_obj) -> list:
+        result = []
+        policy_name = self.module.params.get("policy_name")
+        if policy_name is not None:
+            if policy_name == "":
+                return []
+            value = self.get_all_alert_policy_info(rest_obj)
+            for each_element in value:
+                if each_element["Name"] == policy_name:
+                    result = [each_element]
                     break
-        return value
+        else:
+            result = self.get_all_alert_policy_info(rest_obj)
+        return result
 
     def perform_module_operation(self) -> None:
         try:
             with RestOME(self.module.params, req_session=True) as rest_obj:
-                resp = self.get_alert_policy_info(rest_obj)
-                self.result = remove_key(resp)
-                self.module.exit_json(policies=self.result)
+                result = self.get_alert_policy_info(rest_obj)
+                self.module.exit_json(policies=result)
         except HTTPError as err:
-            self.module.fail_json(error_info=json.load(err))
+            self.module.fail_json(cderror_info=json.load(err))
         except URLError as err:
-            self.module.exit_json(error_info=json.load(err), unreachable=True)
+            self.module.exit_json(error_info=str(err), unreachable=True)
         except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-            self.module.fail_json(json.load(err))
+            self.module.fail_json(error_info=str(err))
 
 
-def get_module_parameters():
+def get_module_parameters() -> AnsibleModule:
     specs = {
         "policy_name": {"type": 'str'}
     }
