@@ -2650,7 +2650,7 @@ class TestOmeAlertCategoryInfo(FakeAnsibleModule):
             ome_connection_mock_for_alert_category.invoke_request.side_effect = exc_type(
                 'http://testhost.com', 401, 'http error message', {"accept-type": "application/json"},
                 StringIO(json_str))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         elif exc_type == URLError:
             ome_connection_mock_for_alert_category.invoke_request.side_effect = exc_type("exception message")
@@ -2658,5 +2658,5 @@ class TestOmeAlertCategoryInfo(FakeAnsibleModule):
             assert result['unreachable'] is True
         else:
             ome_connection_mock_for_alert_category.invoke_request.side_effect = exc_type("exception message")
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True

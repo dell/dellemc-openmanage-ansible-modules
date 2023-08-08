@@ -44,6 +44,11 @@ EXAMPLES = r'''
 
 RETURN = r'''
 ---
+msg:
+  type: str
+  descrition: Error description in case of error.
+  returned: on error
+  sample: "HTTP Error 501: 501"
 categories:
   type: list
   description: Information about the alert categories.
@@ -810,11 +815,11 @@ def main():
             categories = get_formatted_categories(rest_obj)
             module.exit_json(categories=categories)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(failed=True, msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(failed=True, msg=str(err))
 
 
 if __name__ == "__main__":
