@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
+# Version 8.2.0
 # Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -46,6 +46,7 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 
 import time
 from copy import deepcopy
+from datetime import datetime
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 
 
@@ -392,3 +393,47 @@ def remove_key(data, remove_char='@odata.'):
     except Exception:
         pass
     return data
+
+
+def wait_for_redfish_reboot_job(redfish_obj, res_id, payload=None, wait_time_sec=300):
+    reset, job_resp, msg = False, {}, ""
+    try:
+        resp = redfish_obj.invoke_request('POST', SYSTEM_RESET_URI.format(res_id=res_id), data=payload)
+        time.sleep(10)
+        if wait_time_sec and resp.status_code == 204:
+            resp = redfish_obj.invoke_request("GET", MANAGER_JOB_URI)
+            reboot_job_lst = list(filter(lambda d: (d["JobType"] in ["RebootNoForce"]), resp.json_data["Members"]))
+            job_resp = max(reboot_job_lst, key=lambda d: datetime.strptime(d["StartTime"], "%Y-%m-%dT%H:%M:%S"))
+            if job_resp:
+                reset = True
+            else:
+                msg = RESET_FAIL
+    except Exception:
+        reset = False
+    return job_resp, reset, msg
+
+
+def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_timeout=120, sleep_time=10):
+    max_sleep_time = wait_timeout
+    sleep_interval = sleep_time
+    job_msg = "The job is not complete after {0} seconds.".format(wait_timeout)
+    if job_wait:
+        while max_sleep_time:
+            if max_sleep_time > sleep_interval:
+                max_sleep_time = max_sleep_time - sleep_interval
+            else:
+                sleep_interval = max_sleep_time
+                max_sleep_time = 0
+            time.sleep(sleep_interval)
+            job_resp = redfish_obj.invoke_request("GET", job_uri)
+            if job_resp.json_data.get("PercentComplete") == 100:
+                time.sleep(10)
+                return job_resp, ""
+            if job_resp.json_data.get("JobState") == "RebootFailed":
+                time.sleep(10)
+                return job_resp, job_msg
+    else:
+        time.sleep(10)
+        job_resp = redfish_obj.invoke_request("GET", job_uri)
+        return job_resp, ""
+    return {}, job_msg
