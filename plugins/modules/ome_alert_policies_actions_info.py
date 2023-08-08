@@ -27,6 +27,7 @@ author:
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports both IPv4 and IPv6 address.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -261,8 +262,7 @@ ACTIONS_URI = "AlertService/AlertActionTemplates"
 
 def main():
     """ function to retrieve the information on actions of alert policies """
-    specs = {}
-    specs.update(ome_auth_params)
+    specs = ome_auth_params
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
