@@ -270,4 +270,3 @@ class TestRedfishFirmware(FakeAnsibleModule):
         if exc_type == HTTPError:
             assert 'error_info' in result
         assert 'msg' in result
-
