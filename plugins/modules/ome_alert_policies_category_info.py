@@ -46,7 +46,7 @@ RETURN = r'''
 ---
 msg:
   type: str
-  descrition: Error description in case of error.
+  description: Error description in case of error.
   returned: on error
   sample: "HTTP Error 501: 501"
 categories:
@@ -224,21 +224,6 @@ categories:
                         "Name": "Auto System Reset"
                     },
                     {
-                        "Description": "BIOS Management",
-                        "Id": 54,
-                        "Name": "BIOS Management"
-                    },
-                    {
-                        "Description": "BIOS POST",
-                        "Id": 75,
-                        "Name": "BIOS POST"
-                    },
-                    {
-                        "Description": "System Info",
-                        "Id": 71,
-                        "Name": "System Info"
-                    },
-                    {
                         "Description": "UEFI Event",
                         "Id": 55,
                         "Name": "UEFI Event"
@@ -332,26 +317,6 @@ categories:
                         "Name": "Group Manager"
                     },
                     {
-                        "Description": "Job Control",
-                        "Id": 27,
-                        "Name": "Job Control"
-                    },
-                    {
-                        "Description": "RAC Event",
-                        "Id": 109,
-                        "Name": "RAC Event"
-                    },
-                    {
-                        "Description": "Software Change",
-                        "Id": 52,
-                        "Name": "Software Change"
-                    },
-                    {
-                        "Description": "System Info",
-                        "Id": 71,
-                        "Name": "System Info"
-                    },
-                    {
                         "Description": "UEFI Event",
                         "Id": 55,
                         "Name": "UEFI Event"
@@ -415,26 +380,6 @@ categories:
                         "Name": "Support Assist"
                     },
                     {
-                        "Description": "System Info",
-                        "Id": 71,
-                        "Name": "System Info"
-                    },
-                    {
-                        "Description": "Temperature",
-                        "Id": 110,
-                        "Name": "Temperature"
-                    },
-                    {
-                        "Description": "User Tracking",
-                        "Id": 56,
-                        "Name": "User Tracking"
-                    },
-                    {
-                        "Description": "Users",
-                        "Id": 35,
-                        "Name": "Users"
-                    },
-                    {
                         "Description": "Virtual Media",
                         "Id": 50,
                         "Name": "Virtual Media"
@@ -460,21 +405,6 @@ categories:
                         "Description": "UEFI Event",
                         "Id": 55,
                         "Name": "UEFI Event"
-                    },
-                    {
-                        "Description": "Uplink",
-                        "Id": 33,
-                        "Name": "Uplink"
-                    },
-                    {
-                        "Description": "User Tracking",
-                        "Id": 56,
-                        "Name": "User Tracking"
-                    },
-                    {
-                        "Description": "Users",
-                        "Id": 35,
-                        "Name": "Users"
                     },
                     {
                         "Description": "vFlash Event",
@@ -775,7 +705,7 @@ error_info:
         "message": "A general error has occurred. See ExtendedInfo for more information.",
         "@Message.ExtendedInfo": [
             {
-                "MessageId": "CGEN1006",
+                "MessageId": "CGEN1234",
                 "RelatedProperties": [],
                 "Message": "Unable to complete the request because the resource URI does not exist or is not implemented.",
                 "MessageArgs": [],
@@ -798,7 +728,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import re
 ALERT_CATEGORY_URI = "AlertService/AlertCategories"
 
 
-def get_formatted_categories(rest_obj): 
+def get_formatted_categories(rest_obj):
     resp = rest_obj.invoke_request("GET", ALERT_CATEGORY_URI)
     categories = remove_key(resp.json_data.get("value", []))
     return categories
