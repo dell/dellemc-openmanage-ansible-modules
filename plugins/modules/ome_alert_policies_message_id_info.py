@@ -26,6 +26,7 @@ requirements:
 author: "Shivam Sharma (@ShivamSh3)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - This module supports C(check_mode).
     - This module supports IPv4 and IPv6 addresses.
 '''
 
@@ -112,8 +113,7 @@ ALERT_MESSAGE_URI = "AlertService/AlertMessageDefinitions"
 
 
 def main():
-    specs = {}
-    specs.update(ome_auth_params)
+    specs = ome_auth_params
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=True

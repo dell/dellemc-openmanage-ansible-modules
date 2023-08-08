@@ -67,6 +67,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+   - This module supports ``check_mode``.
    - This module supports IPv4 and IPv6 addresses.
 
 
