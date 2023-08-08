@@ -45,7 +45,6 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 
 
 import time
-from copy import deepcopy
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 
 
