@@ -11,7 +11,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
     
-    - name: Retrieve information about specific OME alert policies.
+    - name: Retrieve information about specific OME alert policy.
       dellemc.openmanage.ome_alert_policies_info:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
