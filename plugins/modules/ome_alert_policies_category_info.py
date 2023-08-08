@@ -793,6 +793,12 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import re
 ALERT_CATEGORY_URI = "AlertService/AlertCategories"
 
 
+def get_formatted_categories(rest_obj): 
+    resp = rest_obj.invoke_request("GET", ALERT_CATEGORY_URI)
+    categories = remove_key(resp.json_data.get("value", []))
+    return categories
+
+
 def main():
     specs = {}
     specs.update(ome_auth_params)
@@ -801,15 +807,14 @@ def main():
         supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            resp = rest_obj.invoke_request("GET", ALERT_CATEGORY_URI)
-            categories = remove_key(resp.json_data.get("value", []))
+            categories = get_formatted_categories(rest_obj)
             module.exit_json(categories=categories)
     except HTTPError as err:
-        module.fail_json(error_info=json.load(err))
+        module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
-        module.exit_json(error_info=json.load(err), unreachable=True)
+        module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-        module.fail_json(json.load(err))
+        module.fail_json(msg=str(err))
 
 
 if __name__ == "__main__":

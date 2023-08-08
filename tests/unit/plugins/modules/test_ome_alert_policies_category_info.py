@@ -28,7 +28,7 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_alert_
 
 @pytest.fixture
 def ome_connection_mock_for_alert_category(mocker, ome_response_mock):
-    connection_class_mock = mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.ome_alert_policies_category_info.RestOME')
+    connection_class_mock = mocker.patch(MODULE_PATH + 'RestOME')
     ome_connection_mock_obj = connection_class_mock.return_value.__enter__.return_value
     ome_connection_mock_obj.invoke_request.return_value = ome_response_mock
     return ome_connection_mock_obj
@@ -2642,32 +2642,21 @@ class TestOmeAlertCategoryInfo(FakeAnsibleModule):
             for k in ctr.keys():
                 assert '@odata.' not in k
 
-    @pytest.mark.parametrize("exc_type",
-                             [SSLValidationError, ConnectionError, TypeError, ValueError, OSError, HTTPError, URLError])
-                            # [URLError])
-    def _test_ome_alert_policies_category_info_main_exception_failure_case(self, exc_type, mocker, ome_default_args,
-                                                     ome_connection_mock_for_alert_category, ome_response_mock):
-        json_str = to_text(json.dumps({"info": "error_details"}))
-        if exc_type == URLError:
-            ome_response_mock.success = True
-            ome_response_mock.json_data = {}
-            mocker.patch(MODULE_PATH + 'remove_key', side_effect=exc_type(fp))
-            result = self._run_module(ome_default_args)
-            # import pdb; pdb.set_trace()
-            assert result["unreachable"] is True
-        elif exc_type not in [HTTPError, SSLValidationError]:
-            ome_response_mock.status_code = 400
-            ome_response_mock.success = False
-            json_str = to_text(json.dumps({"info": "error_details"}))
-            mocker.patch(MODULE_PATH + 'remove_key', side_effect=exc_type(StringIO(json_str)))
+    @pytest.mark.parametrize("exc_type", [SSLValidationError, ConnectionError, TypeError, ValueError, OSError, HTTPError, URLError])
+    def test_ome_alert_policies_category_info_main_exception_failure_case(self, exc_type, mocker, ome_default_args,
+                                                        ome_connection_mock_for_alert_category, ome_response_mock):
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type == HTTPError:
+            ome_connection_mock_for_alert_category.invoke_request.side_effect = exc_type(
+                'http://testhost.com', 401, 'http error message', {"accept-type": "application/json"},
+                StringIO(json_str))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
+        elif exc_type == URLError:
+            ome_connection_mock_for_alert_category.invoke_request.side_effect = exc_type("exception message")
+            result = self._run_module(ome_default_args)
+            assert result['unreachable'] is True
         else:
-            ome_response_mock.status_code = 400
-            ome_response_mock.success = False
-           
-            mocker.patch(MODULE_PATH + 'remove_key',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
-                                              {"accept-type": "application/json"}, StringIO(json_str)))
+            ome_connection_mock_for_alert_category.invoke_request.side_effect = exc_type("exception message")
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
