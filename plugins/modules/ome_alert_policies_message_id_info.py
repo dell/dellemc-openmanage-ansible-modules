@@ -26,7 +26,7 @@ requirements:
 author: "Shivam Sharma (@ShivamSh3)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-    - This module supports both IPv4 and IPv6 address for *hostname*.
+    - This module supports IPv4 and IPv6 addresses.
 '''
 
 EXAMPLES = r'''
@@ -74,46 +74,6 @@ message_ids:
             "RecommendedAction": "Check the Embedded System Management (ESM) Log for any sensor related faults. If
              there is a failed sensor, replace the system board. For more information, contact your service provider.",
             "SequenceNo": 401,
-            "Severity": "Warning",
-            "SubCategory": "Amperage"
-        },
-        {
-            "Category": "System Health",
-            "DetailedDescription": "The current sensor identified in the message has returned to a normal state.",
-            "Message": "The ${0} sensor returned to a normal state with a value of ${1} A.",
-            "MessageId": "AMP402",
-            "Prefix": "AMP",
-            "RecommendedAction": "No response action is required.",
-            "SequenceNo": 402,
-            "Severity": "Informational",
-            "SubCategory": "Amperage"
-        },
-        {
-            "Category": "System Health",
-            "DetailedDescription": "The current sensor identified in the message is faulty or the current drawn by the
-             system exceeds the warning threshold. This condition can cause system performance issues and degradation in
-             the monitoring capability of the system.",
-            "Message": "The ${0} sensor state has changed to a warning state with a value of ${1} A.",
-            "MessageId": "AMP403",
-            "Prefix": "AMP",
-            "RecommendedAction": "Verify the Embedded System Management (ESM) Log for any sensor related faults. If
-             there is a failed sensor, replace the system board. For more information, contact your service provider.
-             Otherwise, change the warning threshold for the current sensor such that it corresponds to the hardware configuration.",
-            "SequenceNo": 403,
-            "Severity": "Warning",
-            "SubCategory": "Amperage"
-        },
-        {
-            "Category": "System Health",
-            "DetailedDescription": "The current sensor identified in the message is faulty or the current drawn by the
-             system exceed the critical threshold. This condition can cause system performance issues and degradation in the
-             monitoring capability of the system.",
-            "Message": "The ${0} sensor detected an error with a value of ${1} A.",
-            "MessageId": "AMP404",
-            "Prefix": "AMP",
-            "RecommendedAction": "Review system power policy, check system logs for power related failures, and review
-             system configuration changes. For more information, contact your service provider.",
-            "SequenceNo": 404,
             "Severity": "Warning",
             "SubCategory": "Amperage"
         }
