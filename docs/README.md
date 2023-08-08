@@ -43,6 +43,7 @@ You may obtain a copy of the License at
  
 ### OpenManage Enterprise Modules
 - [ome_active_directory](modules/ome_active_directory.rst)
+- [ome_alert_policies_info](modules/ome_alert_policies_info.rst)
 - [ome_application_alerts_smtp](modules/ome_application_alerts_smtp.rst)
 - [ome_application_alerts_syslog](modules/ome_application_alerts_syslog.rst)
 - [ome_application_certificate](modules/ome_application_certificate.rst)
