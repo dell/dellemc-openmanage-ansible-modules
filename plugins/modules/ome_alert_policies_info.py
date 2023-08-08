@@ -32,8 +32,8 @@ requirements:
 author: "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-    - This module supports both IPv4 and IPv6 address for *hostname*.
-    - This module does not support C(check_mode).
+    - This module supports both IPv4 and IPv6 address.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = """
@@ -162,11 +162,11 @@ class OMEAlertPolicyInfo():
                 result = self.get_alert_policy_info(rest_obj)
                 self.module.exit_json(policies=result)
         except HTTPError as err:
-            self.module.fail_json(error_info=json.load(err))
+            self.module.exit_json(error_info=json.load(err), failed=True)
         except URLError as err:
             self.module.exit_json(error_info=str(err), unreachable=True)
         except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-            self.module.fail_json(error_info=str(err))
+            self.module.exit_json(error_info=str(err), failed=True)
 
 
 def get_module_parameters() -> AnsibleModule :

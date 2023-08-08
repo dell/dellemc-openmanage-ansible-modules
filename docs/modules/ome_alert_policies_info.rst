@@ -73,8 +73,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports both IPv4 and IPv6 address for *hostname*.
-   - This module does not support ``check_mode``.
+   - This module supports both IPv4 and IPv6 address.
+   - This module supports ``check_mode``.
 
 
 
