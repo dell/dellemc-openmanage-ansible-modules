@@ -60,7 +60,8 @@ author:
     - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
-    - This module supports both IPv4 and IPv6 address for *baseuri*.
+    - This module supports both IPv4 and IPv6 address.
+    - This module supports only iDRAC9 and above.
     - This module does not support C(check_mode).
 """
 
