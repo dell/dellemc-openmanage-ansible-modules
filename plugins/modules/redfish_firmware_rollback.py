@@ -40,7 +40,7 @@ options:
   reboot_timeout:
     type: int
     description: Time in seconds to wait for the server to reboot.
-    default: 3600
+    default: 900
 requirements:
   - "python >= 3.8.6"
 author:
@@ -311,7 +311,7 @@ def main():
     specs = {
         "name": {"required": True, "type": "str"},
         "reboot": {"type": "bool", "default": True},
-        "reboot_timeout": {"type": "int", "default": 3600},
+        "reboot_timeout": {"type": "int", "default": 900},
     }
     specs.update(redfish_auth_params)
     module = AnsibleModule(argument_spec=specs, supports_check_mode=True)
@@ -319,19 +319,24 @@ def main():
         with Redfish(module.params, req_session=True) as redfish_obj:
             preview_uri, reboot_uri, update_uri = get_rollback_preview_target(redfish_obj, module)
             job_status, failed = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri)
-            if not job_status or failed == len(job_status):
-                module.fail_json(msg=ROLLBACK_FAILED, status=job_status)
+
+            if not job_status or (failed == len(job_status)):
+                module.exit_json(msg=ROLLBACK_FAILED, status=job_status, failed=True)
             if module.params["reboot"]:
+                msg, module_fail, changed = ROLLBACK_SUCCESS, False, True
                 if failed > 0 and failed != len(job_status):
-                    module.fail_json(msg=COMPLETED_ERROR, status=job_status)
-                module.exit_json(msg=ROLLBACK_SUCCESS, status=job_status, changed=True)
+                    msg, module_fail = COMPLETED_ERROR, True
             else:
+                msg, module_fail, changed = ROLLBACK_SCHEDULED, False, False
                 if failed > 0 and failed != len(job_status):
-                    module.fail_json(msg=SCHEDULED_ERROR, status=job_status)
-                module.exit_json(msg=ROLLBACK_SCHEDULED, status=job_status)
+                    msg, module_fail = SCHEDULED_ERROR, True
+            module.exit_json(msg=msg, status=job_status, failed=module_fail, changed=changed)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
-    except (RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
+    except URLError as err:
+        message = err.reason if err.reason else err(str)
+        module.exit_json(msg=message, unreachable=True)
+    except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError, IOError, AssertionError, OSError, SSLError) as e:
         module.fail_json(msg=str(e))
 

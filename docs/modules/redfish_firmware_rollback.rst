@@ -43,7 +43,7 @@ Parameters
     When *reboot* is ``false`` some components will update immediately and the module will wait for the server to come up.
 
 
-  reboot_timeout (optional, int, 3600)
+  reboot_timeout (optional, int, 900)
     Time in seconds to wait for the server to reboot.
 
 
