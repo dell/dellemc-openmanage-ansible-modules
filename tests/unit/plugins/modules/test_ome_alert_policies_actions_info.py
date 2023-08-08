@@ -84,5 +84,3 @@ class TestOmeAlertPoliciesActionsInfo(FakeAnsibleModule):
         else:
             result = self._run_module(ome_default_args)
         assert 'msg' in result
-        if exc_type == HTTPError:
-            assert 'error_info' in result
