@@ -34,7 +34,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Retrieve information about all the OME alert policies
+- name: Retrieve information about all the OME alert policy categories
   dellemc.openmanage.ome_alert_policies_category_info:
     hostname: "192.168.0.1"
     username: "username"
