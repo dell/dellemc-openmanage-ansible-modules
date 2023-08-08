@@ -42,7 +42,7 @@ options:
     description: Time in seconds to wait for the server to reboot.
     default: 900
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:
