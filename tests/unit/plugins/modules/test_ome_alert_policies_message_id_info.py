@@ -44,8 +44,8 @@ class TestOmeAlertPoliciesMessageIDInfo(FakeAnsibleModule):
                              [URLError, HTTPError, SSLValidationError, ConnectionError,
                               TypeError, ValueError])
     def test_ome_alert_policies_message_id_info_main_exception_handling_case(self, exc_type, ome_default_args,
-                                                                         ome_alert_policies_message_id_info_mock,
-                                                                         ome_response_mock):
+                                                                             ome_alert_policies_message_id_info_mock,
+                                                                             ome_response_mock):
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
         json_str = to_text(json.dumps({"data": "out"}))
@@ -53,10 +53,10 @@ class TestOmeAlertPoliciesMessageIDInfo(FakeAnsibleModule):
             ome_alert_policies_message_id_info_mock.invoke_request.side_effect = exc_type('test')
         else:
             ome_alert_policies_message_id_info_mock.invoke_request.side_effect = exc_type('http://testhost.com',
-                                                                                       400,
-                                                                                       'http error message',
-                                                                                       {"accept-type": "application/json"},
-                                                                                       StringIO(json_str))
+                                                                                          400,
+                                                                                          'http error message',
+                                                                                          {"accept-type": "application/json"},
+                                                                                          StringIO(json_str))
         if not exc_type == URLError:
             result = self._run_module(ome_default_args)
             assert result['failed'] is True
