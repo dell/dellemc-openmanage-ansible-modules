@@ -56,6 +56,11 @@ EXAMPLES = """
 
 RETURN = '''
 ---
+msg:
+  type: str
+  description: Error description in case of error.
+  returned: on error
+  sample: "HTTP Error 501: 501"
 policies:
   type: list
   description: Retrieve information about all the OME alert policies.
@@ -162,11 +167,11 @@ class OMEAlertPolicyInfo():
                 result = self.get_alert_policy_info(rest_obj)
                 self.module.exit_json(policies=result)
         except HTTPError as err:
-            self.module.exit_json(error_info=json.load(err), failed=True)
+            self.module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
         except URLError as err:
-            self.module.exit_json(error_info=str(err), unreachable=True)
+            self.module.exit_json(msg=str(err), unreachable=True)
         except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-            self.module.exit_json(error_info=str(err), failed=True)
+            self.module.exit_json(msg=str(err), failed=True)
 
 
 def get_module_parameters() -> AnsibleModule :
