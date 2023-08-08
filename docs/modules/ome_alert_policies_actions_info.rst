@@ -44,11 +44,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``False``, the SSL certificates will not be validated.
+    If ``false``, the SSL certificates will not be validated.
 
-    Configure ``False`` only on personally controlled sites where self-signed certificates are used.
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``False`` by default.
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
 
 
   ca_path (optional, path, None)
@@ -67,7 +67,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports both IPv4 and IPv6 address for *hostname*.
+   - This module supports both IPv4 and IPv6 address.
 
 
 
@@ -98,6 +98,10 @@ actions (success, list, [{'Name': 'Email', 'Description': 'Email', 'Disabled': F
 
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
+
+
+msg (on error, str, HTTP Error 501: 501)
+  Error description in case of error.
 
 
 

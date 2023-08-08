@@ -26,7 +26,7 @@ author:
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-    - This module supports both IPv4 and IPv6 address for *hostname*.
+    - This module supports both IPv4 and IPv6 address.
 '''
 
 EXAMPLES = r'''
@@ -242,6 +242,11 @@ error_info:
       ]
     }
   }
+msg:
+  type: str
+  description: Error description in case of error.
+  returned: on error
+  sample: "HTTP Error 501: 501"
 '''
 
 import json
@@ -265,17 +270,13 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             resp = rest_obj.invoke_request('GET', ACTIONS_URI)
             actions = remove_key(resp.json_data)
-            # check for 200 status as GET only returns this for success
-            if resp.status_code == 200:
-                module.exit_json(actions=actions["value"])
-            else:
-                module.exit_json(actions={})
+            module.exit_json(actions=actions["value"])
     except HTTPError as err:
-        module.fail_json(msg=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
