@@ -190,7 +190,7 @@ def get_rollback_preview_target(redfish_obj, module):
         component_compile = re.compile(r"^{0}$".format(component_name))
     except sre_constants.error:
         component_compile = ""
-        module.exit_json(msg=COMP_FAIL.format(component_name))
+        module.exit_json(msg=NO_CHANGES_FOUND)
     prev_uri, reboot_uri = {}, []
     for each in previous_component:
         available_comp = each["Name"]
@@ -203,10 +203,8 @@ def get_rollback_preview_target(redfish_obj, module):
         prev_uri[each["Version"]] = each["@odata.id"]
     if module.check_mode and (prev_uri or reboot_uri):
         module.exit_json(msg=CHANGES_FOUND, changed=True)
-    elif module.check_mode and (not prev_uri and not reboot_uri):
+    elif (module.check_mode or not module.check_mode) and (not prev_uri and not reboot_uri):
         module.exit_json(msg=NO_CHANGES_FOUND)
-    elif not module.check_mode and (not prev_uri and not reboot_uri):
-        module.exit_json(msg=COMP_FAIL.format(component_name))
     return list(prev_uri.values()), reboot_uri, update_uri
 
 
