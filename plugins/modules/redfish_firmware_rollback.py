@@ -13,6 +13,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+
 DOCUMENTATION = r"""
 ---
 module: redfish_firmware_rollback
@@ -140,6 +141,7 @@ error_info:
 import json
 import re
 import time
+import sre_constants
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params, \
     SESSION_RESOURCE_COLLECTION
@@ -163,6 +165,7 @@ ROLLBACK_SUCCESS = "Successfully completed the job for firmware rollback."
 ROLLBACK_SCHEDULED = "Successfully scheduled the job for firmware rollback."
 ROLLBACK_FAILED = "Failed to complete the job for firmware rollback."
 REBOOT_FAIL = "Failed to reboot the server."
+NEGATIVE_TIMEOUT_MESSAGE = "The parameter reboot_timeout value cannot be negative or zero."
 REBOOT_COMP = ["Integrated Dell Remote Access Controller"]
 
 
@@ -183,7 +186,11 @@ def get_rollback_preview_target(redfish_obj, module):
     if not previous_component:
         module.fail_json(msg=NO_COMPONENTS)
     component_name = module.params["name"]
-    component_compile = re.compile(r"^{0}$".format(component_name))
+    try:
+        component_compile = re.compile(r"^{0}$".format(component_name))
+    except sre_constants.error:
+        component_compile = ""
+        module.exit_json(msg=COMP_FAIL.format(component_name))
     prev_uri, reboot_uri = {}, []
     for each in previous_component:
         available_comp = each["Name"]
@@ -236,7 +243,7 @@ def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, interval=30
     resetting = False
     while wait > 0 and track_failed:
         try:
-            redfish_obj.invoke_request("GET", MANAGERS_URI)
+            redfish_obj.invoke_request("GET", MANAGERS_URI, api_timeout=120)
             msg = RESET_SUCCESS
             track_failed = False
             break
@@ -315,6 +322,8 @@ def main():
     }
     specs.update(redfish_auth_params)
     module = AnsibleModule(argument_spec=specs, supports_check_mode=True)
+    if module.params["reboot_timeout"] <= 0:
+        module.fail_json(msg=NEGATIVE_TIMEOUT_MESSAGE)
     try:
         with Redfish(module.params, req_session=True) as redfish_obj:
             preview_uri, reboot_uri, update_uri = get_rollback_preview_target(redfish_obj, module)
@@ -330,12 +339,11 @@ def main():
                 msg, module_fail, changed = ROLLBACK_SCHEDULED, False, False
                 if failed > 0 and failed != len(job_status):
                     msg, module_fail = SCHEDULED_ERROR, True
-            module.exit_json(msg=msg, status=job_status, failed=module_fail, changed=changed)
+            module.exit_json(msg=msg, job_status=job_status, failed=module_fail, changed=changed)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
-        message = err.reason if err.reason else err(str)
-        module.exit_json(msg=message, unreachable=True)
+        module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, SSLValidationError, ConnectionError, KeyError,
             ImportError, ValueError, TypeError, IOError, AssertionError, OSError, SSLError) as e:
         module.fail_json(msg=str(e))
