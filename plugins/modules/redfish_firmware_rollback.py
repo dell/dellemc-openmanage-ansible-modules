@@ -145,7 +145,7 @@ import sre_constants
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params, \
     SESSION_RESOURCE_COLLECTION
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_redfish_reboot_job,\
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import wait_for_redfish_reboot_job, \
     wait_for_redfish_job_complete, strip_substr_dict, MANAGER_JOB_ID_URI, RESET_UNTRACK, MANAGERS_URI, RESET_SUCCESS
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
