@@ -221,7 +221,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                   mocker):
         idrac_default_args.update({"share_name": "sharename", "state": "create", "controller_id": "XYZ123",
                                    "capacity": 1.4, "stripe_size": 1, "volumes": [{"drives": {"id": ["data"],
-                                                                                              "location":[1]}}]})
+                                                                                              "location": [1]}}]})
         with pytest.raises(ValueError) as ex:
             self.module._validate_options(idrac_default_args)
         assert "Either {0} or {1} is allowed".format("id", "location") == str(ex.value)
