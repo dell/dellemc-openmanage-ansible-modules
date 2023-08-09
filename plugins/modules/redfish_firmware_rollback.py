@@ -155,7 +155,6 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 UPDATE_SERVICE = "UpdateService"
 SYSTEM_RESOURCE_ID = "System.Embedded.1"
 NO_COMPONENTS = "There were no firmware components to rollback."
-COMP_FAIL = "There were no matches found to the firmware component with a '{0}'."
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 NOT_SUPPORTED = "The target firmware version does not support the firmware rollback."

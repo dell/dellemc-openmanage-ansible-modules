@@ -180,7 +180,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         }
         with pytest.raises(Exception) as ex:
             self.module.get_rollback_preview_target(redfish_connection_mock, f_module)
-        assert ex.value.args[0] == "There were no matches found to the firmware component with a 'BIOS'."
+        assert ex.value.args[0] == "No changes found to be applied."
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.get_rollback_preview_target(redfish_connection_mock, f_module)
