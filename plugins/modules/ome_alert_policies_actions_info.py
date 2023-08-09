@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 8.2.0
-# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -48,181 +48,181 @@ actions:
   description: Returns the alert policies action information collected from the Device.
   returned: success
   sample: [
+  {
+  "Name": "Email",
+  "Description": "Email",
+  "Disabled": false,
+  "ParameterDetails": [
     {
-      "Name": "Email",
-      "Description": "Email",
+      "Id": 1,
+      "Name": "subject",
+      "Value": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
+      "Type": "string",
+      "TemplateParameterTypeDetails": [
+        {
+          "Name": "maxLength",
+          "Value": "255"
+        }
+      ]
+    },
+    {
+      "Id": 2,
+      "Name": "to",
+      "Value": "",
+      "Type": "string",
+      "TemplateParameterTypeDetails": [
+        {
+          "Name": "maxLength",
+          "Value": "255"
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "from",
+      "Value": "admin1@dell.com",
+      "Type": "string",
+      "TemplateParameterTypeDetails": [
+        {
+          "Name": "maxLength",
+          "Value": "255"
+        }
+      ]
+    },
+    {
+      "Id": 4,
+      "Name": "message",
+      "Value": "Event occurred for Device Name: $name,
+       Device IP Address: $ip, Service Tag: $identifier, UTC Time: $time, Severity: $severity, Message ID: $messageId, $message",
+      "Type": "string",
+      "TemplateParameterTypeDetails": [
+        {
+          "Name": "maxLength",
+          "Value": "255"
+        }
+      ]
+    },
+    {
+      "Id": 60,
+      "Name": "Trap",
+      "Description": "Trap",
       "Disabled": false,
       "ParameterDetails": [
-         {
-            "Id": 1,
-            "Name": "subject",
-            "Value": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
-            "Type": "string",
-            "TemplateParameterTypeDetails": [
-              {
-                "Name": "maxLength",
-                "Value": "255"
-                  }
-                ]
+        {
+          "Id": 1,
+          "Name": "localhost:162",
+          "Value": "true",
+          "Type": "boolean",
+          "TemplateParameterTypeDetails": []
+        }
+      ]
+    },
+    {
+      "Id": 90,
+      "Name": "Syslog",
+      "Description": "Syslog",
+      "Disabled": false,
+      "ParameterDetails": [
+        {
+          "Id": 1,
+          "Name": "localhost.scomdev.com:555",
+          "Value": "true",
+          "Type": "boolean",
+          "TemplateParameterTypeDetails": []
+        },
+        {
+          "Id": 2,
+          "Name": "localhost.scomdev.com:555",
+          "Value": "true",
+          "Type": "boolean",
+          "TemplateParameterTypeDetails": []
+        }
+      ]
+    },
+    {
+      "Id": 100,
+      "Name": "Ignore",
+      "Description": "Ignore",
+      "Disabled": false,
+      "ParameterDetails": []
+    },
+    {
+      "Id": 70,
+      "Name": "SMS",
+      "Description": "SMS",
+      "Disabled": false,
+      "ParameterDetails": [
+        {
+          "Id": 1,
+          "Name": "to",
+          "Value": "",
+          "Type": "string",
+          "TemplateParameterTypeDetails": [
+            {
+              "Name": "maxLength",
+              "Value": "255"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": 110,
+      "Name": "PowerControl",
+      "Description": "Power Control Action Template",
+      "Disabled": false,
+      "ParameterDetails": [
+        {
+          "Id": 1,
+          "Name": "powercontrolaction",
+          "Value": "poweroff",
+          "Type": "singleSelect",
+          "TemplateParameterTypeDetails": [
+            {
+              "Name": "option",
+              "Value": "powercycle"
             },
             {
-             "Id": 2,
-                "Name": "to",
-                "Value": "",
-                "Type": "string",
-                "TemplateParameterTypeDetails": [
-                    {
-                        "Name": "maxLength",
-                        "Value": "255"
-                    }
-                ]
+              "Name": "option",
+              "Value": "poweroff"
             },
             {
-                "Id": 3,
-                "Name": "from",
-                "Value": "admin1@dell.com",
-                "Type": "string",
-                "TemplateParameterTypeDetails": [
-                    {
-                        "Name": "maxLength",
-                        "Value": "255"
-                    }
-                ]
+              "Name": "option",
+              "Value": "poweron"
             },
             {
-                "Id": 4,
-                "Name": "message",
-                "Value": "Event occurred for Device Name: $name,
-                 Device IP Address: $ip, Service Tag: $identifier, UTC Time: $time, Severity: $severity, Message ID: $messageId, $message",
-                "Type": "string",
-                "TemplateParameterTypeDetails": [
-                    {
-                        "Name": "maxLength",
-                        "Value": "255"
-                    }
-                ]
+              "Name": "option",
+              "Value": "gracefulshutdown"
             }
-        ]
+          ]
+        }
+      ]
     },
     {
-        "Id": 60,
-        "Name": "Trap",
-        "Description": "Trap",
-        "Disabled": false,
-        "ParameterDetails": [
-            {
-                "Id": 1,
-                "Name": "localhost:162",
-                "Value": "true",
-                "Type": "boolean",
-                "TemplateParameterTypeDetails": []
-            }
-        ]
+      "Id": 111,
+      "Name": "RemoteCommand",
+      "Description": "RemoteCommand",
+      "Disabled": true,
+      "ParameterDetails": [
+        {
+          "Id": 1,
+          "Name": "remotecommandaction",
+          "Value": null,
+          "Type": "singleSelect",
+          "TemplateParameterTypeDetails": []
+        }
+      ]
     },
     {
-        "Id": 90,
-        "Name": "Syslog",
-        "Description": "Syslog",
-        "Disabled": false,
-        "ParameterDetails": [
-            {
-                "Id": 1,
-                "Name": "localhost.scomdev.com:555",
-                "Value": "true",
-                "Type": "boolean",
-                "TemplateParameterTypeDetails": []
-            },
-            {
-                "Id": 2,
-                "Name": "localhost.scomdev.com:555",
-                "Value": "true",
-                "Type": "boolean",
-                "TemplateParameterTypeDetails": []
-            }
-        ]
-    },
-    {
-        "Id": 100,
-        "Name": "Ignore",
-        "Description": "Ignore",
-        "Disabled": false,
-        "ParameterDetails": []
-    },
-    {
-        "Id": 70,
-        "Name": "SMS",
-        "Description": "SMS",
-        "Disabled": false,
-        "ParameterDetails": [
-            {
-                "Id": 1,
-                "Name": "to",
-                "Value": "",
-                "Type": "string",
-                "TemplateParameterTypeDetails": [
-                    {
-                        "Name": "maxLength",
-                        "Value": "255"
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        "Id": 110,
-        "Name": "PowerControl",
-        "Description": "Power Control Action Template",
-        "Disabled": false,
-        "ParameterDetails": [
-            {
-                "Id": 1,
-                "Name": "powercontrolaction",
-                "Value": "poweroff",
-                "Type": "singleSelect",
-                "TemplateParameterTypeDetails": [
-                    {
-                        "Name": "option",
-                        "Value": "powercycle"
-                    },
-                    {
-                        "Name": "option",
-                        "Value": "poweroff"
-                    },
-                    {
-                        "Name": "option",
-                        "Value": "poweron"
-                    },
-                    {
-                        "Name": "option",
-                        "Value": "gracefulshutdown"
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        "Id": 111,
-        "Name": "RemoteCommand",
-        "Description": "RemoteCommand",
-        "Disabled": true,
-        "ParameterDetails": [
-            {
-                "Id": 1,
-                "Name": "remotecommandaction",
-                "Value": null,
-                "Type": "singleSelect",
-                "TemplateParameterTypeDetails": []
-            }
-        ]
-    },
-    {
-        "Id": 112,
-        "Name": "Mobile",
-        "Description": "Mobile",
-        "Disabled": false,
-        "ParameterDetails": []
+      "Id": 112,
+      "Name": "Mobile",
+      "Description": "Mobile",
+      "Disabled": false,
+      "ParameterDetails": []
     }
-]
+  ]
+}
+  ]
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
