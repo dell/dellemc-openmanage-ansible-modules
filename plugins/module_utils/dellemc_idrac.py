@@ -72,7 +72,7 @@ class iDRACConnection:
                 self.ca_path = self._get_omam_ca_env()
             verify_ssl = self.ca_path
         timeout = module_params.get("timeout", 30)
-        if not timeout or type(timeout) != int:
+        if not timeout or not isinstance(timeout, int):
             timeout = 30
         self.pOp = WsManOptions(port=self.idrac_port, read_timeout=timeout, verify_ssl=verify_ssl)
         self.sdk = sdkinfra()
