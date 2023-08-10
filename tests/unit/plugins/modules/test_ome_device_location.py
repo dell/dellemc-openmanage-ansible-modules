@@ -34,7 +34,6 @@ def ome_conn_mock_location(mocker, ome_response_mock):
 
 
 class TestOMEMDeviceLocation(FakeAnsibleModule):
-
     module = ome_device_location
 
     def test_check_domain_service(self, ome_conn_mock_location, ome_default_args, mocker):
@@ -102,6 +101,121 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
             self.module.device_validation(f_module, ome_conn_mock_location)
         assert err.value.args[0] == "Unable to complete the operation because the entered target " \
                                     "device id '25012' is invalid."
+
+    @pytest.mark.parametrize("params", [
+        {"json_data": {"value": [
+            {'Id': 1234, 'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000},
+            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            'message': "Successfully updated the location settings.",
+            'mparams': {"hostname": "1.2.3.4",
+                        "device_id": 1234, "data_center": "data center",
+                        "room": "room", "aisle": "aisle", "rack": "rack"}
+        },
+        {"json_data": {"value": [
+            {'Id': 1234, 'DeviceServiceTag': 'ABCD123', 'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000},
+            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            'message': "Successfully updated the location settings.",
+            'mparams': {"hostname": "1.2.3.4",
+                        "device_service_tag": "ABCD123", "data_center": "data center",
+                        "room": "room", "aisle": "aisle", "rack": "rack"}
+        },
+        {"json_data": {"value": [
+            {'Id': 1234, 'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000},
+            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            'message': "Successfully updated the location settings.",
+            'mparams': {"hostname": "1.2.3.4",
+                        "data_center": "data center",
+                        "room": "room", "aisle": "aisle", "rack": "rack"}
+        },
+        {"json_data": {"value": [
+            {'Id': 1234, 'PublicAddress': "dummyhost", 'DeviceId': 1234, "Type": 1000},
+            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            'message': "Successfully updated the location settings.",
+            'mparams': {"hostname": "dummyhost",
+                        "data_center": "data center",
+                        "room": "room", "aisle": "aisle", "rack": "rack"}
+        },
+    ])
+    def test_ome_devices_location_success(self, params, ome_conn_mock_location, ome_response_mock,
+                                          ome_default_args, module_mock, mocker):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params['json_data']
+        mocks = ["check_similar_job", "get_dev_ids"]
+        for m in mocks:
+            if m in params:
+                mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
+
+        ome_default_args.update(params['mparams'])
+        result = self._run_module(ome_default_args, check_mode=params.get('check_mode', False))
+        assert result['msg'] == params['message']
+
+    @pytest.mark.parametrize("params", [
+        {"json_data": {"value": [
+            {'Id': 1234, 'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000},
+            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            'message': "The device location settings operation is supported only on OpenManage Enterprise Modular systems.",
+            'http_error_json': {
+                "error": {
+                    "code": "Base.1.0.GeneralError",
+                    "message": "A general error has occurred. See ExtendedInfo for more information.",
+                    "@Message.ExtendedInfo": [
+                        {
+                            "MessageId": "CGEN1006",
+                            "RelatedProperties": [],
+                            "Message": "Unable to process the request because an error occurred.",
+                            "MessageArgs": [],
+                            "Severity": "Critical",
+                            "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+                        }
+                    ]
+                }
+            },
+            'mparams': {"hostname": "1.2.3.4",
+                        "data_center": "data center",
+                        "room": "room", "aisle": "aisle", "rack": "rack"}
+        },
+        {"json_data": {"value": [
+            {'Id': 1234, 'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000},
+            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            'message': "Unable to complete the operation because the location settings are not supported on the specified device.",
+            'http_error_json': {
+                "error": {
+                    "code": "Base.1.0.GeneralError",
+                    "message": "A general error has occurred. See ExtendedInfo for more information.",
+                    "@Message.ExtendedInfo": [
+                        {
+                            "MessageId": "CGEN1004",
+                            "RelatedProperties": [],
+                            "Message": "Unable to process the request because an error occurred.",
+                            "MessageArgs": [],
+                            "Severity": "Critical",
+                            "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+                        }
+                    ]
+                }
+            },
+            'check_domain_service': 'mocked_check_domain_service',
+            'standalone_chassis': ('Id', 1234),
+            'mparams': {"hostname": "1.2.3.4",
+                        "data_center": "data center",
+                        "room": "room", "aisle": "aisle", "rack": "rack"}
+        }
+    ])
+    def test_ome_devices_location_failure(self, params, ome_conn_mock_location, ome_response_mock,
+                                          ome_default_args, module_mock, mocker):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params['json_data']
+        mocks = ["check_domain_service", "standalone_chassis"]
+        for m in mocks:
+            if m in params:
+                mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
+        json_str = to_text(json.dumps(params.get('http_error_json', {})))
+        ome_conn_mock_location.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 401, 'http error message', {"accept-type": "application/json"},
+            StringIO(json_str))
+        ome_default_args.update(params['mparams'])
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result['msg'] == params['message']
 
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
