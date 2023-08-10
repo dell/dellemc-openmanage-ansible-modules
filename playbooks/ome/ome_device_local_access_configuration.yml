@@ -18,6 +18,7 @@
           enable_lcd_override_pin: true
           disabled_button_lcd_override_pin: "123456"
       tags: lac-device-id
+      delegate_to: localhost
 
     - name: Configure Quick sync and LCD settings of the chassis using device service tag.
       dellemc.openmanage.ome_device_local_access_configuration:
@@ -38,6 +39,7 @@
           lcd_language: en
           user_defined: "LCD Text"
       tags: lac-tag
+      delegate_to: localhost
 
     - name: Configure all local access settings of the host chassis.
       dellemc.openmanage.ome_device_local_access_configuration:
@@ -63,3 +65,4 @@
           lcd_language: en
           user_defined: "LCD Text"
       tags: lac-host
+      delegate_to: localhost

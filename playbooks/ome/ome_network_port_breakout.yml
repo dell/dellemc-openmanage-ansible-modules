@@ -14,6 +14,7 @@
         breakout_type: "1X40GE"
       tags:
         - port-config
+      delegate_to: localhost
 
     - name: Revoke the default breakout configuration.
       dellemc.openmanage.ome_network_port_breakout:
@@ -25,3 +26,4 @@
         breakout_type: "HardwareDefault"
       tags:
         - port-default
+      delegate_to: localhost

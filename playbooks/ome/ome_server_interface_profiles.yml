@@ -27,6 +27,7 @@
             tagged_networks:
               names:
                 - range120-125
+      delegate_to: localhost
 
     - name: Modify Server Interface Profile for the server using the id
       dellemc.openmanage.ome_server_interface_profiles:
@@ -51,3 +52,4 @@
             tagged_networks:
               names:
                 - range120-125
+      delegate_to: localhost

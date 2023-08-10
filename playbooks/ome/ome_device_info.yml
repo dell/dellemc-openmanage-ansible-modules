@@ -10,6 +10,7 @@
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
 
     - name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering.
       dellemc.openmanage.ome_device_info:
@@ -20,6 +21,7 @@
         fact_subset: "basic_inventory"
         system_query_options:
           filter: "Id eq 33333 or Id eq 11111"
+      delegate_to: localhost
 
     - name: Retrieve inventory details of specified devices identified by IDs 11111 and 22222.
       dellemc.openmanage.ome_device_info:
@@ -32,6 +34,7 @@
           device_id:
             - 11111
             - 22222
+      delegate_to: localhost
 
     - name: Retrieve inventory details of specified devices identified by service tags MXL1234 and MXL4567.
       dellemc.openmanage.ome_device_info:
@@ -44,6 +47,7 @@
           device_service_tag:
             - MXL1234
             - MXL4567
+      delegate_to: localhost
 
     - name: Retrieve details of specified inventory type of specified devices identified by ID and service tags.
       dellemc.openmanage.ome_device_info:
@@ -59,6 +63,7 @@
             - MXL1234
             - MXL4567
           inventory_type: "serverDeviceCards"
+      delegate_to: localhost
 
     - name: Retrieve subsystem health of specified devices identified by service tags.
       dellemc.openmanage.ome_device_info:
@@ -71,3 +76,4 @@
           device_service_tag:
             - MXL1234
             - MXL4567
+      delegate_to: localhost

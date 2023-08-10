@@ -14,6 +14,7 @@
         identity_pool_name: identity_pool_name
       tags:
         - attach
+      delegate_to: localhost
 
     - name: Detach an identity pool from a template.
       dellemc.openmanage.ome_template_identity_pool:
@@ -24,3 +25,4 @@
         template_name: template_name
       tags:
         - detach
+      delegate_to: localhost

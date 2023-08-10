@@ -34,6 +34,7 @@
           starting_address: "10-10-10-10-10-10"
           identity_count: 45
       tags: create1
+      delegate_to: localhost
 
     - name: Create an identity pool using only ethernet settings.
       dellemc.openmanage.ome_identity_pool:
@@ -47,6 +48,7 @@
           starting_mac_address: "aa-bb-cc-dd-ee-aa"
           identity_count: 80
       tags: create2
+      delegate_to: localhost
 
     - name: Create an identity pool using only iSCSI settings
       dellemc.openmanage.ome_identity_pool:
@@ -68,6 +70,7 @@
             primary_dns_server: "10.8.8.8"
             secondary_dns_server: "8.8.8.8"
       tags: create3
+      delegate_to: localhost
 
     - name: Modify an identity pool using FC settings.
       dellemc.openmanage.ome_identity_pool:
@@ -81,6 +84,7 @@
           starting_address: "40:40:40:40:40:22"
           identity_count: 48
       tags: modify1
+      delegate_to: localhost
 
     - name: Modify an identity pool.
       dellemc.openmanage.ome_identity_pool:
@@ -98,6 +102,7 @@
           starting_mac_address: "aabb.ccdd.5050"
           identity_count: 77
       tags: modify2
+      delegate_to: localhost
 
     - name: Modify an identity pool using iSCSI and FC settings.
       dellemc.openmanage.ome_identity_pool:
@@ -118,6 +123,7 @@
           starting_address: "10:10:10:10:10:10"
           identity_count: 98
       tags: modify3
+      delegate_to: localhost
 
     - name: Delete an identity pool
       dellemc.openmanage.ome_identity_pool:
@@ -128,3 +134,4 @@
         state: "absent"
         pool_name: "pool1"
       tags: delete
+      delegate_to: localhost

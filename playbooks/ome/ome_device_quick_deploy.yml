@@ -32,6 +32,7 @@
               slot_ipv6_address: "::"
               vlan_id: 2
       tags: server-quick-deploy
+      delegate_to: localhost
 
     - name: Configure server Quick Deploy settings of the chassis using device service tag.
       dellemc.openmanage.ome_device_quick_deploy:
@@ -61,3 +62,4 @@
               slot_ipv6_address: "::"
               vlan_id: 2
       tags: iom-quick-deploy
+      delegate_to: localhost

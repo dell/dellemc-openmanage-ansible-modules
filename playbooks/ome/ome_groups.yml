@@ -15,6 +15,7 @@
         parent_group_name: "group parent 1"
       tags:
         - create_group
+      delegate_to: localhost
 
     - name: Modify a device group using the group ID
       dellemc.openmanage.ome_groups:
@@ -27,6 +28,7 @@
         parent_group_name: "group parent 2"
       tags:
         - modify_group
+      delegate_to: localhost
 
     - name: Delete a device group using the device group name
       dellemc.openmanage.ome_groups:
@@ -38,6 +40,7 @@
         name: "group 1"
       tags:
         - delete_name
+      delegate_to: localhost
 
     - name: Delete multiple device groups using the group IDs
       dellemc.openmanage.ome_groups:
@@ -51,3 +54,4 @@
           - 5678
       tags:
         - delete_ids
+      delegate_to: localhost

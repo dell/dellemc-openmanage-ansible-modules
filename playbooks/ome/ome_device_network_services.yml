@@ -20,6 +20,7 @@
         remote_racadm_settings:
           enabled: false
       tags: snmp-settings
+      delegate_to: localhost
 
     - name: Update network services settings of a chassis using the device service tag.
       dellemc.openmanage.ome_device_network_services:
@@ -39,6 +40,7 @@
         remote_racadm_settings:
           enabled: false
       tags: ssh-settings
+      delegate_to: localhost
 
     - name: Update network services settings of the host chassis.
       dellemc.openmanage.ome_device_network_services:
@@ -54,3 +56,4 @@
         remote_racadm_settings:
           enabled: true
       tags: racadm-settings
+      delegate_to: localhost

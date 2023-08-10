@@ -19,6 +19,7 @@
         mask_sensitive_info: false
         test_connection: true
       tags: app-cifs-log
+      delegate_to: localhost
 
     - name: Application log extraction using NFS share location
       dellemc.openmanage.ome_diagnostics:
@@ -33,6 +34,7 @@
         mask_sensitive_info: true
         test_connection: true
       tags: app-nfs-log
+      delegate_to: localhost
 
     - name: Support assist log extraction using CIFS share location
       dellemc.openmanage.ome_diagnostics:
@@ -52,6 +54,7 @@
         log_selectors: [OS_LOGS]
         test_connection: true
       tags: tsr-cifs-log
+      delegate_to: localhost
 
     - name: Support assist log extraction using NFS share location
       dellemc.openmanage.ome_diagnostics:
@@ -66,3 +69,4 @@
         device_group_name: group_name
         test_connection: true
       tags: tsr-nfs-log
+      delegate_to: localhost

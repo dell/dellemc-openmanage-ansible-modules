@@ -18,6 +18,7 @@
         secondary_switch_service_tag: "PXYT456"
         override_LLDP_configuration: "Enabled"
       tags: create_smart_fabric
+      delegate_to: localhost
 
     - name: Modify a smart fabric
       dellemc.openmanage.ome_smart_fabric:
@@ -30,6 +31,7 @@
         new_name: "fabric_gold1"
         description: "new description"
       tags: modify_smart_fabric
+      delegate_to: localhost
 
     - name: Delete a smart fabric
       dellemc.openmanage.ome_smart_fabric:
@@ -40,3 +42,4 @@
         state: "absent"
         name: "fabric1"
       tags: delete_smart_fabric
+      delegate_to: localhost
