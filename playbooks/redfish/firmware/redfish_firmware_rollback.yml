@@ -1,6 +1,5 @@
 ---
 - hosts: redfish_hosts
-  connection: local
   gather_facts: false
   name: "Ansible Module for Simple Firmware Rollback"
 
@@ -13,6 +12,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         name: "BIOS"
+      delegate_to: localhost
       tags: rollback-bios
 
     - name: Rollback all NIC cards with a name starting from 'Broadcom Gigabit'.
@@ -22,6 +22,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         name: "Broadcom Gigabit Ethernet.*"
+      delegate_to: localhost
       tags: rollback-match
 
     - name: Rollback all the component firmware except BIOS component.
@@ -31,6 +32,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         name: "(?!BIOS).*"
+      delegate_to: localhost
       tags: rollback-except
 
     - name: Rollback all the available firmware component.
@@ -40,4 +42,5 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         name: ".*"
+      delegate_to: localhost
       tags: rollback-all
