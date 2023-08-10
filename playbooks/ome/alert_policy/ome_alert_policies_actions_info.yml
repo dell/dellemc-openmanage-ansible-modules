@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible User service.
   gather_facts: false
 
@@ -11,3 +10,4 @@
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
