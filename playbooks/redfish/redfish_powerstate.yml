@@ -11,6 +11,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         reset_type: "On"
+      delegate_to: localhost
 
     - name: Manage power state of a specified device.
       dellemc.openmanage.redfish_powerstate:
@@ -20,3 +21,4 @@
         ca_path: "/path/to/ca_cert.pem"
         reset_type: "ForceOff"
         resource_id: "System.Embedded.1"
+      delegate_to: localhost
