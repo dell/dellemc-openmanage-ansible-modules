@@ -208,11 +208,13 @@ def get_rollback_preview_target(redfish_obj, module):
 
 
 def get_job_status(redfish_obj, module, job_ids, job_wait=True):
-    each_status, failed_count = [], 0
+    each_status, failed_count, js_job_msg = [], 0, ""
     for each in job_ids:
         each_job_uri = MANAGER_JOB_ID_URI.format(each)
         job_resp, js_job_msg = wait_for_redfish_job_complete(redfish_obj, each_job_uri, job_wait=job_wait,
                                                              wait_timeout=module.params["reboot_timeout"])
+        if not job_resp and js_job_msg:
+            module.fail_json(msg=js_job_msg)
         job_status = job_resp.json_data
         if job_status["JobState"] == "Failed":
             failed_count += 1
@@ -331,11 +333,11 @@ def main():
             if module.params["reboot"]:
                 msg, module_fail, changed = ROLLBACK_SUCCESS, False, True
                 if failed > 0 and failed != len(job_status):
-                    msg, module_fail = COMPLETED_ERROR, True
+                    msg, module_fail, changed = COMPLETED_ERROR, True, False
             else:
-                msg, module_fail, changed = ROLLBACK_SCHEDULED, False, False
+                msg, module_fail, changed = ROLLBACK_SCHEDULED, False, True
                 if failed > 0 and failed != len(job_status):
-                    msg, module_fail = SCHEDULED_ERROR, True
+                    msg, module_fail, changed = SCHEDULED_ERROR, True, False
             module.exit_json(msg=msg, job_status=job_status, failed=module_fail, changed=changed)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
