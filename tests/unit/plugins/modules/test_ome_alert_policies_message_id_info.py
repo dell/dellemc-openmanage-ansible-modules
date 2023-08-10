@@ -36,9 +36,30 @@ class TestOmeAlertPoliciesMessageIDInfo(FakeAnsibleModule):
     module = ome_alert_policies_message_id_info
 
     def test_alert_policies_message_id_info_success_case(self, ome_default_args, ome_alert_policies_message_id_info_mock, ome_response_mock):
+        ome_response_mock.json_data = {"value": [
+            {
+                "Category": "System Health",
+                "Message": "The ${0} sensor has failed, and the last recorded value by the sensor was ${1} A.",
+                "MessageId": "AMP400",
+                "Prefix": "AMP",
+                "SequenceNo": 400,
+                "Severity": "Critical",
+                "SubCategory": "Amperage"
+            }
+        ]}
         ome_response_mock.status_code = 200
         result = self._run_module(ome_default_args)
         assert 'message_ids' in result
+        assert result['msg'] == "Successfully retrieved alert policies message ids information."
+
+    def test_ome_alert_policies_message_id_info_empty_case(self, ome_default_args,
+                                                           ome_alert_policies_message_id_info_mock,
+                                                           ome_response_mock):
+        ome_response_mock.json_data = {"value": []}
+        ome_response_mock.status_code = 200
+        ome_response_mock.success = True
+        result = self._run_module(ome_default_args)
+        assert result['message_ids'] == []
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError,
@@ -57,9 +78,7 @@ class TestOmeAlertPoliciesMessageIDInfo(FakeAnsibleModule):
                                                                                           'http error message',
                                                                                           {"accept-type": "application/json"},
                                                                                           StringIO(json_str))
+        result = self._run_module(ome_default_args)
         if not exc_type == URLError:
-            result = self._run_module(ome_default_args)
             assert result['failed'] is True
-        else:
-            result = self._run_module(ome_default_args)
         assert 'msg' in result

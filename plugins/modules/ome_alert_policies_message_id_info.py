@@ -43,10 +43,10 @@ EXAMPLES = r'''
 RETURN = r'''
 ---
 msg:
+  description: Successfully retrieved alert policies message ids information.
+  returned: always
   type: str
-  description: Error description in case of error.
-  returned: on error
-  sample: "HTTP Error 501: 501"
+  sample: "Successfully retrieved alert policies message ids information."
 message_ids:
   type: dict
   description: Details of the message ids.
@@ -105,11 +105,12 @@ import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key, get_all_data_with_pagination
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 ALERT_MESSAGE_URI = "AlertService/AlertMessageDefinitions"
+SUCCESSFUL_MSG = "Successfully retrieved alert policies message ids information."
 
 
 def main():
@@ -120,9 +121,11 @@ def main():
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            resp = rest_obj.invoke_request('GET', ALERT_MESSAGE_URI)
-            message_ids = remove_key(resp.json_data)
-            module.exit_json(message_ids=message_ids["value"])
+            message_id_info = get_all_data_with_pagination(rest_obj, ALERT_MESSAGE_URI)
+            if not message_id_info.get("report_list", []):
+                module.exit_json(message_ids=[])
+            message_ids = remove_key(message_id_info['report_list'])
+            module.exit_json(msg=SUCCESSFUL_MSG, message_ids=message_ids)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
