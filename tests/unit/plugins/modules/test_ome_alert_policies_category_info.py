@@ -40,7 +40,7 @@ class TestOmeAlertCategoryInfo(FakeAnsibleModule):
         {"json_data": {
             "@odata.context": "/api/$metadata#Collection(AlertService.AlertCategories)",
             "@odata.count": 13,
-            "value": [
+            "report_list": [
                 {
                     "@odata.type": "#AlertService.AlertCategories",
                     "@odata.id": "/api/AlertService/AlertCategories('Application')",

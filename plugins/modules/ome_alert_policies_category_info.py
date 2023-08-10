@@ -46,42 +46,15 @@ RETURN = r'''
 ---
 msg:
   type: str
-  description: Error description in case of error.
-  returned: on error
-  sample: "HTTP Error 501: 501"
+  description: Status of the alert policies category fetch operation.
+  returned: always
+  sample: "Successfully retrieved alert policies category information."
 categories:
   type: list
   description: Information about the alert categories.
   returned: always
   sample: [{
         "CategoriesDetails": [
-            {
-                "CatalogName": "Application",
-                "Id": 4,
-                "Name": "Audit",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Devices",
-                        "Id": 90,
-                        "Name": "Devices"
-                    },
-                    {
-                        "Description": "Generic",
-                        "Id": 10,
-                        "Name": "Generic"
-                    },
-                    {
-                        "Description": "Power Configuration",
-                        "Id": 151,
-                        "Name": "Power Configuration"
-                    },
-                    {
-                        "Description": "Users",
-                        "Id": 35,
-                        "Name": "Users"
-                    }
-                ]
-            },
             {
                 "CatalogName": "Application",
                 "Id": 5,
@@ -120,38 +93,6 @@ categories:
                         "Description": "Devices",
                         "Id": 90,
                         "Name": "Devices"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "Application",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Devices",
-                        "Id": 90,
-                        "Name": "Devices"
-                    },
-                    {
-                        "Description": "Health Status of Managed device",
-                        "Id": 7400,
-                        "Name": "Health Status of Managed device"
-                    },
-                    {
-                        "Description": "Job",
-                        "Id": 47,
-                        "Name": "Job"
-                    },
-                    {
-                        "Description": "Metrics",
-                        "Id": 118,
-                        "Name": "Metrics"
-                    },
-                    {
-                        "Description": "Power Configuration",
-                        "Id": 151,
-                        "Name": "Power Configuration"
                     }
                 ]
             },
@@ -298,33 +239,6 @@ categories:
             },
             {
                 "CatalogName": "iDRAC",
-                "Id": 3,
-                "Name": "Updates",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Firmware Download",
-                        "Id": 51,
-                        "Name": "Firmware Download"
-                    },
-                    {
-                        "Description": "Firmware Update Job",
-                        "Id": 24,
-                        "Name": "Firmware Update Job"
-                    },
-                    {
-                        "Description": "Group Manager",
-                        "Id": 53,
-                        "Name": "Group Manager"
-                    },
-                    {
-                        "Description": "UEFI Event",
-                        "Id": 55,
-                        "Name": "UEFI Event"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "iDRAC",
                 "Id": 6,
                 "Name": "Work Notes",
                 "SubCategoryDetails": [
@@ -338,361 +252,6 @@ categories:
         ],
         "IsBuiltIn": true,
         "Name": "iDRAC"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "IF-MIB",
-                "Id": 4,
-                "Name": "Audit",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Interface",
-                        "Id": 101,
-                        "Name": "Interface"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "IF-MIB"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "Internal Events Catalog",
-                "Id": 4,
-                "Name": "Audit",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "BIOS Management",
-                        "Id": 54,
-                        "Name": "BIOS Management"
-                    },
-                    {
-                        "Description": "Debug",
-                        "Id": 12,
-                        "Name": "Debug"
-                    },
-                    {
-                        "Description": "Support Assist",
-                        "Id": 92,
-                        "Name": "Support Assist"
-                    },
-                    {
-                        "Description": "Virtual Media",
-                        "Id": 50,
-                        "Name": "Virtual Media"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "Internal Events Catalog",
-                "Id": 5,
-                "Name": "Configuration",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Auto-Discovery",
-                        "Id": 49,
-                        "Name": "Auto-Discovery"
-                    },
-                    {
-                        "Description": "Backup/Restore",
-                        "Id": 107,
-                        "Name": "Backup/Restore"
-                    },
-                    {
-                        "Description": "UEFI Event",
-                        "Id": 55,
-                        "Name": "UEFI Event"
-                    },
-                    {
-                        "Description": "vFlash Event",
-                        "Id": 66,
-                        "Name": "vFlash Event"
-                    },
-                    {
-                        "Description": "vFlash Media",
-                        "Id": 74,
-                        "Name": "vFlash Media"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "Internal Events Catalog",
-                "Id": 7,
-                "Name": "Miscellaneous",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Application",
-                        "Id": 85,
-                        "Name": "Application"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "Internal Events Catalog",
-                "Id": 2,
-                "Name": "Storage",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Battery Event",
-                        "Id": 108,
-                        "Name": "Battery Event"
-                    },
-                    {
-                        "Description": "Virtual Disk",
-                        "Id": 46,
-                        "Name": "Virtual Disk"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "Internal Events Catalog",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Amperage",
-                        "Id": 67,
-                        "Name": "Amperage"
-                    },
-                    {
-                        "Description": "Auto System Reset",
-                        "Id": 41,
-                        "Name": "Auto System Reset"
-                    },
-                    {
-                        "Description": "System Info",
-                        "Id": 71,
-                        "Name": "System Info"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "Internal Events Catalog",
-                "Id": 6,
-                "Name": "Work Notes",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "User Tracking",
-                        "Id": 56,
-                        "Name": "User Tracking"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "Internal Events Catalog"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "Networking",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Other",
-                        "Id": 7700,
-                        "Name": "Other"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "Networking"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "OMSA",
-                "Id": 4,
-                "Name": "Audit",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Log Event",
-                        "Id": 19,
-                        "Name": "Log Event"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "OMSA",
-                "Id": 5,
-                "Name": "Configuration",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Auto System Reset",
-                        "Id": 41,
-                        "Name": "Auto System Reset"
-                    },
-                    {
-                        "Description": "Processor",
-                        "Id": 61,
-                        "Name": "Processor"
-                    },
-                    {
-                        "Description": "Security Event",
-                        "Id": 25,
-                        "Name": "Security Event"
-                    },
-                    {
-                        "Description": "System Info",
-                        "Id": 71,
-                        "Name": "System Info"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "OMSA",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Amperage",
-                        "Id": 67,
-                        "Name": "Amperage"
-                    },
-                    {
-                        "Description": "Voltage",
-                        "Id": 40,
-                        "Name": "Voltage"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "OMSA"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "OpenManage Enterprise",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Health Status of Managed device",
-                        "Id": 7400,
-                        "Name": "Health Status of Managed device"
-                    },
-                    {
-                        "Description": "Metrics",
-                        "Id": 118,
-                        "Name": "Metrics"
-                    },
-                    {
-                        "Description": "System Info",
-                        "Id": 71,
-                        "Name": "System Info"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "OpenManage Enterprise"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "OpenManage Essentials",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Health Status of Managed device",
-                        "Id": 7400,
-                        "Name": "Health Status of Managed device"
-                    },
-                    {
-                        "Description": "Other",
-                        "Id": 7700,
-                        "Name": "Other"
-                    }
-                ]
-            },
-            {
-                "CatalogName": "OpenManage Essentials",
-                "Id": 6,
-                "Name": "Work Notes",
-                "SubCategoryDetails": []
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "OpenManage Essentials"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "Power Manager",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Power Configuration",
-                        "Id": 151,
-                        "Name": "Power Configuration"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "Power Manager"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "RFC1215",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Other",
-                        "Id": 7700,
-                        "Name": "Other"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "RFC1215"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "SNMPv2-MIB",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Other",
-                        "Id": 7700,
-                        "Name": "Other"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "SNMPv2-MIB"
-    },
-    {
-        "CategoriesDetails": [
-            {
-                "CatalogName": "VMWare",
-                "Id": 1,
-                "Name": "System Health",
-                "SubCategoryDetails": [
-                    {
-                        "Description": "Other",
-                        "Id": 7700,
-                        "Name": "Other"
-                    }
-                ]
-            }
-        ],
-        "IsBuiltIn": true,
-        "Name": "VMWare"
     }
 ]
 error_info:
@@ -724,13 +283,15 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 
 ALERT_CATEGORY_URI = "AlertService/AlertCategories"
+SUCCESS_MSG = "Successfully retrieved alert policies category information."
 
 
 def get_formatted_categories(rest_obj):
-    resp = rest_obj.invoke_request("GET", ALERT_CATEGORY_URI)
-    categories = remove_key(resp.json_data.get("value", []))
+    report = get_all_data_with_pagination(rest_obj, ALERT_CATEGORY_URI)
+    categories = remove_key(report.get("report_list", []))
     return categories
 
 
@@ -743,7 +304,7 @@ def main():
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             categories = get_formatted_categories(rest_obj)
-            module.exit_json(categories=categories)
+            module.exit_json(msg=SUCCESS_MSG, categories=categories)
     except HTTPError as err:
         module.exit_json(failed=True, msg=str(err), error_info=json.load(err))
     except URLError as err:
