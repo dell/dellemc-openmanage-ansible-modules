@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: OpenManage Ansible Modules
   gather_facts: false
 

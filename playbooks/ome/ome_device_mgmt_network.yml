@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OME Modular device network settings.
   gather_facts: false
 

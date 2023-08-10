@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: OpenManage Ansible Modules for network services settings.
   gather_facts: false
 

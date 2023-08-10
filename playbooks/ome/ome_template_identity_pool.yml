@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible template identity pool attach and detach operation.
   gather_facts: false
 

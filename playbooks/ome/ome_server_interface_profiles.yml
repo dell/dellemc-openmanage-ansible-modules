@@ -1,6 +1,5 @@
 ---
 - hosts: omem
-  connection: local
   name: Dell OpenManage Ansible server interface profiles configuration.
   gather_facts: false
 

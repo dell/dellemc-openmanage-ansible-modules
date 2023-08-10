@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Fetch fabric uplink information.
   gather_facts: false
 

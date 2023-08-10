@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage ansible port breakout configuration.
   gather_facts: false
   vars:

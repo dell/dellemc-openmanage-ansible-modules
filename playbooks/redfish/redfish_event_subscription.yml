@@ -1,6 +1,5 @@
 ---
 - hosts: redfish
-  connection: local
   name: Configure Redfish subscriptions
   gather_facts: false
 

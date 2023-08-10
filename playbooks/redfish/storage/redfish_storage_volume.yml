@@ -1,6 +1,5 @@
 ---
 - hosts: redfish_hosts
-  connection: local
   gather_facts: false
   name: "Redfish Storage Volume - Ansible Module"
   vars:

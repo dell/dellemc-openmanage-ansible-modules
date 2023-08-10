@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   gather_facts: false
   name: "OME - Ansible Modules"
 
@@ -15,6 +14,7 @@
           - 11111
           - 22222
       register: result
+      delegate_to: localhost
 
     - name: Filter out device compliance reports.
       ansible.builtin.debug:
@@ -22,3 +22,4 @@
       loop: "{{ result.baseline_compliance_info }}"
       loop_control:
         label: "{{ item.Name }}"
+      delegate_to: localhost

@@ -1,9 +1,7 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OME Application network webserver port change and track webserver till the service restarts.
   gather_facts: false
-  vars:
     # 5 minutes wait max
     retries_count: 30
     polling_interval: 10
@@ -21,6 +19,7 @@
         webserver_port: "{{ new_port }}"
         webserver_timeout: 21
       register: result
+      delegate_to: localhost
 
     # To end play when no port change or failure
     - name: End the play when no port change # noqa: no-handler
@@ -28,6 +27,7 @@
       when:
         - not result.changed
         - "'webserver_configuration' not in result"
+      delegate_to: localhost
 
     # Loop till OME webserver is active by using the new port and webserver config GET call
     - name: Pause play until webserver URL is reachable from this host with new port
@@ -47,6 +47,7 @@
       until: "'PortNumber' in webport_result or webport_result.status == 200"
       retries: "{{ retries_count }}"
       delay: "{{ polling_interval }}"
+      delegate_to: localhost
 
     # Output the webserver_configuration values to be used further
     - name: "Output the webserver config"

@@ -1,6 +1,5 @@
 ---
 - hosts: redfish
-  connection: local
   name: Configure Server Power Setting
   gather_facts: false
 

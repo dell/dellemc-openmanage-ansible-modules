@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible smart fabric uplink configuration.
   gather_facts: false
 

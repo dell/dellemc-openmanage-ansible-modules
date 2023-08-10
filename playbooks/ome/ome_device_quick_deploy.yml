@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: OpenManage Ansible Modules for Quick Deploy settings.
   gather_facts: false
 
