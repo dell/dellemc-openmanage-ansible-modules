@@ -45,8 +45,9 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 
 
 import time
-from copy import deepcopy
 from ansible.module_utils.six.moves.urllib.error import HTTPError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 
 def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
@@ -353,8 +354,8 @@ def get_system_res_id(idrac):
 
 def get_all_data_with_pagination(ome_obj, uri, query_param=None):
     """To get all the devices with pagination based on the filter provided."""
+    query, resp, report_list = "", None, []
     try:
-        query, resp, report_list = "", None, []
         resp = ome_obj.invoke_request('GET', uri, query_param=query_param)
         next_uri = resp.json_data.get("@odata.nextLink", None)
         report_list = resp.json_data.get("value")
@@ -366,8 +367,8 @@ def get_all_data_with_pagination(ome_obj, uri, query_param=None):
             resp = ome_obj.invoke_request('GET', next_uri_query)
             report_list.extend(resp.json_data.get("value"))
             next_uri = resp.json_data.get("@odata.nextLink", None)
-    except Exception:
-        resp, report_list = None, []
+    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+        raise err
     return {"resp_obj": resp, "report_list": report_list}
 
 

@@ -101,8 +101,8 @@ error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'me
   Details of the HTTP Error.
 
 
-msg (on error, str, HTTP Error 501: 501)
-  Error description in case of error.
+msg (always, str, Successfully retrieved alert policies actions information.)
+  Successfully retrieved alert policies actions information.
 
 
 

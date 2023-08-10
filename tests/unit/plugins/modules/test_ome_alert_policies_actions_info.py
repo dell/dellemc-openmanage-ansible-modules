@@ -61,6 +61,15 @@ class TestOmeAlertPoliciesActionsInfo(FakeAnsibleModule):
         result = self._run_module(ome_default_args)
         assert 'actions' in result
 
+    def test_ome_alert_policies_action_info_empty_case(self, ome_default_args,
+                                                       ome_alert_policies_actions_info_mock,
+                                                       ome_response_mock):
+        ome_response_mock.json_data = {"value": []}
+        ome_response_mock.status_code = 200
+        ome_response_mock.success = True
+        result = self._run_module(ome_default_args)
+        assert result['actions'] == []
+
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError,
                               TypeError, ValueError])
@@ -78,9 +87,7 @@ class TestOmeAlertPoliciesActionsInfo(FakeAnsibleModule):
                                                                                        'http error message',
                                                                                        {"accept-type": "application/json"},
                                                                                        StringIO(json_str))
+        result = self._run_module(ome_default_args)
         if not exc_type == URLError:
-            result = self._run_module(ome_default_args)
             assert result['failed'] is True
-        else:
-            result = self._run_module(ome_default_args)
         assert 'msg' in result

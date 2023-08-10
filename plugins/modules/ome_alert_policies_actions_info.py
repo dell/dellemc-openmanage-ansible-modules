@@ -244,10 +244,10 @@ error_info:
     }
   }
 msg:
+  description: Successfully retrieved alert policies actions information.
+  returned: always
   type: str
-  description: Error description in case of error.
-  returned: on error
-  sample: "HTTP Error 501: 501"
+  sample: Successfully retrieved alert policies actions information.
 '''
 
 import json
@@ -256,8 +256,10 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import Rest
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 
 ACTIONS_URI = "AlertService/AlertActionTemplates"
+SUCCESSFUL_MSG = "Successfully retrieved alert policies actions information."
 
 
 def main():
@@ -268,9 +270,11 @@ def main():
         supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            resp = rest_obj.invoke_request('GET', ACTIONS_URI)
-            actions = remove_key(resp.json_data)
-            module.exit_json(actions=actions["value"])
+            actions_info = get_all_data_with_pagination(rest_obj, ACTIONS_URI)
+            if not actions_info.get("report_list", []):
+                module.exit_json(actions=[])
+            actions = remove_key(actions_info['report_list'])
+            module.exit_json(msg=SUCCESSFUL_MSG, actions=actions)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
