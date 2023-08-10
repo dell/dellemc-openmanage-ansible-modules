@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -13,12 +13,13 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
-import pytest
-from ssl import SSLError
 from io import StringIO
+from ssl import SSLError
+
+import pytest
+from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_device_location
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
@@ -128,23 +129,18 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
                         "room": "room", "aisle": "aisle", "rack": "rack"}
         },
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "dummyhost", 'DeviceId': 1234, "Type": 1000},
+            {'Id': 1234, 'PublicAddress': "dummyhost_shouldnotexist", 'DeviceId': 1234, "Type": 1000},
             {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
-            'mparams': {"hostname": "dummyhost",
+            'mparams': {"hostname": "dummyhost_shouldnotexist",
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
-        },
+        }
     ])
     def test_ome_devices_location_success(self, params, ome_conn_mock_location, ome_response_mock,
                                           ome_default_args, module_mock, mocker):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params['json_data']
-        mocks = ["check_similar_job", "get_dev_ids"]
-        for m in mocks:
-            if m in params:
-                mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
-
         ome_default_args.update(params['mparams'])
         result = self._run_module(ome_default_args, check_mode=params.get('check_mode', False))
         assert result['msg'] == params['message']
@@ -199,7 +195,15 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
             'mparams': {"hostname": "1.2.3.4",
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
-        }
+        },
+        {"json_data": {"value": [
+            {'Id': 1234, 'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000},
+            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            'message': "Unable to complete the operation because the entered target device id '123' is invalid.",
+            'mparams': {"hostname": "1.2.3.4", "device_id": 123,
+                        "data_center": "data center",
+                        "room": "room", "aisle": "aisle", "rack": "rack"}
+        },
     ])
     def test_ome_devices_location_failure(self, params, ome_conn_mock_location, ome_response_mock,
                                           ome_default_args, module_mock, mocker):
@@ -209,10 +213,11 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         for m in mocks:
             if m in params:
                 mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
-        json_str = to_text(json.dumps(params.get('http_error_json', {})))
-        ome_conn_mock_location.invoke_request.side_effect = HTTPError(
-            'http://testhost.com', 401, 'http error message', {"accept-type": "application/json"},
-            StringIO(json_str))
+        if 'http_error_json' in params:
+            json_str = to_text(json.dumps(params.get('http_error_json', {})))
+            ome_conn_mock_location.invoke_request.side_effect = HTTPError(
+                'http://testhost.com', 401, 'http error message', {"accept-type": "application/json"},
+                StringIO(json_str))
         ome_default_args.update(params['mparams'])
         result = self._run_module_with_fail_json(ome_default_args)
         assert result['msg'] == params['message']
