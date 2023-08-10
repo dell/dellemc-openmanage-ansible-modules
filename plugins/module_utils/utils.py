@@ -356,7 +356,7 @@ def get_system_res_id(idrac):
 def get_all_data_with_pagination(ome_obj, uri, query_param=None):
     """To get all the devices with pagination based on the filter provided."""
     query, resp, report_list = "", None, []
-    try:        
+    try:
         resp = ome_obj.invoke_request('GET', uri, query_param=query_param)
         next_uri = resp.json_data.get("@odata.nextLink", None)
         report_list = resp.json_data.get("value")
