@@ -2,6 +2,7 @@
 - hosts: ome
   name: Dell OME Application network webserver port change and track webserver till the service restarts.
   gather_facts: false
+  vars:
     # 5 minutes wait max
     retries_count: 30
     polling_interval: 10

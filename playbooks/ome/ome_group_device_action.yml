@@ -2,11 +2,11 @@
 - hosts: ome
   name: Dell OpenManage Ansible group device operations.
   gather_facts: false
+  vars:
     group_name: Dell iDRAC Servers
     device_action: refresh_inventory # other options are clear_idrac_job_queue, reset_idrac
     validate_certs: true
     ca_path: "/path/to/ca_cert.pem"
-      delegate_to: localhost
 
   tasks:
     - name: Retrieve group ID based on group name.
