@@ -127,6 +127,14 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result[0] == [{'JobState': 'Completed'}, {'JobState': 'Completed'}]
         assert result[1] == 0
 
+        redfish_default_args.update({"name": "BIOS", "reboot": False, "reboot_timeout": 900})
+        f_module = self.get_module_mock(params=redfish_default_args)
+        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.get_job_status",
+                     return_value=([{"JobState": "Scheduled"}], 0))
+        result = self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, [], update_uri)
+        assert result[0] == [{"JobState": "Scheduled"}]
+        assert result[1] == 0
+
     def test_main(self, redfish_connection_mock, redfish_response_mock, redfish_default_args, mocker):
         redfish_default_args.update({"reboot": True, "name": "BIOS"})
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.get_rollback_preview_target",
@@ -137,29 +145,37 @@ class TestRedfishFirmware(FakeAnsibleModule):
                       "Message": "Job completed successfully.", "MessageArgs": [], "MessageId": "PR19",
                       "Name": "Firmware Rollback: Network", "PercentComplete": 100, "StartTime": "2023-08-07T05:04:16",
                       "TargetSettingsURI": None}
-        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 0))
+        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 0, False))
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "Successfully completed the job for firmware rollback."
         assert result["job_status"]["JobState"] == "Completed"
         job_status.update({"JobState": "Failed"})
-        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 1))
+        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 1, False))
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "The job for firmware rollback has been completed with error(s)."
         assert result["job_status"]["JobState"] == "Failed"
         redfish_default_args.update({"reboot": False, "name": "BIOS"})
-        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 1))
+        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 1, False))
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "The job for firmware rollback has been scheduled with error(s)."
         assert result["job_status"]["JobState"] == "Failed"
         job_status.update({"JobState": "Scheduled"})
-        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 0))
+        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 0, False))
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "Successfully scheduled the job for firmware rollback."
         assert result["job_status"]["JobState"] == "Scheduled"
         job_status = {}
-        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 0))
+        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 0, False))
         result = self._run_module(redfish_default_args)
         assert result["msg"] == "Failed to complete the job for firmware rollback."
+        redfish_default_args.update({"reboot": True, "name": "BIOS", "reboot_timeout": -1})
+        result = self._run_module_with_fail_json(redfish_default_args)
+        assert result["msg"] == "The parameter reboot_timeout value cannot be negative or zero."
+        redfish_default_args.update({"reboot": False, "name": "BIOS", "reboot_timeout": 900})
+        job_status.update({"JobState": "Completed"})
+        mocker.patch(MODULE_PATH + "redfish_firmware_rollback.rollback_firmware", return_value=(job_status, 0, True))
+        result = self._run_module(redfish_default_args)
+        assert result["msg"] == "Successfully completed the job for firmware rollback."
 
     def test_get_rollback_preview_target(self, redfish_connection_mock, redfish_response_mock, redfish_default_args):
         redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "192.168.0.1",
@@ -225,6 +241,13 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result[0] == [{'JobState': 'Failed', 'JobType': 'FirmwareUpdate',
                               'Name': 'Firmware Rollback: Network', 'PercentComplete': 100}]
         assert result[1] == 1
+
+        mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.wait_for_redfish_job_complete',
+                     return_value=({}, "some error message"))
+        with pytest.raises(Exception) as ex:
+            self.module.get_job_status(redfish_connection_mock, f_module, ["JID_123456789"], job_wait=True)
+        assert ex.value.args[0] == "Task excited after waiting for 900 seconds. Check console for " \
+                                   "firmware rollback status."
 
     def test_simple_update(self, redfish_connection_mock, redfish_response_mock, redfish_default_args, mocker):
         mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.time.sleep', return_value=None)

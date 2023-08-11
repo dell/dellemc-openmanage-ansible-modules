@@ -20,27 +20,27 @@ module: redfish_firmware_rollback
 short_description: To perform a component firmware rollback using component name
 version_added: "8.2.0"
 description:
-  - This module allows the rollback of different components or versions of the iDRAC firmware available in iDRAC.
-  - Depending on the component, the firmware rollback is applied after an automatic or manual reboot.
+  - This module allows to rollback the firmware of different server components.
+  - Depending on the component, the firmware update is applied after an automatic or manual reboot.
 extends_documentation_fragment:
   - dellemc.openmanage.redfish_auth_options
 options:
   name:
     type: str
     required: true
-    description: Name or regular expression of the component to match and is case-sensitive.
+    description: The name or regular expression of the component to match and is case-sensitive.
   reboot:
     description:
       - Reboot the server to apply the previous version of the firmware.
-      - C(true), reboots the server to rollback the firmware to available version.
+      - C(true) reboots the server to rollback the firmware to the available version.
       - C(false) schedules the rollback of firmware until the next restart.
-      - When I(reboot) is C(false) some components will update immediately and the module will wait for
-        the server to come up.
+      - When I(reboot) is C(false), some components update immediately, and the server may reboot.
+        So, the module must wait till the server is accessible.
     type: bool
     default: true
   reboot_timeout:
     type: int
-    description: Time in seconds to wait for the server to reboot.
+    description: Wait time in seconds. The module waits for this duration till the server reboots.
     default: 900
 requirements:
   - "python >= 3.9.6"
@@ -48,8 +48,10 @@ author:
   - "Felix Stephen (@felixs88)"
 notes:
   - Run this module from a system that has direct access to Redfish APIs.
-  - In some cases where the certain components will reboot immediately even when I(reboot) is C(false).
-  - This module does support C(check_mode).
+  - For components that do not require a reboot, firmware rollback proceeds irrespective of
+    I(reboot) is C(true) or C(false).
+  - This module supports IPv4 and IPv6 addresses.
+  - This module supports C(check_mode).
 """
 
 EXAMPLES = """
@@ -165,6 +167,7 @@ ROLLBACK_SCHEDULED = "Successfully scheduled the job for firmware rollback."
 ROLLBACK_FAILED = "Failed to complete the job for firmware rollback."
 REBOOT_FAIL = "Failed to reboot the server."
 NEGATIVE_TIMEOUT_MESSAGE = "The parameter reboot_timeout value cannot be negative or zero."
+JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for firmware rollback status."
 REBOOT_COMP = ["Integrated Dell Remote Access Controller"]
 
 
@@ -209,12 +212,13 @@ def get_rollback_preview_target(redfish_obj, module):
 
 def get_job_status(redfish_obj, module, job_ids, job_wait=True):
     each_status, failed_count, js_job_msg = [], 0, ""
+    wait_timeout = module.params["reboot_timeout"]
     for each in job_ids:
         each_job_uri = MANAGER_JOB_ID_URI.format(each)
         job_resp, js_job_msg = wait_for_redfish_job_complete(redfish_obj, each_job_uri, job_wait=job_wait,
-                                                             wait_timeout=module.params["reboot_timeout"])
+                                                             wait_timeout=wait_timeout)
         if not job_resp and js_job_msg:
-            module.fail_json(msg=js_job_msg)
+            module.fail_json(msg=JOB_WAIT_MSG.format(wait_timeout))
         job_status = job_resp.json_data
         if job_status["JobState"] == "Failed":
             failed_count += 1
@@ -283,7 +287,7 @@ def simple_update(redfish_obj, preview_uri, update_uri):
 
 
 def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
-    current_job_status, failed = [], 0
+    current_job_status, failed_cnt, resetting = [], 0, False
     job_ids = simple_update(redfish_obj, preview_uri, update_uri)
     if module.params["reboot"] and preview_uri:
         payload = {"ResetType": "ForceRestart"}
@@ -301,16 +305,18 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
             module.fail_json(msg=reset_fail)
 
         current_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
+        failed_cnt += failed
     if not module.params["reboot"] and preview_uri:
         current_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=False)
+        failed_cnt += failed
     if reboot_uri:
         job_ids = simple_update(redfish_obj, reboot_uri, update_uri)
-        track, resetting, js_job_msg = wait_for_redfish_idrac_reset(module, redfish_obj,
-                                                                    module.params["reboot_timeout"])
+        track, resetting, js_job_msg = wait_for_redfish_idrac_reset(module, redfish_obj, 900)
         if not track and resetting:
             reboot_job_status, failed = get_job_status(redfish_obj, module, job_ids, job_wait=True)
             current_job_status.extend(reboot_job_status)
-    return current_job_status, failed
+            failed_cnt += failed
+    return current_job_status, failed_cnt, resetting
 
 
 def main():
@@ -326,8 +332,7 @@ def main():
     try:
         with Redfish(module.params, req_session=True) as redfish_obj:
             preview_uri, reboot_uri, update_uri = get_rollback_preview_target(redfish_obj, module)
-            job_status, failed = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri)
-
+            job_status, failed, resetting = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri)
             if not job_status or (failed == len(job_status)):
                 module.exit_json(msg=ROLLBACK_FAILED, status=job_status, failed=True)
             if module.params["reboot"]:
@@ -338,6 +343,8 @@ def main():
                 msg, module_fail, changed = ROLLBACK_SCHEDULED, False, True
                 if failed > 0 and failed != len(job_status):
                     msg, module_fail, changed = SCHEDULED_ERROR, True, False
+                elif resetting and len(job_status) == 1 and failed != len(job_status):
+                    msg, module_fail, changed = ROLLBACK_SUCCESS, False, True
             module.exit_json(msg=msg, job_status=job_status, failed=module_fail, changed=changed)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)

@@ -12,9 +12,9 @@ redfish_firmware_rollback -- To perform a component firmware rollback using comp
 Synopsis
 --------
 
-This module allows the rollback of different components or versions of the iDRAC firmware available in iDRAC.
+This module allows to rollback the firmware of different server components.
 
-Depending on the component, the firmware rollback is applied after an automatic or manual reboot.
+Depending on the component, the firmware update is applied after an automatic or manual reboot.
 
 
 
@@ -30,21 +30,21 @@ Parameters
 ----------
 
   name (True, str, None)
-    Name or regular expression of the component to match and is case-sensitive.
+    The name or regular expression of the component to match and is case-sensitive.
 
 
   reboot (optional, bool, True)
     Reboot the server to apply the previous version of the firmware.
 
-    ``true``, reboots the server to rollback the firmware to available version.
+    ``true`` reboots the server to rollback the firmware to the available version.
 
     ``false`` schedules the rollback of firmware until the next restart.
 
-    When *reboot* is ``false`` some components will update immediately and the module will wait for the server to come up.
+    When *reboot* is ``false``, some components update immediately, and the server may reboot. So, the module must wait till the server is accessible.
 
 
   reboot_timeout (optional, int, 900)
-    Time in seconds to wait for the server to reboot.
+    Wait time in seconds. The module waits for this duration till the server reboots.
 
 
   baseuri (True, str, None)
@@ -83,8 +83,9 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Redfish APIs.
-   - In some cases where the certain components will reboot immediately even when *reboot* is ``false``.
-   - This module does support ``check_mode``.
+   - For components that do not require a reboot, firmware rollback proceeds irrespective of *reboot* is ``true`` or ``false``.
+   - This module supports IPv4 and IPv6 addresses.
+   - This module supports ``check_mode``.
 
 
 
