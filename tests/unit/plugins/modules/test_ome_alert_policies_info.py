@@ -23,6 +23,9 @@ from ansible.module_utils._text import to_text
 
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+MODULE_SUCCESS_MESSAGE_ALL = "Successfully retrieved all the OME alert policies information."
+MODULE_SUCCESS_MESSAGE_SPECIFIC = "Successfully retrieved {0} OME alert policy information."
+POLICY_NAME_NOT_FOUND = "The OME alert policy name {0} provided does not exist."
 
 
 class TestOmeAlertPolicyInfo(FakeAnsibleModule):
@@ -63,31 +66,38 @@ class TestOmeAlertPolicyInfo(FakeAnsibleModule):
         result = self._run_module(ome_default_args)
         assert result['policies'][0]["Id"] == 10006
         assert "@odata.count" not in result['policies'][0]
+        assert result['msg'] == MODULE_SUCCESS_MESSAGE_ALL
 
     def test_policy_name_ome_alert_policy_info_success_case(self, ome_default_args, ome_connection_alert_policy_info_mock,
                                                             ome_response_mock):
-        ome_default_args.update({"policy_name": "TestAlert2"})
+        policy_name = 'TestAlert2'
+        ome_default_args.update({"policy_name": policy_name})
         ome_response_mock.json_data = self.resp_mock_value
         ome_response_mock.success = True
         result = self._run_module(ome_default_args)
         assert result['policies'][0]["Id"] == 10010
         assert "@odata.count" not in result['policies'][0]
+        assert result['msg'] == MODULE_SUCCESS_MESSAGE_SPECIFIC.format(policy_name)
 
     def test_random_policy_name_ome_alert_policy_info(self, ome_default_args, ome_connection_alert_policy_info_mock,
                                                       ome_response_mock):
-        ome_default_args.update({"policy_name": "Random"})
+        random_name = 'Random'
+        ome_default_args.update({"policy_name": random_name})
         ome_response_mock.json_data = self.resp_mock_value
         ome_response_mock.success = True
         result = self._run_module(ome_default_args)
         assert result['policies'] == []
+        assert result['msg'] == POLICY_NAME_NOT_FOUND.format(random_name)
 
     def test_empty_policy_name_ome_alert_policy_info(self, ome_default_args, ome_connection_alert_policy_info_mock,
                                                      ome_response_mock):
-        ome_default_args.update({"policy_name": ""})
+        empty_name = ""
+        ome_default_args.update({"policy_name": empty_name})
         ome_response_mock.json_data = self.resp_mock_value
         ome_response_mock.success = True
         result = self._run_module(ome_default_args)
         assert result['policies'] == []
+        assert result['msg'] == POLICY_NAME_NOT_FOUND.format(empty_name)
 
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, SSLValidationError, ConnectionError,
                                           TypeError, ValueError])
