@@ -260,6 +260,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import ge
 
 ACTIONS_URI = "AlertService/AlertActionTemplates"
 SUCCESSFUL_MSG = "Successfully retrieved alert policies actions information."
+EMPTY_ALERT_POLICY_ACTION_MSG = "No alert policies action information were found."
 
 
 def main():
@@ -272,7 +273,7 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             actions_info = get_all_data_with_pagination(rest_obj, ACTIONS_URI)
             if not actions_info.get("report_list", []):
-                module.exit_json(actions=[])
+                module.exit_json(msg=EMPTY_ALERT_POLICY_ACTION_MSG, actions=[])
             actions = remove_key(actions_info['report_list'])
             module.exit_json(msg=SUCCESSFUL_MSG, actions=actions)
     except HTTPError as err:
