@@ -111,6 +111,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
 ALERT_MESSAGE_URI = "AlertService/AlertMessageDefinitions"
 SUCCESSFUL_MSG = "Successfully retrieved alert policies message ids information."
+EMPTY_MSG = "No alert policies message id information were found."
 
 
 def main():
@@ -123,7 +124,7 @@ def main():
         with RestOME(module.params, req_session=True) as rest_obj:
             message_id_info = get_all_data_with_pagination(rest_obj, ALERT_MESSAGE_URI)
             if not message_id_info.get("report_list", []):
-                module.exit_json(message_ids=[])
+                module.exit_json(msg=EMPTY_MSG, message_ids=[])
             message_ids = remove_key(message_id_info['report_list'])
             module.exit_json(msg=SUCCESSFUL_MSG, message_ids=message_ids)
     except HTTPError as err:
