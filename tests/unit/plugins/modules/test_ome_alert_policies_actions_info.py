@@ -88,6 +88,6 @@ class TestOmeAlertPoliciesActionsInfo(FakeAnsibleModule):
                                                                                        {"accept-type": "application/json"},
                                                                                        StringIO(json_str))
         result = self._run_module(ome_default_args)
-        if not exc_type == URLError:
+        if exc_type != URLError:
             assert result['failed'] is True
         assert 'msg' in result
