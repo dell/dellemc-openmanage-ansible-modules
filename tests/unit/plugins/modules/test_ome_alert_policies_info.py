@@ -25,7 +25,7 @@ from ansible.module_utils._text import to_text
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 MODULE_SUCCESS_MESSAGE_ALL = "Successfully retrieved all the OME alert policies information."
 MODULE_SUCCESS_MESSAGE_SPECIFIC = "Successfully retrieved {0} OME alert policy information."
-POLICY_NAME_NOT_FOUND = "The OME alert policy name {0} provided does not exist."
+POLICY_NAME_NOT_FOUND_OR_EMPTY = "The OME alert policy name {0} provided does not exist or empty."
 
 
 class TestOmeAlertPolicyInfo(FakeAnsibleModule):
@@ -87,7 +87,7 @@ class TestOmeAlertPolicyInfo(FakeAnsibleModule):
         ome_response_mock.success = True
         result = self._run_module(ome_default_args)
         assert result['policies'] == []
-        assert result['msg'] == POLICY_NAME_NOT_FOUND.format(random_name)
+        assert result['msg'] == POLICY_NAME_NOT_FOUND_OR_EMPTY.format(random_name)
 
     def test_empty_policy_name_ome_alert_policy_info(self, ome_default_args, ome_connection_alert_policy_info_mock,
                                                      ome_response_mock):
@@ -97,7 +97,7 @@ class TestOmeAlertPolicyInfo(FakeAnsibleModule):
         ome_response_mock.success = True
         result = self._run_module(ome_default_args)
         assert result['policies'] == []
-        assert result['msg'] == POLICY_NAME_NOT_FOUND.format(empty_name)
+        assert result['msg'] == POLICY_NAME_NOT_FOUND_OR_EMPTY.format(empty_name)
 
     @pytest.mark.parametrize("exc_type", [URLError, HTTPError, SSLValidationError, ConnectionError,
                                           TypeError, ValueError])

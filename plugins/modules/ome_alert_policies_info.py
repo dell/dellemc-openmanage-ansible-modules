@@ -136,7 +136,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 ALERT_POLICY_URI = "AlertService/AlertPolicies"
 MODULE_SUCCESS_MESSAGE_ALL = "Successfully retrieved all the OME alert policies information."
 MODULE_SUCCESS_MESSAGE_SPECIFIC = "Successfully retrieved {0} OME alert policy information."
-POLICY_NAME_NOT_FOUND = "The OME alert policy name {0} provided does not exist."
+POLICY_NAME_NOT_FOUND_OR_EMPTY = "The OME alert policy name {0} provided does not exist or empty."
 
 
 class OMEAlertPolicyInfo:
@@ -153,19 +153,17 @@ class OMEAlertPolicyInfo:
     def get_alert_policy_info(self, rest_obj) -> dict:
         policy_name = self.module.params.get("policy_name")
         if policy_name is not None:
+            output_not_found_or_empty = {'msg': POLICY_NAME_NOT_FOUND_OR_EMPTY.format(policy_name),
+                                         'value': []}
             if policy_name == "":
-                output_empty = {'msg': POLICY_NAME_NOT_FOUND.format(policy_name),
-                                'value': []}
-                return output_empty
+                return output_not_found_or_empty
             policies = self.get_all_alert_policy_info(rest_obj)
             for each_element in policies["value"]:
                 if each_element["Name"] == policy_name:
                     output_specific = {'msg': MODULE_SUCCESS_MESSAGE_SPECIFIC.format(policy_name),
                                        'value': [each_element]}
                     return output_specific
-            output_not_found = {'msg': POLICY_NAME_NOT_FOUND.format(policy_name),
-                                'value': []}
-            return output_not_found
+            return output_not_found_or_empty
         return self.get_all_alert_policy_info(rest_obj)
 
     def perform_module_operation(self) -> None:
