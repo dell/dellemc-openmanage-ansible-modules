@@ -726,6 +726,14 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                                          time_settings)
         assert ex.value.args[0] == "Unable to configure the controller attribute(s) settings."
 
+        time_settings = []
+        with pytest.raises(Exception) as ex:
+            job_id, time_set = self.module.apply_attributes(f_module, redfish_str_controller_conn,
+                                                            {"CheckConsistencyMode": "StopOnError"},
+                                                            time_settings)
+            assert job_id == "JID_XXXXXXXXXXXXX"
+            assert time_set == {}
+
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
             'http://testhost.com', 400,
@@ -915,8 +923,12 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         result = self._run_module(redfish_default_args)
         assert result['msg'] == "Successfully applied the controller attributes."
 
+        redfish_response_mock.json_data = {"JobState": "Failed"}
+        result = self._run_module(redfish_default_args)
+        assert result['msg'] == "Successfully applied the controller attributes."
+
     @pytest.mark.parametrize("exc_type", [RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
-                                          ImportError, ValueError, TypeError])
+                                          ImportError, ValueError, TypeError, HTTPError])
     def test_main_error(self, redfish_str_controller_conn, redfish_response_mock, mocker,
                         exc_type, redfish_default_args):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -982,6 +994,10 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                      return_value=(redfish_response_mock, ""))
         mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.strip_substr_dict',
                      return_value={"JobState": "Failed"})
+        result = self._run_module(redfish_default_args)
+        assert result["task"]["id"] == "JID_XXXXXXXXXXXXX"
+        mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.strip_substr_dict',
+                     return_value={"JobState": "Completed"})
         result = self._run_module(redfish_default_args)
         assert result["task"]["id"] == "JID_XXXXXXXXXXXXX"
         param.update({"command": "OnlineCapacityExpansion", "job_wait": True, "volume_id": ['123']})
