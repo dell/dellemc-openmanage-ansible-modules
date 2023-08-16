@@ -352,6 +352,7 @@ SETTLING_TIME = 3
 
 import json
 import time
+import os
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
@@ -523,11 +524,17 @@ def modify_catalog(module, rest_obj, catalog_list, all_catalog):
     new_catalog_current_setting = catalog_payload.copy()
     repo_id = new_catalog_current_setting["Repository"]["Id"]
     del new_catalog_current_setting["Repository"]["Id"]
+    fname = modify_payload.get('Filename')
+    if fname and fname.lower().endswith('.gz'):
+        modify_payload['Filename'] = new_catalog_current_setting.get('Filename')
+        src_path = modify_payload.get('SourcePath', new_catalog_current_setting.get('SourcePath', ""))
+        if src_path and not src_path.lower().endswith('.gz'):
+            modify_payload['SourcePath'] = os.path.join(src_path, fname)
     diff = compare_payloads(modify_payload, new_catalog_current_setting)
-    if module.check_mode and diff:
-        module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True)
     if not diff:
         module.exit_json(msg=CHECK_MODE_CHANGE_NOT_FOUND_MSG, changed=False)
+    if module.check_mode:
+        module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True)
     new_catalog_current_setting["Repository"].update(modify_payload["Repository"])
     catalog_payload.update(modify_payload)
     catalog_payload["Repository"] = new_catalog_current_setting["Repository"]
