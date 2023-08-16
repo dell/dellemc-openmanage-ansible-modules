@@ -15,9 +15,11 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_alert_policies_actions_info
-short_description: Get information on actions of alert policies for OpenManage Enterprise.
+short_description: Get information on actions of alert policies.
 version_added: "8.2.0"
-description: This module retrieves the information on actions of alert policies for OpenManage Enterprise.
+description:
+  - This module retrieves the information on actions of alert policies for OpenManage Enterprise
+    and OpenManage Enterprise Modular.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 requirements:
@@ -25,7 +27,8 @@ requirements:
 author:
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
-    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise
+      or OpenManage Enterprise Modular.
     - This module supports both IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
 '''
