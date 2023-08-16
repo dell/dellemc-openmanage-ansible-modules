@@ -46,6 +46,7 @@ Here are the list of modules and module_utils supported by Dell.
     ├── idrac_user_info.py
     ├── idrac_virtual_media.py
     ├── ome_active_directory.py
+    ├── ome_alert_policies_info.py
     ├── ome_application_alerts_smtp.py
     ├── ome_application_alerts_syslog.py
     ├── ome_application_certificate.py
