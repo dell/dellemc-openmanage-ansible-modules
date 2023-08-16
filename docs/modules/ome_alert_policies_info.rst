@@ -12,6 +12,8 @@ ome_alert_policies_info -- Retrieves information of one or more OME alert polici
 Synopsis
 --------
 
+This module retrieves the information of alert policies for OpenManage Enterprise and OpenManage Enterprise Modular.
+
 A list of information about a specific OME alert policy using the policy name.
 
 A list of all the OME alert policies with their information when the policy name is not provided.
@@ -72,7 +74,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - This module supports both IPv4 and IPv6 addresses.
    - This module supports ``check_mode``.
 

@@ -19,6 +19,8 @@ module: ome_alert_policies_info
 short_description: Retrieves information of one or more OME alert policies.
 version_added: "8.2.0"
 description:
+  - This module retrieves the information of alert policies for OpenManage Enterprise
+    and OpenManage Enterprise Modular.
   - A list of information about a specific OME alert policy using the policy name.
   - A list of all the OME alert policies with their information when the policy name is not provided.
 extends_documentation_fragment:
@@ -31,7 +33,8 @@ requirements:
     - "python >= 3.9.6"
 author: "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
-    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise
+      or OpenManage Enterprise Modular.
     - This module supports both IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
 '''
