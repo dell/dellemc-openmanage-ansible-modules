@@ -398,7 +398,7 @@ def remove_key(data, remove_char='@odata.'):
 def wait_for_redfish_reboot_job(redfish_obj, res_id, payload=None, wait_time_sec=300):
     reset, job_resp, msg = False, {}, ""
     try:
-        resp = redfish_obj.invoke_request('POST', SYSTEM_RESET_URI.format(res_id=res_id), data=payload)
+        resp = redfish_obj.invoke_request('POST', SYSTEM_RESET_URI.format(res_id=res_id), data=payload, api_timeout=120)
         time.sleep(10)
         if wait_time_sec and resp.status_code == 204:
             resp = redfish_obj.invoke_request("GET", MANAGER_JOB_URI)
@@ -426,7 +426,7 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
                 sleep_interval = max_sleep_time
                 max_sleep_time = 0
             time.sleep(sleep_interval)
-            job_resp = redfish_obj.invoke_request("GET", job_uri)
+            job_resp = redfish_obj.invoke_request("GET", job_uri, api_timeout=120)
             if job_resp.json_data.get("PercentComplete") == 100:
                 time.sleep(10)
                 return job_resp, ""
@@ -435,6 +435,6 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
                 return job_resp, job_msg
     else:
         time.sleep(10)
-        job_resp = redfish_obj.invoke_request("GET", job_uri)
+        job_resp = redfish_obj.invoke_request("GET", job_uri, api_timeout=120)
         return job_resp, ""
     return job_resp, job_msg

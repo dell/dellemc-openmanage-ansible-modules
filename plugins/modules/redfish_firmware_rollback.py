@@ -183,7 +183,7 @@ def get_rollback_preview_target(redfish_obj, module):
             module.fail_json(msg=NOT_SUPPORTED)
     inventory_uri = action_resp.json_data.get('FirmwareInventory').get('@odata.id')
     inventory_uri_resp = redfish_obj.invoke_request("GET", "{0}{1}".format(inventory_uri, "?$expand=*($levels=1)"),
-                                                    api_timeout=60)
+                                                    api_timeout=120)
     previous_component = list(filter(lambda d: d["Id"].startswith("Previous"), inventory_uri_resp.json_data["Members"]))
     if not previous_component:
         module.fail_json(msg=NO_COMPONENTS)
@@ -232,7 +232,7 @@ def require_session(idrac, module):
     session_id, token = "", None
     payload = {'UserName': module.params["username"], 'Password': module.params["password"]}
     path = SESSION_RESOURCE_COLLECTION["SESSION"]
-    resp = idrac.invoke_request('POST', path, data=payload)
+    resp = idrac.invoke_request('POST', path, data=payload, api_timeout=120)
     if resp and resp.success:
         session_id = resp.json_data.get("Id")
         token = resp.headers.get('X-Auth-Token')
@@ -299,7 +299,7 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
             job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, job_uri)
             job_status = job_resp.json_data
             if job_status["JobState"] != "RebootCompleted" and job_msg:
-                module.fail_json(msg=JOB_WAIT_MSG.format(module.params["wait_timeout"]))
+                module.fail_json(msg=JOB_WAIT_MSG.format(module.params["reboot_timeout"]))
             elif job_status["JobState"] != "RebootCompleted" and not job_msg:
                 module.fail_json(msg=REBOOT_FAIL)
         elif not reset_status and reset_fail:

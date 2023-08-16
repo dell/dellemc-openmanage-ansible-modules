@@ -105,7 +105,8 @@ class TestRedfishFirmware(FakeAnsibleModule):
                      return_value=(job_resp_mock, "Failed message."))
         with pytest.raises(Exception) as ex:
             self.module.rollback_firmware(redfish_connection_mock, f_module, preview_uri, reboot_uri, update_uri)
-        assert ex.value.args[0] == "Failed message."
+        assert ex.value.args[0] == "Task excited after waiting for 900 seconds. " \
+                                   "Check console for firmware rollback status."
         mocker.patch(MODULE_PATH + "redfish_firmware_rollback.wait_for_redfish_reboot_job",
                      return_value=({}, False, "Reset operation is failed."))
         with pytest.raises(Exception) as ex:
