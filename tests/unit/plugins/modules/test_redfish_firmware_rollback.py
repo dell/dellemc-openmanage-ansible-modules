@@ -243,7 +243,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result[1] == 1
 
         mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.wait_for_redfish_job_complete',
-                     return_value=({}, "some error message"))
+                     return_value=(redfish_response_mock, "some error message"))
         with pytest.raises(Exception) as ex:
             self.module.get_job_status(redfish_connection_mock, f_module, ["JID_123456789"], job_wait=True)
         assert ex.value.args[0] == "Task excited after waiting for 900 seconds. Check console for " \

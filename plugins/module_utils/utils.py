@@ -417,6 +417,7 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
     max_sleep_time = wait_timeout
     sleep_interval = sleep_time
     job_msg = "The job is not complete after {0} seconds.".format(wait_timeout)
+    job_resp = {}
     if job_wait:
         while max_sleep_time:
             if max_sleep_time > sleep_interval:
@@ -436,4 +437,4 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
         time.sleep(10)
         job_resp = redfish_obj.invoke_request("GET", job_uri)
         return job_resp, ""
-    return {}, job_msg
+    return job_resp, job_msg

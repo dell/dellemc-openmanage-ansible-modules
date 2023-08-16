@@ -217,8 +217,9 @@ def get_job_status(redfish_obj, module, job_ids, job_wait=True):
         each_job_uri = MANAGER_JOB_ID_URI.format(each)
         job_resp, js_job_msg = wait_for_redfish_job_complete(redfish_obj, each_job_uri, job_wait=job_wait,
                                                              wait_timeout=wait_timeout)
-        if not job_resp and js_job_msg:
-            module.fail_json(msg=JOB_WAIT_MSG.format(wait_timeout))
+        if job_resp and js_job_msg:
+            module.exit_json(msg=JOB_WAIT_MSG.format(wait_timeout), job_status=[strip_substr_dict(job_resp.json_data)],
+                             changed=True)
         job_status = job_resp.json_data
         if job_status["JobState"] == "Failed":
             failed_count += 1
@@ -298,7 +299,7 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
             job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, job_uri)
             job_status = job_resp.json_data
             if job_status["JobState"] != "RebootCompleted" and job_msg:
-                module.fail_json(msg=job_msg)
+                module.fail_json(msg=JOB_WAIT_MSG.format(module.params["wait_timeout"]))
             elif job_status["JobState"] != "RebootCompleted" and not job_msg:
                 module.fail_json(msg=REBOOT_FAIL)
         elif not reset_status and reset_fail:
