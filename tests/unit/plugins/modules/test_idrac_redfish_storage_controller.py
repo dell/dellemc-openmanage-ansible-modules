@@ -45,8 +45,20 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         result = self.module.check_id_exists(f_module, redfish_str_controller_conn, "controller_id",
                                              "RAID.Integrated.1-1", uri)
         assert result is None
+
         redfish_response_mock.success = False
         redfish_response_mock.status_code = 400
+        with pytest.raises(Exception) as ex:
+            self.module.check_id_exists(f_module, redfish_str_controller_conn, "controller_id",
+                                        "RAID.Integrated.1-1", uri)
+        assert ex.value.args[0] == "controller_id with id 'RAID.Integrated.1-1' not found in system"
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
         with pytest.raises(Exception) as ex:
             self.module.check_id_exists(f_module, redfish_str_controller_conn, "controller_id",
                                         "RAID.Integrated.1-1", uri)
@@ -59,6 +71,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self.module.validate_inputs(f_module)
         assert ex.value.args[0] == "All of the following: key, key_id and old_key are required for 'ReKey' operation."
+
         param.update({"command": "AssignSpare", "target": ["Disk.Bay.0:Enclosure.Internal.0-2:RAID.Integrated.1-1",
                                                            "Disk.Bay.1:Enclosure.Internal.0-2:RAID.Integrated.1-1"]})
         f_module = self.get_module_mock(params=param)
@@ -66,18 +79,21 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.validate_inputs(f_module)
         assert ex.value.args[0] == "The Fully Qualified Device Descriptor (FQDD) of the target " \
                                    "physical disk must be only one."
+
         param.update({"volume_id": ["Disk.Virtual.0:RAID.Mezzanine.1C-0",
                                     "Disk.Virtual.0:RAID.Mezzanine.1C-1"], "target": None})
         with pytest.raises(Exception) as ex:
             self.module.validate_inputs(f_module)
         assert ex.value.args[0] == "The Fully Qualified Device Descriptor (FQDD) of the target " \
                                    "virtual drive must be only one."
+
         param.update({"command": "EnableControllerEncryption"})
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as ex:
             self.module.validate_inputs(f_module)
         assert ex.value.args[0] == "All of the following: key, key_id are " \
                                    "required for 'EnableControllerEncryption' operation."
+
         param.update({"command": "ChangePDStateToOnline",
                       "target": ["Disk.Bay.0:Enclosure.Internal.0-2:RAID.Integrated.1-1",
                                  "Disk.Bay.0:Enclosure.Internal.0-2:RAID.Integrated.1-1"]})
@@ -85,6 +101,35 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.validate_inputs(f_module)
         assert ex.value.args[0] == "The Fully Qualified Device Descriptor (FQDD) of the target " \
                                    "physical disk must be only one."
+
+        param.update({"key": "Key@123", "key_id": 123, "old_key": "abc",
+                      "command": "ReKey", "mode": "LKM"})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.validate_inputs(f_module)
+        assert result is None
+
+        param.update({"key": "Key@123", "key_id": 123,
+                      "command": "EnableControllerEncryption", "mode": "LKM"})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.validate_inputs(f_module)
+        assert result is None
+
+        param.update({"volume_id": None, "command": "AssignSpare",
+                      "target": ["Disk.Bay.0:Enclosure.Internal.0-2:RAID.Integrated.1-1"]})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.validate_inputs(f_module)
+        assert result is None
+
+        param.update({"command": "ChangePDStateToOnline",
+                      "target": None})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.validate_inputs(f_module)
+        assert result is None
+
+        param.update({"command": "NoCommand"})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.validate_inputs(f_module)
+        assert result is None
 
     def test_target_identify_pattern(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -95,10 +140,26 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         redfish_response_mock.status_code = 200
         result = self.module.target_identify_pattern(f_module, redfish_str_controller_conn)
         assert result.status_code == 200
+
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.target_identify_pattern(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
+
+        param.update({"volume_id": None})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.target_identify_pattern(f_module, redfish_str_controller_conn)
+        assert result.status_code == 200
+
+        param.update({"target": None})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.target_identify_pattern(f_module, redfish_str_controller_conn)
+        assert result.status_code == 200
+
+        param.update({"volume_id": "Disk.Virtual.0:RAID.Mezzanine.1C-1"})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.target_identify_pattern(f_module, redfish_str_controller_conn)
+        assert result.status_code == 200
 
     def test_ctrl_reset_config(self, redfish_str_controller_conn, redfish_response_mock, mocker):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -120,20 +181,37 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
     def test_hot_spare_config(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
-                 "command": "AssignSpare", "target": "Disk.Bay.1:Enclosure.Internal.0-2:RAID.Integrated.1-1"}
+                 "command": "AssignSpare", "target": ["Disk.Bay.1:Enclosure.Internal.0-2:RAID.Integrated.1-1"]}
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.json_data = {"HotspareType": "None"}
         redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.hot_spare_config(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
+
+        param.update({"volume_id": 'Disk.Virtual.0:RAID.Slot.1-1'})
+        f_module = self.get_module_mock(params=param)
+        result = self.module.hot_spare_config(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.hot_spare_config(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
+
         redfish_response_mock.json_data = {"HotspareType": "Global"}
         with pytest.raises(Exception) as ex:
             self.module.hot_spare_config(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        with pytest.raises(Exception) as ex:
+            self.module.hot_spare_config(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Unable to locate the physical disk with the ID: Disk.Bay.1:Enclosure.Internal.0-2:RAID.Integrated.1-1"
 
     def test_ctrl_key(self, redfish_str_controller_conn, redfish_response_mock, mocker):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -144,44 +222,76 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "The storage controller 'RAID.Integrated.1-1' does not support encryption."
+
         f_module.check_mode = True
         redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
+
         redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": "Key@123"}
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
-        f_module = self.get_module_mock(params=param)
-        f_module.check_mode = True
+
         param.update({"command": "ReKey"})
-        with pytest.raises(Exception) as ex:
-            self.module.ctrl_key(f_module, redfish_str_controller_conn)
-        assert ex.value.args[0] == "Changes found to be applied."
-        param.update({"command": "RemoveControllerKey"})
         f_module = self.get_module_mock(params=param)
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
+
+        f_module.check_mode = False
+        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        result = self.module.ctrl_key(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+
+        param.update({"mode": "LKM_"})
+        f_module.check_mode = False
+        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
+        redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        result = self.module.ctrl_key(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+
+        param.update({"command": "RemoveControllerKey"})
+        redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": 'Key@123'}
+        f_module = self.get_module_mock(params=param)
+        f_module.check_mode = True
+        with pytest.raises(Exception) as ex:
+            self.module.ctrl_key(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Changes found to be applied."
+
         redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
-        param.update({"command": "EnableControllerEncryption"})
+
+        param.update({"command": "EnableControllerEncryption", "mode": "LKM"})
         f_module = self.get_module_mock(params=param)
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
+
         redfish_response_mock.json_data = {"SecurityStatus": "SecurityKeyAssigned", "KeyID": None}
         with pytest.raises(Exception) as ex:
             self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
+
         f_module.check_mode = False
         redfish_response_mock.json_data = {"SecurityStatus": "EncryptionCapable", "KeyID": None}
         redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
+        result = self.module.ctrl_key(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+
+        param.update({"mode": "LKM_"})
+        result = self.module.ctrl_key(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+
+        param.update({"command": "wrongCommand", "mode": "LKM"})
+        f_module = self.get_module_mock(params=param)
+        f_module.check_mode = True
         result = self.module.ctrl_key(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
 
@@ -194,15 +304,27 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.convert_raid_status(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
+
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.convert_raid_status(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
+
         f_module.check_mode = False
         redfish_response_mock.json_data = {"Oem": {"Dell": {"DellPhysicalDisk": {"RaidStatus": "Ready"}}}}
         with pytest.raises(Exception) as ex:
             self.module.convert_raid_status(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        with pytest.raises(Exception) as ex:
+            self.module.convert_raid_status(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Unable to locate the physical disk with the ID: Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
 
     def test_change_pd_status(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -214,50 +336,74 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.change_pd_status(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
+
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.change_pd_status(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
+
         f_module.check_mode = False
         redfish_response_mock.json_data = {"Oem": {"Dell": {"DellPhysicalDisk": {"RaidStatus": "Online"}}}}
         with pytest.raises(Exception) as ex:
             self.module.change_pd_status(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
 
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        with pytest.raises(Exception) as ex:
+            self.module.change_pd_status(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Unable to locate the physical disk with the ID: Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
+
     def test_lock_virtual_disk(self, redfish_str_controller_conn, redfish_response_mock, mocker):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
                  "command": "LockVirtualDisk",
-                 "volume_id": "Disk.Virtual.0:RAID.SL.3-1"}
+                 "volume_id": ["Disk.Virtual.0:RAID.SL.3-1"]
+                 }
         f_module = self.get_module_mock(params=param)
         mocker.patch(MODULE_PATH + "idrac_redfish_storage_controller.check_id_exists", return_value=None)
         redfish_response_mock.json_data = {"Oem": {"Dell": {"DellVolume": {"LockStatus": "Unlocked"}}}}
         redfish_response_mock.headers = {"Location": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"}
         result = self.module.lock_virtual_disk(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
+
         f_module.check_mode = True
         with pytest.raises(Exception) as ex:
             self.module.lock_virtual_disk(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Changes found to be applied."
+
         f_module.check_mode = False
         redfish_response_mock.json_data = {"Oem": {"Dell": {"DellVolume": {"LockStatus": "Locked"}}}}
         with pytest.raises(Exception) as ex:
             self.module.lock_virtual_disk(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
+
         redfish_response_mock.json_data = {"Oem": {"Dell": {"DellVolume": {"LockStatus": "Unlocked"}}},
                                            "Links": {
                                                "Drives": [
                                                    {
                                                        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/"
-                                                                    "Storage/RAID.Integrated.1-1/Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"
                                                    },
                                                    {
                                                        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/"
-                                                                    "Storage/RAID.Integrated.1-1/Drives/Disk.Bay.1:Enclosure.Internal.0-0:RAID.Integrated.1-1"
                                                    }],
                                                "Drives@odata.count": 2}}
         with pytest.raises(Exception) as ex:
             self.module.lock_virtual_disk(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Volume is not encryption capable."
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        with pytest.raises(Exception) as ex:
+            self.module.lock_virtual_disk(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Unable to locate the physical disk with the ID: RAID.SL.3-1"
 
     def test_online_capacity_expansion_raid_type_error(self, redfish_str_controller_conn, redfish_response_mock, mocker):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -275,6 +421,16 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self.module.online_capacity_expansion(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "Cannot add more than two disks to RAID1 virtual disk."
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        with pytest.raises(Exception) as ex:
+            self.module.online_capacity_expansion(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "Unable to locate the virtual disk with the ID: Disk.Virtual.0:RAID.SL.3-1"
 
     def test_online_capacity_expansion_empty_target(self, redfish_str_controller_conn, redfish_response_mock, mocker):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -320,6 +476,12 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             self.module.online_capacity_expansion(f_module, redfish_str_controller_conn)
         assert ex.value.args[0] == "No changes found to be applied."
 
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.json_data = {"RAIDType": "RAID10"}
+        with pytest.raises(Exception) as ex:
+            self.module.online_capacity_expansion(f_module, redfish_str_controller_conn)
+        assert ex.value.args[0] == "No changes found to be applied."
+
     def test_online_capacity_expansion_size(self, redfish_str_controller_conn, redfish_response_mock, mocker):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
                  "command": "OnlineCapacityExpansion",
@@ -337,12 +499,26 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         result = self.module.online_capacity_expansion(f_module, redfish_str_controller_conn)
         assert result[2] == "JID_XXXXXXXXXXXXX"
 
+        param.update({"size": None})
+        result = self.module.online_capacity_expansion(f_module, redfish_str_controller_conn)
+        assert result[2] == "JID_XXXXXXXXXXXXX"
+
     def test_get_current_time(self, redfish_str_controller_conn, redfish_response_mock):
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"DateTime": "2023-01-09T01:23:40-06:00", "DateTimeLocalOffset": "-06:00"}
         resp = self.module.get_current_time(redfish_str_controller_conn)
         assert resp[0] == "2023-01-09T01:23:40-06:00"
         assert resp[1] == "-06:00"
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        resp = self.module.get_current_time(redfish_str_controller_conn)
+        assert resp[0] is None
+        assert resp[1] is None
 
     def test_validate_time(self, redfish_str_controller_conn, redfish_response_mock, redfish_default_args):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -354,12 +530,19 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"DateTime": "2023-01-09T01:23:40-06:00", "DateTimeLocalOffset": "-06:00"}
-        with pytest.raises(Exception) as ex:
+        with pytest.raises(Exception):
             result = self.module.validate_time(f_module, redfish_str_controller_conn, "2023-01-09T01:23:40-05:00")
             assert result["msg"] == "The maintenance time must be post-fixed with local offset to -05:00."
+
         redfish_response_mock.json_data = {"DateTime": "2023-01-09T01:23:40-06:00", "DateTimeLocalOffset": "-06:00"}
-        with pytest.raises(Exception) as ex:
+        with pytest.raises(Exception):
             result = self.module.validate_time(f_module, redfish_str_controller_conn, "2022-01-09T01:23:40-05:00")
+            assert result["msg"] == "The specified maintenance time window occurs in the past, provide a future time" \
+                                    " to schedule the maintenance window."
+
+        redfish_response_mock.json_data = {"DateTime": "2023-10-09T01:23:40+06:00", "DateTimeLocalOffset": "+06:00"}
+        with pytest.raises(Exception):
+            result = self.module.validate_time(f_module, redfish_str_controller_conn, "2023-09-09T01:23:40+06:00")
             assert result["msg"] == "The specified maintenance time window occurs in the past, provide a future time" \
                                     " to schedule the maintenance window."
 
@@ -467,6 +650,15 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         result = self.module.get_attributes(f_module, redfish_str_controller_conn)
         assert result == resp
 
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        resp = self.module.get_attributes(f_module, redfish_str_controller_conn)
+        assert resp == {}
+
     def test_get_redfish_apply_time(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
                  "controller_id": "RAID.Integrated.1-1",
@@ -482,6 +674,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         assert result['ApplyTime'] == param['apply_time']
         assert result['MaintenanceWindowDurationInSeconds'] == 900
         assert result['MaintenanceWindowStartTime'] == '2023-09-30T05:15:40-06:00'
+
         param1 = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
                   "controller_id": "RAID.Integrated.1-1",
                   "attributes": {"ControllerMode": "RAID", "CheckConsistencyMode": "Normal"},
@@ -492,6 +685,15 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         result = self.module.get_redfish_apply_time(f_module, redfish_str_controller_conn, param1["apply_time"],
                                                     time_settings)
         assert result['ApplyTime'] == param1['apply_time']
+
+        result = self.module.get_redfish_apply_time(f_module, redfish_str_controller_conn,
+                                                    param1["apply_time"], [])
+        assert result == {}
+
+        with pytest.raises(Exception):
+            result = self.module.get_redfish_apply_time(f_module, redfish_str_controller_conn,
+                                                        param1["apply_time"], ['NotEmpty'])
+            assert result["status_msg"] == "Apply time InMaintenanceWindowOnReset is not supported."
 
     def test_apply_attributes(self, redfish_str_controller_conn, redfish_response_mock):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -508,6 +710,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                                                         time_settings)
         assert job_id == "JID_XXXXXXXXXXXXX"
         assert time_set == {'ApplyTime': "Immediate"}
+
         redfish_response_mock.status_code = 202
         redfish_response_mock.json_data = {"error": {"@Message.ExtendedInfo": [
             {"Message": "The value 'abcd' for the property PatrolReadMode is not in the list of acceptable values.",
@@ -518,6 +721,25 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
              "Resolution": "Choose a value from the enumeration list that the implementation can support and"
                            "resubmit the request if the operation failed.", "Severity": "Warning"}
         ]}}
+        with pytest.raises(Exception) as ex:
+            self.module.apply_attributes(f_module, redfish_str_controller_conn, {"CheckConsistencyMode": "StopOnError"},
+                                         time_settings)
+        assert ex.value.args[0] == "Unable to configure the controller attribute(s) settings."
+
+        time_settings = []
+        with pytest.raises(Exception) as ex:
+            job_id, time_set = self.module.apply_attributes(f_module, redfish_str_controller_conn,
+                                                            {"CheckConsistencyMode": "StopOnError"},
+                                                            time_settings)
+            assert job_id == "JID_XXXXXXXXXXXXX"
+            assert time_set == {}
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
         with pytest.raises(Exception) as ex:
             self.module.apply_attributes(f_module, redfish_str_controller_conn, {"CheckConsistencyMode": "StopOnError"},
                                          time_settings)
@@ -600,6 +822,12 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         job_id, time_set = self.module.set_attributes(f_module, redfish_str_controller_conn)
         assert job_id == "JID_XXXXXXXXXXXXX"
         assert time_set == {'ApplyTime': "Immediate"}
+
+        param.update({"attributes": {"ControllerMode": "HBA", 'RandomKey': 123}})
+        f_module = self.get_module_mock(params=param)
+        with pytest.raises(Exception):
+            result = self.module.set_attributes(f_module, redfish_str_controller_conn)
+            assert result['msg'] == "Other attributes cannot be updated when ControllerMode is provided as input."
 
     def test_main_success_attributes(self, redfish_str_controller_conn, redfish_response_mock, redfish_default_args, mocker):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -695,8 +923,12 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
         result = self._run_module(redfish_default_args)
         assert result['msg'] == "Successfully applied the controller attributes."
 
+        redfish_response_mock.json_data = {"JobState": "Failed"}
+        result = self._run_module(redfish_default_args)
+        assert result['msg'] == "Successfully applied the controller attributes."
+
     @pytest.mark.parametrize("exc_type", [RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
-                                          ImportError, ValueError, TypeError])
+                                          ImportError, ValueError, TypeError, HTTPError])
     def test_main_error(self, redfish_str_controller_conn, redfish_response_mock, mocker,
                         exc_type, redfish_default_args):
         param = {"baseuri": "192.168.0.1", "username": "username", "password": "password",
@@ -762,6 +994,10 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
                      return_value=(redfish_response_mock, ""))
         mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.strip_substr_dict',
                      return_value={"JobState": "Failed"})
+        result = self._run_module(redfish_default_args)
+        assert result["task"]["id"] == "JID_XXXXXXXXXXXXX"
+        mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.strip_substr_dict',
+                     return_value={"JobState": "Completed"})
         result = self._run_module(redfish_default_args)
         assert result["task"]["id"] == "JID_XXXXXXXXXXXXX"
         param.update({"command": "OnlineCapacityExpansion", "job_wait": True, "volume_id": ['123']})
