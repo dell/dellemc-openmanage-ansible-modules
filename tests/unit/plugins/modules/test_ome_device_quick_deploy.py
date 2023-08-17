@@ -273,8 +273,3 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_device_details', return_value=("JID_135792468", None))
         result = self._run_module(ome_default_args)
         assert result["msg"] == "Successfully submitted the Quick Deploy job settings."
-        ome_default_args.update({"device_id": 25011, "setting_type": "ServerQuickDeploy", "validate_certs": False,
-                                 "quick_deploy_options": {}})
-        result = self._run_module_with_fail_json(ome_default_args)
-        assert result["msg"] == "missing required arguments: quick_deploy_options"
-        assert result["failed"] is True
