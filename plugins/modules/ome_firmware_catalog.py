@@ -525,12 +525,17 @@ def modify_catalog(module, rest_obj, catalog_list, all_catalog):
     repo_id = new_catalog_current_setting["Repository"]["Id"]
     del new_catalog_current_setting["Repository"]["Id"]
     fname = modify_payload.get('Filename')
+    # Special case handling for .gz catalog files
     if fname and fname.lower().endswith('.gz'):
         modify_payload['Filename'] = new_catalog_current_setting.get('Filename')
-        src_path = modify_payload.get('SourcePath', new_catalog_current_setting.get('SourcePath', ""))
-        if src_path and not src_path.lower().endswith('.gz'):
-            modify_payload['SourcePath'] = os.path.join(src_path, fname)
+        src_path = modify_payload.get('SourcePath')
+        if src_path is None:
+            src_path = new_catalog_current_setting.get('SourcePath', "")
+            if src_path.lower().endswith('.gz'):
+                src_path = os.path.dirname(src_path)
+        modify_payload['SourcePath'] = os.path.join(src_path, fname)
     diff = compare_payloads(modify_payload, new_catalog_current_setting)
+    # module.exit_json(modify_payload=modify_payload, new_catalog_current_setting=new_catalog_current_setting, changed=diff)
     if not diff:
         module.exit_json(msg=CHECK_MODE_CHANGE_NOT_FOUND_MSG, changed=False)
     if module.check_mode:
