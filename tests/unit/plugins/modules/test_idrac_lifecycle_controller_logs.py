@@ -100,8 +100,10 @@ class TestExportLcLogs(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
-    def test_get_user_credentials(self, idrac_connection_export_lc_logs_mock, idrac_default_args, idrac_file_manager_export_lc_logs_mock, mocker):
-        idrac_default_args.update({"share_name": "sharename", "share_user": "share@user",
+
+    @pytest.mark.parametrize("args_update", [{"share_user": "share@user"},{"share_user": "shareuser"}, {"share_user": "share\\user"}])
+    def test_get_user_credentials(self, args_update, idrac_connection_export_lc_logs_mock, idrac_default_args, idrac_file_manager_export_lc_logs_mock, mocker):
+        idrac_default_args.update({"share_name": "sharename",
                                    "share_password": "sharepassword", "job_wait": True})
         obj = MagicMock()
         obj.IsValid = True
@@ -109,14 +111,7 @@ class TestExportLcLogs(FakeAnsibleModule):
             MODULE_PATH + "idrac_lifecycle_controller_logs.file_share_manager.create_share_obj", return_value=(obj))
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
-        share = self.module.get_user_credentials(f_module)
-        assert share.IsValid is True
-
-        idrac_default_args.update({"share_user": "shareuser"})
-        share = self.module.get_user_credentials(f_module)
-        assert share.IsValid is True
-
-        idrac_default_args.update({"share_user": "share\\user"})
+        idrac_default_args.update(args_update)
         share = self.module.get_user_credentials(f_module)
         assert share.IsValid is True
 

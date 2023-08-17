@@ -466,10 +466,6 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "ipmi_serial_privilege": "Administrator", "enable": True,
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
-        # obj = MagicMock()
-        # obj.json_data = {"Oem": {"Dell": {"Message":"This Message Does Not Exists"}}}
-        # mocker.patch(MODULE_PATH + "idrac_user.create_or_modify_account", return_value=(obj, "created"))
-        # with pytest.raises(Exception) as exc:
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result['failed'] is True
         assert result['msg'] == "value of state must be one of: present, absent, got: some"

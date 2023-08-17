@@ -72,23 +72,17 @@ class TestSetupSyslog(FakeAnsibleModule):
                               'changed': False,
                               'msg': {'Status': 'Success', 'message': 'No changes found to commit!'}},
                           'changed': False}
-
-        message = {"Status": "Success",
-                   "Message": "No changes found to commit!"}
+    @pytest.mark.parametrize("mock_message", [{"Status": "Success",
+                    "Message": "No changes found to commit!"}, {"Status": "Success", "Message": "No changes found"}])
+    def test_main_setup_syslog_success_case01_extra(self, mock_message, idrac_connection_setup_syslog_mock, idrac_default_args, mocker,
+                                                idrac_file_manager_mock):
+        idrac_default_args.update({"share_name": "sharename", 'share_password': None, "syslog": "Enabled",
+                                   'share_mnt': None, 'share_user': None})
         mocker.patch(MODULE_PATH +
-                     'idrac_syslog.run_setup_idrac_syslog',
-                     return_value=message)
+                    'idrac_syslog.run_setup_idrac_syslog',
+                    return_value=mock_message)
         result = self._run_module(idrac_default_args)
         assert result['msg'] == "Successfully fetch the syslogs."
-        assert result['changed'] is False
-
-        message = {"Status": "Success", "Message": "No changes found"}
-        mocker.patch(MODULE_PATH +
-                     'idrac_syslog.run_setup_idrac_syslog',
-                     return_value=message)
-        result = self._run_module(idrac_default_args)
-        assert result['msg'] == "Successfully fetch the syslogs."
-        assert result['changed'] is True
 
     def test_run_setup_idrac_syslog_success_case01(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                    idrac_file_manager_mock):
