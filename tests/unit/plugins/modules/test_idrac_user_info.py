@@ -37,31 +37,174 @@ class TestIDRACUserInfo(FakeAnsibleModule):
         idrac_conn_mock = mocker.patch(MODULE_PATH + 'idrac_user_info.iDRACRedfishAPI',
                                        return_value=idrac_user_info_mock)
         idrac_conn_mock.return_value.__enter__.return_value = idrac_user_info_mock
-        return idrac_user_info_mock
+        return idrac_conn_mock
 
-    def _test_user_info_main_success_case_all(self, idrac_default_args, idrac_connection_user_info_mock,
-                                              idrac_user_info_mock):
+    def test_fetch_all_accounts_success_case(self, idrac_default_args, idrac_connection_user_info_mock,
+                                             idrac_user_info_mock, mocker):
+        obj = MagicMock()
+        obj.json_data = {"Members": [
+            {"UserName": "test", "Oem": {"Dell": "test"}}]}
+        mocker.patch(MODULE_PATH + "idrac_user_info.iDRACRedfishAPI.invoke_request",
+                     return_value=(obj))
+        resp = self.module.fetch_all_accounts(idrac_connection_user_info_mock, "/acounts/accdetails")
+        assert resp[0].get("UserName") == "test"
+
+    def test_get_user_id_accounts(self, idrac_default_args, idrac_connection_user_info_mock,
+                                  idrac_user_info_mock, mocker):
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_default_args.update({"username": "test"})
+        obj = MagicMock()
+        obj.json_data = {"UserName": "test"}
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        mocker.patch(MODULE_PATH + "idrac_user_info.iDRACRedfishAPI.invoke_request",
+                     return_value=(obj))
+        mocker.patch(MODULE_PATH + "idrac_user_info.strip_substr_dict",
+                     return_value=({"UserName": "test"}))
+        resp = self.module.get_user_id_accounts(
+            idrac_connection_user_info_mock, f_module, "/acounts/accdetails", 1)
+        assert resp.get("UserName") == "test"
+
+        obj = MagicMock()
+        obj.json_data = {"UserName": "test", "Oem": {"Dell": "test"}}
+        mocker.patch(MODULE_PATH + "idrac_user_info.iDRACRedfishAPI.invoke_request",
+                     return_value=(obj))
+        mocker.patch(MODULE_PATH + "idrac_user_info.strip_substr_dict",
+                     return_value=({"UserName": "test", "Oem": {"Dell": "test"}}))
+        resp = self.module.get_user_id_accounts(
+            idrac_connection_user_info_mock, f_module, "/acounts/accdetails", 1)
+        assert resp.get("UserName") == "test"
+
+        idrac_connection_user_info_mock.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+        with pytest.raises(Exception) as exc:
+            self.module.get_user_id_accounts(
+                idrac_connection_user_info_mock, f_module, "/acounts/accdetails", 1)
+        assert exc.value.args[0] == "'user_id' is not valid."
+
+    def test_get_user_name_accounts(self, idrac_default_args, idrac_connection_user_info_mock,
+                                    idrac_user_info_mock, mocker):
+        idrac_default_args.update({"username": "test"})
+        mocker.patch(MODULE_PATH + "idrac_user_info.fetch_all_accounts",
+                     return_value=([{"UserName": "test"}]))
+        mocker.patch(MODULE_PATH + "idrac_user_info.strip_substr_dict",
+                     return_value=({"UserName": "test"}))
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        resp = self.module.get_user_name_accounts(
+            idrac_connection_user_info_mock, f_module, "/acounts/accdetails", "test")
+        assert resp.get("UserName") == "test"
+
+        mocker.patch(MODULE_PATH + "idrac_user_info.strip_substr_dict",
+                     return_value=({"UserName": "test", "Oem": {"Dell": "test"}}))
+        resp = self.module.get_user_name_accounts(
+            idrac_connection_user_info_mock, f_module, "/acounts/accdetails", "test")
+        assert resp.get("UserName") == "test"
+
+        with pytest.raises(Exception) as exc:
+            self.module.get_user_name_accounts(
+                idrac_connection_user_info_mock, f_module, "/acounts/accdetails", "test1")
+        assert exc.value.args[0] == "'username' is not valid."
+
+    def test_get_all_accounts_single(self, idrac_default_args, idrac_connection_user_info_mock,
+                                     idrac_user_info_mock, mocker):
+        idrac_default_args.update({"username": "test"})
+        mocker.patch(MODULE_PATH + "idrac_user_info.fetch_all_accounts",
+                     return_value=([{"UserName": "test", "Oem": {"Dell": "test"}}]))
+        mocker.patch(MODULE_PATH + "idrac_user_info.strip_substr_dict",
+                     return_value=({"UserName": "test", "Oem": {"Dell": "test"}}))
+        resp = self.module.get_all_accounts(
+            idrac_connection_user_info_mock, "/acounts/accdetails")
+        assert resp[0].get("UserName") == "test"
+
+        mocker.patch(MODULE_PATH + "idrac_user_info.fetch_all_accounts",
+                     return_value=([{"UserName": ""}]))
+        resp = self.module.get_all_accounts(
+            idrac_connection_user_info_mock, "/acounts/accdetails")
+        assert resp == []
+
+        mocker.patch(MODULE_PATH + "idrac_user_info.fetch_all_accounts",
+                     return_value=([]))
+        resp = self.module.get_all_accounts(
+            idrac_connection_user_info_mock, "/acounts/accdetails")
+        assert resp == []
+
+    def test_get_all_accounts_multiple(self, idrac_default_args, idrac_connection_user_info_mock,
+                                       idrac_user_info_mock, mocker):
+        def strip_substr_dict_mock(acc):
+            if acc.get("UserName") == "test":
+                return {"UserName": "test"}
+            else:
+                return {"UserName": "test1"}
+        mocker.side_effect = strip_substr_dict_mock
+
+        mocker.patch(MODULE_PATH + "idrac_user_info.fetch_all_accounts",
+                     return_value=([{"UserName": "test"}, {"UserName": "test1"}]))
+        resp = self.module.get_all_accounts(
+            idrac_connection_user_info_mock, "/acounts/accdetails")
+        assert resp[0].get("UserName") == "test"
+        assert resp[1].get("UserName") == "test1"
+
+    def test_get_accounts_uri(self, idrac_default_args, idrac_connection_user_info_mock,
+                              idrac_user_info_mock, mocker):
+        acc_service_uri = MagicMock()
+        acc_service_uri.json_data = {"AccountService": {
+            "@odata.id": "/account"}, "Accounts": {"@odata.id": "/account/accountdetails"}}
+        acc_service = MagicMock()
+        acc_service.json_data = {"Accounts": {
+            "@odata.id": "/account/accountdetails"}}
+
+        mocker.patch(MODULE_PATH + "idrac_user_info.iDRACRedfishAPI.invoke_request",
+                     return_value=(acc_service_uri))
+        resp = self.module.get_accounts_uri(idrac_connection_user_info_mock)
+        assert resp == "/account/accountdetails"
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        idrac_connection_user_info_mock.invoke_request.side_effect = HTTPError(
+            'http://testhost.com', 400,
+            'http error message',
+            {"accept-type": "application/json"},
+            StringIO(json_str))
+
+        resp = self.module.get_accounts_uri(idrac_connection_user_info_mock)
+        assert resp == "/redfish/v1/AccountService/Accounts"
+
+    def test_user_info_main_success_case_all(self, idrac_default_args, idrac_connection_user_info_mock,
+                                             idrac_user_info_mock, mocker):
+        idrac_default_args.update({"username": "test"})
+        mocker.patch(MODULE_PATH + "idrac_user_info.get_accounts_uri",
+                     return_value=("/acounts/accdetails"))
+        mocker.patch(MODULE_PATH + "idrac_user_info.get_user_name_accounts",
+                     return_value=({"UserName": "test"}))
         idrac_user_info_mock.status_code = 200
         idrac_user_info_mock.success = True
-        result = self._run_module(idrac_default_args)
-        assert 'user_info' in result
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == "Successfully retrieved the user information."
+        assert resp['user_info'][0].get("UserName") == "test"
 
-    def test_user_info_main_success_case_user_id(self, idrac_default_args, idrac_connection_user_info_mock,
-                                                 idrac_user_info_mock):
-        idrac_default_args.update({"user_id": 1})
-        idrac_user_info_mock.success = True
-        idrac_user_info_mock.json_data = {"value": [{"user_id": 1}]}
-        idrac_user_info_mock.status_code = 200
-        result = self._run_module(idrac_default_args)
-        assert result['changed'] is False
-        assert 'user_info' in result
+        mocker.patch(MODULE_PATH + "idrac_user_info.get_user_id_accounts",
+                     return_value=({"UserName": "test"}))
+        idrac_default_args.update({"user_id": "1234"})
+        idrac_default_args.pop("username")
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == "Successfully retrieved the user information."
+        assert resp['user_info'][0].get("UserName") == "test"
 
-    def _test_get_user_info_failure_case(self, idrac_default_args, idrac_connection_user_info_mock,
-                                         idrac_user_info_mock):
-        idrac_user_info_mock.status_code = 500
-        idrac_user_info_mock.success = False
-        result = self._run_module_with_fail_json(idrac_default_args)
-        assert result['msg'] == 'Unable to retrieve the user information.'
+        mocker.patch(MODULE_PATH + "idrac_user_info.get_all_accounts",
+                     return_value=([{"UserName": "test"}]))
+        idrac_default_args.pop("user_id")
+        resp = self._run_module(idrac_default_args)
+        assert resp['msg'] == "Successfully retrieved the information of 1 user(s)."
+        assert resp['user_info'][0].get("UserName") == "test"
+
+        mocker.patch(MODULE_PATH + "idrac_user_info.get_all_accounts",
+                     return_value=([]))
+        resp = self._run_module_with_fail_json(idrac_default_args)
+        assert resp['failed'] is True
+        assert resp['msg'] == "Unable to retrieve the user information."
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
@@ -71,13 +214,15 @@ class TestIDRACUserInfo(FakeAnsibleModule):
         idrac_user_info_mock.success = False
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
-            idrac_connection_user_info_mock.invoke_request.side_effect = exc_type('test')
+            mocker.patch(MODULE_PATH + "idrac_user_info.get_accounts_uri",
+                         side_effect=exc_type('test'))
         else:
-            idrac_connection_user_info_mock.invoke_request.side_effect = exc_type('http://testhost.com', 400,
-                                                                                  'http error message',
-                                                                                  {"accept-type": "application/json"},
-                                                                                  StringIO(json_str))
-        if not exc_type == URLError:
+            mocker.patch(MODULE_PATH + "idrac_user_info.get_accounts_uri",
+                         side_effect=exc_type('http://testhost.com', 400,
+                                              'http error message',
+                                              {"accept-type": "application/json"},
+                                              StringIO(json_str)))
+        if exc_type != URLError:
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
         else:

@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -145,6 +145,7 @@ class TestIDRACUser(FakeAnsibleModule):
         response = self.module.get_user_account(f_module, idrac_connection_user_mock)
         assert response[0]["Users.2#UserName"] == "test_user"
         assert response[3] == 3
+        assert response[4] == "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/3"
 
     def test_get_user_account_2(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
@@ -156,11 +157,23 @@ class TestIDRACUser(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_user.iDRACRedfishAPI.export_scp",
                      return_value=MagicMock())
         mocker.patch(MODULE_PATH + "idrac_user.iDRACRedfishAPI.get_idrac_local_account_attr",
-                     return_value={"Users.2#UserName": "test_user", "Users.3#UserName": ""})
+                     return_value={"Users.2#UserName": "test_user", "Users.3#UserName": "test"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         response = self.module.get_user_account(f_module, idrac_connection_user_mock)
-        assert response[3] == 3
-        assert response[4] == "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/3"
+        assert response[2] == 3
+        assert response[1] == "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/3"
+
+    def test_get_user_account_invalid_name(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
+                                   "user_name": "", "user_password": "password",
+                                   "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        with pytest.raises(Exception) as err:
+            self.module.get_user_account(f_module, idrac_connection_user_mock)
+        assert err.value.args[0] == "User name is not valid."
 
     def test_create_or_modify_account_1(self, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
@@ -336,9 +349,52 @@ class TestIDRACUser(FakeAnsibleModule):
                                                         None, None, user_attr)
         assert response[1] == "Successfully updated user account."
 
+    def test_create_or_modify_account_both_slot_empty_input(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
+                                   "user_name": "test", "user_password": "password",
+                                   "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idrac_connection_user_mock.get_server_generation = (14, "3.60.60.60")
+        mocker.patch(MODULE_PATH + "idrac_user.get_payload", return_value={"Users.2#UserName": "test_user"})
+        mocker.patch(MODULE_PATH + "idrac_user.convert_payload_xml",
+                     return_value=("<xml-data>", {"Users.1#UserName": "test_user"}))
+        mocker.patch(MODULE_PATH + "idrac_user.iDRACRedfishAPI.invoke_request",
+                     return_value={"Message": "Successfully created a request."})
+        slot_id = 2
+        slot_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/{0}/".format(slot_id)
+        user_attr = {"User.2#UserName": "test_user"}
+        response = self.module.create_or_modify_account(f_module, idrac_connection_user_mock, slot_id, slot_uri,
+                                                        slot_id, slot_uri, user_attr)
+        assert response[1] == "Successfully updated user account."
+
+    def test_create_or_modify_account_both_slot_empty_none_input(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
+                                   "user_name": "test", "user_password": "password",
+                                   "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idrac_connection_user_mock.get_server_generation = (14, "3.60.60.60")
+        mocker.patch(MODULE_PATH + "idrac_user.get_payload", return_value={"Users.2#UserName": "test_user"})
+        mocker.patch(MODULE_PATH + "idrac_user.convert_payload_xml",
+                     return_value=("<xml-data>", {"Users.1#UserName": "test_user"}))
+        mocker.patch(MODULE_PATH + "idrac_user.iDRACRedfishAPI.invoke_request",
+                     return_value={"Message": "Successfully created a request."})
+        # slot_id = 2
+        # slot_uri = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/{0}/".format(slot_id)
+        user_attr = {"User.2#UserName": "test_user"}
+        with pytest.raises(Exception) as exc:
+            self.module.create_or_modify_account(f_module, idrac_connection_user_mock, None, None,
+                                                 None, None, user_attr)
+        assert exc.value.args[0] == "Maximum number of users reached. Delete a user account and retry the operation."
+
     @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError,
                                           ConnectionError, HTTPError, ImportError, RuntimeError])
-    def test_main(self, exc_type, idrac_connection_user_mock, idrac_default_args, mocker):
+    def test_main_execptions(self, exc_type, idrac_connection_user_mock, idrac_default_args, mocker):
         idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
                                    "user_name": "test", "user_password": "password",
                                    "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
@@ -353,9 +409,94 @@ class TestIDRACUser(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + "idrac_user.create_or_modify_account",
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-        if not exc_type == URLError:
+        if exc_type != URLError:
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    def test_main_error(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "absent", "new_user_name": "new_user_name",
+                                   "user_name": "test", "user_password": "password",
+                                   "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        obj = MagicMock()
+        obj.json_data = {"error": {"message": "Some Error Occured"}}
+        mocker.patch(MODULE_PATH + "idrac_user.remove_user_account", return_value=(obj, "error"))
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert result['msg'] == "Some Error Occured"
+
+    def test_main_error_oem(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "absent", "new_user_name": "new_user_name",
+                                   "user_name": "test", "user_password": "password",
+                                   "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        obj = MagicMock()
+        obj.json_data = {"Oem": {"Dell": {"Message": "Unable to complete application of configuration profile values."}}}
+        mocker.patch(MODULE_PATH + "idrac_user.remove_user_account", return_value=(obj, "error"))
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert result['msg'] == "Unable to complete application of configuration profile values."
+
+    def test_main_create_oem(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
+                                   "user_name": "test", "user_password": "password",
+                                   "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        obj = MagicMock()
+        obj.json_data = {"Oem": {"Dell": {"Message": "This Message Does Not Exists"}}}
+        mocker.patch(MODULE_PATH + "idrac_user.create_or_modify_account", return_value=(obj, "created"))
+        # with pytest.raises(Exception) as exc:
+        result = self._run_module(idrac_default_args)
+        assert result['changed'] is True
+        assert result['msg'] == "created"
+
+    def test_main_state_some(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "some", "new_user_name": "new_user_name",
+                                   "user_name": "test", "user_password": "password",
+                                   "privilege": "Administrator", "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['failed'] is True
+        assert result['msg'] == "value of state must be one of: present, absent, got: some"
+
+    def test_validate_input(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        idrac_default_args.update({"state": "present", "new_user_name": "new_user_name",
+                                   "user_name": "test", "user_password": "password",
+                                   "custom_privilege": 512, "ipmi_lan_privilege": "Administrator",
+                                   "ipmi_serial_privilege": "Administrator", "enable": True,
+                                   "sol_enable": True, "protocol_enable": True,
+                                   "authentication_protocol": "SHA", "privacy_protocol": "AES"})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        with pytest.raises(Exception) as err:
+            self.module.validate_input(f_module)
+        assert err.value.args[0] == "custom_privilege value should be from 0 to 511."
+
+        idrac_default_args.update({"state": "absent"})
+        ret = self.module.validate_input(f_module)
+        assert ret is None
+
+    def test_compare_payload(self, idrac_connection_user_mock, idrac_default_args, mocker):
+        json_payload = {"Users.1#Password": "MyDummyPassword"}
+        is_change_required = self.module.compare_payload(json_payload, None)
+        assert is_change_required is True
+
+        json_payload = {"Users.1#Privilege": "123"}
+        idrac_attr = {"Users.1#Privilege": "123"}
+        is_change_required = self.module.compare_payload(json_payload, idrac_attr)
+        assert is_change_required is False
+
+        json_payload = {"Users.1#Privilege": "123"}
+        idrac_attr = {"Users.1#Privilege": "124"}
+        is_change_required = self.module.compare_payload(json_payload, idrac_attr)
+        assert is_change_required is True

@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -15,11 +15,18 @@ __metaclass__ = type
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import dellemc_configure_idrac_services
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from mock import MagicMock, Mock
 from pytest import importorskip
+from ansible.module_utils._text import to_text
+import json
+from io import StringIO
 
 importorskip("omsdk.sdkfile")
 importorskip("omsdk.sdkcreds")
+
+MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
 
 class TestConfigServices(FakeAnsibleModule):
@@ -242,13 +249,106 @@ class TestConfigServices(FakeAnsibleModule):
         result = self._run_module_with_fail_json(idrac_default_args)
         assert result['failed'] is True
 
-    @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError])
-    def test_main_idrac_configure_services_exception_handling_case(self, exc_type, mocker, idrac_default_args,
-                                                                   idrac_connection_configure_services_mock,
-                                                                   idrac_file_manager_config_services_mock):
-        idrac_default_args.update({"share_name": None})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.'
-                     'dellemc_configure_idrac_services.run_idrac_services_config', side_effect=exc_type('test'))
-        result = self._run_module_with_fail_json(idrac_default_args)
+    @pytest.mark.parametrize("exc_type", [ImportError, ValueError, RuntimeError, HTTPError, URLError, SSLValidationError, ConnectionError])
+    def test_main_dellemc_configure_idrac_services_handling_case(self, exc_type, mocker, idrac_default_args, idrac_connection_configure_services_mock,
+                                                                 idrac_file_manager_config_services_mock):
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
+                                   "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
+                                   "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
+                                   "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
+                                   "discovery_port": 1000, "trap_format": "SNMPv1"})
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type not in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH +
+                         'dellemc_configure_idrac_services.run_idrac_services_config',
+                         side_effect=exc_type('test'))
+        else:
+            mocker.patch(MODULE_PATH +
+                         'dellemc_configure_idrac_services.run_idrac_services_config',
+                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                                              {"accept-type": "application/json"}, StringIO(json_str)))
+        if exc_type != URLError:
+            result = self._run_module_with_fail_json(idrac_default_args)
+            assert result['failed'] is True
+        else:
+            result = self._run_module(idrac_default_args)
         assert 'msg' in result
-        assert result['failed'] is True
+
+    def test_run_idrac_services_config_invalid_share(self, mocker, idrac_default_args, idrac_connection_configure_services_mock,
+                                                     idrac_file_manager_config_services_mock):
+        f_module = self.get_module_mock(params=idrac_default_args)
+        obj = MagicMock()
+        obj.IsValid = False
+        mocker.patch(
+            MODULE_PATH + "dellemc_configure_idrac_services.file_share_manager.create_share_obj", return_value=(obj))
+        with pytest.raises(Exception) as exc:
+            self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
+        assert exc.value.args[0] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
+
+    def test_run_idrac_services_config_Error(self, mocker, idrac_default_args, idrac_connection_configure_services_mock,
+                                             idrac_file_manager_config_services_mock):
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
+                                   "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
+                                   "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
+                                   "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
+                                   "discovery_port": 1000, "trap_format": "SNMPv1"})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        obj = MagicMock()
+        obj.IsValid = True
+        mocker.patch(
+            MODULE_PATH + "dellemc_configure_idrac_services.file_share_manager.create_share_obj", return_value=(obj))
+        message = {'Status': 'Failed', 'Message': 'Key Error Expected', "Data1": {
+            'Message': 'Status failed in checking data'}}
+        idrac_connection_configure_services_mock.config_mgr.set_liason_share.return_value = message
+        idrac_connection_configure_services_mock.config_mgr.apply_changes.return_value = "Returned on Key Error"
+        with pytest.raises(Exception) as exc:
+            self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
+        assert exc.value.args[0] == "Key Error Expected"
+
+    def test_run_idrac_services_config_extra_coverage(self, mocker, idrac_default_args, idrac_connection_configure_services_mock,
+                                                      idrac_file_manager_config_services_mock):
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "enable_web_server": "Enabled", "http_port": 443,
+                                   "https_port": 343, "timeout": 10, "ssl_encryption": "T_128_Bit_or_higher",
+                                   "tls_protocol": "TLS_1_1_and_Higher", "snmp_enable": "Enabled",
+                                   "community_name": "communityname", "snmp_protocol": "All", "alert_port": 445,
+                                   "discovery_port": 1000, "trap_format": "SNMPv1", "ipmi_lan": {}})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        obj = MagicMock()
+        obj.IsValid = True
+        mocker.patch(
+            MODULE_PATH + "dellemc_configure_idrac_services.file_share_manager.create_share_obj", return_value=(obj))
+        message = {'Status': 'Success', "Data": {
+            'Message': 'Status failed in checking data'}}
+        idrac_connection_configure_services_mock.config_mgr.set_liason_share.return_value = message
+        idrac_connection_configure_services_mock.config_mgr.apply_changes.return_value = "Returned on community name none"
+        ret_data = self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
+        assert ret_data == "Returned on community name none"
+
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idrac_connection_configure_services_mock.config_mgr.is_change_applicable.return_value = {
+            'changes_applicable': False}
+        with pytest.raises(Exception) as exc:
+            self.module.run_idrac_services_config(idrac_connection_configure_services_mock, f_module)
+        assert exc.value.args[0] == "No changes found to commit!"
+
+        idrac_default_args.update({"ipmi_lan": None})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        ret_data = self.module.run_idrac_services_config(
+            idrac_connection_configure_services_mock, f_module)
+        assert ret_data == "Returned on community name none"
+
+    def test_run_idrac_services_config_success_case06(self, idrac_connection_configure_services_mock,
+                                                      idrac_default_args, idrac_file_manager_config_services_mock, mocker):
+        status_msg = {"Status": "Success", "Message": "No changes found"}
+        mocker.patch(
+            MODULE_PATH + 'dellemc_configure_idrac_services.run_idrac_services_config', return_value=status_msg)
+        resp = self._run_module(idrac_default_args)
+        assert resp['changed'] is True
+        assert resp['msg'] == "Successfully configured the iDRAC services settings."
+        assert resp['service_status'].get('Status') == "Success"
+        assert resp['service_status'].get('Message') == "No changes found"

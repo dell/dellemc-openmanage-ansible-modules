@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -78,6 +78,29 @@ class TestConfigTimezone(FakeAnsibleModule):
                      'idrac_timezone_ntp.run_idrac_timezone_config', return_value=status_msg)
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "Successfully configured the iDRAC time settings."
+
+        status_msg = {"Status": "Failure", "Message": "No changes found to commit!",
+                      "msg": {"Status": "Success", "Message": "No changes found to commit!"}}
+        mocker.patch(MODULE_PATH +
+                     'idrac_timezone_ntp.run_idrac_timezone_config', return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully configured the iDRAC time settings."
+
+        status_msg = {"Status": "Success",
+                      "msg": {"Status": "Success", "Message": "No changes found to commit!"}}
+        mocker.patch(MODULE_PATH +
+                     'idrac_timezone_ntp.run_idrac_timezone_config', return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully configured the iDRAC time settings."
+        assert result["changed"] is True
+
+        status_msg = {"Status": "Success", "Message": "No changes found",
+                      "msg": {"Status": "Success", "Message": "No changes found to commit!"}}
+        mocker.patch(MODULE_PATH +
+                     'idrac_timezone_ntp.run_idrac_timezone_config', return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully configured the iDRAC time settings."
+        assert result["changed"] is True
 
     def test_run_idrac_timezone_config_success_case01(self, idrac_connection_configure_timezone_mock,
                                                       idrac_default_args, idrac_file_manager_config_timesone_mock):
@@ -226,3 +249,27 @@ class TestConfigTimezone(FakeAnsibleModule):
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    def test_run_idrac_timezone_config(self, mocker, idrac_default_args,
+                                       idrac_connection_configure_timezone_mock,
+                                       idrac_file_manager_config_timesone_mock):
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        obj = MagicMock()
+        obj.IsValid = False
+        mocker.patch(
+            MODULE_PATH + "idrac_timezone_ntp.file_share_manager.create_share_obj", return_value=(obj))
+        with pytest.raises(Exception) as exc:
+            self.module.run_idrac_timezone_config(
+                idrac_connection_configure_timezone_mock, f_module)
+        assert exc.value.args[0] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
+
+    def test_main_idrac_configure_timezone_attr_exception_handling_case(self, mocker, idrac_default_args,
+                                                                        idrac_connection_configure_timezone_mock,
+                                                                        idrac_file_manager_config_timesone_mock):
+        idrac_default_args.update({"share_name": None})
+        mocker.patch(
+            MODULE_PATH + 'idrac_timezone_ntp.run_idrac_timezone_config',
+            side_effect=AttributeError('NoneType'))
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['msg'] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
