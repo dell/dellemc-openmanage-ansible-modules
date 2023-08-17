@@ -535,7 +535,6 @@ def modify_catalog(module, rest_obj, catalog_list, all_catalog):
                 src_path = os.path.dirname(src_path)
         modify_payload['SourcePath'] = os.path.join(src_path, fname)
     diff = compare_payloads(modify_payload, new_catalog_current_setting)
-    # module.exit_json(modify_payload=modify_payload, new_catalog_current_setting=new_catalog_current_setting, changed=diff)
     if not diff:
         module.exit_json(msg=CHECK_MODE_CHANGE_NOT_FOUND_MSG, changed=False)
     if module.check_mode:
