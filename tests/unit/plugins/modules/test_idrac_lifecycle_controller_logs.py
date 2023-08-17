@@ -100,8 +100,7 @@ class TestExportLcLogs(FakeAnsibleModule):
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
 
-
-    @pytest.mark.parametrize("args_update", [{"share_user": "share@user"},{"share_user": "shareuser"}, {"share_user": "share\\user"}])
+    @pytest.mark.parametrize("args_update", [{"share_user": "share@user"}, {"share_user": "shareuser"}, {"share_user": "share\\user"}])
     def test_get_user_credentials(self, args_update, idrac_connection_export_lc_logs_mock, idrac_default_args, idrac_file_manager_export_lc_logs_mock, mocker):
         idrac_default_args.update({"share_name": "sharename",
                                    "share_password": "sharepassword", "job_wait": True})
