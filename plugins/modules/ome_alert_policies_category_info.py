@@ -19,7 +19,7 @@ DOCUMENTATION = r'''
 module: ome_alert_policies_category_info
 short_description: Retrieves information of all OME alert policy categories.
 version_added: "8.2.0"
-description: This module allows to retrieve all the OME alert policy categories.
+description: This module allows to retrieve all the alert policy categories for OpenManage Enterprise and OpenManage Enterprise Modular.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 requirements:
@@ -27,7 +27,7 @@ requirements:
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
-    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
     - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
 '''

@@ -12,7 +12,7 @@ ome_alert_policies_category_info -- Retrieves information of all OME alert polic
 Synopsis
 --------
 
-This module allows to retrieve all the OME alert policy categories.
+This module allows to retrieve all the alert policy categories for OpenManage Enterprise and OpenManage Enterprise Modular.
 
 
 
@@ -66,7 +66,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - This module supports IPv4 and IPv6 addresses.
    - This module supports ``check_mode``.
 
