@@ -19,18 +19,6 @@ Any contribution must have an associated unit test. This section covers the
 You can execute them manually by using any tool of your choice, like `pytest` or `ansible-test`.
 
 #### Executing with `ansible-test`
-* Clone [Ansible repository](https://github.com/ansible/ansible) from GitHub to local $ANSIBLE_DIR.
-* Copy `compat` directory from the cloned repository path.
- `$ANSIBLE_DIR/test/units/` to the location of the installed Dell OpenManage collection `$ANSIBLE_COLLECTIONS_PATHS/ansible_collections/dellemc/openmanage/tests/unit`.
-* Copy `utils.py` file from `$ANSIBLE_DIR/test/units/modules` tests location to the location of the installed collection `$ANSIBLE_COLLECTIONS_PATHS/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules`
-* Edit the copied `utils.py` to refer the above `compat` package as below:
-```python
-      from units.compat import unittest
-       
-       # Replace the above lines in utils.py as below
-      
-      from ansible_collections.dellemc.openmanage.tests.unit.compat import unittest
-```
 * To install `ansible-test` requirements use 
     ```
     ansible-test units --requirements
