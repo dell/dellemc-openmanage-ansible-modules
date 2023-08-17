@@ -143,7 +143,6 @@ error_info:
 import json
 import re
 import time
-import sre_constants
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params, \
     SESSION_RESOURCE_COLLECTION
@@ -177,10 +176,9 @@ def get_rollback_preview_target(redfish_obj, module):
     update_uri = None
     if "#UpdateService.SimpleUpdate" in action_attr:
         update_service = action_attr.get("#UpdateService.SimpleUpdate")
-        if 'target' in update_service:
-            update_uri = update_service.get('target')
-        else:
+        if 'target' not in update_service:
             module.fail_json(msg=NOT_SUPPORTED)
+        update_uri = update_service.get('target')
     inventory_uri = action_resp.json_data.get('FirmwareInventory').get('@odata.id')
     inventory_uri_resp = redfish_obj.invoke_request("GET", "{0}{1}".format(inventory_uri, "?$expand=*($levels=1)"),
                                                     api_timeout=120)
@@ -190,8 +188,7 @@ def get_rollback_preview_target(redfish_obj, module):
     component_name = module.params["name"]
     try:
         component_compile = re.compile(r"^{0}$".format(component_name))
-    except sre_constants.error:
-        component_compile = ""
+    except Exception:
         module.exit_json(msg=NO_CHANGES_FOUND)
     prev_uri, reboot_uri = {}, []
     for each in previous_component:
@@ -205,7 +202,7 @@ def get_rollback_preview_target(redfish_obj, module):
         prev_uri[each["Version"]] = each["@odata.id"]
     if module.check_mode and (prev_uri or reboot_uri):
         module.exit_json(msg=CHANGES_FOUND, changed=True)
-    elif (module.check_mode or not module.check_mode) and (not prev_uri and not reboot_uri):
+    elif not prev_uri and not reboot_uri:
         module.exit_json(msg=NO_CHANGES_FOUND)
     return list(prev_uri.values()), reboot_uri, update_uri
 
@@ -262,16 +259,16 @@ def wait_for_redfish_idrac_reset(module, redfish_obj, wait_time_sec, interval=30
                     resetting = True
                 break
             time.sleep(interval)
-            wait = wait - interval
+            wait -= interval
             resetting = True
         except URLError:
             time.sleep(interval)
-            wait = wait - interval
+            wait -= interval
             if not resetting:
                 resetting = True
         except Exception:
             time.sleep(interval)
-            wait = wait - interval
+            wait -= interval
             resetting = True
     return track_failed, resetting, msg
 
@@ -298,10 +295,11 @@ def rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri):
             job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
             job_resp, job_msg = wait_for_redfish_job_complete(redfish_obj, job_uri)
             job_status = job_resp.json_data
-            if job_status["JobState"] != "RebootCompleted" and job_msg:
-                module.fail_json(msg=JOB_WAIT_MSG.format(module.params["reboot_timeout"]))
-            elif job_status["JobState"] != "RebootCompleted" and not job_msg:
-                module.fail_json(msg=REBOOT_FAIL)
+            if job_status["JobState"] != "RebootCompleted":
+                if job_msg:
+                    module.fail_json(msg=JOB_WAIT_MSG.format(module.params["reboot_timeout"]))
+                else:
+                    module.fail_json(msg=REBOOT_FAIL)
         elif not reset_status and reset_fail:
             module.fail_json(msg=reset_fail)
 
@@ -333,18 +331,18 @@ def main():
     try:
         with Redfish(module.params, req_session=True) as redfish_obj:
             preview_uri, reboot_uri, update_uri = get_rollback_preview_target(redfish_obj, module)
-            job_status, failed, resetting = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri)
-            if not job_status or (failed == len(job_status)):
+            job_status, failed_count, resetting = rollback_firmware(redfish_obj, module, preview_uri, reboot_uri, update_uri)
+            if not job_status or (failed_count == len(job_status)):
                 module.exit_json(msg=ROLLBACK_FAILED, status=job_status, failed=True)
             if module.params["reboot"]:
                 msg, module_fail, changed = ROLLBACK_SUCCESS, False, True
-                if failed > 0 and failed != len(job_status):
+                if failed_count > 0 and failed_count != len(job_status):
                     msg, module_fail, changed = COMPLETED_ERROR, True, False
             else:
                 msg, module_fail, changed = ROLLBACK_SCHEDULED, False, True
-                if failed > 0 and failed != len(job_status):
+                if failed_count > 0 and failed_count != len(job_status):
                     msg, module_fail, changed = SCHEDULED_ERROR, True, False
-                elif resetting and len(job_status) == 1 and failed != len(job_status):
+                elif resetting and len(job_status) == 1 and failed_count != len(job_status):
                     msg, module_fail, changed = ROLLBACK_SUCCESS, False, True
             module.exit_json(msg=msg, job_status=job_status, failed=module_fail, changed=changed)
     except HTTPError as err:
