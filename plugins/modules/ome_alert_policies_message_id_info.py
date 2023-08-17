@@ -15,17 +15,19 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: ome_alert_policies_message_id_info
-short_description: Get message ID information of alert policies for OpenManage Enterprise.
+short_description: Get message ID information of alert policies.
 version_added: "8.2.0"
 description:
-   - "This module retrieves the message ID information of alert policies for OpenManage Enterprise."
+   - "This module retrieves the message ID information of alert policies for OpenManage Enterprise
+      and OpenManage Enterprise Modular."
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 requirements:
     - "python >= 3.9.6"
 author: "Shivam Sharma (@ShivamSh3)"
 notes:
-    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise
+      or OpenManage Enterprise Modular.
     - This module supports C(check_mode).
     - This module supports IPv4 and IPv6 addresses.
 '''

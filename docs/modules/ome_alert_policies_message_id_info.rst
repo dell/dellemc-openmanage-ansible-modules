@@ -1,8 +1,8 @@
 .. _ome_alert_policies_message_id_info_module:
 
 
-ome_alert_policies_message_id_info -- Get message ID information of alert policies for OpenManage Enterprise.
-=============================================================================================================
+ome_alert_policies_message_id_info -- Get message ID information of alert policies.
+===================================================================================
 
 .. contents::
    :local:
@@ -12,7 +12,7 @@ ome_alert_policies_message_id_info -- Get message ID information of alert polici
 Synopsis
 --------
 
-This module retrieves the message ID information of alert policies for OpenManage Enterprise.
+This module retrieves the message ID information of alert policies for OpenManage Enterprise and OpenManage Enterprise Modular.
 
 
 
@@ -66,7 +66,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
    - This module supports IPv4 and IPv6 addresses.
 
