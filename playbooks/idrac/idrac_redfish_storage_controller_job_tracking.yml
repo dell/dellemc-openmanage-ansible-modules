@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Redfish storage controller service with job tracking for iDRAC.
   gather_facts: false
   vars:
@@ -30,6 +29,7 @@
       register: result
       tags:
         - assign_dedicated_hot_spare
+      delegate_to: localhost
 
     - name: Assign global hot spare.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -42,6 +42,7 @@
       register: result
       tags:
         - assign_global_hot_spare
+      delegate_to: localhost
 
     - name: Set controller encryption key.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -56,6 +57,7 @@
       register: result
       tags:
         - set_controller_key
+      delegate_to: localhost
 
     - name: Rekey in LKM mode.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -71,6 +73,7 @@
       register: result
       tags:
         - rekey_lkm
+      delegate_to: localhost
 
     - name: Rekey in SEKM mode.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -84,6 +87,7 @@
       register: result
       tags:
         - rekey_sekm
+      delegate_to: localhost
 
     - name: Remove controller key.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -96,6 +100,7 @@
       register: result
       tags:
         - remove_controller_key
+      delegate_to: localhost
 
     - name: Reset controller configuration.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -108,6 +113,7 @@
       register: result
       tags:
         - reset_config
+      delegate_to: localhost
 
     - name: Job tracking iDRAC
       ansible.builtin.uri:
@@ -128,6 +134,7 @@
       retries: "{{ retries_count }}"
       delay: "{{ polling_interval }}"
       tags: "{{ all_ctrl_task_tags }}"
+      delegate_to: localhost
 
     - name: Job result of iDRAC
       ansible.builtin.set_fact:
@@ -135,3 +142,4 @@
       failed_when: result.json.Message == "Failed"
       changed_when: result.json.Message != "Failed"
       tags: "{{ all_ctrl_task_tags }}"
+      delegate_to: localhost

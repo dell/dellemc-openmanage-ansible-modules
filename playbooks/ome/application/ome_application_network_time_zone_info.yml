@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   gather_facts: false
   name: "Ome application network time zone informaion - Ansible Module"
   vars:
@@ -19,6 +18,7 @@
         force_basic_auth: true
       register: time_zone_result
       failed_when: "'value' not in time_zone_result.json"
+      delegate_to: localhost
 
     - name: Get specific time zone ID using time zone name
       with_items:
@@ -26,3 +26,4 @@
       ansible.builtin.debug:
         msg: "{{ item['Id'] }}"
       when: item['Name'] == '(GMT+05:30) Sri Jayawardenepura'
+      delegate_to: localhost

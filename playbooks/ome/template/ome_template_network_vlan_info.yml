@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible template VLAN info.
   gather_facts: false
 
@@ -11,6 +10,7 @@
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
 
     - name: Retrieve network details using template ID
       dellemc.openmanage.ome_template_network_vlan_info:
@@ -19,6 +19,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         template_id: 1234
+      delegate_to: localhost
 
     - name: Retrieve network details using template name
       dellemc.openmanage.ome_template_network_vlan_info:
@@ -27,3 +28,4 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         template_name: template1
+      delegate_to: localhost

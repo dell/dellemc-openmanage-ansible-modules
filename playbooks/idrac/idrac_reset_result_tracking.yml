@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Reset iDRAC
   gather_facts: false
 
@@ -13,6 +12,7 @@
         ca_path: "/path/to/ca_cert.pem"
       register: result
       failed_when: result is changed
+      delegate_to: localhost
 
     - name: Wait for port 443 to become open on the host
       ansible.builtin.wait_for:
@@ -23,6 +23,7 @@
         timeout: 500
       register: result
       failed_when: result.elapsed < 20
+      delegate_to: localhost
 
     - name: Get LC status.
       dellemc.openmanage.idrac_lifecycle_controller_status_info:
@@ -34,3 +35,4 @@
       until: result.msg.LCStatus == 'Ready' or result.msg.LCReady is true
       retries: 30
       delay: 10
+      delegate_to: localhost

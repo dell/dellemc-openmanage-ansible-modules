@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OME Application network webserver settings.
   gather_facts: false
 
@@ -15,6 +14,7 @@
         webserver_timeout: 10
       tags:
         - port_timeout_update
+      delegate_to: localhost
 
     - name: Update session time out
       dellemc.openmanage.ome_application_network_webserver:
@@ -25,6 +25,7 @@
         webserver_timeout: 30
       tags:
         - timeout_update
+      delegate_to: localhost
 
     - name: Update web server port.
       dellemc.openmanage.ome_application_network_webserver:
@@ -35,3 +36,4 @@
         webserver_port: 8443
       tags:
         - port_update
+      delegate_to: localhost

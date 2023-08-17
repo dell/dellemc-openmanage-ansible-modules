@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Configure syslog forwarding settings on OpenManage Enterprise and OpenManage Enterprise Modular
   gather_facts: false
 
@@ -16,6 +15,7 @@
             enabled: true
             destination_address: 192.168.0.2
             port_number: 514
+      delegate_to: localhost
 
     - name: Configure multiple server to forward syslog
       dellemc.openmanage.ome_application_alerts_syslog:
@@ -35,3 +35,4 @@
             enabled: true
             destination_address: 192.168.0.4
             port_number: 514
+      delegate_to: localhost

@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Fetching ome user facts.
   gather_facts: false
 
@@ -11,6 +10,7 @@
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
 
     - name: Retrieve details of a specific account identified by its account ID.
       dellemc.openmanage.ome_user_info:
@@ -19,6 +19,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         account_id: "{{ account_id }}"
+      delegate_to: localhost
 
     - name: Retrieve details of a specific user using filter with UserName.
       dellemc.openmanage.ome_user_info:
@@ -28,3 +29,4 @@
         ca_path: "/path/to/ca_cert.pem"
         system_query_options:
           filter: "UserName eq 'test'"
+      delegate_to: localhost

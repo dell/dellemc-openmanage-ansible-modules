@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible group device operations.
   gather_facts: false
   vars:
@@ -26,10 +25,12 @@
           Content-Type: "application/json"
           Accept: "application/json"
       register: group_id
+      delegate_to: localhost
 
     - name: Assign group ID to a variable.
       ansible.builtin.set_fact:
         group_id_value: "{{ group_id.json.value[0].Id }}"
+      delegate_to: localhost
 
     - name: Retrieve all devices under the group ID.
       ansible.builtin.uri:
@@ -47,16 +48,19 @@
           Content-Type: "application/json"
           Accept: "application/json"
       register: all_devices
+      delegate_to: localhost
 
     - name: Empty list to store device IDs.
       ansible.builtin.set_fact:
         devices_list: []
+      delegate_to: localhost
 
     - name: Add devices retrieved from a group to the list.
       ansible.builtin.set_fact:
         devices_list: "{{ devices_list + [item.Id] }}"
       with_items:
         - "{{ all_devices.json.value }}"
+      delegate_to: localhost
 
     - name: Perform device action tasks on devices. # noqa: args[module]
       dellemc.openmanage.ome_devices:
@@ -67,3 +71,4 @@
         ca_path: "{{ ca_path }}"
         device_action: "{{ device_action }}"
         device_ids: "{{ devices_list }}"
+      delegate_to: localhost

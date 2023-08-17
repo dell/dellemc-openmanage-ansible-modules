@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   gather_facts: false
   name: Booting to Network Operating System image
 
@@ -14,5 +13,6 @@
         share_name: "{{ playbook_dir }}"
         iso_image: "uninterrupted_os_installation_image.iso."
         expose_duration: 180
+      delegate_to: localhost
       tags:
         - network_iso

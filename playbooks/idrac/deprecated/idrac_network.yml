@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Configure the iDRAC network attributes
   gather_facts: false
 
@@ -15,7 +14,7 @@
         dns_idrac_name: "idrac-3CZWCK2"
         auto_config: "Enabled"
         static_dns: "dell.com"
-
+      delegate_to: localhost
       tags:
         - dns_register
 
@@ -26,7 +25,7 @@
         idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
         setup_idrac_nic_vlan: "Enabled"
-
+      delegate_to: localhost
       tags:
         - setup_vlan
 
@@ -43,7 +42,7 @@
         auto_negotiation: "Enabled"
         network_speed: "T_1000"
         duplex_mode: "Full"
-
+      delegate_to: localhost
       tags:
         - idrac_nic
 
@@ -56,7 +55,7 @@
         enable_dhcp: "Enabled"
         dns_from_dhcp: "Enabled"
         enable_ipv4: "Enabled"
-
+      delegate_to: localhost
       tags:
         - idrac_ipv4
 
@@ -67,6 +66,6 @@
         idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
         dns_from_dhcp: "Disabled"
-
+      delegate_to: localhost
       tags:
         - idrac_staticipv4

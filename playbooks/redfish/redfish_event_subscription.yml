@@ -1,6 +1,5 @@
 ---
 - hosts: redfish
-  connection: local
   name: Configure Redfish subscriptions
   gather_facts: false
 
@@ -16,6 +15,7 @@
         event_format_type: MetricReport
         state: present
       tags: add_metric_subscription
+      delegate_to: localhost
 
     - name: Add Redfish alert subscription
       dellemc.openmanage.redfish_event_subscription:
@@ -28,6 +28,7 @@
         event_format_type: Event
         state: present
       tags: add_alert_subscription
+      delegate_to: localhost
 
     - name: Delete Redfish subscription with a specified destination
       dellemc.openmanage.redfish_event_subscription:
@@ -38,3 +39,4 @@
         destination: "https://server01.example.com:8188"
         state: absent
       tags: delete_subscription
+      delegate_to: localhost

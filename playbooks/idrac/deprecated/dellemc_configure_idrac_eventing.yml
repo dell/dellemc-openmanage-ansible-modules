@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Configure the iDRAC eventing attributes
   gather_facts: false
 
@@ -15,7 +14,7 @@
         authentication: "Enabled"
         username: "test"
         password: "test"
-
+      delegate_to: localhost
       tags:
         - idrac_smtp
 
@@ -29,7 +28,7 @@
         destination_number: "2"
         snmp_v3_username: "None"
         destination: "1.1.1.1"
-
+      delegate_to: localhost
       tags:
         - idrac_snmptrap
 
@@ -43,7 +42,7 @@
         address: "test@test.com"
         alert_number: "1"
         custom_message: "test"
-
+      delegate_to: localhost
       tags:
         - idrac_email_alerts
 
@@ -54,6 +53,6 @@
         idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
         enable_alerts: "Disabled"
-
+      delegate_to: localhost
       tags:
         - idrac_alerts

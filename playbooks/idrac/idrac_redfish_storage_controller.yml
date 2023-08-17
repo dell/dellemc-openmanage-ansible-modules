@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Dell OpenManage Ansible iDRAC Redfish Storage Controller service.
   gather_facts: false
 
@@ -17,6 +16,7 @@
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - assign_dedicated_hot_spare
+      delegate_to: localhost
 
     - name: Assign global hot spare.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -28,6 +28,7 @@
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - assign_global_hot_spare
+      delegate_to: localhost
 
     - name: Unassign hot spare
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -39,6 +40,7 @@
         command: UnassignSpare
       tags:
         - un-assign-hot-spare
+      delegate_to: localhost
 
     - name: Set controller encryption key.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -52,6 +54,7 @@
         key_id: "mykeyid123"
       tags:
         - set_controller_key
+      delegate_to: localhost
 
     - name: Rekey in LKM mode.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -66,6 +69,7 @@
         old_key: "OldPassPhrase@123"
       tags:
         - rekey_lkm
+      delegate_to: localhost
 
     - name: Rekey in SEKM mode.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -78,6 +82,7 @@
         mode: "SEKM"
       tags:
         - rekey_sekm
+      delegate_to: localhost
 
     - name: Remove controller key.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -89,6 +94,7 @@
         controller_id: "RAID.Slot.1-1"
       tags:
         - remove_controller_key
+      delegate_to: localhost
 
     - name: Reset controller configuration.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -100,6 +106,7 @@
         controller_id: "RAID.Slot.1-1"
       tags:
         - reset_config
+      delegate_to: localhost
 
     - name: Enable controller encryption
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -114,6 +121,7 @@
         key_id: "your_Keyid@123"
       tags:
         - enable-encrypt
+      delegate_to: localhost
 
     - name: Blink physical disk.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -125,6 +133,7 @@
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - blink-target
+      delegate_to: localhost
 
     - name: Blink virtual drive.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -136,6 +145,7 @@
         volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
       tags:
         - blink-volume
+      delegate_to: localhost
 
     - name: Unblink physical disk.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -147,6 +157,7 @@
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - unblink-target
+      delegate_to: localhost
 
     - name: Unblink virtual drive.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -158,6 +169,7 @@
         volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
       tags:
         - unblink-drive
+      delegate_to: localhost
 
     - name: Convert physical disk to RAID
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -169,6 +181,7 @@
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - convert-raid
+      delegate_to: localhost
 
     - name: Convert physical disk to non-RAID
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -180,6 +193,7 @@
         target: "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - convert-non-raid
+      delegate_to: localhost
 
     - name: Change physical disk state to online.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -191,6 +205,7 @@
         target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - pd-state-online
+      delegate_to: localhost
 
     - name: Change physical disk state to offline.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -202,6 +217,7 @@
         target: "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1"
       tags:
         - pd-state-offline
+      delegate_to: localhost
 
     - name: Lock virtual drive
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -213,6 +229,7 @@
         volume_id: "Disk.Virtual.0:RAID.SL.3-1"
       tags:
         - lock
+      delegate_to: localhost
 
     - name: Online Capacity Expansion of a volume using target
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -226,6 +243,7 @@
           - "Disk.Bay.3:Enclosure.Internal.0-0:RAID.Integrated.1-1"
       tags:
         - oce_target
+      delegate_to: localhost
 
     - name: Online Capacity Expansion of a volume using size
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -238,6 +256,7 @@
         size: 363786
       tags:
         - oce_size
+      delegate_to: localhost
 
     - name: Set controller attributes.
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -251,6 +270,7 @@
         apply_time: "OnReset"
       tags:
         - controller
+      delegate_to: localhost
 
     - name: Configure Controller attributes at Maintenance window
       dellemc.openmanage.idrac_redfish_storage_controller:
@@ -267,3 +287,4 @@
         maintenance_window:
           start_time: "2022-09-30T05:15:40-05:00"
           duration: 1200
+      delegate_to: localhost

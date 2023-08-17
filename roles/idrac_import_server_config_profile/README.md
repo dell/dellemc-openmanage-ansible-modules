@@ -382,7 +382,6 @@ dellemc.openmanage
 ```
 - name: Import SCP
   hosts: idrac
-  connection: local
   roles:
     - role: idrac_import_server_config_profile
 ```

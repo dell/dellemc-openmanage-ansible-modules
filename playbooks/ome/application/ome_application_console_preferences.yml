@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OME Application Console Preferences.
   gather_facts: false
 
@@ -33,6 +32,7 @@
         metrics_collection_settings: 31
       tags:
         - all_settings
+      delegate_to: localhost
 
     - name: Update Console preferences with report and device health settings.
       dellemc.openmanage.ome_application_console_preferences:
@@ -47,6 +47,7 @@
           health_and_power_state_on_connection_lost: "last_known"
       tags:
         - valid_report_device
+      delegate_to: localhost
 
     - name: Update Console preferences with invalid device health settings.
       dellemc.openmanage.ome_application_console_preferences:
@@ -59,6 +60,7 @@
           health_check_interval_unit: "Minutes"
       tags:
         - invalid_device
+      delegate_to: localhost
 
     - name: Update Console preferences with discovery and built in appliance share settings.
       dellemc.openmanage.ome_application_console_preferences:
@@ -76,6 +78,7 @@
           cifs_options: "V1"
       tags:
         - valid_discovery
+      delegate_to: localhost
 
     - name: Update Console preferences with various settings
       dellemc.openmanage.ome_application_console_preferences:
@@ -92,3 +95,4 @@
         metrics_collection_settings: 361
       tags:
         - valid_metrics
+      delegate_to: localhost

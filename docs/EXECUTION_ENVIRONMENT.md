@@ -116,7 +116,6 @@ password=password
 
 ```yaml
 - hosts: idrac
-  connection: local
   name: Get system inventory
   gather_facts: false
 
@@ -127,6 +126,7 @@ password=password
         idrac_user: "{{ user }}"
         idrac_password:  "{{ password }}"
         validate_certs: false
+      delegate_to: localhost
 ```
 4. Run the playbook using the following command:
 

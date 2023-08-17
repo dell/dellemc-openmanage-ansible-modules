@@ -1,6 +1,5 @@
 ---
 - hosts: redfish_hosts
-  connection: local
   gather_facts: false
   name: "Ansible Module for Simple Firmware Update"
 
@@ -14,6 +13,7 @@
         image_uri: "/home/firmware_repo/component.exe"
       tags:
         - local-update
+      delegate_to: localhost
 
     - name: Update the firmware from a single executable file available in a HTTP protocol
       dellemc.openmanage.redfish_firmware:
@@ -24,3 +24,4 @@
         image_uri: "http://192.168.0.1/firmware_repo/component.exe"
       tags:
         - http-update
+      delegate_to: localhost

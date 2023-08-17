@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible Application network proxy setting.
   gather_facts: false
 
@@ -18,6 +17,7 @@
         proxy_username: "root"
         proxy_password: "proxy_password"
       tags: setting1
+      delegate_to: localhost
 
     - name: Reset proxy authentication.
       dellemc.openmanage.ome_application_network_proxy:
@@ -30,6 +30,7 @@
         proxy_port: 444
         enable_authentication: false
       tags: setting2
+      delegate_to: localhost
 
     - name: Reset proxy configuration.
       dellemc.openmanage.ome_application_network_proxy:
@@ -39,3 +40,4 @@
         ca_path: "/path/to/ca_cert.pem"
         enable_proxy: false
       tags: setting3
+      delegate_to: localhost

@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Get LC job Status
   gather_facts: false
 
@@ -12,3 +11,4 @@
         idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
         job_id: "JID_844222910040"
+      delegate_to: localhost

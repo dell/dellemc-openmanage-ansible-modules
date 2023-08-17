@@ -1,6 +1,5 @@
 ---
 - hosts: redfish_hosts
-  connection: local
   gather_facts: false
   name: "Redfish Storage Volume - Ansible Module"
   vars:
@@ -26,6 +25,7 @@
       register: result
       tags:
         - create_volume
+      delegate_to: localhost
 
     - name: View the job details to track the status of the create storage volume task"
       ansible.builtin.uri:
@@ -48,6 +48,7 @@
       delay: "{{ polling_interval }}"
       tags:
         - job-tracking
+      delegate_to: localhost
 
     - name: Reboot the system if the job status is pending."
       ansible.builtin.uri:
@@ -68,6 +69,7 @@
       register: reboot_result
       changed_when: reboot_result.status == 204
       when: job_result.json.TaskState == 'Pending' and job_result.json.Messages.0.Message == 'Task successfully scheduled.'
+      delegate_to: localhost
 
     - name: View the job details to verify if the task status is completed."
       ansible.builtin.uri:
@@ -88,3 +90,4 @@
       until: final_result.json.TaskState == 'Completed'
       retries: "{{ retries_count }}"
       delay: "{{ polling_interval }}"
+      delegate_to: localhost

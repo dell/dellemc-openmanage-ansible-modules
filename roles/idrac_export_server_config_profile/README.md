@@ -350,7 +350,6 @@ dellemc.openmanage
 ```
 - name: Export SCP
   hosts: idrac
-  connection: local
   roles:
     - role: idrac_export_server_config_profile
 ```

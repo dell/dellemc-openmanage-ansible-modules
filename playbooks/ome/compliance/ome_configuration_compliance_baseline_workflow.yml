@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible configuration compliance baseline workflow.
   gather_facts: false
 
@@ -19,6 +18,7 @@
         device_group_names:
           - "Group1"
           - "Group2"
+      delegate_to: localhost
 
     - name: Retrieve the compliance report of all of the devices in the specified configuration compliance baseline.
       dellemc.openmanage.ome_configuration_compliance_info:
@@ -28,6 +28,7 @@
         ca_path: "/path/to/ca_cert.pem"
         baseline: "baseline1"
       register: compliance_report
+      delegate_to: localhost
 
     # This tasks returns list of device ids.
     # In case if you want to get devices based on service tag change attribute ServiceTag
@@ -48,3 +49,4 @@
         names: "baseline1"
         device_ids: "{{ non_compliance_devices }}"
       when: "non_compliance_devices | length > 0"
+      delegate_to: localhost
