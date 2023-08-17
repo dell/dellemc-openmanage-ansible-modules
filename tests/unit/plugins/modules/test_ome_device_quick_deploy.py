@@ -274,7 +274,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         result = self._run_module(ome_default_args)
         assert result["msg"] == "Successfully submitted the Quick Deploy job settings."
         ome_default_args.update({"device_id": 25011, "setting_type": "ServerQuickDeploy", "validate_certs": False,
-                                 "quick_deploy_options": None})
+                                 "quick_deploy_options": {}})
         result = self._run_module_with_fail_json(ome_default_args)
         assert result["msg"] == "missing required arguments: quick_deploy_options"
         assert result["failed"] is True
