@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -252,13 +252,17 @@ class TestRedfishFirmware(FakeAnsibleModule):
             result = self.module.firmware_update(redfish_firmware_connection_mock, f_module)
         assert result == redfish_response_mock
 
-    def test_firmware_update_success_case03(self, redfish_default_args, redfish_firmware_connection_mock,
+    @pytest.mark.parametrize("params", [{"ip": "192.161.1.1:443"}, {"ip": "192.161.1.1"},
+                                        {"ip": "82f5:d985:a2d5:f0c3:5392:cc52:27d1:4da6"},
+                                        {"ip": "[82f5:d985:a2d5:f0c3:5392:cc52:27d1:4da6]"},
+                                        {"ip": "[82f5:d985:a2d5:f0c3:5392:cc52:27d1:4da6]:443"}])
+    def test_firmware_update_success_case03(self, params, redfish_default_args, redfish_firmware_connection_mock,
                                             redfish_response_mock, mocker):
         mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
                      return_value=('2134', 'nhttp://dell.com', 'multipart/form-data'))
         mocker.patch(MODULE_PATH + "redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
-        redfish_default_args.update({"image_uri": "nhttp://home/firmware_repo/component.exe",
+        redfish_default_args.update({"baseuri": params["ip"], "image_uri": "nhttp://home/firmware_repo/component.exe",
                                      "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 201
