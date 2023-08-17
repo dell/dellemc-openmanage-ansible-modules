@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible profile operations.
   gather_facts: false
   vars:
@@ -30,12 +29,14 @@
         name: "Profile 00001"
         device_id: 12456
       register: result
+      delegate_to: localhost
 
     - name: End play when no job_id in result # noqa: no-handler
       ansible.builtin.meta: end_play
       when:
         - not result.changed
         - "'job_id' not in result"
+      delegate_to: localhost
 
     - name: Get job details using job id
       dellemc.openmanage.ome_job_info:
@@ -50,3 +51,4 @@
       until: job_result.job_info.LastRunStatus.Name in "{{ completed_states }}"
       retries: "{{ retries_count }}"
       delay: "{{ polling_interval }}"
+      delegate_to: localhost

@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible device operations.
   gather_facts: false
 
@@ -14,6 +13,7 @@
         device_action: refresh_inventory
         device_service_tags:
           - 2HB7NX2
+      delegate_to: localhost
 
     - name: Clear iDRAC job queue
       dellemc.openmanage.ome_devices:
@@ -24,6 +24,7 @@
         device_action: clear_idrac_job_queue
         device_service_tags:
           - 2HB7NX2
+      delegate_to: localhost
 
     - name: Reset iDRAC using the service tag
       dellemc.openmanage.ome_devices:
@@ -34,6 +35,7 @@
         device_action: reset_idrac
         device_service_tags:
           - 2H7HNX2
+      delegate_to: localhost
 
     - name: Remove devices using servicetags
       dellemc.openmanage.ome_devices:
@@ -45,6 +47,7 @@
         device_service_tags:
           - SVCTAG1
           - SVCTAF2
+      delegate_to: localhost
 
     - name: Remove devices using IDs
       dellemc.openmanage.ome_devices:
@@ -55,3 +58,4 @@
         state: absent
         device_ids:
           - 10235
+      delegate_to: localhost

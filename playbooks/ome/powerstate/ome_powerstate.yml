@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible - OME Power state operations.
   gather_facts: false
 
@@ -13,6 +12,7 @@
         ca_path: "/path/to/ca_cert.pem"
         device_id: 11111
         power_state: "off"
+      delegate_to: localhost
 
     - name: Power state operation based on device service tag.
       dellemc.openmanage.ome_powerstate:
@@ -22,6 +22,7 @@
         ca_path: "/path/to/ca_cert.pem"
         device_service_tag: "KLBR111"
         power_state: "on"
+      delegate_to: localhost
 
     - name: Power state operation based on list of device ids.
       dellemc.openmanage.ome_powerstate:
@@ -34,6 +35,7 @@
       with_items:
         - { "device_id": 11111, "state": "on" }
         - { "device_id": 22222, "state": "off" }
+      delegate_to: localhost
 
     - name: Power state operation based on list of device service tags.
       dellemc.openmanage.ome_powerstate:
@@ -46,3 +48,4 @@
       with_items:
         - { "service_tag": "KLBR111", "state": "on" }
         - { "service_tag": "KLBR222", "state": "off" }
+      delegate_to: localhost

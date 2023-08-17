@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible device inventory details.
   gather_facts: false
 
@@ -16,6 +15,7 @@
           - 11111
           - 11112
       tags: device-id
+      delegate_to: localhost
 
     - name: Add devices to a static device group by using the group name and device service tags
       dellemc.openmanage.ome_device_group:
@@ -28,6 +28,7 @@
           - GHRT2R
           - KJHDF3
       tags: device-service-tags
+      delegate_to: localhost
 
     - name: Add devices to a static device group by using the group ID and device service tags
       dellemc.openmanage.ome_device_group:
@@ -40,6 +41,7 @@
           - GHRT2R
           - KJHDF3
       tags: group_id_device-service-tags
+      delegate_to: localhost
 
     - name: Add devices to a static device group by using the group name and IPv4 addresses
       dellemc.openmanage.ome_device_group:
@@ -52,6 +54,7 @@
           - 192.35.0.1
           - 192.35.0.5
       tags: group_name_ipv4
+      delegate_to: localhost
 
     - name: Add devices to a static device group by using the group ID and IPv6 addresses
       dellemc.openmanage.ome_device_group:
@@ -64,6 +67,7 @@
           - fe80::ffff:ffff:ffff:ffff
           - fe80::ffff:ffff:ffff:2222
       tags: group_id_ipv6
+      delegate_to: localhost
 
     - name: Add devices to a static device group by using the group ID and supported IPv4 and IPv6 address formats.
       dellemc.openmanage.ome_device_group:
@@ -80,6 +84,7 @@
           - ::ffff:192.0.2.0/125
           - fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff
       tags: group_id_ipv4_ipv6
+      delegate_to: localhost
 
     - name: Remove devices from a static device group by using the group name and device IDs
       dellemc.openmanage.ome_device_group:
@@ -93,6 +98,7 @@
           - 11111
           - 11112
       tags: device-id
+      delegate_to: localhost
 
     - name: Remove devices from a static device group by using the group name and device service tags
       dellemc.openmanage.ome_device_group:
@@ -106,6 +112,7 @@
           - GHRT2R
           - KJHDF3
       tags: device-service-tags
+      delegate_to: localhost
 
     - name: Remove devices from a static device group by using the group ID and device service tags
       dellemc.openmanage.ome_device_group:
@@ -119,6 +126,7 @@
           - GHRT2R
           - KJHDF3
       tags: group_id_device-service-tags
+      delegate_to: localhost
 
     - name: Remove devices from a static device group by using the group name and IPv4 addresses
       dellemc.openmanage.ome_device_group:
@@ -132,6 +140,7 @@
           - 192.35.0.1
           - 192.35.0.5
       tags: group_name_ipv4
+      delegate_to: localhost
 
     - name: Remove devices from a static device group by using the group ID and IPv6 addresses
       dellemc.openmanage.ome_device_group:
@@ -145,6 +154,7 @@
           - fe80::ffff:ffff:ffff:ffff
           - fe80::ffff:ffff:ffff:2222
       tags: group_id_ipv6
+      delegate_to: localhost
 
     - name: Remove devices from a static device group by using the group ID and supported IPv4 and IPv6 address formats.
       dellemc.openmanage.ome_device_group:
@@ -162,3 +172,4 @@
           - ::ffff:192.0.2.0/125
           - fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff
       tags: group_id_ipv4_ipv6
+      delegate_to: localhost
