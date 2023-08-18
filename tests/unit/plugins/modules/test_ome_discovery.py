@@ -255,6 +255,7 @@ class TestOmeDiscovery(FakeAnsibleModule):
                                                                           {"JobStatusId": 2050}))
         mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2050})
         mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value=(params['job_message']))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
         f_module = self.get_module_mock(params=params['mparams'])
@@ -309,6 +310,7 @@ class TestOmeDiscovery(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_discovery_config', return_value={})
         mocker.patch(MODULE_PATH + 'get_discovery_states', return_value={12: 15})
         mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value=(params['job_message']))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         error_message = params["job_message"]
         with pytest.raises(Exception) as err:
             self.module.modify_discovery(f_module, ome_connection_mock_for_discovery, discov_list)
