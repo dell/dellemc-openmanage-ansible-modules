@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -121,6 +121,7 @@ author:
 notes:
     - If I(repository_password) is provided, then the module always reports the changed status.
     - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
+    - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
 '''
 
@@ -255,7 +256,7 @@ catalog_status:
         "BaseLocation": null,
         "BundlesCount": 0,
         "Filename": "catalog.gz",
-        "Id": 0,
+        "Id": 12,
         "LastUpdated": null,
         "ManifestIdentifier": null,
         "ManifestVersion": null,
@@ -351,9 +352,11 @@ SETTLING_TIME = 3
 
 import json
 import time
+import os
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -408,7 +411,7 @@ def exit_catalog(module, rest_obj, catalog_resp, operation, msg):
         msg = CATALOG_UPDATED.format(operation=operation)
     time.sleep(SETTLING_TIME)
     catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
-    module.exit_json(msg=msg, catalog_status=catalog, changed=True)
+    module.exit_json(msg=msg, catalog_status=remove_key(catalog), changed=True)
 
 
 def _get_catalog_payload(params, name):
@@ -521,11 +524,21 @@ def modify_catalog(module, rest_obj, catalog_list, all_catalog):
     new_catalog_current_setting = catalog_payload.copy()
     repo_id = new_catalog_current_setting["Repository"]["Id"]
     del new_catalog_current_setting["Repository"]["Id"]
+    fname = modify_payload.get('Filename')
+    # Special case handling for .gz catalog files
+    if fname and fname.lower().endswith('.gz'):
+        modify_payload['Filename'] = new_catalog_current_setting.get('Filename')
+        src_path = modify_payload.get('SourcePath')
+        if src_path is None:
+            src_path = new_catalog_current_setting.get('SourcePath', "")
+            if src_path.lower().endswith('.gz'):
+                src_path = os.path.dirname(src_path)
+        modify_payload['SourcePath'] = os.path.join(src_path, fname)
     diff = compare_payloads(modify_payload, new_catalog_current_setting)
-    if module.check_mode and diff:
-        module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True)
     if not diff:
         module.exit_json(msg=CHECK_MODE_CHANGE_NOT_FOUND_MSG, changed=False)
+    if module.check_mode:
+        module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True)
     new_catalog_current_setting["Repository"].update(modify_payload["Repository"])
     catalog_payload.update(modify_payload)
     catalog_payload["Repository"] = new_catalog_current_setting["Repository"]

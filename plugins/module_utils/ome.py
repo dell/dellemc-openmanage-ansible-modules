@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -33,6 +33,7 @@ __metaclass__ = type
 import json
 import os
 import time
+import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
@@ -54,6 +55,7 @@ SESSION_RESOURCE_COLLECTION = {
 
 JOB_URI = "JobService/Jobs({job_id})"
 JOB_SERVICE_URI = "JobService/Jobs"
+HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
 
 
 class OpenURLResponse(object):
@@ -90,7 +92,7 @@ class RestOME(object):
 
     def __init__(self, module_params=None, req_session=False):
         self.module_params = module_params
-        self.hostname = self.module_params["hostname"]
+        self.hostname = str(self.module_params["hostname"]).strip('][')
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
         self.port = self.module_params["port"]
@@ -101,6 +103,15 @@ class RestOME(object):
         self.session_id = None
         self.protocol = 'https'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        try:
+            data = socket.getaddrinfo(self.hostname, self.port)
+            lastuple = data[-1]
+            self.hostname = lastuple[-1][0]
+            if "AF_INET6" == data[0][0]._name_:
+                self.hostname = "[{0}]".format(self.hostname)
+        except Exception:
+            msg = HOST_UNRESOLVED_MSG.format(self.hostname)
+            raise URLError(msg)
 
     def _get_base_url(self):
         """builds base url"""

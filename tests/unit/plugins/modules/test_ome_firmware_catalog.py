@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -862,3 +862,13 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_default_args.update({"repository_type": "HTTPS", "catalog_name": "t1", "catalog_id": 1})
         result = self._run_module_with_fail_json(ome_default_args)
         assert result["msg"] == "parameters are mutually exclusive: catalog_name|catalog_id"
+
+    @pytest.mark.parametrize("param", [{"hostname": "invalid-host-abcd"},
+                                       {"hostname": "ABCD:ABCD:ABCD:EF12:3456:7890"}])
+    def test_ome_catalog_invalid_hostname(self, ome_default_args, param):
+        # To verify invalid IP or hostname in module_utils/ome
+        ome_default_args.update({"hostname": param['hostname'], "catalog_name": "catalog1", "repository_type": "HTTPS"})
+        result = self._run_module(ome_default_args)
+        assert result["unreachable"] is True
+        assert "Unable to resolve hostname or IP" in result['msg']
+        assert param['hostname'] in result['msg']
