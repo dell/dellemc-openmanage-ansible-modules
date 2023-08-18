@@ -1,6 +1,5 @@
 ---
 - hosts: redfish_hosts
-  connection: local
   gather_facts: false
   name: Ansible Module for Simple Firmware Update
   vars:
@@ -17,6 +16,7 @@
         ca_path: "/path/to/ca_cert.pem"
         image_uri: "http://192.168.0.1/firmware_repo/component.exe"
       register: result
+      delegate_to: localhost
 
     - name: Update the firmware from a single executable with job tracking till completion
       ansible.builtin.uri:
@@ -36,6 +36,7 @@
       until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
       retries: "{{ retries_count }}"
       delay: "{{ polling_interval }}"
+      delegate_to: localhost
 
     - name: Update the firmware from a single executable reboot.
       ansible.builtin.uri:
@@ -56,11 +57,13 @@
       register: reboot_result
       changed_when: reboot_result.status == 204
       when: job_result.json.TaskState == 'Pending' and job_result.json.Messages.0.Message == 'Task successfully scheduled.'
+      delegate_to: localhost
 
     - name: Update the firmware from a single executable Waits for 4 minutes.
       ansible.builtin.wait_for:
         timeout: 240
       when: job_result.json.TaskState == 'Pending' and job_result.json.Messages.0.Message == 'Task successfully scheduled.'
+      delegate_to: localhost
 
     - name: Update the firmware from a single executable with job tracking till completion.
       ansible.builtin.uri:
@@ -80,6 +83,7 @@
       until: final_result.json.TaskState == 'Completed'
       retries: "{{ retries_count }}"
       delay: "{{ polling_interval }}"
+      delegate_to: localhost
 
     - name: Update the firmware from a single executable fact.
       ansible.builtin.set_fact:

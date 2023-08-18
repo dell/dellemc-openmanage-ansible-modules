@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: "Deploy this template with desired LCD string on the target servers.
     Track the template deploy operation job till completion."
   gather_facts: false
@@ -25,6 +24,7 @@
       register: result
       tags:
         - deploy
+      delegate_to: localhost
 
     - name: Track the deploy job till completion
       dellemc.openmanage.ome_job_info:
@@ -40,3 +40,4 @@
       delay: "{{ polling_interval }}"
       tags:
         - track_deploy
+      delegate_to: localhost

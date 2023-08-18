@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible discovery operations.
   gather_facts: false
 
@@ -22,6 +21,7 @@
               password: password
       tags:
         - server_discovery
+      delegate_to: localhost
 
     - name: Discover chassis in a range
       dellemc.openmanage.ome_discovery:
@@ -40,6 +40,7 @@
               password: password
       tags:
         - chassis_discovery
+      delegate_to: localhost
 
     - name: Discover switches in a range
       dellemc.openmanage.ome_discovery:
@@ -57,6 +58,7 @@
               community: snmp_creds
       tags:
         - switch_discovery
+      delegate_to: localhost
 
     - name: Discover storage in a range
       dellemc.openmanage.ome_discovery:
@@ -77,6 +79,7 @@
               community: community_str
       tags:
         - storage_discovery
+      delegate_to: localhost
 
     - name: Delete a discovery job
       dellemc.openmanage.ome_discovery:
@@ -88,6 +91,7 @@
         discovery_job_name: "Discovery-123"
       tags:
         - delete_discovery
+      delegate_to: localhost
 
     - name: Schedule the discovery of multiple devices ignoring partial failure and enable trap to receive alerts
       dellemc.openmanage.ome_discovery:
@@ -139,6 +143,7 @@
         email_recipient: test_email@company.com
       tags:
         - schedule_discovery
+      delegate_to: localhost
 
     - name: Discover servers with ca check enabled
       dellemc.openmanage.ome_discovery:
@@ -159,6 +164,7 @@
               certificate_data: "{{ lookup('ansible.builtin.file', '/path/to/certificate_data_file') }}"
       tags:
         - server_ca_check
+      delegate_to: localhost
 
     - name: Discover chassis with ca check enabled data
       dellemc.openmanage.ome_discovery:
@@ -184,3 +190,4 @@
                 -----END CERTIFICATE----- "
       tags:
         - chassis_ca_check_data
+      delegate_to: localhost
