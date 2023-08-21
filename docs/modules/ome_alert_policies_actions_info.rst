@@ -102,7 +102,7 @@ error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'me
 
 
 msg (always, str, Successfully retrieved alert policies actions information.)
-  Successfully retrieved alert policies actions information.
+  Status of the alert policies actions fetch operation.
 
 
 

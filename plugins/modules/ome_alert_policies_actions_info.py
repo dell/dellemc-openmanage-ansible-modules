@@ -247,7 +247,7 @@ error_info:
     }
   }
 msg:
-  description: Successfully retrieved alert policies actions information.
+  description: Status of the alert policies actions fetch operation.
   returned: always
   type: str
   sample: Successfully retrieved alert policies actions information.
