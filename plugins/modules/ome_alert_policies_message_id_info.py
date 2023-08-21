@@ -45,7 +45,7 @@ EXAMPLES = r'''
 RETURN = r'''
 ---
 msg:
-  description: Successfully retrieved alert policies message ids information.
+  description: "Status of the alert policies message ids fetch operation."
   returned: always
   type: str
   sample: "Successfully retrieved alert policies message ids information."

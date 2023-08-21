@@ -93,7 +93,7 @@ Return Values
 -------------
 
 msg (always, str, Successfully retrieved alert policies message ids information.)
-  Successfully retrieved alert policies message ids information.
+  Status of the alert policies message ids fetch operation.
 
 
 message_ids (success, dict, [{'Category': 'System Health', 'DetailedDescription': 'The current sensor identified in the message has failed. This condition can cause system performance issues and degradation in the monitoring capability of the system.', 'Message': 'The ${0} sensor has failed, and the last recorded value by the sensor was ${1} A.', 'MessageId': 'AMP400', 'Prefix': 'AMP', 'RecommendedAction': 'Check the Embedded System Management (ESM) Log for any sensor related faults. If there is a failed sensor, replace the system board. For more information, contact your service provider.', 'SequenceNo': 400, 'Severity': 'Critical', 'SubCategory': 'Amperage'}, {'Category': 'System Health', 'DetailedDescription': 'The current sensor identified in the message has failed. This condition can cause system performance issues and degradation in the monitoring capability of the system.', 'Message': 'Unable to read the ${0} sensor value.', 'MessageId': 'AMP401', 'Prefix': 'AMP', 'RecommendedAction': 'Check the Embedded System Management (ESM) Log for any sensor related faults. If there is a failed sensor, replace the system board. For more information, contact your service provider.', 'SequenceNo': 401, 'Severity': 'Warning', 'SubCategory': 'Amperage'}])
