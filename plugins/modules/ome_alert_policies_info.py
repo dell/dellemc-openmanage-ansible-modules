@@ -61,9 +61,9 @@ RETURN = '''
 ---
 msg:
   type: str
-  description: Error description in case of error.
-  returned: on error
-  sample: "HTTP Error 501: 501"
+  description: Status of the alert policies info fetch operation.
+  returned: always
+  sample: "Successfully retrieved all the OME alert policies information."
 policies:
   type: list
   description: Retrieve information about all the OME alert policies.

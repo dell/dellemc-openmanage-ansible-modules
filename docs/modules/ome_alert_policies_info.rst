@@ -108,8 +108,8 @@ Examples
 Return Values
 -------------
 
-msg (on error, str, HTTP Error 501: 501)
-  Error description in case of error.
+msg (always, str, Successfully retrieved all the OME alert policies information.)
+  Status of the alert policies info fetch operation.
 
 
 policies (success, list, [{'Id': 10006, 'Name': 'Mobile Push Notification - Critical Alerts', 'Description': 'This policy is applicable to critical alerts. Associated actions will be taken when a critical alert is received.', 'Enabled': True, 'DefaultPolicy': True, 'PolicyData': {'Catalogs': [], 'Severities': [16], 'MessageIds': [], 'Devices': [], 'DeviceTypes': [], 'Groups': [], 'AllTargets': False, 'Schedule': {'StartTime': None, 'EndTime': None, 'CronString': None, 'Interval': False}, 'Actions': [{'Id': 5, 'Name': 'Mobile', 'ParameterDetails': [], 'TemplateId': 112}], 'UndiscoveredTargets': []}, 'State': True, 'Visible': True, 'Owner': None}])
