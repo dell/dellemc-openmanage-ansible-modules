@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Configure iDRAC CSIOR Setting
   gather_facts: false
 
@@ -12,3 +11,4 @@
         idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
         csior: "Enabled"
+      delegate_to: localhost

@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Configure the boot order settings
   gather_facts: false
 
@@ -17,6 +16,7 @@
           - boot_option_reference: NIC.PxeDevice.2-1
             enabled: true
       tags: boot-option
+      delegate_to: localhost
 
     - name: Configure the boot order settings.
       dellemc.openmanage.idrac_boot:
@@ -30,6 +30,7 @@
           - Boot0004
           - Boot0003
       tags: boot-order
+      delegate_to: localhost
 
     - name: Configure the boot source override mode.
       dellemc.openmanage.idrac_boot:
@@ -41,6 +42,7 @@
         boot_source_override_target: cd
         boot_source_override_enabled: once
       tags: boot-mode
+      delegate_to: localhost
 
     - name: Configure the UEFI target settings.
       dellemc.openmanage.idrac_boot:
@@ -52,6 +54,7 @@
         boot_source_override_target: uefi_target
         uefi_target_boot_source_override: "VenHw(3A191845-5F86-4E78-8FCE-C4CFF59F9DAA)"
       tags: uefi-target
+      delegate_to: localhost
 
     - name: Configure the boot source override mode as pxe.
       dellemc.openmanage.idrac_boot:
@@ -63,3 +66,4 @@
         boot_source_override_target: pxe
         boot_source_override_enabled: continuous
       tags: pxe-boot-mode
+      delegate_to: localhost

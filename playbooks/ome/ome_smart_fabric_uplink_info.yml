@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Fetch fabric uplink information.
   gather_facts: false
 
@@ -12,6 +11,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         fabric_id: "61c20a59-9ed5-4ae5-b850-5e5acf42d2f2"
+      delegate_to: localhost
 
     - name: Retrieve all fabric uplink information using fabric_name.
       dellemc.openmanage.ome_smart_fabric_uplink_info:
@@ -20,6 +20,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         fabric_name: "f1"
+      delegate_to: localhost
 
     - name: Retrieve specific fabric information using uplink_id.
       dellemc.openmanage.ome_smart_fabric_uplink_info:
@@ -29,6 +30,7 @@
         ca_path: "/path/to/ca_cert.pem"
         fabric_id: "61c20a59-9ed5-4ae5-b850-5e5acf42d2f2"
         uplink_id: "1ad54420-b145-49a1-9779-21a579ef6f2d"
+      delegate_to: localhost
 
     - name: Retrieve specific fabric information using uplink_name.
       dellemc.openmanage.ome_smart_fabric_uplink_info:
@@ -38,3 +40,4 @@
         ca_path: "/path/to/ca_cert.pem"
         fabric_id: "61c20a59-9ed5-4ae5-b850-5e5acf42d2f2"
         uplink_name: "u1"
+      delegate_to: localhost
