@@ -65,7 +65,7 @@ EXAMPLES = """
     name: "BIOS"
 
 - name: Rollback all NIC cards with a name starting from 'Broadcom Gigabit'.
-  dellemc.openmanage.firmware_rollback:
+  dellemc.openmanage.redfish_firmware_rollback:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
@@ -73,7 +73,7 @@ EXAMPLES = """
     name: "Broadcom Gigabit Ethernet.*"
 
 - name: Rollback all the component firmware except BIOS component.
-  dellemc.openmanage.firmware_rollback:
+  dellemc.openmanage.redfish_firmware_rollback:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
@@ -81,7 +81,7 @@ EXAMPLES = """
     name: "(?!BIOS).*"
 
 - name: Rollback all the available firmware component.
-  dellemc.openmanage.firmware_rollback:
+  dellemc.openmanage.redfish_firmware_rollback:
     baseuri: "192.168.0.1:443"
     username: "user_name"
     password: "user_password"
