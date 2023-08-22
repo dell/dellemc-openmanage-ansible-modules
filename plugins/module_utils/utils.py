@@ -45,6 +45,7 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 
 
 import time
+import re
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -372,7 +373,7 @@ def get_all_data_with_pagination(ome_obj, uri, query_param=None):
     return {"resp_obj": resp, "report_list": report_list}
 
 
-def remove_key(data, remove_char='@odata.'):
+def remove_key(data, regex_pattern='@odata.'):
     '''
     :param data: the dict/list to be stripped of unwanted keys
     :param remove_char: the substring to be checked among the keys
@@ -381,13 +382,13 @@ def remove_key(data, remove_char='@odata.'):
     try:
         if isinstance(data, dict):
             for key in list(data.keys()):
-                if remove_char in key:
+                if re.match(regex_pattern, key):
                     data.pop(key, None)
                 else:
-                    remove_key(data[key], remove_char)
+                    remove_key(data[key], regex_pattern)
         elif isinstance(data, list):
             for item in data:
-                remove_key(item, remove_char)
+                remove_key(item, regex_pattern)
     except Exception:
         pass
     return data
