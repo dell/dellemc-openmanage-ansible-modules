@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OME Application Certificate Signing Request.
   gather_facts: false
 
@@ -22,6 +21,7 @@
       register: result
       tags:
         - generate
+      delegate_to: localhost
 
     - name: Copy CSR data into a file.
       ansible.builtin.copy:
@@ -30,6 +30,7 @@
         mode: "0600"
       tags:
         - csr-data
+      delegate_to: localhost
 
     - name: Upload the certificate.
       dellemc.openmanage.ome_application_certificate:
@@ -41,6 +42,7 @@
         upload_file: "/path/certificate.cer"
       tags:
         - upload
+      delegate_to: localhost
 
     - name: Once certificate uploaded, OME cannot be accessed for few seconds, hence wait for 10 seconds.
       ansible.builtin.wait_for:
@@ -49,3 +51,4 @@
         delay: 10
       tags:
         - upload
+      delegate_to: localhost

@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Dell OpenManage Ansible iDRAC Certificates management.
   gather_facts: false
 
@@ -14,6 +13,7 @@
         idrac_attributes:
           SNMP.1.AgentCommunity: Enabled
       tags: idrac
+      delegate_to: localhost
 
     - name: Update System attributes
       dellemc.openmanage.idrac_attributes:
@@ -24,6 +24,7 @@
         system_attributes:
           ThermalSettings.1.ThermalProfile: Sound Cap
       tags: system
+      delegate_to: localhost
 
     - name: Update Lifecycle Controller attributes
       dellemc.openmanage.idrac_attributes:
@@ -34,6 +35,7 @@
         lifecycle_controller_attributes:
           LCAttributes.1.AutoUpdate: Enabled
       tags: lc
+      delegate_to: localhost
 
     - name: Configure the iDRAC attributes for email alert settings.
       dellemc.openmanage.idrac_attributes:
@@ -46,6 +48,7 @@
           EmailAlert.1.Enable: Enabled
           EmailAlert.1.Address: test@test.com
       tags: email-alerts
+      delegate_to: localhost
 
     - name: Configure the iDRAC attributes for SNMP alert settings.
       dellemc.openmanage.idrac_attributes:
@@ -58,6 +61,7 @@
           SNMPAlert.1.State: Enabled
           SNMPAlert.1.SNMPv3Username: username
       tags: snmp-alerts
+      delegate_to: localhost
 
     - name: Configure the iDRAC attributes for SMTP alert settings.
       dellemc.openmanage.idrac_attributes:
@@ -72,6 +76,7 @@
           RemoteHosts.1.SMTPUserName: username
           RemoteHosts.1.SMTPPassword: password
       tags: smtp-alerts
+      delegate_to: localhost
 
     - name: Configure the iDRAC attributes for webserver settings.
       dellemc.openmanage.idrac_attributes:
@@ -83,6 +88,7 @@
           WebServer.1.SSLEncryptionBitLength: 128-Bit or higher
           WebServer.1.TLSProtocol: TLS 1.1 and Higher
       tags: webserver-settings
+      delegate_to: localhost
 
     - name: Configure the iDRAC attributes for SNMP settings.
       dellemc.openmanage.idrac_attributes:
@@ -97,6 +103,7 @@
           SNMP.1.AlertPort: 162
           SNMP.1.AgentCommunity: public
       tags: snmp-settings
+      delegate_to: localhost
 
     - name: Configure the iDRAC LC attributes for collecting system inventory.
       dellemc.openmanage.idrac_attributes:
@@ -107,6 +114,7 @@
         lifecycle_controller_attributes:
           LCAttributes.1.CollectSystemInventoryOnRestart: Enabled
       tags: collect-inventory
+      delegate_to: localhost
 
     - name: Configure the iDRAC system attributes for LCD settings.
       dellemc.openmanage.idrac_attributes:
@@ -120,6 +128,7 @@
           LCD.1.FrontPanelLocking: Full-Access
           LCD.1.UserDefinedString: custom lcd string
       tags: lcd-config
+      delegate_to: localhost
 
     - name: Configure the iDRAC attributes for Timezone settings.
       dellemc.openmanage.idrac_attributes:
@@ -134,6 +143,7 @@
           NTPConfigGroup.1.NTP2: 192.168.0.6
           NTPConfigGroup.1.NTP3: 192.168.0.7
       tags: timezone-settings
+      delegate_to: localhost
 
     - name: Configure all attributes
       dellemc.openmanage.idrac_attributes:
@@ -150,3 +160,4 @@
         lifecycle_controller_attributes:
           LCAttributes.1.AutoUpdate: Disabled
       tags: all-attributes
+      delegate_to: localhost

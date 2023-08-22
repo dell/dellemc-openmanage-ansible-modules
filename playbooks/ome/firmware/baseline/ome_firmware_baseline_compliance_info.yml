@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible template inventory details.
   gather_facts: false
 
@@ -15,6 +14,7 @@
           - 11111
           - 22222
       tags: device_ids
+      delegate_to: localhost
 
     - name: Retrieves device based compliance report for specified service Tags.
       dellemc.openmanage.ome_firmware_baseline_compliance_info:
@@ -26,6 +26,7 @@
           - MXL1234
           - MXL4567
       tags: device_service_tags
+      delegate_to: localhost
 
     - name: Retrieves device based compliance report for specified group names.
       dellemc.openmanage.ome_firmware_baseline_compliance_info:
@@ -37,6 +38,7 @@
           - group1
           - group2
       tags: device_group_names
+      delegate_to: localhost
 
     - name: Retrieves device compliance report for a specified baseline.
       dellemc.openmanage.ome_firmware_baseline_compliance_info:
@@ -46,3 +48,4 @@
         ca_path: "/path/to/ca_cert.pem"
         baseline_name: "baseline_name"
       tags: baseline_device
+      delegate_to: localhost

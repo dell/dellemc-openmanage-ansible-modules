@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Dell OpenManage Ansible iDRAC Certificates management.
   gather_facts: false
 
@@ -24,6 +23,7 @@
           organization_name: "OrgName"
           subject_alt_name:
             - 192.198.2.1
+      delegate_to: localhost
 
     - name: Import a SSL certificate.
       dellemc.openmanage.idrac_certificates:
@@ -34,6 +34,7 @@
         command: "import"
         certificate_type: "HTTPS"
         certificate_path: "/path/to/cert.pem"
+      delegate_to: localhost
 
     - name: Export a SSL certificate.
       dellemc.openmanage.idrac_certificates:
@@ -44,6 +45,7 @@
         command: "export"
         certificate_type: "HTTPS"
         certificate_path: "/home/omam/mycert_dir"
+      delegate_to: localhost
 
     - name: Import a CSC certificate.
       dellemc.openmanage.idrac_certificates:
@@ -54,6 +56,7 @@
         command: "import"
         certificate_type: "CSC"
         certificate_path: "/path/to/cert.pem"
+      delegate_to: localhost
 
     - name: Export a Client trust certificate.
       dellemc.openmanage.idrac_certificates:
@@ -64,3 +67,4 @@
         command: "export"
         certificate_type: "CLIENT_TRUST_CERTIFICATE"
         certificate_path: "/home/omam/mycert_dir"
+      delegate_to: localhost
