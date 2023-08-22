@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Dell OpenManage Ansible iDRAC boot operations.
   vars:
     ansible_python_interpreter: /usr/bin/python3
@@ -37,6 +36,7 @@
       tags:
         - virtual_media
         - vm_boot
+      delegate_to: localhost
 
     # One-time boot with virtual media.
     - name: Boot once from mounted CD.
@@ -51,4 +51,5 @@
       tags:
         - boot_cd
         - vm_boot
+      delegate_to: localhost
 # Eject the virtual media after boot.

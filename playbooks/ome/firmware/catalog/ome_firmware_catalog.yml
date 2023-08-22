@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: "OME - Create Catalog using Repository."
   gather_facts: false
 
@@ -18,6 +17,7 @@
         source_path: "catalog"
         file_name: "catalog.gz"
         check_certificate: true
+      delegate_to: localhost
 
     - name: Create a catalog from HTTP repository
       dellemc.openmanage.ome_firmware_catalog:
@@ -31,6 +31,7 @@
         repository_type: HTTP
         source_path: "catalog"
         file_name: "catalog.gz"
+      delegate_to: localhost
 
     - name: Create a catalog using CIFS share
       dellemc.openmanage.ome_firmware_catalog:
@@ -47,6 +48,7 @@
         repository_username: "{{ repository_username }}"
         repository_password: "{{ repository_password }}"
         repository_domain: "{{ repository_domain }}"
+      delegate_to: localhost
 
     - name: Create a catalog using NFS share
       dellemc.openmanage.ome_firmware_catalog:
@@ -60,6 +62,7 @@
         repository_type: NFS
         source_path: "/nfs/R940"
         file_name: "catalog.xml"
+      delegate_to: localhost
 
     - name: Create a catalog using repository from Dell.com
       dellemc.openmanage.ome_firmware_catalog:
@@ -71,6 +74,7 @@
         catalog_description: "catalog_description"
         repository_type: "DELL_ONLINE"
         check_certificate: true
+      delegate_to: localhost
 
     - name: Modify a catalog using a repository from CIFS share
       dellemc.openmanage.ome_firmware_catalog:
@@ -87,6 +91,7 @@
         repository_username: "{{ repository_username }}"
         repository_password: "{{ repository_password }}"
         repository_domain: "{{ repository_domain }}"
+      delegate_to: localhost
 
     - name: Modify a catalog using a repository from Dell.com
       dellemc.openmanage.ome_firmware_catalog:
@@ -98,6 +103,7 @@
         repository_type: DELL_ONLINE
         new_catalog_name: "new_catalog_name"
         catalog_description: "new_catalog_description"
+      delegate_to: localhost
 
     - name: Delete catalog using catalog name
       dellemc.openmanage.ome_firmware_catalog:
@@ -107,6 +113,7 @@
         ca_path: "/path/to/ca_cert.pem"
         state: absent
         catalog_name: ["catalog_name1", "catalog_name2"]
+      delegate_to: localhost
 
     - name: Delete catalog using catalog id
       dellemc.openmanage.ome_firmware_catalog:
@@ -116,3 +123,4 @@
         ca_path: "/path/to/ca_cert.pem"
         state: absent
         catalog_id: [11, 34]
+      delegate_to: localhost

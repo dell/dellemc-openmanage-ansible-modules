@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible Application network setting.
   gather_facts: false
 
@@ -20,6 +19,8 @@
           serial_sessions: 1
       tags:
         - enable_universal_timeout
+      delegate_to: localhost
+
     - name: Configure API and GUI timeout and sessions
       dellemc.openmanage.ome_application_network_settings:
         hostname: "{{ hostname }}"
@@ -33,6 +34,8 @@
           gui_sessions: 5
       tags:
         - enable_api_gui_timout_sessions
+      delegate_to: localhost
+
     - name: Configure timeout and sessions for all parameters
       dellemc.openmanage.ome_application_network_settings:
         hostname: "{{ hostname }}"
@@ -50,6 +53,8 @@
           serial_sessions: 1
       tags:
         - enable_all_timeout_sessions
+      delegate_to: localhost
+
     - name: Disable universal timeout and configure timeout and sessions for other parameters
       dellemc.openmanage.ome_application_network_settings:
         hostname: "{{ hostname }}"
@@ -68,3 +73,4 @@
           serial_sessions: 1
       tags:
         - disa_all_timeout_sessions
+      delegate_to: localhost
