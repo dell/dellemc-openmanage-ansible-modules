@@ -5,6 +5,42 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v8.2.0
+======
+
+Release Summary
+---------------
+
+- redfish_firmware and ome_firmware_catalog module is enhanced to support IPv6 address. - Module to support firmware rollback of server components -  Support for retrieving alert policies, actions, categories and message id information of alert policies for OME and OME Modular - ome_diagnostics module is enhanced to update changed flag status in response. 
+
+Minor Changes
+-------------
+
+- Module ``ome_diagnostics`` is enhanced to update changed flag status in response.
+- Module ``ome_firmware_catalog`` is enhanced to support IPv6 address.
+- Module ``redfish_firmware`` is enhanced to support IPv6 address.
+
+Bugfixes
+--------
+
+- Update document on how to use with ansible. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/393).
+
+Known Issues
+------------
+
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_alert_policies_action_info - Get information on actions of alert policies.
+- dellemc.openmanage.ome_alert_policies_category_info - Retrieves information of all OME alert policy categories.
+- dellemc.openmanage.ome_alert_policies_info - Retrieves information of one or more OME alert policies.
+- dellemc.openmanage.ome_alert_policies_message_id_info - Get message ID information of alert policies.
+- dellemc.openmanage.redfish_firmware_rollback - To perform a component firmware rollback using component name.
+
 v8.1.0
 ======
 
