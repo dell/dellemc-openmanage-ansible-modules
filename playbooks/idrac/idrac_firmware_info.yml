@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Get Installed Firmware Inventory
   gather_facts: false
 
@@ -11,3 +10,4 @@
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost

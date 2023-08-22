@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible profile operations.
   gather_facts: false
 
@@ -17,6 +16,7 @@
         number_of_profiles: 2
       tags:
         - create_profile
+      delegate_to: localhost
 
     - name: Create profile with NFS share
       dellemc.openmanage.ome_profile:
@@ -36,6 +36,7 @@
           iso_timeout: 8
       tags:
         - create_profile_nfs
+      delegate_to: localhost
 
     - name: Create profile with CIFS share
       dellemc.openmanage.ome_profile:
@@ -58,6 +59,7 @@
           iso_timeout: 8
       tags:
         - create_profile_cifs
+      delegate_to: localhost
 
     - name: Modify profile name with NFS share and attributes
       dellemc.openmanage.ome_profile:
@@ -88,6 +90,7 @@
               IsIgnored: false
       tags:
         - modify_profile
+      delegate_to: localhost
 
     - name: Delete using profile name
       dellemc.openmanage.ome_profile:
@@ -99,6 +102,7 @@
         name: "Profile 00003"
       tags:
         - delete_profile_name
+      delegate_to: localhost
 
     - name: Delete using filter
       dellemc.openmanage.ome_profile:
@@ -112,6 +116,7 @@
           Filters: =contains(ProfileName,'Profile 00002')
       tags:
         - delete_filter
+      delegate_to: localhost
 
     - name: Delete using profile list filter
       dellemc.openmanage.ome_profile:
@@ -126,6 +131,7 @@
             - 12124
       tags:
         - delete_profile_ids
+      delegate_to: localhost
 
     - name: Assign profile name with network share
       dellemc.openmanage.ome_profile:
@@ -157,6 +163,7 @@
             RunLater: false
       tags:
         - assign_profile
+      delegate_to: localhost
 
     - name: Unassign using profile name
       dellemc.openmanage.ome_profile:
@@ -168,6 +175,7 @@
         name: "Profile 00003"
       tags:
         - unassign_profile_name
+      delegate_to: localhost
 
     - name: "Unassign using filters"
       dellemc.openmanage.ome_profile:
@@ -181,6 +189,7 @@
           Filters: =contains(ProfileName,'Profile 00003')
       tags:
         - unassign_filter
+      delegate_to: localhost
 
     - name: Unassign using filter
       dellemc.openmanage.ome_profile:
@@ -195,6 +204,7 @@
             - 16123
       tags:
         - unassign_profile_list
+      delegate_to: localhost
 
     - name: Migrate profile
       dellemc.openmanage.ome_profile:
@@ -207,3 +217,4 @@
         device_id: 12456
       tags:
         - migrate_profile
+      delegate_to: localhost

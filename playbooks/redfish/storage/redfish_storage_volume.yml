@@ -1,6 +1,5 @@
 ---
 - hosts: redfish_hosts
-  connection: local
   gather_facts: false
   name: "Redfish Storage Volume - Ansible Module"
   vars:
@@ -29,6 +28,7 @@
       register: result
       tags:
         - create_volume1
+      delegate_to: localhost
 
     - name: Create a volume with minimum options.
       dellemc.openmanage.redfish_storage_volume:
@@ -43,6 +43,7 @@
           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
       tags:
         - create_volume2
+      delegate_to: localhost
 
     - name: Modify a volume's encryption type settings.
       dellemc.openmanage.redfish_storage_volume:
@@ -56,6 +57,7 @@
         encrypted: true
       tags:
         - modify_volume
+      delegate_to: localhost
 
     - name: Initialize an existing volume.
       dellemc.openmanage.redfish_storage_volume:
@@ -68,6 +70,7 @@
         initialize_type: "Slow"
       tags:
         - initialize_volume
+      delegate_to: localhost
 
     - name: Delete an existing volume.
       dellemc.openmanage.redfish_storage_volume:
@@ -79,3 +82,4 @@
         volume_id: "Disk.Virtual.5:RAID.Slot.1-1"
       tags:
         - delete_volume
+      delegate_to: localhost
