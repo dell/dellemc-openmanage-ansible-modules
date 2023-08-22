@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
+# Version 8.2.0
 # Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
@@ -45,8 +45,11 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 
 
 import time
-from copy import deepcopy
+from datetime import datetime
+import re
 from ansible.module_utils.six.moves.urllib.error import HTTPError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 
 def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
@@ -353,8 +356,8 @@ def get_system_res_id(idrac):
 
 def get_all_data_with_pagination(ome_obj, uri, query_param=None):
     """To get all the devices with pagination based on the filter provided."""
+    query, resp, report_list = "", None, []
     try:
-        query, resp, report_list = "", None, []
         resp = ome_obj.invoke_request('GET', uri, query_param=query_param)
         next_uri = resp.json_data.get("@odata.nextLink", None)
         report_list = resp.json_data.get("value")
@@ -366,29 +369,72 @@ def get_all_data_with_pagination(ome_obj, uri, query_param=None):
             resp = ome_obj.invoke_request('GET', next_uri_query)
             report_list.extend(resp.json_data.get("value"))
             next_uri = resp.json_data.get("@odata.nextLink", None)
-    except Exception:
-        resp, report_list = None, []
+    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+        raise err
     return {"resp_obj": resp, "report_list": report_list}
 
 
-def remove_key(data, remove_char='@odata.'):
+def remove_key(data, regex_pattern='@odata.'):
     '''
     :param data: the dict/list to be stripped of unwanted keys
     :param remove_char: the substring to be checked among the keys
     :return: dict/list
     '''
     try:
-        data_copy = deepcopy(data)
-        for each_key in data_copy:
-            if remove_char in each_key:
-                data.pop(each_key, None)
-            elif isinstance(data_copy[each_key], dict):
-                data[each_key] = remove_key(data_copy[each_key])
-            elif isinstance(data_copy[each_key], list):
-                tmp_list = []
-                for each_key_list in data_copy[each_key]:
-                    tmp_list.append(remove_key(each_key_list))
-                data[each_key] = tmp_list
+        if isinstance(data, dict):
+            for key in list(data.keys()):
+                if re.match(regex_pattern, key):
+                    data.pop(key, None)
+                else:
+                    remove_key(data[key], regex_pattern)
+        elif isinstance(data, list):
+            for item in data:
+                remove_key(item, regex_pattern)
     except Exception:
         pass
     return data
+
+
+def wait_for_redfish_reboot_job(redfish_obj, res_id, payload=None, wait_time_sec=300):
+    reset, job_resp, msg = False, {}, ""
+    try:
+        resp = redfish_obj.invoke_request('POST', SYSTEM_RESET_URI.format(res_id=res_id), data=payload, api_timeout=120)
+        time.sleep(10)
+        if wait_time_sec and resp.status_code == 204:
+            resp = redfish_obj.invoke_request("GET", MANAGER_JOB_URI)
+            reboot_job_lst = list(filter(lambda d: (d["JobType"] in ["RebootNoForce"]), resp.json_data["Members"]))
+            job_resp = max(reboot_job_lst, key=lambda d: datetime.strptime(d["StartTime"], "%Y-%m-%dT%H:%M:%S"))
+            if job_resp:
+                reset = True
+            else:
+                msg = RESET_FAIL
+    except Exception:
+        reset = False
+    return job_resp, reset, msg
+
+
+def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_timeout=120, sleep_time=10):
+    max_sleep_time = wait_timeout
+    sleep_interval = sleep_time
+    job_msg = "The job is not complete after {0} seconds.".format(wait_timeout)
+    job_resp = {}
+    if job_wait:
+        while max_sleep_time:
+            if max_sleep_time > sleep_interval:
+                max_sleep_time = max_sleep_time - sleep_interval
+            else:
+                sleep_interval = max_sleep_time
+                max_sleep_time = 0
+            time.sleep(sleep_interval)
+            job_resp = redfish_obj.invoke_request("GET", job_uri, api_timeout=120)
+            if job_resp.json_data.get("PercentComplete") == 100:
+                time.sleep(10)
+                return job_resp, ""
+            if job_resp.json_data.get("JobState") == "RebootFailed":
+                time.sleep(10)
+                return job_resp, job_msg
+    else:
+        time.sleep(10)
+        job_resp = redfish_obj.invoke_request("GET", job_uri, api_timeout=120)
+        return job_resp, ""
+    return job_resp, job_msg

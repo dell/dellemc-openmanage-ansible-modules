@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Delete LC job
   gather_facts: false
 
@@ -13,6 +12,7 @@
         ca_path: "/path/to/ca_cert.pem"
       tags:
         - delete_all_jobs
+      delegate_to: localhost
 
     - name: Delete a LC job
       dellemc.openmanage.idrac_lifecycle_controller_jobs:
@@ -23,3 +23,4 @@
         job_id: "JID_123456789"
       tags:
         - delete_job
+      delegate_to: localhost

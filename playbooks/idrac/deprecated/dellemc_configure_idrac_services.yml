@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Configure the iDRAC services attributes
   gather_facts: false
 
@@ -13,7 +12,7 @@
         ca_path: "/path/to/ca_cert.pem"
         ssl_encryption: "T_168_Bit_or_higher"
         tls_protocol: "TLS_1_0_and_Higher"
-
+      delegate_to: localhost
       tags:
         - idrac_webserver
 
@@ -25,6 +24,7 @@
         ca_path: "/path/to/ca_cert.pem"
         snmp_enable: "Enabled"
         snmp_protocol: "All"
+      delegate_to: localhost
 
       tags:
         - idrac_snmp
@@ -39,5 +39,6 @@
           community_name: public
         alert_port: 161
         trap_format: SNMPv3
+      delegate_to: localhost
       tags:
         - idrac-snmp-settings
