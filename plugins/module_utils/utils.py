@@ -45,7 +45,6 @@ MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 
 
 import time
-from copy import deepcopy
 from ansible.module_utils.six.moves.urllib.error import HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -380,17 +379,15 @@ def remove_key(data, remove_char='@odata.'):
     :return: dict/list
     '''
     try:
-        data_copy = deepcopy(data)
-        for each_key in data_copy:
-            if remove_char in each_key:
-                data.pop(each_key, None)
-            elif isinstance(data_copy[each_key], dict):
-                data[each_key] = remove_key(data_copy[each_key])
-            elif isinstance(data_copy[each_key], list):
-                tmp_list = []
-                for each_key_list in data_copy[each_key]:
-                    tmp_list.append(remove_key(each_key_list))
-                data[each_key] = tmp_list
+        if isinstance(data, dict):
+            for key in list(data.keys()):
+                if remove_char in key:
+                    data.pop(key, None)
+                else:
+                    remove_key(data[key], remove_char)
+        elif isinstance(data, list):
+            for item in data:
+                remove_key(item, remove_char)
     except Exception:
         pass
     return data
