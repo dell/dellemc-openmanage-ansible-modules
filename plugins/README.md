@@ -103,6 +103,7 @@ Here are the list of modules and module_utils supported by Dell.
     ├── ome_user_info.py
     ├── redfish_event_subscription.py
     ├── redfish_firmware.py
+    ├── redfish_firmware_rollback.py
     ├── redfish_powerstate.py
     └── redfish_storage_volume.py
 ```
