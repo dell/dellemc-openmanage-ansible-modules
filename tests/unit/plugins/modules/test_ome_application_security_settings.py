@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -350,6 +350,7 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
         ome_default_args.update(params['module_args'])
         ome_connection_mock_for_security_settings.job_tracking.return_value = \
             (params.get('job_failed'), params.get('job_message'))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         result = self._run_module(
             ome_default_args, check_mode=params.get(
                 'check_mode', False))
