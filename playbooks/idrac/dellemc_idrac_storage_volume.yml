@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Storage volume configuration on iDRAC.
   gather_facts: false
 
@@ -16,6 +15,7 @@
         volumes:
           - drives:
               location: [5]
+      delegate_to: localhost
       tags:
         - create_single_volume
 
@@ -58,6 +58,7 @@
             stripe_size: 131072
             capacity: "200"
             raid_init_operation: "None"
+      delegate_to: localhost
       tags:
         - create_multiple_volume
 
@@ -70,6 +71,7 @@
         state: "delete"
         volumes:
           - name: "volume_1"
+      delegate_to: localhost
       tags:
         - delete_single_volume
 
@@ -83,6 +85,7 @@
         volumes:
           - name: "volume_1"
           - name: "volume_2"
+      delegate_to: localhost
       tags:
         - delete_multiple_volume
 
@@ -95,6 +98,7 @@
         state: "view"
         controller_id: "RAID.Slot.1-1"
         volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+      delegate_to: localhost
       tags:
         - view_specific_volume
 
@@ -105,5 +109,6 @@
         idrac_password: "{{ idrac_password }}"
         ca_path: "/path/to/ca_cert.pem"
         state: "view"
+      delegate_to: localhost
       tags:
         - view_all_volume

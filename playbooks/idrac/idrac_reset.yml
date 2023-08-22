@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Reset iDRAC
   gather_facts: false
 
@@ -13,3 +12,4 @@
         ca_path: "/path/to/ca_cert.pem"
       tags:
         - idrac_reset
+      delegate_to: localhost

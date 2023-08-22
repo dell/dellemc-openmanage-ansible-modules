@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -74,14 +74,14 @@ class TestOmeSIPs(FakeAnsibleModule):
                  ],
                  "NicBonded": False
              }},
-         "vlan_map": {"jagvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
+         "vlan_map": {"testvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
                       "three": 14681},
          "natives": {143: 10155, 1: 11569, 2: 14679, 3: 14681, 0: 0},
          'mparams': {"job_wait": False, "device_service_tag": ["ABC1234"],
                      "nic_configuration": [{
                          "nic_identifier": "NIC.Mezzanine.1A-1-1",
                          "tagged_networks": {
-                             "names": ["jagvlan"],
+                             "names": ["testvlan"],
                              "state": "present"},
                          "team": False,
                          "untagged_network": 3},
@@ -132,14 +132,14 @@ class TestOmeSIPs(FakeAnsibleModule):
                  ],
                  "NicBonded": False
              }},
-         "vlan_map": {"jagvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
+         "vlan_map": {"testvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
                       "three": 14681},
          "natives": {143: 10155, 1: 11569, 2: 14679, 3: 14681, 0: 0},
          'mparams': {"job_wait": False, "device_service_tag": ["ABC1234"],
                      "nic_configuration": [{
                          "nic_identifier": "NIC.Mezzanine.1A-1-1",
                          "tagged_networks": {
-                             "names": ["jagvlan"],
+                             "names": ["testvlan"],
                              "state": "present"},
                          "team": False,
                          "untagged_network": 10},
@@ -218,14 +218,14 @@ class TestOmeSIPs(FakeAnsibleModule):
                  ],
                  "NicBonded": False
              }},
-         "vlan_map": {"jagvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
+         "vlan_map": {"testvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
                       "three": 14681},
          "natives": {143: 10155, 1: 11569, 2: 14679, 3: 14681, 0: 0},
          'mparams': {"job_wait": False, "device_service_tag": ["ABC1234"],
                      "nic_configuration": [{
                          "nic_identifier": "NIC.Mezzanine.1A-1-1",
                          "tagged_networks": {
-                             "names": ["jagvlan", "VLAN 1"],
+                             "names": ["testvlan", "VLAN 1"],
                              "state": "present"},
                          "team": False,
                          "untagged_network": 3},
@@ -259,14 +259,14 @@ class TestOmeSIPs(FakeAnsibleModule):
                  ],
                  "NicBonded": False
              }},
-         "vlan_map": {"jagvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
+         "vlan_map": {"testvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
                       "three": 14681},
          "natives": {143: 10155, 1: 11569, 2: 14679, 3: 14681, 0: 0},
          'mparams': {"job_wait": False, "device_service_tag": ["ABC1234"],
                      "nic_configuration": [{
                          "nic_identifier": "NIC.Mezzanine.1A-1-1",
                          "tagged_networks": {
-                             "names": ["jagvlan"],
+                             "names": ["testvlan"],
                              "state": "present"},
                          "team": False,
                          "untagged_network": 3},
@@ -303,14 +303,14 @@ class TestOmeSIPs(FakeAnsibleModule):
                  ],
                  "NicBonded": False
              }},
-         "vlan_map": {"jagvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
+         "vlan_map": {"testvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
                       "three": 14681},
          "natives": {143: 10155, 1: 11569, 2: 14679, 3: 14681, 0: 0},
          'mparams': {"job_wait": False, "device_service_tag": ["ABC1234"],
                      "nic_configuration": [{
                          "nic_identifier": "NIC.Mezzanine.1A-1-1",
                          "tagged_networks": {
-                             "names": ["jagvlan"],
+                             "names": ["testvlan"],
                              "state": "present"},
                          "team": False,
                          "untagged_network": 3},
@@ -358,14 +358,14 @@ class TestOmeSIPs(FakeAnsibleModule):
                  ],
                  "NicBonded": False
              }},
-         "vlan_map": {"jagvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
+         "vlan_map": {"testvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
                       "three": 14681},
          "natives": {143: 10155, 1: 11569, 2: 14679, 3: 14681, 0: 0},
          'mparams': {"device_service_tag": ["ABC1234"],
                      "nic_configuration": [{
                          "nic_identifier": "NIC.Mezzanine.1A-1-1",
                          "tagged_networks": {
-                             "names": ["jagvlan"],
+                             "names": ["testvlan"],
                              "state": "present"},
                          "team": False,
                          "untagged_network": 3},
@@ -413,14 +413,14 @@ class TestOmeSIPs(FakeAnsibleModule):
                     ],
                     "NicBonded": False
                 }},
-            "vlan_map": {"jagvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
+            "vlan_map": {"testvlan": 10155, "VLAN 1": 11569, "range120-125": 12350, "range130-135": 12352, "two": 14679,
                          "three": 14681},
             "natives": {143: 10155, 1: 11569, 2: 14679, 3: 14681, 0: 0},
             'mparams': {"device_service_tag": ["ABC1234"],
                         "nic_configuration": [{
                             "nic_identifier": "NIC.Mezzanine.1A-1-1",
                             "tagged_networks": {
-                                "names": ["jagvlan"],
+                                "names": ["testvlan"],
                                 "state": "present"},
                             "team": False,
                             "untagged_network": 3},
@@ -503,7 +503,7 @@ class TestOmeSIPs(FakeAnsibleModule):
                     "Networks": [
                         {
                             "Id": 10155,
-                            "Name": "jagvlan",
+                            "Name": "testvlan",
                             "Description": None,
                             "VlanMaximum": 143,
                             "VlanMinimum": 143,
@@ -529,7 +529,7 @@ class TestOmeSIPs(FakeAnsibleModule):
                     "Networks": [
                         {
                             "Id": 10155,
-                            "Name": "jagvlan",
+                            "Name": "testvlan",
                             "Description": None,
                             "VlanMaximum": 143,
                             "VlanMinimum": 143,
@@ -594,7 +594,7 @@ class TestOmeSIPs(FakeAnsibleModule):
                              [{"json_data": {"@odata.context": "/api/$metadata#Collection(NetworkConfigurationService.Network)",
                                              "@odata.count": 6,
                                              "value": [{"Id": 10155,
-                                                        "Name": "jagvlan",
+                                                        "Name": "testvlan",
                                                         "VlanMaximum": 143,
                                                         "VlanMinimum": 143,
                                                         "Type": 1,
@@ -630,7 +630,7 @@ class TestOmeSIPs(FakeAnsibleModule):
                                                         "VlanMinimum": 3,
                                                         "Type": 3,
                                                         }]},
-                                 "vlan_map": {"jagvlan": 10155,
+                                 "vlan_map": {"testvlan": 10155,
                                               "VLAN 1": 11569,
                                               "range120-125": 12350,
                                               "range130-135": 12352,

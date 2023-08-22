@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.2.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -117,6 +117,7 @@ class TestOmeGroups(FakeAnsibleModule):
         ome_connection_mock_for_groups.strip_substr_dict.return_value = params.get('created_group', {})
         mocker.patch(MODULE_PATH + 'get_ome_group_by_id', return_value=params.get('created_group', {}))
         mocker.patch(MODULE_PATH + 'create_parent', return_value=params['created_group'].get('ParentId'))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         ome_default_args.update(params['mparams'])
         result = self._run_module(ome_default_args, check_mode=params.get('check_mode', False))
         assert result['msg'] == (params['message']).format(op='create')
@@ -151,6 +152,7 @@ class TestOmeGroups(FakeAnsibleModule):
         ome_connection_mock_for_groups.strip_substr_dict.return_value = params.get('created_group', {})
         mocker.patch(MODULE_PATH + 'get_ome_group_by_id', return_value=params.get('created_group', {}))
         mocker.patch(MODULE_PATH + 'create_parent', return_value=params['created_group'].get('ParentId'))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         # mocker.patch(MODULE_PATH + 'is_parent_in_subtree', return_value=False)
         ome_default_args.update(params['mparams'])
         result = self._run_module(ome_default_args, check_mode=params.get('check_mode', False))

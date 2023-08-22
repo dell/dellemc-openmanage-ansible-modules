@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   gather_facts: false
   name: "OME - Ansible Modules"
 
@@ -15,7 +14,7 @@
           - 11111
           - 11112
       register: result
-
+      delegate_to: localhost
       tags:
         - overall-compliance-report
 
@@ -28,7 +27,7 @@
         - "{{ result.baseline_compliance_info }}"
       loop_control:
         label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.FirmwareStatus }}"
-
+      delegate_to: localhost
       tags:
         - non-compliance-report
 
@@ -41,7 +40,7 @@
         - "{{ result.baseline_compliance_info }}"
       loop_control:
         label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.DeviceId }}"
-
+      delegate_to: localhost
       tags:
         - device-id-report
 
@@ -54,6 +53,6 @@
         - "{{ result.baseline_compliance_info }}"
       loop_control:
         label: "{{ item.Name }} - {{ item.DeviceComplianceReports.0.ServiceTag }}"
-
+      delegate_to: localhost
       tags:
         - device-service-tag-report

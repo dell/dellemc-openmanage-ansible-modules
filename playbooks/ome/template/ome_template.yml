@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible device Template service.
   gather_facts: false
 
@@ -15,6 +14,7 @@
         attributes:
           Name: "New Template"
           Description: "New Template description"
+      delegate_to: localhost
 
     - name: Modify template name, description, and attribute value.
       dellemc.openmanage.ome_template:
@@ -34,6 +34,7 @@
             - Id: 1234
               Value: "Test Attribute"
               IsIgnored: false
+      delegate_to: localhost
 
     - name: Modify template name, description, and attribute using detailed view
       dellemc.openmanage.ome_template:
@@ -56,6 +57,7 @@
             - DisplayName: "System, LCD Configuration, LCD 1 User Defined String for LCD"
               Value: LCD str by OMAM
               IsIgnored: false
+      delegate_to: localhost
 
     - name: Deploy template on multiple devices
       dellemc.openmanage.ome_template:
@@ -71,6 +73,7 @@
         device_service_tag:
           - "SVTG123"
           - "SVTG456"
+      delegate_to: localhost
 
     - name: Deploy template on groups
       dellemc.openmanage.ome_template:
@@ -83,6 +86,7 @@
         device_group_names:
           - server_group_1
           - server_group_2
+      delegate_to: localhost
 
     - name: Deploy template on multiple devices along attributes modification for target device"
       dellemc.openmanage.ome_template:
@@ -115,6 +119,7 @@
                 - Id: 18968,
                   Value: "hostname-1"
                   IsIgnored: false
+      delegate_to: localhost
 
     - name: Deploy template and Operating System (OS) on multiple devices"
       dellemc.openmanage.ome_template:
@@ -148,6 +153,7 @@
           Schedule:
             RunLater: true
             RunNow: false
+      delegate_to: localhost
 
     - name:
         Deploy template on multiple devices and changes the device-level attributes. After the template is deployed,
@@ -194,6 +200,7 @@
           Schedule:
             RunLater: true
             RunNow: false
+      delegate_to: localhost
 
     - name: Delete template"
       dellemc.openmanage.ome_template:
@@ -203,6 +210,7 @@
         ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         template_id: 12
+      delegate_to: localhost
 
     - name: Export a template
       dellemc.openmanage.ome_template:
@@ -212,6 +220,7 @@
         ca_path: "/path/to/ca_cert.pem"
         command: "export"
         template_id: 12
+      delegate_to: localhost
 
     # Start of example to export template to a local xml file
     - name: Export template to a local xml file
@@ -233,6 +242,7 @@
       tags:
         - export_xml_to_file
     # End of example to export template to a local xml file
+      delegate_to: localhost
 
     - name: Clone a template
       dellemc.openmanage.ome_template:
@@ -244,6 +254,7 @@
         template_id: 12
         attributes:
           Name: "New Cloned Template Name"
+      delegate_to: localhost
 
     - name: Import template from XML content
       dellemc.openmanage.ome_template:
@@ -265,6 +276,7 @@
             </Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n
             <Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready</Attribute>\n
             <Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>\n"
+      delegate_to: localhost
 
     - name: Import template from local XML file
       dellemc.openmanage.ome_template:
@@ -277,6 +289,7 @@
           Name: "Imported Template Name"
           Type: 2
           Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"
+      delegate_to: localhost
 
     - name: Deploy template and Operating System (OS) on multiple devices."
       dellemc.openmanage.ome_template:
@@ -310,6 +323,7 @@
           Schedule:
             RunLater: true
             RunNow: false
+      delegate_to: localhost
 
     - name: Create a compliance template from reference device
       dellemc.openmanage.ome_template:
@@ -324,6 +338,7 @@
           Name: "Configuration Compliance"
           Description: "Configuration Compliance Template"
           Fqdds: "BIOS"
+      delegate_to: localhost
 
     - name: Import a compliance template from XML file
       dellemc.openmanage.ome_template:
@@ -337,3 +352,4 @@
           Name: "Configuration Compliance"
           Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
           Type: 2
+      delegate_to: localhost

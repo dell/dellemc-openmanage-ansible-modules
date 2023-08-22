@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible OME firmware baseline operations.
   gather_facts: false
 
@@ -17,6 +16,7 @@
         device_ids:
           - 1010
           - 2020
+      delegate_to: localhost
 
     - name: Create baseline for device IDs with no reboot required
       dellemc.openmanage.ome_firmware_baseline:
@@ -31,6 +31,7 @@
         device_ids:
           - 1010
           - 2020
+      delegate_to: localhost
 
     - name: Create baseline for servicetags
       dellemc.openmanage.ome_firmware_baseline:
@@ -44,6 +45,7 @@
         device_service_tags:
           - "SVCTAG1"
           - "SVCTAG2"
+      delegate_to: localhost
 
     - name: Create baseline for servicetags with no reboot required
       dellemc.openmanage.ome_firmware_baseline:
@@ -58,6 +60,7 @@
         device_service_tags:
           - "SVCTAG1"
           - "SVCTAG2"
+      delegate_to: localhost
 
     - name: Create baseline for device groups without job_tracking
       dellemc.openmanage.ome_firmware_baseline:
@@ -72,6 +75,7 @@
           - "Group1"
           - "Group2"
         job_wait: false
+      delegate_to: localhost
 
     - name: Modify an existing baseline
       dellemc.openmanage.ome_firmware_baseline:
@@ -90,6 +94,7 @@
         downgrade_enabled: false
         is_64_bit: true
         filter_no_reboot_required: true
+      delegate_to: localhost
 
     - name: Modify no reboot filter in existing baseline
       dellemc.openmanage.ome_firmware_baseline:
@@ -100,6 +105,7 @@
         baseline_name: "existing_baseline_name"
         new_baseline_name: "new_baseline_name"
         filter_no_reboot_required: true
+      delegate_to: localhost
 
     - name: Delete a baseline
       dellemc.openmanage.ome_firmware_baseline:
@@ -109,3 +115,4 @@
         ca_path: "/path/to/ca_cert.pem"
         state: absent
         baseline_name: "baseline_name"
+      delegate_to: localhost
