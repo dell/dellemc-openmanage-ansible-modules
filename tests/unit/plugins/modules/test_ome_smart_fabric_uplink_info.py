@@ -1057,7 +1057,7 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
                                                           ome_connection_mock):
         json_str = to_text(json.dumps({"info": "error_details"}))
         error_msg = "Unable to retrieve smart fabric uplink information."
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
+        ome_connection_mock.invoke_request.side_effect = HTTPError('https://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))
@@ -1072,7 +1072,7 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
                                                          ome_connection_mock):
         json_str = to_text(json.dumps({"info": "error_details"}))
         error_msg = "Unable to retrieve smart fabric uplink information."
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
+        ome_connection_mock.invoke_request.side_effect = HTTPError('https://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))
@@ -1086,7 +1086,7 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
                                                           ome_connection_mock):
         json_str = to_text(json.dumps({"info": "error_details"}))
         error_msg = "Unable to retrieve smart fabric uplink information."
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
+        ome_connection_mock.invoke_request.side_effect = HTTPError('https://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))
@@ -1102,7 +1102,7 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
         json_str = to_text(json.dumps({"info": "error_details"}))
         error_msg = "Unable to retrieve smart fabric uplink information with uplink ID {0}.".format(
             params.get('uplink_id'))
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
+        ome_connection_mock.invoke_request.side_effect = HTTPError('https://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))
@@ -1118,7 +1118,7 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
         json_str = to_text(json.dumps({"info": "error_details"}))
         error_msg = "Unable to retrieve smart fabric uplink information with fabric ID {0}.".format(
             params.get('fabric_id'))
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
+        ome_connection_mock.invoke_request.side_effect = HTTPError('https://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))
@@ -1149,7 +1149,7 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_uplink_details_from_fabric_id',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
