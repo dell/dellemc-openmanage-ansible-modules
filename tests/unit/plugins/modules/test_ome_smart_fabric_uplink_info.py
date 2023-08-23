@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.2.0
+# Version 8.2.0
 # Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -427,15 +427,14 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
                              )
     def test_main_case_success_all(self, params, ome_connection_mock_for_smart_fabric_uplink_info, ome_default_args, ome_response_mock,
                                    mocker):
-        mocker.patch(MODULE_PATH + 'get_uplink_details_from_fabric_id', return_value=params.get("get_uplink_details_from_fabric_id"))
-        mocker.patch(MODULE_PATH + 'strip_uplink_info', return_value=params.get("get_uplink_details_from_fabric_id"))
+        mocker.patch(MODULE_PATH + 'get_uplink_details_from_fabric_id',
+                     return_value=params.get("get_uplink_details_from_fabric_id"))
+        mocker.patch(MODULE_PATH + 'strip_uplink_info',
+                     return_value=params.get("get_uplink_details_from_fabric_id"))
         ome_response_mock.success = True
         ome_response_mock.json_data = params.get("strip_uplink_info")
         ome_default_args.update(params.get('mparams'))
-        if params.get("success", False):
-            result = self._run_module(ome_default_args)
-        else:
-            result = self._run_module(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert result["msg"] == 'Successfully retrieved the fabric uplink information.'
 
     def test_ome_smart_fabric_main_success_case_fabric_id(self, mocker, ome_default_args, ome_connection_mock_for_smart_fabric_uplink_info,
@@ -801,14 +800,108 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
         assert 'uplink_info' in result
         assert result['msg'] == "Successfully retrieved the fabric uplink information."
 
-    def test_ome_smart_fabric_main_failure_case(self, ome_default_args, ome_connection_mock_for_smart_fabric_uplink_info,
-                                                ome_response_mock):
-        ome_response_mock.success = True
-        ome_response_mock.status_code = 200
-        ome_response_mock.json_data = {"value": []}
-        result = self._run_module(ome_default_args)
+    @pytest.mark.parametrize("params", [{"success": True,
+                                         "json_data": {"value": [{
+                                             "Id": "1ad54420-b145-49a1-9779-21a579ef6f2d",
+                                             "Name": "u1",
+                                             "Description": "",
+                                             "MediaType": "Ethernet",
+                                             "NativeVLAN": 1,
+                                             "Summary": {"PortCount": 2,
+                                                         "NetworkCount": 1
+                                                         },
+                                             "UfdEnable": "Disabled",
+                                             "Ports@odata.count": 2,
+                                             "Ports": [{
+                                                 "Id": "SVCTAG1:ethernet1/1/35",
+                                                 "Name": "",
+                                                 "Description": "",
+                                             }, {
+                                                 "Id": "SVCTAG1:ethernet1/1/35",
+                                                 "Name": "",
+                                                 "Description": ""
+                                             }],
+                                             "Networks@odata.count": 1,
+                                             "Networks": [{
+                                                 "Id": 10155,
+                                                 "Name": "testvlan",
+                                                 "Description": "null"
+                                             }]
+                                         }],
+                                             "Networks": [{
+                                                 "Id": 10155,
+                                                 "Name": "testvlan",
+                                                 "Description": "null"
+                                             }],
+                                             "Ports": [{
+                                                 "Id": "SVCTAG1:ethernet1/1/35",
+                                                 "Name": "",
+                                                 "Description": "",
+                                             }, {
+                                                 "Id": "SVCTAG1:ethernet1/1/35",
+                                                 "Name": "",
+                                                 "Description": ""
+                                             }]
+                                         },
+                                        'message': "Successfully retrieved the fabric uplink information.",
+                                         'mparams': {"fabric_id": "f1",
+                                                     "uplink_id": "u1"}
+                                         }, {"success": True,
+                                             "json_data": {"value": [{
+                                                 "Uplinks@odata.navigationLink": "/odata/UpLink/1ad54420/b145/49a1/9779/21a579ef6f2d",
+                                                 "Id": "1ad54420-b145-49a1-9779-21a579ef6f2d",
+                                                 "Name": "u1",
+                                                 "Description": "",
+                                                 "MediaType": "Ethernet",
+                                                 "NativeVLAN": 1,
+                                                 "Summary": {"PortCount": 2,
+                                                             "NetworkCount": 1
+                                                             },
+                                                 "UfdEnable": "Disabled",
+                                                 "Ports@odata.count": 2,
+                                                 "Ports": [{
+                                                     "Id": "SVCTAG1:ethernet1/1/35",
+                                                     "Name": "",
+                                                     "Description": "",
+                                                 }, {
+                                                     "Id": "SVCTAG1:ethernet1/1/35",
+                                                     "Name": "",
+                                                     "Description": ""
+                                                 }],
+                                                 "Networks@odata.count": 1,
+                                                 "Networks": [{
+                                                     "Id": 10155,
+                                                     "Name": "testvlan",
+                                                     "Description": "null"
+                                                 }]
+                                             }],
+                                                 "Networks": [{
+                                                     "Id": 10155,
+                                                     "Name": "testvlan",
+                                                     "Description": "null"
+                                                 }],
+                                                 "Ports": [{
+                                                     "Id": "SVCTAG1:ethernet1/1/35",
+                                                     "Name": "",
+                                                     "Description": "",
+                                                 }, {
+                                                     "Id": "SVCTAG1:ethernet1/1/35",
+                                                     "Name": "",
+                                                     "Description": ""
+                                                 }]
+                                             },
+                                        'message': "Successfully retrieved the fabric uplink information.",
+                                             'mparams': {}
+                                             }])
+    def test_ome_smart_fabric_exit_json(self, params, ome_default_args, ome_connection_mock_for_smart_fabric_uplink_info,
+                                        ome_response_mock):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params['json_data']
+        ome_default_args.update(params['mparams'])
+        result = self._run_module(
+            ome_default_args, check_mode=params.get('check_mode', False))
         assert 'uplink_info' in result
-        assert result['msg'] == 'Successfully retrieved the fabric uplink information.'
+        assert result['msg'] == params['message']
 
     @pytest.mark.parametrize("params", [{"success": True,
                                          "json_data": {"value": [{
@@ -877,7 +970,8 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
         ome_response_mock.success = params["success"]
         ome_response_mock.json_data = params["json_data"]
         f_module = self.get_module_mock()
-        resp = self.module.get_all_uplink_details(f_module, ome_connection_mock_for_smart_fabric_uplink_info)
+        resp = self.module.get_all_uplink_details(
+            f_module, ome_connection_mock_for_smart_fabric_uplink_info)
         assert resp == []
 
     @pytest.mark.parametrize("params", [{"success": True,
@@ -998,35 +1092,40 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
                                                                    StringIO(json_str))
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
-            self.module.get_fabric_id_from_name(f_module, ome_connection_mock, params.get('fabric_name'))
+            self.module.get_fabric_id_from_name(
+                f_module, ome_connection_mock, params.get('fabric_name'))
         assert exc.value.args[0] == error_msg
 
     @pytest.mark.parametrize("params", [{"fabric_id": "f1", "uplink_id": "u1"}])
     def test_get_uplink_details_HTTPError_error_case(self, params, ome_default_args, mocker,
                                                      ome_connection_mock):
         json_str = to_text(json.dumps({"info": "error_details"}))
-        error_msg = "Unable to retrieve smart fabric uplink information with uplink ID {0}.".format(params.get('uplink_id'))
+        error_msg = "Unable to retrieve smart fabric uplink information with uplink ID {0}.".format(
+            params.get('uplink_id'))
         ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
-            self.module.get_uplink_details(f_module, ome_connection_mock, params.get('fabric_id'), params.get('uplink_id'))
+            self.module.get_uplink_details(f_module, ome_connection_mock, params.get(
+                'fabric_id'), params.get('uplink_id'))
         assert exc.value.args[0] == error_msg
 
     @pytest.mark.parametrize("params", [{"fabric_id": "f1"}])
     def test_get_uplink_details_from_fabric_id_HTTPError_error_case(self, params, ome_default_args, mocker,
                                                                     ome_connection_mock):
         json_str = to_text(json.dumps({"info": "error_details"}))
-        error_msg = "Unable to retrieve smart fabric uplink information with fabric ID {0}.".format(params.get('fabric_id'))
+        error_msg = "Unable to retrieve smart fabric uplink information with fabric ID {0}.".format(
+            params.get('fabric_id'))
         ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))
         f_module = self.get_module_mock()
         with pytest.raises(Exception) as exc:
-            self.module.get_uplink_details_from_fabric_id(f_module, ome_connection_mock, params.get('fabric_id'))
+            self.module.get_uplink_details_from_fabric_id(
+                f_module, ome_connection_mock, params.get('fabric_id'))
         assert exc.value.args[0] == error_msg
 
     @pytest.mark.parametrize("exc_type",
@@ -1034,15 +1133,19 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
     def test_ome_smart_fabric_uplink_info_main_exception_failure_case(self, exc_type, mocker, ome_default_args,
                                                                       ome_connection_mock_for_smart_fabric_uplink_info,
                                                                       ome_response_mock):
-        ome_default_args.update({"fabric_name": "f1"})
+        ome_default_args.update({"fabric_id": "f1"})
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
         json_str = to_text(json.dumps({"info": "error_details"}))
-        if not exc_type == URLError:
+        if exc_type == URLError:
+            mocker.patch(MODULE_PATH + 'get_uplink_details_from_fabric_id',
+                         side_effect=exc_type("url open error"))
             result = self._run_module(ome_default_args)
-            assert result["failed"] is True
+            assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
-            result = self._run_module(ome_default_args)
+            mocker.patch(MODULE_PATH + 'get_uplink_details_from_fabric_id',
+                         side_effect=exc_type("exception message"))
+            result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_uplink_details_from_fabric_id',
@@ -1050,5 +1153,3 @@ class TestOmeSmartFabricUplinkInfo(FakeAnsibleModule):
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
-        assert 'uplink_info' not in result
-        assert 'msg' in result
