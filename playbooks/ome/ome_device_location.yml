@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: OpenManage Ansible Modules
   gather_facts: false
 
@@ -19,6 +18,7 @@
         rack_slot: 2
         location: location 1
       tags: location-device-id
+      delegate_to: localhost
 
     - name: Update device location settings of a chassis using the device service tag.
       dellemc.openmanage.ome_device_location:
@@ -34,6 +34,7 @@
         rack_slot: 2
         location: location 1
       tags: location-device-service-tag
+      delegate_to: localhost
 
     - name: Update device location settings of the host chassis.
       dellemc.openmanage.ome_device_location:
@@ -48,3 +49,4 @@
         rack_slot: 2
         location: location 1
       tags: location-chassis
+      delegate_to: localhost

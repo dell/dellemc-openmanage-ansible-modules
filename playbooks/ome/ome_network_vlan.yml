@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible VLAN operations.
   gather_facts: false
 
@@ -18,6 +17,7 @@
         vlan_minimum: 35
         vlan_maximum: 40
       tags: create_vlan_range
+      delegate_to: localhost
 
     - name: Create a VLAN with a single value
       dellemc.openmanage.ome_network_vlan:
@@ -32,6 +32,7 @@
         vlan_minimum: 127
         vlan_maximum: 127
       tags: create_vlan_single
+      delegate_to: localhost
 
     - name: Modify a VLAN
       dellemc.openmanage.ome_network_vlan:
@@ -47,6 +48,7 @@
         vlan_minimum: 45
         vlan_maximum: 50
       tags: modify_vlan
+      delegate_to: localhost
 
     - name: Delete a VLAN
       dellemc.openmanage.ome_network_vlan:
@@ -57,3 +59,4 @@
         state: "absent"
         name: "vlan1"
       tags: delete_vlan
+      delegate_to: localhost

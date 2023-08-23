@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible Module for Device compliance information
   gather_facts: false
 
@@ -12,6 +11,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
         baseline: baseline_name
+      delegate_to: localhost
 
     - name: Retrieve the compliance report for a specific device associated with the baseline using the device ID.
       dellemc.openmanage.ome_configuration_compliance_info:
@@ -21,6 +21,7 @@
         ca_path: "/path/to/ca_cert.pem"
         baseline: baseline_name
         device_id: 10001
+      delegate_to: localhost
 
     - name: Retrieve the compliance report for a specific device associated with the baseline using the device service tag.
       dellemc.openmanage.ome_configuration_compliance_info:
@@ -30,3 +31,4 @@
         ca_path: "/path/to/ca_cert.pem"
         baseline: baseline_name
         device_service_tag: 2HFGH3
+      delegate_to: localhost

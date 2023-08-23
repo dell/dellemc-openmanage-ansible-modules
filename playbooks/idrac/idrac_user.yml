@@ -1,6 +1,5 @@
 ---
 - hosts: idrac
-  connection: local
   name: Configure the iDRAC users attributes
   gather_facts: false
 
@@ -23,6 +22,7 @@
         privacy_protocol: "DES"
       tags:
         - create-user
+      delegate_to: localhost
 
     - name: Configure the modify iDRAC users attributes
       dellemc.openmanage.idrac_user:
@@ -42,6 +42,7 @@
         privacy_protocol: "DES"
       tags:
         - modify-user
+      delegate_to: localhost
 
     - name: Configure the modify iDRAC username and password attributes.
       dellemc.openmanage.idrac_user:
@@ -55,6 +56,7 @@
         user_password: "user_password"
       tags:
         - modify-username
+      delegate_to: localhost
 
     - name: Configure the delete iDRAC users attributes
       dellemc.openmanage.idrac_user:
@@ -66,3 +68,4 @@
         user_name: "user_name"
       tags:
         - remove-user
+      delegate_to: localhost

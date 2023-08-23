@@ -1,6 +1,5 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible OpenManage Enterprise network vlan details.
   gather_facts: false
 
@@ -11,6 +10,7 @@
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
 
     - name: Retrieve information about a network VLAN using the VLAN ID.
       dellemc.openmanage.ome_network_vlan_info:
@@ -19,6 +19,7 @@
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
         id: 12345
+      delegate_to: localhost
 
     - name: Retrieve information about a network VLAN using the VLAN name.
       dellemc.openmanage.ome_network_vlan_info:
@@ -27,3 +28,4 @@
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
         name: "Network VLAN - 1"
+      delegate_to: localhost
