@@ -11,7 +11,10 @@ v8.2.0
 Release Summary
 ---------------
 
-- redfish_firmware and ome_firmware_catalog module is enhanced to support IPv6 address. - Module to support firmware rollback of server components -  Support for retrieving alert policies, actions, categories and message id information of alert policies for OME and OME Modular - ome_diagnostics module is enhanced to update changed flag status in response. 
+- redfish_firmware and ome_firmware_catalog module is enhanced to support IPv6 address.
+- Module to support firmware rollback of server components.
+- Support for retrieving alert policies, actions, categories and message id information of alert policies for OME and OME Modular.
+- ome_diagnostics module is enhanced to update changed flag status in response.
 
 Minor Changes
 -------------

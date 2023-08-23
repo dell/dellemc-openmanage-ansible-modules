@@ -1465,10 +1465,14 @@ releases:
       - Module ``ome_firmware_catalog`` is enhanced to support IPv6 address.
       - Module ``redfish_firmware`` is enhanced to support IPv6 address.
       release_summary: '- redfish_firmware and ome_firmware_catalog module is enhanced
-        to support IPv6 address. - Module to support firmware rollback of server components
-        -  Support for retrieving alert policies, actions, categories and message
-        id information of alert policies for OME and OME Modular - ome_diagnostics
-        module is enhanced to update changed flag status in response. '
+        to support IPv6 address.
+
+        - Module to support firmware rollback of server components.
+
+        - Support for retrieving alert policies, actions, categories and message id
+        information of alert policies for OME and OME Modular.
+
+        - ome_diagnostics module is enhanced to update changed flag status in response.'
     modules:
     - description: Get information on actions of alert policies.
       name: ome_alert_policies_action_info
