@@ -101,21 +101,11 @@ SUCCESS_MSG = "Successfully retrieved all the OME alert policies information."
 
 def main():
     specs = {
-<<<<<<< HEAD
-<<<<<<< HEAD
         "name": {'type': 'list', 'elements': 'str', 'required': True},
-=======
-        "name": {'type': 'list', 'element': 'str', 'required': True},
->>>>>>> c4b2ee5 (ome_alert_policies v1)
-=======
-        "name": {'type': 'list', 'elements': 'str', 'required': True},
->>>>>>> 5632254 (v2)
         "state": {'default': 'present', 'choices': ['present', 'absent'], 'type': 'str'},
         "enable": {'type': 'bool'},
         "new_name": {'type': 'str'},
         "description": {'type': 'str'},
-<<<<<<< HEAD
-<<<<<<< HEAD
         "device_service_tag": {'type': 'list', 'elements': 'str'},
         "device_group": {'type': 'list', 'elements': 'str'},
         "specific_undiscovered_devices": {'type': 'list', 'elements': 'str'},
@@ -125,47 +115,17 @@ def main():
                                  'catalog_category': {'type': 'list', 'elements': 'dict',
                                                       'options': {'category_name': {'type': 'str'},
                                                                   'sub_category_names': {'type': 'list', 'elements': 'str'}
-=======
-        "device_service_tag": {'type': 'list', 'element': 'str'},
-        "device_group": {'type': 'list', 'element': 'str'},
-        "specific_undiscovered_devices": {'type': 'list', 'element': 'str'},
-=======
-        "device_service_tag": {'type': 'list', 'elements': 'str'},
-        "device_group": {'type': 'list', 'elements': 'str'},
-        "specific_undiscovered_devices": {'type': 'list', 'elements': 'str'},
->>>>>>> 5632254 (v2)
-        "any_undiscovered_devices": {'type': 'bool'},
-        "category": {'type': 'list', 'elements': 'dict',
-                     'options': {'catalog_name': {'type': 'str', 'required': True},
-                                 'catalog_category': {'type': 'list', 'elements': 'dict',
-                                                      'options': {'category_name': {'type': 'str'},
-<<<<<<< HEAD
-                                                                  'sub_category_names': {'type': 'list', 'element': 'str'}
->>>>>>> c4b2ee5 (ome_alert_policies v1)
-=======
-                                                                  'sub_category_names': {'type': 'list', 'elements': 'str'}
->>>>>>> 5632254 (v2)
                                                                   },
                                                       }
                                  }
                      },
-<<<<<<< HEAD
-<<<<<<< HEAD
         "message_ids": {'type': 'list', 'elements': 'str'},
-=======
-        "message_ids": {'type': 'list', 'element': 'str'},
->>>>>>> c4b2ee5 (ome_alert_policies v1)
-=======
-        "message_ids": {'type': 'list', 'elements': 'str'},
->>>>>>> 5632254 (v2)
         "message_file": {'type': 'path'},
         "date_and_time": {'type': 'dict',
                           'options': {'date_from': {'type': 'str'},
                                       'date_to': {'type': 'str'},
                                       'time_from': {'type': 'str'},
                                       'time_to': {'type': 'str'},
-<<<<<<< HEAD
-<<<<<<< HEAD
                                       'days': {'type': 'list', 'elements': 'str', 'choices': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'all']},
                                       'time_interval': {'type': 'bool'}
                                       },
@@ -174,23 +134,6 @@ def main():
         "actions": {'type': 'list', 'elements': 'dict',
                     'options': {'action_name': {'type': 'str', 'choices': ['email', 'trap', 'syslog', 'ignore', 'power_control', 'sms', 'remote_command', 'mobile']},
                                 'parameters': {'type': 'list', 'elements': 'dict',
-=======
-                                      'days': {'type': 'list', 'element': 'str', 'choices': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'all']},
-=======
-                                      'days': {'type': 'list', 'elements': 'str', 'choices': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'all']},
->>>>>>> 5632254 (v2)
-                                      'time_interval': {'type': 'bool'}
-                                      },
-                          },
-        "severity": {'type': 'list', 'elements': 'str', 'choices': ['info', 'normal', 'warning', 'critical', 'unknown', 'all']},
-        "actions": {'type': 'list', 'elements': 'dict',
-                    'options': {'action_name': {'type': 'str', 'choices': ['email', 'trap', 'syslog', 'ignore', 'power_control', 'sms', 'remote_command', 'mobile']},
-<<<<<<< HEAD
-                                'parameters': {'type': 'list', 'element': 'dict',
->>>>>>> c4b2ee5 (ome_alert_policies v1)
-=======
-                                'parameters': {'type': 'list', 'elements': 'dict',
->>>>>>> 5632254 (v2)
                                                'options': {'name': {'type': 'str'},
                                                            'value': {'type': 'str'}}
                                                }
@@ -200,19 +143,10 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 5632254 (v2)
         required_if=[],
         required_one_of=[],
         mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices'),
                             ('message_ids', 'message_file','category')],
-<<<<<<< HEAD
-=======
->>>>>>> c4b2ee5 (ome_alert_policies v1)
-=======
->>>>>>> 5632254 (v2)
         supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
