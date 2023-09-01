@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.3.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -95,11 +95,23 @@ options:
       - RebootNow
       - StageForNextReboot
     default: RebootNow
+  rebootType:
+    version_added: '8.3.0'
+    type: str
+    description:
+      - Types of reboot.
+      - If I(schedule) is C(RebootNow) then it will apply the rebootType.
+    choices:
+      - PowerCycle
+      - GracefulReboot
+      - GracefulRebootForce
+    default: PowerCycle
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.16"
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
+    - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -363,8 +375,11 @@ def job_payload_for_update(rest_obj, module, target_data, baseline=None):
               {"Key": "signVerify", "Value": "true"}]
     # reboot applicable only if staging false
     if schedule == "RebootNow":
-        params.append({"Key": "rebootType", "Value": "3"})
-        # reboot_dict = {"GracefulReboot": "2", "GracefulRebootForce": "3", "PowerCycle": "1"}
+        reboot_dict = {"PowerCycle": "1",
+                       "GracefulReboot": "2",
+                       "GracefulRebootForce": "3"}
+        reboot_type = module.params["rebootType"]
+        params.append({"Key": "rebootType", "Value": reboot_dict[reboot_type]})
     payload = {
         "Id": 0, "JobName": "Firmware Update Task",
         "JobDescription": FW_JOB_DESC, "Schedule": "startnow",
@@ -607,6 +622,9 @@ def main():
         "components": {"type": "list", "elements": 'str', "default": []},
         "baseline_name": {"type": "str"},
         "schedule": {"type": 'str', "choices": ['RebootNow', 'StageForNextReboot'], "default": 'RebootNow'},
+        "rebootType": {"type": 'str',
+                       "choices": ['PowerCycle', 'GracefulReboot', 'GracefulRebootForce'],
+                       "default": 'PowerCycle'},
         "devices": {
             "type": 'list', "elements": 'dict',
             "options": {

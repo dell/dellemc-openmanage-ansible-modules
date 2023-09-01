@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python >= 3.9.16
 
 
 
@@ -100,6 +100,12 @@ Parameters
     if ``StageForNextReboot`` is chosen, the firmware will be staged and updated during the next reboot of the target device.
 
     if ``RebootNow`` will apply the firmware updates immediately.
+
+
+  rebootType (optional, str, PowerCycle)
+    Types of reboot.
+
+    If *schedule* is ``RebootNow`` then it will apply the rebootType.
 
 
   hostname (True, str, None)
@@ -319,4 +325,5 @@ Authors
 
 - Felix Stephen (@felixs88)
 - Jagadeesh N V (@jagadeeshnv)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 
