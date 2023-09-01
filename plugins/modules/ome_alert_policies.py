@@ -122,8 +122,9 @@ def remove_policy(module, rest_obj, policies):
     id_list = [x.get("Id")
                for x in policies if x.get("DefaultPolicy") is False]
     if len(id_list) != len(policies):
+        cm = ","
         module.exit_json(
-            failed=True, msg="Default Policies cannot be deleted.")
+            failed=True, msg=f"Default Policies {cm.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])} cannot be deleted.")
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG)
     rest_obj.invoke_request("POST", REMOVE_URI, data={
