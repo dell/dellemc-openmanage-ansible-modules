@@ -11,18 +11,19 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 import json
 __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
-module: ome_alert_policies_info
-short_description: Retrieves information of one or more OME alert policies.
+module: ome_alert_policies
+short_description: Manage OME alert policies.
 version_added: "8.3.0"
 description:
   - This module retrieves the information of alert policies for OpenManage Enterprise
@@ -96,7 +97,46 @@ error_info:
     }
   }
 '''
+
+POLICIES_URI = "AlertService/AlertPolicies"
+REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
 SUCCESS_MSG = "Successfully retrieved all the OME alert policies information."
+NO_CHANGES_MSG = "No changes found to be applied."
+CHANGES_MSG = "Changes found to be applied."
+
+# Get alert policies
+
+
+def get_alert_policies(rest_obj, name_list):
+    report = get_all_data_with_pagination(rest_obj, POLICIES_URI)
+    all_policies = report.get("report_list", [])
+    policies = []
+    for policy in all_policies:
+        if policy.get("Name") in name_list:
+            policies.append(policy)
+    # TODO take care of DefaultPolicy
+    return policies
+
+
+def remove_policy(module, rest_obj, policies):
+    id_list = [x.get("Id")
+               for x in policies if x.get("DefaultPolicy") is False]
+    if len(id_list) != len(policies):
+        module.exit_json(
+            failed=True, msg="Default Policies cannot be deleted.")
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG)
+    rest_obj.invoke_request("POST", REMOVE_URI, data={
+                            "AlertPolicyIds": id_list})
+    module.exit_json(changed=True, msg=SUCCESS_MSG)
+
+
+def update_policy(module, rest_obj, policy):
+    pass
+
+
+def create_policy(module, rest_obj):
+    pass
 
 
 def main():
@@ -126,7 +166,8 @@ def main():
                                       'date_to': {'type': 'str'},
                                       'time_from': {'type': 'str'},
                                       'time_to': {'type': 'str'},
-                                      'days': {'type': 'list', 'elements': 'str', 'choices': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'all']},
+                                      'days': {'type': 'list', 'elements': 'str',
+                                               'choices': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'all']},
                                       'time_interval': {'type': 'bool'}
                                       },
                           },
@@ -146,11 +187,27 @@ def main():
         required_if=[],
         required_one_of=[],
         mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices'),
-                            ('message_ids', 'message_file','category')],
+                            ('message_ids', 'message_file', 'category')],
         supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
-            module.exit_json(msg=SUCCESS_MSG)
+            state = module.params.get('state')
+            name_list = module.params.get('name')
+            policies = get_alert_policies(rest_obj, name_list)
+            if state == 'absent':
+                if policies:
+                    remove_policy(module, rest_obj, policies)
+                else:
+                    module.exit_json(msg=NO_CHANGES_MSG)
+            else:
+                if len(name_list) > 1:
+                    module.exit_json(
+                        failed=True, msg="More than one policy name provided.")
+                if policies:
+                    update_policy(module, rest_obj, policies[0])
+                else:
+                    create_policy(module, rest_obj)
+                module.exit_json(msg=SUCCESS_MSG)
     except HTTPError as err:
         module.exit_json(failed=True, msg=str(err), error_info=json.load(err))
     except URLError as err:
