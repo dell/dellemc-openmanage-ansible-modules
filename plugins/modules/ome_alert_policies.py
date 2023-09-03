@@ -14,7 +14,6 @@ from __future__ import (absolute_import, division, print_function)
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 import json
@@ -99,6 +98,8 @@ error_info:
 '''
 
 POLICIES_URI = "AlertService/AlertPolicies"
+DEVICES_URI = "DeviceService/Devices"
+GROUPS_URI = "GroupService/Groups"
 REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
 SUCCESS_MSG = "Successfully retrieved all the OME alert policies information."
 NO_CHANGES_MSG = "No changes found to be applied."
@@ -118,17 +119,74 @@ def get_alert_policies(rest_obj, name_list):
     return policies
 
 
+def get_device_data(module, rest_obj):
+    svc_tags = set(module.params.get('device_service_tag'))
+    # TODO take care of single service tag
+    report = get_all_data_with_pagination(rest_obj, DEVICES_URI)
+    all_devices = report.get("report_list", [])
+    devs = []
+    dev_types = []
+    for dev in all_devices:
+        st = dev.get("DeviceServiceTag")
+        if st in svc_tags:
+            svc_tags.remove(st)
+            devs.append(dev.get("Id"))
+            dev_types.append(dev.get("Type"))
+        if not svc_tags:
+            break
+    if len(svc_tags) > 0:
+        separator = ","
+        module.exit_json(failed=True,
+                         msg=f"Devices with service tag '{separator.join([x for x in svc_tags])}' are not found.")
+    return list(set(dev_types)), devs
+
+
+def get_group_data(module, rest_obj):
+    grps = set(module.params.get('device_group'))
+    # TODO take care of single group
+    report = get_all_data_with_pagination(rest_obj, GROUPS_URI)
+    all_devices = report.get("report_list", [])
+    group_ids = []
+    for dev in all_devices:
+        st = dev.get("Name")
+        if st in grps:
+            grps.remove(st)
+            group_ids.append(dev.get("Id"))
+        if not grps:
+            break
+    if len(grps) > 0:
+        separator = ","
+        module.exit_json(failed=True,
+                         msg=f"Groups with names '{separator.join([x for x in grps])}' are not found.")
+    return group_ids
+
+
+def get_target_payload(module, rest_obj):
+    target_payload = {}
+    mparams = module.params
+    if mparams.get('all_devices'):
+        target_payload['AllTargets'] = True
+    elif mparams.get('any_undiscovered_devices'):
+        target_payload['UndiscoveredTargets'] = [{"TargetAddress":"ALL_UNDISCOVERED_TARGETS"}]
+    elif mparams.get('specific_undiscovered_devices'):
+        target_payload['UndiscoveredTargets'] = [({"TargetAddress": x}) for x in module.params.get('specific_undiscovered_devices')]
+    elif mparams.get('device_service_tag'):
+        devicetype, deviceids = get_device_data(module, rest_obj)
+        target_payload['Devices'] = deviceids
+        target_payload['DeviceTypes'] = devicetype
+    elif mparams.get('device_group'):
+        target_payload['DeviceGroup'] = get_group_data(module, rest_obj)
+    return target_payload
+
 def remove_policy(module, rest_obj, policies):
-    id_list = [x.get("Id")
-               for x in policies if x.get("DefaultPolicy") is False]
+    id_list = [x.get("Id") for x in policies if x.get("DefaultPolicy") is False]
     if len(id_list) != len(policies):
-        cm = ","
-        module.exit_json(
-            failed=True, msg=f"Default Policies {cm.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])} cannot be deleted.")
+        separator = ","
+        module.exit_json(failed=True,
+                         msg=f"Default Policies '{separator.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])}' cannot be deleted.")
     if module.check_mode:
-        module.exit_json(msg=CHANGES_MSG)
-    rest_obj.invoke_request("POST", REMOVE_URI, data={
-                            "AlertPolicyIds": id_list})
+        module.exit_json(msg=CHANGES_MSG, changed=True)
+    rest_obj.invoke_request("POST", REMOVE_URI, data={"AlertPolicyIds": id_list})
     module.exit_json(changed=True, msg=SUCCESS_MSG)
 
 
@@ -137,7 +195,10 @@ def update_policy(module, rest_obj, policy):
 
 
 def create_policy(module, rest_obj):
-    pass
+    payload = {}
+    target = get_target_payload(module, rest_obj)
+    payload.update(target)
+    module.exit_json(msg=payload)
 
 
 def main():
@@ -151,6 +212,7 @@ def main():
         "device_group": {'type': 'list', 'elements': 'str'},
         "specific_undiscovered_devices": {'type': 'list', 'elements': 'str'},
         "any_undiscovered_devices": {'type': 'bool'},
+        "all_devices": {'type': 'bool'},
         "category": {'type': 'list', 'elements': 'dict',
                      'options': {'catalog_name': {'type': 'str', 'required': True},
                                  'catalog_category': {'type': 'list', 'elements': 'dict',
