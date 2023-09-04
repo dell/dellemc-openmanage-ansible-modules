@@ -183,6 +183,7 @@ error_info:
 POLICIES_URI = "AlertService/AlertPolicies"
 MESSAGES_URI = "AlertService/AlertMessageDefinitions"
 ACTIONS_URI = "AlertService/AlertActionTemplates"
+SEVERITY_URI = "AlertService/AlertSeverities"
 DEVICES_URI = "DeviceService/Devices"
 GROUPS_URI = "GroupService/Groups"
 REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
@@ -262,7 +263,7 @@ def get_target_payload(module, rest_obj):
         target_payload['Devices'] = deviceids
         target_payload['DeviceTypes'] = devicetype
     elif mparams.get('device_group'):
-        target_payload['DeviceGroup'] = get_group_data(module, rest_obj)
+        target_payload['Groups'] = get_group_data(module, rest_obj)
     return target_payload
 
 
@@ -436,6 +437,15 @@ def get_category_or_message(module, rest_obj):
     return cat_payload
 
 
+def get_severity_payload(rest_obj):
+    try:
+        resp = rest_obj.invoke_request("GET", SEVERITY_URI)
+        sevs = dict((x.get('Name').lower(), x.get('Id')) for x in resp.json_data.get("Value"))
+    except Exception:
+        sevs = {"unknown": 1, "info" :2, "normal": 4, "warning": 8, "critical": 16}
+    return sevs
+
+
 def remove_policy(module, rest_obj, policies):
     id_list = [x.get("Id")
                for x in policies if x.get("DefaultPolicy") is False]
@@ -466,7 +476,14 @@ def create_policy(module, rest_obj):
     payload.update(schedule)
     actions = get_actions_payload(module, rest_obj)
     payload.update(actions)
-    module.exit_json(msg=actions)
+    severity_dict = get_severity_payload(rest_obj)
+    inp_sev_list = module.params.get('severity')
+    if 'all' in inp_sev_list:
+        sev_payload = {"Severities": list(severity_dict.values())}
+    else:
+        sev_payload = {"Severities": [severity_dict.get(x) for x in inp_sev_list]}
+    payload.update(sev_payload)
+    module.exit_json(msg=payload)
 
 
 def main():
