@@ -17,6 +17,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import ge
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.common.dict_transformations import recursive_diff
 import json
 __metaclass__ = type
 
@@ -181,6 +182,7 @@ error_info:
 
 POLICIES_URI = "AlertService/AlertPolicies"
 MESSAGES_URI = "AlertService/AlertMessageDefinitions"
+ACTIONS_URI = "AlertService/AlertActionTemplates"
 DEVICES_URI = "DeviceService/Devices"
 GROUPS_URI = "GroupService/Groups"
 REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
@@ -292,7 +294,17 @@ def get_all_message_ids(rest_obj):
     return {x.get("MessageId") for x in all_messages}
 
 
-def get_schedule_payload(module, rest_obj):
+def get_all_actions(rest_obj):
+    resp = rest_obj.invoke_request("GET", ACTIONS_URI)
+    actions = resp.json_data.get("value", [])
+    cmp_actions = dict((x.get("Name"), {"Id": x.get("Id"),
+                                        "Disabled": x.get("Disabled"),
+                                        "Parameters": dict(
+                                            (y.get("Name"), y.get("Value")) for y in x.get("ParameterDetails")
+                                        )}) for x in actions)
+    return cmp_actions
+
+def get_schedule_payload(module):
     schedule_payload = {}
     inp_schedule = module.params.get('date_and_time')
     if inp_schedule:
@@ -305,6 +317,8 @@ def get_schedule_payload(module, rest_obj):
         start_time = f"{inp_schedule.get('date_from')} {time_from}.000"
         try:
             start_time = datetime.strptime(start_time, time_format)
+            if start_time < datetime.now():
+                module.exit_json(failed=True, msg="Start time must be greater than current time.")
             schedule_payload["StartTime"] = start_time
         except ValueError:
             module.exit_json(failed=True, msg="Invalid start date or time.")
@@ -312,6 +326,8 @@ def get_schedule_payload(module, rest_obj):
           end_time = f"{inp_schedule.get('date_to')} {time_to}.000"
           try:
               end_time = datetime.strptime(end_time, time_format)
+              if end_time < start_time:
+                  module.exit_json(failed=True, msg="End time must be greater than start time.")
               schedule_payload["EndTime"] = end_time
           except ValueError:
               module.exit_json(failed=True, msg="Invalid end date or time.")
@@ -322,6 +338,37 @@ def get_schedule_payload(module, rest_obj):
           inp_week_list = set(inp_schedule.get('days'))
         schedule_payload["CronString"] = f"* * * ? * {SEPARATOR.join([weekdays.get(x, '*') for x in inp_week_list])} *"
     return { "Schedule": schedule_payload }
+
+
+def get_actions_payload(module, rest_obj):
+    action_payload = []
+    inp_actions = module.params.get('actions')
+    if inp_actions:
+        ref_actions = get_all_actions(rest_obj)
+        inp_dict = dict((x.get("action_name"), dict((y.get("name"), y.get("value")) for y in x.get("parameters", []))) for x in inp_actions)
+        if 'Ignore' in inp_dict:
+            pld = {}
+            pld['TemplateId'] = ref_actions.get('Ignore').get('Id')
+            pld['Name'] = "Ignore"
+            pld['ParameterDetails'] = []
+            action_payload.append(pld)
+        else:
+            for inp_k, inp_val in inp_dict.items():
+                if inp_k in ref_actions:
+                    pld = {}
+                    if ref_actions.get(inp_k).get('Disabled'):
+                        module.exit_json(failed=True, msg=f"Action '{inp_k}' is disabled.")
+                    pld['TemplateId'] = ref_actions.get(inp_k).get('Id')
+                    pld['Name'] = inp_k
+                    diff = set(inp_val.keys()) - set(ref_actions.get(inp_k).get('Parameters').keys())
+                    if diff:
+                        module.exit_json(failed=True, msg=f"Action '{inp_k}' has invalid parameters: {SEPARATOR.join(diff)}")
+                    pld['ParameterDetails'] = [{"Name": k, "Value": v} for k,v in inp_val.items()]
+                    action_payload.append(pld)
+                else:
+                    module.exit_json(failed=True, msg=f"Action '{inp_k}' does not exist.")
+        # module.exit_json(z=action_payload)
+    return { "Actions": action_payload }
 
 
 def get_category_or_message(module, rest_obj):
@@ -415,8 +462,11 @@ def create_policy(module, rest_obj):
     payload.update(target)
     cat_msg = get_category_or_message(module, rest_obj)
     payload.update(cat_msg)
-    schedule = get_schedule_payload(module, rest_obj)
-    module.exit_json(msg=schedule)
+    schedule = get_schedule_payload(module)
+    payload.update(schedule)
+    actions = get_actions_payload(module, rest_obj)
+    payload.update(actions)
+    module.exit_json(msg=actions)
 
 
 def main():
@@ -455,8 +505,8 @@ def main():
                           },
         "severity": {'type': 'list', 'elements': 'str', 'choices': ['info', 'normal', 'warning', 'critical', 'unknown', 'all']},
         "actions": {'type': 'list', 'elements': 'dict',
-                    'options': {'action_name': {'type': 'str', 'choices': ['email', 'trap', 'syslog', 'ignore', 'power_control', 'sms', 'remote_command', 'mobile']},
-                                'parameters': {'type': 'list', 'elements': 'dict',
+                    'options': {'action_name': {'type': 'str', 'required': True},
+                                'parameters': {'type': 'list', 'elements': 'dict', 'default': [],
                                                'options': {'name': {'type': 'str'},
                                                            'value': {'type': 'str'}}
                                                }
