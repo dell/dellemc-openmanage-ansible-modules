@@ -11,6 +11,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+from datetime import datetime
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
@@ -291,6 +292,38 @@ def get_all_message_ids(rest_obj):
     return {x.get("MessageId") for x in all_messages}
 
 
+def get_schedule_payload(module, rest_obj):
+    schedule_payload = {}
+    inp_schedule = module.params.get('date_and_time')
+    if inp_schedule:
+        def_time = "00:00"
+        time_format = "%Y-%m-%d %H:%M.%f"
+        time_interval =  inp_schedule.get('time_interval', False)
+        schedule_payload['Interval'] = time_interval
+        time_from = inp_schedule.get('time_from') if time_interval else def_time
+        time_to = inp_schedule.get('time_to') if time_interval else def_time
+        start_time = f"{inp_schedule.get('date_from')} {time_from}.000"
+        try:
+            start_time = datetime.strptime(start_time, time_format)
+            schedule_payload["StartTime"] = start_time
+        except ValueError:
+            module.exit_json(failed=True, msg="Invalid start date or time.")
+        if inp_schedule.get('date_to'):
+          end_time = f"{inp_schedule.get('date_to')} {time_to}.000"
+          try:
+              end_time = datetime.strptime(end_time, time_format)
+              schedule_payload["EndTime"] = end_time
+          except ValueError:
+              module.exit_json(failed=True, msg="Invalid end date or time.")
+        weekdays = {'monday': 'mon', 'tuesday': 'tue', 'wednesday': 'wed', 'thursday': 'thu', 'friday': 'fri',
+                    'saturday': 'sat', 'sunday': 'sun'}
+        inp_week_list = ['*']
+        if inp_schedule.get('days'):
+          inp_week_list = set(inp_schedule.get('days'))
+        schedule_payload["CronString"] = f"* * * ? * {SEPARATOR.join([weekdays.get(x, '*') for x in inp_week_list])} *"
+    return { "Schedule": schedule_payload }
+
+
 def get_category_or_message(module, rest_obj):
     """
     Retrieves a category or message based on the provided module and REST object.
@@ -303,10 +336,8 @@ def get_category_or_message(module, rest_obj):
         cat_payload: The retrieved category or message payload.
 
     Raises:
-        ExitJSON: If the category does not exist.
-        
+        ExitJSON: If the category, sub-category or message does not exist. 
     """
-
     cat_payload = {}
     if module.params.get('category'):
         inp_catalog_list = module.params.get('category')
@@ -383,7 +414,9 @@ def create_policy(module, rest_obj):
             failed=True, msg="No valid targets provided for policy creation.")
     payload.update(target)
     cat_msg = get_category_or_message(module, rest_obj)
-    module.exit_json(msg=cat_msg)
+    payload.update(cat_msg)
+    schedule = get_schedule_payload(module, rest_obj)
+    module.exit_json(msg=schedule)
 
 
 def main():
@@ -408,9 +441,9 @@ def main():
                                  }
                      },
         "message_ids": {'type': 'list', 'elements': 'str'},
-        "message_file": {'type': 'path'},
+        # "message_file": {'type': 'path'},
         "date_and_time": {'type': 'dict',
-                          'options': {'date_from': {'type': 'str'},
+                          'options': {'date_from': {'type': 'str', 'required': True},
                                       'date_to': {'type': 'str'},
                                       'time_from': {'type': 'str'},
                                       'time_to': {'type': 'str'},
@@ -418,6 +451,7 @@ def main():
                                                'choices': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'all']},
                                       'time_interval': {'type': 'bool'}
                                       },
+                          'required_if': [['time_interval', True, ('time_from', 'time_to')]]
                           },
         "severity": {'type': 'list', 'elements': 'str', 'choices': ['info', 'normal', 'warning', 'critical', 'unknown', 'all']},
         "actions": {'type': 'list', 'elements': 'dict',
