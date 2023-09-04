@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.16
+- python >= 3.9.6
 
 
 
@@ -298,6 +298,17 @@ Examples
           - id: 12345
             components:
               - iDRAC with Lifecycle Controller
+
+    - name: "Update firmware using baseline name and components and perform Powercycle."
+      dellemc.openmanage.ome_firmware:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        components:
+          - BIOS
+        reboot_type: PowerCycle
 
 
 

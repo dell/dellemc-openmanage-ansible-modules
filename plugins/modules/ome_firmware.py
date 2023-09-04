@@ -110,7 +110,7 @@ options:
       - PowerCycle
     default: GracefulRebootForce
 requirements:
-    - "python >= 3.9.16"
+    - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
@@ -254,6 +254,17 @@ EXAMPLES = r'''
       - id: 12345
         components:
           - iDRAC with Lifecycle Controller
+
+- name: "Update firmware using baseline name and components and perform Powercycle."
+  dellemc.openmanage.ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    baseline_name: baseline_devices
+    components:
+      - BIOS
+    reboot_type: PowerCycle
 '''
 
 RETURN = r'''

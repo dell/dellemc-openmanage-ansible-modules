@@ -147,3 +147,14 @@
             components:
               - iDRAC with Lifecycle Controller
       delegate_to: localhost
+
+    - name: "Update firmware using baseline name and components and perform Powercycle."
+      dellemc.openmanage.ome_firmware:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        components:
+          - BIOS
+        reboot_type: PowerCycle
