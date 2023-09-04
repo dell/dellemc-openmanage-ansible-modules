@@ -32,9 +32,90 @@ description:
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
-    policy_name:
-        description: Name of the policy.
-        type: str
+  - name:
+      type: list
+      elements: str
+      required: true
+  - state:
+      default: present
+      choices: [present, absent]
+      type: str
+  - enable:
+      type: bool
+  - new_name:
+      type: str
+  - description:
+      type: str
+  - device_service_tag:
+      type: list
+      elements: str
+  - device_group:
+      type: list
+      elements: str
+  - specific_undiscovered_devices:
+      type: list
+      elements: str
+  - any_undiscovered_devices:
+      type: bool
+  - all_devices:
+      type: bool
+  - category:
+      type: list
+      elements: dict
+      options:
+        catalog_name:
+          type: str
+          required: true
+        catalog_category:
+          type: list
+          elements: dict
+          options:
+            category_name:
+              type: str
+            sub_category_names:
+              type: list
+              elements: str
+  - message_ids:
+      type: list
+      elements: str
+  - message_file:
+      type: path
+  - date_and_time:
+      type: dict
+      options:
+        date_from:
+          type: str
+        date_to:
+          type: str
+        time_from:
+          type: str
+        time_to:
+          type: str
+        days:
+          type: list
+          elements: str
+          choices: [monday, tuesday, wednesday, thursday, friday, saturday, sunday, all]
+        time_interval:
+          type: bool
+  - severity:
+      type: list
+      elements: str
+      choices: [info, normal, warning, critical, unknown, all]
+  - actions:
+      type: list
+      elements: dict
+      options:
+        action_name:
+          type: str
+          choices: [email, trap, syslog, ignore, power_control, sms, remote_command, mobile]
+        parameters:
+          type: list
+          elements: dict
+          options:
+            name:
+              type: str
+            value:
+              type: str
 requirements:
     - "python >= 3.9.6"
 author: "Jagadeesh N V(@jagadeeshnv)"
@@ -98,12 +179,15 @@ error_info:
 '''
 
 POLICIES_URI = "AlertService/AlertPolicies"
+MESSAGES_URI = "AlertService/AlertMessageDefinitions"
 DEVICES_URI = "DeviceService/Devices"
 GROUPS_URI = "GroupService/Groups"
 REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
+CATEGORY_URI = "AlertService/AlertCategories"
 SUCCESS_MSG = "Successfully retrieved all the OME alert policies information."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
+SEPARATOR = ","
 
 # Get alert policies
 
@@ -135,9 +219,8 @@ def get_device_data(module, rest_obj):
         if not svc_tags:
             break
     if len(svc_tags) > 0:
-        separator = ","
         module.exit_json(failed=True,
-                         msg=f"Devices with service tag '{separator.join([x for x in svc_tags])}' are not found.")
+                         msg=f"Devices with service tag '{SEPARATOR.join(svc_tags)}' are not found.")
     return list(set(dev_types)), devs
 
 
@@ -155,9 +238,8 @@ def get_group_data(module, rest_obj):
         if not grps:
             break
     if len(grps) > 0:
-        separator = ","
         module.exit_json(failed=True,
-                         msg=f"Groups with names '{separator.join([x for x in grps])}' are not found.")
+                         msg=f"Groups with names '{SEPARATOR.join(grps)}' are not found.")
     return group_ids
 
 
@@ -167,9 +249,11 @@ def get_target_payload(module, rest_obj):
     if mparams.get('all_devices'):
         target_payload['AllTargets'] = True
     elif mparams.get('any_undiscovered_devices'):
-        target_payload['UndiscoveredTargets'] = [{"TargetAddress":"ALL_UNDISCOVERED_TARGETS"}]
+        target_payload['UndiscoveredTargets'] = [
+            {"TargetAddress": "ALL_UNDISCOVERED_TARGETS"}]
     elif mparams.get('specific_undiscovered_devices'):
-        target_payload['UndiscoveredTargets'] = [({"TargetAddress": x}) for x in module.params.get('specific_undiscovered_devices')]
+        target_payload['UndiscoveredTargets'] = [
+            ({"TargetAddress": x}) for x in module.params.get('specific_undiscovered_devices')]
     elif mparams.get('device_service_tag'):
         devicetype, deviceids = get_device_data(module, rest_obj)
         target_payload['Devices'] = deviceids
@@ -178,15 +262,112 @@ def get_target_payload(module, rest_obj):
         target_payload['DeviceGroup'] = get_group_data(module, rest_obj)
     return target_payload
 
+
+def get_category_data_tree(rest_obj):
+    """
+    Get the constructed category data tree.
+
+    :param rest_obj: The REST object to use for making the request.
+    :type rest_obj: RestObject
+    :return: The category data tree.
+    :rtype: dict
+    """
+    resp = rest_obj.invoke_request("GET", CATEGORY_URI)
+    cat_raw = resp.json_data.get("value", [])
+    cat_dict = dict(
+        (category.get("Name"),
+            dict((y.get("Name"),
+                 {y.get("Id"): dict((z.get('Name'), z.get('Id')
+                                     ) for z in y.get("SubCategoryDetails"))}
+                  ) for y in category.get("CategoriesDetails")
+                 )
+         ) for category in cat_raw
+    )
+    return cat_dict
+
+def get_all_message_ids(rest_obj):
+    report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
+    all_messages = report.get("report_list", [])
+    return {x.get("MessageId") for x in all_messages}
+
+
+def get_category_or_message(module, rest_obj):
+    """
+    Retrieves a category or message based on the provided module and REST object.
+
+    Args:
+        module: The module containing the parameters for the API call.
+        rest_obj: The REST object used to retrieve the category data tree.
+
+    Returns:
+        cat_payload: The retrieved category or message payload.
+
+    Raises:
+        ExitJSON: If the category does not exist.
+        
+    """
+
+    cat_payload = {}
+    if module.params.get('category'):
+        inp_catalog_list = module.params.get('category')
+        cdict_ref = get_category_data_tree(rest_obj)
+        if not cdict_ref:
+            module.exit_json(failed=True, msg="Failed to fetch Category details.")
+        payload_cat_list = []
+        for inp_catalog in inp_catalog_list:
+            new_dict = {}
+            catalog_name = inp_catalog.get('catalog_name')
+            if catalog_name in cdict_ref:
+                new_dict["CatalogName"] = catalog_name
+                payload_cat = []
+                category_det = cdict_ref.get(catalog_name)
+                key_id = list(category_det.keys())[0]
+                payload_subcat = []
+                for inp_category in inp_catalog.get('catalog_category'):
+                    # breakpoint()
+                    if inp_category.get('category_name') in category_det:
+                        resp_category_dict = category_det.get(inp_category.get('category_name'))
+                        key_id = list(resp_category_dict.keys())[0]
+                        sub_cat_dict = resp_category_dict.get(key_id)
+                        inp_sub_cat_list = inp_category.get('sub_category_names')
+                        for sub_cat in inp_sub_cat_list:
+                            if sub_cat in sub_cat_dict:
+                                payload_cat.append(key_id)
+                                payload_subcat.append(
+                                    sub_cat_dict.get(sub_cat))
+                            else:
+                                module.exit_json(failed=True, msg=f"Sub category '{sub_cat}' in category '{inp_category.get('category_name')}' does not exist.")
+                        new_dict['SubCategories'] = payload_subcat
+                    else:
+                        module.exit_json(failed=True, msg=f"Category '{inp_category.get('category_name')}' in catalog '{catalog_name}' does not exist.")
+                new_dict["Categories"] = payload_cat
+            else:
+                module.exit_json(failed=True, msg=f"Catalog '{catalog_name}' does not exist.")
+            payload_cat_list.append(new_dict)
+        # module.exit_json(cat_payload=payload_cat_list)
+        cat_payload['Catalogs'] = payload_cat_list
+    elif module.params.get('message_ids'):
+        mlist = module.params.get('message_ids')
+        all_msg_id_set = get_all_message_ids(rest_obj)
+        if not all_msg_id_set:
+            module.exit_json(failed=True, msg="Failed to fetch Message Id details.")
+        diff = set(mlist) - all_msg_id_set
+        if diff:
+            module.exit_json(failed=True, msg=f"Message Ids '{SEPARATOR.join(diff)}' do not exist.")
+        cat_payload['MessageIds'] = list(set(mlist))
+    return cat_payload
+
+
 def remove_policy(module, rest_obj, policies):
-    id_list = [x.get("Id") for x in policies if x.get("DefaultPolicy") is False]
+    id_list = [x.get("Id")
+               for x in policies if x.get("DefaultPolicy") is False]
     if len(id_list) != len(policies):
-        separator = ","
         module.exit_json(failed=True,
-                         msg=f"Default Policies '{separator.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])}' cannot be deleted.")
+                         msg=f"Default Policies '{SEPARATOR.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])}' cannot be deleted.")
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
-    rest_obj.invoke_request("POST", REMOVE_URI, data={"AlertPolicyIds": id_list})
+    rest_obj.invoke_request("POST", REMOVE_URI, data={
+                            "AlertPolicyIds": id_list})
     module.exit_json(changed=True, msg=SUCCESS_MSG)
 
 
@@ -197,8 +378,12 @@ def update_policy(module, rest_obj, policy):
 def create_policy(module, rest_obj):
     payload = {}
     target = get_target_payload(module, rest_obj)
+    if not target:
+        module.exit_json(
+            failed=True, msg="No valid targets provided for policy creation.")
     payload.update(target)
-    module.exit_json(msg=payload)
+    cat_msg = get_category_or_message(module, rest_obj)
+    module.exit_json(msg=cat_msg)
 
 
 def main():
