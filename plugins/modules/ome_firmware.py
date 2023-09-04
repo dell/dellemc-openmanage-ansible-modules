@@ -95,17 +95,20 @@ options:
       - RebootNow
       - StageForNextReboot
     default: RebootNow
-  rebootType:
+  reboot_type:
     version_added: '8.3.0'
     type: str
     description:
-      - Types of reboot.
-      - If I(schedule) is C(RebootNow) then it will apply the rebootType.
+      - This option provides the choices to reboot the server immediately after the firmware update.
+      - This is applicable when I(schedule) is C(RebootNow).
+      - C(GracefulRebootForce) performs a graceful reboot with forced shutdown.
+      - C(GracefulReboot) performs a graceful reboot without forced shutdown.
+      - C(PowerCycle) performs a power cycle for a hard reset on the device.
     choices:
-      - PowerCycle
       - GracefulReboot
       - GracefulRebootForce
-    default: PowerCycle
+      - PowerCycle
+    default: GracefulRebootForce
 requirements:
     - "python >= 3.9.16"
 author:
@@ -378,7 +381,7 @@ def job_payload_for_update(rest_obj, module, target_data, baseline=None):
         reboot_dict = {"PowerCycle": "1",
                        "GracefulReboot": "2",
                        "GracefulRebootForce": "3"}
-        reboot_type = module.params["rebootType"]
+        reboot_type = module.params["reboot_type"]
         params.append({"Key": "rebootType", "Value": reboot_dict[reboot_type]})
     payload = {
         "Id": 0, "JobName": "Firmware Update Task",
@@ -622,9 +625,9 @@ def main():
         "components": {"type": "list", "elements": 'str', "default": []},
         "baseline_name": {"type": "str"},
         "schedule": {"type": 'str', "choices": ['RebootNow', 'StageForNextReboot'], "default": 'RebootNow'},
-        "rebootType": {"type": 'str',
-                       "choices": ['PowerCycle', 'GracefulReboot', 'GracefulRebootForce'],
-                       "default": 'PowerCycle'},
+        "reboot_type": {"type": 'str',
+                        "choices": ['PowerCycle', 'GracefulReboot', 'GracefulRebootForce'],
+                        "default": 'GracefulRebootForce'},
         "devices": {
             "type": 'list', "elements": 'dict',
             "options": {

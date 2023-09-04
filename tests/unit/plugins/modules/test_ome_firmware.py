@@ -436,7 +436,7 @@ class TestOmeFirmware(FakeAnsibleModule):
     def test_job_payload_for_update_case_02(self, ome_connection_firmware_mock, ome_response_mock):
         """baseline case"""
         f_module = self.get_module_mock(params={'schedule': 'RebootNow',
-                                                'rebootType': 'GracefulReboot'})
+                                                'reboot_type': 'GracefulReboot'})
         target_data = {}
         baseline = {"baseline_id": 1, "repo_id": 2, "catalog_id": 3}
         ome_connection_firmware_mock.get_job_type_id.return_value = ome_response_mock
@@ -452,7 +452,7 @@ class TestOmeFirmware(FakeAnsibleModule):
     def test_job_payload_for_update_case_03(self, ome_connection_firmware_mock, ome_response_mock):
         """response None case"""
         f_module = self.get_module_mock(params={'schedule': 'RebootNow',
-                                                'rebootType': 'GracefulRebootForce'})
+                                                'reboot_type': 'PowerCycle'})
         target_data = {}
         ome_connection_firmware_mock.get_job_type_id.return_value = ome_response_mock
         payload = self.module.job_payload_for_update(ome_connection_firmware_mock, f_module, target_data)

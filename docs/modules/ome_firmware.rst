@@ -102,10 +102,16 @@ Parameters
     if ``RebootNow`` will apply the firmware updates immediately.
 
 
-  rebootType (optional, str, PowerCycle)
-    Types of reboot.
+  reboot_type (optional, str, GracefulRebootForce)
+    This option provides the choices to reboot the server immediately after the firmware update.
 
-    If *schedule* is ``RebootNow`` then it will apply the rebootType.
+    This is applicable when *schedule* is ``RebootNow``.
+
+    ``GracefulRebootForce`` performs a graceful reboot with forced shutdown.
+
+    ``GracefulReboot`` performs a graceful reboot without forced shutdown.
+
+    ``PowerCycle`` performs a power cycle for a hard reset on the device.
 
 
   hostname (True, str, None)
