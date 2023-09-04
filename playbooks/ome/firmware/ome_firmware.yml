@@ -158,3 +158,4 @@
         components:
           - BIOS
         reboot_type: PowerCycle
+      delegate_to: localhost
