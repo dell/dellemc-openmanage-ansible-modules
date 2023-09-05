@@ -11,17 +11,6 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible.module_utils.common.dict_transformations import recursive_diff
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
-from ansible.module_utils.basic import AnsibleModule
-import json
-import os
-from datetime import datetime
-import csv
-
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -29,98 +18,196 @@ DOCUMENTATION = r'''
 module: ome_alert_policies
 short_description: Manage OME alert policies.
 version_added: "8.3.0"
-description:
-  - This module retrieves the information of alert policies for OpenManage Enterprise
-    and OpenManage Enterprise Modular.
-  - A list of information about a specific OME alert policy using the policy name.
-  - A list of all the OME alert policies with their information when the policy name is not provided.
+description: This module allows you to create, modify, or delete Alert policies on OpenManage Enterprise or OpenManage Enterprise Modular.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
-  - name:
-      type: list
-      elements: str
-      required: true
-  - state:
-      default: present
-      choices: [present, absent]
-      type: str
-  - enable:
-      type: bool
-  - new_name:
-      type: str
-  - description:
-      type: str
-  - device_service_tag:
-      type: list
-      elements: str
-  - device_group:
-      type: list
-      elements: str
-  - specific_undiscovered_devices:
-      type: list
-      elements: str
-  - any_undiscovered_devices:
-      type: bool
-  - all_devices:
-      type: bool
-  - category:
-      type: list
-      elements: dict
-      options:
-        catalog_name:
-          type: str
-          required: true
-        catalog_category:
-          type: list
-          elements: dict
-          options:
-            category_name:
-              type: str
-            sub_category_names:
-              type: list
-              elements: str
-  - message_ids:
-      type: list
-      elements: str
-  - message_file:
-      type: path
-  - date_and_time:
-      type: dict
-      options:
-        date_from:
-          type: str
-        date_to:
-          type: str
-        time_from:
-          type: str
-        time_to:
-          type: str
-        days:
-          type: list
-          elements: str
-          choices: [monday, tuesday, wednesday, thursday, friday, saturday, sunday, all]
-        time_interval:
-          type: bool
-  - severity:
-      type: list
-      elements: str
-      choices: [info, normal, warning, critical, unknown, all]
-  - actions:
-      type: list
-      elements: dict
-      options:
-        action_name:
-          type: str
-          choices: [email, trap, syslog, ignore, power_control, sms, remote_command, mobile]
-        parameters:
-          type: list
-          elements: dict
-          options:
-            name:
-              type: str
-            value:
-              type: str
+  name:
+    description:
+      - Name for the alert policy.
+      - This is applicable only when I(state) is C(present) and first one is picked if multiple values is provided.
+      - List is Applicable when I(state) is C(absent).
+    type: list
+    elements: str
+    required: true
+  state:
+    description:
+      - C(present) allows to create an alert policy or update if the policy name already exists.
+      - C(absent) allows to delete an alert policy.
+    default: present
+    choices: [present, absent]
+    type: str
+  enable:
+    description:
+      - C(True) allows to enable an alert policy.
+      - C(False) allows to disable an alert policy.
+      - This is applicable only when I(state) is C(present).
+    type: bool
+  new_name:
+    description:
+      - New name for the alert policy.
+      - This is applicable only when I(state) is C(present) and a policy exists.
+    type: str
+  description:
+    description:
+      - Description for the alert policy.
+      - This is applicable only when I(state) is C(present)
+    type: str
+  device_service_tag:
+    description:
+      - List of device service tags on which the alert policy will be applicable.
+      - This option is mutually exclusive with I(device_group), I(undiscovered_devices), I(any_undiscovered_devices) and I(all_devices).
+      - This is applicable only when I(state) is C(present)
+    type: list
+    elements: str
+  device_group:
+    description:
+      - List of Group name on which the alert policy will be applicable.
+      - This option is mutually exclusive with I(device_service_tag), I(undiscovered_devices), I(any_undiscovered_devices) and I(all_devices) .
+      - This is applicable only when I(state) is C(present)
+    type: list
+    elements: str
+  specific_undiscovered_devices:
+    description:
+      - Undiscovered IP's, hostnames or range of IP's of a devices on which the alert policy will be applicable.
+      - This option is mutually exclusive with I(device_service_tag), I(device_group), I(any_undiscovered_devices) and I(all_devices) .
+      - This is applicable only when I(state) is C(present)
+      - "Sample Valid IP Range Format:"
+      - "     10.35.0.0"
+      - "     10.36.0.0-10.36.0.255"
+      - "     10.37.0.0/24"
+      - "     2607:f2b1:f083:135::5500/118"
+      - "     2607:f2b1:f083:135::a500-2607:f2b1:f083:135::a600"
+      - "     hostname.domain.com"
+      - "Sample Invalid IP Range Format:"
+      - "     10.35.0.*"
+      - "     10.36.0.0-255"
+      - "     10.35.0.0/255.255.255.0"
+    type: list
+    elements: str
+  any_undiscovered_devices:
+    description:
+      - Any Undiscovered devices on which the alert policy will be applicable.
+      - This option is mutually exclusive with I(device_service_tag), I(undiscovered_devices), I(device_group) and I(all_devices).
+      - This is applicable only when I(state) is C(present).
+    type: bool
+  all_devices:
+    description:
+      - All the discovered and undiscovered devices on which the alert policy will be applicable.
+      - This option is mutually exclusive with I(device_service_tag), I(undiscovered_devices), I(any_undiscovered_devices) and I(device_group).
+      - This is applicable only when I(state) is C(present).
+    type: bool
+  category:
+    description:
+      - Category of the alerts received.
+      - This is mutually exclusive with the I(message_ids), I(message_file).
+      - To be fetch from the M(dellemc.openmanage.ome_alert_policies_category_info).
+      - This is applicable only when I(state) is C(present).
+    type: list
+    elements: dict
+    suboptions:
+      catalog_name:
+        description: Name of the catalog.
+        type: str
+        required: true
+      catalog_category:
+        description: Category of the catalog.
+        type: list
+        elements: dict
+        suboptions:
+          category_name:
+            description: Name of the category.
+            type: str
+          sub_category_names:
+            description: List of sub categories.
+            type: list
+            elements: str
+  message_ids:
+    description:
+      - List of Message ids
+      - This is mutually exclusive with the I(category), I(message_file)
+      - This is applicable only when I(state) is C(present)
+      - To be fetched from the M(dellemc.openmanage.ome_alert_policies_message_id_info)
+    type: list
+    elements: str
+  message_file:
+    description:
+      - Local path of a CSV formatted file with message ids
+      - This is mutually exclusive with the I(category), I(message_ids)
+      - This is applicable only when I(state) is C(present)
+      - To be fetched from the M(dellemc.openmanage.ome_alert_policies_message_id_info)
+    type: path
+  date_and_time:
+    description:
+      - Specify the schedule for when the alert policy is applicable.
+      - I(date_and_time) is mandatory for creating a policy and optional when updating a poicy.
+      - This is applicable only when I(state) is C(present)
+    type: dict
+    suboptions:
+      date_from:
+        description: "Start date in the format YYYY-MM-DD."
+        type: str
+        required: true
+      date_to:
+        description: "End date in the format YYYY-MM-DD."
+        type: str
+      time_from:
+        description:
+          - "Interval start time in the format HH:MM"
+          - This is mandatory when I(time_interval) is C(True)
+        type: str
+      time_to:
+        description:
+          - "Interval end time in the format HH:MM"
+          - This is mandatory when I(time_interval) is C(True)
+        type: str
+      days:
+        description: Days of the week to be scheduled.
+        type: list
+        elements: str
+        choices: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+      time_interval:
+        description: Enable time interval to be scheduled.
+        type: bool
+  severity:
+    description:
+      - Severity of the alert.
+      - This is mandatory when creating a policy and optional updating a policy.
+      - This is applicable only when I(state) is C(present).
+    type: list
+    elements: str
+    choices: [info, normal, warning, critical, unknown, all]
+  actions:
+    description:
+      - Actions to be triggered for the policy.
+      - This parameter is case-sensitive.
+      - This is mandatory when creating a policy and optional updating a policy.
+      - This is applicable only when I(state) is C(present)
+    type: list
+    elements: dict
+    suboptions:
+      action_name:
+        description:
+          - Name of the action.
+          - To be fetched from the M(dellemc.openmanage.ome_alert_policies_action_info)
+        type: str
+        required: true
+      parameters:
+        description:
+          - Predefined parameters to be set for the I(action_name).
+        type: list
+        elements: dict
+        default: []
+        suboptions:
+          name:
+            description:
+              - Name of the parameter.
+              - To be fetched from the M(dellemc.openmanage.ome_alert_policies_action_info)
+            type: str
+          value:
+            description:
+             - Value of the parameter.
+            type: str
 requirements:
     - "python >= 3.9.6"
 author: "Jagadeesh N V(@jagadeeshnv)"
@@ -131,9 +218,9 @@ notes:
     - This module supports C(check_mode).
 '''
 
-EXAMPLES = """
+EXAMPLES = r'''
 ---
-- name: "Create a Alert Policies"
+- name: "Create a Alert Policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
     username: "username"
@@ -161,12 +248,12 @@ EXAMPLES = """
     actions:
       - action_name: trap
         parameters:
-          - name: "localhost:162"
+          - name: "192.1.2.3:162"
             value: true
-          - name: "localhost:161"
+          - name: "traphostname.domain.com:162"
             value: true
   tags: create_alert_policy
- 
+
 - name: "Update a Alert Policies"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
@@ -176,21 +263,20 @@ EXAMPLES = """
     device_group: "Group Name"
     category:
     - catalog_name: Application
-        catalog_category:
+      catalog_category:
         - category_name: Audit
-            sub_category_names:
+          sub_category_names:
             - idrac
             - Generic
     date_and_time:
-    - date_from: 2022-10-10
+      - date_from: 2022-10-10
     actions:
-    - action_name: trap
+      - action_name: Trap
         parameters:
-        - name: "localhost:162"
+          - name: "192.1.2.3:162"
             value: true
   tags: update_alert_policy
- 
- 
+
 - name: "Enable a Policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
@@ -200,17 +286,16 @@ EXAMPLES = """
     device_group: "Group Name"
     enable : True
   tags: enable_alert_policy
- 
+
 - name: "Disable a Policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
-    new_name: "Policy Name"
-    device_group: "Group Name"
+    name: "Policy Name"
     enable : False
   tags: disable_alert_policy
-   
+
 - name: "Delete a Policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
@@ -218,18 +303,16 @@ EXAMPLES = """
     password: "password"
     name: "Policy Name"
     state: absent
-    device_group: "Group Name"
-    enable: False
   tags: delete_alert_policy
-"""
+'''
 
-RETURN = '''
+RETURN = r'''
 ---
 msg:
   type: str
-  description: Status of the alert policies info fetch operation.
+  description: Status of the alert policies operation.
   returned: always
-  sample: "Successfully retrieved all the OME alert policies information."
+  sample: "Successfully performed the create policy operation."
 status:
   type: dict
   description: The policy which was created or modified.
@@ -244,105 +327,107 @@ status:
     "Visible": true,
     "PolicyData": {
         "Catalogs": [
-            {
-                "CatalogName": "iDRAC",
-                "Categories": [
-                    4
-                ],
-                "SubCategories": [
-                    41
-                ]
-            },
-            {
-                "CatalogName": "Application",
-                "Categories": [
-                    0
-                ],
-                "SubCategories": [
-                    0
-                ]
-            }
+        {
+            "CatalogName": "iDRAC",
+            "Categories": [
+            4
+            ],
+            "SubCategories": [
+            41
+            ]
+        },
+        {
+            "CatalogName": "Application",
+            "Categories": [
+            0
+            ],
+            "SubCategories": [
+            0
+            ]
+        }
         ],
         "Severities": [
-            16,
-            1,
-            2,
-            4,
-            8
+        16,
+        1,
+        2,
+        4,
+        8
         ],
         "Devices": [
-            10086,
-            10088
+        10086,
+        10088
         ],
         "DeviceTypes": [
-            1000,
-            2000
+        1000,
+        2000
         ],
         "Groups": [],
         "Schedule": {
-            "StartTime": "2023-06-06 15:02:46.000",
-            "EndTime": "2023-06-06 15:02:46.000",
-            "CronString": "* * * ? * * *",
+        "StartTime": "2023-06-06 15:02:46.000",
+        "EndTime": "2023-06-06 15:02:46.000",
+        "CronString": "* * * ? * * *"
         },
         "Actions": [
+        {
+            "Id": 8,
+            "Name": "Email",
+            "ParameterDetails": [
             {
-                "Id": 8,
-                "Name": "Email",
-                "ParameterDetails": [
-                    {
-                        "Id": 1,
-                        "Name": "subject",
-                        "Value": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
-                        "Type": "string",
-                        "TypeParams": [
-                            {
-                                "Name": "maxLength",
-                                "Value": "255"
-                            }
-                        ]
-                    },
-                    {
-                        "Id": 1,
-                        "Name": "to",
-                        "Value": "test@org.com",
-                        "Type": "string",
-                        "TypeParams": [
-                            {
-                                "Name": "maxLength",
-                                "Value": "255"
-                            }
-                        ]
-                    },
-                    {
-                        "Id": 1,
-                        "Name": "from",
-                        "Value": "abc@corp.com",
-                        "Type": "string",
-                        "TypeParams": [
-                            {
-                                "Name": "maxLength",
-                                "Value": "255"
-                            }
-                        ]
-                    },
-                    {
-                        "Id": 1,
-                        "Name": "message",
-                        "Value": "Event occurred for Device Name: $name, Device IP Address: $ip, Identifier: $identifier, UTC Time: $time, Severity: $severity, Message ID: $messageId, $message",
-                        "Type": "string",
-                        "TypeParams": [
-                            {
-                                "Name": "maxLength",
-                                "Value": "255"
-                            }
-                        ]
-                    }
-                ],
-                "UndiscoveredTargets": []
+                "Id": 1,
+                "Name": "subject",
+                "Value": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
+                "Type": "string",
+                "TypeParams": [
+                {
+                    "Name": "maxLength",
+                    "Value": "255"
+                }
+                ]
             },
-            "State": true,
-            "Owner": 10069
+            {
+                "Id": 1,
+                "Name": "to",
+                "Value": "test@org.com",
+                "Type": "string",
+                "TypeParams": [
+                {
+                    "Name": "maxLength",
+                    "Value": "255"
+                }
+                ]
+            },
+            {
+                "Id": 1,
+                "Name": "from",
+                "Value": "abc@corp.com",
+                "Type": "string",
+                "TypeParams": [
+                {
+                    "Name": "maxLength",
+                    "Value": "255"
+                }
+                ]
+            },
+            {
+                "Id": 1,
+                "Name": "message",
+                "Value": "Event occurred for Device Name: $name, Device IP Address: $ip",
+                "Type": "string",
+                "TypeParams": [
+                {
+                    "Name": "maxLength",
+                    "Value": "255"
+                }
+                ]
+            }
+            ]
         }
+        ],
+        "UndiscoveredTargets": [],
+        "State": true,
+        "Owner": 10069
+  }
+}
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -365,6 +450,16 @@ error_info:
   }
 '''
 
+import csv
+import os
+import json
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from datetime import datetime
+
 
 POLICIES_URI = "AlertService/AlertPolicies"
 MESSAGES_URI = "AlertService/AlertMessageDefinitions"
@@ -378,8 +473,6 @@ SUCCESS_MSG = "Successfully performed the {0} operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 SEPARATOR = ","
-
-# Get alert policies
 
 
 def get_alert_policies(rest_obj, name_list):
@@ -584,7 +677,7 @@ def get_category_or_message(module, rest_obj):
         cat_payload: The retrieved category or message payload.
 
     Raises:
-        ExitJSON: If the category, sub-category or message does not exist. 
+        ExitJSON: If the category, sub-category or message does not exist.
     """
     cat_payload = {}
     if module.params.get('category'):
@@ -709,20 +802,18 @@ def get_policy_data(module, rest_obj):
     policy_data.update(sev_payload)
     return policy_data
 
+
 def create_policy(module, rest_obj):
     create_payload = {}
     policy_data = get_policy_data(module, rest_obj)
     create_payload['PolicyData'] = policy_data
     create_payload['Name'] = module.params.get('name')[0]
     create_payload['Description'] = module.params.get('description')
-    create_payload['Enabled'] = module.params.get('enable') if module.params.get('enable', True) is not None else True
-    # paramdict = {'description': "Description", 'enable': "Enabled"}
-    # for pk, pv in paramdict.items():
-    #     if module.params.get(pk) is not None:
-    #         create_payload[pv] = module.params.get(pk)
-    # module.exit_json(msg=create_payload)
+    create_payload['Enabled'] = module.params.get(
+        'enable') if module.params.get('enable', True) is not None else True
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("create policy"), status=resp.json_data)
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format(
+        "create policy"), status=resp.json_data)
 
 
 def main():
@@ -754,7 +845,7 @@ def main():
                                       'time_from': {'type': 'str'},
                                       'time_to': {'type': 'str'},
                                       'days': {'type': 'list', 'elements': 'str',
-                                               'choices': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'all']},
+                                               'choices': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']},
                                       'time_interval': {'type': 'bool'}
                                       },
                           'required_if': [['time_interval', True, ('time_from', 'time_to')]]
@@ -774,8 +865,8 @@ def main():
         argument_spec=specs,
         required_if=[['state', 'present', ('enable', 'new_name', 'description', 'device_service_tag', 'device_group',
                                            'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
-                                            'category', 'message_ids', 'message_file',
-                                            'date_and_time', 'severity', 'actions', 'all_devices',), True]],
+                                           'category', 'message_ids', 'message_file',
+                                           'date_and_time', 'severity', 'actions',), True]],
         mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices'),
                             ('message_ids', 'message_file', 'category')],
         supports_check_mode=True)
