@@ -225,6 +225,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: "Alert Policy One"
     device_service_tag:
       - ABCD123
@@ -259,6 +260,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     new_name: "Update Policy Name"
     device_group: "Group Name"
     category:
@@ -282,9 +284,10 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     new_name: "Policy Name"
     device_group: "Group Name"
-    enable : True
+    enable: True
   tags: enable_alert_policy
 
 - name: "Disable a Policy"
@@ -292,8 +295,9 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: "Policy Name"
-    enable : False
+    enable: False
   tags: disable_alert_policy
 
 - name: "Delete a Policy"
@@ -301,6 +305,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: "Policy Name"
     state: absent
   tags: delete_alert_policy
@@ -579,6 +584,18 @@ def get_all_message_ids(rest_obj):
 
 
 def get_all_actions(rest_obj):
+    """
+    Retrieves all actions from the specified REST object.
+
+    Parameters:
+        rest_obj (object): The REST object to retrieve actions from.
+
+    Returns:
+        dict: A dictionary containing information about each action. The keys are the names of the actions, and the values are dictionaries with the following keys:
+            - "Id" (str): The ID of the action.
+            - "Disabled" (bool): Indicates whether the action is disabled.
+            - "Parameters" (dict): A dictionary containing the parameters of the action. The keys are the names of the parameters, and the values are the corresponding values of the parameters.
+    """
     resp = rest_obj.invoke_request("GET", ACTIONS_URI)
     actions = resp.json_data.get("value", [])
     cmp_actions = dict((x.get("Name"), {"Id": x.get("Id"),
@@ -590,6 +607,15 @@ def get_all_actions(rest_obj):
 
 
 def get_schedule_payload(module):
+    """
+    Generates the payload for scheduling a task.
+
+    Args:
+        module (object): The module object containing the parameters for scheduling.
+
+    Returns:
+        dict: The payload for scheduling a task.
+    """
     schedule_payload = {}
     inp_schedule = module.params.get('date_and_time')
     if inp_schedule:
@@ -629,6 +655,16 @@ def get_schedule_payload(module):
 
 
 def get_actions_payload(module, rest_obj):
+    """
+    Generates the payload for the actions to be performed.
+
+    Args:
+        module (object): The module object.
+        rest_obj (object): The REST object.
+
+    Returns:
+        dict: The dictionary containing the actions payload.
+    """
     action_payload = []
     inp_actions = module.params.get('actions')
     if inp_actions:
@@ -697,7 +733,6 @@ def get_category_or_message(module, rest_obj):
                 key_id = list(category_det.keys())[0]
                 payload_subcat = []
                 for inp_category in inp_catalog.get('catalog_category'):
-                    # breakpoint()
                     if inp_category.get('category_name') in category_det:
                         resp_category_dict = category_det.get(
                             inp_category.get('category_name'))
@@ -722,7 +757,6 @@ def get_category_or_message(module, rest_obj):
                 module.exit_json(
                     failed=True, msg=f"Catalog '{catalog_name}' does not exist.")
             payload_cat_list.append(new_dict)
-        # module.exit_json(cat_payload=payload_cat_list)
         cat_payload['Catalogs'] = payload_cat_list
     else:
         mlist = []
