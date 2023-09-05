@@ -11,7 +11,9 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+import csv
 from datetime import datetime
+import os
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
@@ -264,6 +266,9 @@ def get_target_payload(module, rest_obj):
         target_payload['DeviceTypes'] = devicetype
     elif mparams.get('device_group'):
         target_payload['Groups'] = get_group_data(module, rest_obj)
+    if not target_payload:
+        module.exit_json(
+            failed=True, msg="No valid targets provided for policy creation.")
     return target_payload
 
 
@@ -425,25 +430,45 @@ def get_category_or_message(module, rest_obj):
             payload_cat_list.append(new_dict)
         # module.exit_json(cat_payload=payload_cat_list)
         cat_payload['Catalogs'] = payload_cat_list
-    elif module.params.get('message_ids'):
-        mlist = module.params.get('message_ids')
-        all_msg_id_set = get_all_message_ids(rest_obj)
-        if not all_msg_id_set:
-            module.exit_json(failed=True, msg="Failed to fetch Message Id details.")
-        diff = set(mlist) - all_msg_id_set
-        if diff:
-            module.exit_json(failed=True, msg=f"Message Ids '{SEPARATOR.join(diff)}' do not exist.")
-        cat_payload['MessageIds'] = list(set(mlist))
+    else:
+        mlist = []
+        if module.params.get('message_file'):
+            csvpath = module.params.get('message_file')
+            if not os.path.isfile(csvpath):
+                module.exit_json(failed=True, msg=f"Message file '{csvpath}' does not exist.")
+            with open(csvpath) as csvfile:
+                spamreader = csv.reader(csvfile)   
+                for row in spamreader:
+                    mlist.extend(row)
+                if mlist[0].lower().startswith('message'):
+                    mlist.pop(0)
+        elif module.params.get('message_ids'):
+            mlist = module.params.get('message_ids')
+        if mlist:
+            all_msg_id_set = get_all_message_ids(rest_obj)
+            if not all_msg_id_set:
+                module.exit_json(failed=True, msg="Failed to fetch Message Id details.")
+            diff = set(mlist) - all_msg_id_set
+            if diff:
+                module.exit_json(failed=True, msg=f"Message Ids '{SEPARATOR.join(diff)}' do not exist.")
+            cat_payload['MessageIds'] = list(set(mlist))
     return cat_payload
 
 
-def get_severity_payload(rest_obj):
+def get_severity_payload(module, rest_obj):
     try:
         resp = rest_obj.invoke_request("GET", SEVERITY_URI)
-        sevs = dict((x.get('Name').lower(), x.get('Id')) for x in resp.json_data.get("Value"))
+        severity_dict = dict((x.get('Name').lower(), x.get('Id')) for x in resp.json_data.get("Value"))
     except Exception:
-        sevs = {"unknown": 1, "info" :2, "normal": 4, "warning": 8, "critical": 16}
-    return sevs
+        severity_dict = {"unknown": 1, "info" :2, "normal": 4, "warning": 8, "critical": 16}
+    inp_sev_list = module.params.get('severity')
+    if not inp_sev_list:
+        module.exit_json(failed=True, msg="Severity is required.")
+    if 'all' in inp_sev_list:
+        sev_payload = {"Severities": list(severity_dict.values())}
+    else:
+        sev_payload = {"Severities": [severity_dict.get(x) for x in inp_sev_list]}
+    return sev_payload
 
 
 def remove_policy(module, rest_obj, policies):
@@ -466,9 +491,6 @@ def update_policy(module, rest_obj, policy):
 def create_policy(module, rest_obj):
     payload = {}
     target = get_target_payload(module, rest_obj)
-    if not target:
-        module.exit_json(
-            failed=True, msg="No valid targets provided for policy creation.")
     payload.update(target)
     cat_msg = get_category_or_message(module, rest_obj)
     payload.update(cat_msg)
@@ -476,12 +498,7 @@ def create_policy(module, rest_obj):
     payload.update(schedule)
     actions = get_actions_payload(module, rest_obj)
     payload.update(actions)
-    severity_dict = get_severity_payload(rest_obj)
-    inp_sev_list = module.params.get('severity')
-    if 'all' in inp_sev_list:
-        sev_payload = {"Severities": list(severity_dict.values())}
-    else:
-        sev_payload = {"Severities": [severity_dict.get(x) for x in inp_sev_list]}
+    sev_payload = get_severity_payload(module, rest_obj)
     payload.update(sev_payload)
     module.exit_json(msg=payload)
 
@@ -508,7 +525,7 @@ def main():
                                  }
                      },
         "message_ids": {'type': 'list', 'elements': 'str'},
-        # "message_file": {'type': 'path'},
+        "message_file": {'type': 'path'},
         "date_and_time": {'type': 'dict',
                           'options': {'date_from': {'type': 'str', 'required': True},
                                       'date_to': {'type': 'str'},
