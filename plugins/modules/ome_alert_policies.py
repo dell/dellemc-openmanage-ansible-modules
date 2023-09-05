@@ -374,7 +374,7 @@ DEVICES_URI = "DeviceService/Devices"
 GROUPS_URI = "GroupService/Groups"
 REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
 CATEGORY_URI = "AlertService/AlertCategories"
-SUCCESS_MSG = "Successfully retrieved all the OME alert policies information."
+SUCCESS_MSG = "Successfully performed the {0} operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 SEPARATOR = ","
@@ -688,7 +688,7 @@ def remove_policy(module, rest_obj, policies):
         module.exit_json(msg=CHANGES_MSG, changed=True)
     rest_obj.invoke_request("POST", REMOVE_URI, data={
                             "AlertPolicyIds": id_list})
-    module.exit_json(changed=True, msg=SUCCESS_MSG)
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("remove policy"))
 
 
 def update_policy(module, rest_obj, policy):
@@ -714,13 +714,15 @@ def create_policy(module, rest_obj):
     policy_data = get_policy_data(module, rest_obj)
     create_payload['PolicyData'] = policy_data
     create_payload['Name'] = module.params.get('name')[0]
-    paramdict = {'description': "Description", 'enable': "Enabled"}
-    for pk, pv in paramdict.items():
-        if module.params.get(pk) is not None:
-            create_payload[pv] = module.params.get(pk)
+    create_payload['Description'] = module.params.get('description')
+    create_payload['Enabled'] = module.params.get('enable') if module.params.get('enable', True) is not None else True
+    # paramdict = {'description': "Description", 'enable': "Enabled"}
+    # for pk, pv in paramdict.items():
+    #     if module.params.get(pk) is not None:
+    #         create_payload[pv] = module.params.get(pk)
     # module.exit_json(msg=create_payload)
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
-    module.exit_json(changed=True, msg=SUCCESS_MSG, status=resp.json_data)
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("create policy"), status=resp.json_data)
 
 
 def main():
@@ -770,9 +772,10 @@ def main():
     specs.update(ome_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
-        required_if=[],
-        required_one_of=[['enable', 'new_name', 'description', 'device_service_tag', 'device_group', 'specific_undiscovered_devices',
-                          'any_undiscovered_devices', 'all_devices', 'category', 'message_ids', 'message_file', 'date_and_time', 'severity', 'actions']],
+        required_if=[['state', 'present', ('enable', 'new_name', 'description', 'device_service_tag', 'device_group',
+                                           'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
+                                            'category', 'message_ids', 'message_file',
+                                            'date_and_time', 'severity', 'actions', 'all_devices',), True]],
         mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices'),
                             ('message_ids', 'message_file', 'category')],
         supports_check_mode=True)
