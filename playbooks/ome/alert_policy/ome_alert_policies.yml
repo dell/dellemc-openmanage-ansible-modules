@@ -25,7 +25,11 @@
                 sub_category_names:
                   - Other
         date_and_time:
-          - date_from: 2022-10-10
+          date_from: 2023-10-10
+          date_to: 2023-10-11
+          time_from: "11:00"
+          time_to: "12:00"
+          time_interval: true
         severity:
           - unknown
           - critical
@@ -47,15 +51,16 @@
         ca_path: "/path/to/ca_cert.pem"
         new_name: "Update Policy Name"
         device_group: "Group Name"
-        category:
-        - catalog_name: Application
-          catalog_category:
-            - category_name: Audit
-              sub_category_names:
-                - idrac
-                - Generic
+        message_ids:
+          - AMP400
+          - CTL201
+          - BIOS123
         date_and_time:
-          - date_from: 2022-10-10
+          date_from: 2023-10-10
+          date_to: 2023-10-11
+          time_from: "11:00"
+          time_to: "12:00"
+          time_interval: true
         actions:
           - action_name: Trap
             parameters:

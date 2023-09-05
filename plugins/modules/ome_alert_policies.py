@@ -18,7 +18,7 @@ DOCUMENTATION = r'''
 module: ome_alert_policies
 short_description: Manage OME alert policies.
 version_added: "8.3.0"
-description: This module allows you to create, modify, or delete Alert policies on OpenManage Enterprise or OpenManage Enterprise Modular.
+description: This module allows you to create, modify, or delete alert policies on OpenManage Enterprise or OpenManage Enterprise Modular.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
@@ -242,7 +242,10 @@ EXAMPLES = r'''
             sub_category_names:
               - Other
     date_and_time:
-      - date_from: 2022-10-10
+      date_from: 2023-10-10
+      date_to: 2023-10-11
+      time_from: "11:00"
+      time_to: "12:00"
     severity:
       - unknown
       - critical
@@ -263,15 +266,16 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     new_name: "Update Policy Name"
     device_group: "Group Name"
-    category:
-    - catalog_name: Application
-      catalog_category:
-        - category_name: Audit
-          sub_category_names:
-            - idrac
-            - Generic
+    message_ids:
+      - AMP400
+      - CTL201
+      - BIOS123
     date_and_time:
-      - date_from: 2022-10-10
+      date_from: 2023-10-10
+      date_to: 2023-10-11
+      time_from: "11:00"
+      time_to: "12:00"
+      time_interval: true
     actions:
       - action_name: Trap
         parameters:
@@ -723,8 +727,7 @@ def get_category_or_message(module, rest_obj):
         inp_catalog_list = module.params.get('category')
         cdict_ref = get_category_data_tree(rest_obj)
         if not cdict_ref:
-            module.exit_json(
-                failed=True, msg="Failed to fetch Category details.")
+            module.exit_json(failed=True, msg="Failed to fetch Category details.")
         payload_cat_list = []
         for inp_catalog in inp_catalog_list:
             new_dict = {}
@@ -735,30 +738,38 @@ def get_category_or_message(module, rest_obj):
                 category_det = cdict_ref.get(catalog_name)
                 key_id = list(category_det.keys())[0]
                 payload_subcat = []
-                for inp_category in inp_catalog.get('catalog_category'):
-                    if inp_category.get('category_name') in category_det:
-                        resp_category_dict = category_det.get(
-                            inp_category.get('category_name'))
-                        key_id = list(resp_category_dict.keys())[0]
-                        sub_cat_dict = resp_category_dict.get(key_id)
-                        inp_sub_cat_list = inp_category.get(
-                            'sub_category_names')
-                        for sub_cat in inp_sub_cat_list:
-                            if sub_cat in sub_cat_dict:
-                                payload_cat.append(key_id)
-                                payload_subcat.append(
-                                    sub_cat_dict.get(sub_cat))
+                category_list = inp_catalog.get('catalog_category')
+                if category_list:
+                    for inp_category in category_list:
+                        if inp_category.get('category_name') in category_det:
+                            resp_category_dict = category_det.get(
+                                inp_category.get('category_name'))
+                            key_id = list(resp_category_dict.keys())[0]
+                            sub_cat_dict = resp_category_dict.get(key_id)
+                            inp_sub_cat_list = inp_category.get('sub_category_names')
+                            if inp_sub_cat_list:
+                                for sub_cat in inp_sub_cat_list:
+                                    if sub_cat in sub_cat_dict:
+                                        payload_cat.append(key_id)
+                                        payload_subcat.append(
+                                            sub_cat_dict.get(sub_cat))
+                                    else:
+                                        module.exit_json(failed=True,
+                                            msg=f"Sub category '{sub_cat}' in category '{inp_category.get('category_name')}' does not exist.")
                             else:
-                                module.exit_json(
-                                    failed=True, msg=f"Sub category '{sub_cat}' in category '{inp_category.get('category_name')}' does not exist.")
-                        new_dict['SubCategories'] = payload_subcat
-                    else:
-                        module.exit_json(
-                            failed=True, msg=f"Category '{inp_category.get('category_name')}' in catalog '{catalog_name}' does not exist.")
+                                payload_cat.append(key_id)
+                                payload_subcat.append(0)
+                        else:
+                            module.exit_json(
+                                failed=True,
+                                msg=f"Category '{inp_category.get('category_name')}' in catalog '{catalog_name}' does not exist.")
+                else:
+                    payload_cat.append(0)
+                    payload_subcat.append(0)
                 new_dict["Categories"] = payload_cat
+                new_dict['SubCategories'] = payload_subcat
             else:
-                module.exit_json(
-                    failed=True, msg=f"Catalog '{catalog_name}' does not exist.")
+                module.exit_json(failed=True, msg=f"Catalog '{catalog_name}' does not exist.")
             payload_cat_list.append(new_dict)
         cat_payload['Catalogs'] = payload_cat_list
     else:
@@ -848,6 +859,8 @@ def create_policy(module, rest_obj):
     create_payload['Description'] = module.params.get('description')
     create_payload['Enabled'] = module.params.get(
         'enable') if module.params.get('enable', True) is not None else True
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format(
         "create policy"), status=resp.json_data)
