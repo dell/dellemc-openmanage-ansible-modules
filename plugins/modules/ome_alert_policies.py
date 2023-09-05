@@ -439,20 +439,23 @@ error_info:
   type: dict
   sample: {
     "error": {
-      "code": "Base.1.0.GeneralError",
-      "message": "A general error has occurred. See ExtendedInfo for more information.",
-      "@Message.ExtendedInfo": [
-        {
-          "MessageId": "GEN1234",
-          "RelatedProperties": [],
-          "Message": "Unable to process the request because an error occurred.",
-          "MessageArgs": [],
-          "Severity": "Critical",
-          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
-        }
-      ]
+        "code": "Base.1.0.GeneralError",
+        "message": "A general error has occurred. See ExtendedInfo for more information.",
+        "@Message.ExtendedInfo": [
+            {
+                "MessageId": "CMON7011",
+                "RelatedProperties": [],
+                "Message": "Unable to create or modify the alert policy because an invalid value [To Email] is entered for the action Email.",
+                "MessageArgs": [
+                    "[To Email]",
+                    "Email"
+                ],
+                "Severity": "Warning",
+                "Resolution": "Enter a valid value for the action identified in the message and retry the operation."
+            }
+        ]
     }
-  }
+}
 '''
 
 import csv
@@ -924,7 +927,7 @@ def main():
                     create_policy(module, rest_obj)
                 module.exit_json(msg=SUCCESS_MSG)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(failed=True, msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
