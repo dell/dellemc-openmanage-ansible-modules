@@ -336,3 +336,4 @@ ansible_python_interpreter: /usr/bin/python3.9
 ## Documentation references
 - [https://www.redhat.com/en/technologies/management/ansible](https://www.redhat.com/en/technologies/management/ansible)
 - [https://www.redhat.com/en/blog/what-ansible-automation-hub-and-why-should-you-use-it](https://www.redhat.com/en/blog/what-ansible-automation-hub-and-why-should-you-use-it)
+- [https://www.ansible.com/blog/unlocking-efficiency-harnessing-the-capabilities-of-ansible-builder-3.0](https://www.ansible.com/blog/unlocking-efficiency-harnessing-the-capabilities-of-ansible-builder-3.0)
