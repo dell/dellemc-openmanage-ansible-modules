@@ -621,7 +621,7 @@ def get_schedule_payload(module):
         module (object): The module object containing the parameters for scheduling.
 
     Returns:
-        dict: The payload for scheduling a task.
+        dict: The payload for scheduling the policy.
     """
     schedule_payload = {}
     inp_schedule = module.params.get('date_and_time')
