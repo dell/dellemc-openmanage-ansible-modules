@@ -4,7 +4,7 @@
 
   tasks:
     - name: "Create a Alert Policy"
-      dellemc.openamanage.ome_alert_policies:
+      dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -44,7 +44,7 @@
       delegate_to: localhost      
 
     - name: "Update a Alert Policies"
-      dellemc.openamanage.ome_alert_policies:
+      dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -70,7 +70,7 @@
       delegate_to: localhost
 
     - name: "Enable a Policy"
-      dellemc.openamanage.ome_alert_policies:
+      dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -82,7 +82,7 @@
       delegate_to: localhost
 
     - name: "Disable a Policy"
-      dellemc.openamanage.ome_alert_policies:
+      dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
@@ -93,7 +93,7 @@
       delegate_to: localhost
 
     - name: "Delete a Policy"
-      dellemc.openamanage.ome_alert_policies:
+      dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
