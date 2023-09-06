@@ -515,7 +515,7 @@ def get_device_data(module, rest_obj):
             break
     if len(svc_tags) > 0:
         module.exit_json(failed=True,
-                         msg=f"Devices with service tag '{SEPARATOR.join(svc_tags)}' are not found.")
+                         msg=f"Devices with service tag {SEPARATOR.join(svc_tags)} are not found.")
     return list(set(dev_types)), devs
 
 
@@ -534,7 +534,7 @@ def get_group_data(module, rest_obj):
             break
     if len(grps) > 0:
         module.exit_json(failed=True,
-                         msg=f"Groups with names '{SEPARATOR.join(grps)}' are not found.")
+                         msg=f"Groups with names {SEPARATOR.join(grps)} are not found.")
     return group_ids
 
 
@@ -678,21 +678,20 @@ def get_actions_payload(module, rest_obj):
                     pld = {}
                     if ref_actions.get(inp_k).get('Disabled'):
                         module.exit_json(
-                            failed=True, msg=f"Action '{inp_k}' is disabled.")
+                            failed=True, msg=f"Action {inp_k} is disabled.")
                     pld['TemplateId'] = ref_actions.get(inp_k).get('Id')
                     pld['Name'] = inp_k
                     diff = set(inp_val.keys()) - \
                         set(ref_actions.get(inp_k).get('Parameters').keys())
                     if diff:
                         module.exit_json(
-                            failed=True, msg=f"Action '{inp_k}' has invalid parameters: {SEPARATOR.join(diff)}")
+                            failed=True, msg=f"Action {inp_k} has invalid parameters: {SEPARATOR.join(diff)}")
                     pld['ParameterDetails'] = [
                         {"Name": k, "Value": v} for k, v in inp_val.items()]
                     action_payload.append(pld)
                 else:
                     module.exit_json(
-                        failed=True, msg=f"Action '{inp_k}' does not exist.")
-        # module.exit_json(z=action_payload)
+                        failed=True, msg=f"Action {inp_k} does not exist.")
     return {"Actions": action_payload}
 
 
@@ -744,21 +743,21 @@ def get_category_or_message(module, rest_obj):
                                     else:
                                         module.exit_json(
                                             failed=True,
-                                            msg=f"Sub category '{sub_cat}' in category '{inp_category.get('category_name')}' does not exist.")
+                                            msg=f"Sub category {sub_cat} in category {inp_category.get('category_name')} does not exist.")
                             else:
                                 payload_cat.append(key_id)
                                 payload_subcat.append(0)
                         else:
                             module.exit_json(
                                 failed=True,
-                                msg=f"Category '{inp_category.get('category_name')}' in catalog '{catalog_name}' does not exist.")
+                                msg=f"Category {inp_category.get('category_name')} in catalog {catalog_name} does not exist.")
                 else:
                     payload_cat.append(0)
                     payload_subcat.append(0)
                 new_dict["Categories"] = payload_cat
                 new_dict['SubCategories'] = payload_subcat
             else:
-                module.exit_json(failed=True, msg=f"Catalog '{catalog_name}' does not exist.")
+                module.exit_json(failed=True, msg=f"Catalog {catalog_name} does not exist.")
             payload_cat_list.append(new_dict)
         cat_payload['Catalogs'] = payload_cat_list
     else:
@@ -767,7 +766,7 @@ def get_category_or_message(module, rest_obj):
             csvpath = module.params.get('message_file')
             if not os.path.isfile(csvpath):
                 module.exit_json(
-                    failed=True, msg=f"Message file '{csvpath}' does not exist.")
+                    failed=True, msg=f"Message file {csvpath} does not exist.")
             with open(csvpath) as csvfile:
                 spamreader = csv.reader(csvfile)
                 for row in spamreader:
@@ -784,7 +783,7 @@ def get_category_or_message(module, rest_obj):
             diff = set(mlist) - all_msg_id_set
             if diff:
                 module.exit_json(
-                    failed=True, msg=f"Message Ids '{SEPARATOR.join(diff)}' do not exist.")
+                    failed=True, msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
             cat_payload['MessageIds'] = list(set(mlist))
     return cat_payload
 
@@ -813,7 +812,7 @@ def remove_policy(module, rest_obj, policies):
                for x in policies if x.get("DefaultPolicy") is False]
     if len(id_list) != len(policies):
         module.exit_json(failed=True,
-                         msg=f"Default Policies '{SEPARATOR.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])}' cannot be deleted.")
+                         msg=f"Default Policies {SEPARATOR.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])} cannot be deleted.")
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
     rest_obj.invoke_request("POST", REMOVE_URI, data={
