@@ -26,7 +26,7 @@ options:
     description:
       - Name for the alert policy.
       - This is applicable only when I(state) is C(present) and first one is picked if multiple values is provided.
-      - List is Applicable when I(state) is C(absent).
+      - More than one policy name is applicable when I(state) is C(absent) and I(state) is C(present) with only I(enable) provided.
     type: list
     elements: str
     required: true
@@ -480,6 +480,8 @@ SEVERITY_URI = "AlertService/AlertSeverities"
 DEVICES_URI = "DeviceService/Devices"
 GROUPS_URI = "GroupService/Groups"
 REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
+ENABLE_URI = "AlertService/Actions/AlertService.EnableAlertPolicies"
+DISABLE_URI = "AlertService/Actions/AlertService.DisableAlertPolicies"
 CATEGORY_URI = "AlertService/AlertCategories"
 SUCCESS_MSG = "Successfully performed the {0} operation."
 NO_CHANGES_MSG = "No changes found to be applied."
@@ -492,7 +494,7 @@ def get_alert_policies(rest_obj, name_list):
     all_policies = report.get("report_list", [])
     policies = []
     for policy in all_policies:
-        if policy.get("Name") in name_list:
+        if policy.get("Name") in set(name_list):
             policies.append(policy)
     # TODO take care of DefaultPolicy
     return policies
@@ -820,6 +822,18 @@ def remove_policy(module, rest_obj, policies):
     module.exit_json(changed=True, msg=SUCCESS_MSG.format("remove policy"))
 
 
+def enable_toggle_policy(module, rest_obj, policies):
+    enabler = module.params.get('enable')
+    id_list = [x.get("Id") for x in policies if x.get("Enabled") is not enabler]
+    if not id_list:
+        module.exit_json(msg=NO_CHANGES_MSG)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
+    uri = ENABLE_URI if enabler else DISABLE_URI
+    rest_obj.invoke_request("POST", uri, data={"AlertPolicyIds": id_list})
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("toggle enable policy"))
+
+
 def update_policy(module, rest_obj, policy):
     module.exit_json(changed=True, msg="WIP: Update policy coming soon :)")
 
@@ -919,9 +933,18 @@ def main():
                 else:
                     module.exit_json(msg=NO_CHANGES_MSG)
             else:
+                if not any(module.params.get(prm)
+                           for prm in ('new_name', 'description', 'device_service_tag', 'device_group',
+                                       'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
+                                       'category', 'message_ids', 'message_file',
+                                       'date_and_time', 'severity', 'actions')) and module.params.get('enable') is not None:
+                    if len(policies) == len(set(name_list)):
+                        enable_toggle_policy(module, rest_obj, policies)
+                    else:
+                        invalid_policies = set(name_list) - set(x.get("Name") for x in policies)
+                        module.exit_json(failed=True, msg=f"Policies {SEPARATOR.join(invalid_policies)} are invalid for enable.")
                 if len(name_list) > 1:
-                    module.exit_json(
-                        failed=True, msg="More than one policy name provided.")
+                    module.exit_json(failed=True, msg="More than one policy name provided for update.")
                 if policies:
                     update_policy(module, rest_obj, policies[0])
                 else:
