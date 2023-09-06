@@ -925,7 +925,7 @@ def main():
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             state = module.params.get('state')
-            name_list = module.params.get('name')
+            name_list = list(set(module.params.get('name')))
             policies = get_alert_policies(rest_obj, name_list)
             if state == 'absent':
                 if policies:
@@ -933,12 +933,12 @@ def main():
                 else:
                     module.exit_json(msg=NO_CHANGES_MSG)
             else:
-                if not any(module.params.get(prm)
+                if not any(module.params.get(prm) is not None
                            for prm in ('new_name', 'description', 'device_service_tag', 'device_group',
                                        'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
                                        'category', 'message_ids', 'message_file',
                                        'date_and_time', 'severity', 'actions')) and module.params.get('enable') is not None:
-                    if len(policies) == len(set(name_list)):
+                    if len(policies) == len(name_list):
                         enable_toggle_policy(module, rest_obj, policies)
                     else:
                         invalid_policies = set(name_list) - set(x.get("Name") for x in policies)
