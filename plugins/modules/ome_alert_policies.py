@@ -591,18 +591,6 @@ def get_all_message_ids(rest_obj):
 
 
 def get_all_actions(rest_obj):
-    """
-    Retrieves all actions from the specified REST object.
-
-    Parameters:
-        rest_obj (object): The REST object to retrieve actions from.
-
-    Returns:
-        dict: A dictionary containing information about each action. The keys are the names of the actions, and the values are dictionaries with the following keys:
-            - "Id" (str): The ID of the action.
-            - "Disabled" (bool): Indicates whether the action is disabled.
-            - "Parameters" (dict): A dictionary containing the parameters of the action. The keys are the names of the parameters, and the values are the corresponding values of the parameters.
-    """
     resp = rest_obj.invoke_request("GET", ACTIONS_URI)
     actions = resp.json_data.get("value", [])
     cmp_actions = dict((x.get("Name"), {"Id": x.get("Id"),
@@ -754,7 +742,8 @@ def get_category_or_message(module, rest_obj):
                                         payload_subcat.append(
                                             sub_cat_dict.get(sub_cat))
                                     else:
-                                        module.exit_json(failed=True,
+                                        module.exit_json(
+                                            failed=True,
                                             msg=f"Sub category '{sub_cat}' in category '{inp_category.get('category_name')}' does not exist.")
                             else:
                                 payload_cat.append(key_id)
