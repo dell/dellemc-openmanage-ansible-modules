@@ -88,7 +88,7 @@ options:
   any_undiscovered_devices:
     description:
       - Any Undiscovered devices on which the alert policy will be applicable.
-      - This option is mutually exclusive with I(device_service_tag), I(undiscovered_devices), I(device_group) and I(all_devices).
+      - This option is mutually exclusive with I(device_service_tag), I(specific_undiscovered_devices), I(device_group) and I(all_devices).
       - This is applicable only when I(state) is C(present).
     type: bool
   all_devices:
