@@ -923,7 +923,7 @@ def compare_policy_payload(module, rest_obj, policy):
         diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
         if diff_tuple:
             if diff_tuple[0]:
-                module.warn(json.dumps(diff_tuple[0]))
+                # module.warn(json.dumps(diff_tuple[0]))
                 diff = diff + 1
                 policy['PolicyData'].update(target)
     cat_msg = get_category_or_message(module, rest_obj)
@@ -932,7 +932,7 @@ def compare_policy_payload(module, rest_obj, policy):
         diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
         if diff_tuple:
             if diff_tuple[0]:
-                module.warn(json.dumps(diff_tuple[0]))
+                # module.warn(json.dumps(diff_tuple[0]))
                 diff = diff + 1
                 policy['PolicyData'].update(cat_msg)
     act_payload = get_actions_payload(module, rest_obj)
@@ -945,7 +945,7 @@ def compare_policy_payload(module, rest_obj, policy):
         diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
         if diff_tuple:
             if diff_tuple[0]:
-                module.warn(json.dumps(diff_tuple[0]))
+                # module.warn(json.dumps(diff_tuple[0]))
                 diff = diff + 1
                 policy['PolicyData']['Actions'] = actions
     schedule_payload = get_schedule_payload(module)
@@ -954,7 +954,7 @@ def compare_policy_payload(module, rest_obj, policy):
         diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
         if diff_tuple:
             if diff_tuple[0]:
-                module.warn(json.dumps(diff_tuple[0]))
+                # module.warn(json.dumps(diff_tuple[0]))
                 diff = diff + 1
                 policy['PolicyData']['Schedule'] = schedule_payload['Schedule']
     sev_payload = get_severity_payload(module, rest_obj)
@@ -963,10 +963,9 @@ def compare_policy_payload(module, rest_obj, policy):
         diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
         if diff_tuple:
             if diff_tuple[0]:
-                module.warn(json.dumps(diff_tuple[0]))
+                # module.warn(json.dumps(diff_tuple[0]))
                 diff = diff + 1
                 policy['PolicyData']['Severities'] = sev_payload['Severities']
-    # return diff
     if module.params.get('new_name'):
         new_payload['Name'] = module.params.get('new_name')
     if module.params.get('description'):
@@ -978,22 +977,19 @@ def compare_policy_payload(module, rest_obj, policy):
     diff_tuple = recursive_diff(new_payload, policy)
     if diff_tuple:
         if diff_tuple[0]:
-            module.warn(json.dumps(diff_tuple[0]))
+            # module.warn(json.dumps(diff_tuple[0]))
             diff = diff + 1
             policy.update(diff_tuple[0])
-    # module.exit_json(policy=policy, zdiff=diff)
     return diff
 
 
 def update_policy(module, rest_obj, policy):
-    # module.exit_json(changed=True, msg="WIP: Update policy not implemented yet.")
     diff = compare_policy_payload(module, rest_obj, policy)
     if not diff:
         module.exit_json(msg=NO_CHANGES_MSG)
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
     format_payload(policy, module)
-    # module.exit_json(PUT=policy)
     resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format("update policy"), policy=resp.json_data)
 
@@ -1030,7 +1026,7 @@ def create_policy(module, rest_obj):
         'enable') if module.params.get('enable', True) is not None else True
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
-    module.warn(json.dumps(create_payload))
+    # module.warn(json.dumps(create_payload))
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format(
         "create policy"), status=resp.json_data)
@@ -1123,8 +1119,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-        # module.exit_json(failed=True, msg=str(err))
-        module.fail_json(failed=True, msg=str(err))
+        module.exit_json(failed=True, msg=str(err))
 
 
 if __name__ == '__main__':
