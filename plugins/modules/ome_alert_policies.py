@@ -40,7 +40,7 @@ options:
   enable:
     description:
       - C(True) allows to enable an alert policy.
-      - C(False) allows to disable an alert policy.
+      - C(false) allows to disable an alert policy.
       - This is applicable only when I(state) is C(present).
     type: bool
   new_name:
