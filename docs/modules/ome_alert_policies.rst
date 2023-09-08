@@ -12,7 +12,7 @@ ome_alert_policies -- Manage OME alert policies.
 Synopsis
 --------
 
-This module allows you to create, modify, or delete Alert policies on OpenManage Enterprise or OpenManage Enterprise Modular.
+This module allows you to create, modify, or delete alert policies on OpenManage Enterprise or OpenManage Enterprise Modular.
 
 
 
@@ -32,7 +32,7 @@ Parameters
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\  and first one is picked if multiple values is provided.
 
-    List is Applicable when \ :emphasis:`state`\  is \ :literal:`absent`\ .
+    More than one policy name is applicable when \ :emphasis:`state`\  is \ :literal:`absent`\  and \ :emphasis:`state`\  is \ :literal:`present`\  with only \ :emphasis:`enable`\  provided.
 
 
   state (optional, str, present)
@@ -42,9 +42,9 @@ Parameters
 
 
   enable (optional, bool, None)
-    \ :literal:`True`\  allows to enable an alert policy.
+    \ :literal:`true`\  allows to enable an alert policy.
 
-    \ :literal:`False`\  allows to disable an alert policy.
+    \ :literal:`false`\  allows to disable an alert policy.
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
@@ -64,7 +64,7 @@ Parameters
   device_service_tag (optional, list, None)
     List of device service tags on which the alert policy will be applicable.
 
-    This option is mutually exclusive with \ :emphasis:`device\_group`\ , \ :emphasis:`undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`all\_devices`\ .
+    This option is mutually exclusive with \ :emphasis:`device\_group`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`all\_devices`\ .
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ 
 
@@ -72,7 +72,7 @@ Parameters
   device_group (optional, list, None)
     List of Group name on which the alert policy will be applicable.
 
-    This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`all\_devices`\  .
+    This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`all\_devices`\  .
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ 
 
@@ -110,7 +110,7 @@ Parameters
   any_undiscovered_devices (optional, bool, None)
     Any Undiscovered devices on which the alert policy will be applicable.
 
-    This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`undiscovered\_devices`\ , \ :emphasis:`device\_group`\  and \ :emphasis:`all\_devices`\ .
+    This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`device\_group`\  and \ :emphasis:`all\_devices`\ .
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
@@ -118,7 +118,7 @@ Parameters
   all_devices (optional, bool, None)
     All the discovered and undiscovered devices on which the alert policy will be applicable.
 
-    This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`device\_group`\ .
+    This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`device\_group`\ .
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
@@ -190,13 +190,13 @@ Parameters
     time_from (optional, str, None)
       Interval start time in the format HH:MM
 
-      This is mandatory when \ :emphasis:`time\_interval`\  is \ :literal:`True`\ 
+      This is mandatory when \ :emphasis:`time\_interval`\  is \ :literal:`true`\ 
 
 
     time_to (optional, str, None)
       Interval end time in the format HH:MM
 
-      This is mandatory when \ :emphasis:`time\_interval`\  is \ :literal:`True`\ 
+      This is mandatory when \ :emphasis:`time\_interval`\  is \ :literal:`true`\ 
 
 
     days (optional, list, None)
@@ -230,6 +230,10 @@ Parameters
       Name of the action.
 
       To be fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_action\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_action_info_module>`\ 
+
+      This is mandatory when creating a policy and optional updating a policy.
+
+      This parameter is case-sensitive.
 
 
     parameters (optional, list, [])
@@ -316,19 +320,24 @@ Examples
             catalog_category:
               - category_name: Audit
                 sub_category_names:
-                  - idrac
                   - Generic
-                  - Device
-              - category_name: Storage
+                  - Devices
+          - catalog_name: iDRAC
+            catalog_category:
+              - category_name: Audit
                 sub_category_names:
-                  - Other
+                  - BIOS Management
+                  - iDRAC Service Module
         date_and_time:
-          - date_from: 2022-10-10
+          date_from: 2023-10-10
+          date_to: 2023-10-11
+          time_from: "11:00"
+          time_to: "12:00"
         severity:
           - unknown
           - critical
         actions:
-          - action_name: trap
+          - action_name: Trap
             parameters:
               - name: "192.1.2.3:162"
                 value: true
@@ -336,7 +345,7 @@ Examples
                 value: true
       tags: create_alert_policy
 
-    - name: "Update a Alert Policies"
+    - name: "Update a Alert Policy"
       dellemc.openamanage.ome_alert_policies:
         hostname: "192.168.0.1"
         username: "username"
@@ -344,15 +353,16 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         new_name: "Update Policy Name"
         device_group: "Group Name"
-        category:
-        - catalog_name: Application
-          catalog_category:
-            - category_name: Audit
-              sub_category_names:
-                - idrac
-                - Generic
+        message_ids:
+          - AMP400
+          - CTL201
+          - BIOS101
         date_and_time:
-          - date_from: 2022-10-10
+          date_from: 2023-10-10
+          date_to: 2023-10-11
+          time_from: "11:00"
+          time_to: "12:00"
+          time_interval: true
         actions:
           - action_name: Trap
             parameters:
@@ -366,19 +376,20 @@ Examples
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
-        new_name: "Policy Name"
-        device_group: "Group Name"
-        enable : True
+        name: "Policy Name"
+        enable: true
       tags: enable_alert_policy
 
-    - name: "Disable a Policy"
+    - name: "Disable multiple Policies"
       dellemc.openamanage.ome_alert_policies:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
-        name: "Policy Name"
-        enable : False
+        name:
+          - "Policy Name 1"
+          - "Policy Name 2"
+        enable: false
       tags: disable_alert_policy
 
     - name: "Delete a Policy"
@@ -404,7 +415,7 @@ status (when state is present, dict, {'Id': 12345, 'Name': 'Policy', 'Descriptio
   The policy which was created or modified.
 
 
-error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
+error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'CMON7011', 'RelatedProperties': [], 'Message': 'Unable to create or modify the alert policy because an invalid value [To Email] is entered for the action Email.', 'MessageArgs': ['[To Email]', 'Email'], 'Severity': 'Warning', 'Resolution': 'Enter a valid value for the action identified in the message and retry the operation.'}]}})
   Details of the HTTP Error.
 
 

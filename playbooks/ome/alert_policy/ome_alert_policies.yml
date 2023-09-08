@@ -18,12 +18,14 @@
             catalog_category:
               - category_name: Audit
                 sub_category_names:
-                  - idrac
                   - Generic
-                  - Device
-              - category_name: Storage
+                  - Devices
+          - catalog_name: iDRAC
+            catalog_category:
+              - category_name: Audit
                 sub_category_names:
-                  - Other
+                  - BIOS Management
+                  - iDRAC Service Module
         date_and_time:
           date_from: 2023-10-10
           date_to: 2023-10-11
@@ -34,7 +36,7 @@
           - unknown
           - critical
         actions:
-          - action_name: trap
+          - action_name: Trap
             parameters:
               - name: "192.1.2.3:162"
                 value: true
@@ -43,7 +45,7 @@
       tags: create_alert_policy
       delegate_to: localhost      
 
-    - name: "Update a Alert Policies"
+    - name: "Update a Alert Policy"
       dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -54,7 +56,7 @@
         message_ids:
           - AMP400
           - CTL201
-          - BIOS123
+          - BIOS101
         date_and_time:
           date_from: 2023-10-10
           date_to: 2023-10-11
@@ -75,19 +77,20 @@
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
-        new_name: "Policy Name"
-        device_group: "Group Name"
+        name: "Policy Name"
         enable: true
       tags: enable_alert_policy
       delegate_to: localhost
 
-    - name: "Disable a Policy"
+    - name: "Disable Multiple Policies"
       dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
-        name: "Policy Name"
+        name:
+          - "Policy Name 1"
+          - "Policy Name 2"
         enable: false
       tags: disable_alert_policy
       delegate_to: localhost

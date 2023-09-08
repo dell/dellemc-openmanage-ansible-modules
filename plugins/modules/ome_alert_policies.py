@@ -39,7 +39,7 @@ options:
     type: str
   enable:
     description:
-      - C(True) allows to enable an alert policy.
+      - C(true) allows to enable an alert policy.
       - C(false) allows to disable an alert policy.
       - This is applicable only when I(state) is C(present).
     type: bool
@@ -63,7 +63,7 @@ options:
   device_group:
     description:
       - List of Group name on which the alert policy will be applicable.
-      - This option is mutually exclusive with I(device_service_tag), I(undiscovered_devices), I(any_undiscovered_devices) and I(all_devices) .
+      - This option is mutually exclusive with I(device_service_tag), I(specific_undiscovered_devices), I(any_undiscovered_devices) and I(all_devices) .
       - This is applicable only when I(state) is C(present)
     type: list
     elements: str
@@ -94,7 +94,7 @@ options:
   all_devices:
     description:
       - All the discovered and undiscovered devices on which the alert policy will be applicable.
-      - This option is mutually exclusive with I(device_service_tag), I(undiscovered_devices), I(any_undiscovered_devices) and I(device_group).
+      - This option is mutually exclusive with I(device_service_tag), I(specific_undiscovered_devices), I(any_undiscovered_devices) and I(device_group).
       - This is applicable only when I(state) is C(present).
     type: bool
   category:
@@ -154,7 +154,7 @@ options:
       time_from:
         description:
           - "Interval start time in the format HH:MM"
-          - This is mandatory when I(time_interval) is C(True)
+          - This is mandatory when I(time_interval) is C(true)
         type: str
       time_to:
         description:
@@ -190,6 +190,8 @@ options:
         description:
           - Name of the action.
           - To be fetched from the M(dellemc.openmanage.ome_alert_policies_action_info)
+          - This is mandatory when creating a policy and optional updating a policy.
+          - This parameter is case-sensitive.
         type: str
         required: true
       parameters:
@@ -235,12 +237,14 @@ EXAMPLES = r'''
         catalog_category:
           - category_name: Audit
             sub_category_names:
-              - idrac
               - Generic
-              - Device
-          - category_name: Storage
+              - Devices
+      - catalog_name: iDRAC
+        catalog_category:
+          - category_name: Audit
             sub_category_names:
-              - Other
+              - BIOS Management
+              - iDRAC Service Module
     date_and_time:
       date_from: 2023-10-10
       date_to: 2023-10-11
@@ -250,7 +254,7 @@ EXAMPLES = r'''
       - unknown
       - critical
     actions:
-      - action_name: trap
+      - action_name: Trap
         parameters:
           - name: "192.1.2.3:162"
             value: true
@@ -258,7 +262,7 @@ EXAMPLES = r'''
             value: true
   tags: create_alert_policy
 
-- name: "Update a Alert Policies"
+- name: "Update a Alert Policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
     username: "username"
@@ -269,7 +273,7 @@ EXAMPLES = r'''
     message_ids:
       - AMP400
       - CTL201
-      - BIOS123
+      - BIOS101
     date_and_time:
       date_from: 2023-10-10
       date_to: 2023-10-11
@@ -289,8 +293,7 @@ EXAMPLES = r'''
     username: "username"
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
-    new_name: "Policy Name"
-    device_group: "Group Name"
+    name: "Policy Name"
     enable: true
   tags: enable_alert_policy
 
@@ -300,7 +303,9 @@ EXAMPLES = r'''
     username: "username"
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
-    name: "Policy Name"
+    name:
+      - "Policy Name 1"
+      - "Policy Name 2"
     enable: false
   tags: disable_alert_policy
 
