@@ -301,7 +301,7 @@ EXAMPLES = r'''
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
     name: "Policy Name"
-    enable: False
+    enable: false
   tags: disable_alert_policy
 
 - name: "Delete a Policy"
