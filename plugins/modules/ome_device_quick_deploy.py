@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 8.3.0
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -494,9 +494,8 @@ def check_mode_validation(module, deploy_data):
                 req_filter_slot = dict([(k, v) for k, v in req_slot_1.items() if v is not None])
                 exist_slot_1 = {"SlotId": exist_filter_slot[0]["SlotId"],
                                 "SlotIPV4Address": exist_filter_slot[0]["SlotIPV4Address"],
-                                "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"]}
-                if "VlanId" in exist_filter_slot[0]:
-                    exist_slot_1.update({"VlanId": exist_filter_slot[0]["VlanId"]})
+                                "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"],
+                                "VlanId": exist_filter_slot[0]["VlanId"] if "VlanId" in exist_filter_slot[0] else 1}
                 exist_filter_slot = dict([(k, v) for k, v in exist_slot_1.items() if v is not None])
                 cp_exist_filter_slot = copy.deepcopy(exist_filter_slot)
                 cp_exist_filter_slot.update(req_filter_slot)
