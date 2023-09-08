@@ -56,7 +56,7 @@ options:
   device_service_tag:
     description:
       - List of device service tags on which the alert policy will be applicable.
-      - This option is mutually exclusive with I(device_group), I(undiscovered_devices), I(any_undiscovered_devices) and I(all_devices).
+      - This option is mutually exclusive with I(device_group), I(specific_undiscovered_devices), I(any_undiscovered_devices) and I(all_devices).
       - This is applicable only when I(state) is C(present)
     type: list
     elements: str
