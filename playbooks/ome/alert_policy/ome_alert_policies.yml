@@ -27,8 +27,8 @@
                   - BIOS Management
                   - iDRAC Service Module
         date_and_time:
-          date_from: 2023-10-10
-          date_to: 2023-10-11
+          date_from: "2023-10-10"
+          date_to: "2023-10-11"
           time_from: "11:00"
           time_to: "12:00"
           time_interval: true
@@ -58,8 +58,8 @@
           - CTL201
           - BIOS101
         date_and_time:
-          date_from: 2023-10-10
-          date_to: 2023-10-11
+          date_from: "2023-10-10"
+          date_to: "2023-10-11"
           time_from: "11:00"
           time_to: "12:00"
           time_interval: true

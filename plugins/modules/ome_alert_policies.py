@@ -141,24 +141,30 @@ options:
     description:
       - Specify the schedule for when the alert policy is applicable.
       - I(date_and_time) is mandatory for creating a policy and optional when updating a poicy.
-      - This is applicable only when I(state) is C(present)
+      - This is applicable only when I(state) is C(present).
     type: dict
     suboptions:
       date_from:
-        description: "Start date in the format YYYY-MM-DD."
+        description:
+          - "Start date in the format YYYY-MM-DD."
+          - This parameter to be provided with double quotes.
         type: str
         required: true
       date_to:
-        description: "End date in the format YYYY-MM-DD."
+        description:
+          - "End date in the format YYYY-MM-DD."
+          - This parameter to be provided with double quotes.
         type: str
       time_from:
         description:
           - "Interval start time in the format HH:MM"
-          - This is mandatory when I(time_interval) is C(true)
+          - This parameter to be provided with double quotes.
+          - This is mandatory when I(time_interval) is C(true).
         type: str
       time_to:
         description:
           - "Interval end time in the format HH:MM"
+          - This parameter to be provided with double quotes.
           - This is mandatory when I(time_interval) is C(true)
         type: str
       days:
@@ -246,8 +252,8 @@ EXAMPLES = r'''
               - BIOS Management
               - iDRAC Service Module
     date_and_time:
-      date_from: 2023-10-10
-      date_to: 2023-10-11
+      date_from: "2023-10-10"
+      date_to: "2023-10-11"
       time_from: "11:00"
       time_to: "12:00"
     severity:
@@ -275,8 +281,8 @@ EXAMPLES = r'''
       - CTL201
       - BIOS101
     date_and_time:
-      date_from: 2023-10-10
-      date_to: 2023-10-11
+      date_from: "2023-10-10"
+      date_to: "2023-10-11"
       time_from: "11:00"
       time_to: "12:00"
       time_interval: true
@@ -471,10 +477,11 @@ import csv
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination, remove_key
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.common.dict_transformations import recursive_diff
 from datetime import datetime
 
 
@@ -546,25 +553,37 @@ def get_group_data(module, rest_obj):
 
 
 def get_target_payload(module, rest_obj):
-    target_payload = {}
+    target_payload = {'AllTargets': False,
+                      'DeviceTypes': [],
+                      'Devices': [],
+                      'Groups': [],
+                      'UndiscoveredTargets': []}
     mparams = module.params
+    target_provided = False
     if mparams.get('all_devices'):
         target_payload['AllTargets'] = True
+        target_provided = True
     elif mparams.get('any_undiscovered_devices'):
         target_payload['UndiscoveredTargets'] = [
             {"TargetAddress": "ALL_UNDISCOVERED_TARGETS"}]
+        target_provided = True
     elif mparams.get('specific_undiscovered_devices'):
         target_payload['UndiscoveredTargets'] = [
             ({"TargetAddress": x}) for x in module.params.get('specific_undiscovered_devices')]
+        target_provided = True
     elif mparams.get('device_service_tag'):
         devicetype, deviceids = get_device_data(module, rest_obj)
         target_payload['Devices'] = deviceids
+        target_payload['Devices'].sort()
         target_payload['DeviceTypes'] = devicetype
+        target_payload['DeviceTypes'].sort()
+        target_provided = True
     elif mparams.get('device_group'):
         target_payload['Groups'] = get_group_data(module, rest_obj)
-    if not target_payload:
-        module.exit_json(
-            failed=True, msg="No valid targets provided for policy creation.")
+        target_payload['Groups'].sort()
+        target_provided = True
+    if not target_provided:
+        target_payload = {}
     return target_payload
 
 
@@ -623,7 +642,7 @@ def get_schedule_payload(module):
     if inp_schedule:
         def_time = "00:00"
         time_format = "%Y-%m-%d %H:%M:%S.%f"
-        time_interval = inp_schedule.get('time_interval', False)
+        time_interval = True if inp_schedule.get('time_interval') else False
         schedule_payload['Interval'] = time_interval
         time_from = inp_schedule.get(
             'time_from') if time_interval else def_time
@@ -637,6 +656,7 @@ def get_schedule_payload(module):
             schedule_payload["StartTime"] = start_time
         except ValueError:
             module.exit_json(failed=True, msg="Invalid start date or time.")
+        schedule_payload["EndTime"] = ""
         if inp_schedule.get('date_to'):
             end_time = f"{inp_schedule.get('date_to')} {time_to}:00.000"
             try:
@@ -716,7 +736,9 @@ def get_category_or_message(module, rest_obj):
     Raises:
         ExitJSON: If the category, sub-category or message does not exist.
     """
-    cat_payload = {}
+    cat_payload = {"Catalogs": {},
+                   "MessageIds": []}
+    cat_msg_provided = False
     if module.params.get('category'):
         inp_catalog_list = module.params.get('category')
         cdict_ref = get_category_data_tree(rest_obj)
@@ -766,7 +788,9 @@ def get_category_or_message(module, rest_obj):
             else:
                 module.exit_json(failed=True, msg=f"Catalog {catalog_name} does not exist.")
             payload_cat_list.append(new_dict)
-        cat_payload['Catalogs'] = payload_cat_list
+        cat_dict = dict((x.get('CatalogName'), x) for x in payload_cat_list)
+        cat_msg_provided = True
+        cat_payload['Catalogs'] = cat_dict
     else:
         mlist = []
         if module.params.get('message_file'):
@@ -791,7 +815,11 @@ def get_category_or_message(module, rest_obj):
             if diff:
                 module.exit_json(
                     failed=True, msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
+            cat_msg_provided = True
             cat_payload['MessageIds'] = list(set(mlist))
+            cat_payload['MessageIds'].sort()
+    if not cat_msg_provided:
+        cat_payload = {}
     return cat_payload
 
 
@@ -804,13 +832,14 @@ def get_severity_payload(module, rest_obj):
         severity_dict = {"unknown": 1, "info": 2,
                          "normal": 4, "warning": 8, "critical": 16}
     inp_sev_list = module.params.get('severity')
-    if not inp_sev_list:
-        module.exit_json(failed=True, msg="Severity is required.")
-    if 'all' in inp_sev_list:
-        sev_payload = {"Severities": list(severity_dict.values())}
-    else:
-        sev_payload = {"Severities": [
-            severity_dict.get(x) for x in inp_sev_list]}
+    sev_payload = {}
+    if inp_sev_list:
+        if 'all' in inp_sev_list:
+            sev_payload = {"Severities": list(severity_dict.values())}
+        else:
+            sev_payload = {"Severities": [
+                severity_dict.get(x) for x in inp_sev_list]}
+        sev_payload['Severities'].sort()
     return sev_payload
 
 
@@ -839,21 +868,154 @@ def enable_toggle_policy(module, rest_obj, policies):
     module.exit_json(changed=True, msg=SUCCESS_MSG.format("toggle enable policy"))
 
 
+def transform_policy_data(policy):
+    pdata = policy.get('PolicyData')
+    undiscovered = pdata.get('UndiscoveredTargets')
+    if undiscovered:
+        pdata['UndiscoveredTargets'] = [x.get('TargetAddress') for x in undiscovered]
+    actions = pdata.get('Actions')
+    if actions:
+        for action in actions:
+            action['ParameterDetails'] = dict((act_param.get('Name'), act_param.get('Value'))
+                                              for act_param in action.get('ParameterDetails', []))
+            action.pop('Id', None)
+        pdata['Actions'] = dict((x.get('Name'), x) for x in actions)
+    catalogs = pdata.get('Catalogs')
+    pdata['Catalogs'] = dict((x.get('CatalogName'), x) for x in catalogs)
+    for pol_data in pdata.values():
+        if isinstance(pol_data, list):
+            pol_data.sort()
+    messages = pdata.get('MessageIds', [])
+    pdata['MessageIds'] = [m.strip("'") for m in messages]
+    return
+
+
+def format_payload(policy, module):
+    pdata = policy.get('PolicyData')
+    undiscovered = pdata.get('UndiscoveredTargets')
+    if undiscovered:
+        pdata['UndiscoveredTargets'] = [({"TargetAddress": x}) for x in undiscovered]
+    actions = pdata.get('Actions')
+    # module.warn(f"Actions: {actions}")
+    if actions:
+        for action in actions.values():
+            action['ParameterDetails'] = [
+                {"Name": k, "Value": v} for k, v in action.get('ParameterDetails', {}).items()]
+        pdata['Actions'] = list(actions.values())
+    catalogs = pdata.get('Catalogs')
+    pdata['Catalogs'] = list(catalogs.values())
+    return
+
+
+def compare_policy_payload(module, rest_obj, policy):
+    diff = 0
+    new_payload = {}
+    new_policy_data = {}
+    new_payload["PolicyData"] = new_policy_data
+    transform_policy_data(policy)
+    target = get_target_payload(module, rest_obj)
+    if target:
+        if target.get("UndiscoveredTargets"):
+            target['UndiscoveredTargets'] = [x.get('TargetAddress')
+                                             for x in target.get('UndiscoveredTargets')]
+            target['UndiscoveredTargets'].sort()
+        new_policy_data.update(target)
+        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+        if diff_tuple:
+            if diff_tuple[0]:
+                module.warn(json.dumps(diff_tuple[0]))
+                diff = diff + 1
+                policy['PolicyData'].update(target)
+    cat_msg = get_category_or_message(module, rest_obj)
+    if cat_msg:
+        new_policy_data.update(cat_msg)
+        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+        if diff_tuple:
+            if diff_tuple[0]:
+                module.warn(json.dumps(diff_tuple[0]))
+                diff = diff + 1
+                policy['PolicyData'].update(cat_msg)
+    act_payload = get_actions_payload(module, rest_obj)
+    if act_payload.get('Actions'):
+        actions = act_payload['Actions']
+        for action in actions:
+            action['ParameterDetails'] = dict((act_param.get('Name'), act_param.get('Value'))
+                                              for act_param in action.get('ParameterDetails', []))
+        new_policy_data['Actions'] = dict((x.get('Name'), x) for x in actions)
+        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+        if diff_tuple:
+            if diff_tuple[0]:
+                module.warn(json.dumps(diff_tuple[0]))
+                diff = diff + 1
+                policy['PolicyData']['Actions'] = actions
+    schedule_payload = get_schedule_payload(module)
+    if schedule_payload.get('Schedule'):
+        new_policy_data['Schedule'] = schedule_payload['Schedule']
+        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+        if diff_tuple:
+            if diff_tuple[0]:
+                module.warn(json.dumps(diff_tuple[0]))
+                diff = diff + 1
+                policy['PolicyData']['Schedule'] = schedule_payload['Schedule']
+    sev_payload = get_severity_payload(module, rest_obj)
+    if sev_payload.get('Severities'):
+        new_policy_data['Severities'] = sev_payload['Severities']
+        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+        if diff_tuple:
+            if diff_tuple[0]:
+                module.warn(json.dumps(diff_tuple[0]))
+                diff = diff + 1
+                policy['PolicyData']['Severities'] = sev_payload['Severities']
+    # return diff
+    if module.params.get('new_name'):
+        new_payload['Name'] = module.params.get('new_name')
+    if module.params.get('description'):
+        new_payload['Description'] = module.params.get('description')
+    if module.params.get('enable') is not None:
+        new_payload['Enabled'] = module.params.get('enable')
+    policy = remove_key(policy)
+    new_payload.pop('PolicyData', None)
+    diff_tuple = recursive_diff(new_payload, policy)
+    if diff_tuple:
+        if diff_tuple[0]:
+            module.warn(json.dumps(diff_tuple[0]))
+            diff = diff + 1
+            policy.update(diff_tuple[0])
+    # module.exit_json(policy=policy, zdiff=diff)
+    return diff
+
+
 def update_policy(module, rest_obj, policy):
-    module.exit_json(changed=True, msg="WIP: Update policy coming soon :)")
+    # module.exit_json(changed=True, msg="WIP: Update policy not implemented yet.")
+    diff = compare_policy_payload(module, rest_obj, policy)
+    if not diff:
+        module.exit_json(msg=NO_CHANGES_MSG)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
+    format_payload(policy, module)
+    # module.exit_json(PUT=policy)
+    resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("update policy"), policy=resp.json_data)
 
 
 def get_policy_data(module, rest_obj):
     policy_data = {}
     target = get_target_payload(module, rest_obj)
+    if not target:
+        module.exit_json(failed=True, msg="No valid targets provided for policy creation.")
     policy_data.update(target)
     cat_msg = get_category_or_message(module, rest_obj)
+    if not cat_msg:
+        module.exit_json(failed=True, msg="No valid categories or messages provided for policy creation.")
+    cat_msg['Catalogs'] = list(cat_msg.get('Catalogs', {}).values())
     policy_data.update(cat_msg)
     schedule = get_schedule_payload(module)
     policy_data.update(schedule)
     actions = get_actions_payload(module, rest_obj)
     policy_data.update(actions)
     sev_payload = get_severity_payload(module, rest_obj)
+    if not sev_payload.get('Severities'):
+        module.exit_json(failed=True, msg="Severity is required for creation of policy.")
     policy_data.update(sev_payload)
     return policy_data
 
@@ -868,6 +1030,7 @@ def create_policy(module, rest_obj):
         'enable') if module.params.get('enable', True) is not None else True
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
+    module.warn(json.dumps(create_payload))
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format(
         "create policy"), status=resp.json_data)
@@ -936,7 +1099,7 @@ def main():
                 if policies:
                     remove_policy(module, rest_obj, policies)
                 else:
-                    module.exit_json(msg=NO_CHANGES_MSG)
+                    module.exit_json(msg="Policy does not exist.")
             else:
                 if not any(module.params.get(prm) is not None
                            for prm in ('new_name', 'description', 'device_service_tag', 'device_group',
@@ -960,7 +1123,8 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-        module.exit_json(failed=True, msg=str(err))
+        # module.exit_json(failed=True, msg=str(err))
+        module.fail_json(failed=True, msg=str(err))
 
 
 if __name__ == '__main__':
