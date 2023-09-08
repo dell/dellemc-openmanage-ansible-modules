@@ -291,7 +291,7 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     new_name: "Policy Name"
     device_group: "Group Name"
-    enable: True
+    enable: true
   tags: enable_alert_policy
 
 - name: "Disable a Policy"
