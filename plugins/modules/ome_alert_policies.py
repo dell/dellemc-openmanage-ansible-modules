@@ -159,7 +159,7 @@ options:
       time_to:
         description:
           - "Interval end time in the format HH:MM"
-          - This is mandatory when I(time_interval) is C(True)
+          - This is mandatory when I(time_interval) is C(true)
         type: str
       days:
         description: Days of the week to be scheduled.
