@@ -176,7 +176,7 @@ options:
       - This is applicable only when I(state) is C(present).
     type: list
     elements: str
-    choices: [info, normal, warning, critical, unknown, all]
+    choices: [all, unknown, info, normal, warning, critical]
   actions:
     description:
       - Actions to be triggered for the policy.
