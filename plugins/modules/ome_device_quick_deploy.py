@@ -494,8 +494,9 @@ def check_mode_validation(module, deploy_data):
                 req_filter_slot = dict([(k, v) for k, v in req_slot_1.items() if v is not None])
                 exist_slot_1 = {"SlotId": exist_filter_slot[0]["SlotId"],
                                 "SlotIPV4Address": exist_filter_slot[0]["SlotIPV4Address"],
-                                "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"],
-                                "VlanId": exist_filter_slot[0]["VlanId"] if "VlanId" in exist_filter_slot[0] else 1}
+                                "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"]}
+                if "VlanId" in exist_filter_slot[0]:
+                    exist_slot_1.update({"VlanId": exist_filter_slot[0]["VlanId"]})
                 exist_filter_slot = dict([(k, v) for k, v in exist_slot_1.items() if v is not None])
                 cp_exist_filter_slot = copy.deepcopy(exist_filter_slot)
                 cp_exist_filter_slot.update(req_filter_slot)
