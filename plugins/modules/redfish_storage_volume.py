@@ -522,7 +522,7 @@ def check_raid_type_supported(module, session_obj):
             supported_raid_types = resp.json_data['StorageControllers'][0]['SupportedRAIDTypes']
             if raid_type not in supported_raid_types:
                 module.exit_json(msg="RAID Type {0} is not supported", failed=True).format(raid_type)
-        except (HTTPError, URLError, SSLValidationError, ConnectionError,TypeError, ValueError) as err:
+        except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
             raise err
 
 
@@ -639,7 +639,7 @@ def validate_inputs(module):
             module_params.get("volume_id") is None:
         module.fail_json(msg="When state is present, either controller_id or"
                          " volume_id must be specified to perform further actions.")
-      
+
 
 def map_volume_type(volume_type):
     volume_type_map = {"NonRedundant": "RAID0",
@@ -648,7 +648,7 @@ def map_volume_type(volume_type):
                        "SpannedMirrors": "RAID10",
                        "SpannedStripesWithParity": "RAID50"}
     return volume_type_map[volume_type]
-    
+
 
 def main():
     specs = {
@@ -659,8 +659,8 @@ def main():
                                     'StripedWithParity', 'SpannedMirrors',
                                     'SpannedStripesWithParity']},
         "raid_type": {"type": "str", "required": False,
-                        "choices": ['RAID0', 'RAID1', 'RAID5',
-                                    'RAID6', 'RAID10', 'RAID50', 'RAID60']},
+                      "choices": ['RAID0', 'RAID1', 'RAID5',
+                                  'RAID6', 'RAID10', 'RAID50', 'RAID60']},
         "name": {"required": False, "type": "str"},
         "controller_id": {"required": False, "type": "str"},
         "drives": {"elements": "str", "required": False, "type": "list"},
