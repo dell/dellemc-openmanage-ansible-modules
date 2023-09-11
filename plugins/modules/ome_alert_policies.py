@@ -564,12 +564,15 @@ def get_target_payload(module, rest_obj):
         target_payload['AllTargets'] = True
         target_provided = True
     elif mparams.get('any_undiscovered_devices'):
-        target_payload['UndiscoveredTargets'] = [
-            {"TargetAddress": "ALL_UNDISCOVERED_TARGETS"}]
+        # target_payload['UndiscoveredTargets'] = [
+            # {"TargetAddress": "ALL_UNDISCOVERED_TARGETS"}]
+        target_payload['UndiscoveredTargets'] = ["ALL_UNDISCOVERED_TARGETS"]
         target_provided = True
     elif mparams.get('specific_undiscovered_devices'):
-        target_payload['UndiscoveredTargets'] = [
-            ({"TargetAddress": x}) for x in module.params.get('specific_undiscovered_devices')]
+        # target_payload['UndiscoveredTargets'] = [
+            # ({"TargetAddress": x}) for x in module.params.get('specific_undiscovered_devices')]
+        target_payload['UndiscoveredTargets'] = list(set(module.params.get('specific_undiscovered_devices')))
+        target_payload['UndiscoveredTargets'].sort()
         target_provided = True
     elif mparams.get('device_service_tag'):
         devicetype, deviceids = get_device_data(module, rest_obj)
@@ -610,14 +613,15 @@ def get_category_data_tree(rest_obj):
     return cat_dict
 
 
-def get_all_message_ids(module, rest_obj, mlist):
+def validate_message_ids(module, rest_obj, mlist):
+    msg = ""
     try:
         resp = rest_obj.invoke_request("GET", MESSAGES_URI)
         all_messages = resp.json_data.get("value", [])
-        msg_set = {x.get("MessageId") for x in all_messages}
+        msg_set = set(x.get("MessageId") for x in all_messages)
         diff = set(mlist) - msg_set
         if diff:
-            all_msg_count = resp.json_data.get("count")
+            all_msg_count = resp.json_data.get("@odata.count")
             if len(diff) < (all_msg_count // 100):
                 # because filter supports only one message id at a time'
                 collect_msg_id = set()
@@ -625,8 +629,8 @@ def get_all_message_ids(module, rest_obj, mlist):
                     query_param = {"$filter": f"MessageId eq '{msg_id}'"}
                     resp = rest_obj.invoke_request('GET', MESSAGES_URI, query_param=query_param)
                     one_message = resp.json_data.get("value", [])
-                    msg_set = {x.get("MessageId") for x in one_message}
-                    collect_msg_id = collect_msg_id + msg_set
+                    msg_set = set(x.get("MessageId") for x in one_message)
+                    collect_msg_id = collect_msg_id | msg_set
                 diff = diff - collect_msg_id
             else:
                 report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
@@ -637,8 +641,8 @@ def get_all_message_ids(module, rest_obj, mlist):
             module.exit_json(failed=True,
                              msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
     except Exception:
-        msg_set = set()
-    return
+        msg = "Failed to get all messages."
+    return msg
 
 
 def get_all_actions(rest_obj):
@@ -701,7 +705,7 @@ def get_schedule_payload(module):
             week_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
             inp_week_list = sorted(list(set(inp_schedule.get('days'))), key=week_order.index)
         schedule_payload["CronString"] = f"* * * ? * {cron_sep.join([weekdays.get(x, '*') for x in inp_week_list])} *"
-    return {"Schedule": schedule_payload}
+    return {"Schedule": schedule_payload} if schedule_payload else {}
 
 
 def get_actions_payload(module, rest_obj):
@@ -715,7 +719,7 @@ def get_actions_payload(module, rest_obj):
     Returns:
         dict: The dictionary containing the actions payload.
     """
-    action_payload = []
+    action_payload = {}
     inp_actions = module.params.get('actions')
     if inp_actions:
         ref_actions = get_all_actions(rest_obj)
@@ -726,28 +730,33 @@ def get_actions_payload(module, rest_obj):
             pld['TemplateId'] = ref_actions.get('Ignore').get('Id')
             pld['Name'] = "Ignore"
             pld['ParameterDetails'] = []
-            action_payload.append(pld)
+            # action_payload.append(pld)
+            action_payload['Ignore'] = pld
         else:
             for inp_k, inp_val in inp_dict.items():
                 if inp_k in ref_actions:
                     pld = {}
                     if ref_actions.get(inp_k).get('Disabled'):
                         module.exit_json(
-                            failed=True, msg=f"Action {inp_k} is disabled.")
+                            failed=True, msg=f"Action {inp_k} is disabled. Please enable it before applying to the policy.")
                     pld['TemplateId'] = ref_actions.get(inp_k).get('Id')
                     pld['Name'] = inp_k
                     diff = set(inp_val.keys()) - \
                         set(ref_actions.get(inp_k).get('Parameters').keys())
                     if diff:
                         module.exit_json(
-                            failed=True, msg=f"Action {inp_k} has invalid parameters: {SEPARATOR.join(diff)}")
-                    pld['ParameterDetails'] = [
-                        {"Name": k, "Value": v} for k, v in inp_val.items()]
-                    action_payload.append(pld)
+                            failed=True, msg=f"Action {inp_k} has invalid parameter names: {SEPARATOR.join(diff)}. "
+                            f"Please provide valid parameters for this action. "
+                            f"Valid values are: {SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())}.")
+                    # pld['ParameterDetails'] = [
+                        # {"Name": k, "Value": v} for k, v in inp_val.items()]
+                    pld['ParameterDetails'] = inp_val
+                    # action_payload.append(pld)
+                    action_payload[inp_k] = pld
                 else:
                     module.exit_json(
                         failed=True, msg=f"Action {inp_k} does not exist.")
-    return {"Actions": action_payload}
+    return {"Actions": action_payload} if action_payload else {}
 
 
 def get_category_or_message(module, rest_obj):
@@ -835,7 +844,7 @@ def get_category_or_message(module, rest_obj):
         elif module.params.get('message_ids'):
             mlist = module.params.get('message_ids')
         if mlist:
-            get_all_message_ids(module, rest_obj, mlist)
+            validate_message_ids(module, rest_obj, mlist)
             cat_msg_provided = True
             cat_payload['MessageIds'] = list(set(mlist))
             cat_payload['MessageIds'].sort()
@@ -889,7 +898,7 @@ def enable_toggle_policy(module, rest_obj, policies):
     module.exit_json(changed=True, msg=SUCCESS_MSG.format("toggle enable alert policy"))
 
 
-def transform_policy_data(policy):
+def transform_existing_policy_data(policy):
     pdata = policy.get('PolicyData')
     undiscovered = pdata.get('UndiscoveredTargets')
     if undiscovered:
@@ -903,6 +912,7 @@ def transform_policy_data(policy):
         pdata['Actions'] = dict((x.get('Name'), x) for x in actions)
     catalogs = pdata.get('Catalogs')
     pdata['Catalogs'] = dict((x.get('CatalogName'), x) for x in catalogs)
+    # for Devices, DeviceTypes, Groups, Severities
     for pol_data in pdata.values():
         if isinstance(pol_data, list):
             pol_data.sort()
@@ -933,60 +943,80 @@ def compare_policy_payload(module, rest_obj, policy):
     new_payload = {}
     new_policy_data = {}
     new_payload["PolicyData"] = new_policy_data
-    transform_policy_data(policy)
+    transform_existing_policy_data(policy)
     target = get_target_payload(module, rest_obj)
-    if target:
-        if target.get("UndiscoveredTargets"):
-            target['UndiscoveredTargets'] = [x.get('TargetAddress')
-                                             for x in target.get('UndiscoveredTargets')]
-            target['UndiscoveredTargets'].sort()
-        new_policy_data.update(target)
-        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-        if diff_tuple:
-            if diff_tuple[0]:
-                # module.warn(json.dumps(diff_tuple[0]))
-                diff = diff + 1
-                policy['PolicyData'].update(target)
     cat_msg = get_category_or_message(module, rest_obj)
-    if cat_msg:
-        new_policy_data.update(cat_msg)
-        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-        if diff_tuple:
-            if diff_tuple[0]:
-                # module.warn(json.dumps(diff_tuple[0]))
-                diff = diff + 1
-                policy['PolicyData'].update(cat_msg)
     act_payload = get_actions_payload(module, rest_obj)
-    if act_payload.get('Actions'):
-        actions = act_payload['Actions']
-        for action in actions:
-            action['ParameterDetails'] = dict((act_param.get('Name'), act_param.get('Value'))
-                                              for act_param in action.get('ParameterDetails', []))
-        new_policy_data['Actions'] = dict((x.get('Name'), x) for x in actions)
-        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-        if diff_tuple:
-            if diff_tuple[0]:
-                # module.warn(json.dumps(diff_tuple[0]))
-                diff = diff + 1
-                policy['PolicyData']['Actions'] = actions
     schedule_payload = get_schedule_payload(module)
-    if schedule_payload.get('Schedule'):
-        new_policy_data['Schedule'] = schedule_payload['Schedule']
-        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-        if diff_tuple:
-            if diff_tuple[0]:
-                # module.warn(json.dumps(diff_tuple[0]))
-                diff = diff + 1
-                policy['PolicyData']['Schedule'] = schedule_payload['Schedule']
     sev_payload = get_severity_payload(module, rest_obj)
-    if sev_payload.get('Severities'):
-        new_policy_data['Severities'] = sev_payload['Severities']
-        diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-        if diff_tuple:
-            if diff_tuple[0]:
-                # module.warn(json.dumps(diff_tuple[0]))
-                diff = diff + 1
-                policy['PolicyData']['Severities'] = sev_payload['Severities']
+    payload_items = [target, cat_msg, act_payload, schedule_payload, sev_payload]
+    for payload in payload_items:
+        if payload:
+            new_policy_data.update(payload)
+            diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+            if diff_tuple:
+                if diff_tuple[0]:
+                    module.warn("*********** DIFFERNECE >>>>>>>")
+                    module.warn("        <<< ")
+                    module.warn(json.dumps(new_payload['PolicyData']))
+                    module.warn(json.dumps(policy['PolicyData']))
+                    module.warn(json.dumps(diff_tuple[0]))
+                    diff = diff + 1
+                    policy['PolicyData'].update(payload)
+    # if target:
+    #     # if target.get("UndiscoveredTargets"):
+    #     #     target['UndiscoveredTargets'] = [x.get('TargetAddress')
+    #     #                                      for x in target.get('UndiscoveredTargets')]
+    #     #     target['UndiscoveredTargets'].sort()
+    #     new_policy_data.update(target)
+    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+    #     if diff_tuple:
+    #         if diff_tuple[0]:
+    #             # module.warn(json.dumps(diff_tuple[0]))
+    #             diff = diff + 1
+    #             policy['PolicyData'].update(target)
+    
+    # if cat_msg:
+    #     new_policy_data.update(cat_msg)
+    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+    #     if diff_tuple:
+    #         if diff_tuple[0]:
+    #             # module.warn(json.dumps(diff_tuple[0]))
+    #             diff = diff + 1
+    #             policy['PolicyData'].update(cat_msg)
+    
+    # if act_payload.get('Actions'):
+    #     # actions = act_payload['Actions']
+    #     # for action in actions:
+    #     #     action['ParameterDetails'] = dict((act_param.get('Name'), act_param.get('Value'))
+    #     #                                       for act_param in action.get('ParameterDetails', []))
+    #     # new_policy_data['Actions'] = dict((x.get('Name'), x) for x in actions)
+    #     new_policy_data.update(act_payload)
+    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+    #     if diff_tuple:
+    #         if diff_tuple[0]:
+    #             # module.warn(json.dumps(diff_tuple[0]))
+    #             diff = diff + 1
+    #             # policy['PolicyData']['Actions'] = actions
+    #             policy['PolicyData'].update(act_payload)
+    
+    # if schedule_payload.get('Schedule'):
+    #     new_policy_data['Schedule'] = schedule_payload['Schedule']
+    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+    #     if diff_tuple:
+    #         if diff_tuple[0]:
+    #             # module.warn(json.dumps(diff_tuple[0]))
+    #             diff = diff + 1
+    #             policy['PolicyData']['Schedule'] = schedule_payload['Schedule']
+    
+    # if sev_payload.get('Severities'):
+    #     new_policy_data['Severities'] = sev_payload['Severities']
+    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
+    #     if diff_tuple:
+    #         if diff_tuple[0]:
+    #             # module.warn(json.dumps(diff_tuple[0]))
+    #             diff = diff + 1
+    #             policy['PolicyData']['Severities'] = sev_payload['Severities']
     if module.params.get('new_name'):
         new_payload['Name'] = module.params.get('new_name')
     if module.params.get('description'):
@@ -1011,8 +1041,11 @@ def update_policy(module, rest_obj, policy):
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
     format_payload(policy, module)
+    # module.exit_json(xpolicy=policy)
+    module.warn(json.dumps(policy))
     resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("update alert policy"), policy=resp.json_data)
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("update alert policy"),
+                     policy=resp.json_data)
 
 
 def get_policy_data(module, rest_obj):
@@ -1024,11 +1057,15 @@ def get_policy_data(module, rest_obj):
     cat_msg = get_category_or_message(module, rest_obj)
     if not cat_msg:
         module.exit_json(failed=True, msg="No valid categories or messages provided for policy creation.")
-    cat_msg['Catalogs'] = list(cat_msg.get('Catalogs', {}).values())
+    # cat_msg['Catalogs'] = list(cat_msg.get('Catalogs', {}).values())
     policy_data.update(cat_msg)
     schedule = get_schedule_payload(module)
+    if not schedule:
+        module.exit_json(failed=True, msg="No valid schedule provided for policy creation.")
     policy_data.update(schedule)
     actions = get_actions_payload(module, rest_obj)
+    if not actions:
+        module.exit_json(failed=True, msg="No valid actions provided for policy creation.")
     policy_data.update(actions)
     sev_payload = get_severity_payload(module, rest_obj)
     if not sev_payload.get('Severities'):
@@ -1048,6 +1085,8 @@ def create_policy(module, rest_obj):
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
     # module.warn(json.dumps(create_payload))
+    format_payload(create_payload, module)
+    # module.exit_json(xcreate_payload=create_payload)
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format(
         "create alert policy"), status=resp.json_data)
