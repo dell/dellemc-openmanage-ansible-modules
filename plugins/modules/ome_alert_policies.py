@@ -610,15 +610,35 @@ def get_category_data_tree(rest_obj):
     return cat_dict
 
 
-def get_all_message_ids(rest_obj):
+def get_all_message_ids(module, rest_obj, mlist):
     try:
-        report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
-        # TODO Consuming time :( 6k+ entries)
-        all_messages = report.get("report_list", [])
+        resp = rest_obj.invoke_request("GET", MESSAGES_URI)
+        all_messages = resp.json_data.get("value", [])
         msg_set = {x.get("MessageId") for x in all_messages}
+        diff = set(mlist) - msg_set
+        if diff:
+            all_msg_count = resp.json_data.get("count")
+            if len(diff) < (all_msg_count // 100):
+                # because filter supports only one message id at a time'
+                collect_msg_id = set()
+                for msg_id in diff:
+                    query_param = {"$filter": f"MessageId eq '{msg_id}'"}
+                    resp = rest_obj.invoke_request('GET', MESSAGES_URI, query_param=query_param)
+                    one_message = resp.json_data.get("value", [])
+                    msg_set = {x.get("MessageId") for x in one_message}
+                    collect_msg_id = collect_msg_id + msg_set
+                diff = diff - collect_msg_id
+            else:
+                report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
+                all_messages = report.get("report_list", [])
+                msg_set = {x.get("MessageId") for x in all_messages}
+                diff = diff - msg_set
+        if diff:
+            module.exit_json(failed=True,
+                             msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
     except Exception:
         msg_set = set()
-    return msg_set
+    return
 
 
 def get_all_actions(rest_obj):
@@ -815,14 +835,7 @@ def get_category_or_message(module, rest_obj):
         elif module.params.get('message_ids'):
             mlist = module.params.get('message_ids')
         if mlist:
-            all_msg_id_set = get_all_message_ids(rest_obj)
-            if not all_msg_id_set:
-                module.exit_json(
-                    failed=True, msg="Failed to fetch Message Id details.")
-            diff = set(mlist) - all_msg_id_set
-            if diff and all_msg_id_set:
-                module.exit_json(
-                    failed=True, msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
+            get_all_message_ids(module, rest_obj, mlist)
             cat_msg_provided = True
             cat_payload['MessageIds'] = list(set(mlist))
             cat_payload['MessageIds'].sort()
