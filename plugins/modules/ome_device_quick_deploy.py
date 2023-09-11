@@ -491,6 +491,8 @@ def check_mode_validation(module, deploy_data):
                               "SlotIPV6Address": each.get("slot_ipv6_address"), "VlanId": each.get("vlan_id")}
                 if each.get("vlan_id") is not None:
                     req_slot_1.update({"VlanId": str(each.get("vlan_id"))})
+                else:
+                    req_slot_1.update({"VlanId": ""})
                 req_filter_slot = dict([(k, v) for k, v in req_slot_1.items() if v is not None])
                 exist_slot_1 = {"SlotId": exist_filter_slot[0]["SlotId"],
                                 "SlotIPV4Address": exist_filter_slot[0]["SlotIPV4Address"],
