@@ -791,9 +791,7 @@ def get_category_or_message(module, rest_obj):
         elif module.params.get('message_ids'):
             mlist = module.params.get('message_ids')
         if mlist:
-            # validate_message_ids(module, rest_obj, mlist)
             msg_ids = validate_ome_data(module, rest_obj, mlist, 'MessageId', ('MessageId',), MESSAGES_URI, 'Message')
-            # module.exit_json(msg=msg_ids)
             cat_msg_provided = True
             cat_payload['MessageIds'] = list(set(mlist))
             cat_payload['MessageIds'].sort()
