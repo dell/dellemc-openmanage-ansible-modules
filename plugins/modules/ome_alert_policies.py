@@ -512,7 +512,22 @@ def get_alert_policies(rest_obj, name_list):
     return policies
 
 
-def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tuple, ome_uri, format="Items"):
+def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tuple, ome_uri, item_name="Items"):
+    """
+        Validates OME query data based on the filter_param.
+
+        Args:
+            module (AnsibleModule): The module object.
+            rest_obj (RestOME): The REST object.
+            item_list (list): The list of item keys to validate.
+            filter_param (str): The filter key supported by the ome_uri.
+            return_param_tuple (tuple(str)): The tuple of specific parameters.
+            ome_uri (str): The specific OME URI which supports filtering.
+            format (str, optional): The format. Defaults to "Items" to be displayed as part of the Error message.
+
+        Returns:
+            tuple(list): A tuple containing the lists of the data in return_param_tuple.
+    """
     mset = set(item_list)
     return_dict = {}
     for v in return_param_tuple:
@@ -520,7 +535,6 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
     try:
         resp = rest_obj.invoke_request("GET", ome_uri)
         all_items = resp.json_data.get("value", [])
-        # msg_set = set(x.get(filter_param) for x in all_items)
         for dev in all_items:
             k = dev.get(filter_param)
             if k in mset:
@@ -536,7 +550,6 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
                     query_param = {"$filter": f"{filter_param} eq '{item_id}'"}
                     resp = rest_obj.invoke_request('GET', ome_uri, query_param=query_param)
                     one_item = resp.json_data.get("value", [])
-                    # msg_set = set(x.get(filter_param) for x in one_item)
                     for dev in one_item:
                         k = dev.get(filter_param)
                         if k in mset:
@@ -555,83 +568,11 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
                         mset.remove(k)
         if mset:
             module.exit_json(failed=True,
-                             msg=f"{format} with {filter_param} {SEPARATOR.join(mset)} do not exist.")
+                             msg=f"{item_name} with {filter_param} {SEPARATOR.join(mset)} do not exist.")
     except Exception as err:
         module.exit_json(failed=True, msg=f"Unable to fetch {filter_param}. {str(err)}")
     ret_list = [(return_dict[id]) for id in return_param_tuple]
     return tuple(ret_list)
-
-
-def validate_message_ids(module, rest_obj, mlist):
-    msg = ""
-    try:
-        resp = rest_obj.invoke_request("GET", MESSAGES_URI)
-        all_messages = resp.json_data.get("value", [])
-        msg_set = set(x.get("MessageId") for x in all_messages)
-        diff = set(mlist) - msg_set
-        if diff:
-            all_msg_count = resp.json_data.get("@odata.count")
-            if len(diff) < (all_msg_count // 100):
-                # because filter supports only one message id at a time
-                collect_msg_id = set()
-                for msg_id in diff:
-                    query_param = {"$filter": f"MessageId eq '{msg_id}'"}
-                    resp = rest_obj.invoke_request('GET', MESSAGES_URI, query_param=query_param)
-                    one_message = resp.json_data.get("value", [])
-                    msg_set = set(x.get("MessageId") for x in one_message)
-                    collect_msg_id = collect_msg_id | msg_set
-                diff = diff - collect_msg_id
-            else:
-                report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
-                all_messages = report.get("report_list", [])
-                msg_set = {x.get("MessageId") for x in all_messages}
-                diff = diff - msg_set
-        if diff:
-            module.exit_json(failed=True,
-                             msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
-    except Exception:
-        msg = "Failed to get all messages."
-    return msg
-
-
-def get_device_data(module, rest_obj):
-    svc_tags = set(module.params.get('device_service_tag'))
-    # TODO take care of single service tag
-    report = get_all_data_with_pagination(rest_obj, DEVICES_URI)
-    all_devices = report.get("report_list", [])
-    devs = []
-    dev_types = []
-    for dev in all_devices:
-        st = dev.get("DeviceServiceTag")
-        if st in svc_tags:
-            svc_tags.remove(st)
-            devs.append(dev.get("Id"))
-            dev_types.append(dev.get("Type"))
-        if not svc_tags:
-            break
-    if len(svc_tags) > 0:
-        module.exit_json(failed=True,
-                         msg=f"Devices with service tag {SEPARATOR.join(svc_tags)} are not found.")
-    return list(set(dev_types)), devs
-
-
-def get_group_data(module, rest_obj):
-    grps = set(module.params.get('device_group'))
-    # TODO take care of single group
-    report = get_all_data_with_pagination(rest_obj, GROUPS_URI)
-    all_devices = report.get("report_list", [])
-    group_ids = []
-    for dev in all_devices:
-        st = dev.get("Name")
-        if st in grps:
-            grps.remove(st)
-            group_ids.append(dev.get("Id"))
-        if not grps:
-            break
-    if len(grps) > 0:
-        module.exit_json(failed=True,
-                         msg=f"Groups with names {SEPARATOR.join(grps)} are not found.")
-    return group_ids
 
 
 def get_target_payload(module, rest_obj):
@@ -656,7 +597,6 @@ def get_target_payload(module, rest_obj):
         # devicetype, deviceids = get_device_data(module, rest_obj)
         devicetype, deviceids = validate_ome_data(module, rest_obj, mparams.get('device_service_tag'),
                                                   'DeviceServiceTag', ('Type', 'Id'), DEVICES_URI, 'Devices')
-        # module.exit_json(deviceids=deviceids, devicetype=devicetype)
         target_payload['Devices'] = deviceids
         target_payload['Devices'].sort()
         target_payload['DeviceTypes'] = list(set(devicetype))
@@ -665,7 +605,6 @@ def get_target_payload(module, rest_obj):
     elif mparams.get('device_group'):
         # target_payload['Groups'] = get_group_data(module, rest_obj)
         groups = validate_ome_data(module, rest_obj, mparams.get('device_group'), 'Name', ('Id',), GROUPS_URI, 'Groups')
-        # module.exit_json(xgroups=target_payload['Groups'])
         target_payload['Groups'] = groups[0]
         target_payload['Groups'].sort()
         target_provided = True
