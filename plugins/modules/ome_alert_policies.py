@@ -671,7 +671,7 @@ def get_schedule_payload(module):
                         failed=True, msg="End time must be greater than start time.")
                 schedule_payload["EndTime"] = end_time
             except ValueError:
-                module.exit_json(failed=True, msg="Invalid value date_to or time_to.")
+                module.exit_json(failed=True, msg="Invalid value for date_to or time_to.")
         weekdays = {'monday': 'mon', 'tuesday': 'tue', 'wednesday': 'wed', 'thursday': 'thu', 'friday': 'fri',
                     'saturday': 'sat', 'sunday': 'sun'}
         inp_week_list = ['*']
