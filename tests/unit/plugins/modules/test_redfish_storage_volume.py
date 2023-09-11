@@ -101,7 +101,7 @@ class TestStorageVolume(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'redfish_storage_volume.configure_raid_operation',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-        result = self._run_module_with_fail_json(redfish_default_args)
+        result = self._run_module(redfish_default_args)
         assert 'task' not in result
         assert 'msg' in result
         assert result['failed'] is True
@@ -431,7 +431,7 @@ class TestStorageVolume(FakeAnsibleModule):
             "block_size_bytes": 512,
             "encryption_types": "NativeDriveEncryption",
             "encrypted": True,
-            "volume_type": "NonRedundant",
+            "raid_type": "RAID0",
             "name": "VD1",
             "optimum_io_size_bytes": 65536,
             "oem": {"Dell": {"DellVirtualDisk": {"BusProtocol": "SAS", "Cachecade": "NonCachecadeVD",
@@ -446,7 +446,7 @@ class TestStorageVolume(FakeAnsibleModule):
         payload = self.module.volume_payload(f_module)
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
                                                     "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
-        assert payload["VolumeType"] == "NonRedundant"
+        assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
         assert payload["CapacityBytes"] == 299439751168
@@ -457,12 +457,12 @@ class TestStorageVolume(FakeAnsibleModule):
 
     def test_volume_payload_case_02(self):
         param = {"block_size_bytes": 512,
-                 "volume_type": "NonRedundant",
+                 "raid_type": "RAID0",
                  "name": "VD1",
                  "optimum_io_size_bytes": 65536}
         f_module = self.get_module_mock(params=param)
         payload = self.module.volume_payload(f_module)
-        assert payload["VolumeType"] == "NonRedundant"
+        assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
         assert payload["OptimumIOSizeBytes"] == 65536
@@ -475,7 +475,7 @@ class TestStorageVolume(FakeAnsibleModule):
             "block_size_bytes": 512,
             "encryption_types": "NativeDriveEncryption",
             "encrypted": False,
-            "volume_type": "NonRedundant",
+            "raid_type": "RAID0",
             "name": "VD1",
             "optimum_io_size_bytes": 65536,
             "oem": {"Dell": {"DellVirtualDisk": {"BusProtocol": "SAS", "Cachecade": "NonCachecadeVD",
@@ -490,7 +490,7 @@ class TestStorageVolume(FakeAnsibleModule):
         payload = self.module.volume_payload(f_module)
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/" \
                                                     "Storage/Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
-        assert payload["VolumeType"] == "NonRedundant"
+        assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
         assert payload["CapacityBytes"] == 299439751168
@@ -579,7 +579,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                    redfish_response_mock, storage_volume_base_uri):
         param = {"drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"],
                  "capacity_bytes": 214748364800, "block_size_bytes": 512, "encryption_types": "NativeDriveEncryption",
-                 "encrypted": False, "volume_type": "NonRedundant", "optimum_io_size_bytes": 65536}
+                 "encrypted": False, "raid_type": "RAID0", "optimum_io_size_bytes": 65536}
         f_module = self.get_module_mock(params=param)
         f_module.check_mode = True
         with pytest.raises(Exception) as exc:
@@ -598,7 +598,7 @@ class TestStorageVolume(FakeAnsibleModule):
             "Members": [{"@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/"
                                       "RAID.Integrated.1-1/Volumes/Disk.Virtual.0:RAID.Integrated.1-1"}],
             "Name": "VD0", "BlockSizeBytes": 512, "CapacityBytes": 214748364800, "Encrypted": False,
-            "EncryptionTypes": ["NativeDriveEncryption"], "OptimumIOSizeBytes": 65536, "VolumeType": "NonRedundant",
+            "EncryptionTypes": ["NativeDriveEncryption"], "OptimumIOSizeBytes": 65536, "RAIDType": "RAID0",
             "Links": {"Drives": [{"@odata.id": "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"}]}}
         param.update({"name": "VD0"})
         f_module = self.get_module_mock(params=param)
