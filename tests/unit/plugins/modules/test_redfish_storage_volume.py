@@ -698,7 +698,8 @@ class TestStorageVolume(FakeAnsibleModule):
         assert exc.value.args[0] == "RAID Type RAID9 is not supported"
 
     def test_check_raid_type_supported_exception_case(self, redfish_response_mock,
-                                                      redfish_connection_mock_for_storage_volume):
+                                                      redfish_connection_mock_for_storage_volume,
+                                                      storage_volume_base_uri):
         param = {"volume_type": "NonRedundant", "controller_id": "controller_id"}
         f_module = self.get_module_mock(params=param)
         redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('http://testhost.com', 400,
