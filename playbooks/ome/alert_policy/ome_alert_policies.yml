@@ -3,7 +3,7 @@
   gather_facts: false
 
   tasks:
-    - name: "Create a Alert Policy"
+    - name: "Create an alert policy"
       dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -45,7 +45,7 @@
       tags: create_alert_policy
       delegate_to: localhost      
 
-    - name: "Update a Alert Policy"
+    - name: "Update an alert Policy"
       dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -71,7 +71,7 @@
       tags: update_alert_policy
       delegate_to: localhost
 
-    - name: "Enable a Policy"
+    - name: "Enable an alert policy"
       dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -82,7 +82,7 @@
       tags: enable_alert_policy
       delegate_to: localhost
 
-    - name: "Disable Multiple Policies"
+    - name: "Disable multiple alert policies"
       dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
@@ -95,13 +95,14 @@
       tags: disable_alert_policy
       delegate_to: localhost
 
-    - name: "Delete a Policy"
+    - name: "Delete an alert policy"
       dellemc.openmanage.ome_alert_policies:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
-        name: "Policy Name"
+        name:
+          - "Policy Name"
         state: absent
       tags: delete_alert_policy
       delegate_to: localhost

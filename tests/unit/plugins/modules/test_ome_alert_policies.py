@@ -24,7 +24,7 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_alert_policies.'
 
-SUCCESS_MSG = "Successfully performed the {0} operation."
+SUCCESS_MSG = "Successfully completed the {0} operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 
@@ -41,7 +41,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
     module = ome_alert_policies
 
     @pytest.mark.parametrize("params", [
-        {"message": SUCCESS_MSG.format("toggle enable policy"), "success": True,
+        {"message": SUCCESS_MSG.format("toggle enable alert policy"), "success": True,
          "json_data": {"value": [{'Name': "new alert policy", "Id": 12, "Enabled": False}]},
          "mparams": {"name": "new alert policy", "enable": True}},
         {"message": CHANGES_MSG, "success": True, "check_mode": True,
@@ -71,7 +71,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
         assert result['msg'] == params['message']
 
     @pytest.mark.parametrize("params", [
-        {"message": SUCCESS_MSG.format("remove policy"), "success": True,
+        {"message": SUCCESS_MSG.format("delete alert policy"), "success": True,
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},
@@ -83,11 +83,11 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": True}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},
-        {"message": NO_CHANGES_MSG, "success": True, "check_mode": True,
+        {"message": "Policy does not exist.", "success": True, "check_mode": True,
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},
-        {"message": NO_CHANGES_MSG, "success": True,
+        {"message": "Policy does not exist.", "success": True,
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},

@@ -28,23 +28,21 @@ Parameters
 ----------
 
   name (True, list, None)
-    Name for the alert policy.
-
-    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\  and first one is picked if multiple values is provided.
+    Name of an alert policy or a list of alert policies.
 
     More than one policy name is applicable when \ :emphasis:`state`\  is \ :literal:`absent`\  and \ :emphasis:`state`\  is \ :literal:`present`\  with only \ :emphasis:`enable`\  provided.
 
 
   state (optional, str, present)
-    \ :literal:`present`\  allows to create an alert policy or update if the policy name already exists.
+    \ :literal:`present`\  allows you to create an alert policy or update if the policy name already exists.
 
-    \ :literal:`absent`\  allows to delete an alert policy.
+    \ :literal:`absent`\  allows you to delete an alert policy.
 
 
   enable (optional, bool, None)
-    \ :literal:`true`\  allows to enable an alert policy.
+    \ :literal:`true`\  allows you to enable an alert policy.
 
-    \ :literal:`false`\  allows to disable an alert policy.
+    \ :literal:`false`\  allows you to disable an alert policy.
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
@@ -52,7 +50,7 @@ Parameters
   new_name (optional, str, None)
     New name for the alert policy.
 
-    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\  and a policy exists.
+    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ , and an alert policy exists.
 
 
   description (optional, str, None)
@@ -70,7 +68,7 @@ Parameters
 
 
   device_group (optional, list, None)
-    List of Group name on which the alert policy will be applicable.
+    List of device group names on which the alert policy is applicable.
 
     This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`all\_devices`\  .
 
@@ -78,13 +76,13 @@ Parameters
 
 
   specific_undiscovered_devices (optional, list, None)
-    Undiscovered IP's, hostnames or range of IP's of a devices on which the alert policy will be applicable.
+    List of undiscovered IPs, hostnames, or range of IPs of devices on which the alert policy is applicable.
 
     This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`device\_group`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`all\_devices`\  .
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ 
 
-    Sample Valid IP Range Format:
+    Examples of valid IP range format:
 
          10.35.0.0
 
@@ -98,7 +96,7 @@ Parameters
 
          hostname.domain.com
 
-    Sample Invalid IP Range Format:
+    Examples of invalid IP range format:
 
          10.35.0.\*
 
@@ -108,7 +106,7 @@ Parameters
 
 
   any_undiscovered_devices (optional, bool, None)
-    Any Undiscovered devices on which the alert policy will be applicable.
+    Specifies if the alert policy is applicable to any undiscovered devices.
 
     This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`device\_group`\  and \ :emphasis:`all\_devices`\ .
 
@@ -116,7 +114,7 @@ Parameters
 
 
   all_devices (optional, bool, None)
-    All the discovered and undiscovered devices on which the alert policy will be applicable.
+    Specifies that the alert policy is applicable to all the discovered and undiscovered devices.
 
     This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`device\_group`\ .
 
@@ -128,7 +126,7 @@ Parameters
 
     This is mutually exclusive with the \ :emphasis:`message\_ids`\ , \ :emphasis:`message\_file`\ .
 
-    To be fetch from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_category\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_category_info_module>`\ .
+    This is fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_category\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_category_info_module>`\ .
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
@@ -146,7 +144,7 @@ Parameters
 
 
       sub_category_names (optional, list, None)
-        List of sub categories.
+        List of sub-categories.
 
 
 
@@ -158,70 +156,78 @@ Parameters
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ 
 
-    To be fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_message\_id\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_message_id_info_module>`\ 
+    This is fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_message\_id\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_message_id_info_module>`\ .
 
 
   message_file (optional, path, None)
-    Local path of a CSV formatted file with message ids
+    Local path of a CSV formatted file with message IDs
 
     This is mutually exclusive with the \ :emphasis:`category`\ , \ :emphasis:`message\_ids`\ 
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ 
 
-    To be fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_message\_id\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_message_id_info_module>`\ 
+    This is fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_message\_id\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_message_id_info_module>`\ .
 
 
   date_and_time (optional, dict, None)
-    Specify the schedule for when the alert policy is applicable.
+    Specifies the schedule for when the alert policy is applicable.
 
-    \ :emphasis:`date\_and\_time`\  is mandatory for creating a policy and optional when updating a poicy.
+    \ :emphasis:`date\_and\_time`\  is mandatory for creating a policy and optional when updating a policy.
 
-    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ 
+    This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
     date_from (True, str, None)
       Start date in the format YYYY-MM-DD.
 
+      This parameter to be provided in quotes.
+
 
     date_to (optional, str, None)
       End date in the format YYYY-MM-DD.
+
+      This parameter to be provided in quotes.
 
 
     time_from (optional, str, None)
       Interval start time in the format HH:MM
 
-      This is mandatory when \ :emphasis:`time\_interval`\  is \ :literal:`true`\ 
+      This parameter to be provided in quotes.
+
+      This is mandatory when \ :emphasis:`time\_interval`\  is \ :literal:`true`\ .
 
 
     time_to (optional, str, None)
       Interval end time in the format HH:MM
 
+      This parameter to be provided in quotes.
+
       This is mandatory when \ :emphasis:`time\_interval`\  is \ :literal:`true`\ 
 
 
     days (optional, list, None)
-      Days of the week to be scheduled.
+      Required days of the week on which alert policy operation must be scheduled.
 
 
     time_interval (optional, bool, None)
-      Enable time interval to be scheduled.
+      Enable the time interval for which alert policy must be scheduled.
 
 
 
   severity (optional, list, None)
-    Severity of the alert.
+    Severity of the alert policy.
 
-    This is mandatory when creating a policy and optional updating a policy.
+    This is mandatory for creating a policy and optional for updating a policy.
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   actions (optional, list, None)
-    Actions to be triggered for the policy.
+    Actions to be triggered for the alert policy.
 
     This parameter is case-sensitive.
 
-    This is mandatory when creating a policy and optional updating a policy.
+    This is mandatory for creating a policy and optional for updating a policy.
 
     This is applicable only when \ :emphasis:`state`\  is \ :literal:`present`\ 
 
@@ -229,25 +235,25 @@ Parameters
     action_name (True, str, None)
       Name of the action.
 
-      To be fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_action\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_action_info_module>`\ 
+      This is fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_action\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_action_info_module>`\ .
 
-      This is mandatory when creating a policy and optional updating a policy.
+      This is mandatory for creating a policy and optional for updating a policy.
 
       This parameter is case-sensitive.
 
 
     parameters (optional, list, [])
-      Predefined parameters to be set for the \ :emphasis:`action\_name`\ .
+      Predefined parameters required to set for \ :emphasis:`action\_name`\ .
 
 
       name (optional, str, None)
-        Name of the parameter.
+        Name of the predefined parameter.
 
-        To be fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_action\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_action_info_module>`\ 
+        This is fetched from the \ :ref:`dellemc.openmanage.ome\_alert\_policies\_action\_info <ansible_collections.dellemc.openmanage.ome_alert_policies_action_info_module>`\ .
 
 
       value (optional, str, None)
-        Value of the parameter.
+        Value of the predefined parameter.
 
 
 
@@ -305,7 +311,7 @@ Examples
 
     
     ---
-    - name: "Create a Alert Policy"
+    - name: "Create an alert policy"
       dellemc.openamanage.ome_alert_policies:
         hostname: "192.168.0.1"
         username: "username"
@@ -329,8 +335,8 @@ Examples
                   - BIOS Management
                   - iDRAC Service Module
         date_and_time:
-          date_from: 2023-10-10
-          date_to: 2023-10-11
+          date_from: "2023-10-10"
+          date_to: "2023-10-11"
           time_from: "11:00"
           time_to: "12:00"
         severity:
@@ -345,7 +351,7 @@ Examples
                 value: true
       tags: create_alert_policy
 
-    - name: "Update a Alert Policy"
+    - name: "Update an alert Policy"
       dellemc.openamanage.ome_alert_policies:
         hostname: "192.168.0.1"
         username: "username"
@@ -358,8 +364,8 @@ Examples
           - CTL201
           - BIOS101
         date_and_time:
-          date_from: 2023-10-10
-          date_to: 2023-10-11
+          date_from: "2023-10-10"
+          date_to: "2023-10-11"
           time_from: "11:00"
           time_to: "12:00"
           time_interval: true
@@ -370,7 +376,7 @@ Examples
                 value: true
       tags: update_alert_policy
 
-    - name: "Enable a Policy"
+    - name: "Enable an alert policy"
       dellemc.openamanage.ome_alert_policies:
         hostname: "192.168.0.1"
         username: "username"
@@ -380,7 +386,7 @@ Examples
         enable: true
       tags: enable_alert_policy
 
-    - name: "Disable multiple Policies"
+    - name: "Disable multiple alert policies"
       dellemc.openamanage.ome_alert_policies:
         hostname: "192.168.0.1"
         username: "username"
@@ -392,13 +398,14 @@ Examples
         enable: false
       tags: disable_alert_policy
 
-    - name: "Delete a Policy"
+    - name: "Delete an alert policy"
       dellemc.openamanage.ome_alert_policies:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
-        name: "Policy Name"
+        name:
+          - "Policy Name"
         state: absent
       tags: delete_alert_policy
 
@@ -407,11 +414,11 @@ Examples
 Return Values
 -------------
 
-msg (always, str, Successfully performed the create policy operation.)
+msg (always, str, Successfully completed the create alert policy operation.)
   Status of the alert policies operation.
 
 
-status (when state is present, dict, {'Id': 12345, 'Name': 'Policy', 'Description': 'Details of the Policy', 'Enabled': True, 'DefaultPolicy': False, 'Editable': True, 'Visible': True, 'PolicyData': {'Catalogs': [{'CatalogName': 'iDRAC', 'Categories': [4], 'SubCategories': [41]}, {'CatalogName': 'Application', 'Categories': [0], 'SubCategories': [0]}], 'Severities': [16, 1, 2, 4, 8], 'Devices': [10086, 10088], 'DeviceTypes': [1000, 2000], 'Groups': [], 'Schedule': {'StartTime': '2023-06-06 15:02:46.000', 'EndTime': '2023-06-06 15:02:46.000', 'CronString': '* * * ? * * *'}, 'Actions': [{'Id': 8, 'Name': 'Email', 'ParameterDetails': [{'Id': 1, 'Name': 'subject', 'Value': 'Device Name: $name,  Device IP Address: $ip,  Severity: $severity', 'Type': 'string', 'TypeParams': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 1, 'Name': 'to', 'Value': 'test@org.com', 'Type': 'string', 'TypeParams': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 1, 'Name': 'from', 'Value': 'abc@corp.com', 'Type': 'string', 'TypeParams': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 1, 'Name': 'message', 'Value': 'Event occurred for Device Name: $name, Device IP Address: $ip', 'Type': 'string', 'TypeParams': [{'Name': 'maxLength', 'Value': '255'}]}]}], 'UndiscoveredTargets': [], 'State': True, 'Owner': 10069}})
+status (when state is present, dict, {'Id': 12345, 'Name': 'Policy', 'Description': 'Details of the Policy', 'Enabled': True, 'DefaultPolicy': False, 'Editable': True, 'Visible': True, 'PolicyData': {'Catalogs': [{'CatalogName': 'iDRAC', 'Categories': [4], 'SubCategories': [41]}, {'CatalogName': 'Application', 'Categories': [0], 'SubCategories': [0]}], 'Severities': [16, 1, 2, 4, 8], 'Devices': [10086, 10088], 'DeviceTypes': [1000, 2000], 'Groups': [], 'Schedule': {'StartTime': '2023-06-06 15:02:46.000', 'EndTime': '2023-06-06 18:02:46.000', 'CronString': '* * * ? * * *'}, 'Actions': [{'Id': 8, 'Name': 'Email', 'ParameterDetails': [{'Id': 1, 'Name': 'subject', 'Value': 'Device Name: $name,  Device IP Address: $ip,  Severity: $severity', 'Type': 'string', 'TypeParams': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 1, 'Name': 'to', 'Value': 'test@org.com', 'Type': 'string', 'TypeParams': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 1, 'Name': 'from', 'Value': 'abc@corp.com', 'Type': 'string', 'TypeParams': [{'Name': 'maxLength', 'Value': '255'}]}, {'Id': 1, 'Name': 'message', 'Value': 'Event occurred for Device Name: $name, Device IP Address: $ip', 'Type': 'string', 'TypeParams': [{'Name': 'maxLength', 'Value': '255'}]}]}], 'UndiscoveredTargets': [], 'State': True, 'Owner': 10069}})
   The policy which was created or modified.
 
 

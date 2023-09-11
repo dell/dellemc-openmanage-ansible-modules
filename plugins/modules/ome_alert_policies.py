@@ -24,29 +24,28 @@ extends_documentation_fragment:
 options:
   name:
     description:
-      - Name for the alert policy.
-      - This is applicable only when I(state) is C(present) and first one is picked if multiple values is provided.
+      - Name of an alert policy or a list of alert policies.
       - More than one policy name is applicable when I(state) is C(absent) and I(state) is C(present) with only I(enable) provided.
     type: list
     elements: str
     required: true
   state:
     description:
-      - C(present) allows to create an alert policy or update if the policy name already exists.
-      - C(absent) allows to delete an alert policy.
+      - C(present) allows you to create an alert policy or update if the policy name already exists.
+      - C(absent) allows you to delete an alert policy.
     default: present
     choices: [present, absent]
     type: str
   enable:
     description:
-      - C(true) allows to enable an alert policy.
-      - C(false) allows to disable an alert policy.
+      - C(true) allows you to enable an alert policy.
+      - C(false) allows you to disable an alert policy.
       - This is applicable only when I(state) is C(present).
     type: bool
   new_name:
     description:
       - New name for the alert policy.
-      - This is applicable only when I(state) is C(present) and a policy exists.
+      - This is applicable only when I(state) is C(present), and an alert policy exists.
     type: str
   description:
     description:
@@ -62,24 +61,24 @@ options:
     elements: str
   device_group:
     description:
-      - List of Group name on which the alert policy will be applicable.
+      - List of device group names on which the alert policy is applicable.
       - This option is mutually exclusive with I(device_service_tag), I(specific_undiscovered_devices), I(any_undiscovered_devices) and I(all_devices) .
       - This is applicable only when I(state) is C(present)
     type: list
     elements: str
   specific_undiscovered_devices:
     description:
-      - Undiscovered IP's, hostnames or range of IP's of a devices on which the alert policy will be applicable.
+      - List of undiscovered IPs, hostnames, or range of IPs of devices on which the alert policy is applicable.
       - This option is mutually exclusive with I(device_service_tag), I(device_group), I(any_undiscovered_devices) and I(all_devices) .
       - This is applicable only when I(state) is C(present)
-      - "Sample Valid IP Range Format:"
+      - "Examples of valid IP range format:"
       - "     10.35.0.0"
       - "     10.36.0.0-10.36.0.255"
       - "     10.37.0.0/24"
       - "     2607:f2b1:f083:135::5500/118"
       - "     2607:f2b1:f083:135::a500-2607:f2b1:f083:135::a600"
       - "     hostname.domain.com"
-      - "Sample Invalid IP Range Format:"
+      - "Examples of invalid IP range format:"
       - "     10.35.0.*"
       - "     10.36.0.0-255"
       - "     10.35.0.0/255.255.255.0"
@@ -87,13 +86,13 @@ options:
     elements: str
   any_undiscovered_devices:
     description:
-      - Any Undiscovered devices on which the alert policy will be applicable.
+      - Specifies if the alert policy is applicable to any undiscovered devices.
       - This option is mutually exclusive with I(device_service_tag), I(specific_undiscovered_devices), I(device_group) and I(all_devices).
       - This is applicable only when I(state) is C(present).
     type: bool
   all_devices:
     description:
-      - All the discovered and undiscovered devices on which the alert policy will be applicable.
+      - Specifies that the alert policy is applicable to all the discovered and undiscovered devices.
       - This option is mutually exclusive with I(device_service_tag), I(specific_undiscovered_devices), I(any_undiscovered_devices) and I(device_group).
       - This is applicable only when I(state) is C(present).
     type: bool
@@ -101,7 +100,7 @@ options:
     description:
       - Category of the alerts received.
       - This is mutually exclusive with the I(message_ids), I(message_file).
-      - To be fetch from the M(dellemc.openmanage.ome_alert_policies_category_info).
+      - This is fetched from the M(dellemc.openmanage.ome_alert_policies_category_info).
       - This is applicable only when I(state) is C(present).
     type: list
     elements: dict
@@ -119,7 +118,7 @@ options:
             description: Name of the category.
             type: str
           sub_category_names:
-            description: List of sub categories.
+            description: List of sub-categories.
             type: list
             elements: str
   message_ids:
@@ -127,67 +126,67 @@ options:
       - List of Message ids
       - This is mutually exclusive with the I(category), I(message_file)
       - This is applicable only when I(state) is C(present)
-      - To be fetched from the M(dellemc.openmanage.ome_alert_policies_message_id_info)
+      - This is fetched from the M(dellemc.openmanage.ome_alert_policies_message_id_info).
     type: list
     elements: str
   message_file:
     description:
-      - Local path of a CSV formatted file with message ids
+      - Local path of a CSV formatted file with message IDs
       - This is mutually exclusive with the I(category), I(message_ids)
       - This is applicable only when I(state) is C(present)
-      - To be fetched from the M(dellemc.openmanage.ome_alert_policies_message_id_info)
+      - This is fetched from the M(dellemc.openmanage.ome_alert_policies_message_id_info).
     type: path
   date_and_time:
     description:
-      - Specify the schedule for when the alert policy is applicable.
-      - I(date_and_time) is mandatory for creating a policy and optional when updating a poicy.
+      - Specifies the schedule for when the alert policy is applicable.
+      - I(date_and_time) is mandatory for creating a policy and optional when updating a policy.
       - This is applicable only when I(state) is C(present).
     type: dict
     suboptions:
       date_from:
         description:
           - "Start date in the format YYYY-MM-DD."
-          - This parameter to be provided with double quotes.
+          - This parameter to be provided in quotes.
         type: str
         required: true
       date_to:
         description:
           - "End date in the format YYYY-MM-DD."
-          - This parameter to be provided with double quotes.
+          - This parameter to be provided in quotes.
         type: str
       time_from:
         description:
           - "Interval start time in the format HH:MM"
-          - This parameter to be provided with double quotes.
+          - This parameter to be provided in quotes.
           - This is mandatory when I(time_interval) is C(true).
         type: str
       time_to:
         description:
           - "Interval end time in the format HH:MM"
-          - This parameter to be provided with double quotes.
+          - This parameter to be provided in quotes.
           - This is mandatory when I(time_interval) is C(true)
         type: str
       days:
-        description: Days of the week to be scheduled.
+        description: Required days of the week on which alert policy operation must be scheduled.
         type: list
         elements: str
         choices: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
       time_interval:
-        description: Enable time interval to be scheduled.
+        description: Enable the time interval for which alert policy must be scheduled.
         type: bool
   severity:
     description:
-      - Severity of the alert.
-      - This is mandatory when creating a policy and optional updating a policy.
+      - Severity of the alert policy.
+      - This is mandatory for creating a policy and optional for updating a policy.
       - This is applicable only when I(state) is C(present).
     type: list
     elements: str
     choices: [all, unknown, info, normal, warning, critical]
   actions:
     description:
-      - Actions to be triggered for the policy.
+      - Actions to be triggered for the alert policy.
       - This parameter is case-sensitive.
-      - This is mandatory when creating a policy and optional updating a policy.
+      - This is mandatory for creating a policy and optional for updating a policy.
       - This is applicable only when I(state) is C(present)
     type: list
     elements: dict
@@ -195,26 +194,26 @@ options:
       action_name:
         description:
           - Name of the action.
-          - To be fetched from the M(dellemc.openmanage.ome_alert_policies_action_info)
-          - This is mandatory when creating a policy and optional updating a policy.
+          - This is fetched from the M(dellemc.openmanage.ome_alert_policies_action_info).
+          - This is mandatory for creating a policy and optional for updating a policy.
           - This parameter is case-sensitive.
         type: str
         required: true
       parameters:
         description:
-          - Predefined parameters to be set for the I(action_name).
+          - Predefined parameters required to set for I(action_name).
         type: list
         elements: dict
         default: []
         suboptions:
           name:
             description:
-              - Name of the parameter.
-              - To be fetched from the M(dellemc.openmanage.ome_alert_policies_action_info)
+              - Name of the predefined parameter.
+              - This is fetched from the M(dellemc.openmanage.ome_alert_policies_action_info).
             type: str
           value:
             description:
-             - Value of the parameter.
+             - Value of the predefined parameter.
             type: str
 requirements:
     - "python >= 3.9.6"
@@ -228,7 +227,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: "Create a Alert Policy"
+- name: "Create an alert policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
     username: "username"
@@ -268,7 +267,7 @@ EXAMPLES = r'''
             value: true
   tags: create_alert_policy
 
-- name: "Update a Alert Policy"
+- name: "Update an alert Policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
     username: "username"
@@ -293,7 +292,7 @@ EXAMPLES = r'''
             value: true
   tags: update_alert_policy
 
-- name: "Enable a Policy"
+- name: "Enable an alert policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
     username: "username"
@@ -303,7 +302,7 @@ EXAMPLES = r'''
     enable: true
   tags: enable_alert_policy
 
-- name: "Disable multiple Policies"
+- name: "Disable multiple alert policies"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
     username: "username"
@@ -315,13 +314,14 @@ EXAMPLES = r'''
     enable: false
   tags: disable_alert_policy
 
-- name: "Delete a Policy"
+- name: "Delete an alert policy"
   dellemc.openamanage.ome_alert_policies:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
-    name: "Policy Name"
+    name:
+      - "Policy Name"
     state: absent
   tags: delete_alert_policy
 '''
@@ -332,7 +332,7 @@ msg:
   type: str
   description: Status of the alert policies operation.
   returned: always
-  sample: "Successfully performed the create policy operation."
+  sample: "Successfully completed the create alert policy operation."
 status:
   type: dict
   description: The policy which was created or modified.
@@ -384,7 +384,7 @@ status:
         "Groups": [],
         "Schedule": {
         "StartTime": "2023-06-06 15:02:46.000",
-        "EndTime": "2023-06-06 15:02:46.000",
+        "EndTime": "2023-06-06 18:02:46.000",
         "CronString": "* * * ? * * *"
         },
         "Actions": [
@@ -495,10 +495,10 @@ REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
 ENABLE_URI = "AlertService/Actions/AlertService.EnableAlertPolicies"
 DISABLE_URI = "AlertService/Actions/AlertService.DisableAlertPolicies"
 CATEGORY_URI = "AlertService/AlertCategories"
-SUCCESS_MSG = "Successfully performed the {0} operation."
+SUCCESS_MSG = "Successfully completed the {0} operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
-SEPARATOR = ","
+SEPARATOR = ", "
 
 
 def get_alert_policies(rest_obj, name_list):
@@ -611,9 +611,14 @@ def get_category_data_tree(rest_obj):
 
 
 def get_all_message_ids(rest_obj):
-    report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
-    all_messages = report.get("report_list", [])
-    return {x.get("MessageId") for x in all_messages}
+    try:
+        report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
+        # TODO Consuming time :( 6k+ entries)
+        all_messages = report.get("report_list", [])
+        msg_set = {x.get("MessageId") for x in all_messages}
+    except Exception:
+        msg_set = set()
+    return msg_set
 
 
 def get_all_actions(rest_obj):
@@ -652,10 +657,10 @@ def get_schedule_payload(module):
             start_time_x = datetime.strptime(start_time, time_format)
             if start_time_x < datetime.now():
                 module.exit_json(
-                    failed=True, msg="Start time must be greater than current time.")
+                    failed=True, msg="Start time or date must be greater than current time.")
             schedule_payload["StartTime"] = start_time
         except ValueError:
-            module.exit_json(failed=True, msg="Invalid start date or time.")
+            module.exit_json(failed=True, msg="Invalid value for date_from or time_from.")
         schedule_payload["EndTime"] = ""
         if inp_schedule.get('date_to'):
             end_time = f"{inp_schedule.get('date_to')} {time_to}:00.000"
@@ -666,11 +671,12 @@ def get_schedule_payload(module):
                         failed=True, msg="End time must be greater than start time.")
                 schedule_payload["EndTime"] = end_time
             except ValueError:
-                module.exit_json(failed=True, msg="Invalid end date or time.")
+                module.exit_json(failed=True, msg="Invalid value date_to or time_to.")
         weekdays = {'monday': 'mon', 'tuesday': 'tue', 'wednesday': 'wed', 'thursday': 'thu', 'friday': 'fri',
                     'saturday': 'sat', 'sunday': 'sun'}
         inp_week_list = ['*']
         if inp_schedule.get('days'):
+            # week order
             inp_week_list = set(inp_schedule.get('days'))
         schedule_payload["CronString"] = f"* * * ? * {SEPARATOR.join([weekdays.get(x, '*') for x in inp_week_list])} *"
     return {"Schedule": schedule_payload}
@@ -812,7 +818,7 @@ def get_category_or_message(module, rest_obj):
                 module.exit_json(
                     failed=True, msg="Failed to fetch Message Id details.")
             diff = set(mlist) - all_msg_id_set
-            if diff:
+            if diff and all_msg_id_set:
                 module.exit_json(
                     failed=True, msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
             cat_msg_provided = True
@@ -853,7 +859,7 @@ def remove_policy(module, rest_obj, policies):
         module.exit_json(msg=CHANGES_MSG, changed=True)
     rest_obj.invoke_request("POST", REMOVE_URI, data={
                             "AlertPolicyIds": id_list})
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("remove policy"))
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("delete alert policy"))
 
 
 def enable_toggle_policy(module, rest_obj, policies):
@@ -865,7 +871,7 @@ def enable_toggle_policy(module, rest_obj, policies):
         module.exit_json(msg=CHANGES_MSG, changed=True)
     uri = ENABLE_URI if enabler else DISABLE_URI
     rest_obj.invoke_request("POST", uri, data={"AlertPolicyIds": id_list})
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("toggle enable policy"))
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("toggle enable alert policy"))
 
 
 def transform_policy_data(policy):
@@ -991,7 +997,7 @@ def update_policy(module, rest_obj, policy):
         module.exit_json(msg=CHANGES_MSG, changed=True)
     format_payload(policy, module)
     resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("update policy"), policy=resp.json_data)
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("update alert policy"), policy=resp.json_data)
 
 
 def get_policy_data(module, rest_obj):
@@ -1029,7 +1035,7 @@ def create_policy(module, rest_obj):
     # module.warn(json.dumps(create_payload))
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format(
-        "create policy"), status=resp.json_data)
+        "create alert policy"), status=resp.json_data)
 
 
 def main():
@@ -1113,7 +1119,6 @@ def main():
                     update_policy(module, rest_obj, policies[0])
                 else:
                     create_policy(module, rest_obj)
-                module.exit_json(msg=SUCCESS_MSG)
     except HTTPError as err:
         module.exit_json(failed=True, msg=str(err), error_info=json.load(err))
     except URLError as err:
