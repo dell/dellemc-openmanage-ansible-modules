@@ -505,11 +505,93 @@ def get_alert_policies(rest_obj, name_list):
     report = get_all_data_with_pagination(rest_obj, POLICIES_URI)
     all_policies = report.get("report_list", [])
     policies = []
+    nameset = set(name_list)
     for policy in all_policies:
-        if policy.get("Name") in set(name_list):
+        if policy.get("Name") in nameset:
             policies.append(policy)
-    # TODO take care of DefaultPolicy
     return policies
+
+
+def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tuple, ome_uri, format="Items"):
+    mset = set(item_list)
+    return_dict = {}
+    for v in return_param_tuple:
+        return_dict[v] = []
+    try:
+        resp = rest_obj.invoke_request("GET", ome_uri)
+        all_items = resp.json_data.get("value", [])
+        # msg_set = set(x.get(filter_param) for x in all_items)
+        for dev in all_items:
+            k = dev.get(filter_param)
+            if k in mset:
+                for v in return_param_tuple:
+                    return_dict[v].append(dev.get(v))
+                mset.remove(k)
+        all_item_count = resp.json_data.get("@odata.count")
+        if mset and (all_item_count > len(all_items)):
+            if len(mset) < (all_item_count // 100):
+                # because filter supports only one item id at a time
+                collector = set()
+                for item_id in mset:
+                    query_param = {"$filter": f"{filter_param} eq '{item_id}'"}
+                    resp = rest_obj.invoke_request('GET', ome_uri, query_param=query_param)
+                    one_item = resp.json_data.get("value", [])
+                    # msg_set = set(x.get(filter_param) for x in one_item)
+                    for dev in one_item:
+                        k = dev.get(filter_param)
+                        if k in mset:
+                            for v in return_param_tuple:
+                                return_dict[v].append(dev.get(v))
+                            collector.add(k)
+                mset = mset - collector
+            else:
+                report = get_all_data_with_pagination(rest_obj, ome_uri)
+                all_items = report.get("report_list", [])
+                for dev in all_items:
+                    k = dev.get(filter_param)
+                    if k in mset:
+                        for v in return_param_tuple:
+                            return_dict[v].append(dev.get(v))
+                        mset.remove(k)
+        if mset:
+            module.exit_json(failed=True,
+                             msg=f"{format} with {filter_param} {SEPARATOR.join(mset)} do not exist.")
+    except Exception as err:
+        module.exit_json(failed=True, msg=f"Unable to fetch {filter_param}. {str(err)}")
+    ret_list = [(return_dict[id]) for id in return_param_tuple]
+    return tuple(ret_list)
+
+
+def validate_message_ids(module, rest_obj, mlist):
+    msg = ""
+    try:
+        resp = rest_obj.invoke_request("GET", MESSAGES_URI)
+        all_messages = resp.json_data.get("value", [])
+        msg_set = set(x.get("MessageId") for x in all_messages)
+        diff = set(mlist) - msg_set
+        if diff:
+            all_msg_count = resp.json_data.get("@odata.count")
+            if len(diff) < (all_msg_count // 100):
+                # because filter supports only one message id at a time
+                collect_msg_id = set()
+                for msg_id in diff:
+                    query_param = {"$filter": f"MessageId eq '{msg_id}'"}
+                    resp = rest_obj.invoke_request('GET', MESSAGES_URI, query_param=query_param)
+                    one_message = resp.json_data.get("value", [])
+                    msg_set = set(x.get("MessageId") for x in one_message)
+                    collect_msg_id = collect_msg_id | msg_set
+                diff = diff - collect_msg_id
+            else:
+                report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
+                all_messages = report.get("report_list", [])
+                msg_set = {x.get("MessageId") for x in all_messages}
+                diff = diff - msg_set
+        if diff:
+            module.exit_json(failed=True,
+                             msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
+    except Exception:
+        msg = "Failed to get all messages."
+    return msg
 
 
 def get_device_data(module, rest_obj):
@@ -564,25 +646,27 @@ def get_target_payload(module, rest_obj):
         target_payload['AllTargets'] = True
         target_provided = True
     elif mparams.get('any_undiscovered_devices'):
-        # target_payload['UndiscoveredTargets'] = [
-            # {"TargetAddress": "ALL_UNDISCOVERED_TARGETS"}]
         target_payload['UndiscoveredTargets'] = ["ALL_UNDISCOVERED_TARGETS"]
         target_provided = True
     elif mparams.get('specific_undiscovered_devices'):
-        # target_payload['UndiscoveredTargets'] = [
-            # ({"TargetAddress": x}) for x in module.params.get('specific_undiscovered_devices')]
         target_payload['UndiscoveredTargets'] = list(set(module.params.get('specific_undiscovered_devices')))
         target_payload['UndiscoveredTargets'].sort()
         target_provided = True
     elif mparams.get('device_service_tag'):
-        devicetype, deviceids = get_device_data(module, rest_obj)
+        # devicetype, deviceids = get_device_data(module, rest_obj)
+        devicetype, deviceids = validate_ome_data(module, rest_obj, mparams.get('device_service_tag'),
+                                                  'DeviceServiceTag', ('Type', 'Id'), DEVICES_URI, 'Devices')
+        # module.exit_json(deviceids=deviceids, devicetype=devicetype)
         target_payload['Devices'] = deviceids
         target_payload['Devices'].sort()
-        target_payload['DeviceTypes'] = devicetype
+        target_payload['DeviceTypes'] = list(set(devicetype))
         target_payload['DeviceTypes'].sort()
         target_provided = True
     elif mparams.get('device_group'):
-        target_payload['Groups'] = get_group_data(module, rest_obj)
+        # target_payload['Groups'] = get_group_data(module, rest_obj)
+        groups = validate_ome_data(module, rest_obj, mparams.get('device_group'), 'Name', ('Id',), GROUPS_URI, 'Groups')
+        # module.exit_json(xgroups=target_payload['Groups'])
+        target_payload['Groups'] = groups[0]
         target_payload['Groups'].sort()
         target_provided = True
     if not target_provided:
@@ -603,38 +687,6 @@ def get_category_data_tree(rest_obj):
          ) for category in cat_raw
     )
     return cat_dict
-
-
-def validate_message_ids(module, rest_obj, mlist):
-    msg = ""
-    try:
-        resp = rest_obj.invoke_request("GET", MESSAGES_URI)
-        all_messages = resp.json_data.get("value", [])
-        msg_set = set(x.get("MessageId") for x in all_messages)
-        diff = set(mlist) - msg_set
-        if diff:
-            all_msg_count = resp.json_data.get("@odata.count")
-            if len(diff) < (all_msg_count // 100):
-                # because filter supports only one message id at a time'
-                collect_msg_id = set()
-                for msg_id in diff:
-                    query_param = {"$filter": f"MessageId eq '{msg_id}'"}
-                    resp = rest_obj.invoke_request('GET', MESSAGES_URI, query_param=query_param)
-                    one_message = resp.json_data.get("value", [])
-                    msg_set = set(x.get("MessageId") for x in one_message)
-                    collect_msg_id = collect_msg_id | msg_set
-                diff = diff - collect_msg_id
-            else:
-                report = get_all_data_with_pagination(rest_obj, MESSAGES_URI)
-                all_messages = report.get("report_list", [])
-                msg_set = {x.get("MessageId") for x in all_messages}
-                diff = diff - msg_set
-        if diff:
-            module.exit_json(failed=True,
-                             msg=f"Message Ids {SEPARATOR.join(diff)} do not exist.")
-    except Exception:
-        msg = "Failed to get all messages."
-    return msg
 
 
 def get_all_actions(rest_obj):
@@ -703,7 +755,6 @@ def get_actions_payload(module, rest_obj):
             pld['TemplateId'] = ref_actions.get('Ignore').get('Id')
             pld['Name'] = "Ignore"
             pld['ParameterDetails'] = []
-            # action_payload.append(pld)
             action_payload['Ignore'] = pld
         else:
             for inp_k, inp_val in inp_dict.items():
@@ -721,10 +772,7 @@ def get_actions_payload(module, rest_obj):
                             failed=True, msg=f"Action {inp_k} has invalid parameter names: {SEPARATOR.join(diff)}. "
                             f"Please provide valid parameters for this action. "
                             f"Valid values are: {SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())}.")
-                    # pld['ParameterDetails'] = [
-                        # {"Name": k, "Value": v} for k, v in inp_val.items()]
                     pld['ParameterDetails'] = inp_val
-                    # action_payload.append(pld)
                     action_payload[inp_k] = pld
                 else:
                     module.exit_json(
@@ -804,7 +852,9 @@ def get_category_or_message(module, rest_obj):
         elif module.params.get('message_ids'):
             mlist = module.params.get('message_ids')
         if mlist:
-            validate_message_ids(module, rest_obj, mlist)
+            # validate_message_ids(module, rest_obj, mlist)
+            msg_ids = validate_ome_data(module, rest_obj, mlist, 'MessageId', ('MessageId',), MESSAGES_URI, 'Message')
+            # module.exit_json(msg=msg_ids)
             cat_msg_provided = True
             cat_payload['MessageIds'] = list(set(mlist))
             cat_payload['MessageIds'].sort()
@@ -887,7 +937,6 @@ def format_payload(policy, module):
     if undiscovered:
         pdata['UndiscoveredTargets'] = [({"TargetAddress": x}) for x in undiscovered]
     actions = pdata.get('Actions')
-    # module.warn(f"Actions: {actions}")
     if actions:
         for action in actions.values():
             action['ParameterDetails'] = [
@@ -916,11 +965,6 @@ def compare_policy_payload(module, rest_obj, policy):
             diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
             if diff_tuple:
                 if diff_tuple[0]:
-                    # module.warn("*********** DIFFERNECE >>>>>>>")
-                    # module.warn("        <<< ")
-                    # module.warn(json.dumps(new_payload['PolicyData']))
-                    # module.warn(json.dumps(policy['PolicyData']))
-                    # module.warn(json.dumps(diff_tuple[0]))
                     diff = diff + 1
                     policy['PolicyData'].update(payload)
     if module.params.get('new_name'):
@@ -934,7 +978,6 @@ def compare_policy_payload(module, rest_obj, policy):
     diff_tuple = recursive_diff(new_payload, policy)
     if diff_tuple:
         if diff_tuple[0]:
-            # module.warn(json.dumps(diff_tuple[0]))
             diff = diff + 1
             policy.update(diff_tuple[0])
     return diff
@@ -947,8 +990,6 @@ def update_policy(module, rest_obj, policy):
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
     format_payload(policy, module)
-    # module.exit_json(xpolicy=policy)
-    # module.warn(json.dumps(policy))
     resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format("update alert policy"),
                      policy=resp.json_data)
@@ -963,7 +1004,6 @@ def get_policy_data(module, rest_obj):
     cat_msg = get_category_or_message(module, rest_obj)
     if not cat_msg:
         module.exit_json(failed=True, msg="No valid categories or messages provided for policy creation.")
-    # cat_msg['Catalogs'] = list(cat_msg.get('Catalogs', {}).values())
     policy_data.update(cat_msg)
     schedule = get_schedule_payload(module)
     if not schedule:
@@ -990,9 +1030,7 @@ def create_policy(module, rest_obj):
         'enable') if module.params.get('enable', True) is not None else True
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
-    # module.warn(json.dumps(create_payload))
     format_payload(create_payload, module)
-    # module.exit_json(xcreate_payload=create_payload)
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format(
         "create alert policy"), status=resp.json_data)
