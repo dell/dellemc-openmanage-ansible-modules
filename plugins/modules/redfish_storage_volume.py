@@ -521,7 +521,7 @@ def check_raid_type_supported(module, session_obj):
             resp = session_obj.invoke_request("GET", uri)
             supported_raid_types = resp.json_data['StorageControllers'][0]['SupportedRAIDTypes']
             if raid_type not in supported_raid_types:
-                module.exit_json(msg="RAID Type {0} is not supported", failed=True).format(raid_type)
+                module.exit_json(msg="RAID Type {0} is not supported".format(raid_type), failed=True)
         except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
             raise err
 

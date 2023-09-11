@@ -195,6 +195,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                      redfish_response_mock, storage_volume_base_uri):
         redfish_response_mock.success = True
         f_module = self.get_module_mock(params={"volume_id": "volume_id"})
+        f_module.check_mode = False
         message = {"msg": "Successfully submitted delete volume task.", "task_uri": "JobService/Jobs",
                    "task_id": "JID_456"}
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
@@ -209,6 +210,33 @@ class TestStorageVolume(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.perform_volume_deletion(f_module, redfish_connection_mock_for_storage_volume)
         assert exc.value.args[0] == "'volume_id' option is a required property for deleting a volume."
+
+    def test_perform_volume_deletion_check_mode_case(self, mocker, redfish_connection_mock_for_storage_volume,
+                                                     redfish_response_mock, storage_volume_base_uri):
+        redfish_response_mock.success = True
+        f_module = self.get_module_mock(params={"volume_id": "volume_id"})
+        f_module.check_mode = True
+        message = {"msg": "Changes found to be applied.", "task_uri": "JobService/Jobs"}
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action',
+                     return_value=redfish_response_mock)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_volume_deletion(f_module, redfish_connection_mock_for_storage_volume)
+        assert exc.value.args[0] == "Changes found to be applied."
+
+    def test_perform_volume_deletion_check_mode_failure_case(self, mocker, redfish_connection_mock_for_storage_volume,
+                                                             redfish_response_mock, storage_volume_base_uri):
+        redfish_response_mock.code = 404
+        redfish_response_mock.success = False
+        f_module = self.get_module_mock(params={"volume_id": "volume_id"})
+        f_module.check_mode = True
+        message = {"msg": "No changes found to be applied.", "task_uri": "JobService/Jobs"}
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_volume_id_exists', return_value=redfish_response_mock)
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action',
+                     return_value=redfish_response_mock)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_volume_deletion(f_module, redfish_connection_mock_for_storage_volume)
+        assert exc.value.args[0] == "No changes found to be applied."
 
     def test_perform_volume_create_modify_success_case_01(self, mocker, storage_volume_base_uri,
                                                           redfish_connection_mock_for_storage_volume):
@@ -499,6 +527,37 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
+    def test_volume_payload_case_04(self, storage_volume_base_uri):
+        param = {
+            "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
+            "capacity_bytes": 299439751168,
+            "block_size_bytes": 512,
+            "encryption_types": "NativeDriveEncryption",
+            "encrypted": True,
+            "volume_type": "NonRedundant",
+            "name": "VD1",
+            "optimum_io_size_bytes": 65536,
+            "oem": {"Dell": {"DellVirtualDisk": {"BusProtocol": "SAS", "Cachecade": "NonCachecadeVD",
+                                                 "DiskCachePolicy": "Disabled",
+                                                 "LockStatus": "Unlocked",
+                                                 "MediaType": "HardDiskDrive",
+                                                 "ReadCachePolicy": "NoReadAhead",
+                                                 "SpanDepth": 1,
+                                                 "SpanLength": 2,
+                                                 "WriteCachePolicy": "WriteThrough"}}}}
+        f_module = self.get_module_mock(params=param)
+        payload = self.module.volume_payload(f_module)
+        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
+                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["RAIDType"] == "RAID0"
+        assert payload["Name"] == "VD1"
+        assert payload["BlockSizeBytes"] == 512
+        assert payload["CapacityBytes"] == 299439751168
+        assert payload["OptimumIOSizeBytes"] == 65536
+        assert payload["Encrypted"] is True
+        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
+        assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
+
     def test_fetch_storage_resource_success_case_01(self, redfish_connection_mock_for_storage_volume,
                                                     redfish_response_mock):
         f_module = self.get_module_mock()
@@ -608,3 +667,41 @@ class TestStorageVolume(FakeAnsibleModule):
                 f_module, redfish_connection_mock_for_storage_volume, "create",
                 "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/")
         assert exc.value.args[0] == "No changes found to be applied."
+
+    def test_check_raid_type_supported_success_case01(self, mocker, redfish_response_mock, storage_volume_base_uri,
+                                                      redfish_connection_mock_for_storage_volume):
+        param = {"raid_type": "RAID0", "controller_id": "controller_id"}
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.json_data = {'StorageControllers': [{'SupportedRAIDTypes': ['RAID0', 'RAID6', 'RAID60']}]}
+        self.module.check_raid_type_supported(f_module,
+                                              redfish_connection_mock_for_storage_volume)
+
+    def test_check_raid_type_supported_success_case02(self, mocker, redfish_response_mock, storage_volume_base_uri,
+                                                      redfish_connection_mock_for_storage_volume):
+        param = {"volume_type": "NonRedundant", "controller_id": "controller_id"}
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.json_data = {'StorageControllers': [{'SupportedRAIDTypes': ['RAID0', 'RAID6', 'RAID60']}]}
+        self.module.check_raid_type_supported(f_module,
+                                              redfish_connection_mock_for_storage_volume)
+
+    def test_check_raid_type_supported_failure_case(self, mocker, redfish_response_mock, storage_volume_base_uri,
+                                                    redfish_connection_mock_for_storage_volume):
+        param = {"raid_type": "RAID9", "controller_id": "controller_id"}
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.json_data = {'StorageControllers': [{'SupportedRAIDTypes': ['RAID0', 'RAID6', 'RAID60']}]}
+        with pytest.raises(Exception) as exc:
+            self.module.check_raid_type_supported(f_module,
+                                                  redfish_connection_mock_for_storage_volume)
+        assert exc.value.args[0] == "RAID Type RAID9 is not supported"
+
+    def test_check_raid_type_supported_exception_case(self, redfish_response_mock,
+                                                      redfish_connection_mock_for_storage_volume):
+        param = {"volume_type": "NonRedundant", "controller_id": "controller_id"}
+        f_module = self.get_module_mock(params=param)
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('http://testhost.com', 400,
+                                                                                          '', {}, None)
+        with pytest.raises(HTTPError) as ex:
+            self.module.check_raid_type_supported(f_module, redfish_connection_mock_for_storage_volume)
