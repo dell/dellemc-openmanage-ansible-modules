@@ -677,8 +677,10 @@ def get_schedule_payload(module):
         inp_week_list = ['*']
         if inp_schedule.get('days'):
             # week order
-            inp_week_list = set(inp_schedule.get('days'))
-        schedule_payload["CronString"] = f"* * * ? * {SEPARATOR.join([weekdays.get(x, '*') for x in inp_week_list])} *"
+            cron_sep = ","
+            week_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+            inp_week_list = sorted(list(set(inp_schedule.get('days'))), key=week_order.index)
+        schedule_payload["CronString"] = f"* * * ? * {cron_sep.join([weekdays.get(x, '*') for x in inp_week_list])} *"
     return {"Schedule": schedule_payload}
 
 
