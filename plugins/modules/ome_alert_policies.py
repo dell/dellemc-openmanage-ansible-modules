@@ -591,14 +591,6 @@ def get_target_payload(module, rest_obj):
 
 
 def get_category_data_tree(rest_obj):
-    """
-    Get the constructed category data tree.
-
-    :param rest_obj: The REST object to use for making the request.
-    :type rest_obj: RestObject
-    :return: The category data tree.
-    :rtype: dict
-    """
     resp = rest_obj.invoke_request("GET", CATEGORY_URI)
     cat_raw = resp.json_data.get("value", [])
     cat_dict = dict(
@@ -657,15 +649,6 @@ def get_all_actions(rest_obj):
 
 
 def get_schedule_payload(module):
-    """
-    Generates the payload for scheduling a task.
-
-    Args:
-        module (object): The module object containing the parameters for scheduling.
-
-    Returns:
-        dict: The payload for scheduling the policy.
-    """
     schedule_payload = {}
     inp_schedule = module.params.get('date_and_time')
     if inp_schedule:
@@ -709,16 +692,6 @@ def get_schedule_payload(module):
 
 
 def get_actions_payload(module, rest_obj):
-    """
-    Generates the payload for the actions to be performed.
-
-    Args:
-        module (object): The module object.
-        rest_obj (object): The REST object.
-
-    Returns:
-        dict: The dictionary containing the actions payload.
-    """
     action_payload = {}
     inp_actions = module.params.get('actions')
     if inp_actions:
@@ -760,19 +733,6 @@ def get_actions_payload(module, rest_obj):
 
 
 def get_category_or_message(module, rest_obj):
-    """
-    Retrieves a category or message based on the provided module and REST object.
-
-    Args:
-        module: The module containing the parameters for the API call.
-        rest_obj: The REST object used to retrieve the category data tree.
-
-    Returns:
-        cat_payload: The retrieved category or message payload.
-
-    Raises:
-        ExitJSON: If the category, sub-category or message does not exist.
-    """
     cat_payload = {"Catalogs": {},
                    "MessageIds": []}
     cat_msg_provided = False
@@ -956,67 +916,13 @@ def compare_policy_payload(module, rest_obj, policy):
             diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
             if diff_tuple:
                 if diff_tuple[0]:
-                    module.warn("*********** DIFFERNECE >>>>>>>")
-                    module.warn("        <<< ")
-                    module.warn(json.dumps(new_payload['PolicyData']))
-                    module.warn(json.dumps(policy['PolicyData']))
-                    module.warn(json.dumps(diff_tuple[0]))
+                    # module.warn("*********** DIFFERNECE >>>>>>>")
+                    # module.warn("        <<< ")
+                    # module.warn(json.dumps(new_payload['PolicyData']))
+                    # module.warn(json.dumps(policy['PolicyData']))
+                    # module.warn(json.dumps(diff_tuple[0]))
                     diff = diff + 1
                     policy['PolicyData'].update(payload)
-    # if target:
-    #     # if target.get("UndiscoveredTargets"):
-    #     #     target['UndiscoveredTargets'] = [x.get('TargetAddress')
-    #     #                                      for x in target.get('UndiscoveredTargets')]
-    #     #     target['UndiscoveredTargets'].sort()
-    #     new_policy_data.update(target)
-    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-    #     if diff_tuple:
-    #         if diff_tuple[0]:
-    #             # module.warn(json.dumps(diff_tuple[0]))
-    #             diff = diff + 1
-    #             policy['PolicyData'].update(target)
-    
-    # if cat_msg:
-    #     new_policy_data.update(cat_msg)
-    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-    #     if diff_tuple:
-    #         if diff_tuple[0]:
-    #             # module.warn(json.dumps(diff_tuple[0]))
-    #             diff = diff + 1
-    #             policy['PolicyData'].update(cat_msg)
-    
-    # if act_payload.get('Actions'):
-    #     # actions = act_payload['Actions']
-    #     # for action in actions:
-    #     #     action['ParameterDetails'] = dict((act_param.get('Name'), act_param.get('Value'))
-    #     #                                       for act_param in action.get('ParameterDetails', []))
-    #     # new_policy_data['Actions'] = dict((x.get('Name'), x) for x in actions)
-    #     new_policy_data.update(act_payload)
-    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-    #     if diff_tuple:
-    #         if diff_tuple[0]:
-    #             # module.warn(json.dumps(diff_tuple[0]))
-    #             diff = diff + 1
-    #             # policy['PolicyData']['Actions'] = actions
-    #             policy['PolicyData'].update(act_payload)
-    
-    # if schedule_payload.get('Schedule'):
-    #     new_policy_data['Schedule'] = schedule_payload['Schedule']
-    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-    #     if diff_tuple:
-    #         if diff_tuple[0]:
-    #             # module.warn(json.dumps(diff_tuple[0]))
-    #             diff = diff + 1
-    #             policy['PolicyData']['Schedule'] = schedule_payload['Schedule']
-    
-    # if sev_payload.get('Severities'):
-    #     new_policy_data['Severities'] = sev_payload['Severities']
-    #     diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-    #     if diff_tuple:
-    #         if diff_tuple[0]:
-    #             # module.warn(json.dumps(diff_tuple[0]))
-    #             diff = diff + 1
-    #             policy['PolicyData']['Severities'] = sev_payload['Severities']
     if module.params.get('new_name'):
         new_payload['Name'] = module.params.get('new_name')
     if module.params.get('description'):
@@ -1042,7 +948,7 @@ def update_policy(module, rest_obj, policy):
         module.exit_json(msg=CHANGES_MSG, changed=True)
     format_payload(policy, module)
     # module.exit_json(xpolicy=policy)
-    module.warn(json.dumps(policy))
+    # module.warn(json.dumps(policy))
     resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format("update alert policy"),
                      policy=resp.json_data)
