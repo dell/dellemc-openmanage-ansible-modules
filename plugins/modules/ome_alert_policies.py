@@ -479,7 +479,7 @@ import csv
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination, remove_key
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination, strip_substr_dict
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -871,7 +871,6 @@ def compare_policy_payload(module, rest_obj, policy):
     payload_items.append(get_actions_payload(module, rest_obj))
     payload_items.append(get_schedule_payload(module))
     payload_items.append(get_severity_payload(module, rest_obj))
-    # payload_items = [target, cat_msg, act_payload, schedule_payload, sev_payload]
     for payload in payload_items:
         if payload:
             new_policy_data.update(payload)
@@ -886,7 +885,7 @@ def compare_policy_payload(module, rest_obj, policy):
         new_payload['Description'] = module.params.get('description')
     if module.params.get('enable') is not None:
         new_payload['Enabled'] = module.params.get('enable')
-    policy = remove_key(policy)
+    policy = strip_substr_dict(policy)
     new_payload.pop('PolicyData', None)
     diff_tuple = recursive_diff(new_payload, policy)
     if diff_tuple:
@@ -955,7 +954,7 @@ def update_policy(module, rest_obj, policy):
     format_payload(policy)
     resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format("update"),
-                     policy=resp.json_data)
+                     status=resp.json_data)
 
 
 def create_policy(module, rest_obj):
