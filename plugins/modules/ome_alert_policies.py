@@ -693,7 +693,7 @@ def get_actions_payload(module, rest_obj):
             pld = {}
             pld['TemplateId'] = ref_actions.get('Ignore').get('Id')
             pld['Name'] = "Ignore"
-            pld['ParameterDetails'] = []
+            pld['ParameterDetails'] = {}
             action_payload['Ignore'] = pld
         else:
             for inp_k, inp_val in inp_dict.items():
