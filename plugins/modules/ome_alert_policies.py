@@ -82,6 +82,7 @@ options:
       - "     10.35.0.*"
       - "     10.36.0.0-255"
       - "     10.35.0.0/255.255.255.0"
+      - These values will not be validated.
     type: list
     elements: str
   any_undiscovered_devices:
@@ -214,6 +215,7 @@ options:
           value:
             description:
              - Value of the predefined parameter.
+             - These values will not be validated.
             type: str
 requirements:
     - "python >= 3.9.6"
@@ -495,7 +497,7 @@ REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
 ENABLE_URI = "AlertService/Actions/AlertService.EnableAlertPolicies"
 DISABLE_URI = "AlertService/Actions/AlertService.DisableAlertPolicies"
 CATEGORY_URI = "AlertService/AlertCategories"
-SUCCESS_MSG = "Successfully completed the {0} operation."
+SUCCESS_MSG = "Successfully completed the {0} alert policy operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 SEPARATOR = ", "
@@ -514,7 +516,7 @@ def get_alert_policies(rest_obj, name_list):
 
 def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tuple, ome_uri, item_name="Items"):
     """
-        Validates OME query data based on the filter_param.
+        Validates OME query data based on the filter_param and returns specified keys from the data.
 
         Args:
             module (AnsibleModule): The module object.
@@ -594,7 +596,6 @@ def get_target_payload(module, rest_obj):
         target_payload['UndiscoveredTargets'].sort()
         target_provided = True
     elif mparams.get('device_service_tag'):
-        # devicetype, deviceids = get_device_data(module, rest_obj)
         devicetype, deviceids = validate_ome_data(module, rest_obj, mparams.get('device_service_tag'),
                                                   'DeviceServiceTag', ('Type', 'Id'), DEVICES_URI, 'Devices')
         target_payload['Devices'] = deviceids
@@ -603,7 +604,6 @@ def get_target_payload(module, rest_obj):
         target_payload['DeviceTypes'].sort()
         target_provided = True
     elif mparams.get('device_group'):
-        # target_payload['Groups'] = get_group_data(module, rest_obj)
         groups = validate_ome_data(module, rest_obj, mparams.get('device_group'), 'Name', ('Id',), GROUPS_URI, 'Groups')
         target_payload['Groups'] = groups[0]
         target_payload['Groups'].sort()
@@ -820,31 +820,6 @@ def get_severity_payload(module, rest_obj):
     return sev_payload
 
 
-def remove_policy(module, rest_obj, policies):
-    id_list = [x.get("Id")
-               for x in policies if x.get("DefaultPolicy") is False]
-    if len(id_list) != len(policies):
-        module.exit_json(failed=True,
-                         msg=f"Default Policies {SEPARATOR.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])} cannot be deleted.")
-    if module.check_mode:
-        module.exit_json(msg=CHANGES_MSG, changed=True)
-    rest_obj.invoke_request("POST", REMOVE_URI, data={
-                            "AlertPolicyIds": id_list})
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("delete alert policy"))
-
-
-def enable_toggle_policy(module, rest_obj, policies):
-    enabler = module.params.get('enable')
-    id_list = [x.get("Id") for x in policies if x.get("Enabled") is not enabler]
-    if not id_list:
-        module.exit_json(msg=NO_CHANGES_MSG)
-    if module.check_mode:
-        module.exit_json(msg=CHANGES_MSG, changed=True)
-    uri = ENABLE_URI if enabler else DISABLE_URI
-    rest_obj.invoke_request("POST", uri, data={"AlertPolicyIds": id_list})
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("toggle enable alert policy"))
-
-
 def transform_existing_policy_data(policy):
     pdata = policy.get('PolicyData')
     undiscovered = pdata.get('UndiscoveredTargets')
@@ -868,7 +843,7 @@ def transform_existing_policy_data(policy):
     return
 
 
-def format_payload(policy, module):
+def format_payload(policy):
     pdata = policy.get('PolicyData')
     undiscovered = pdata.get('UndiscoveredTargets')
     if undiscovered:
@@ -890,12 +865,13 @@ def compare_policy_payload(module, rest_obj, policy):
     new_policy_data = {}
     new_payload["PolicyData"] = new_policy_data
     transform_existing_policy_data(policy)
-    target = get_target_payload(module, rest_obj)
-    cat_msg = get_category_or_message(module, rest_obj)
-    act_payload = get_actions_payload(module, rest_obj)
-    schedule_payload = get_schedule_payload(module)
-    sev_payload = get_severity_payload(module, rest_obj)
-    payload_items = [target, cat_msg, act_payload, schedule_payload, sev_payload]
+    payload_items = []
+    payload_items.append(get_target_payload(module, rest_obj))
+    payload_items.append(get_category_or_message(module, rest_obj))
+    payload_items.append(get_actions_payload(module, rest_obj))
+    payload_items.append(get_schedule_payload(module))
+    payload_items.append(get_severity_payload(module, rest_obj))
+    # payload_items = [target, cat_msg, act_payload, schedule_payload, sev_payload]
     for payload in payload_items:
         if payload:
             new_policy_data.update(payload)
@@ -920,41 +896,66 @@ def compare_policy_payload(module, rest_obj, policy):
     return diff
 
 
-def update_policy(module, rest_obj, policy):
-    diff = compare_policy_payload(module, rest_obj, policy)
-    if not diff:
-        module.exit_json(msg=NO_CHANGES_MSG)
-    if module.check_mode:
-        module.exit_json(msg=CHANGES_MSG, changed=True)
-    format_payload(policy, module)
-    resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("update alert policy"),
-                     policy=resp.json_data)
-
-
 def get_policy_data(module, rest_obj):
     policy_data = {}
     target = get_target_payload(module, rest_obj)
     if not target:
-        module.exit_json(failed=True, msg="No valid targets provided for policy creation.")
+        module.exit_json(failed=True, msg="No valid targets provided for alert policy creation.")
     policy_data.update(target)
     cat_msg = get_category_or_message(module, rest_obj)
     if not cat_msg:
-        module.exit_json(failed=True, msg="No valid categories or messages provided for policy creation.")
+        module.exit_json(failed=True, msg="No valid categories or messages provided for alert policy creation.")
     policy_data.update(cat_msg)
     schedule = get_schedule_payload(module)
     if not schedule:
-        module.exit_json(failed=True, msg="No valid schedule provided for policy creation.")
+        module.exit_json(failed=True, msg="No valid schedule provided for alert policy creation.")
     policy_data.update(schedule)
     actions = get_actions_payload(module, rest_obj)
     if not actions:
-        module.exit_json(failed=True, msg="No valid actions provided for policy creation.")
+        module.exit_json(failed=True, msg="No valid actions provided for alert policy creation.")
     policy_data.update(actions)
     sev_payload = get_severity_payload(module, rest_obj)
     if not sev_payload.get('Severities'):
         module.exit_json(failed=True, msg="Severity is required for creation of policy.")
     policy_data.update(sev_payload)
     return policy_data
+
+
+def remove_policy(module, rest_obj, policies):
+    id_list = [x.get("Id")
+               for x in policies if x.get("DefaultPolicy") is False]
+    if len(id_list) != len(policies):
+        module.exit_json(failed=True,
+                         msg=f"Default Policies {SEPARATOR.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])} cannot be deleted.")
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
+    rest_obj.invoke_request("POST", REMOVE_URI, data={
+                            "AlertPolicyIds": id_list})
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("delete"))
+
+
+def enable_toggle_policy(module, rest_obj, policies):
+    enabler = module.params.get('enable')
+    id_list = [x.get("Id") for x in policies if x.get("Enabled") is not enabler]
+    if not id_list:
+        module.exit_json(msg=NO_CHANGES_MSG)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
+    uri = ENABLE_URI if enabler else DISABLE_URI
+    rest_obj.invoke_request("POST", uri, data={"AlertPolicyIds": id_list})
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("toggle enable"))
+
+
+def update_policy(module, rest_obj, policy):
+    diff = compare_policy_payload(module, rest_obj, policy)
+    if not diff:
+        module.exit_json(msg=NO_CHANGES_MSG)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
+    format_payload(policy)
+    resp = rest_obj.invoke_request("PUT", f"{POLICIES_URI}({policy.get('Id')})", data=policy)
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("update"),
+                     policy=resp.json_data)
 
 
 def create_policy(module, rest_obj):
@@ -967,10 +968,10 @@ def create_policy(module, rest_obj):
         'enable') if module.params.get('enable', True) is not None else True
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
-    format_payload(create_payload, module)
+    format_payload(create_payload)
     resp = rest_obj.invoke_request("POST", POLICIES_URI, data=create_payload)
     module.exit_json(changed=True, msg=SUCCESS_MSG.format(
-        "create alert policy"), status=resp.json_data)
+        "create"), status=resp.json_data)
 
 
 def main():
@@ -1018,13 +1019,13 @@ def main():
                     }
     }
     specs.update(ome_auth_params)
+    present_args = ['enable', 'new_name', 'description', 'device_service_tag', 'device_group',
+                    'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
+                    'category', 'message_ids', 'message_file', 'date_and_time', 'severity', 'actions']
     module = AnsibleModule(
         argument_spec=specs,
-        required_if=[['state', 'present', ('enable', 'new_name', 'description', 'device_service_tag', 'device_group',
-                                           'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
-                                           'category', 'message_ids', 'message_file',
-                                           'date_and_time', 'severity', 'actions',), True]],
-        mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices'),
+        required_if=[['state', 'present', present_args, True]],
+        mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices', 'all_devices',),
                             ('message_ids', 'message_file', 'category')],
         supports_check_mode=True)
     try:
@@ -1038,11 +1039,9 @@ def main():
                 else:
                     module.exit_json(msg="Policy does not exist.")
             else:
+                present_args.remove('enable')
                 if not any(module.params.get(prm) is not None
-                           for prm in ('new_name', 'description', 'device_service_tag', 'device_group',
-                                       'specific_undiscovered_devices', 'any_undiscovered_devices', 'all_devices',
-                                       'category', 'message_ids', 'message_file',
-                                       'date_and_time', 'severity', 'actions')) and module.params.get('enable') is not None:
+                           for prm in present_args) and module.params.get('enable') is not None:
                     if len(policies) == len(name_list):
                         enable_toggle_policy(module, rest_obj, policies)
                     else:

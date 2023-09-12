@@ -104,6 +104,8 @@ Parameters
 
          10.35.0.0/255.255.255.0
 
+    These values will not be validated.
+
 
   any_undiscovered_devices (optional, bool, None)
     Specifies if the alert policy is applicable to any undiscovered devices.
@@ -254,6 +256,8 @@ Parameters
 
       value (optional, str, None)
         Value of the predefined parameter.
+
+        These values will not be validated.
 
 
 
