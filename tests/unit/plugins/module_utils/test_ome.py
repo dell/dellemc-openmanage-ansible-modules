@@ -319,7 +319,7 @@ class TestRestOME(object):
             'message': "Job Completed successfully."},
         {'id': 2070, 'exist_poll': True, 'job_failed': True,
             'message': "Job is in Failed state, and is not completed."},
-        {'id': 1234, 'exist_poll': False, 'job_failed': False, 'message': None},])
+        {'id': 1234, 'exist_poll': False, 'job_failed': False, 'message': None}])
     def test_get_job_info(self, mocker, mock_response, status_assert):
 
         mock_response.success = True
