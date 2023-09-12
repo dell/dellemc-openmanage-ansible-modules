@@ -74,7 +74,6 @@ jobs:
           coverage: always
           ansible-core-version: ${{ matrix.ansible }}
           target-python-version: ${{ matrix.python }}
-          pre-test-cmd: " python -m pip install -r requirements.txt"
 
 ###
 # Sanity tests (REQUIRED)
