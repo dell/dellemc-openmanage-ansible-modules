@@ -942,7 +942,7 @@ def enable_toggle_policy(module, rest_obj, policies):
         module.exit_json(msg=CHANGES_MSG, changed=True)
     uri = ENABLE_URI if enabler else DISABLE_URI
     rest_obj.invoke_request("POST", uri, data={"AlertPolicyIds": id_list})
-    module.exit_json(changed=True, msg=SUCCESS_MSG.format("toggle enable"))
+    module.exit_json(changed=True, msg=SUCCESS_MSG.format("enable" if enabler else "disable"))
 
 
 def update_policy(module, rest_obj, policy):

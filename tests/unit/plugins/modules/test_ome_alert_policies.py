@@ -41,7 +41,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
     module = ome_alert_policies
 
     @pytest.mark.parametrize("params", [
-        {"message": SUCCESS_MSG.format("toggle enable"), "success": True,
+        {"message": SUCCESS_MSG.format("enable"), "success": True,
          "json_data": {"value": [{'Name': "new alert policy", "Id": 12, "Enabled": False}]},
          "mparams": {"name": "new alert policy", "enable": True}},
         {"message": CHANGES_MSG, "success": True, "check_mode": True,
@@ -99,6 +99,117 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
         ome_connection_mock_for_alert_policies.get_all_items_with_pagination.return_value = params[
             'json_data']
         ome_default_args.update(params['mparams'])
+        result = self._run_module(
+            ome_default_args, check_mode=params.get('check_mode', False))
+        assert result['msg'] == params['message']
+
+    @pytest.mark.parametrize("params", [
+        {"message": "Successfully completed the create alert policy operation.", "success": True,
+         "mparams": {
+             "actions": [
+                 {
+                     "action_name": "Trap",
+                     "parameters": [
+                         {
+                             "name": "192.1.1.1:162",
+                             "value": "true"
+                         }
+                     ]
+                 },
+                 {
+                     "action_name": "Mobile",
+                     "parameters": []
+                 },
+                 {
+                     "action_name": "Email",
+                     "parameters": [
+                         {
+                             "name": "to",
+                             "value": "email2@address.x"
+                         },
+                         {
+                             "name": "from",
+                             "value": "emailr@address.y"
+                         },
+                         {
+                             "name": "subject",
+                             "value": "test subject"
+                         },
+                         {
+                             "name": "message",
+                             "value": "test message"
+                         }
+                     ]
+                 },
+                 {
+                     "action_name": "SMS",
+                     "parameters": [
+                         {
+                             "name": "to",
+                             "value": "1234567890"
+                         }
+                     ]
+                 }
+             ],
+             "date_and_time": {
+                 "date_from": "2025-10-09",
+                 "date_to": "2025-10-11",
+                 "days": [
+                     "sunday",
+                     "monday"
+                 ],
+                 "time_from": "11:00",
+                 "time_to": "12:00",
+                 "time_interval": True
+             },
+             "description": "Description of Alert Policy One",
+             "device_group": [
+                 "AX",
+                 "Linux Servers"
+             ],
+             "enable": True,
+             "message_ids": [
+                 "AMP400",
+                 "CTL201",
+                 "AMP401"
+             ],
+             "name": [
+                 "Alert Policy One"
+             ],
+             "severity": [
+                 "unknown"
+             ],
+             "state": "present"
+         },
+         "get_alert_policies": [],
+         "validate_ome_data": (["AMP400", "AMP401", "CTL201"],),
+         "get_severity_payload": {"Severities": ["unknown"]},
+         "get_all_actions": {'Email': {'Id': 50, 'Disabled': False,
+                                       'Parameters': {
+                                           'subject': 'Device Name', 'to': '',
+                                           'from': 'admin@dell.com',
+                                           'message': "Event occurred for Device Name"}},
+                             "Trap": {'Id': 60, 'Disabled': False,
+                                      'Parameters': {'192.97.1.185:162': 'True', '192.1.1.1:162': 'True'}},
+                             'Syslog': {'Id': 90, 'Disabled': False, 'Parameters': {'100.95.21.15:514': 'True'}},
+                             'Ignore': {'Id': 100, 'Disabled': False, 'Parameters': {}},
+                             'SMS': {'Id': 70, 'Disabled': False, 'Parameters': {'to': ''}},
+                             'PowerControl': {'Id': 110, 'Disabled': False,
+                                              'Parameters': {'powercontrolaction': 'poweroff'}},
+                             'RemoteCommand': {'Id': 111, 'Disabled': False,
+                                               'Parameters': {'remotecommandaction': 'test'}},
+                             'Mobile': {'Id': 112, 'Disabled': False, 'Parameters': {}}},
+         "json_data": {"value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]}}
+    ])
+    def test_ome_alert_policies_state_present(self, params, ome_connection_mock_for_alert_policies,
+                                              ome_response_mock, ome_default_args, module_mock, mocker):
+        ome_response_mock.success = params.get("success", True)
+        ome_response_mock.json_data = params['json_data']
+        ome_default_args.update(params['mparams'])
+        mocks = ["get_alert_policies", "validate_ome_data", "get_all_actions", "get_severity_payload"]
+        for m in mocks:
+            if m in params:
+                mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
         result = self._run_module(
             ome_default_args, check_mode=params.get('check_mode', False))
         assert result['msg'] == params['message']
