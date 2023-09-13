@@ -367,7 +367,7 @@ def volume_payload(module):
     if encryption_types:
         raid_payload.update({"EncryptionTypes": [encryption_types]})
     if volume_type:
-        raid_payload.update({"RAIDType": volume_type_map[volume_type]})
+        raid_payload.update({"RAIDType": volume_type_map.get(volume_type)})
     if raid_type:
         raid_payload.update({"RAIDType": raid_type})
     return raid_payload
@@ -526,7 +526,7 @@ def check_mode_validation(module, session_obj, action, uri):
 def check_raid_type_supported(module, session_obj):
     volume_type = module.params.get("volume_type")
     if volume_type:
-        raid_type = volume_type_map[volume_type]
+        raid_type = volume_type_map.get(volume_type)
     else:
         raid_type = module.params.get("raid_type")
     if raid_type:
@@ -654,15 +654,6 @@ def validate_inputs(module):
             module_params.get("volume_id") is None:
         module.fail_json(msg="When state is present, either controller_id or"
                          " volume_id must be specified to perform further actions.")
-
-
-# def map_volume_type(volume_type):
-#     volume_type_map = {"NonRedundant": "RAID0",
-#                        "Mirrored": "RAID1",
-#                        "StripedWithParity": "RAID5",
-#                        "SpannedMirrors": "RAID10",
-#                        "SpannedStripesWithParity": "RAID50"}
-#     return volume_type_map[volume_type]
 
 
 def main():
