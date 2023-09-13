@@ -13,9 +13,12 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
+import tempfile
 from io import StringIO
+import os
 
 import pytest
+from datetime import datetime, timedelta
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import SSLValidationError
@@ -27,6 +30,30 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_alert_
 SUCCESS_MSG = "Successfully completed the {0} alert policy operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
+INVALID_START_TIME = "Invalid value for date_from or time_from."
+INVALID_END_TIME = "Invalid value for date_to or time_to."
+START_CURR_TIME = "Start time or date must be greater than current time."
+END_START_TIME = "End time or date must be greater than start time."
+CATEGORY_FETCH_FAILED = "Failed to fetch Category details."
+INVALID_TARGETS = "No valid targets provided for alert policy creation."
+INVALID_CATEGORY_MESSAGE = "No valid categories or messages provided for alert policy creation."
+INVALID_SCHEDULE = "No valid schedule provided for alert policy creation."
+INVALID_ACTIONS = "No valid actions provided for alert policy creation."
+INVALID_SEVERITY = "No valid Severity is required for creation of policy."
+MULTIPLE_POLICIES = "More than one policy name provided for update."
+DISABLED_ACTION = "Action {0} is disabled. Please enable it before applying to the policy."
+ACTION_INVALID_PARAM = "Action {0} has invalid parameter names: {1}. Please provide valid parameters for this action. Valid values are: {2}."
+ACTION_INVALID_VALUE = "Action {0} has invalid value {1} for parameter {2}. Valid values are: {3}."
+ACTION_DIS_EXIST = "Action {0} does not exist."
+SUBCAT_IN_CATEGORY = "Sub category {0} in category {1} does not exist."
+CATEGORY_IN_CATALOG = "Category {0} in catalog {1} does not exist."
+OME_DATA_MSG = "{0} with {1} {2} do not exist."
+CATALOG_DIS_EXIST = "Catalog {0} does not exist."
+CSV_PATH = "Message file {0} does not exist."
+DEFAULT_POLICY_DELETE = "Default Policies {0} cannot be deleted."
+POLICY_ENABLE_MISSING = "Policies {0} do not exist for enabling or disabling."
+NO_POLICY_EXIST = "Policy does not exist."
+SEPARATOR = ", "
 
 
 @pytest.fixture
@@ -51,7 +78,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          "json_data": {"value": [{'Name': "alert policy1", "Id": 12, "Enabled": True},
                                  {'Name': "alert policy2", "Id": 13, "Enabled": True}]},
          "mparams": {"name": ["alert policy1", "alert policy2"], "enable": False, "description": 'Update case failed'}},
-        {"message": "Policies alert policy3 are invalid for enable.", "success": True,
+        {"message": POLICY_ENABLE_MISSING.format("alert policy3"), "success": True,
          "json_data": {"value": [{'Name': "alert policy1", "Id": 12, "Enabled": True},
                                  {'Name': "alert policy2", "Id": 13, "Enabled": True}]},
          "mparams": {"name": ["alert policy3", "alert policy2"], "enable": False}},
@@ -152,8 +179,8 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  }
              ],
              "date_and_time": {
-                 "date_from": "2025-10-09",
-                 "date_to": "2025-10-11",
+                 "date_from": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
+                 "date_to": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d"),
                  "days": [
                      "sunday",
                      "monday"
@@ -332,8 +359,8 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  }
              ],
              "date_and_time": {
-                 "date_from": "2025-10-09",
-                 "date_to": "2025-10-11",
+                 "date_from": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
+                 "date_to": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d"),
                  "days": [
                      "sunday",
                      "monday"
@@ -848,20 +875,246 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                                                   'Parameters': {'remotecommandaction': 'test'}},
                                 'Mobile': {'Id': 112, 'Disabled': False, 'Parameters': {}}},
             "json_data": {"value": []}
-        }
+        },
+        {"message": OME_DATA_MSG.format("Groups", "Name", "Linux Servers"), "success": True,
+         "mparams": {
+             "device_group": [
+                 "AX",
+                 "Linux Servers"
+             ],
+             "state": "present",
+             "name": "Test alert policy"
+        },
+            "get_alert_policies": [{
+                "Id": 24792,
+                "Name": "Alert Policy One",
+                "Description": "CREATIOn of Alert Policy One",
+                "Enabled": True,
+                "DefaultPolicy": False,
+                "Editable": True,
+                "Visible": True,
+                "PolicyData": {
+                    "Catalogs": [],
+                    "Severities": [
+                        1
+                    ],
+                    "MessageIds": [
+                        "'AMP401'",
+                        "'AMP400'",
+                        "'CTL201'"
+                    ],
+                    "Devices": [],
+                    "DeviceTypes": [],
+                    "Groups": [
+                        1011,
+                        1033
+                    ],
+                    "Schedule": {
+                        "StartTime": "2023-10-09 00:00:00.000",
+                        "EndTime": "2023-10-11 00:00:00.000",
+                        "CronString": "* * * ? * mon,sun *",
+                        "Interval": False
+                    },
+                    "Actions": [
+                        {
+                            "Id": 499,
+                            "Name": "RemoteCommand",
+                            "ParameterDetails": [
+                                {
+                                    "Id": 0,
+                                    "Name": "remotecommandaction1",
+                                    "Value": "test",
+                                    "Type": "singleSelect",
+                                    "TypeParams": [
+                                        {
+                                            "Name": "option",
+                                            "Value": "test"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "TemplateId": 111
+                        }
+                    ],
+                    "AllTargets": False,
+                    "UndiscoveredTargets": []
+                },
+                "State": True,
+                "Owner": 10078
+            }],
+            "json_data": {
+             "@odata.count": 102,
+             "value": [{"Name": "AX", "Id": 121},
+                       {"Name": "Group2", "Id": 122}]}
+        },
+        {"message": OME_DATA_MSG.format("Groups", "Name", "Linux Servers"), "success": True,
+         "mparams": {
+             "device_group": [
+                 "AX",
+                 "Linux Servers"
+             ],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "Coverage for filter block in validate_ome_data"
+        },
+            "get_alert_policies": [{
+                "Id": 24792,
+                "Name": "Alert Policy One",
+                "Description": "CREATIOn of Alert Policy One",
+                "Enabled": True,
+                "DefaultPolicy": False,
+                "Editable": True,
+                "Visible": True,
+                "PolicyData": {
+                    "Catalogs": [],
+                    "Severities": [
+                        1
+                    ],
+                    "MessageIds": [
+                        "'AMP401'",
+                        "'AMP400'",
+                        "'CTL201'"
+                    ],
+                    "Devices": [],
+                    "DeviceTypes": [],
+                    "Groups": [
+                        1011,
+                        1033
+                    ],
+                    "Schedule": {
+                        "StartTime": "2023-10-09 00:00:00.000",
+                        "EndTime": "2023-10-11 00:00:00.000",
+                        "CronString": "* * * ? * mon,sun *",
+                        "Interval": False
+                    },
+                    "Actions": [
+                        {
+                            "Id": 499,
+                            "Name": "RemoteCommand",
+                            "ParameterDetails": [
+                                {
+                                    "Id": 0,
+                                    "Name": "remotecommandaction1",
+                                    "Value": "test",
+                                    "Type": "singleSelect",
+                                    "TypeParams": [
+                                        {
+                                            "Name": "option",
+                                            "Value": "test"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "TemplateId": 111
+                        }
+                    ],
+                    "AllTargets": False,
+                    "UndiscoveredTargets": []
+                },
+                "State": True,
+                "Owner": 10078
+            }],
+            "json_data": {
+             "@odata.count": 300,
+             "value": [{"Name": "AX", "Id": 121},
+                       {"Name": "Group2", "Id": 122}]}
+        },
+        {"message": INVALID_CATEGORY_MESSAGE, "success": True,
+         "mparams": {
+             "device_service_tag": [
+                 "ABC1234",
+                 "SVCTAG1"
+             ],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "Coverage for filter block in validate_ome_data"
+         },
+         "get_alert_policies": [],
+         "json_data": {
+             "@odata.count": 300,
+             "value": [{"DeviceServiceTag": "ABC1234", "Id": 121, "Type": 1000},
+                       {"DeviceServiceTag": "SVCTAG1", "Id": 122, "Type": 1000}]}
+         },
+        {"message": INVALID_CATEGORY_MESSAGE, "success": True,
+         "mparams": {
+             "all_devices": True,
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "all devices coverage"
+         },
+         "get_alert_policies": [],
+         "json_data": {
+             "@odata.count": 300,
+             "value": [{"DeviceServiceTag": "ABC1234", "Id": 121, "Type": 1000},
+                       {"DeviceServiceTag": "SVCTAG1", "Id": 122, "Type": 1000}]}
+         },
+        {"message": INVALID_CATEGORY_MESSAGE, "success": True,
+         "mparams": {
+             "any_undiscovered_devices": True,
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "all devices coverage"
+         },
+         "get_alert_policies": [],
+         "json_data": {
+             "@odata.count": 300,
+             "value": [{"DeviceServiceTag": "ABC1234", "Id": 121, "Type": 1000},
+                       {"DeviceServiceTag": "SVCTAG1", "Id": 122, "Type": 1000}]}
+         },
+        {"message": INVALID_CATEGORY_MESSAGE, "success": True,
+         "mparams": {
+             "specific_undiscovered_devices": [
+                 "192.1.2.3-192.1.2.10",
+                 "192.2.3.4",
+                 "hostforpolicy.domain.com"
+             ],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "all devices coverage"
+         },
+         "get_alert_policies": [],
+         "json_data": {
+             "@odata.count": 300,
+             "value": [{"DeviceServiceTag": "ABC1234", "Id": 121, "Type": 1000},
+                       {"DeviceServiceTag": "SVCTAG1", "Id": 122, "Type": 1000}]}
+         },
+        {"message": INVALID_SCHEDULE, "success": True,
+         "mparams": {
+             "all_devices": True,
+             "message_file": "{0}/{1}".format(tempfile.gettempdir(), "myfile.csv"),
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "all devices coverage"
+         },
+         "get_alert_policies": [],
+         "create_temp_file": "MessageIds\nMSGID1",
+         "json_data": {
+             "@odata.count": 300,
+             "value": [{"MessageId": "MSGID1", "Id": 121, "Type": 1000},
+                       {"MessageId": "MSGID2", "Id": 122, "Type": 1000}]}
+         }
     ])
     def test_ome_alert_policies_state_present(self, params, ome_connection_mock_for_alert_policies,
                                               ome_response_mock, ome_default_args, module_mock, mocker):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params['json_data']
+        ome_connection_mock_for_alert_policies.get_all_items_with_pagination.return_value = params[
+            'json_data']
         ome_default_args.update(params['mparams'])
         mocks = ["get_alert_policies", "validate_ome_data",
                  "get_all_actions", "get_severity_payload", "get_category_data_tree"]
         for m in mocks:
             if m in params:
                 mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
+        if "create_temp_file" in params:
+            with open(f"{params['mparams'].get('message_file')}", 'w', encoding='utf-8') as fp:
+                fp.write(params["create_temp_file"])
         result = self._run_module(
             ome_default_args, check_mode=params.get('check_mode', False))
+        if "create_temp_file" in params:
+            fpath = f"{params['mparams'].get('message_file')}"
+            if os.path.exists(fpath):
+                os.remove(fpath)
         assert result['msg'] == params['message']
 
     @pytest.mark.parametrize("exc_type",

@@ -500,6 +500,29 @@ CATEGORY_URI = "AlertService/AlertCategories"
 SUCCESS_MSG = "Successfully completed the {0} alert policy operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
+INVALID_START_TIME = "Invalid value for date_from or time_from."
+INVALID_END_TIME = "Invalid value for date_to or time_to."
+START_CURR_TIME = "Start time or date must be greater than current time."
+END_START_TIME = "End time or date must be greater than start time."
+CATEGORY_FETCH_FAILED = "Failed to fetch Category details."
+INVALID_TARGETS = "No valid targets provided for alert policy creation."
+INVALID_CATEGORY_MESSAGE = "No valid categories or messages provided for alert policy creation."
+INVALID_SCHEDULE = "No valid schedule provided for alert policy creation."
+INVALID_ACTIONS = "No valid actions provided for alert policy creation."
+INVALID_SEVERITY = "No valid Severity is required for creation of policy."
+MULTIPLE_POLICIES = "More than one policy name provided for update."
+DISABLED_ACTION = "Action {0} is disabled. Please enable it before applying to the policy."
+ACTION_INVALID_PARAM = "Action {0} has invalid parameter names: {1}. Please provide valid parameters for this action. Valid values are: {2}."
+ACTION_INVALID_VALUE = "Action {0} has invalid value {1} for parameter {2}. Valid values are: {3}."
+ACTION_DIS_EXIST = "Action {0} does not exist."
+SUBCAT_IN_CATEGORY = "Sub category {0} in category {1} does not exist."
+CATEGORY_IN_CATALOG = "Category {0} in catalog {1} does not exist."
+OME_DATA_MSG = "{0} with {1} {2} do not exist."
+CATALOG_DIS_EXIST = "Catalog {0} does not exist."
+CSV_PATH = "Message file {0} does not exist."
+DEFAULT_POLICY_DELETE = "Default Policies {0} cannot be deleted."
+POLICY_ENABLE_MISSING = "Policies {0} do not exist for enabling or disabling."
+NO_POLICY_EXIST = "Policy does not exist."
 SEPARATOR = ", "
 
 
@@ -534,45 +557,42 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
     return_dict = {}
     for v in return_param_tuple:
         return_dict[v] = []
-    try:
-        resp = rest_obj.invoke_request("GET", ome_uri)
-        all_items = resp.json_data.get("value", [])
-        for dev in all_items:
-            k = dev.get(filter_param)
-            if k in mset:
-                for v in return_param_tuple:
-                    return_dict[v].append(dev.get(v))
-                mset.remove(k)
-        all_item_count = resp.json_data.get("@odata.count")
-        if mset and (all_item_count > len(all_items)):
-            if len(mset) < (all_item_count // 100):
-                # because filter supports only one item id at a time
-                collector = set()
-                for item_id in mset:
-                    query_param = {"$filter": f"{filter_param} eq '{item_id}'"}
-                    resp = rest_obj.invoke_request('GET', ome_uri, query_param=query_param)
-                    one_item = resp.json_data.get("value", [])
-                    for dev in one_item:
-                        k = dev.get(filter_param)
-                        if k in mset:
-                            for v in return_param_tuple:
-                                return_dict[v].append(dev.get(v))
-                            collector.add(k)
-                mset = mset - collector
-            else:
-                report = get_all_data_with_pagination(rest_obj, ome_uri)
-                all_items = report.get("report_list", [])
-                for dev in all_items:
+    resp = rest_obj.invoke_request("GET", ome_uri)
+    all_items = resp.json_data.get("value", [])
+    for dev in all_items:
+        k = dev.get(filter_param)
+        if k in mset:
+            for v in return_param_tuple:
+                return_dict[v].append(dev.get(v))
+            mset.remove(k)
+    all_item_count = resp.json_data.get("@odata.count")
+    if mset and (all_item_count > len(all_items)):
+        if len(mset) < (all_item_count // 100):
+            # because filter supports only one item id at a time
+            collector = set()
+            for item_id in mset:
+                query_param = {"$filter": f"{filter_param} eq '{item_id}'"}
+                resp = rest_obj.invoke_request('GET', ome_uri, query_param=query_param)
+                one_item = resp.json_data.get("value", [])
+                for dev in one_item:
                     k = dev.get(filter_param)
                     if k in mset:
                         for v in return_param_tuple:
                             return_dict[v].append(dev.get(v))
-                        mset.remove(k)
-        if mset:
-            module.exit_json(failed=True,
-                             msg=f"{item_name} with {filter_param} {SEPARATOR.join(mset)} do not exist.")
-    except Exception as err:
-        module.exit_json(failed=True, msg=f"Unable to fetch {filter_param}. {str(err)}")
+                        collector.add(k)
+            mset = mset - collector
+        else:
+            report = get_all_data_with_pagination(rest_obj, ome_uri)
+            all_items = report.get("report_list", [])
+            for dev in all_items:
+                k = dev.get(filter_param)
+                if k in mset:
+                    for v in return_param_tuple:
+                        return_dict[v].append(dev.get(v))
+                    mset.remove(k)
+    if mset:
+        module.exit_json(failed=True,
+                         msg=OME_DATA_MSG.format(item_name, filter_param, SEPARATOR.join(mset)))
     ret_list = [(return_dict[id]) for id in return_param_tuple]
     return tuple(ret_list)
 
@@ -659,22 +679,20 @@ def get_schedule_payload(module):
         try:
             start_time_x = datetime.strptime(start_time, time_format)
             if start_time_x < datetime.now():
-                module.exit_json(
-                    failed=True, msg="Start time or date must be greater than current time.")
+                module.exit_json(failed=True, msg=START_CURR_TIME)
             schedule_payload["StartTime"] = start_time
         except ValueError:
-            module.exit_json(failed=True, msg="Invalid value for date_from or time_from.")
+            module.exit_json(failed=True, msg=INVALID_START_TIME)
         schedule_payload["EndTime"] = ""
         if inp_schedule.get('date_to'):
             end_time = f"{inp_schedule.get('date_to')} {time_to}:00.000"
             try:
                 end_time_x = datetime.strptime(end_time, time_format)
                 if end_time_x < start_time_x:
-                    module.exit_json(
-                        failed=True, msg="End time must be greater than start time.")
+                    module.exit_json(failed=True, msg=END_START_TIME)
                 schedule_payload["EndTime"] = end_time
             except ValueError:
-                module.exit_json(failed=True, msg="Invalid value for date_to or time_to.")
+                module.exit_json(failed=True, msg=INVALID_END_TIME)
         weekdays = {'monday': 'mon', 'tuesday': 'tue', 'wednesday': 'wed', 'thursday': 'thu', 'friday': 'fri',
                     'saturday': 'sat', 'sunday': 'sun'}
         inp_week_list = ['*']
@@ -692,7 +710,6 @@ def get_actions_payload(module, rest_obj):
     inp_actions = module.params.get('actions')
     if inp_actions:
         ref_actions = get_all_actions(rest_obj)
-        # module.exit_json(xactiond=ref_actions)
         inp_dict = dict((x.get("action_name"), dict((y.get("name"), y.get(
             "value")) for y in x.get("parameters", []))) for x in inp_actions)
         if 'Ignore' in inp_dict:
@@ -706,31 +723,27 @@ def get_actions_payload(module, rest_obj):
                 if inp_k in ref_actions:
                     pld = {}
                     if ref_actions.get(inp_k).get('Disabled'):
-                        module.exit_json(
-                            failed=True, msg=f"Action {inp_k} is disabled. Please enable it before applying to the policy.")
+                        module.exit_json(failed=True, msg=DISABLED_ACTION.format(inp_k))
                     pld['TemplateId'] = ref_actions.get(inp_k).get('Id')
                     pld['Name'] = inp_k
                     diff = set(inp_val.keys()) - \
                         set(ref_actions.get(inp_k).get('Parameters').keys())
                     if diff:
                         module.exit_json(
-                            failed=True, msg=f"Action {inp_k} has invalid parameter names: {SEPARATOR.join(diff)}. "
-                            f"Please provide valid parameters for this action. "
-                            f"Valid values are: {SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())}.")
+                            failed=True,
+                            msg=ACTION_INVALID_PARAM.format(inp_k, SEPARATOR.join(diff), SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())))
                     for sub_k, sub_val in inp_val.items():
                         valid_values = ref_actions.get(inp_k).get('Type').get(sub_k)
                         if valid_values:
                             if str(sub_val).lower() not in valid_values:
                                 module.exit_json(
-                                    failed=True, msg=f"Action {inp_k} has invalid value {sub_val} for parameter {sub_k}. "
-                                    f"Valid values are: {SEPARATOR.join(valid_values)}.")
+                                    failed=True, msg=ACTION_INVALID_VALUE.format(inp_k, sub_val, sub_k, SEPARATOR.join(valid_values)))
                             else:
                                 inp_val[sub_k] = str(sub_val).lower() if str(sub_val).lower() in ("true", "false") else sub_val
                     pld['ParameterDetails'] = inp_val
                     action_payload[inp_k] = pld
                 else:
-                    module.exit_json(
-                        failed=True, msg=f"Action {inp_k} does not exist.")
+                    module.exit_json(failed=True, msg=ACTION_DIS_EXIST.format(inp_k))
     return {"Actions": action_payload} if action_payload else {}
 
 
@@ -742,7 +755,7 @@ def get_category_or_message(module, rest_obj):
         inp_catalog_list = module.params.get('category')
         cdict_ref = get_category_data_tree(rest_obj)
         if not cdict_ref:
-            module.exit_json(failed=True, msg="Failed to fetch Category details.")
+            module.exit_json(failed=True, msg=CATEGORY_FETCH_FAILED)
         payload_cat_list = []
         for inp_catalog in inp_catalog_list:
             new_dict = {}
@@ -771,21 +784,25 @@ def get_category_or_message(module, rest_obj):
                                     else:
                                         module.exit_json(
                                             failed=True,
-                                            msg=f"Sub category {sub_cat} in category {inp_category.get('category_name')} does not exist.")
+                                            msg=SUBCAT_IN_CATEGORY.format(
+                                                sub_cat, inp_category.get('category_name')
+                                            ))
                             else:
                                 payload_cat.append(key_id)
                                 payload_subcat.append(0)
                         else:
                             module.exit_json(
                                 failed=True,
-                                msg=f"Category {inp_category.get('category_name')} in catalog {catalog_name} does not exist.")
+                                msg=CATEGORY_IN_CATALOG.format(
+                                    inp_category.get('category_name'), catalog_name
+                                ))
                 else:
                     payload_cat.append(0)
                     payload_subcat.append(0)
                 new_dict["Categories"] = payload_cat
                 new_dict['SubCategories'] = payload_subcat
             else:
-                module.exit_json(failed=True, msg=f"Catalog {catalog_name} does not exist.")
+                module.exit_json(failed=True, msg=CATALOG_DIS_EXIST.format(catalog_name))
             payload_cat_list.append(new_dict)
         cat_dict = dict((x.get('CatalogName'), x) for x in payload_cat_list)
         cat_msg_provided = True
@@ -796,7 +813,7 @@ def get_category_or_message(module, rest_obj):
             csvpath = module.params.get('message_file')
             if not os.path.isfile(csvpath):
                 module.exit_json(
-                    failed=True, msg=f"Message file {csvpath} does not exist.")
+                    failed=True, msg=CSV_PATH.format(csvpath))
             with open(csvpath) as csvfile:
                 spamreader = csv.reader(csvfile)
                 for row in spamreader:
@@ -885,7 +902,6 @@ def compare_policy_payload(module, rest_obj, policy):
     new_policy_data = {}
     new_payload["PolicyData"] = new_policy_data
     transform_existing_policy_data(policy)
-    # module.exit_json(xpolicy=policy)
     payload_items = []
     payload_items.append(get_target_payload(module, rest_obj))
     payload_items.append(get_category_or_message(module, rest_obj))
@@ -921,23 +937,23 @@ def get_policy_data(module, rest_obj):
     policy_data = {}
     target = get_target_payload(module, rest_obj)
     if not target:
-        module.exit_json(failed=True, msg="No valid targets provided for alert policy creation.")
+        module.exit_json(failed=True, msg=INVALID_TARGETS)
     policy_data.update(target)
     cat_msg = get_category_or_message(module, rest_obj)
     if not cat_msg:
-        module.exit_json(failed=True, msg="No valid categories or messages provided for alert policy creation.")
+        module.exit_json(failed=True, msg=INVALID_CATEGORY_MESSAGE)
     policy_data.update(cat_msg)
     schedule = get_schedule_payload(module)
     if not schedule:
-        module.exit_json(failed=True, msg="No valid schedule provided for alert policy creation.")
+        module.exit_json(failed=True, msg=INVALID_SCHEDULE)
     policy_data.update(schedule)
     actions = get_actions_payload(module, rest_obj)
     if not actions:
-        module.exit_json(failed=True, msg="No valid actions provided for alert policy creation.")
+        module.exit_json(failed=True, msg=INVALID_ACTIONS)
     policy_data.update(actions)
     sev_payload = get_severity_payload(module, rest_obj)
     if not sev_payload.get('Severities'):
-        module.exit_json(failed=True, msg="Severity is required for creation of policy.")
+        module.exit_json(failed=True, msg=INVALID_SEVERITY)
     policy_data.update(sev_payload)
     return policy_data
 
@@ -947,7 +963,7 @@ def remove_policy(module, rest_obj, policies):
                for x in policies if x.get("DefaultPolicy") is False]
     if len(id_list) != len(policies):
         module.exit_json(failed=True,
-                         msg=f"Default Policies {SEPARATOR.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])} cannot be deleted.")
+                         msg=DEFAULT_POLICY_DELETE.format(SEPARATOR.join([x.get('Name') for x in policies if x.get('DefaultPolicy')])))
     if module.check_mode:
         module.exit_json(msg=CHANGES_MSG, changed=True)
     rest_obj.invoke_request("POST", REMOVE_URI, data={
@@ -1058,7 +1074,7 @@ def main():
                 if policies:
                     remove_policy(module, rest_obj, policies)
                 else:
-                    module.exit_json(msg="Policy does not exist.")
+                    module.exit_json(msg=NO_POLICY_EXIST)
             else:
                 present_args.remove('enable')
                 if not any(module.params.get(prm) is not None
@@ -1067,9 +1083,9 @@ def main():
                         enable_toggle_policy(module, rest_obj, policies)
                     else:
                         invalid_policies = set(name_list) - set(x.get("Name") for x in policies)
-                        module.exit_json(failed=True, msg=f"Policies {SEPARATOR.join(invalid_policies)} are invalid for enable.")
+                        module.exit_json(failed=True, msg=POLICY_ENABLE_MISSING.format(SEPARATOR.join(invalid_policies)))
                 if len(name_list) > 1:
-                    module.exit_json(failed=True, msg="More than one policy name provided for update.")
+                    module.exit_json(failed=True, msg=MULTIPLE_POLICIES)
                 if policies:
                     update_policy(module, rest_obj, policies[0])
                 else:
