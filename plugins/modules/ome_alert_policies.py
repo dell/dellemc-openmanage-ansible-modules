@@ -223,7 +223,7 @@ author: "Jagadeesh N V(@jagadeeshnv)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise
       or OpenManage Enterprise Modular.
-    - This module supports both IPv4 and IPv6 addresses.
+    - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
 '''
 
