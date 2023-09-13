@@ -58,17 +58,12 @@ options:
   volume_type:
     description:
       - One of the following volume types must be selected to create a volume.
-      - >-
-        C(Mirrored) The volume is a mirrored device.
-      - >-
-        C(NonRedundant) The volume is a non-redundant storage device.
-      - >-
-        C(SpannedMirrors) The volume is a spanned set of mirrored devices.
-      - >-
-        C(SpannedStripesWithParity) The volume is a spanned set of devices which uses parity to retain redundant
+      - C(NonRedundant) The volume is a non-redundant storage device.
+      - C(Mirrored) The volume is a mirrored device.
+      - C(StripedWithParity) The volume is a device which uses parity to retain redundant information.
+      - C(SpannedMirrors) The volume is a spanned set of mirrored devices.
+      - C(SpannedStripesWithParity) The volume is a spanned set of devices which uses parity to retain redundant
         information.
-      - >-
-        C(StripedWithParity) The volume is a device which uses parity to retain redundant information.
       - I(volume_type) is mutually exclusive with I(raid_type).
     type: str
     choices: [NonRedundant, Mirrored, StripedWithParity, SpannedMirrors, SpannedStripesWithParity]
@@ -128,9 +123,6 @@ options:
     default: Fast
   raid_type:
     description:
-      - One of the following raid types must be selected to
-        create a volume for firmware version 4.40 and above.
-      - I(raid_type) is mutually exclusive with I(volume_type).
       - C(RAID0) to create a RAID0 type volume.
       - C(RAID1) to create a RAID1 type volume.
       - C(RAID5) to create a RAID5 type volume.
@@ -138,6 +130,7 @@ options:
       - C(RAID10) to create a RAID10 type volume.
       - C(RAID50) to create a RAID50 type volume.
       - C(RAID60) to create a RAID60 type volume.
+      - I(raid_type) is mutually exclusive with I(volume_type).
     type: str
     choices: [RAID0, RAID1, RAID5, RAID6, RAID10, RAID50, RAID60]
     version_added: 8.3.0
@@ -152,9 +145,7 @@ notes:
     - This module supports C(check_mode).
     - This module always reports changes when I(name) and I(volume_id) are not specified.
       Either I(name) or I(volume_id) is required to support C(check_mode).
-    - Before Firmware Version 4.40, RAID type was set VolumeType in the payload,
-      after and from firmware Version 4.40 RAID can be set by RaidType in the
-      payload of redfish.
+    - This module supports IPv4 and IPv6 addresses.
 '''
 
 EXAMPLES = r'''
@@ -233,6 +224,24 @@ EXAMPLES = r'''
        - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
        - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
        - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+
+- name: Create a RAID60 volume
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID60"
+    drives:
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
 '''
 
 RETURN = r'''
@@ -295,6 +304,12 @@ VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
 storage_collection_map = {}
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
+RAID_TYPE_NOT_SUPPORTED_MSG = "RAID Type {raid_type} is not supported."
+volume_type_map = {"NonRedundant": "RAID0",
+                   "Mirrored": "RAID1",
+                   "StripedWithParity": "RAID5",
+                   "SpannedMirrors": "RAID10",
+                   "SpannedStripesWithParity": "RAID50"}
 
 
 def fetch_storage_resource(module, session_obj):
@@ -352,7 +367,7 @@ def volume_payload(module):
     if encryption_types:
         raid_payload.update({"EncryptionTypes": [encryption_types]})
     if volume_type:
-        raid_payload.update({"RAIDType": map_volume_type(volume_type)})
+        raid_payload.update({"RAIDType": volume_type_map[volume_type]})
     if raid_type:
         raid_payload.update({"RAIDType": raid_type})
     return raid_payload
@@ -511,7 +526,7 @@ def check_mode_validation(module, session_obj, action, uri):
 def check_raid_type_supported(module, session_obj):
     volume_type = module.params.get("volume_type")
     if volume_type:
-        raid_type = map_volume_type(volume_type)
+        raid_type = volume_type_map[volume_type]
     else:
         raid_type = module.params.get("raid_type")
     if raid_type:
@@ -521,7 +536,7 @@ def check_raid_type_supported(module, session_obj):
             resp = session_obj.invoke_request("GET", uri)
             supported_raid_types = resp.json_data['StorageControllers'][0]['SupportedRAIDTypes']
             if raid_type not in supported_raid_types:
-                module.exit_json(msg="RAID Type {0} is not supported".format(raid_type), failed=True)
+                module.exit_json(msg=RAID_TYPE_NOT_SUPPORTED_MSG.format(raid_type=raid_type), failed=True)
         except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
             raise err
 
@@ -641,13 +656,13 @@ def validate_inputs(module):
                          " volume_id must be specified to perform further actions.")
 
 
-def map_volume_type(volume_type):
-    volume_type_map = {"NonRedundant": "RAID0",
-                       "Mirrored": "RAID1",
-                       "StripedWithParity": "RAID5",
-                       "SpannedMirrors": "RAID10",
-                       "SpannedStripesWithParity": "RAID50"}
-    return volume_type_map[volume_type]
+# def map_volume_type(volume_type):
+#     volume_type_map = {"NonRedundant": "RAID0",
+#                        "Mirrored": "RAID1",
+#                        "StripedWithParity": "RAID5",
+#                        "SpannedMirrors": "RAID10",
+#                        "SpannedStripesWithParity": "RAID50"}
+#     return volume_type_map[volume_type]
 
 
 def main():
@@ -694,7 +709,9 @@ def main():
             module.exit_json(msg=status_message["msg"], task=task_status, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
-    except (URLError, SSLValidationError, ConnectionError, ImportError, ValueError,
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (SSLValidationError, ConnectionError, ImportError, ValueError,
             RuntimeError, TypeError, OSError, SSLError) as err:
         module.exit_json(msg=str(err), failed=True)
 

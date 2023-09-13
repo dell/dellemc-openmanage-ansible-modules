@@ -104,7 +104,10 @@ class TestStorageVolume(FakeAnsibleModule):
         result = self._run_module(redfish_default_args)
         assert 'task' not in result
         assert 'msg' in result
-        assert result['failed'] is True
+        if exc_type != URLError:
+            assert result['failed'] is True
+        else:
+            assert result['unreachable'] is True
         if exc_type == HTTPError:
             assert 'error_info' in result
 
@@ -695,7 +698,7 @@ class TestStorageVolume(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.check_raid_type_supported(f_module,
                                                   redfish_connection_mock_for_storage_volume)
-        assert exc.value.args[0] == "RAID Type RAID9 is not supported"
+        assert exc.value.args[0] == "RAID Type RAID9 is not supported."
 
     def test_check_raid_type_supported_exception_case(self, redfish_response_mock,
                                                       redfish_connection_mock_for_storage_volume,
