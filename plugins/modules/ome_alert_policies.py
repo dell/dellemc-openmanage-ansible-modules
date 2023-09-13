@@ -633,9 +633,14 @@ def get_all_actions(rest_obj):
     actions = resp.json_data.get("value", [])
     cmp_actions = dict((x.get("Name"), {"Id": x.get("Id"),
                                         "Disabled": x.get("Disabled"),
-                                        "Parameters": dict(
-                                            (y.get("Name"), y.get("Value")) for y in x.get("ParameterDetails")
-    )}) for x in actions)
+                                        "Parameters": dict((y.get("Name"), y.get("Value")) for y in x.get("ParameterDetails")),
+                                        "Type": dict((y.get("Name"),
+                                                      ["true", "false"]
+                                                      if y.get("Type") == "boolean"
+                                                      else [z.get("Value") for z in y.get("TemplateParameterTypeDetails")
+                                                            if y.get("Type") != "string"]) for y in x.get("ParameterDetails"))
+                                        }
+                        ) for x in actions)
     return cmp_actions
 
 
@@ -687,6 +692,7 @@ def get_actions_payload(module, rest_obj):
     inp_actions = module.params.get('actions')
     if inp_actions:
         ref_actions = get_all_actions(rest_obj)
+        # module.exit_json(xactiond=ref_actions)
         inp_dict = dict((x.get("action_name"), dict((y.get("name"), y.get(
             "value")) for y in x.get("parameters", []))) for x in inp_actions)
         if 'Ignore' in inp_dict:
@@ -711,6 +717,15 @@ def get_actions_payload(module, rest_obj):
                             failed=True, msg=f"Action {inp_k} has invalid parameter names: {SEPARATOR.join(diff)}. "
                             f"Please provide valid parameters for this action. "
                             f"Valid values are: {SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())}.")
+                    for sub_k, sub_val in inp_val.items():
+                        valid_values = ref_actions.get(inp_k).get('Type').get(sub_k)
+                        if valid_values:
+                            if str(sub_val).lower() not in valid_values:
+                                module.exit_json(
+                                    failed=True, msg=f"Action {inp_k} has invalid value {sub_val} for parameter {sub_k}. "
+                                    f"Valid values are: {SEPARATOR.join(valid_values)}.")
+                            else:
+                                inp_val[sub_k] = str(sub_val).lower() if str(sub_val).lower() in ("true", "false") else sub_val
                     pld['ParameterDetails'] = inp_val
                     action_payload[inp_k] = pld
                 else:
@@ -828,8 +843,13 @@ def transform_existing_policy_data(policy):
     actions = pdata.get('Actions')
     if actions:
         for action in actions:
-            action['ParameterDetails'] = dict((act_param.get('Name'), act_param.get('Value'))
-                                              for act_param in action.get('ParameterDetails', []))
+            if action.get('Name') == "RemoteCommand":
+                # Special case handling for RemoteCommand, appends 1 after every post call to "remotecommandaction"
+                action['ParameterDetails'] = dict((str(act_param.get('Name')).rstrip('1'), act_param.get('Value'))
+                                                  for act_param in action.get('ParameterDetails', []))
+            else:
+                action['ParameterDetails'] = dict((act_param.get('Name'), act_param.get('Value'))
+                                                  for act_param in action.get('ParameterDetails', []))
             action.pop('Id', None)
         pdata['Actions'] = dict((x.get('Name'), x) for x in actions)
     catalogs = pdata.get('Catalogs')
@@ -865,6 +885,7 @@ def compare_policy_payload(module, rest_obj, policy):
     new_policy_data = {}
     new_payload["PolicyData"] = new_policy_data
     transform_existing_policy_data(policy)
+    # module.exit_json(xpolicy=policy)
     payload_items = []
     payload_items.append(get_target_payload(module, rest_obj))
     payload_items.append(get_category_or_message(module, rest_obj))
@@ -877,6 +898,7 @@ def compare_policy_payload(module, rest_obj, policy):
             diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
             if diff_tuple:
                 if diff_tuple[0]:
+                    module.warn(f"PolicyData diff: {diff_tuple[0]}")
                     diff = diff + 1
                     policy['PolicyData'].update(payload)
     if module.params.get('new_name'):
