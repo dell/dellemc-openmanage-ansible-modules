@@ -1086,7 +1086,15 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          },
         {"message": DISABLED_ACTION.format("SMS"), "success": True,
          "mparams": {
-             "actions": actions,
+             "actions": [{
+                 "action_name": "SMS",
+                 "parameters": [
+                    {
+                        "name": "to",
+                        "value": "1234567890"
+                    }
+                 ]
+             }],
              "all_devices": True,
              "message_ids": ["MSG01", "MSG02"],
              "state": "present",
@@ -1101,113 +1109,6 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "json_data": {
              "value": [
                  {
-                     "Name": "Email",
-                     "Description": "Email",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": "subject",
-                             "Value": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         },
-                         {
-                             "Id": 2,
-                             "Name": "to",
-                             "Value": "",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         },
-                         {
-                             "Id": 3,
-                             "Name": "from",
-                             "Value": "admin@dell.com",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         },
-                         {
-                             "Id": 4,
-                             "Name": "message",
-                             "Value": "Event occurred for Device Name",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         }
-                     ]
-                 },
-                 {
-                     "@odata.type": "#AlertService.AlertActionTemplate",
-                     "@odata.id": "/api/AlertService/AlertActionTemplates(60)",
-                     "Id": 60,
-                     "Name": "Trap",
-                     "Description": "Trap",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": trap_ip1,
-                             "Value": "true",
-                             "Type": "boolean",
-                             "TemplateParameterTypeDetails": []
-                         },
-                         {
-                             "Id": 2,
-                             "Name": trap_ip2,
-                             "Value": "true",
-                             "Type": "boolean",
-                             "TemplateParameterTypeDetails": []
-                         }
-                     ]
-                 },
-                 {
-                     "@odata.type": "#AlertService.AlertActionTemplate",
-                     "@odata.id": "/api/AlertService/AlertActionTemplates(90)",
-                     "Id": 90,
-                     "Name": "Syslog",
-                     "Description": "Syslog",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": trap_ip3,
-                             "Value": "true",
-                             "Type": "boolean",
-                             "TemplateParameterTypeDetails": []
-                         }
-                     ]
-                 },
-                 {
-                     "@odata.type": "#AlertService.AlertActionTemplate",
-                     "@odata.id": "/api/AlertService/AlertActionTemplates(100)",
-                     "Id": 100,
-                     "Name": "Ignore",
-                     "Description": "Ignore",
-                     "Disabled": False,
-                     "ParameterDetails": []
-                 },
-                 {
-                     "@odata.type": "#AlertService.AlertActionTemplate",
-                     "@odata.id": "/api/AlertService/AlertActionTemplates(70)",
                      "Id": 70,
                      "Name": "SMS",
                      "Description": "SMS",
@@ -1228,64 +1129,6 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                      ]
                  },
                  {
-                     "@odata.type": "#AlertService.AlertActionTemplate",
-                     "@odata.id": "/api/AlertService/AlertActionTemplates(110)",
-                     "Id": 110,
-                     "Name": "PowerControl",
-                     "Description": "Power Control Action Template",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": "powercontrolaction",
-                             "Value": "poweroff",
-                             "Type": "singleSelect",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "option",
-                                     "Value": "powercycle"
-                                 },
-                                 {
-                                     "Name": "option",
-                                     "Value": "poweroff"
-                                 },
-                                 {
-                                     "Name": "option",
-                                     "Value": "poweron"
-                                 },
-                                 {
-                                     "Name": "option",
-                                     "Value": "gracefulshutdown"
-                                 }
-                             ]
-                         }
-                     ]
-                 },
-                 {
-                     "@odata.type": "#AlertService.AlertActionTemplate",
-                     "@odata.id": "/api/AlertService/AlertActionTemplates(111)",
-                     "Id": 111,
-                     "Name": "RemoteCommand",
-                     "Description": "RemoteCommand",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": "remotecommandaction",
-                             "Value": "test",
-                             "Type": "singleSelect",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "option",
-                                     "Value": "test"
-                                 }
-                             ]
-                         }
-                     ]
-                 },
-                 {
-                     "@odata.type": "#AlertService.AlertActionTemplate",
-                     "@odata.id": "/api/AlertService/AlertActionTemplates(112)",
                      "Id": 112,
                      "Name": "Mobile",
                      "Description": "Mobile",
@@ -1293,11 +1136,67 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                      "ParameterDetails": []
                  }
              ]
+        }
+        },
+        {"message": ACTION_INVALID_PARAM.format("Trap", "traphost2:162", "traphost1:162"), "success": True,
+         "mparams": {
+             "actions": [{
+                 "action_name": "Trap",
+                 "parameters": [
+                    {
+                        "name": trap_ip2,
+                        "value": "True"
+                    }
+                 ]
+             }],
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_all_actions coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
+            "get_schedule_payload": {"StartTime": "", "EndTime": ""},
+            "get_severity_payload": {},
+            "json_data": {
+             "value": [
+                 {
+                     "Id": 60,
+                     "Name": "Trap",
+                     "Description": "Trap",
+                     "Disabled": False,
+                     "ParameterDetails": [
+                         {
+                             "Id": 1,
+                             "Name": trap_ip1,
+                             "Value": "true",
+                             "Type": "boolean",
+                             "TemplateParameterTypeDetails": []
+                         }
+                     ]
+                 },
+                 {
+                     "Id": 100,
+                     "Name": "Ignore",
+                     "Description": "Ignore",
+                     "Disabled": False,
+                     "ParameterDetails": []
+                 }]
         }
         },
-        {"message": ACTION_INVALID_PARAM.format("Trap", "traphost2:162", "traphost1:162"), "success": True,
+        {"message": ACTION_INVALID_VALUE.format("Trap", "Truthy", "traphost1:162", "true, false"), "success": True,
          "mparams": {
-             "actions": actions,
+             "actions": [{
+                 "action_name": "Trap",
+                 "parameters": [
+                    {
+                        "name": trap_ip1,
+                        "value": "Truthy"
+                    }
+                 ]
+             }],
              "all_devices": True,
              "message_ids": ["MSG01", "MSG02"],
              "state": "present",
@@ -1311,61 +1210,6 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "get_severity_payload": {},
             "json_data": {
              "value": [
-                 {
-                     "Name": "Email",
-                     "Description": "Email",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": "subject",
-                             "Value": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         },
-                         {
-                             "Id": 2,
-                             "Name": "to",
-                             "Value": "",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         },
-                         {
-                             "Id": 3,
-                             "Name": "from",
-                             "Value": "admin@dell.com",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         },
-                         {
-                             "Id": 4,
-                             "Name": "message",
-                             "Value": "Event occurred for Device Name",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         }
-                     ]
-                 },
                  {
                      "Id": 60,
                      "Name": "Trap",
@@ -1382,107 +1226,12 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                      ]
                  },
                  {
-                     "Id": 90,
-                     "Name": "Syslog",
-                     "Description": "Syslog",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": trap_ip3,
-                             "Value": "true",
-                             "Type": "boolean",
-                             "TemplateParameterTypeDetails": []
-                         }
-                     ]
-                 },
-                 {
                      "Id": 100,
                      "Name": "Ignore",
                      "Description": "Ignore",
                      "Disabled": False,
                      "ParameterDetails": []
-                 },
-                 {
-                     "Id": 70,
-                     "Name": "SMS",
-                     "Description": "SMS",
-                     "Disabled": True,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": "to",
-                             "Value": "",
-                             "Type": "string",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "maxLength",
-                                     "Value": "255"
-                                 }
-                             ]
-                         }
-                     ]
-                 },
-                 {
-                     "Id": 110,
-                     "Name": "PowerControl",
-                     "Description": "Power Control Action Template",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": "powercontrolaction",
-                             "Value": "poweroff",
-                             "Type": "singleSelect",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "option",
-                                     "Value": "powercycle"
-                                 },
-                                 {
-                                     "Name": "option",
-                                     "Value": "poweroff"
-                                 },
-                                 {
-                                     "Name": "option",
-                                     "Value": "poweron"
-                                 },
-                                 {
-                                     "Name": "option",
-                                     "Value": "gracefulshutdown"
-                                 }
-                             ]
-                         }
-                     ]
-                 },
-                 {
-                     "Id": 111,
-                     "Name": "RemoteCommand",
-                     "Description": "RemoteCommand",
-                     "Disabled": False,
-                     "ParameterDetails": [
-                         {
-                             "Id": 1,
-                             "Name": "remotecommandaction",
-                             "Value": "test",
-                             "Type": "singleSelect",
-                             "TemplateParameterTypeDetails": [
-                                 {
-                                     "Name": "option",
-                                     "Value": "test"
-                                 }
-                             ]
-                         }
-                     ]
-                 },
-                 {
-                     "Id": 112,
-                     "Name": "Mobile",
-                     "Description": "Mobile",
-                     "Disabled": False,
-                     "ParameterDetails": []
-                 }
-             ]
+                 }]
         }
         },
         {"message": INVALID_START_TIME.format("2023-20-01 11:00:00.000"), "success": True,
