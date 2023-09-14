@@ -912,7 +912,7 @@ def compare_policy_payload(module, rest_obj, policy):
             diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
             if diff_tuple:
                 if diff_tuple[0]:
-                    module.warn(f"PolicyData diff: {diff_tuple[0]}")
+                    # module.warn(f"PolicyData diff: {diff_tuple[0]}")
                     diff = diff + 1
                     policy['PolicyData'].update(payload)
     if module.params.get('new_name'):

@@ -129,287 +129,85 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             ome_default_args, check_mode=params.get('check_mode', False))
         assert result['msg'] == params['message']
 
-    @pytest.mark.parametrize("params", [
-        {"message": SUCCESS_MSG.format("create"), "success": True,
-         "mparams": {
-             "actions": [
-                 {
-                     "action_name": "Trap",
-                     "parameters": [
-                         {
-                             "name": "192.1.1.1:162",
-                             "value": "True"
-                         }
-                     ]
-                 },
-                 {
-                     "action_name": "Mobile",
-                     "parameters": []
-                 },
-                 {
-                     "action_name": "Email",
-                     "parameters": [
-                         {
-                             "name": "to",
-                             "value": "email2@address.x"
-                         },
-                         {
-                             "name": "from",
-                             "value": "emailr@address.y"
-                         },
-                         {
-                             "name": "subject",
-                             "value": "test subject"
-                         },
-                         {
-                             "name": "message",
-                             "value": "test message"
-                         }
-                     ]
-                 },
-                 {
-                     "action_name": "SMS",
-                     "parameters": [
-                         {
-                             "name": "to",
-                             "value": "1234567890"
-                         }
-                     ]
-                 }
-             ],
-             "date_and_time": {
-                 "date_from": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
-                 "date_to": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d"),
-                 "days": [
-                     "sunday",
-                     "monday"
-                 ],
-                 "time_from": "11:00",
-                 "time_to": "12:00",
-                 "time_interval": True
-             },
-             "description": "Description of Alert Policy One",
-             "device_group": [
-                 "AX",
-                 "Linux Servers"
-             ],
-             "enable": True,
-             "message_ids": [
-                 "AMP400",
-                 "CTL201",
-                 "AMP401"
-             ],
-             "name": [
-                 "Alert Policy One"
-             ],
-             "severity": [
-                 "unknown"
-             ],
-             "state": "present"
+    create_input = {
+        "actions": [
+            {
+                "action_name": "Trap",
+                "parameters": [
+                    {
+                        "name": "192.1.1.1:162",
+                        "value": "True"
+                    }
+                ]
+            },
+            {
+                "action_name": "Mobile",
+                "parameters": []
+            },
+            {
+                "action_name": "Email",
+                "parameters": [
+                    {
+                        "name": "to",
+                        "value": "email2@address.x"
+                    },
+                    {
+                        "name": "from",
+                        "value": "emailr@address.y"
+                    },
+                    {
+                        "name": "subject",
+                        "value": "test subject"
+                    },
+                    {
+                        "name": "message",
+                        "value": "test message"
+                    }
+                ]
+            },
+            {
+                "action_name": "SMS",
+                "parameters": [
+                    {
+                        "name": "to",
+                        "value": "1234567890"
+                    }
+                ]
+            }
+        ],
+        "date_and_time": {
+            "date_from": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
+            "date_to": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d"),
+            "days": [
+                "sunday",
+                "monday"
+            ],
+            "time_from": "11:00",
+            "time_to": "12:00",
+            "time_interval": True
         },
-            "get_alert_policies": [],
-            "validate_ome_data": (["AMP400", "AMP401", "CTL201"],),
-            "get_severity_payload": {"Severities": ["unknown"]},
-            "get_all_actions": {
-             "Email": {
-                 "Disabled": False,
-                 "Id": 50,
-                 "Parameters": {
-                     "from": "admin@dell.com",
-                     "message": "Event occurred for Device Name",
-                     "subject": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
-                     "to": ""
-                 },
-                 "Type": {
-                     "from": [],
-                     "message": [],
-                     "subject": [],
-                     "to": []
-                 }
-             },
-             "Ignore": {
-                 "Disabled": False,
-                 "Id": 100,
-                 "Parameters": {},
-                 "Type": {}
-             },
-             "Mobile": {
-                 "Disabled": False,
-                 "Id": 112,
-                 "Parameters": {},
-                 "Type": {}
-             },
-             "PowerControl": {
-                 "Disabled": False,
-                 "Id": 110,
-                 "Parameters": {
-                     "powercontrolaction": "poweroff"
-                 },
-                 "Type": {
-                     "powercontrolaction": [
-                         "powercycle",
-                         "poweroff",
-                         "poweron",
-                         "gracefulshutdown"
-                     ]
-                 }
-             },
-             "RemoteCommand": {
-                 "Disabled": False,
-                 "Id": 111,
-                 "Parameters": {
-                     "remotecommandaction": "test"
-                 },
-                 "Type": {
-                     "remotecommandaction": [
-                         "test",
-                         "cmd2 : 100.96.32.135"
-                     ]
-                 }
-             },
-             "SMS": {
-                 "Disabled": False,
-                 "Id": 70,
-                 "Parameters": {
-                     "to": ""
-                 },
-                 "Type": {
-                     "to": []
-                 }
-             },
-             "Syslog": {
-                 "Disabled": False,
-                 "Id": 90,
-                 "Parameters": {
-                     "100.95.21.15:514": "true"
-                 },
-                 "Type": {
-                     "100.95.21.15:514": [
-                         "true",
-                         "false"
-                     ]
-                 }
-             },
-             "Trap": {
-                 "Disabled": False,
-                 "Id": 60,
-                 "Parameters": {
-                     "100.97.1.185:162": "true",
-                     "192.1.1.1:162": "true"
-                 },
-                 "Type": {
-                     "100.97.1.185:162": [
-                         "true",
-                         "false"
-                     ],
-                     "192.1.1.1:162": [
-                         "true",
-                         "false"
-                     ]
-                 }
-             }
-        },
-            "json_data": {"value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]}},
-        {"message": SUCCESS_MSG.format("update"), "success": True,
-         "mparams": {
-             "actions": [
-                 {
-                     "action_name": "Trap",
-                     "parameters": [
-                         {
-                             "name": "192.1.1.1:162",
-                             "value": "True"
-                         }
-                     ]
-                 },
-                 {
-                     "action_name": "Mobile",
-                     "parameters": []
-                 },
-                 {
-                     "action_name": "Email",
-                     "parameters": [
-                         {
-                             "name": "to",
-                             "value": "email2@address.x"
-                         },
-                         {
-                             "name": "from",
-                             "value": "emailr@address.y"
-                         },
-                         {
-                             "name": "subject",
-                             "value": "test subject"
-                         },
-                         {
-                             "name": "message",
-                             "value": "test message"
-                         }
-                     ]
-                 },
-                 {
-                     "action_name": "SMS",
-                     "parameters": [
-                         {
-                             "name": "to",
-                             "value": "1234567890"
-                         }
-                     ]
-                 }
-             ],
-             "date_and_time": {
-                 "date_from": "2023-10-01",
-                 "date_to": "2023-10-02",
-                 "days": [
-                     "sunday",
-                     "monday"
-                 ],
-                 "time_from": "11:00",
-                 "time_to": "12:00",
-                 "time_interval": True
-             },
-             "description": "Description of Alert Policy One",
-             "device_group": [
-                 "AX",
-                 "Linux Servers"
-             ],
-             "enable": True,
-             "category": [
-                 {
-                     "catalog_category": [
-                         {
-                             "category_name": "Audit",
-                             "sub_category_names": [
-                                 "Users",
-                                 "Generic"
-                             ]
-                         }
-                     ],
-                     "catalog_name": "Application"
-                 },
-                 {
-                     "catalog_category": [
-                         {
-                             "category_name": "Storage",
-                             "sub_category_names": [
-                                 "Other"
-                             ]
-                         }
-                     ],
-                     "catalog_name": "Dell Storage"
-                 }
-             ],
-             "name": [
-                 "Alert Policy One"
-             ],
-             "severity": [
-                 "unknown"
-             ],
-             "state": "present"
-        },
-            "get_alert_policies": [{
-                "Id": 24792,
-                "Name": "Alert Policy One",
+        "description": "Description of Alert Policy One",
+        "device_group": [
+            "AX",
+            "Linux Servers"
+        ],
+        "enable": True,
+        "message_ids": [
+            "AMP400",
+            "CTL201",
+            "AMP401"
+        ],
+        "name": [
+            "Alert Policy One"
+        ],
+        "severity": [
+            "unknown"
+        ],
+        "state": "present"
+    }
+    get_alert_policy = [{
+        "Id": 24792,
+        "Name": "Alert Policy One",
                 "Description": "CREATIOn of Alert Policy One",
                 "Enabled": True,
                 "DefaultPolicy": False,
@@ -461,195 +259,208 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                     "AllTargets": False,
                     "UndiscoveredTargets": []
                 },
-                "State": True,
-                "Owner": 10078
-            }],
+        "State": True,
+        "Owner": 10078
+    }]
+    get_all_actions = {
+        "Email": {
+            "Disabled": False,
+            "Id": 50,
+            "Parameters": {
+                "from": "admin@dell.com",
+                "message": "Event occurred for Device Name",
+                "subject": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
+                "to": ""
+            },
+            "Type": {
+                "from": [],
+                "message": [],
+                "subject": [],
+                "to": []
+            }
+        },
+        "Ignore": {
+            "Disabled": False,
+            "Id": 100,
+            "Parameters": {},
+            "Type": {}
+        },
+        "Mobile": {
+            "Disabled": False,
+            "Id": 112,
+            "Parameters": {},
+            "Type": {}
+        },
+        "PowerControl": {
+            "Disabled": False,
+            "Id": 110,
+            "Parameters": {
+                "powercontrolaction": "poweroff"
+            },
+            "Type": {
+                "powercontrolaction": [
+                    "powercycle",
+                    "poweroff",
+                    "poweron",
+                    "gracefulshutdown"
+                ]
+            }
+        },
+        "RemoteCommand": {
+            "Disabled": False,
+            "Id": 111,
+            "Parameters": {
+                "remotecommandaction": "test"
+            },
+            "Type": {
+                "remotecommandaction": [
+                    "test",
+                    "cmd2 : 100.96.32.135"
+                ]
+            }
+        },
+        "SMS": {
+            "Disabled": False,
+            "Id": 70,
+            "Parameters": {
+                "to": ""
+            },
+            "Type": {
+                "to": []
+            }
+        },
+        "Syslog": {
+            "Disabled": False,
+            "Id": 90,
+            "Parameters": {
+                "100.95.21.15:514": "true"
+            },
+            "Type": {
+                "100.95.21.15:514": [
+                    "true",
+                    "false"
+                ]
+            }
+        },
+        "Trap": {
+            "Disabled": False,
+            "Id": 60,
+            "Parameters": {
+                "100.97.1.185:162": "true",
+                "192.1.1.1:162": "true"
+            },
+            "Type": {
+                "100.97.1.185:162": [
+                    "true",
+                    "false"
+                ],
+                "192.1.1.1:162": [
+                    "true",
+                    "false"
+                ]
+            }
+        }
+    }
+
+    @pytest.mark.parametrize("params", [
+        {"message": SUCCESS_MSG.format("create"), "success": True,
+         "mparams": create_input,
+            "get_alert_policies": [],
+            "validate_ome_data": (["AMP400", "AMP401", "CTL201"],),
+            "get_severity_payload": {"Severities": ["unknown"]},
+            "get_all_actions": get_all_actions,
+            "json_data": {"value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]}},
+        {"message": SUCCESS_MSG.format("update"), "success": True,
+         "mparams": create_input,
+            "get_alert_policies": get_alert_policy,
             "validate_ome_data": (["AMP400", "AMP401", "CTL201"],),
             "get_category_data_tree": {
-             'Application': {
-                 'Audit': {
-                     4: {
-                         'Devices': 90,
-                         'Generic': 10,
-                         'Power Configuration': 151,
-                         'Users': 35
-                     }
-                 },
-                 'Configuration': {
-                     5: {
-                         'Application': 85,
-                         'Device Warranty': 116,
-                         'Devices': 90,
-                         'Discovery': 36
-                     }
-                 },
-                 'Miscellaneous': {
-                     7: {
-                         'Miscellaneous': 20
-                     }
-                 },
-                 'Storage': {
-                     2: {
-                         'Devices': 90
-                     }
-                 },
-                 'System Health': {
-                     1: {
-                         'Devices': 90,
-                         'Health Status of Managed device': 7400,
-                         'Job': 47,
-                         'Metrics': 118,
-                         'Power Configuration': 151
-                     }
-                 },
-                 'Updates': {
-                     3: {
-                         'Application': 85,
-                         'Firmware': 112
-                     }
-                 }
-             },
-             'Dell Storage': {
-                 'Storage': {
-                     2: {
-                         'Other': 7700
-                     }
-                 },
-                 'System Health': {
-                     1: {
-                         'Other': 7700,
-                         'Storage': 18
-                     }
-                 }
-             }},
-            "get_all_actions": {
-             "Email": {
-                 "Disabled": False,
-                 "Id": 50,
-                 "Parameters": {
-                     "from": "admin@dell.com",
-                     "message": "Event occurred for Device Name",
-                     "subject": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
-                     "to": ""
-                 },
-                 "Type": {
-                     "from": [],
-                     "message": [],
-                     "subject": [],
-                     "to": []
-                 }
-             },
-             "Ignore": {
-                 "Disabled": False,
-                 "Id": 100,
-                 "Parameters": {},
-                 "Type": {}
-             },
-             "Mobile": {
-                 "Disabled": False,
-                 "Id": 112,
-                 "Parameters": {},
-                 "Type": {}
-             },
-             "PowerControl": {
-                 "Disabled": False,
-                 "Id": 110,
-                 "Parameters": {
-                     "powercontrolaction": "poweroff"
-                 },
-                 "Type": {
-                     "powercontrolaction": [
-                         "powercycle",
-                         "poweroff",
-                         "poweron",
-                         "gracefulshutdown"
-                     ]
-                 }
-             },
-             "RemoteCommand": {
-                 "Disabled": False,
-                 "Id": 111,
-                 "Parameters": {
-                     "remotecommandaction": "test"
-                 },
-                 "Type": {
-                     "remotecommandaction": [
-                         "test",
-                         "cmd2 : 100.96.32.135"
-                     ]
-                 }
-             },
-             "SMS": {
-                 "Disabled": False,
-                 "Id": 70,
-                 "Parameters": {
-                     "to": ""
-                 },
-                 "Type": {
-                     "to": []
-                 }
-             },
-             "Syslog": {
-                 "Disabled": False,
-                 "Id": 90,
-                 "Parameters": {
-                     "100.95.21.15:514": "true"
-                 },
-                 "Type": {
-                     "100.95.21.15:514": [
-                         "true",
-                         "false"
-                     ]
-                 }
-             },
-             "Trap": {
-                 "Disabled": False,
-                 "Id": 60,
-                 "Parameters": {
-                     "100.97.1.185:162": "true",
-                     "192.1.1.1:162": "true"
-                 },
-                 "Type": {
-                     "100.97.1.185:162": [
-                         "true",
-                         "false"
-                     ],
-                     "192.1.1.1:162": [
-                         "true",
-                         "false"
-                     ]
-                 }
-             }
-        },
+            'Application': {
+                'Audit': {
+                    4: {
+                        'Devices': 90,
+                        'Generic': 10,
+                        'Power Configuration': 151,
+                        'Users': 35
+                    }
+                },
+                'Configuration': {
+                    5: {
+                        'Application': 85,
+                        'Device Warranty': 116,
+                        'Devices': 90,
+                        'Discovery': 36
+                    }
+                },
+                'Miscellaneous': {
+                    7: {
+                        'Miscellaneous': 20
+                    }
+                },
+                'Storage': {
+                    2: {
+                        'Devices': 90
+                    }
+                },
+                'System Health': {
+                    1: {
+                        'Devices': 90,
+                        'Health Status of Managed device': 7400,
+                        'Job': 47,
+                        'Metrics': 118,
+                        'Power Configuration': 151
+                    }
+                },
+                'Updates': {
+                    3: {
+                        'Application': 85,
+                        'Firmware': 112
+                    }
+                }
+            },
+            'Dell Storage': {
+                'Storage': {
+                    2: {
+                        'Other': 7700
+                    }
+                },
+                'System Health': {
+                    1: {
+                        'Other': 7700,
+                        'Storage': 18
+                    }
+                }
+            }},
+            "get_all_actions": get_all_actions,
             "json_data": {
-             "value": [
-                 {
+            "value": [
+                {
 
-                     "Id": 1,
-                     "Name": "Unknown",
-                     "Description": "Unknown"
-                 },
-                 {
-                     "Id": 2,
-                     "Name": "Info",
-                     "Description": "Info"
-                 },
-                 {
-                     "Id": 4,
-                     "Name": "Normal",
-                     "Description": "Normal"
-                 },
-                 {
-                     "Id": 8,
-                     "Name": "Warning",
-                     "Description": "Warning"
-                 },
-                 {
-                     "Id": 16,
-                     "Name": "Critical",
-                     "Description": "Critical"
-                 }
-             ]
+                    "Id": 1,
+                    "Name": "Unknown",
+                    "Description": "Unknown"
+                },
+                {
+                    "Id": 2,
+                    "Name": "Info",
+                    "Description": "Info"
+                },
+                {
+                    "Id": 4,
+                    "Name": "Normal",
+                    "Description": "Normal"
+                },
+                {
+                    "Id": 8,
+                    "Name": "Warning",
+                    "Description": "Warning"
+                },
+                {
+                    "Id": 16,
+                    "Name": "Critical",
+                    "Description": "Critical"
+                }
+            ]
         }},
         {"message": SUCCESS_MSG.format("update"), "success": True,
          "mparams": {
@@ -708,63 +519,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
              ],
              "state": "present"
         },
-            "get_alert_policies": [{
-                "Id": 24792,
-                "Name": "Alert Policy One",
-                "Description": "CREATIOn of Alert Policy One",
-                "Enabled": True,
-                "DefaultPolicy": False,
-                "Editable": True,
-                "Visible": True,
-                "PolicyData": {
-                    "Catalogs": [],
-                    "Severities": [
-                        1
-                    ],
-                    "MessageIds": [
-                        "'AMP401'",
-                        "'AMP400'",
-                        "'CTL201'"
-                    ],
-                    "Devices": [],
-                    "DeviceTypes": [],
-                    "Groups": [
-                        1011,
-                        1033
-                    ],
-                    "Schedule": {
-                        "StartTime": "2023-10-09 00:00:00.000",
-                        "EndTime": "2023-10-11 00:00:00.000",
-                        "CronString": "* * * ? * mon,sun *",
-                        "Interval": False
-                    },
-                    "Actions": [
-                        {
-                            "Id": 499,
-                            "Name": "RemoteCommand",
-                            "ParameterDetails": [
-                                {
-                                    "Id": 0,
-                                    "Name": "remotecommandaction1",
-                                    "Value": "test",
-                                    "Type": "singleSelect",
-                                    "TypeParams": [
-                                        {
-                                            "Name": "option",
-                                            "Value": "test"
-                                        }
-                                    ]
-                                }
-                            ],
-                            "TemplateId": 111
-                        }
-                    ],
-                    "AllTargets": False,
-                    "UndiscoveredTargets": []
-                },
-                "State": True,
-                "Owner": 10078
-            }],
+            "get_alert_policies": get_alert_policy,
             "validate_ome_data": (["AMP400", "AMP401", "CTL201"],),
             "get_category_data_tree": {
              'Application': {
@@ -838,21 +593,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  }
              },
         },
-            "get_all_actions": {'Email': {'Id': 50, 'Disabled': False,
-                                          'Parameters': {
-                                              'subject': 'Device Name', 'to': '',
-                                              'from': 'admin@dell.com',
-                                              'message': "Event occurred for Device Name"}},
-                                "Trap": {'Id': 60, 'Disabled': False,
-                                         'Parameters': {'192.97.1.185:162': 'True', '192.1.1.1:162': 'True'}},
-                                'Syslog': {'Id': 90, 'Disabled': False, 'Parameters': {'100.95.21.15:514': 'True'}},
-                                'Ignore': {'Id': 100, 'Disabled': False, 'Parameters': {}},
-                                'SMS': {'Id': 70, 'Disabled': False, 'Parameters': {'to': ''}},
-                                'PowerControl': {'Id': 110, 'Disabled': False,
-                                                 'Parameters': {'powercontrolaction': 'poweroff'}},
-                                'RemoteCommand': {'Id': 111, 'Disabled': False,
-                                                  'Parameters': {'remotecommandaction': 'test'}},
-                                'Mobile': {'Id': 112, 'Disabled': False, 'Parameters': {}}},
+            "get_all_actions": get_all_actions,
             "json_data": {"value": []}
         },
         {"message": OME_DATA_MSG.format("Groups", "Name", "Linux Servers"), "success": True,
@@ -864,63 +605,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
              "state": "present",
              "name": "Test alert policy"
         },
-            "get_alert_policies": [{
-                "Id": 24792,
-                "Name": "Alert Policy One",
-                "Description": "CREATIOn of Alert Policy One",
-                "Enabled": True,
-                "DefaultPolicy": False,
-                "Editable": True,
-                "Visible": True,
-                "PolicyData": {
-                    "Catalogs": [],
-                    "Severities": [
-                        1
-                    ],
-                    "MessageIds": [
-                        "'AMP401'",
-                        "'AMP400'",
-                        "'CTL201'"
-                    ],
-                    "Devices": [],
-                    "DeviceTypes": [],
-                    "Groups": [
-                        1011,
-                        1033
-                    ],
-                    "Schedule": {
-                        "StartTime": "2023-10-09 00:00:00.000",
-                        "EndTime": "2023-10-11 00:00:00.000",
-                        "CronString": "* * * ? * mon,sun *",
-                        "Interval": False
-                    },
-                    "Actions": [
-                        {
-                            "Id": 499,
-                            "Name": "RemoteCommand",
-                            "ParameterDetails": [
-                                {
-                                    "Id": 0,
-                                    "Name": "remotecommandaction1",
-                                    "Value": "test",
-                                    "Type": "singleSelect",
-                                    "TypeParams": [
-                                        {
-                                            "Name": "option",
-                                            "Value": "test"
-                                        }
-                                    ]
-                                }
-                            ],
-                            "TemplateId": 111
-                        }
-                    ],
-                    "AllTargets": False,
-                    "UndiscoveredTargets": []
-                },
-                "State": True,
-                "Owner": 10078
-            }],
+            "get_alert_policies": get_alert_policy,
             "json_data": {
              "@odata.count": 102,
              "value": [{"Name": "AX", "Id": 121},
