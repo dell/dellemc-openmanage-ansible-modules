@@ -129,52 +129,53 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             ome_default_args, check_mode=params.get('check_mode', False))
         assert result['msg'] == params['message']
 
+    actions = [
+        {
+            "action_name": "Trap",
+            "parameters": [
+                {
+                    "name": "192.1.1.1:162",
+                    "value": "True"
+                }
+            ]
+        },
+        {
+            "action_name": "Mobile",
+            "parameters": []
+        },
+        {
+            "action_name": "Email",
+            "parameters": [
+                {
+                    "name": "to",
+                    "value": "email2@address.x"
+                },
+                {
+                    "name": "from",
+                    "value": "emailr@address.y"
+                },
+                {
+                    "name": "subject",
+                    "value": "test subject"
+                },
+                {
+                    "name": "message",
+                    "value": "test message"
+                }
+            ]
+        },
+        {
+            "action_name": "SMS",
+            "parameters": [
+                {
+                    "name": "to",
+                    "value": "1234567890"
+                }
+            ]
+        }
+    ]
     create_input = {
-        "actions": [
-            {
-                "action_name": "Trap",
-                "parameters": [
-                    {
-                        "name": "192.1.1.1:162",
-                        "value": "True"
-                    }
-                ]
-            },
-            {
-                "action_name": "Mobile",
-                "parameters": []
-            },
-            {
-                "action_name": "Email",
-                "parameters": [
-                    {
-                        "name": "to",
-                        "value": "email2@address.x"
-                    },
-                    {
-                        "name": "from",
-                        "value": "emailr@address.y"
-                    },
-                    {
-                        "name": "subject",
-                        "value": "test subject"
-                    },
-                    {
-                        "name": "message",
-                        "value": "test message"
-                    }
-                ]
-            },
-            {
-                "action_name": "SMS",
-                "parameters": [
-                    {
-                        "name": "to",
-                        "value": "1234567890"
-                    }
-                ]
-            }
-        ],
+        "actions": actions,
         "date_and_time": {
             "date_from": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
             "date_to": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d"),
@@ -911,51 +912,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          },
         {"message": INVALID_SEVERITY, "success": True,
          "mparams": {
-             "actions": [
-                 {
-                     "action_name": "Trap",
-                     "parameters": [
-                         {
-                             "name": "192.1.1.1:162",
-                             "value": "True"
-                         }
-                     ]
-                 },
-                 {
-                     "action_name": "Mobile",
-                     "parameters": []
-                 },
-                 {
-                     "action_name": "Email",
-                     "parameters": [
-                         {
-                             "name": "to",
-                             "value": "email2@address.x"
-                         },
-                         {
-                             "name": "from",
-                             "value": "emailr@address.y"
-                         },
-                         {
-                             "name": "subject",
-                             "value": "test subject"
-                         },
-                         {
-                             "name": "message",
-                             "value": "test message"
-                         }
-                     ]
-                 },
-                 {
-                     "action_name": "SMS",
-                     "parameters": [
-                         {
-                             "name": "to",
-                             "value": "1234567890"
-                         }
-                     ]
-                 }
-             ],
+             "actions": actions,
              "all_devices": True,
              "message_ids": ["MSG01", "MSG02"],
              "state": "present",
