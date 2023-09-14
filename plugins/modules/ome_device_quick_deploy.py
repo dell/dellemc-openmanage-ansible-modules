@@ -499,6 +499,8 @@ def check_mode_validation(module, deploy_data):
                                 "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"]}
                 if "VlanId" in exist_filter_slot[0]:
                     exist_slot_1.update({"VlanId": exist_filter_slot[0]["VlanId"]})
+                else:
+                    exist_slot_1.update({"VlanId": ""})
                 exist_filter_slot = dict([(k, v) for k, v in exist_slot_1.items() if v is not None])
                 cp_exist_filter_slot = copy.deepcopy(exist_filter_slot)
                 cp_exist_filter_slot.update(req_filter_slot)
