@@ -665,7 +665,6 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          "mparams": {
              "specific_undiscovered_devices": [
                  "192.1.2.3-192.1.2.10",
-                 "192.2.3.4",
                  "hostforpolicy.domain.com"
              ],
              "state": "present",
