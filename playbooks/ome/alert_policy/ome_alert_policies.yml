@@ -43,7 +43,7 @@
               - name: "traphostname.domain.com:162"
                 value: true
       tags: create_alert_policy
-      delegate_to: localhost      
+      delegate_to: localhost
 
     - name: "Update an alert Policy"
       dellemc.openmanage.ome_alert_policies:

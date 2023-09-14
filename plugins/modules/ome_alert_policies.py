@@ -680,7 +680,6 @@ def get_schedule_payload(module):
             schedule_payload["StartTime"] = start_time
         except ValueError:
             module.exit_json(failed=True, msg=INVALID_START_TIME.format(start_time))
-        # end_time_format = "%H:%M:%S.%f"
         schedule_payload["EndTime"] = f"{time_to}:00.000" if time_interval else ""
         if inp_schedule.get('date_to'):
             end_time = f"{inp_schedule.get('date_to')} {time_to}:00.000"
@@ -762,7 +761,7 @@ def get_category_or_message(module, rest_obj):
                 new_dict["CatalogName"] = catalog_name
                 payload_cat = []
                 category_det = cdict_ref.get(catalog_name)
-                key_id = list(category_det.keys())[0]
+                # key_id = list(category_det.keys())[0]
                 payload_subcat = []
                 category_list = inp_catalog.get('catalog_category')
                 if category_list:
@@ -875,7 +874,6 @@ def transform_existing_policy_data(policy):
             pol_data.sort()
     messages = pdata.get('MessageIds', [])
     pdata['MessageIds'] = [m.strip("'") for m in messages]
-    return
 
 
 def format_payload(policy):
@@ -891,7 +889,6 @@ def format_payload(policy):
         pdata['Actions'] = list(actions.values())
     catalogs = pdata.get('Catalogs')
     pdata['Catalogs'] = list(catalogs.values())
-    return
 
 
 def compare_policy_payload(module, rest_obj, policy):
@@ -910,11 +907,10 @@ def compare_policy_payload(module, rest_obj, policy):
         if payload:
             new_policy_data.update(payload)
             diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
-            if diff_tuple:
-                if diff_tuple[0]:
-                    # module.warn(f"PolicyData diff: {diff_tuple[0]}")
-                    diff = diff + 1
-                    policy['PolicyData'].update(payload)
+            if diff_tuple and diff_tuple[0]:
+                # module.warn(f"PolicyData diff: {diff_tuple[0]}")
+                diff = diff + 1
+                policy['PolicyData'].update(payload)
     if module.params.get('new_name'):
         new_payload['Name'] = module.params.get('new_name')
     if module.params.get('description'):
@@ -924,10 +920,9 @@ def compare_policy_payload(module, rest_obj, policy):
     policy = strip_substr_dict(policy)
     new_payload.pop('PolicyData', None)
     diff_tuple = recursive_diff(new_payload, policy)
-    if diff_tuple:
-        if diff_tuple[0]:
-            diff = diff + 1
-            policy.update(diff_tuple[0])
+    if diff_tuple and diff_tuple[0]:
+        diff = diff + 1
+        policy.update(diff_tuple[0])
     return diff
 
 
@@ -1009,6 +1004,34 @@ def create_policy(module, rest_obj):
         "create"), status=resp.json_data)
 
 
+def handle_policy_enable(module, rest_obj, policies, name_list):
+    if len(policies) == len(name_list):
+        enable_toggle_policy(module, rest_obj, policies)
+    else:
+        invalid_policies = set(name_list) - set(x.get("Name") for x in policies)
+        module.exit_json(failed=True, msg=POLICY_ENABLE_MISSING.format(SEPARATOR.join(invalid_policies)))
+
+
+def handle_absent_state(module, rest_obj, policies):
+    if policies:
+        remove_policy(module, rest_obj, policies)
+    else:
+        module.exit_json(msg=NO_POLICY_EXIST)
+
+
+def handle_present_state(module, rest_obj, policies, name_list, present_args):
+    present_args.remove('enable')
+    enable = module.params.get('enable')
+    if not any(module.params.get(prm) is not None for prm in present_args) and enable is not None:
+        handle_policy_enable(module, rest_obj, policies, name_list)
+    if len(name_list) > 1:
+        module.exit_json(failed=True, msg=MULTIPLE_POLICIES)
+    if policies:
+        update_policy(module, rest_obj, policies[0])
+    else:
+        create_policy(module, rest_obj)
+
+
 def main():
     specs = {
         "name": {'type': 'list', 'elements': 'str', 'required': True},
@@ -1069,25 +1092,9 @@ def main():
             name_list = list(set(module.params.get('name')))
             policies = get_alert_policies(rest_obj, name_list)
             if state == 'absent':
-                if policies:
-                    remove_policy(module, rest_obj, policies)
-                else:
-                    module.exit_json(msg=NO_POLICY_EXIST)
+                handle_absent_state(module, rest_obj, policies)
             else:
-                present_args.remove('enable')
-                if not any(module.params.get(prm) is not None
-                           for prm in present_args) and module.params.get('enable') is not None:
-                    if len(policies) == len(name_list):
-                        enable_toggle_policy(module, rest_obj, policies)
-                    else:
-                        invalid_policies = set(name_list) - set(x.get("Name") for x in policies)
-                        module.exit_json(failed=True, msg=POLICY_ENABLE_MISSING.format(SEPARATOR.join(invalid_policies)))
-                if len(name_list) > 1:
-                    module.exit_json(failed=True, msg=MULTIPLE_POLICIES)
-                if policies:
-                    update_policy(module, rest_obj, policies[0])
-                else:
-                    create_policy(module, rest_obj)
+                handle_present_state(module, rest_obj, policies, name_list, present_args)
     except HTTPError as err:
         module.exit_json(failed=True, msg=str(err), error_info=json.load(err))
     except URLError as err:

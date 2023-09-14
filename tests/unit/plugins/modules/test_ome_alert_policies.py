@@ -83,20 +83,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          "mparams": {"name": ["alert policy3", "alert policy2"], "enable": False}},
         {"message": NO_CHANGES_MSG, "success": True, "check_mode": True,
          "json_data": {"value": [{'Name': "new alert policy", "Id": 12, "Enabled": False}]},
-         "mparams": {"name": "new alert policy", "enable": False}}
-    ])
-    def test_ome_alert_policies_enable_disable(self, params, ome_connection_mock_for_alert_policies,
-                                               ome_response_mock, ome_default_args, module_mock, mocker):
-        ome_response_mock.success = params.get("success", True)
-        ome_response_mock.json_data = params['json_data']
-        ome_connection_mock_for_alert_policies.get_all_items_with_pagination.return_value = params[
-            'json_data']
-        ome_default_args.update(params['mparams'])
-        result = self._run_module(
-            ome_default_args, check_mode=params.get('check_mode', False))
-        assert result['msg'] == params['message']
-
-    @pytest.mark.parametrize("params", [
+         "mparams": {"name": "new alert policy", "enable": False}},
         {"message": SUCCESS_MSG.format("delete"), "success": True,
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}]},
@@ -118,8 +105,8 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                        "value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},
     ])
-    def test_ome_alert_policies_delete(self, params, ome_connection_mock_for_alert_policies,
-                                       ome_response_mock, ome_default_args, module_mock, mocker):
+    def test_ome_alert_policies_enable_delete(self, params, ome_connection_mock_for_alert_policies,
+                                              ome_response_mock, ome_default_args, module_mock, mocker):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params['json_data']
         ome_connection_mock_for_alert_policies.get_all_items_with_pagination.return_value = params[
@@ -334,10 +321,10 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "Disabled": False,
             "Id": 90,
             "Parameters": {
-                "100.95.21.15:514": "true"
+                "192.1.21.15:514": "true"
             },
             "Type": {
-                "100.95.21.15:514": [
+                "192.1.21.15:514": [
                     "true",
                     "false"
                 ]
@@ -1015,7 +1002,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                      "ParameterDetails": [
                          {
                              "Id": 1,
-                             "Name": "100.95.21.15:514",
+                             "Name": "192.1.21.15:514",
                              "Value": "true",
                              "Type": "boolean",
                              "TemplateParameterTypeDetails": []
@@ -1259,7 +1246,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
         ome_default_args.update({"name": "new alert policy", "enable": True})
         if exc_type == HTTPError:
             mocker.patch(MODULE_PATH + 'get_alert_policies', side_effect=exc_type(
-                'http://testhost.com', 401, 'http error message', {
+                'https://testhost.com', 401, 'http error message', {
                     "accept-type": "application/json"},
                 StringIO(json_str)))
             result = self._run_module(ome_default_args)
