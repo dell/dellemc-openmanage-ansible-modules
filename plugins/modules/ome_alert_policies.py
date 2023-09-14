@@ -500,10 +500,9 @@ CATEGORY_URI = "AlertService/AlertCategories"
 SUCCESS_MSG = "Successfully completed the {0} alert policy operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
-INVALID_START_TIME = "Invalid value for date_from or time_from."
-INVALID_END_TIME = "Invalid value for date_to or time_to."
-START_CURR_TIME = "Start time or date must be greater than current time."
-END_START_TIME = "End time or date must be greater than start time."
+INVALID_START_TIME = "Invalid value for date_from or time_from `{0}`."
+INVALID_END_TIME = "Invalid value for date_to or time_to `{0}`."
+END_START_TIME = "End time or date `{0}` must be greater than start time `{1}`."
 CATEGORY_FETCH_FAILED = "Failed to fetch Category details."
 INVALID_TARGETS = "No valid targets provided for alert policy creation."
 INVALID_CATEGORY_MESSAGE = "No valid categories or messages provided for alert policy creation."
@@ -678,21 +677,20 @@ def get_schedule_payload(module):
         start_time = f"{inp_schedule.get('date_from')} {time_from}:00.000"
         try:
             start_time_x = datetime.strptime(start_time, time_format)
-            if start_time_x < datetime.now():
-                module.exit_json(failed=True, msg=START_CURR_TIME)
             schedule_payload["StartTime"] = start_time
         except ValueError:
-            module.exit_json(failed=True, msg=INVALID_START_TIME)
-        schedule_payload["EndTime"] = ""
+            module.exit_json(failed=True, msg=INVALID_START_TIME.format(start_time))
+        # end_time_format = "%H:%M:%S.%f"
+        schedule_payload["EndTime"] = f"{time_to}:00.000" if time_interval else ""
         if inp_schedule.get('date_to'):
             end_time = f"{inp_schedule.get('date_to')} {time_to}:00.000"
             try:
                 end_time_x = datetime.strptime(end_time, time_format)
                 if end_time_x < start_time_x:
-                    module.exit_json(failed=True, msg=END_START_TIME)
+                    module.exit_json(failed=True, msg=END_START_TIME.format(end_time_x, start_time_x))
                 schedule_payload["EndTime"] = end_time
             except ValueError:
-                module.exit_json(failed=True, msg=INVALID_END_TIME)
+                module.exit_json(failed=True, msg=INVALID_END_TIME.format(end_time))
         weekdays = {'monday': 'mon', 'tuesday': 'tue', 'wednesday': 'wed', 'thursday': 'thu', 'friday': 'fri',
                     'saturday': 'sat', 'sunday': 'sun'}
         inp_week_list = ['*']
