@@ -353,7 +353,7 @@ class TestOMERest(object):
         (True, False, "My Message"),
         (False, True, "The job is not complete after 2 seconds.")])
     def test_job_tracking(self, mocker, mock_response, ret_val):
-        mocker.patch(MODULE_UTIL_PATH + 'utils.time.sleep',
+        mocker.patch(MODULE_UTIL_PATH + 'ome.time.sleep',
                      return_value=())
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)

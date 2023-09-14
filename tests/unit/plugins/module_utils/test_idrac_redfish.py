@@ -163,29 +163,28 @@ class TestIdracRedfishRest(object):
         reason_ret = ourl.reason
         assert reason_ret == "returning reason"
 
-    @pytest.mark.parametrize("task_inp", [{"job_wait": True, "job_status": {"TaskState": "Running"}},
-                                          {"job_wait": True, "job_status": {"TaskState": "Completed"}}])
+    @pytest.mark.parametrize("task_inp", [{"job_wait": True, "job_status": {"TaskState": "Completed"}}])
     def test_wait_for_job_complete(self, mocker, mock_response, task_inp):
         mock_response.json_data = task_inp.get("job_status")
         module_params = {'idrac_ip': '192.168.0.1', 'idrac_user': 'username',
                          'idrac_password': 'password', 'idrac_port': '443'}
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        mocker.patch(MODULE_UTIL_PATH + 'utils.time.sleep',
-                     return_value=())
+        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.time.sleep',
+                     return_value=None)
         with iDRACRedfishAPI(module_params, True) as obj:
             ret_resp = obj.wait_for_job_complete(
                 API_TASK, task_inp.get("job_wait"))
         assert ret_resp.json_data == mock_response.json_data
 
     def test_wait_for_job_complete_false(self, mocker, mock_response):
-        mock_response.json_data = {"TaskState": "Running"}
+        mock_response.json_data = {"TaskState": "Completed"}
         module_params = {'idrac_ip': '192.168.0.1', 'idrac_user': 'username',
                          'idrac_password': 'password', 'idrac_port': '443'}
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        mocker.patch(MODULE_UTIL_PATH + 'utils.time.sleep',
-                     return_value=())
+        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.time.sleep',
+                     return_value=None)
         with iDRACRedfishAPI(module_params, True) as obj:
             ret_resp = obj.wait_for_job_complete(API_TASK, False)
         assert ret_resp is None
@@ -199,6 +198,39 @@ class TestIdracRedfishRest(object):
         with pytest.raises(ValueError):
             with iDRACRedfishAPI(module_params, True) as obj:
                 obj.wait_for_job_complete(API_TASK, True)
+
+    @pytest.mark.parametrize("inp_data", [
+        {
+            "j_data": {"PercentComplete": 100, "JobState": "Completed"},
+            "job_wait": True,
+            "reboot": True,
+            "apply_update": True
+        },
+        {
+            "j_data": {"PercentComplete": 0, "JobState": "Starting"},
+            "job_wait": True,
+            "reboot": False,
+            "apply_update": True
+        },
+        {
+            "j_data": {"PercentComplete": 0, "JobState": "Starting"},
+            "job_wait": False,
+            "reboot": False,
+            "apply_update": True
+        },
+    ])
+    def test_wait_for_job_completion(self, mocker, mock_response, inp_data):
+        mock_response.json_data = inp_data.get("j_data")
+        module_params = {'idrac_ip': '192.168.0.1', 'idrac_user': 'username',
+                         'idrac_password': 'password', 'idrac_port': '443'}
+        mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
+                     return_value=mock_response)
+        mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.time.sleep',
+                     return_value=None)
+        with iDRACRedfishAPI(module_params, True) as obj:
+            ret_resp = obj.wait_for_job_completion(API_TASK, inp_data.get(
+                "job_wait"), inp_data.get("reboot"), inp_data.get("apply_update"))
+        assert ret_resp.json_data is mock_response.json_data
 
     @pytest.mark.parametrize("share_inp", [
         {"share_ip": "share_ip", "share_name": "share_name", "share_type": "share_type",
