@@ -1163,6 +1163,13 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "json_data": {
              "value": [
                  {
+                     "Id": 100,
+                     "Name": "SMS",
+                     "Description": "Ignore",
+                     "Disabled": False,
+                     "ParameterDetails": []
+                 },
+                 {
                      "Id": 60,
                      "Name": "Trap",
                      "Description": "Trap",
@@ -1176,14 +1183,8 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                              "TemplateParameterTypeDetails": []
                          }
                      ]
-                 },
-                 {
-                     "Id": 100,
-                     "Name": "Ignore",
-                     "Description": "Ignore",
-                     "Disabled": False,
-                     "ParameterDetails": []
-                 }]
+                 }
+             ]
         }
         },
         {"message": ACTION_INVALID_VALUE.format("Trap", "Truthy", "traphost1:162", "true, false"), "success": True,
@@ -1205,8 +1206,8 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
         },
             "get_alert_policies": [],
             "get_target_payload": {"Groups": [123, 124]},
-            "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
-            "get_schedule_payload": {"StartTime": "", "EndTime": ""},
+            "get_category_or_message": {"MessageIds": ["MSG23", "MSG46"]},
+            "get_schedule_payload": {"StartTime": "2023-11-01 11:00:00.000", "EndTime": "2023-12-01 12:00:00.000"},
             "get_severity_payload": {},
             "json_data": {
              "value": [
@@ -1224,13 +1225,6 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                              "TemplateParameterTypeDetails": []
                          }
                      ]
-                 },
-                 {
-                     "Id": 100,
-                     "Name": "Ignore",
-                     "Description": "Ignore",
-                     "Disabled": False,
-                     "ParameterDetails": []
                  }]
         }
         },
