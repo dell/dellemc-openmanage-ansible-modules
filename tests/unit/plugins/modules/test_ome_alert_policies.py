@@ -13,12 +13,12 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
-import tempfile
-from io import StringIO
 import os
+import tempfile
+from datetime import datetime, timedelta
+from io import StringIO
 
 import pytest
-from datetime import datetime, timedelta
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import SSLValidationError
@@ -30,16 +30,15 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_alert_
 SUCCESS_MSG = "Successfully completed the {0} alert policy operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
-INVALID_START_TIME = "Invalid value for date_from or time_from."
-INVALID_END_TIME = "Invalid value for date_to or time_to."
-START_CURR_TIME = "Start time or date must be greater than current time."
-END_START_TIME = "End time or date must be greater than start time."
+INVALID_START_TIME = "Invalid value for date_from or time_from `{0}`."
+INVALID_END_TIME = "Invalid value for date_to or time_to `{0}`."
+END_START_TIME = "End time or date `{0}` must be greater than start time `{1}`."
 CATEGORY_FETCH_FAILED = "Failed to fetch Category details."
 INVALID_TARGETS = "No valid targets provided for alert policy creation."
 INVALID_CATEGORY_MESSAGE = "No valid categories or messages provided for alert policy creation."
 INVALID_SCHEDULE = "No valid schedule provided for alert policy creation."
 INVALID_ACTIONS = "No valid actions provided for alert policy creation."
-INVALID_SEVERITY = "No valid Severity is required for creation of policy."
+INVALID_SEVERITY = "No valid severity is provided for creation of policy."
 MULTIPLE_POLICIES = "More than one policy name provided for update."
 DISABLED_ACTION = "Action {0} is disabled. Please enable it before applying to the policy."
 ACTION_INVALID_PARAM = "Action {0} has invalid parameter names: {1}. Please provide valid parameters for this action. Valid values are: {2}."
@@ -359,8 +358,8 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  }
              ],
              "date_and_time": {
-                 "date_from": (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
-                 "date_to": (datetime.now() + timedelta(days=3)).strftime("%Y-%m-%d"),
+                 "date_from": "2023-10-01",
+                 "date_to": "2023-10-02",
                  "days": [
                      "sunday",
                      "monday"
@@ -481,18 +480,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                          'Application': 85,
                          'Device Warranty': 116,
                          'Devices': 90,
-                         'Discovery': 36,
-                         'Generic': 10,
-                         'Groups': 84,
-                         'Job': 47,
-                         'Metrics': 118,
-                         'Miscellaneous': 20,
-                         'Monitoring': 93,
-                         'Power Configuration': 151,
-                         'Reports': 31,
-                         'Security': 9,
-                         'Templates': 88,
-                         'Users': 35
+                         'Discovery': 36
                      }
                  },
                  'Miscellaneous': {
@@ -795,15 +783,6 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                          'Devices': 90,
                          'Discovery': 36,
                          'Generic': 10,
-                         'Groups': 84,
-                         'Job': 47,
-                         'Metrics': 118,
-                         'Miscellaneous': 20,
-                         'Monitoring': 93,
-                         'Power Configuration': 151,
-                         'Reports': 31,
-                         'Security': 9,
-                         'Templates': 88,
                          'Users': 35
                      }
                  },
@@ -1092,7 +1071,573 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
              "@odata.count": 300,
              "value": [{"MessageId": "MSGID1", "Id": 121, "Type": 1000},
                        {"MessageId": "MSGID2", "Id": 122, "Type": 1000}]}
+         },
+        {"message": INVALID_SCHEDULE, "success": True,
+         "mparams": {
+             "all_devices": True,
+             "category": [
+                 {
+                     "catalog_category": [
+                         {
+                             "category_name": "Audit",
+                             "sub_category_names": [
+                                 "Users",
+                                 "Generic"
+                             ]
+                         }
+                     ],
+                     "catalog_name": "Application"
+                 },
+                 {
+                     "catalog_category": [
+                         {
+                             "category_name": "Storage",
+                             "sub_category_names": [
+                                 "Other"
+                             ]
+                         }
+                     ],
+                     "catalog_name": "Dell Storage"
+                 }
+             ],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_category_data_tree coverage"
+         },
+         "get_alert_policies": [],
+         "get_target_payload": {"Groups": [123, 124]},
+         "json_data": {
+             "value": [
+                 {
+                     "@odata.type": "#AlertService.AlertCategories",
+                     "@odata.id": "/api/AlertService/AlertCategories('Application')",
+                     "Name": "Application",
+                     "IsBuiltIn": True,
+                     "CategoriesDetails": [
+                         {
+                             "@odata.type": "#AlertService.AlertCategory",
+                             "Id": 4,
+                             "Name": "Audit",
+                             "CatalogName": "Application",
+                             "SubCategoryDetails": [
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 90,
+                                     "Name": "Devices",
+                                     "Description": "Devices"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 10,
+                                     "Name": "Generic",
+                                     "Description": "Generic"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 151,
+                                     "Name": "Power Configuration",
+                                     "Description": "Power Configuration"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 35,
+                                     "Name": "Users",
+                                     "Description": "Users"
+                                 }
+                             ]
+                         },
+                         {
+                             "@odata.type": "#AlertService.AlertCategory",
+                             "Id": 7,
+                             "Name": "Miscellaneous",
+                             "CatalogName": "Application",
+                             "SubCategoryDetails": [
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 20,
+                                     "Name": "Miscellaneous",
+                                     "Description": "Miscellaneous"
+                                 }
+                             ]
+                         },
+                         {
+                             "@odata.type": "#AlertService.AlertCategory",
+                             "Id": 2,
+                             "Name": "Storage",
+                             "CatalogName": "Application",
+                             "SubCategoryDetails": [
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 90,
+                                     "Name": "Devices",
+                                     "Description": "Devices"
+                                 }
+                             ]
+                         },
+                         {
+                             "@odata.type": "#AlertService.AlertCategory",
+                             "Id": 1,
+                             "Name": "System Health",
+                             "CatalogName": "Application",
+                             "SubCategoryDetails": [
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 90,
+                                     "Name": "Devices",
+                                     "Description": "Devices"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 7400,
+                                     "Name": "Health Status of Managed device",
+                                     "Description": "Health Status of Managed device"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 47,
+                                     "Name": "Job",
+                                     "Description": "Job"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 118,
+                                     "Name": "Metrics",
+                                     "Description": "Metrics"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 151,
+                                     "Name": "Power Configuration",
+                                     "Description": "Power Configuration"
+                                 }
+                             ]
+                         },
+                         {
+                             "@odata.type": "#AlertService.AlertCategory",
+                             "Id": 3,
+                             "Name": "Updates",
+                             "CatalogName": "Application",
+                             "SubCategoryDetails": [
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 85,
+                                     "Name": "Application",
+                                     "Description": "Application"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 112,
+                                     "Name": "Firmware",
+                                     "Description": "Firmware"
+                                 }
+                             ]
+                         }
+                     ]
+                 },
+                 {
+                     "@odata.type": "#AlertService.AlertCategories",
+                     "@odata.id": "/api/AlertService/AlertCategories('Dell%20Storage')",
+                     "Name": "Dell Storage",
+                     "IsBuiltIn": True,
+                     "CategoriesDetails": [
+                         {
+                             "@odata.type": "#AlertService.AlertCategory",
+                             "Id": 2,
+                             "Name": "Storage",
+                             "CatalogName": "Dell Storage",
+                             "SubCategoryDetails": [
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 7700,
+                                     "Name": "Other",
+                                     "Description": "Other"
+                                 }
+                             ]
+                         },
+                         {
+                             "@odata.type": "#AlertService.AlertCategory",
+                             "Id": 1,
+                             "Name": "System Health",
+                             "CatalogName": "Dell Storage",
+                             "SubCategoryDetails": [
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 7700,
+                                     "Name": "Other",
+                                     "Description": "Other"
+                                 },
+                                 {
+                                     "@odata.type": "#AlertService.AlertSubCategory",
+                                     "Id": 18,
+                                     "Name": "Storage",
+                                     "Description": "Storage"
+                                 }
+                             ]
+                         }
+                     ]
+                 }
+             ]
          }
+         },
+        {"message": INVALID_SEVERITY, "success": True,
+         "mparams": {
+             "actions": [
+                 {
+                     "action_name": "Trap",
+                     "parameters": [
+                         {
+                             "name": "192.1.1.1:162",
+                             "value": "True"
+                         }
+                     ]
+                 },
+                 {
+                     "action_name": "Mobile",
+                     "parameters": []
+                 },
+                 {
+                     "action_name": "Email",
+                     "parameters": [
+                         {
+                             "name": "to",
+                             "value": "email2@address.x"
+                         },
+                         {
+                             "name": "from",
+                             "value": "emailr@address.y"
+                         },
+                         {
+                             "name": "subject",
+                             "value": "test subject"
+                         },
+                         {
+                             "name": "message",
+                             "value": "test message"
+                         }
+                     ]
+                 },
+                 {
+                     "action_name": "SMS",
+                     "parameters": [
+                         {
+                             "name": "to",
+                             "value": "1234567890"
+                         }
+                     ]
+                 }
+             ],
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_all_actions coverage"
+         },
+         "get_alert_policies": [],
+         "get_target_payload": {"Groups": [123, 124]},
+         "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
+         "get_schedule_payload": {"StartTime": "", "EndTime": ""},
+         "get_severity_payload": {},
+         "json_data": {
+             "value": [
+                 {
+                     "Name": "Email",
+                     "Description": "Email",
+                     "Disabled": False,
+                     "ParameterDetails": [
+                         {
+                             "Id": 1,
+                             "Name": "subject",
+                             "Value": "Device Name: $name,  Device IP Address: $ip,  Severity: $severity",
+                             "Type": "string",
+                             "TemplateParameterTypeDetails": [
+                                 {
+                                     "Name": "maxLength",
+                                     "Value": "255"
+                                 }
+                             ]
+                         },
+                         {
+                             "Id": 2,
+                             "Name": "to",
+                             "Value": "",
+                             "Type": "string",
+                             "TemplateParameterTypeDetails": [
+                                 {
+                                     "Name": "maxLength",
+                                     "Value": "255"
+                                 }
+                             ]
+                         },
+                         {
+                             "Id": 3,
+                             "Name": "from",
+                             "Value": "admin@dell.com",
+                             "Type": "string",
+                             "TemplateParameterTypeDetails": [
+                                 {
+                                     "Name": "maxLength",
+                                     "Value": "255"
+                                 }
+                             ]
+                         },
+                         {
+                             "Id": 4,
+                             "Name": "message",
+                             "Value": "Event occurred for Device Name",
+                             "Type": "string",
+                             "TemplateParameterTypeDetails": [
+                                 {
+                                     "Name": "maxLength",
+                                     "Value": "255"
+                                 }
+                             ]
+                         }
+                     ]
+                 },
+                 {
+                     "@odata.type": "#AlertService.AlertActionTemplate",
+                     "@odata.id": "/api/AlertService/AlertActionTemplates(60)",
+                     "Id": 60,
+                     "Name": "Trap",
+                     "Description": "Trap",
+                     "Disabled": False,
+                     "ParameterDetails": [
+                         {
+                             "Id": 1,
+                             "Name": "100.97.1.185:162",
+                             "Value": "true",
+                             "Type": "boolean",
+                             "TemplateParameterTypeDetails": []
+                         },
+                         {
+                             "Id": 2,
+                             "Name": "192.1.1.1:162",
+                             "Value": "true",
+                             "Type": "boolean",
+                             "TemplateParameterTypeDetails": []
+                         }
+                     ]
+                 },
+                 {
+                     "@odata.type": "#AlertService.AlertActionTemplate",
+                     "@odata.id": "/api/AlertService/AlertActionTemplates(90)",
+                     "Id": 90,
+                     "Name": "Syslog",
+                     "Description": "Syslog",
+                     "Disabled": False,
+                     "ParameterDetails": [
+                         {
+                             "Id": 1,
+                             "Name": "100.95.21.15:514",
+                             "Value": "true",
+                             "Type": "boolean",
+                             "TemplateParameterTypeDetails": []
+                         }
+                     ]
+                 },
+                 {
+                     "@odata.type": "#AlertService.AlertActionTemplate",
+                     "@odata.id": "/api/AlertService/AlertActionTemplates(100)",
+                     "Id": 100,
+                     "Name": "Ignore",
+                     "Description": "Ignore",
+                     "Disabled": False,
+                     "ParameterDetails": []
+                 },
+                 {
+                     "@odata.type": "#AlertService.AlertActionTemplate",
+                     "@odata.id": "/api/AlertService/AlertActionTemplates(70)",
+                     "Id": 70,
+                     "Name": "SMS",
+                     "Description": "SMS",
+                     "Disabled": False,
+                     "ParameterDetails": [
+                         {
+                             "Id": 1,
+                             "Name": "to",
+                             "Value": "",
+                             "Type": "string",
+                             "TemplateParameterTypeDetails": [
+                                 {
+                                     "Name": "maxLength",
+                                     "Value": "255"
+                                 }
+                             ]
+                         }
+                     ]
+                 },
+                 {
+                     "@odata.type": "#AlertService.AlertActionTemplate",
+                     "@odata.id": "/api/AlertService/AlertActionTemplates(110)",
+                     "Id": 110,
+                     "Name": "PowerControl",
+                     "Description": "Power Control Action Template",
+                     "Disabled": False,
+                     "ParameterDetails": [
+                         {
+                             "Id": 1,
+                             "Name": "powercontrolaction",
+                             "Value": "poweroff",
+                             "Type": "singleSelect",
+                             "TemplateParameterTypeDetails": [
+                                 {
+                                     "Name": "option",
+                                     "Value": "powercycle"
+                                 },
+                                 {
+                                     "Name": "option",
+                                     "Value": "poweroff"
+                                 },
+                                 {
+                                     "Name": "option",
+                                     "Value": "poweron"
+                                 },
+                                 {
+                                     "Name": "option",
+                                     "Value": "gracefulshutdown"
+                                 }
+                             ]
+                         }
+                     ]
+                 },
+                 {
+                     "@odata.type": "#AlertService.AlertActionTemplate",
+                     "@odata.id": "/api/AlertService/AlertActionTemplates(111)",
+                     "Id": 111,
+                     "Name": "RemoteCommand",
+                     "Description": "RemoteCommand",
+                     "Disabled": False,
+                     "ParameterDetails": [
+                         {
+                             "Id": 1,
+                             "Name": "remotecommandaction",
+                             "Value": "test",
+                             "Type": "singleSelect",
+                             "TemplateParameterTypeDetails": [
+                                 {
+                                     "Name": "option",
+                                     "Value": "test"
+                                 }
+                             ]
+                         }
+                     ]
+                 },
+                 {
+                     "@odata.type": "#AlertService.AlertActionTemplate",
+                     "@odata.id": "/api/AlertService/AlertActionTemplates(112)",
+                     "Id": 112,
+                     "Name": "Mobile",
+                     "Description": "Mobile",
+                     "Disabled": False,
+                     "ParameterDetails": []
+                 }
+             ]
+         }
+         },
+        {"message": INVALID_START_TIME.format("2023-20-01 11:00:00.000"), "success": True,
+         "mparams": {
+             "date_and_time": {
+                 "date_from": "2023-20-01",
+                 "date_to": "2023-10-02",
+                 "days": [
+                     "sunday",
+                     "monday"
+                 ],
+                 "time_from": "11:00",
+                 "time_to": "12:00",
+                 "time_interval": True
+             },
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
+            "json_data": {
+             "value": []
+        }
+        },
+        {"message": INVALID_START_TIME.format("2023-10-01 31:00:00.000"), "success": True,
+         "mparams": {
+             "date_and_time": {
+                 "date_from": "2023-10-01",
+                 "date_to": "2023-10-02",
+                 "days": [
+                     "sunday",
+                     "monday"
+                 ],
+                 "time_from": "31:00",
+                 "time_to": "12:00",
+                 "time_interval": True
+             },
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
+            "json_data": {
+             "value": []
+        }
+        },
+        {"message": END_START_TIME.format("2023-10-01 12:00:00", "2023-10-02 11:00:00"), "success": True,
+         "mparams": {
+             "date_and_time": {
+                 "date_from": "2023-10-02",
+                 "date_to": "2023-10-01",
+                 "days": [
+                     "sunday",
+                     "monday"
+                 ],
+                 "time_from": "11:00",
+                 "time_to": "12:00",
+                 "time_interval": True
+             },
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
+            "json_data": {
+             "value": []
+        }
+        },
+        {"message": INVALID_END_TIME.format("2023-10-32 32:00:00.000"), "success": True,
+         "mparams": {
+             "date_and_time": {
+                 "date_from": "2023-10-01",
+                 "date_to": "2023-10-32",
+                 "days": [
+                     "sunday",
+                     "monday"
+                 ],
+                 "time_from": "11:00",
+                 "time_to": "32:00",
+                 "time_interval": True
+             },
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
+            "json_data": {
+             "value": []
+        }
+        }
     ])
     def test_ome_alert_policies_state_present(self, params, ome_connection_mock_for_alert_policies,
                                               ome_response_mock, ome_default_args, module_mock, mocker):
@@ -1101,8 +1646,9 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
         ome_connection_mock_for_alert_policies.get_all_items_with_pagination.return_value = params[
             'json_data']
         ome_default_args.update(params['mparams'])
-        mocks = ["get_alert_policies", "validate_ome_data",
-                 "get_all_actions", "get_severity_payload", "get_category_data_tree"]
+        mocks = ["get_alert_policies", "validate_ome_data", "get_target_payload",
+                 "get_all_actions", "get_severity_payload", "get_category_data_tree",
+                 "get_schedule_payload", "get_category_or_message"]
         for m in mocks:
             if m in params:
                 mocker.patch(MODULE_PATH + m, return_value=params.get(m, {}))
