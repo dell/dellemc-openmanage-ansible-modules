@@ -42,7 +42,7 @@ Build a image with the required Ansible collections and libraries, and then uplo
       system: bindep.txt
     ```
     
-    We can have modify the execution environment file to configure as per your requirement based on the guidelines mentioned [here](https://docs.ansible.com/automation-controller/latest/html/userguide/ee_reference.html)
+    We can modify the execution environment file to configure as per your requirement based on the guidelines mentioned [here](https://docs.ansible.com/automation-controller/latest/html/userguide/ee_reference.html)
   
 
     **requirements.yml**
