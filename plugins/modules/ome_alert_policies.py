@@ -799,7 +799,7 @@ def get_category_payload(module, rest_obj):
     return payload_cat_list
 
 
-def get_message_payload(module, rest_obj):
+def get_message_payload(module):
     mlist = []
     if module.params.get('message_file'):
         csvpath = module.params.get('message_file')
@@ -827,7 +827,7 @@ def get_category_or_message(module, rest_obj):
         cat_msg_provided = True
         cat_payload['Catalogs'] = cat_dict
     else:
-        mlist = get_message_payload(module, rest_obj)
+        mlist = get_message_payload(module)
         if mlist:
             validate_ome_data(module, rest_obj, mlist, 'MessageId', ('MessageId',), MESSAGES_URI, 'Message')
             cat_msg_provided = True
