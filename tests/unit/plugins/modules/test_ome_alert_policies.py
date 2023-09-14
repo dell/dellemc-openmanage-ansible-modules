@@ -116,9 +116,9 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             ome_default_args, check_mode=params.get('check_mode', False))
         assert result['msg'] == params['message']
 
-    trap_ip1 = "192.17.1.185:162"
-    trap_ip2 = "192.1.1.1:162"
-    trap_ip3 = "192.1.21.15:514"
+    trap_ip1 = "traphost1:162"
+    trap_ip2 = "traphost2:162"
+    trap_ip3 = "traphost3:514"
     actions = [
         {
             "action_name": "Trap",
