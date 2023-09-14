@@ -568,9 +568,9 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
              "description": "Coverage for filter block in validate_ome_data"
         },
             "get_alert_policies": [{
-                "Id": 24792,
-                "Name": "Alert Policy One",
-                "Description": "CREATIOn of Alert Policy One",
+                "Id": 1234,
+                "Name": "Alert Policy Two",
+                "Description": "Alert Policy Two described",
                 "Enabled": True,
                 "DefaultPolicy": False,
                 "Editable": True,
@@ -578,22 +578,22 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                 "PolicyData": {
                     "Catalogs": [],
                     "Severities": [
-                        1
+                        16
                     ],
                     "MessageIds": [
-                        "'AMP401'",
+                        "'AMP403'",
                         "'AMP400'",
-                        "'CTL201'"
+                        "'BIOS108'"
                     ],
                     "Devices": [],
                     "DeviceTypes": [],
                     "Groups": [
-                        1011,
-                        1033
+                        111,
+                        133
                     ],
                     "Schedule": {
-                        "StartTime": "2023-10-09 00:00:00.000",
-                        "EndTime": "2023-10-11 00:00:00.000",
+                        "StartTime": "2023-11-09 00:00:00.000",
+                        "EndTime": "2023-11-11 00:00:00.000",
                         "CronString": "* * * ? * mon,sun *",
                         "Interval": False
                     },
