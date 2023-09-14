@@ -26,7 +26,7 @@ OPEN_URL = 'redfish.open_url'
 TEST_PATH = "/testpath"
 
 
-class TestRestRedfish(object):
+class TestRedfishRest(object):
 
     @pytest.fixture
     def mock_response(self):
@@ -150,12 +150,6 @@ class TestRestRedfish(object):
                              "DeviceType": 1000,
                              "Name": "SERVER",
                              "Description": "Server Device"
-                         },
-                         {
-                             "@odata.type": "#DeviceService.DeviceType",
-                             "DeviceType": 2000,
-                             "Name": "CHASSIS",
-                             "Description": "Chassis Device"
                          }
                      ]}
         module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',

@@ -34,7 +34,7 @@ ODATA_TYPE = "@odata.type"
 DDEVICE_TYPE = "#DeviceService.DeviceType"
 
 
-class TestRestOME(object):
+class TestOMERest(object):
 
     @pytest.fixture
     def mock_response(self):
