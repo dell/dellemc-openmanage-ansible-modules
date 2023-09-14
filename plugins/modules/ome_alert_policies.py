@@ -761,7 +761,6 @@ def get_category_or_message(module, rest_obj):
                 new_dict["CatalogName"] = catalog_name
                 payload_cat = []
                 category_det = cdict_ref.get(catalog_name)
-                # key_id = list(category_det.keys())[0]
                 payload_subcat = []
                 category_list = inp_catalog.get('catalog_category')
                 if category_list:
@@ -820,7 +819,7 @@ def get_category_or_message(module, rest_obj):
         elif module.params.get('message_ids'):
             mlist = module.params.get('message_ids')
         if mlist:
-            msg_ids = validate_ome_data(module, rest_obj, mlist, 'MessageId', ('MessageId',), MESSAGES_URI, 'Message')
+            validate_ome_data(module, rest_obj, mlist, 'MessageId', ('MessageId',), MESSAGES_URI, 'Message')
             cat_msg_provided = True
             cat_payload['MessageIds'] = list(set(mlist))
             cat_payload['MessageIds'].sort()

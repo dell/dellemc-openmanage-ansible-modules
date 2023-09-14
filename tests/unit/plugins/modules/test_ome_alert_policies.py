@@ -116,12 +116,15 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             ome_default_args, check_mode=params.get('check_mode', False))
         assert result['msg'] == params['message']
 
+    trap_ip1 = "192.17.1.185:162"
+    trap_ip2 = "192.1.1.1:162"
+    trap_ip3 = "192.1.21.15:514"
     actions = [
         {
             "action_name": "Trap",
             "parameters": [
                 {
-                    "name": "192.1.1.1:162",
+                    "name": trap_ip2,
                     "value": "True"
                 }
             ]
@@ -321,10 +324,10 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "Disabled": False,
             "Id": 90,
             "Parameters": {
-                "192.1.21.15:514": "true"
+                trap_ip3: "true"
             },
             "Type": {
-                "192.1.21.15:514": [
+                trap_ip3: [
                     "true",
                     "false"
                 ]
@@ -334,15 +337,15 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "Disabled": False,
             "Id": 60,
             "Parameters": {
-                "100.97.1.185:162": "true",
-                "192.1.1.1:162": "true"
+                trap_ip1: "true",
+                trap_ip2: "true"
             },
             "Type": {
-                "100.97.1.185:162": [
+                trap_ip1: [
                     "true",
                     "false"
                 ],
-                "192.1.1.1:162": [
+                trap_ip2: [
                     "true",
                     "false"
                 ]
@@ -978,14 +981,14 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                      "ParameterDetails": [
                          {
                              "Id": 1,
-                             "Name": "100.97.1.185:162",
+                             "Name": trap_ip1,
                              "Value": "true",
                              "Type": "boolean",
                              "TemplateParameterTypeDetails": []
                          },
                          {
                              "Id": 2,
-                             "Name": "192.1.1.1:162",
+                             "Name": trap_ip2,
                              "Value": "true",
                              "Type": "boolean",
                              "TemplateParameterTypeDetails": []
@@ -1002,7 +1005,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                      "ParameterDetails": [
                          {
                              "Id": 1,
-                             "Name": "192.1.21.15:514",
+                             "Name": trap_ip3,
                              "Value": "true",
                              "Type": "boolean",
                              "TemplateParameterTypeDetails": []

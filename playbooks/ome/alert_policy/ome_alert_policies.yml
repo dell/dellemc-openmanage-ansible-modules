@@ -1,3 +1,4 @@
+---
 - hosts: ome
   name: Dell OpenManage Ansible Alert policies.
   gather_facts: false
