@@ -744,80 +744,90 @@ def get_actions_payload(module, rest_obj):
     return {"Actions": action_payload} if action_payload else {}
 
 
+def get_category_payload(module, rest_obj):
+    inp_catalog_list = module.params.get('category')
+    cdict_ref = get_category_data_tree(rest_obj)
+    if not cdict_ref:
+        module.exit_json(failed=True, msg=CATEGORY_FETCH_FAILED)
+    payload_cat_list = []
+    for inp_catalog in inp_catalog_list:
+        new_dict = {}
+        catalog_name = inp_catalog.get('catalog_name')
+        if catalog_name in cdict_ref:
+            new_dict["CatalogName"] = catalog_name
+            payload_cat = []
+            category_det = cdict_ref.get(catalog_name)
+            payload_subcat = []
+            category_list = inp_catalog.get('catalog_category')
+            if category_list:
+                for inp_category in category_list:
+                    if inp_category.get('category_name') in category_det:
+                        resp_category_dict = category_det.get(
+                            inp_category.get('category_name'))
+                        key_id = list(resp_category_dict.keys())[0]
+                        sub_cat_dict = resp_category_dict.get(key_id)
+                        inp_sub_cat_list = inp_category.get('sub_category_names')
+                        if inp_sub_cat_list:
+                            for sub_cat in inp_sub_cat_list:
+                                if sub_cat in sub_cat_dict:
+                                    payload_cat.append(key_id)
+                                    payload_subcat.append(
+                                        sub_cat_dict.get(sub_cat))
+                                else:
+                                    module.exit_json(
+                                        failed=True,
+                                        msg=SUBCAT_IN_CATEGORY.format(
+                                            sub_cat, inp_category.get('category_name')
+                                        ))
+                        else:
+                            payload_cat.append(key_id)
+                            payload_subcat.append(0)
+                    else:
+                        module.exit_json(
+                            failed=True,
+                            msg=CATEGORY_IN_CATALOG.format(
+                                inp_category.get('category_name'), catalog_name
+                            ))
+            else:
+                payload_cat.append(0)
+                payload_subcat.append(0)
+            new_dict["Categories"] = payload_cat
+            new_dict['SubCategories'] = payload_subcat
+        else:
+            module.exit_json(failed=True, msg=CATALOG_DIS_EXIST.format(catalog_name))
+        payload_cat_list.append(new_dict)
+    return payload_cat_list
+
+
+def get_message_payload(module, rest_obj):
+    mlist = []
+    if module.params.get('message_file'):
+        csvpath = module.params.get('message_file')
+        if not os.path.isfile(csvpath):
+            module.exit_json(
+                failed=True, msg=CSV_PATH.format(csvpath))
+        with open(csvpath) as csvfile:
+            spamreader = csv.reader(csvfile)
+            for row in spamreader:
+                mlist.extend(row)
+            if mlist[0].lower().startswith('message'):
+                mlist.pop(0)
+    elif module.params.get('message_ids'):
+        mlist = module.params.get('message_ids')
+    return mlist
+
+
 def get_category_or_message(module, rest_obj):
     cat_payload = {"Catalogs": {},
                    "MessageIds": []}
     cat_msg_provided = False
     if module.params.get('category'):
-        inp_catalog_list = module.params.get('category')
-        cdict_ref = get_category_data_tree(rest_obj)
-        if not cdict_ref:
-            module.exit_json(failed=True, msg=CATEGORY_FETCH_FAILED)
-        payload_cat_list = []
-        for inp_catalog in inp_catalog_list:
-            new_dict = {}
-            catalog_name = inp_catalog.get('catalog_name')
-            if catalog_name in cdict_ref:
-                new_dict["CatalogName"] = catalog_name
-                payload_cat = []
-                category_det = cdict_ref.get(catalog_name)
-                payload_subcat = []
-                category_list = inp_catalog.get('catalog_category')
-                if category_list:
-                    for inp_category in category_list:
-                        if inp_category.get('category_name') in category_det:
-                            resp_category_dict = category_det.get(
-                                inp_category.get('category_name'))
-                            key_id = list(resp_category_dict.keys())[0]
-                            sub_cat_dict = resp_category_dict.get(key_id)
-                            inp_sub_cat_list = inp_category.get('sub_category_names')
-                            if inp_sub_cat_list:
-                                for sub_cat in inp_sub_cat_list:
-                                    if sub_cat in sub_cat_dict:
-                                        payload_cat.append(key_id)
-                                        payload_subcat.append(
-                                            sub_cat_dict.get(sub_cat))
-                                    else:
-                                        module.exit_json(
-                                            failed=True,
-                                            msg=SUBCAT_IN_CATEGORY.format(
-                                                sub_cat, inp_category.get('category_name')
-                                            ))
-                            else:
-                                payload_cat.append(key_id)
-                                payload_subcat.append(0)
-                        else:
-                            module.exit_json(
-                                failed=True,
-                                msg=CATEGORY_IN_CATALOG.format(
-                                    inp_category.get('category_name'), catalog_name
-                                ))
-                else:
-                    payload_cat.append(0)
-                    payload_subcat.append(0)
-                new_dict["Categories"] = payload_cat
-                new_dict['SubCategories'] = payload_subcat
-            else:
-                module.exit_json(failed=True, msg=CATALOG_DIS_EXIST.format(catalog_name))
-            payload_cat_list.append(new_dict)
+        payload_cat_list = get_category_payload(module, rest_obj)
         cat_dict = dict((x.get('CatalogName'), x) for x in payload_cat_list)
         cat_msg_provided = True
         cat_payload['Catalogs'] = cat_dict
     else:
-        mlist = []
-        if module.params.get('message_file'):
-            csvpath = module.params.get('message_file')
-            if not os.path.isfile(csvpath):
-                module.exit_json(
-                    failed=True, msg=CSV_PATH.format(csvpath))
-            with open(csvpath) as csvfile:
-                spamreader = csv.reader(csvfile)
-                for row in spamreader:
-                    mlist.extend(row)
-                if mlist[0].lower().startswith('message'):
-                    mlist.pop(0)
-        elif module.params.get('message_ids'):
-            mlist = module.params.get('message_ids')
+        mlist = get_message_payload(module, rest_obj)
         if mlist:
             validate_ome_data(module, rest_obj, mlist, 'MessageId', ('MessageId',), MESSAGES_URI, 'Message')
             cat_msg_provided = True
