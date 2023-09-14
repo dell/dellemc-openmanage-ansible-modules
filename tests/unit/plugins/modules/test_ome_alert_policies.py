@@ -361,6 +361,78 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             }
         }
     }
+    get_category_data_tree = {
+        'Application': {
+            'Audit': {
+                4: {
+                    'Devices': 90,
+                    'Generic': 10,
+                    'Power Configuration': 151,
+                    'Users': 35
+                }
+            },
+            'Configuration': {
+                5: {
+                    'Application': 85,
+                    'Device Warranty': 116,
+                    'Devices': 90,
+                    'Discovery': 36,
+                    'Generic': 10,
+                    'Users': 35
+                }
+            },
+            'Miscellaneous': {
+                7: {
+                    'Miscellaneous': 20
+                }
+            },
+            'Storage': {
+                2: {
+                    'Devices': 90
+                }
+            },
+            'System Health': {
+                1: {
+                    'Devices': 90,
+                    'Health Status of Managed device': 7400,
+                    'Job': 47,
+                    'Metrics': 118,
+                    'Power Configuration': 151
+                }
+            },
+            'Updates': {
+                3: {
+                    'Application': 85,
+                    'Firmware': 112
+                }
+            }
+        },
+        'Dell Storage': {
+            'Storage': {
+                2: {
+                    'Other': 7700
+                }
+            },
+            'System Health': {
+                1: {
+                    'Other': 7700,
+                    'Storage': 18
+                }
+            }
+        },
+        'Storage': {'Audit': {
+            4: {
+                'Interface': 101
+            }
+        }},
+        'iDRAC': {
+            'Audit': {
+                4: {
+                    'Interface': 101
+                }
+            }
+        },
+    }
 
     @pytest.mark.parametrize("params", [
         {"message": SUCCESS_MSG.format("create"), "success": True,
@@ -374,63 +446,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          "mparams": create_input,
             "get_alert_policies": get_alert_policy,
             "validate_ome_data": (["AMP400", "AMP401", "CTL201"],),
-            "get_category_data_tree": {
-            'Application': {
-                'Audit': {
-                    4: {
-                        'Devices': 90,
-                        'Generic': 10,
-                        'Power Configuration': 151,
-                        'Users': 35
-                    }
-                },
-                'Configuration': {
-                    5: {
-                        'Application': 85,
-                        'Device Warranty': 116,
-                        'Devices': 90,
-                        'Discovery': 36
-                    }
-                },
-                'Miscellaneous': {
-                    7: {
-                        'Miscellaneous': 20
-                    }
-                },
-                'Storage': {
-                    2: {
-                        'Devices': 90
-                    }
-                },
-                'System Health': {
-                    1: {
-                        'Devices': 90,
-                        'Health Status of Managed device': 7400,
-                        'Job': 47,
-                        'Metrics': 118,
-                        'Power Configuration': 151
-                    }
-                },
-                'Updates': {
-                    3: {
-                        'Application': 85,
-                        'Firmware': 112
-                    }
-                }
-            },
-            'Dell Storage': {
-                'Storage': {
-                    2: {
-                        'Other': 7700
-                    }
-                },
-                'System Health': {
-                    1: {
-                        'Other': 7700,
-                        'Storage': 18
-                    }
-                }
-            }},
+            "get_category_data_tree": get_category_data_tree,
             "get_all_actions": get_all_actions,
             "json_data": {
             "value": [
@@ -521,78 +537,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
         },
             "get_alert_policies": get_alert_policy,
             "validate_ome_data": (["AMP400", "AMP401", "CTL201"],),
-            "get_category_data_tree": {
-             'Application': {
-                 'Audit': {
-                     4: {
-                         'Devices': 90,
-                         'Generic': 10,
-                         'Power Configuration': 151,
-                         'Users': 35
-                     }
-                 },
-                 'Configuration': {
-                     5: {
-                         'Application': 85,
-                         'Device Warranty': 116,
-                         'Devices': 90,
-                         'Discovery': 36,
-                         'Generic': 10,
-                         'Users': 35
-                     }
-                 },
-                 'Miscellaneous': {
-                     7: {
-                         'Miscellaneous': 20
-                     }
-                 },
-                 'Storage': {
-                     2: {
-                         'Devices': 90
-                     }
-                 },
-                 'System Health': {
-                     1: {
-                         'Devices': 90,
-                         'Health Status of Managed device': 7400,
-                         'Job': 47,
-                         'Metrics': 118,
-                         'Power Configuration': 151
-                     }
-                 },
-                 'Updates': {
-                     3: {
-                         'Application': 85,
-                         'Firmware': 112
-                     }
-                 }
-             },
-             'Dell Storage': {
-                 'Storage': {
-                     2: {
-                         'Other': 7700
-                     }
-                 },
-                 'System Health': {
-                     1: {
-                         'Other': 7700,
-                         'Storage': 18
-                     }
-                 }
-             },
-             'Storage': {'Audit': {
-                 4: {
-                     'Interface': 101
-                 }
-             }},
-             'iDRAC': {
-                 'Audit': {
-                     4: {
-                         'Interface': 101
-                     }
-                 }
-             },
-        },
+            "get_category_data_tree": get_category_data_tree,
             "get_all_actions": get_all_actions,
             "json_data": {"value": []}
         },
