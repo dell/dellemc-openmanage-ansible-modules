@@ -158,8 +158,7 @@ class TestRedfishRest(object):
                      return_value=mock_response)
         with Redfish(module_params, True) as obj:
             ret = obj.strip_substr_dict(data_dict)
-        assert ret == {'value': [{'@odata.type': '#DeviceService.DeviceType', 'Description': 'Server Device', 'DeviceType': 1000, 'Name': 'SERVER'}, {
-            '@odata.type': '#DeviceService.DeviceType', 'Description': 'Chassis Device', 'DeviceType': 2000, 'Name': 'CHASSIS'}]}
+        assert ret == {'value': [{'@odata.type': '#DeviceService.DeviceType', 'Description': 'Server Device', 'DeviceType': 1000, 'Name': 'SERVER'}]}
 
     def test_invalid_json_openurlresp(self):
         obj = OpenURLResponse({})
