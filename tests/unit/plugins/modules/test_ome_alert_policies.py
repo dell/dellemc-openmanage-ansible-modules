@@ -730,168 +730,141 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          "json_data": {
              "value": [
                  {
-                     "@odata.type": "#AlertService.AlertCategories",
-                     "@odata.id": "/api/AlertService/AlertCategories('Application')",
                      "Name": "Application",
                      "IsBuiltIn": True,
                      "CategoriesDetails": [
                          {
-                             "@odata.type": "#AlertService.AlertCategory",
                              "Id": 4,
                              "Name": "Audit",
                              "CatalogName": "Application",
                              "SubCategoryDetails": [
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 90,
                                      "Name": "Devices",
-                                     "Description": "Devices"
+                                     "Description": "Devices description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 10,
                                      "Name": "Generic",
-                                     "Description": "Generic"
+                                     "Description": "Generic description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 151,
                                      "Name": "Power Configuration",
-                                     "Description": "Power Configuration"
+                                     "Description": "Power Configuration description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 35,
                                      "Name": "Users",
-                                     "Description": "Users"
+                                     "Description": "Users description"
                                  }
                              ]
                          },
                          {
-                             "@odata.type": "#AlertService.AlertCategory",
                              "Id": 7,
                              "Name": "Miscellaneous",
                              "CatalogName": "Application",
                              "SubCategoryDetails": [
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 20,
                                      "Name": "Miscellaneous",
-                                     "Description": "Miscellaneous"
+                                     "Description": "Miscellaneous description"
                                  }
                              ]
                          },
                          {
-                             "@odata.type": "#AlertService.AlertCategory",
                              "Id": 2,
                              "Name": "Storage",
                              "CatalogName": "Application",
                              "SubCategoryDetails": [
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 90,
                                      "Name": "Devices",
-                                     "Description": "Devices"
+                                     "Description": "Devices description"
                                  }
                              ]
                          },
                          {
-                             "@odata.type": "#AlertService.AlertCategory",
                              "Id": 1,
                              "Name": "System Health",
                              "CatalogName": "Application",
                              "SubCategoryDetails": [
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 90,
                                      "Name": "Devices",
-                                     "Description": "Devices"
+                                     "Description": "Devices description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 7400,
                                      "Name": "Health Status of Managed device",
-                                     "Description": "Health Status of Managed device"
+                                     "Description": "Health Status of Managed device description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 47,
                                      "Name": "Job",
-                                     "Description": "Job"
+                                     "Description": "Job description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 118,
                                      "Name": "Metrics",
-                                     "Description": "Metrics"
+                                     "Description": "Metrics description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 151,
                                      "Name": "Power Configuration",
-                                     "Description": "Power Configuration"
+                                     "Description": "Power Configuration description"
                                  }
                              ]
                          },
                          {
-                             "@odata.type": "#AlertService.AlertCategory",
                              "Id": 3,
                              "Name": "Updates",
                              "CatalogName": "Application",
                              "SubCategoryDetails": [
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 85,
                                      "Name": "Application",
-                                     "Description": "Application"
+                                     "Description": "Application description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 112,
                                      "Name": "Firmware",
-                                     "Description": "Firmware"
+                                     "Description": "Firmware description"
                                  }
                              ]
                          }
                      ]
                  },
                  {
-                     "@odata.type": "#AlertService.AlertCategories",
-                     "@odata.id": "/api/AlertService/AlertCategories('Dell%20Storage')",
                      "Name": "Dell Storage",
                      "IsBuiltIn": True,
                      "CategoriesDetails": [
                          {
-                             "@odata.type": "#AlertService.AlertCategory",
                              "Id": 2,
                              "Name": "Storage",
                              "CatalogName": "Dell Storage",
                              "SubCategoryDetails": [
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 7700,
                                      "Name": "Other",
-                                     "Description": "Other"
+                                     "Description": "Other description"
                                  }
                              ]
                          },
                          {
-                             "@odata.type": "#AlertService.AlertCategory",
                              "Id": 1,
                              "Name": "System Health",
                              "CatalogName": "Dell Storage",
                              "SubCategoryDetails": [
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 7700,
                                      "Name": "Other",
-                                     "Description": "Other"
+                                     "Description": "Other description"
                                  },
                                  {
-                                     "@odata.type": "#AlertService.AlertSubCategory",
                                      "Id": 18,
                                      "Name": "Storage",
-                                     "Description": "Storage"
+                                     "Description": "Storage description"
                                  }
                              ]
                          }
