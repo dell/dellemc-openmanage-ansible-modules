@@ -1210,14 +1210,14 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  ]
              }],
              "all_devices": True,
-             "message_ids": ["MSG01", "MSG02"],
+             "message_ids": ["AMP01", "CTL201"],
              "state": "present",
              "name": "Test alert policy",
-             "description": "get_all_actions coverage"
+             "description": "actions invalid coverage"
         },
             "get_alert_policies": [],
-            "get_target_payload": {"Groups": [123, 124]},
-            "get_category_or_message": {"MessageIds": ["MSG23", "MSG46"]},
+            "get_target_payload": {"Devices": [123, 124]},
+            "get_category_or_message": {"MessageIds": ["AMP01", "CTL201"]},
             "get_schedule_payload": {"StartTime": "2023-11-01 11:00:00.000", "EndTime": "2023-12-01 12:00:00.000"},
             "get_severity_payload": {},
             "json_data": {
@@ -1251,10 +1251,10 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  ]
              }],
              "all_devices": True,
-             "message_ids": ["MSG01", "MSG02"],
+             "message_ids": ["BIOS101", "RND123"],
              "state": "present",
              "name": "Test alert policy",
-             "description": "get_all_actions coverage"
+             "description": "No existing action coverage"
         },
             "get_alert_policies": [],
             "get_target_payload": {"Groups": [123, 124]},
