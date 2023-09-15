@@ -27,31 +27,34 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_alert_policies.'
 
-SUCCESS_MSG = "Successfully completed the {0} alert policy operation."
+SUCCESS_MSG = "Successfully {0}d the alert policy."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
-INVALID_START_TIME = "Invalid value for date_from or time_from `{0}`."
-INVALID_END_TIME = "Invalid value for date_to or time_to `{0}`."
-END_START_TIME = "End time or date `{0}` must be greater than start time `{1}`."
-CATEGORY_FETCH_FAILED = "Failed to fetch Category details."
-INVALID_TARGETS = "No valid targets provided for alert policy creation."
-INVALID_CATEGORY_MESSAGE = "No valid categories or messages provided for alert policy creation."
-INVALID_SCHEDULE = "No valid schedule provided for alert policy creation."
-INVALID_ACTIONS = "No valid actions provided for alert policy creation."
-INVALID_SEVERITY = "No valid severity is provided for creation of policy."
-MULTIPLE_POLICIES = "More than one policy name provided for update."
-DISABLED_ACTION = "Action {0} is disabled. Please enable it before applying to the policy."
-ACTION_INVALID_PARAM = "Action {0} has invalid parameter names: {1}. Please provide valid parameters for this action. Valid values are: {2}."
-ACTION_INVALID_VALUE = "Action {0} has invalid value {1} for parameter {2}. Valid values are: {3}."
+INVALID_START_TIME = "The specified from date or from time `{0}` to schedule the policy is not valid. Enter a valid date and time."
+INVALID_END_TIME = "The specified to date or to time `{0}` to schedule the policy is not valid. Enter a valid date and time."
+END_START_TIME = "The end time `{0}` to schedule the policy must be greater than the start time `{1}`."
+CATEGORY_FETCH_FAILED = "Unable to retrieve the category details from OpenManage Enterprise."
+INVALID_TARGETS = "Specify target devices to apply the alert policy."
+INVALID_CATEGORY_MESSAGE = "Specify  categories or message to create the alert policy."
+INVALID_SCHEDULE = "Specify a date and time to schedule the alert policy."
+INVALID_ACTIONS = "Specify alert actions for the alert policy."
+INVALID_SEVERITY = "Specify the severity to create the alert policy."
+MULTIPLE_POLICIES = "Unable to update the alert policies because the number of alert policies entered are more than " \
+                    "one. The update policy operation supports only one alert policy at a time."
+DISABLED_ACTION = "Action {0} is disabled. Enable it before applying to the alert policy."
+ACTION_INVALID_PARAM = "The Action {0} attribute contains invalid parameter name {1}. The valid values are {2}."
+ACTION_INVALID_VALUE = "The Action {0} attribute contains invalid value for {1} for parameter name {2}. The valid " \
+                       "values are {3}."
 ACTION_DIS_EXIST = "Action {0} does not exist."
-SUBCAT_IN_CATEGORY = "Sub category {0} in category {1} does not exist."
-CATEGORY_IN_CATALOG = "Category {0} in catalog {1} does not exist."
-OME_DATA_MSG = "{0} with {1} {2} do not exist."
-CATALOG_DIS_EXIST = "Catalog {0} does not exist."
-CSV_PATH = "Message file {0} does not exist."
-DEFAULT_POLICY_DELETE = "Default Policies {0} cannot be deleted."
-POLICY_ENABLE_MISSING = "Policies {0} do not exist for enabling or disabling."
-NO_POLICY_EXIST = "Policy does not exist."
+SUBCAT_IN_CATEGORY = "The subcategory {0} does not exist in the category {1}."
+CATEGORY_IN_CATALOG = "The category {0} does not exist in the catalog {1}."
+OME_DATA_MSG = "The {0} with the following {1} do not exist: {2}."
+CATALOG_DIS_EXIST = "The catalog {0} does not exist."
+CSV_PATH = "The message file {0} does not exist."
+DEFAULT_POLICY_DELETE = "The following default policies cannot be deleted: {0}."
+POLICY_ENABLE_MISSING = "Unable to {0} the alert policies {1} because the policy names are invalid. Enter the valid " \
+                        "alert policy names and retry the operation."
+NO_POLICY_EXIST = "The alert policy does not exist."
 SEPARATOR = ", "
 
 
@@ -73,11 +76,11 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
         {"message": CHANGES_MSG, "success": True, "check_mode": True,
          "json_data": {"value": [{'Name': "new alert policy", "Id": 12, "Enabled": False}]},
          "mparams": {"name": "new alert policy", "enable": True}},
-        {"message": "More than one policy name provided for update.", "success": True,
+        {"message": MULTIPLE_POLICIES, "success": True,
          "json_data": {"value": [{'Name': "alert policy1", "Id": 12, "Enabled": True},
                                  {'Name': "alert policy2", "Id": 13, "Enabled": True}]},
          "mparams": {"name": ["alert policy1", "alert policy2"], "enable": False, "description": 'Update case failed'}},
-        {"message": POLICY_ENABLE_MISSING.format("alert policy3"), "success": True,
+        {"message": POLICY_ENABLE_MISSING.format("disable", "alert policy3"), "success": True,
          "json_data": {"value": [{'Name': "alert policy1", "Id": 12, "Enabled": True},
                                  {'Name': "alert policy2", "Id": 13, "Enabled": True}]},
          "mparams": {"name": ["alert policy3", "alert policy2"], "enable": False}},
@@ -92,15 +95,15 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},
-        {"message": "Default Policies new alert policy cannot be deleted.", "success": True,
+        {"message": DEFAULT_POLICY_DELETE.format("new alert policy"), "success": True,
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": True}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},
-        {"message": "Policy does not exist.", "success": True, "check_mode": True,
+        {"message": NO_POLICY_EXIST, "success": True, "check_mode": True,
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},
-        {"message": "Policy does not exist.", "success": True,
+        {"message": NO_POLICY_EXIST, "success": True,
          "json_data": {"report_list": [{'Name': "new alert policy", "Id": 12, "DefaultPolicy": False}],
                        "value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]},
          "mparams": {"name": "new alert policy", "state": "absent"}},
@@ -533,7 +536,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "get_all_actions": get_all_actions,
             "json_data": {"value": []}
         },
-        {"message": OME_DATA_MSG.format("Groups", "Name", "Linux Servers"), "success": True,
+        {"message": OME_DATA_MSG.format("groups", "Name", "Linux Servers"), "success": True,
          "mparams": {
              "device_group": [
                  "AX",
@@ -548,7 +551,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
              "value": [{"Name": "AX", "Id": 121},
                        {"Name": "Group2", "Id": 122}]}
         },
-        {"message": OME_DATA_MSG.format("Groups", "Name", "Linux Servers"), "success": True,
+        {"message": OME_DATA_MSG.format("groups", "Name", "Linux Servers"), "success": True,
          "mparams": {
              "device_group": [
                  "AX",

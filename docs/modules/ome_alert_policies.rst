@@ -418,7 +418,7 @@ Examples
 Return Values
 -------------
 
-msg (always, str, Successfully completed the create alert policy operation.)
+msg (always, str, Successfully created the alert policy.)
   Status of the alert policies operation.
 
 

@@ -334,7 +334,7 @@ msg:
   type: str
   description: Status of the alert policies operation.
   returned: always
-  sample: "Successfully completed the create alert policy operation."
+  sample: "Successfully created the alert policy."
 status:
   type: dict
   description: The policy which was created or modified.
@@ -497,31 +497,34 @@ REMOVE_URI = "AlertService/Actions/AlertService.RemoveAlertPolicies"
 ENABLE_URI = "AlertService/Actions/AlertService.EnableAlertPolicies"
 DISABLE_URI = "AlertService/Actions/AlertService.DisableAlertPolicies"
 CATEGORY_URI = "AlertService/AlertCategories"
-SUCCESS_MSG = "Successfully completed the {0} alert policy operation."
+SUCCESS_MSG = "Successfully {0}d the alert policy."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
-INVALID_START_TIME = "Invalid value for date_from or time_from `{0}`."
-INVALID_END_TIME = "Invalid value for date_to or time_to `{0}`."
-END_START_TIME = "End time or date `{0}` must be greater than start time `{1}`."
-CATEGORY_FETCH_FAILED = "Failed to fetch Category details."
-INVALID_TARGETS = "No valid targets provided for alert policy creation."
-INVALID_CATEGORY_MESSAGE = "No valid categories or messages provided for alert policy creation."
-INVALID_SCHEDULE = "No valid schedule provided for alert policy creation."
-INVALID_ACTIONS = "No valid actions provided for alert policy creation."
-INVALID_SEVERITY = "No valid severity is provided for creation of policy."
-MULTIPLE_POLICIES = "More than one policy name provided for update."
-DISABLED_ACTION = "Action {0} is disabled. Please enable it before applying to the policy."
-ACTION_INVALID_PARAM = "Action {0} has invalid parameter names: {1}. Please provide valid parameters for this action. Valid values are: {2}."
-ACTION_INVALID_VALUE = "Action {0} has invalid value {1} for parameter {2}. Valid values are: {3}."
+INVALID_START_TIME = "The specified from date or from time `{0}` to schedule the policy is not valid. Enter a valid date and time."
+INVALID_END_TIME = "The specified to date or to time `{0}` to schedule the policy is not valid. Enter a valid date and time."
+END_START_TIME = "The end time `{0}` to schedule the policy must be greater than the start time `{1}`."
+CATEGORY_FETCH_FAILED = "Unable to retrieve the category details from OpenManage Enterprise."
+INVALID_TARGETS = "Specify target devices to apply the alert policy."
+INVALID_CATEGORY_MESSAGE = "Specify  categories or message to create the alert policy."
+INVALID_SCHEDULE = "Specify a date and time to schedule the alert policy."
+INVALID_ACTIONS = "Specify alert actions for the alert policy."
+INVALID_SEVERITY = "Specify the severity to create the alert policy."
+MULTIPLE_POLICIES = "Unable to update the alert policies because the number of alert policies entered are more than " \
+                    "one. The update policy operation supports only one alert policy at a time."
+DISABLED_ACTION = "Action {0} is disabled. Enable it before applying to the alert policy."
+ACTION_INVALID_PARAM = "The Action {0} attribute contains invalid parameter name {1}. The valid values are {2}."
+ACTION_INVALID_VALUE = "The Action {0} attribute contains invalid value for {1} for parameter name {2}. The valid " \
+                       "values are {3}."
 ACTION_DIS_EXIST = "Action {0} does not exist."
-SUBCAT_IN_CATEGORY = "Sub category {0} in category {1} does not exist."
-CATEGORY_IN_CATALOG = "Category {0} in catalog {1} does not exist."
-OME_DATA_MSG = "{0} with {1} {2} do not exist."
-CATALOG_DIS_EXIST = "Catalog {0} does not exist."
-CSV_PATH = "Message file {0} does not exist."
-DEFAULT_POLICY_DELETE = "Default Policies {0} cannot be deleted."
-POLICY_ENABLE_MISSING = "Policies {0} do not exist for enabling or disabling."
-NO_POLICY_EXIST = "Policy does not exist."
+SUBCAT_IN_CATEGORY = "The subcategory {0} does not exist in the category {1}."
+CATEGORY_IN_CATALOG = "The category {0} does not exist in the catalog {1}."
+OME_DATA_MSG = "The {0} with the following {1} do not exist: {2}."
+CATALOG_DIS_EXIST = "The catalog {0} does not exist."
+CSV_PATH = "The message file {0} does not exist."
+DEFAULT_POLICY_DELETE = "The following default policies cannot be deleted: {0}."
+POLICY_ENABLE_MISSING = "Unable to {0} the alert policies {1} because the policy names are invalid. Enter the valid " \
+                        "alert policy names and retry the operation."
+NO_POLICY_EXIST = "The alert policy does not exist."
 SEPARATOR = ", "
 
 
@@ -616,14 +619,14 @@ def get_target_payload(module, rest_obj):
         target_provided = True
     elif mparams.get('device_service_tag'):
         devicetype, deviceids = validate_ome_data(module, rest_obj, mparams.get('device_service_tag'),
-                                                  'DeviceServiceTag', ('Type', 'Id'), DEVICES_URI, 'Devices')
+                                                  'DeviceServiceTag', ('Type', 'Id'), DEVICES_URI, 'devices')
         target_payload['Devices'] = deviceids
         target_payload['Devices'].sort()
         target_payload['DeviceTypes'] = list(set(devicetype))
         target_payload['DeviceTypes'].sort()
         target_provided = True
     elif mparams.get('device_group'):
-        groups = validate_ome_data(module, rest_obj, mparams.get('device_group'), 'Name', ('Id',), GROUPS_URI, 'Groups')
+        groups = validate_ome_data(module, rest_obj, mparams.get('device_group'), 'Name', ('Id',), GROUPS_URI, 'groups')
         target_payload['Groups'] = groups[0]
         target_payload['Groups'].sort()
         target_provided = True
@@ -829,7 +832,7 @@ def get_category_or_message(module, rest_obj):
     else:
         mlist = get_message_payload(module)
         if mlist:
-            validate_ome_data(module, rest_obj, mlist, 'MessageId', ('MessageId',), MESSAGES_URI, 'Message')
+            validate_ome_data(module, rest_obj, mlist, 'MessageId', ('MessageId',), MESSAGES_URI, 'messages')
             cat_msg_provided = True
             cat_payload['MessageIds'] = list(set(mlist))
             cat_payload['MessageIds'].sort()
@@ -1018,7 +1021,8 @@ def handle_policy_enable(module, rest_obj, policies, name_list):
         enable_toggle_policy(module, rest_obj, policies)
     else:
         invalid_policies = set(name_list) - set(x.get("Name") for x in policies)
-        module.exit_json(failed=True, msg=POLICY_ENABLE_MISSING.format(SEPARATOR.join(invalid_policies)))
+        enabler = module.params.get('enable')
+        module.exit_json(failed=True, msg=POLICY_ENABLE_MISSING.format("enable" if enabler else "disable", SEPARATOR.join(invalid_policies)))
 
 
 def handle_absent_state(module, rest_obj, policies):
