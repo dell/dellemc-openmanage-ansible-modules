@@ -500,6 +500,7 @@ CATEGORY_URI = "AlertService/AlertCategories"
 SUCCESS_MSG = "Successfully {0}d the alert policy."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
+INVALID_TIME = "The specified {0} date or {0} time `{1}` to schedule the policy is not valid. Enter a valid date and time."
 INVALID_START_TIME = "The specified from date or from time `{0}` to schedule the policy is not valid. Enter a valid date and time."
 INVALID_END_TIME = "The specified to date or to time `{0}` to schedule the policy is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the policy must be greater than the start time `{1}`."
@@ -555,7 +556,6 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
     return_dict = {v: [] for v in return_param_tuple}
     resp = rest_obj.invoke_request("GET", ome_uri)
     all_items = resp.json_data.get("value", [])
-    collector = set()
     collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
     mset = mset - collector 
     all_item_count = resp.json_data.get("@odata.count")
@@ -646,6 +646,14 @@ def get_all_actions(rest_obj):
     return cmp_actions
 
 
+def validate_time(module, time, time_format, time_type):
+    try:
+        ftime = datetime.strptime(time, time_format)
+    except ValueError:
+        module.exit_json(failed=True, msg=INVALID_TIME.format(time_type, time))
+    return ftime
+
+
 def get_schedule_payload(module):
     schedule_payload = {}
     inp_schedule = module.params.get('date_and_time')
@@ -654,25 +662,18 @@ def get_schedule_payload(module):
         time_format = "%Y-%m-%d %H:%M:%S.%f"
         time_interval = True if inp_schedule.get('time_interval') else False
         schedule_payload['Interval'] = time_interval
-        time_from = inp_schedule.get(
-            'time_from') if time_interval else def_time
+        time_from = inp_schedule.get('time_from') if time_interval else def_time
         time_to = inp_schedule.get('time_to') if time_interval else def_time
         start_time = f"{inp_schedule.get('date_from')} {time_from}:00.000"
-        try:
-            start_time_x = datetime.strptime(start_time, time_format)
-            schedule_payload["StartTime"] = start_time
-        except ValueError:
-            module.exit_json(failed=True, msg=INVALID_START_TIME.format(start_time))
+        start_time_x = validate_time(module, start_time, time_format, "from")
+        schedule_payload["StartTime"] = start_time
         schedule_payload["EndTime"] = f"{time_to}:00.000" if time_interval else ""
         if inp_schedule.get('date_to'):
             end_time = f"{inp_schedule.get('date_to')} {time_to}:00.000"
-            try:
-                end_time_x = datetime.strptime(end_time, time_format)
-                if end_time_x < start_time_x:
-                    module.exit_json(failed=True, msg=END_START_TIME.format(end_time_x, start_time_x))
-                schedule_payload["EndTime"] = end_time
-            except ValueError:
-                module.exit_json(failed=True, msg=INVALID_END_TIME.format(end_time))
+            end_time_x = validate_time(module, end_time, time_format, "to")
+            schedule_payload["EndTime"] = end_time
+            if end_time_x < start_time_x:
+                module.exit_json(failed=True, msg=END_START_TIME.format(end_time_x, start_time_x))
         weekdays = {'monday': 'mon', 'tuesday': 'tue', 'wednesday': 'wed', 'thursday': 'thu', 'friday': 'fri',
                     'saturday': 'sat', 'sunday': 'sun'}
         inp_week_list = ['*']
@@ -751,11 +752,7 @@ def load_category_data(module, catalog_name, category_list, category_det, payloa
                 inp_sub_cat_list = inp_category.get('sub_category_names')
                 load_subcategory_data(module, inp_sub_cat_list, sub_cat_dict, key_id, payload_cat, payload_subcat, inp_category)
             else:
-                module.exit_json(
-                    failed=True,
-                    msg=CATEGORY_IN_CATALOG.format(
-                        inp_category.get('category_name'), catalog_name
-                    ))
+                module.exit_json(failed=True, msg=CATEGORY_IN_CATALOG.format(inp_category.get('category_name'), catalog_name))
     else:
         payload_cat.append(0)
         payload_subcat.append(0)
