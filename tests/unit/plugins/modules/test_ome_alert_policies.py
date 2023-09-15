@@ -30,8 +30,7 @@ MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_alert_
 SUCCESS_MSG = "Successfully {0}d the alert policy."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
-INVALID_START_TIME = "The specified from date or from time `{0}` to schedule the policy is not valid. Enter a valid date and time."
-INVALID_END_TIME = "The specified to date or to time `{0}` to schedule the policy is not valid. Enter a valid date and time."
+INVALID_TIME = "The specified {0} date or {0} time `{1}` to schedule the policy is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the policy must be greater than the start time `{1}`."
 CATEGORY_FETCH_FAILED = "Unable to retrieve the category details from OpenManage Enterprise."
 INVALID_TARGETS = "Specify target devices to apply the alert policy."
@@ -1280,7 +1279,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  }]
         }
         },
-        {"message": INVALID_START_TIME.format("2023-20-01 11:00:00.000"), "success": True,
+        {"message": INVALID_TIME.format("from", "2023-20-01 11:00:00.000"), "success": True,
          "mparams": {
              "date_and_time": {
                  "date_from": "2023-20-01",
@@ -1306,7 +1305,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
              "value": []
         }
         },
-        {"message": INVALID_START_TIME.format("2023-10-01 31:00:00.000"), "success": True,
+        {"message": INVALID_TIME.format("from", "2023-10-01 31:00:00.000"), "success": True,
          "mparams": {
              "date_and_time": {
                  "date_from": "2023-10-01",
@@ -1358,7 +1357,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
              "value": []
         }
         },
-        {"message": INVALID_END_TIME.format("2023-10-32 32:00:00.000"), "success": True,
+        {"message": INVALID_TIME.format("to", "2023-10-32 32:00:00.000"), "success": True,
          "mparams": {
              "date_and_time": {
                  "date_from": "2023-10-01",

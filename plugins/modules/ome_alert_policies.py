@@ -654,32 +654,37 @@ def validate_time(module, time, time_format, time_type):
     return ftime
 
 
+def get_ftime(module, inp_schedule, time_type, time_interval):
+    def_time = "00:00"
+    time_format = "%Y-%m-%d %H:%M:%S.%f"
+    hhmm = inp_schedule.get(f"time_{time_type}") if time_interval else def_time
+    date_x = inp_schedule.get(f"date_{time_type}")
+    time_x = None
+    if date_x:
+        dtime = f"{date_x} {hhmm}:00.000"
+        time_x = validate_time(module, dtime, time_format, time_type)
+    elif time_interval:
+        dtime = f"{hhmm}:00.000"
+    else:
+        dtime = ""
+    return dtime, time_x
+
+
 def get_schedule_payload(module):
     schedule_payload = {}
     inp_schedule = module.params.get('date_and_time')
     if inp_schedule:
-        def_time = "00:00"
-        time_format = "%Y-%m-%d %H:%M:%S.%f"
-        time_interval = True if inp_schedule.get('time_interval') else False
+        time_interval = bool(inp_schedule.get('time_interval'))
         schedule_payload['Interval'] = time_interval
-        time_from = inp_schedule.get('time_from') if time_interval else def_time
-        time_to = inp_schedule.get('time_to') if time_interval else def_time
-        start_time = f"{inp_schedule.get('date_from')} {time_from}:00.000"
-        start_time_x = validate_time(module, start_time, time_format, "from")
-        schedule_payload["StartTime"] = start_time
-        schedule_payload["EndTime"] = f"{time_to}:00.000" if time_interval else ""
-        if inp_schedule.get('date_to'):
-            end_time = f"{inp_schedule.get('date_to')} {time_to}:00.000"
-            end_time_x = validate_time(module, end_time, time_format, "to")
-            schedule_payload["EndTime"] = end_time
-            if end_time_x < start_time_x:
-                module.exit_json(failed=True, msg=END_START_TIME.format(end_time_x, start_time_x))
+        schedule_payload["StartTime"], start_time_x = get_ftime(module, inp_schedule, "from", time_interval)
+        schedule_payload["EndTime"], end_time_x = get_ftime(module, inp_schedule, "to", time_interval)
+        if inp_schedule.get('date_to') and end_time_x < start_time_x:
+            module.exit_json(failed=True, msg=END_START_TIME.format(end_time_x, start_time_x))
         weekdays = {'monday': 'mon', 'tuesday': 'tue', 'wednesday': 'wed', 'thursday': 'thu', 'friday': 'fri',
                     'saturday': 'sat', 'sunday': 'sun'}
         inp_week_list = ['*']
         cron_sep = ","
         if inp_schedule.get('days'):
-            # week order
             week_order = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
             inp_week_list = sorted(list(set(inp_schedule.get('days'))), key=week_order.index)
         schedule_payload["CronString"] = f"* * * ? * {cron_sep.join([weekdays.get(x, '*') for x in inp_week_list])} *"
@@ -739,7 +744,7 @@ def load_subcategory_data(module, inp_sub_cat_list, sub_cat_dict, key_id, payloa
                 module.exit_json(failed=True, msg=SUBCAT_IN_CATEGORY.format(sub_cat, inp_category.get('category_name')))
     else:
         payload_cat.append(key_id)
-        payload_subcat.append(0)    
+        payload_subcat.append(0)
 
 
 def load_category_data(module, catalog_name, category_list, category_det, payload_cat, payload_subcat):
