@@ -501,8 +501,6 @@ SUCCESS_MSG = "Successfully {0}d the alert policy."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 INVALID_TIME = "The specified {0} date or {0} time `{1}` to schedule the policy is not valid. Enter a valid date and time."
-INVALID_START_TIME = "The specified from date or from time `{0}` to schedule the policy is not valid. Enter a valid date and time."
-INVALID_END_TIME = "The specified to date or to time `{0}` to schedule the policy is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the policy must be greater than the start time `{1}`."
 CATEGORY_FETCH_FAILED = "Unable to retrieve the category details from OpenManage Enterprise."
 INVALID_TARGETS = "Specify target devices to apply the alert policy."
@@ -557,7 +555,7 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
     resp = rest_obj.invoke_request("GET", ome_uri)
     all_items = resp.json_data.get("value", [])
     collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
-    mset = mset - collector 
+    mset = mset - collector
     all_item_count = resp.json_data.get("@odata.count")
     if mset and (all_item_count > len(all_items)):
         if len(mset) < (all_item_count // 100):
@@ -571,7 +569,7 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
             report = get_all_data_with_pagination(rest_obj, ome_uri)
             all_items = report.get("report_list", [])
             collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
-            mset = mset - collector       
+            mset = mset - collector
     if mset:
         module.exit_json(failed=True,
                          msg=OME_DATA_MSG.format(item_name, filter_param, SEPARATOR.join(mset)))
@@ -701,7 +699,9 @@ def create_action_payload(inp_k, inp_val, ref_actions, module):
     }
     diff = set(inp_val.keys()) - set(ref_actions.get(inp_k).get('Parameters').keys())
     if diff:
-        module.exit_json(failed=True, msg=ACTION_INVALID_PARAM.format(inp_k, SEPARATOR.join(diff), SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())))
+        module.exit_json(failed=True,
+                         msg=ACTION_INVALID_PARAM.format(
+                             inp_k, SEPARATOR.join(diff), SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())))
     for sub_k, sub_val in inp_val.items():
         valid_values = ref_actions.get(inp_k).get('Type').get(sub_k)
         if valid_values:
@@ -719,7 +719,7 @@ def get_actions_payload(module, rest_obj):
     if inp_actions:
         ref_actions = get_all_actions(rest_obj)
         inp_dict = {x.get("action_name"): {y.get("name"): y.get("value")
-                                   for y in x.get("parameters", [])} for x in inp_actions}
+                                           for y in x.get("parameters", [])} for x in inp_actions}
         if 'Ignore' in inp_dict:
             action_payload['Ignore'] = {'TemplateId': ref_actions.get('Ignore').get('Id'),
                                         'Name': "Ignore",
