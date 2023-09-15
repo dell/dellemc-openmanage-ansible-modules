@@ -436,6 +436,14 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "get_severity_payload": {"Severities": ["unknown"]},
             "get_all_actions": get_all_actions,
             "json_data": {"value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]}},
+        {"message": CHANGES_MSG, "success": True,
+         "check_mode": True,
+         "mparams": create_input,
+         "get_alert_policies": [],
+         "validate_ome_data": (["AMP400", "AMP401", "CTL201"],),
+         "get_severity_payload": {"Severities": ["unknown"]},
+         "get_all_actions": get_all_actions,
+         "json_data": {"value": [{'Name': "new alert policy 1", "Id": 12, "DefaultPolicy": False}]}},
         {"message": SUCCESS_MSG.format("update"), "success": True,
          "mparams": create_input,
             "get_alert_policies": get_alert_policy,
@@ -481,9 +489,9 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  }
              ],
              "description": "Description of Alert Policy One",
-             "device_group": [
-                 "AX",
-                 "Linux Servers"
+             "specific_undiscovered_devices": [
+                 "host1",
+                 "192.1.2.3-192.1.2.10"
              ],
              "enable": True,
              "category": [
@@ -1231,6 +1239,47 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
                  }]
         }
         },
+        {"message": ACTION_DIS_EXIST.format("SNMPTrap"), "success": True,
+         "mparams": {
+             "actions": [{
+                 "action_name": "SNMPTrap",
+                 "parameters": [
+                    {
+                        "name": trap_ip1,
+                        "value": "true"
+                    }
+                 ]
+             }],
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_all_actions coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_or_message": {"MessageIds": ["MSG23", "MSG46"]},
+            "get_schedule_payload": {"StartTime": "2023-11-01 11:00:00.000", "EndTime": "2023-12-01 12:00:00.000"},
+            "get_severity_payload": {},
+            "json_data": {
+             "value": [
+                 {
+                     "Id": 60,
+                     "Name": "Trap",
+                     "Description": "Trap",
+                     "Disabled": False,
+                     "ParameterDetails": [
+                         {
+                             "Id": 1,
+                             "Name": trap_ip1,
+                             "Value": "true",
+                             "Type": "boolean",
+                             "TemplateParameterTypeDetails": []
+                         }
+                     ]
+                 }]
+        }
+        },
         {"message": INVALID_START_TIME.format("2023-20-01 11:00:00.000"), "success": True,
          "mparams": {
              "date_and_time": {
@@ -1331,6 +1380,140 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "get_alert_policies": [],
             "get_target_payload": {"Groups": [123, 124]},
             "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
+            "json_data": {
+             "value": []
+        }
+        },
+        {"message": INVALID_TARGETS, "success": True,
+         "mparams": {
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "INVALID_TARGETS coverage"
+         },
+            "get_alert_policies": [],
+            "get_target_payload": {},
+            "json_data": {
+             "value": []
+         }
+         },
+        {"message": INVALID_ACTIONS, "success": True,
+         "mparams": {
+             "all_devices": True,
+             "message_ids": ["MSG01", "MSG02"],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+         },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
+            "get_schedule_payload": {"Schdedule": {}},
+            "get_actions_payload": {},
+            "json_data": {
+             "value": []
+         }
+         },
+        {"message": CATEGORY_FETCH_FAILED, "success": True,
+         "mparams": {
+             "all_devices": True,
+             "category": [
+                 {
+                     "catalog_category": [
+                         {
+                             "category_name": "Audit",
+                             "sub_category_names": [
+                                 "Users",
+                                 "Generic"
+                             ]
+                         }
+                     ],
+                     "catalog_name": "Application"
+                 }
+             ],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+         },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_data_tree": {},
+            "json_data": {
+             "value": []
+         }
+         },
+        {"message": SUBCAT_IN_CATEGORY.format("General", "Audit"), "success": True,
+         "mparams": {
+             "all_devices": True,
+             "category": [
+                 {
+                     "catalog_category": [
+                         {
+                             "category_name": "Audit",
+                             "sub_category_names": [
+                                 "General",
+                                 "Generic"
+                             ]
+                         }
+                     ],
+                     "catalog_name": "Application"
+                 }
+             ],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_data_tree": get_category_data_tree,
+            "json_data": {
+             "value": []
+        }
+        },
+        {"message": CATEGORY_IN_CATALOG.format("Audi", "Application"), "success": True,
+         "mparams": {
+             "all_devices": True,
+             "category": [
+                 {
+                     "catalog_category": [
+                         {
+                             "category_name": "Audi",
+                             "sub_category_names": [
+                                 "General",
+                                 "Generic"
+                             ]
+                         }
+                     ],
+                     "catalog_name": "Application"
+                 }
+             ],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_data_tree": get_category_data_tree,
+            "json_data": {
+             "value": []
+        }
+        },
+        {"message": CATALOG_DIS_EXIST.format("Alpha"), "success": True,
+         "mparams": {
+             "all_devices": True,
+             "category": [
+                 {
+                     "catalog_name": "Alpha"
+                 }
+             ],
+             "state": "present",
+             "name": "Test alert policy",
+             "description": "get_schedule coverage"
+        },
+            "get_alert_policies": [],
+            "get_target_payload": {"Groups": [123, 124]},
+            "get_category_data_tree": get_category_data_tree,
             "json_data": {
              "value": []
         }
