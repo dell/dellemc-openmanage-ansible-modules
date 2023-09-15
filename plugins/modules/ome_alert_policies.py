@@ -539,59 +539,39 @@ def get_alert_policies(rest_obj, name_list):
     return policies
 
 
-def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tuple, ome_uri, item_name="Items"):
-    """
-        Validates OME query data based on the filter_param and returns specified keys from the data.
-
-        Args:
-            module (AnsibleModule): The module object.
-            rest_obj (RestOME): The REST object.
-            item_list (list): The list of item keys to validate.
-            filter_param (str): The filter key supported by the ome_uri.
-            return_param_tuple (tuple(str)): The tuple of specific parameters.
-            ome_uri (str): The specific OME URI which supports filtering.
-            format (str, optional): The format. Defaults to "Items" to be displayed as part of the Error message.
-
-        Returns:
-            tuple(list): A tuple containing the lists of the data in return_param_tuple.
-    """
-    mset = set(item_list)
-    return_dict = {}
-    for v in return_param_tuple:
-        return_dict[v] = []
-    resp = rest_obj.invoke_request("GET", ome_uri)
-    all_items = resp.json_data.get("value", [])
+def get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset):
+    collector = set()
     for dev in all_items:
         k = dev.get(filter_param)
         if k in mset:
             for v in return_param_tuple:
                 return_dict[v].append(dev.get(v))
-            mset.remove(k)
+            collector.add(k)
+    return collector
+
+
+def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tuple, ome_uri, item_name="Items"):
+    mset = set(item_list)
+    return_dict = {v: [] for v in return_param_tuple}
+    resp = rest_obj.invoke_request("GET", ome_uri)
+    all_items = resp.json_data.get("value", [])
+    collector = set()
+    collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
+    mset = mset - collector 
     all_item_count = resp.json_data.get("@odata.count")
     if mset and (all_item_count > len(all_items)):
         if len(mset) < (all_item_count // 100):
-            # because filter supports only one item id at a time
-            collector = set()
             for item_id in mset:
                 query_param = {"$filter": f"{filter_param} eq '{item_id}'"}
                 resp = rest_obj.invoke_request('GET', ome_uri, query_param=query_param)
                 one_item = resp.json_data.get("value", [])
-                for dev in one_item:
-                    k = dev.get(filter_param)
-                    if k in mset:
-                        for v in return_param_tuple:
-                            return_dict[v].append(dev.get(v))
-                        collector.add(k)
+                collector = collector | get_items_to_remove(filter_param, return_param_tuple, return_dict, one_item, mset)
             mset = mset - collector
         else:
             report = get_all_data_with_pagination(rest_obj, ome_uri)
             all_items = report.get("report_list", [])
-            for dev in all_items:
-                k = dev.get(filter_param)
-                if k in mset:
-                    for v in return_param_tuple:
-                        return_dict[v].append(dev.get(v))
-                    mset.remove(k)
+            collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
+            mset = mset - collector       
     if mset:
         module.exit_json(failed=True,
                          msg=OME_DATA_MSG.format(item_name, filter_param, SEPARATOR.join(mset)))
@@ -705,53 +685,83 @@ def get_schedule_payload(module):
     return {"Schedule": schedule_payload} if schedule_payload else {}
 
 
+def create_action_payload(inp_k, inp_val, ref_actions, module):
+    if ref_actions.get(inp_k).get('Disabled'):
+        module.exit_json(failed=True, msg=DISABLED_ACTION.format(inp_k))
+    pld = {
+        'TemplateId': ref_actions.get(inp_k).get('Id'),
+        'Name': inp_k,
+        'ParameterDetails': {}
+    }
+    diff = set(inp_val.keys()) - set(ref_actions.get(inp_k).get('Parameters').keys())
+    if diff:
+        module.exit_json(failed=True, msg=ACTION_INVALID_PARAM.format(inp_k, SEPARATOR.join(diff), SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())))
+    for sub_k, sub_val in inp_val.items():
+        valid_values = ref_actions.get(inp_k).get('Type').get(sub_k)
+        if valid_values:
+            if str(sub_val).lower() not in valid_values:
+                module.exit_json(failed=True, msg=ACTION_INVALID_VALUE.format(inp_k, sub_val, sub_k, SEPARATOR.join(valid_values)))
+            else:
+                inp_val[sub_k] = str(sub_val).lower() if str(sub_val).lower() in ("true", "false") else sub_val
+    pld['ParameterDetails'] = inp_val
+    return pld
+
+
 def get_actions_payload(module, rest_obj):
     action_payload = {}
     inp_actions = module.params.get('actions')
     if inp_actions:
         ref_actions = get_all_actions(rest_obj)
-        inp_dict = dict((x.get("action_name"), dict((y.get("name"), y.get(
-            "value")) for y in x.get("parameters", []))) for x in inp_actions)
+        inp_dict = {x.get("action_name"): {y.get("name"): y.get("value")
+                                   for y in x.get("parameters", [])} for x in inp_actions}
         if 'Ignore' in inp_dict:
-            pld = {}
-            pld['TemplateId'] = ref_actions.get('Ignore').get('Id')
-            pld['Name'] = "Ignore"
-            pld['ParameterDetails'] = {}
-            action_payload['Ignore'] = pld
+            action_payload['Ignore'] = {'TemplateId': ref_actions.get('Ignore').get('Id'),
+                                        'Name': "Ignore",
+                                        'ParameterDetails': {}}
         else:
             for inp_k, inp_val in inp_dict.items():
                 if inp_k in ref_actions:
-                    pld = {}
-                    if ref_actions.get(inp_k).get('Disabled'):
-                        module.exit_json(failed=True, msg=DISABLED_ACTION.format(inp_k))
-                    pld['TemplateId'] = ref_actions.get(inp_k).get('Id')
-                    pld['Name'] = inp_k
-                    diff = set(inp_val.keys()) - \
-                        set(ref_actions.get(inp_k).get('Parameters').keys())
-                    if diff:
-                        module.exit_json(
-                            failed=True,
-                            msg=ACTION_INVALID_PARAM.format(inp_k, SEPARATOR.join(diff), SEPARATOR.join(ref_actions.get(inp_k).get('Parameters').keys())))
-                    for sub_k, sub_val in inp_val.items():
-                        valid_values = ref_actions.get(inp_k).get('Type').get(sub_k)
-                        if valid_values:
-                            if str(sub_val).lower() not in valid_values:
-                                module.exit_json(
-                                    failed=True, msg=ACTION_INVALID_VALUE.format(inp_k, sub_val, sub_k, SEPARATOR.join(valid_values)))
-                            else:
-                                inp_val[sub_k] = str(sub_val).lower() if str(sub_val).lower() in ("true", "false") else sub_val
-                    pld['ParameterDetails'] = inp_val
-                    action_payload[inp_k] = pld
+                    action_payload[inp_k] = create_action_payload(inp_k, inp_val, ref_actions, module)
                 else:
                     module.exit_json(failed=True, msg=ACTION_DIS_EXIST.format(inp_k))
     return {"Actions": action_payload} if action_payload else {}
 
 
-def get_category_payload(module, rest_obj):
-    inp_catalog_list = module.params.get('category')
-    cdict_ref = get_category_data_tree(rest_obj)
-    if not cdict_ref:
-        module.exit_json(failed=True, msg=CATEGORY_FETCH_FAILED)
+def load_subcategory_data(module, inp_sub_cat_list, sub_cat_dict, key_id, payload_cat, payload_subcat, inp_category):
+    if inp_sub_cat_list:
+        for sub_cat in inp_sub_cat_list:
+            if sub_cat in sub_cat_dict:
+                payload_cat.append(key_id)
+                payload_subcat.append(
+                    sub_cat_dict.get(sub_cat))
+            else:
+                module.exit_json(failed=True, msg=SUBCAT_IN_CATEGORY.format(sub_cat, inp_category.get('category_name')))
+    else:
+        payload_cat.append(key_id)
+        payload_subcat.append(0)    
+
+
+def load_category_data(module, catalog_name, category_list, category_det, payload_cat, payload_subcat):
+    if category_list:
+        for inp_category in category_list:
+            if inp_category.get('category_name') in category_det:
+                resp_category_dict = category_det.get(inp_category.get('category_name'))
+                key_id = list(resp_category_dict.keys())[0]
+                sub_cat_dict = resp_category_dict.get(key_id)
+                inp_sub_cat_list = inp_category.get('sub_category_names')
+                load_subcategory_data(module, inp_sub_cat_list, sub_cat_dict, key_id, payload_cat, payload_subcat, inp_category)
+            else:
+                module.exit_json(
+                    failed=True,
+                    msg=CATEGORY_IN_CATALOG.format(
+                        inp_category.get('category_name'), catalog_name
+                    ))
+    else:
+        payload_cat.append(0)
+        payload_subcat.append(0)
+
+
+def get_category_payloadlist(module, inp_catalog_list, cdict_ref):
     payload_cat_list = []
     for inp_catalog in inp_catalog_list:
         new_dict = {}
@@ -762,43 +772,21 @@ def get_category_payload(module, rest_obj):
             category_det = cdict_ref.get(catalog_name)
             payload_subcat = []
             category_list = inp_catalog.get('catalog_category')
-            if category_list:
-                for inp_category in category_list:
-                    if inp_category.get('category_name') in category_det:
-                        resp_category_dict = category_det.get(
-                            inp_category.get('category_name'))
-                        key_id = list(resp_category_dict.keys())[0]
-                        sub_cat_dict = resp_category_dict.get(key_id)
-                        inp_sub_cat_list = inp_category.get('sub_category_names')
-                        if inp_sub_cat_list:
-                            for sub_cat in inp_sub_cat_list:
-                                if sub_cat in sub_cat_dict:
-                                    payload_cat.append(key_id)
-                                    payload_subcat.append(
-                                        sub_cat_dict.get(sub_cat))
-                                else:
-                                    module.exit_json(
-                                        failed=True,
-                                        msg=SUBCAT_IN_CATEGORY.format(
-                                            sub_cat, inp_category.get('category_name')
-                                        ))
-                        else:
-                            payload_cat.append(key_id)
-                            payload_subcat.append(0)
-                    else:
-                        module.exit_json(
-                            failed=True,
-                            msg=CATEGORY_IN_CATALOG.format(
-                                inp_category.get('category_name'), catalog_name
-                            ))
-            else:
-                payload_cat.append(0)
-                payload_subcat.append(0)
+            load_category_data(module, catalog_name, category_list, category_det, payload_cat, payload_subcat)
             new_dict["Categories"] = payload_cat
             new_dict['SubCategories'] = payload_subcat
         else:
             module.exit_json(failed=True, msg=CATALOG_DIS_EXIST.format(catalog_name))
         payload_cat_list.append(new_dict)
+    return payload_cat_list
+
+
+def get_category_payload(module, rest_obj):
+    inp_catalog_list = module.params.get('category')
+    cdict_ref = get_category_data_tree(rest_obj)
+    if not cdict_ref:
+        module.exit_json(failed=True, msg=CATEGORY_FETCH_FAILED)
+    payload_cat_list = get_category_payloadlist(module, inp_catalog_list, cdict_ref)
     return payload_cat_list
 
 
@@ -920,7 +908,6 @@ def compare_policy_payload(module, rest_obj, policy):
             new_policy_data.update(payload)
             diff_tuple = recursive_diff(new_payload['PolicyData'], policy['PolicyData'])
             if diff_tuple and diff_tuple[0]:
-                # module.warn(f"PolicyData diff: {diff_tuple[0]}")
                 diff = diff + 1
                 policy['PolicyData'].update(payload)
     if module.params.get('new_name'):
@@ -1097,7 +1084,7 @@ def main():
         argument_spec=specs,
         required_if=[['state', 'present', present_args, True]],
         mutually_exclusive=[('device_service_tag', 'device_group', 'any_undiscovered_devices', 'specific_undiscovered_devices', 'all_devices',),
-                            ('message_ids', 'message_file', 'category')],
+                            ('message_ids', 'message_file', 'category',)],
         supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
