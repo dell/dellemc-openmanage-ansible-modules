@@ -535,7 +535,7 @@ def single_dup_update(rest_obj, module):
         device_id_tags = _validate_device_attributes(module)
         device_ids, id_tag_map = get_device_ids(rest_obj, module, device_id_tags)
     if module.check_mode:
-        module.exit_json(msg=CHANGES_FOUND)
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     upload_status, token = upload_dup_file(rest_obj, module)
     if upload_status:
         report_payload = get_dup_applicability_payload(token, device_ids=device_ids, group_ids=group_ids,
@@ -580,7 +580,7 @@ def baseline_based_update(rest_obj, module, baseline, dev_comp_map):
     if not compliance_report_list:
         module.exit_json(msg=NO_CHANGES_MSG)
     if module.check_mode:
-        module.exit_json(msg=CHANGES_FOUND)
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     return compliance_report_list
 
 
