@@ -37,11 +37,20 @@ class TestRedfishRest(object):
         mock_response.read.return_value = json.dumps({"value": "data"})
         return mock_response
 
-    def test_invoke_request_with_session(self, mock_response, mocker):
+    @pytest.fixture
+    def module_params(self):
+        module_parameters = {'baseuri': '192.168.0.1:443', 'username': 'username',
+                             'password': 'password'}
+        return module_parameters
+
+    @pytest.fixture
+    def redfish_object(self, module_params):
+        redfish_obj = Redfish(module_params=module_params)
+        return redfish_obj
+
+    def test_invoke_request_with_session(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
-        module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',
-                         'password': 'password'}
         req_session = True
         with Redfish(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "GET")
@@ -61,11 +70,9 @@ class TestRedfishRest(object):
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
-    def test_invoke_request_without_session_with_header(self, mock_response, mocker):
+    def test_invoke_request_without_session_with_header(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
-        module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',
-                         'password': 'password'}
         req_session = False
         with Redfish(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "POST", headers={
@@ -74,37 +81,31 @@ class TestRedfishRest(object):
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
-    def test_invoke_request_with_session_connection_error(self, mocker, mock_response):
+    def test_invoke_request_with_session_connection_error(self, mocker, mock_response, module_params):
         mock_response.success = False
         mock_response.status_code = 500
         mock_response.json_data = {}
         mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish.invoke_request',
                      return_value=mock_response)
-        module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',
-                         'password': 'password'}
         req_session = True
         with pytest.raises(ConnectionError):
             with Redfish(module_params, req_session) as obj:
                 obj.invoke_request(TEST_PATH, "GET")
 
     @pytest.mark.parametrize("exc", [URLError, SSLValidationError, ConnectionError])
-    def test_invoke_request_error_case_handling(self, exc, mock_response, mocker):
+    def test_invoke_request_error_case_handling(self, exc, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      side_effect=exc("test"))
-        module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',
-                         'password': 'password'}
         req_session = False
         with pytest.raises(exc):
             with Redfish(module_params, req_session) as obj:
                 obj.invoke_request(TEST_PATH, "GET")
 
-    def test_invoke_request_http_error_handling(self, mock_response, mocker):
+    def test_invoke_request_http_error_handling(self, mock_response, mocker, module_params):
         open_url_mock = mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                                      return_value=mock_response)
         open_url_mock.side_effect = HTTPError('http://testhost.com/', 400,
                                               'Bad Request Error', {}, None)
-        module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',
-                         'password': 'password'}
         req_session = False
         with pytest.raises(HTTPError):
             with Redfish(module_params, req_session) as obj:
@@ -117,31 +118,27 @@ class TestRedfishRest(object):
             "%24top=1&%24skip=2&%24filter=JobType%2FId+eq+8"},
         {"inp": {"$top": 1, "$skip": 3}, "out": "%24top=1&%24skip=3"}
     ])
-    def test_build_url(self, query_params, mocker):
+    def test_build_url(self, query_params, mocker, redfish_object):
         """builds complete url"""
         base_uri = 'https://192.168.0.1:443/api'
         path = "/AccountService/Accounts"
-        module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',
-                         'password': 'password'}
         mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish._get_base_url',
                      return_value=base_uri)
         inp = query_params["inp"]
         out = query_params["out"]
-        url = Redfish(module_params=module_params)._build_url(
+        url = redfish_object._build_url(
             path, query_param=inp)
         assert url == base_uri + path + "?" + out
 
-    def test_build_url_none(self, mocker):
+    def test_build_url_none(self, mocker, redfish_object):
         """builds complete url"""
         base_uri = 'https://192.168.0.1:443/api'
-        module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',
-                         'password': 'password'}
         mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish._get_base_url',
                      return_value=base_uri)
-        url = Redfish(module_params=module_params)._build_url("", None)
+        url = redfish_object._build_url("", None)
         assert url == ""
 
-    def test_strip_substr_dict(self, mocker, mock_response):
+    def test_strip_substr_dict(self, mocker, mock_response, redfish_object):
         data_dict = {"@odata.context": "/api/$metadata#Collection(DeviceService.DeviceType)",
                      "@odata.count": 5,
                      "value": [
@@ -152,12 +149,7 @@ class TestRedfishRest(object):
                              "Description": "Server Device"
                          }
                      ]}
-        module_params = {'baseuri': '192.168.0.1:443', 'username': 'username',
-                         'password': 'password'}
-        mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish.invoke_request',
-                     return_value=mock_response)
-        with Redfish(module_params, True) as obj:
-            ret = obj.strip_substr_dict(data_dict)
+        ret = redfish_object.strip_substr_dict(data_dict)
         assert ret == {'value': [{'@odata.type': '#DeviceService.DeviceType',
                                   'Description': 'Server Device', 'DeviceType': 1000, 'Name': 'SERVER'}]}
 

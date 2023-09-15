@@ -45,6 +45,17 @@ class TestOMERest(object):
         mock_response.read.return_value = json.dumps({"value": "data"})
         return mock_response
 
+    @pytest.fixture
+    def module_params(self):
+        module_parameters = {'hostname': '192.168.0.1', 'username': 'username',
+                             'password': 'password', "port": 443}
+        return module_parameters
+
+    @pytest.fixture
+    def ome_object(self, module_params):
+        ome_obj = RestOME(module_params=module_params)
+        return ome_obj
+
     def test_invoke_request_with_session(self, mock_response, mocker):
 
         mocker.patch(MODULE_UTIL_PATH + OME_OPENURL,
@@ -59,11 +70,9 @@ class TestOMERest(object):
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
-    def test_invoke_request_without_session(self, mock_response, mocker):
+    def test_invoke_request_without_session(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OME_OPENURL,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         req_session = False
         with RestOME(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "GET")
@@ -71,11 +80,9 @@ class TestOMERest(object):
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
-    def test_invoke_request_without_session_with_header(self, mock_response, mocker):
+    def test_invoke_request_without_session_with_header(self, mock_response, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + OME_OPENURL,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         req_session = False
         with RestOME(module_params, req_session) as obj:
             response = obj.invoke_request(TEST_PATH, "POST", headers={
@@ -84,66 +91,55 @@ class TestOMERest(object):
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
-    def test_invoke_request_with_session_connection_error(self, mocker, mock_response):
+    def test_invoke_request_with_session_connection_error(self, mocker, mock_response, module_params):
         mock_response.success = False
         mock_response.status_code = 500
         mock_response.json_data = {}
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         req_session = True
         with pytest.raises(ConnectionError):
             with RestOME(module_params, req_session) as obj:
                 obj.invoke_request(TEST_PATH, "GET")
 
     @pytest.mark.parametrize("exc", [URLError, SSLValidationError, ConnectionError])
-    def test_invoke_request_error_case_handling(self, exc, mock_response, mocker):
+    def test_invoke_request_error_case_handling(self, exc, mock_response, mocker, module_params):
         open_url_mock = mocker.patch(MODULE_UTIL_PATH + OME_OPENURL,
                                      return_value=mock_response)
         open_url_mock.side_effect = exc("test")
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         req_session = False
         with pytest.raises(exc):
             with RestOME(module_params, req_session) as obj:
                 obj.invoke_request(TEST_PATH, "GET")
 
-    def test_invoke_request_http_error_handling(self, mock_response, mocker):
+    def test_invoke_request_http_error_handling(self, mock_response, mocker, module_params):
         open_url_mock = mocker.patch(MODULE_UTIL_PATH + OME_OPENURL,
                                      return_value=mock_response)
         open_url_mock.side_effect = HTTPError(TEST_HOST, 400,
                                               BAD_REQUEST, {}, None)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         req_session = False
         with pytest.raises(HTTPError):
             with RestOME(module_params, req_session) as obj:
                 obj.invoke_request(TEST_PATH, "GET")
 
-    def test_get_all_report_details(self, mock_response, mocker):
+    def test_get_all_report_details(self, mock_response, mocker, module_params):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {ODATA_COUNT: 53, "value": list(range(50))}
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         with RestOME(module_params, True) as obj:
             reports = obj.get_all_report_details(DEVICE_API)
         assert reports == {"resp_obj": mock_response,
                            "report_list": list(range(50)) + (list(range(50)))}
 
-    def test_get_report_list_error_case(self, mock_response, mocker):
+    def test_get_report_list_error_case(self, mock_response, mocker, ome_object):
         mocker.patch(MODULE_UTIL_PATH + OME_OPENURL,
                      return_value=mock_response)
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      side_effect=HTTPError(TEST_HOST, 400, BAD_REQUEST, {}, None))
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         with pytest.raises(HTTPError):
-            with RestOME(module_params, False) as obj:
-                obj.get_all_report_details(DEVICE_API)
+            ome_object.get_all_report_details(DEVICE_API)
 
     @pytest.mark.parametrize("query_param", [
         {"inp": {"$filter": "UserName eq 'admin'"},
@@ -152,12 +148,10 @@ class TestOMERest(object):
             "%24top=1&%24skip=2&%24filter=JobType%2FId%20eq%208"},
         {"inp": {"$top": 1, "$skip": 3}, "out": "%24top=1&%24skip=3"}
     ])
-    def test_build_url(self, query_param, mocker):
+    def test_build_url(self, query_param, mocker, module_params):
         """builds complete url"""
         base_uri = 'https://192.168.0.1:443/api'
         path = "AccountService/Accounts"
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME._get_base_url',
                      return_value=base_uri)
         inp = query_param["inp"]
@@ -167,7 +161,7 @@ class TestOMERest(object):
         assert url == base_uri + "/" + path + "?" + out
         assert "+" not in url
 
-    def test_get_job_type_id(self, mock_response, mocker):
+    def test_get_job_type_id(self, mock_response, mocker, ome_object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {ODATA_COUNT: 50,
@@ -175,13 +169,10 @@ class TestOMERest(object):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
         jobtype_name = "PowerChange"
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, True) as obj:
-            job_id = obj.get_job_type_id(jobtype_name)
+        job_id = ome_object.get_job_type_id(jobtype_name)
         assert job_id == 11
 
-    def test_get_job_type_id_null_case(self, mock_response, mocker):
+    def test_get_job_type_id_null_case(self, mock_response, mocker, ome_object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {ODATA_COUNT: 50,
@@ -189,40 +180,31 @@ class TestOMERest(object):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
         jobtype_name = "FirmwareUpdate"
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, True) as obj:
-            job_id = obj.get_job_type_id(jobtype_name)
+        job_id = ome_object.get_job_type_id(jobtype_name)
         assert job_id is None
 
-    def test_get_device_id_from_service_tag_ome_case01(self, mocker, mock_response):
+    def test_get_device_id_from_service_tag_ome_case01(self, mocker, mock_response, ome_object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {ODATA_COUNT: 1,
                                    "value": [{"Name": "xyz", "Id": 11}]}
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        ome_default_args = {'hostname': '192.168.0.1', 'username': 'username',
-                            'password': 'password', "port": 443}
-        with RestOME(ome_default_args, True) as obj:
-            details = obj.get_device_id_from_service_tag("xyz")
+        details = ome_object.get_device_id_from_service_tag("xyz")
         assert details["Id"] == 11
         assert details["value"] == {"Name": "xyz", "Id": 11}
 
-    def test_get_device_id_from_service_tag_ome_case02(self, mocker, mock_response):
+    def test_get_device_id_from_service_tag_ome_case02(self, mocker, mock_response, ome_object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {ODATA_COUNT: 0, "value": []}
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        ome_default_args = {'hostname': '192.168.0.1', 'username': 'username',
-                            'password': 'password', "port": 443}
-        with RestOME(ome_default_args, True) as obj:
-            details = obj.get_device_id_from_service_tag("xyz")
+        details = ome_object.get_device_id_from_service_tag("xyz")
         assert details["Id"] is None
         assert details["value"] == {}
 
-    def test_get_all_items_with_pagination(self, mock_response, mocker):
+    def test_get_all_items_with_pagination(self, mock_response, mocker, ome_object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {ODATA_COUNT: 100, "value": list(
@@ -242,24 +224,18 @@ class TestOMERest(object):
 
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      side_effect=mock_invoke_request)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, True) as obj:
-            reports = obj.get_all_items_with_pagination(DEVICE_API)
+        reports = ome_object.get_all_items_with_pagination(DEVICE_API)
         assert reports == {"total_count": 100, "value": list(range(100))}
 
-    def test_get_all_items_with_pagination_error_case(self, mock_response, mocker):
+    def test_get_all_items_with_pagination_error_case(self, mock_response, mocker, ome_object):
         mocker.patch(MODULE_UTIL_PATH + OME_OPENURL,
                      return_value=mock_response)
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      side_effect=HTTPError(TEST_HOST, 400, BAD_REQUEST, {}, None))
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         with pytest.raises(HTTPError):
-            with RestOME(module_params, False) as obj:
-                obj.get_all_items_with_pagination(DEVICE_API)
+            ome_object.get_all_items_with_pagination(DEVICE_API)
 
-    def test_get_device_type(self, mock_response, mocker):
+    def test_get_device_type(self, mock_response, mocker, ome_object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {
@@ -300,10 +276,7 @@ class TestOMERest(object):
         }
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, False) as obj:
-            type_map = obj.get_device_type()
+        type_map = ome_object.get_device_type()
         assert type_map == {1000: "SERVER", 2000: "CHASSIS", 3000: "STORAGE",
                             4000: "NETWORK_IOM", 8000: "STORAGE_IOM"}
 
@@ -320,31 +293,25 @@ class TestOMERest(object):
         {'id': 2070, 'exist_poll': True, 'job_failed': True,
             'message': "Job is in Failed state, and is not completed."},
         {'id': 1234, 'exist_poll': False, 'job_failed': False, 'message': None}])
-    def test_get_job_info(self, mocker, mock_response, status_assert):
+    def test_get_job_info(self, mocker, mock_response, status_assert, ome_object):
 
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {
             'LastRunStatus': {'Id': status_assert['id']}
         }
-
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, True) as obj:
-            exit_poll, job_failed, message = obj.get_job_info(12345)
+        exit_poll, job_failed, message = ome_object.get_job_info(12345)
 
         assert exit_poll is status_assert['exist_poll']
         assert job_failed is status_assert['job_failed']
         assert message == status_assert['message']
 
-    def test_get_job_exception(self, mocker, mock_response):
+    def test_get_job_exception(self, mocker, module_params):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      side_effect=HTTPError(TEST_HOST, 400,
                                            BAD_REQUEST, {}, None))
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         with pytest.raises(HTTPError):
             with RestOME(module_params, True) as obj:
                 obj.get_job_info(12345)
@@ -352,7 +319,7 @@ class TestOMERest(object):
     @pytest.mark.parametrize("ret_val", [
         (True, False, "My Message"),
         (False, True, "The job is not complete after 2 seconds.")])
-    def test_job_tracking(self, mocker, mock_response, ret_val):
+    def test_job_tracking(self, mocker, mock_response, ret_val, ome_object):
         mocker.patch(MODULE_UTIL_PATH + 'ome.time.sleep',
                      return_value=())
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
@@ -360,14 +327,11 @@ class TestOMERest(object):
 
         mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME.get_job_info',
                      return_value=ret_val)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, True) as obj:
-            job_failed, message = obj.job_tracking(12345, 2, 1)
+        job_failed, message = ome_object.job_tracking(12345, 2, 1)
         assert job_failed is ret_val[1]
         assert message == ret_val[2]
 
-    def test_strip_substr_dict(self, mocker, mock_response):
+    def test_strip_substr_dict(self, mocker, mock_response, ome_object):
         data_dict = {"@odata.context": "/api/$metadata#Collection(DeviceService.DeviceType)",
                      ODATA_COUNT: 5,
                      "value": [
@@ -384,16 +348,13 @@ class TestOMERest(object):
                              "Description": "Chassis Device"
                          }
                      ]}
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        with RestOME(module_params, True) as obj:
-            ret = obj.strip_substr_dict(data_dict)
+        ret = ome_object.strip_substr_dict(data_dict)
         assert ret == {'value': [{'@odata.type': '#DeviceService.DeviceType', 'Description': 'Server Device', 'DeviceType': 1000, 'Name': 'SERVER'}, {
             '@odata.type': '#DeviceService.DeviceType', 'Description': 'Chassis Device', 'DeviceType': 2000, 'Name': 'CHASSIS'}]}
 
-    def test_job_submission(self, mocker, mock_response):
+    def test_job_submission(self, mocker, mock_response, ome_object):
         mock_response.success = True
         mock_response.status_code = 200
         mock_response.json_data = {
@@ -401,14 +362,11 @@ class TestOMERest(object):
         }
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, True) as obj:
-            ret = obj.job_submission(
-                "job_name", "job_desc", "targets", "params", "job_type")
+        ret = ome_object.job_submission(
+            "job_name", "job_desc", "targets", "params", "job_type")
         assert ret.json_data == mock_response.json_data
 
-    def test_test_network_connection(self, mocker, mock_response):
+    def test_test_network_connection(self, mocker, mock_response, ome_object):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
         mock_response.success = True
@@ -418,22 +376,15 @@ class TestOMERest(object):
         }
         mocker.patch(MODULE_UTIL_PATH + JOB_SUBMISSION,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, True) as obj:
-            ret = obj.test_network_connection(
-                "share_address", "share_path", "share_type", "share_user", "share_password", "share_domain")
+        ret = ome_object.test_network_connection(
+            "share_address", "share_path", "share_type", "share_user", "share_password", "share_domain")
         assert ret.json_data == mock_response.json_data
 
-        with RestOME(module_params, True) as obj:
-            ret = obj.test_network_connection(
-                "share_address", "share_path", "share_type")
+        ret = ome_object.test_network_connection(
+            "share_address", "share_path", "share_type")
         assert ret.json_data == mock_response.json_data
 
-    # @pytest.mark.parametrize("ret_val", [
-    #     (False, "My Message"),
-    #     (True, "The job is not complete after 2 seconds.")])
-    def test_check_existing_job_state(self, mocker, mock_response):
+    def test_check_existing_job_state(self, mocker, mock_response, ome_object):
         mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
                      return_value=mock_response)
         mock_response.success = True
@@ -443,11 +394,8 @@ class TestOMERest(object):
         }
         mocker.patch(MODULE_UTIL_PATH + JOB_SUBMISSION,
                      return_value=mock_response)
-        module_params = {'hostname': '192.168.0.1', 'username': 'username',
-                         'password': 'password', "port": 443}
-        with RestOME(module_params, True) as obj:
-            job_allowed, available_jobs = obj.check_existing_job_state(
-                "Job_Name_1")
+        job_allowed, available_jobs = ome_object.check_existing_job_state(
+            "Job_Name_1")
         assert job_allowed is False
         assert available_jobs == {"JobType": {"Name": "Job_Name_1"}}
 
@@ -456,9 +404,8 @@ class TestOMERest(object):
         }
         mocker.patch(MODULE_UTIL_PATH + JOB_SUBMISSION,
                      return_value=mock_response)
-        with RestOME(module_params, True) as obj:
-            job_allowed, available_jobs = obj.check_existing_job_state(
-                "Job_Name_1")
+        job_allowed, available_jobs = ome_object.check_existing_job_state(
+            "Job_Name_1")
         assert job_allowed is True
         assert available_jobs == []
 
@@ -467,8 +414,7 @@ class TestOMERest(object):
         }
         mocker.patch(MODULE_UTIL_PATH + JOB_SUBMISSION,
                      return_value=mock_response)
-        with RestOME(module_params, True) as obj:
-            job_allowed, available_jobs = obj.check_existing_job_state(
-                "Job_Name_1")
+        job_allowed, available_jobs = ome_object.check_existing_job_state(
+            "Job_Name_1")
         assert job_allowed is True
         assert available_jobs == [{'JobType': {'Name': 'Job_Name_2'}}]
