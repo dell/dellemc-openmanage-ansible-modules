@@ -552,9 +552,10 @@ def get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items
 def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tuple, ome_uri, item_name="Items"):
     mset = set(item_list)
     return_dict = {v: [] for v in return_param_tuple}
+    # can be further optimized if len(mset) == 1
     resp = rest_obj.invoke_request("GET", ome_uri)
     all_items = resp.json_data.get("value", [])
-    dvdr = len(all_items)
+    dvdr = len(all_items) if len(all_items) else 100
     collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
     mset = mset - collector
     all_item_count = resp.json_data.get("@odata.count")
@@ -570,7 +571,7 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
         else:
             while next_link and mset:
                 resp = rest_obj.invoke_request('GET', next_link.lstrip("/api"))
-                all_items = resp.json_data.get("value")
+                all_items = resp.json_data.get("value", [])
                 collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
                 mset = mset - collector
                 next_link = resp.json_data.get("@odata.nextLink", None)
