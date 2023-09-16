@@ -554,11 +554,13 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
     return_dict = {v: [] for v in return_param_tuple}
     resp = rest_obj.invoke_request("GET", ome_uri)
     all_items = resp.json_data.get("value", [])
+    dvdr = len(all_items)
     collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
     mset = mset - collector
     all_item_count = resp.json_data.get("@odata.count")
-    if mset and (all_item_count > len(all_items)):
-        if len(mset) < (all_item_count // 100):
+    next_link = resp.json_data.get("@odata.nextLink")
+    if mset and next_link:
+        if len(mset) < (all_item_count // dvdr):
             for item_id in mset:
                 query_param = {"$filter": f"{filter_param} eq '{item_id}'"}
                 resp = rest_obj.invoke_request('GET', ome_uri, query_param=query_param)
@@ -566,10 +568,12 @@ def validate_ome_data(module, rest_obj, item_list, filter_param, return_param_tu
                 collector = collector | get_items_to_remove(filter_param, return_param_tuple, return_dict, one_item, mset)
             mset = mset - collector
         else:
-            report = get_all_data_with_pagination(rest_obj, ome_uri)
-            all_items = report.get("report_list", [])
-            collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
-            mset = mset - collector
+            while next_link and mset:
+                resp = rest_obj.invoke_request('GET', next_link.lstrip("/api"))
+                all_items = resp.json_data.get("value")
+                collector = get_items_to_remove(filter_param, return_param_tuple, return_dict, all_items, mset)
+                mset = mset - collector
+                next_link = resp.json_data.get("@odata.nextLink", None)
     if mset:
         module.exit_json(failed=True,
                          msg=OME_DATA_MSG.format(item_name, filter_param, SEPARATOR.join(mset)))
