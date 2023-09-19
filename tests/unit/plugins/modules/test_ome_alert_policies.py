@@ -555,6 +555,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "get_alert_policies": get_alert_policy,
             "json_data": {
              "@odata.count": 102,
+             "@odata.nextLink": "/AlertPolicies",
              "value": [{"Name": "AX", "Id": 121},
                        {"Name": "Group2", "Id": 122}]}
         },
@@ -1403,12 +1404,21 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
              "message_ids": ["MSG01", "MSG02"],
              "state": "present",
              "name": "Test alert policy",
-             "description": "get_schedule coverage"
+             "description": "get_schedule coverage",
+             "date_and_time": {
+                 "date_from": "2023-10-01",
+                 "days": [
+                     "sunday",
+                     "monday"
+                 ],
+                 "time_from": "11:00",
+                 "time_to": "12:00",
+                 "time_interval": True
+             },
          },
             "get_alert_policies": [],
             "get_target_payload": {"Groups": [123, 124]},
             "get_category_or_message": {"MessageIds": ["MSG01", "MSG02"]},
-            "get_schedule_payload": {"Schdedule": {}},
             "get_actions_payload": {},
             "json_data": {
              "value": []
