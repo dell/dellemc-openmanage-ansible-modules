@@ -561,6 +561,78 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
+    def test_volume_payload_case_05(self, storage_volume_base_uri):
+        param = {
+            "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-2:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-3:RAID.Mezzanine.1C-1"],
+            "capacity_bytes": 299439751168,
+            "block_size_bytes": 512,
+            "encryption_types": "NativeDriveEncryption",
+            "encrypted": True,
+            "raid_type": "RAID6",
+            "name": "VD1",
+            "optimum_io_size_bytes": 65536,
+            "oem": {"Dell": {"DellVirtualDisk": {"BusProtocol": "SAS", "Cachecade": "NonCachecadeVD",
+                                                 "DiskCachePolicy": "Disabled",
+                                                 "LockStatus": "Unlocked",
+                                                 "MediaType": "HardDiskDrive",
+                                                 "ReadCachePolicy": "NoReadAhead",
+                                                 "SpanDepth": 1,
+                                                 "SpanLength": 2,
+                                                 "WriteCachePolicy": "WriteThrough"}}}}
+        f_module = self.get_module_mock(params=param)
+        payload = self.module.volume_payload(f_module)
+        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
+                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["RAIDType"] == "RAID6"
+        assert payload["Name"] == "VD1"
+        assert payload["BlockSizeBytes"] == 512
+        assert payload["CapacityBytes"] == 299439751168
+        assert payload["OptimumIOSizeBytes"] == 65536
+        assert payload["Encrypted"] is True
+        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
+        assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
+
+    def test_volume_payload_case_06(self, storage_volume_base_uri):
+        param = {
+            "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-2:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-3:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-4:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-5:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-6:RAID.Mezzanine.1C-1",
+                       "Disk.Bay.0:Enclosure.Internal.0-7:RAID.Mezzanine.1C-1"],
+            "capacity_bytes": 299439751168,
+            "block_size_bytes": 512,
+            "encryption_types": "NativeDriveEncryption",
+            "encrypted": True,
+            "raid_type": "RAID60",
+            "name": "VD1",
+            "optimum_io_size_bytes": 65536,
+            "oem": {"Dell": {"DellVirtualDisk": {"BusProtocol": "SAS", "Cachecade": "NonCachecadeVD",
+                                                 "DiskCachePolicy": "Disabled",
+                                                 "LockStatus": "Unlocked",
+                                                 "MediaType": "HardDiskDrive",
+                                                 "ReadCachePolicy": "NoReadAhead",
+                                                 "SpanDepth": 1,
+                                                 "SpanLength": 2,
+                                                 "WriteCachePolicy": "WriteThrough"}}}}
+        f_module = self.get_module_mock(params=param)
+        payload = self.module.volume_payload(f_module)
+        assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
+                                                    "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
+        assert payload["RAIDType"] == "RAID60"
+        assert payload["Name"] == "VD1"
+        assert payload["BlockSizeBytes"] == 512
+        assert payload["CapacityBytes"] == 299439751168
+        assert payload["OptimumIOSizeBytes"] == 65536
+        assert payload["Encrypted"] is True
+        assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
+        assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
+
     def test_fetch_storage_resource_success_case_01(self, redfish_connection_mock_for_storage_volume,
                                                     redfish_response_mock):
         f_module = self.get_module_mock()
@@ -683,6 +755,24 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_check_raid_type_supported_success_case02(self, mocker, redfish_response_mock, storage_volume_base_uri,
                                                       redfish_connection_mock_for_storage_volume):
         param = {"volume_type": "NonRedundant", "controller_id": "controller_id"}
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.json_data = {'StorageControllers': [{'SupportedRAIDTypes': ['RAID0', 'RAID6', 'RAID60']}]}
+        self.module.check_raid_type_supported(f_module,
+                                              redfish_connection_mock_for_storage_volume)
+
+    def test_check_raid_type_supported_success_case03(self, mocker, redfish_response_mock, storage_volume_base_uri,
+                                                      redfish_connection_mock_for_storage_volume):
+        param = {"raid_type": "RAID6", "controller_id": "controller_id"}
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.json_data = {'StorageControllers': [{'SupportedRAIDTypes': ['RAID0', 'RAID6', 'RAID60']}]}
+        self.module.check_raid_type_supported(f_module,
+                                              redfish_connection_mock_for_storage_volume)
+
+    def test_check_raid_type_supported_success_case04(self, mocker, redfish_response_mock, storage_volume_base_uri,
+                                                      redfish_connection_mock_for_storage_volume):
+        param = {"raid_type": "RAID60", "controller_id": "controller_id"}
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {'StorageControllers': [{'SupportedRAIDTypes': ['RAID0', 'RAID6', 'RAID60']}]}
