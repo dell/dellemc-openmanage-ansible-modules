@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.3.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -95,11 +95,26 @@ options:
       - RebootNow
       - StageForNextReboot
     default: RebootNow
+  reboot_type:
+    version_added: '8.3.0'
+    type: str
+    description:
+      - This option provides the choices to reboot the server immediately after the firmware update.
+      - This is applicable when I(schedule) is C(RebootNow).
+      - C(GracefulRebootForce) performs a graceful reboot with forced shutdown.
+      - C(GracefulReboot) performs a graceful reboot without forced shutdown.
+      - C(PowerCycle) performs a power cycle for a hard reset on the device.
+    choices:
+      - GracefulReboot
+      - GracefulRebootForce
+      - PowerCycle
+    default: GracefulRebootForce
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
+    - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
@@ -239,6 +254,17 @@ EXAMPLES = r'''
       - id: 12345
         components:
           - iDRAC with Lifecycle Controller
+
+- name: "Update firmware using baseline name and components and perform Powercycle."
+  dellemc.openmanage.ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    baseline_name: baseline_devices
+    components:
+      - BIOS
+    reboot_type: PowerCycle
 '''
 
 RETURN = r'''
@@ -363,8 +389,11 @@ def job_payload_for_update(rest_obj, module, target_data, baseline=None):
               {"Key": "signVerify", "Value": "true"}]
     # reboot applicable only if staging false
     if schedule == "RebootNow":
-        params.append({"Key": "rebootType", "Value": "3"})
-        # reboot_dict = {"GracefulReboot": "2", "GracefulRebootForce": "3", "PowerCycle": "1"}
+        reboot_dict = {"PowerCycle": "1",
+                       "GracefulReboot": "2",
+                       "GracefulRebootForce": "3"}
+        reboot_type = module.params["reboot_type"]
+        params.append({"Key": "rebootType", "Value": reboot_dict[reboot_type]})
     payload = {
         "Id": 0, "JobName": "Firmware Update Task",
         "JobDescription": FW_JOB_DESC, "Schedule": "startnow",
@@ -506,7 +535,7 @@ def single_dup_update(rest_obj, module):
         device_id_tags = _validate_device_attributes(module)
         device_ids, id_tag_map = get_device_ids(rest_obj, module, device_id_tags)
     if module.check_mode:
-        module.exit_json(msg=CHANGES_FOUND)
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     upload_status, token = upload_dup_file(rest_obj, module)
     if upload_status:
         report_payload = get_dup_applicability_payload(token, device_ids=device_ids, group_ids=group_ids,
@@ -551,7 +580,7 @@ def baseline_based_update(rest_obj, module, baseline, dev_comp_map):
     if not compliance_report_list:
         module.exit_json(msg=NO_CHANGES_MSG)
     if module.check_mode:
-        module.exit_json(msg=CHANGES_FOUND)
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     return compliance_report_list
 
 
@@ -607,6 +636,9 @@ def main():
         "components": {"type": "list", "elements": 'str', "default": []},
         "baseline_name": {"type": "str"},
         "schedule": {"type": 'str', "choices": ['RebootNow', 'StageForNextReboot'], "default": 'RebootNow'},
+        "reboot_type": {"type": 'str',
+                        "choices": ['PowerCycle', 'GracefulReboot', 'GracefulRebootForce'],
+                        "default": 'GracefulRebootForce'},
         "devices": {
             "type": 'list', "elements": 'dict',
             "options": {
