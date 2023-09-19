@@ -108,7 +108,7 @@ Parameters
 
 
   any_undiscovered_devices (optional, bool, None)
-    Specifies if the alert policy is applicable to any undiscovered devices.
+    This option indicates whether the alert policy is applicable to any undiscovered devices or not.
 
     This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`device\_group`\  and \ :emphasis:`all\_devices`\ .
 
@@ -116,7 +116,7 @@ Parameters
 
 
   all_devices (optional, bool, None)
-    Specifies that the alert policy is applicable to all the discovered and undiscovered devices.
+    This option indicates whether the alert policy is applicable to all the discovered and undiscovered devices or not.
 
     This option is mutually exclusive with \ :emphasis:`device\_service\_tag`\ , \ :emphasis:`specific\_undiscovered\_devices`\ , \ :emphasis:`any\_undiscovered\_devices`\  and \ :emphasis:`device\_group`\ .
 
