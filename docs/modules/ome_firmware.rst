@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python >= 3.9.6
 
 
 
@@ -100,6 +100,18 @@ Parameters
     if ``StageForNextReboot`` is chosen, the firmware will be staged and updated during the next reboot of the target device.
 
     if ``RebootNow`` will apply the firmware updates immediately.
+
+
+  reboot_type (optional, str, GracefulRebootForce)
+    This option provides the choices to reboot the server immediately after the firmware update.
+
+    This is applicable when *schedule* is ``RebootNow``.
+
+    ``GracefulRebootForce`` performs a graceful reboot with forced shutdown.
+
+    ``GracefulReboot`` performs a graceful reboot without forced shutdown.
+
+    ``PowerCycle`` performs a power cycle for a hard reset on the device.
 
 
   hostname (True, str, None)
@@ -287,6 +299,17 @@ Examples
             components:
               - iDRAC with Lifecycle Controller
 
+    - name: "Update firmware using baseline name and components and perform Powercycle."
+      dellemc.openmanage.ome_firmware:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        components:
+          - BIOS
+        reboot_type: PowerCycle
+
 
 
 Return Values
@@ -319,4 +342,5 @@ Authors
 
 - Felix Stephen (@felixs88)
 - Jagadeesh N V (@jagadeeshnv)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 

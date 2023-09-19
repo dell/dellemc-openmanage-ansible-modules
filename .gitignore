@@ -10,3 +10,4 @@ rstdocgen.sh
 node_modules
 demo
 .vscode
+.coverage
