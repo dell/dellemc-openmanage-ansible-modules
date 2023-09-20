@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -32,7 +32,7 @@ Parameters
 
     For example- RAID.Slot.1-1.
 
-    This option is mandatory when *state* is ``present`` while creating a volume.
+    This option is mandatory when \ :emphasis:`state`\  is \ :literal:`present`\  while creating a volume.
 
 
   volume_id (optional, str, None)
@@ -42,41 +42,43 @@ Parameters
 
     This option is mandatory in the following scenarios,
 
-    *state* is ``present``, when updating a volume.
+    \ :emphasis:`state`\  is \ :literal:`present`\ , when updating a volume.
 
-    *state* is ``absent``, when deleting a volume.
+    \ :emphasis:`state`\  is \ :literal:`absent`\ , when deleting a volume.
 
-    *command* is ``initialize``, when initializing a volume.
+    \ :emphasis:`command`\  is \ :literal:`initialize`\ , when initializing a volume.
 
 
   state (optional, str, None)
-    ``present`` creates a storage volume for the specified I (controller_id), or modifies the storage volume for the specified I (volume_id). "Note: Modification of an existing volume properties depends on drive and controller capabilities".
+    \ :literal:`present`\  creates a storage volume for the specified I (controller\_id), or modifies the storage volume for the specified I (volume\_id). "Note: Modification of an existing volume properties depends on drive and controller capabilities".
 
-    ``absent`` deletes the volume for the specified *volume_id*.
+    \ :literal:`absent`\  deletes the volume for the specified \ :emphasis:`volume\_id`\ .
 
 
   command (optional, str, None)
-    ``initialize`` initializes an existing storage volume for a specified *volume_id*.
+    \ :literal:`initialize`\  initializes an existing storage volume for a specified \ :emphasis:`volume\_id`\ .
 
 
   volume_type (optional, str, None)
     One of the following volume types must be selected to create a volume.
 
-    ``Mirrored`` The volume is a mirrored device.
+    \ :literal:`NonRedundant`\  The volume is a non-redundant storage device.
 
-    ``NonRedundant`` The volume is a non-redundant storage device.
+    \ :literal:`Mirrored`\  The volume is a mirrored device.
 
-    ``SpannedMirrors`` The volume is a spanned set of mirrored devices.
+    \ :literal:`StripedWithParity`\  The volume is a device which uses parity to retain redundant information.
 
-    ``SpannedStripesWithParity`` The volume is a spanned set of devices which uses parity to retain redundant information.
+    \ :literal:`SpannedMirrors`\  The volume is a spanned set of mirrored devices.
 
-    ``StripedWithParity`` The volume is a device which uses parity to retain redundant information.
+    \ :literal:`SpannedStripesWithParity`\  The volume is a spanned set of devices which uses parity to retain redundant information.
+
+    \ :emphasis:`volume\_type`\  is mutually exclusive with \ :emphasis:`raid\_type`\ .
 
 
   name (optional, str, None)
     Name of the volume to be created.
 
-    Only applicable when *state* is ``present``.
+    Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   drives (optional, list, None)
@@ -84,57 +86,75 @@ Parameters
 
     For example- Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1.
 
-    Only applicable when *state* is ``present`` when creating a new volume.
+    Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\  when creating a new volume.
 
 
   block_size_bytes (optional, int, None)
-    Block size in bytes.Only applicable when *state* is ``present``.
+    Block size in bytes.Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   capacity_bytes (optional, str, None)
     Volume size in bytes.
 
-    Only applicable when *state* is ``present``.
+    Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   optimum_io_size_bytes (optional, int, None)
-    Stripe size value must be in multiples of 64 * 1024.
+    Stripe size value must be in multiples of 64 \* 1024.
 
-    Only applicable when *state* is ``present``.
+    Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   encryption_types (optional, str, None)
     The following encryption types can be selected.
 
-    ``ControllerAssisted`` The volume is encrypted by the storage controller entity.
+    \ :literal:`ControllerAssisted`\  The volume is encrypted by the storage controller entity.
 
-    ``NativeDriveEncryption`` The volume utilizes the native drive encryption capabilities of the drive hardware.
+    \ :literal:`NativeDriveEncryption`\  The volume utilizes the native drive encryption capabilities of the drive hardware.
 
-    ``SoftwareAssisted`` The volume is encrypted by the software running on the system or the operating system.
+    \ :literal:`SoftwareAssisted`\  The volume is encrypted by the software running on the system or the operating system.
 
-    Only applicable when *state* is ``present``.
+    Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   encrypted (optional, bool, None)
     Indicates whether volume is currently utilizing encryption or not.
 
-    Only applicable when *state* is ``present``.
+    Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
 
   oem (optional, dict, None)
     Includes OEM extended payloads.
 
-    Only applicable when *state* is *present*.
+    Only applicable when \ :emphasis:`state`\  is \ :emphasis:`present`\ .
 
 
   initialize_type (optional, str, Fast)
     Initialization type of existing volume.
 
-    Only applicable when *command* is ``initialize``.
+    Only applicable when \ :emphasis:`command`\  is \ :literal:`initialize`\ .
+
+
+  raid_type (optional, str, None)
+    \ :literal:`RAID0`\  to create a RAID0 type volume.
+
+    \ :literal:`RAID1`\  to create a RAID1 type volume.
+
+    \ :literal:`RAID5`\  to create a RAID5 type volume.
+
+    \ :literal:`RAID6`\  to create a RAID6 type volume.
+
+    \ :literal:`RAID10`\  to create a RAID10 type volume.
+
+    \ :literal:`RAID50`\  to create a RAID50 type volume.
+
+    \ :literal:`RAID60`\  to create a RAID60 type volume.
+
+    \ :emphasis:`raid\_type`\  is mutually exclusive with \ :emphasis:`volume\_type`\ .
 
 
   baseuri (True, str, None)
-    IP address of the target out-of-band controller. For example- <ipaddress>:<port>.
+    IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
 
 
   username (True, str, None)
@@ -146,11 +166,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -169,8 +189,9 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Redfish APIs.
-   - This module supports ``check_mode``.
-   - This module always reports changes when *name* and *volume_id* are not specified. Either *name* or *volume_id* is required to support ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
+   - This module always reports changes when \ :emphasis:`name`\  and \ :emphasis:`volume\_id`\  are not specified. Either \ :emphasis:`name`\  or \ :emphasis:`volume\_id`\  is required to support \ :literal:`check\_mode`\ .
+   - This module supports IPv4 and IPv6 addresses.
 
 
 
@@ -243,6 +264,38 @@ Examples
         volume_id: "Disk.Virtual.6:RAID.Slot.1-1"
         initialize_type: "Slow"
 
+    - name: Create a RAID6 volume
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID6"
+        drives:
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+
+    - name: Create a RAID60 volume
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID60"
+        drives:
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
+
 
 
 Return Values
@@ -274,4 +327,5 @@ Authors
 ~~~~~~~
 
 - Sajna Shetty(@Sajna-Shetty)
+- Kritika Bhateja(@Kritika-Bhateja-03)
 

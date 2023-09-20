@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.3.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -58,17 +58,13 @@ options:
   volume_type:
     description:
       - One of the following volume types must be selected to create a volume.
-      - >-
-        C(Mirrored) The volume is a mirrored device.
-      - >-
-        C(NonRedundant) The volume is a non-redundant storage device.
-      - >-
-        C(SpannedMirrors) The volume is a spanned set of mirrored devices.
-      - >-
-        C(SpannedStripesWithParity) The volume is a spanned set of devices which uses parity to retain redundant
+      - C(NonRedundant) The volume is a non-redundant storage device.
+      - C(Mirrored) The volume is a mirrored device.
+      - C(StripedWithParity) The volume is a device which uses parity to retain redundant information.
+      - C(SpannedMirrors) The volume is a spanned set of mirrored devices.
+      - C(SpannedStripesWithParity) The volume is a spanned set of devices which uses parity to retain redundant
         information.
-      - >-
-        C(StripedWithParity) The volume is a device which uses parity to retain redundant information.
+      - I(volume_type) is mutually exclusive with I(raid_type).
     type: str
     choices: [NonRedundant, Mirrored, StripedWithParity, SpannedMirrors, SpannedStripesWithParity]
   name:
@@ -125,15 +121,31 @@ options:
     type: str
     choices: [Fast, Slow]
     default: Fast
+  raid_type:
+    description:
+      - C(RAID0) to create a RAID0 type volume.
+      - C(RAID1) to create a RAID1 type volume.
+      - C(RAID5) to create a RAID5 type volume.
+      - C(RAID6) to create a RAID6 type volume.
+      - C(RAID10) to create a RAID10 type volume.
+      - C(RAID50) to create a RAID50 type volume.
+      - C(RAID60) to create a RAID60 type volume.
+      - I(raid_type) is mutually exclusive with I(volume_type).
+    type: str
+    choices: [RAID0, RAID1, RAID5, RAID6, RAID10, RAID50, RAID60]
+    version_added: 8.3.0
 
 requirements:
-  - "python >= 3.8.6"
-author: "Sajna Shetty(@Sajna-Shetty)"
+  - "python >= 3.9.6"
+author:
+  - "Sajna Shetty(@Sajna-Shetty)"
+  - "Kritika Bhateja(@Kritika-Bhateja-03)"
 notes:
     - Run this module from a system that has direct access to Redfish APIs.
     - This module supports C(check_mode).
     - This module always reports changes when I(name) and I(volume_id) are not specified.
       Either I(name) or I(volume_id) is required to support C(check_mode).
+    - This module supports IPv4 and IPv6 addresses.
 '''
 
 EXAMPLES = r'''
@@ -198,6 +210,38 @@ EXAMPLES = r'''
     command: "initialize"
     volume_id: "Disk.Virtual.6:RAID.Slot.1-1"
     initialize_type: "Slow"
+
+- name: Create a RAID6 volume
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID6"
+    drives:
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+
+- name: Create a RAID60 volume
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID60"
+    drives:
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
 '''
 
 RETURN = r'''
@@ -260,6 +304,12 @@ VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
 storage_collection_map = {}
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
+RAID_TYPE_NOT_SUPPORTED_MSG = "RAID Type {raid_type} is not supported."
+volume_type_map = {"NonRedundant": "RAID0",
+                   "Mirrored": "RAID1",
+                   "StripedWithParity": "RAID5",
+                   "SpannedMirrors": "RAID10",
+                   "SpannedStripesWithParity": "RAID50"}
 
 
 def fetch_storage_resource(module, session_obj):
@@ -294,16 +344,16 @@ def volume_payload(module):
     oem = params.get("oem")
     encrypted = params.get("encrypted")
     encryption_types = params.get("encryption_types")
+    volume_type = params.get("volume_type")
+    raid_type = params.get("raid_type")
     if capacity_bytes:
         capacity_bytes = int(capacity_bytes)
     if drives:
         storage_base_uri = storage_collection_map["storage_base_uri"]
         physical_disks = [{"@odata.id": DRIVES_URI.format(storage_base_uri=storage_base_uri,
                                                           driver_id=drive_id)} for drive_id in drives]
-
     raid_mapper = {
         "Name": params.get("name"),
-        "VolumeType": params.get("volume_type"),
         "BlockSizeBytes": params.get("block_size_bytes"),
         "CapacityBytes": capacity_bytes,
         "OptimumIOSizeBytes": params.get("optimum_io_size_bytes"),
@@ -316,7 +366,10 @@ def volume_payload(module):
         raid_payload.update({"Encrypted": encrypted})
     if encryption_types:
         raid_payload.update({"EncryptionTypes": [encryption_types]})
-
+    if volume_type:
+        raid_payload.update({"RAIDType": volume_type_map.get(volume_type)})
+    if raid_type:
+        raid_payload.update({"RAIDType": raid_type})
     return raid_payload
 
 
@@ -355,7 +408,7 @@ def check_specified_identifier_exists_in_the_system(module, session_obj, uri, er
         if err.code == 404:
             if module.check_mode:
                 return err
-            module.fail_json(msg=err_message)
+            module.exit_json(msg=err_message, failed=True)
         raise err
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
@@ -420,6 +473,7 @@ def check_mode_validation(module, session_obj, action, uri):
     encryption_types = module.params.get("encryption_types")
     encrypted = module.params.get("encrypted")
     volume_type = module.params.get("volume_type")
+    raid_type = module.params.get("raid_type")
     drives = module.params.get("drives")
     if name is None and volume_id is None and module.check_mode:
         module.exit_json(msg=CHANGES_FOUND, changed=True)
@@ -444,12 +498,12 @@ def check_mode_validation(module, session_obj, action, uri):
         exist_value = {"Name": resp_data["Name"], "BlockSizeBytes": resp_data["BlockSizeBytes"],
                        "CapacityBytes": resp_data["CapacityBytes"], "Encrypted": resp_data["Encrypted"],
                        "EncryptionTypes": resp_data["EncryptionTypes"][0],
-                       "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "VolumeType": resp_data["VolumeType"]}
+                       "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "RAIDType": resp_data["RAIDType"]}
         exit_value_filter = dict([(k, v) for k, v in exist_value.items() if v is not None])
         cp_exist_value = copy.deepcopy(exit_value_filter)
         req_value = {"Name": name, "BlockSizeBytes": block_size_bytes,
                      "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
-                     "VolumeType": volume_type, "EncryptionTypes": encryption_types}
+                     "RAIDType": raid_type, "EncryptionTypes": encryption_types}
         if capacity_bytes is not None:
             req_value["CapacityBytes"] = int(capacity_bytes)
         req_value_filter = dict([(k, v) for k, v in req_value.items() if v is not None])
@@ -469,12 +523,31 @@ def check_mode_validation(module, session_obj, action, uri):
     return None
 
 
+def check_raid_type_supported(module, session_obj):
+    volume_type = module.params.get("volume_type")
+    if volume_type:
+        raid_type = volume_type_map.get(volume_type)
+    else:
+        raid_type = module.params.get("raid_type")
+    if raid_type:
+        try:
+            specified_controller_id = module.params.get("controller_id")
+            uri = CONTROLLER_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=specified_controller_id)
+            resp = session_obj.invoke_request("GET", uri)
+            supported_raid_types = resp.json_data['StorageControllers'][0]['SupportedRAIDTypes']
+            if raid_type not in supported_raid_types:
+                module.exit_json(msg=RAID_TYPE_NOT_SUPPORTED_MSG.format(raid_type=raid_type), failed=True)
+        except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+            raise err
+
+
 def perform_volume_create_modify(module, session_obj):
     """
     perform volume creation and modification for state present
     """
     specified_controller_id = module.params.get("controller_id")
     volume_id = module.params.get("volume_id")
+    check_raid_type_supported(module, session_obj)
     if specified_controller_id is not None:
         check_controller_id_exists(module, session_obj)
         uri = CONTROLLER_VOLUME_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
@@ -591,6 +664,9 @@ def main():
                         "choices": ['NonRedundant', 'Mirrored',
                                     'StripedWithParity', 'SpannedMirrors',
                                     'SpannedStripesWithParity']},
+        "raid_type": {"type": "str", "required": False,
+                      "choices": ['RAID0', 'RAID1', 'RAID5',
+                                  'RAID6', 'RAID10', 'RAID50', 'RAID60']},
         "name": {"required": False, "type": "str"},
         "controller_id": {"required": False, "type": "str"},
         "drives": {"elements": "str", "required": False, "type": "list"},
@@ -609,7 +685,7 @@ def main():
 
     module = AnsibleModule(
         argument_spec=specs,
-        mutually_exclusive=[['state', 'command']],
+        mutually_exclusive=[['state', 'command'], ['volume_type', 'raid_type']],
         required_one_of=[['state', 'command']],
         required_if=[['command', 'initialize', ['volume_id']],
                      ['state', 'absent', ['volume_id']], ],
@@ -623,10 +699,12 @@ def main():
             task_status = {"uri": status_message.get("task_uri"), "id": status_message.get("task_id")}
             module.exit_json(msg=status_message["msg"], task=task_status, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
-    except (URLError, SSLValidationError, ConnectionError, ImportError, ValueError,
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (SSLValidationError, ConnectionError, ImportError, ValueError,
             RuntimeError, TypeError, OSError, SSLError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

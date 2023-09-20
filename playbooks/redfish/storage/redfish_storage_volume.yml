@@ -45,6 +45,46 @@
         - create_volume2
       delegate_to: localhost
 
+    - name: Create a RAID6 volume.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID6"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+      tags:
+        - create_raid6
+      delegate_to: localhost
+
+    - name: Create a RAID60 volume.
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "{{ baseuri }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID60"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
+      tags:
+        - create_raid60
+      delegate_to: localhost
+
     - name: Modify a volume's encryption type settings.
       dellemc.openmanage.redfish_storage_volume:
         baseuri: "{{ baseuri }}"
