@@ -43,6 +43,7 @@ You may obtain a copy of the License at
  
 ### OpenManage Enterprise Modules
 - [ome_active_directory](modules/ome_active_directory.rst)
+- [ome_alert_policies](modules/ome_alert_policies.rst)
 - [ome_alert_policies_message_id_info](modules/ome_alert_policies_message_id_info.rst)
 - [ome_alert_policies_info](modules/ome_alert_policies_info.rst)
 - [ome_alert_policies_actions_info](modules/ome_alert_policies_actions_info.rst)
@@ -99,4 +100,3 @@ You may obtain a copy of the License at
 - [ome_template_network_vlan_info](modules/ome_template_network_vlan_info.rst)
 - [ome_user](modules/ome_user.rst)
 - [ome_user_info](modules/ome_user_info.rst)
- 
