@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.3.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -123,9 +123,10 @@ options:
             type: int
             description: The ID of the VLAN.
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
+  - "Shivam Sharma (@ShivamSh3)"
 notes:
   - Run this module from a system that has direct access to OpenManage Enterprise Modular.
   - This module supports C(check_mode).
@@ -395,7 +396,6 @@ def ip_address_field(module, field, deploy_options, slot=False):
             valid = validate_ip_address(module_params.get(val[0]), val[1])
             if valid is False:
                 module.fail_json(msg=IP_FAIL_MSG.format(field_value, val[0]))
-    return
 
 
 def check_domain_service(module, rest_obj):
@@ -405,7 +405,6 @@ def check_domain_service(module, rest_obj):
         err_message = json.load(err)
         if err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "CGEN1006":
             module.fail_json(msg=DOMAIN_FAIL_MSG)
-    return
 
 
 def get_ip_from_host(hostname):
@@ -492,11 +491,16 @@ def check_mode_validation(module, deploy_data):
                               "SlotIPV6Address": each.get("slot_ipv6_address"), "VlanId": each.get("vlan_id")}
                 if each.get("vlan_id") is not None:
                     req_slot_1.update({"VlanId": str(each.get("vlan_id"))})
+                else:
+                    req_slot_1.update({"VlanId": ""})
                 req_filter_slot = dict([(k, v) for k, v in req_slot_1.items() if v is not None])
                 exist_slot_1 = {"SlotId": exist_filter_slot[0]["SlotId"],
                                 "SlotIPV4Address": exist_filter_slot[0]["SlotIPV4Address"],
-                                "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"],
-                                "VlanId": exist_filter_slot[0]["VlanId"]}
+                                "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"]}
+                if "VlanId" in exist_filter_slot[0]:
+                    exist_slot_1.update({"VlanId": exist_filter_slot[0]["VlanId"]})
+                else:
+                    exist_slot_1.update({"VlanId": ""})
                 exist_filter_slot = dict([(k, v) for k, v in exist_slot_1.items() if v is not None])
                 cp_exist_filter_slot = copy.deepcopy(exist_filter_slot)
                 cp_exist_filter_slot.update(req_filter_slot)
