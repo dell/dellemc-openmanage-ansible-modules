@@ -115,7 +115,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
         ome_default_args.update({"command": "generate_csr", "distinguished_name": "hostname.com",
                                  "department_name": "Remote Access Group", "business_name": "Dell Inc.",
                                  "locality": "Round Rock", "country_state": "Texas", "country": "US",
-                                 "email": "support@dell.com", "subject_alternative_names": "192.168.0.1"})
+                                 "email": "support@dell.com", "subject_alternative_names": "192.168.0.1, 192.168.0.2"})
         ome_response_mock.success = True
         ome_response_mock.json_data = csr_json
         result = self.execute_module(ome_default_args)
