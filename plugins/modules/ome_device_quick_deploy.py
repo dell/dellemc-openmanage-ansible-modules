@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.3.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -480,7 +480,9 @@ def check_mode_validation(module, deploy_data):
         "PrefixLength": deploy_data.get("PrefixLength"), "IpV6Gateway": deploy_data.get("IpV6Gateway")}
     resp_filter_data = dict([(k, v) for k, v in resp_data.items() if v is not None])
     req_data_filter = dict([(k, v) for k, v in req_data.items() if v is not None])
-    diff_changes = [bool(set(resp_filter_data.items()) ^ set(req_data_filter.items()))]
+    copy_resp_filter_data = copy.deepcopy(resp_filter_data)
+    copy_resp_filter_data.update(req_data_filter)
+    diff_changes = [bool(set(resp_filter_data.items()) ^ set(copy_resp_filter_data.items()))]
     req_slot_payload, invalid_slot = [], []
     slots = deploy_options.get("slots")
     if slots is not None:
