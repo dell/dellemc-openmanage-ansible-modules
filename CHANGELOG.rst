@@ -5,6 +5,33 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v8.3.0
+======
+
+Minor Changes
+-------------
+
+- Module ``ome_firmware`` is enhanced to support reboot type options.
+- Module ``redfish_storage_volume`` is enhanced to support RAID6 and RAID60.
+
+Bugfixes
+--------
+
+- The ``ome_device_quick_deploy`` module will assign slot static IP, if blade is not present (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/532).
+- The ``ome_device_quick_deploy`` module will deploy a new config to a slot with the IPv6 disabled (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/533).
+
+Known Issues
+------------
+
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_alert_policies - Manage OME alert policies.
+
 v8.2.0
 ======
 
