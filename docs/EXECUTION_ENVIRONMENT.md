@@ -42,13 +42,8 @@ Build a image with the required Ansible collections and libraries, and then uplo
       system: bindep.txt
     ```
     
-    We can have a build args updated to the latest base and builder image as per your requirement. Following is an example to point to the redhat image.
-
-
-    ```yaml
-    EE_BUILDER_IMAGE: 'registry.redhat.io/ansible-automation-platform-23/ansible-builder-rhel8:latest'
-    EE_BASE_IMAGE: 'registry.redhat.io/ansible-automation-platform-23/ee-minimal-rhel8:latest'
-    ```
+    We can modify the execution environment file to configure as per your requirement based on the guidelines mentioned [here](https://docs.ansible.com/automation-controller/latest/html/userguide/ee_reference.html)
+  
 
     **requirements.yml**
     ```yaml
@@ -341,3 +336,4 @@ ansible_python_interpreter: /usr/bin/python3.9
 ## Documentation references
 - [https://www.redhat.com/en/technologies/management/ansible](https://www.redhat.com/en/technologies/management/ansible)
 - [https://www.redhat.com/en/blog/what-ansible-automation-hub-and-why-should-you-use-it](https://www.redhat.com/en/blog/what-ansible-automation-hub-and-why-should-you-use-it)
+- [https://www.ansible.com/blog/unlocking-efficiency-harnessing-the-capabilities-of-ansible-builder-3.0](https://www.ansible.com/blog/unlocking-efficiency-harnessing-the-capabilities-of-ansible-builder-3.0)
