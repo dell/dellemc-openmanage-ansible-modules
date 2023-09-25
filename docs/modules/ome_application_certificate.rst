@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python >= 3.9.6
 
 
 
@@ -144,7 +144,7 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         command: "generate_csr"
         distinguished_name: "hostname.com"
-        subject_alternative_names: "hostname_chassis.com"
+        subject_alternative_names: "hostname1.chassis.com,hostname2.chassis.com"
         department_name: "Remote Access Group"
         business_name: "Dell Inc."
         locality: "Round Rock"
@@ -193,4 +193,5 @@ Authors
 
 - Felix Stephen (@felixs88)
 - Kritika Bhateja (@Kritika-Bhateja-03)
+- Jennifer John (@Jennifer-John)
 
