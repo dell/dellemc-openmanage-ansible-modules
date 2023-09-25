@@ -8,6 +8,13 @@ Dell OpenManage Ansible Modules Release Notes
 v8.3.0
 ======
 
+Release Summary
+---------------
+
+- Module to manage OME alert policies.
+- Support for RAID6 and RAID60 for module ``redfish_storage_volume``.
+- Support for reboot type options for module ``ome_firmware``.
+
 Minor Changes
 -------------
 

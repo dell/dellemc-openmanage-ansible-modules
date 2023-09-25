@@ -1511,10 +1511,12 @@ releases:
       minor_changes:
         - Module ``redfish_storage_volume`` is enhanced to support RAID6 and RAID60.
         - Module ``ome_firmware`` is enhanced to support reboot type options.
-      release_summary: 
-        - Module to manage OME alert policies.
-        - Support for RAID6 and RAID60 for ``redfish_storage_volume``.
-        - Support for reboot type options for ``ome_firmware``.
+      release_summary:
+        '- Module to manage OME alert policies.
+
+        - Support for RAID6 and RAID60 for module ``redfish_storage_volume``.
+
+        - Support for reboot type options for module ``ome_firmware``.'
     modules:
       - description: Manage OME alert policies.
         name: ome_alert_policies
