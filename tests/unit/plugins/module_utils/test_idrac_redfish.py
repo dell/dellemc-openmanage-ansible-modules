@@ -3,7 +3,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 8.3.0
-# Copyright (C) 2013 Dell Inc.
+# Copyright (C) 2023 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.

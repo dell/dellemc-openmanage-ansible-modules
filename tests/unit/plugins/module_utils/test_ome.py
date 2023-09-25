@@ -3,7 +3,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 7.0.0
-# Copyright (C) 2019-2022 Dell Inc.
+# Copyright (C) 2019-2023 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -217,7 +217,6 @@ class TestOMERest(object):
             ODATA_COUNT: 100, "value": list(range(50, 100))}
 
         def mock_invoke_request(*args, **kwargs):
-            print(args)
             if args[1] == DEVICE_API:
                 return mock_response
             return mock_response_page2
