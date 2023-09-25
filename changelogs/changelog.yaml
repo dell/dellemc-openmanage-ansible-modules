@@ -1493,8 +1493,8 @@ releases:
   8.3.0:
     changes:
       bugfixes:
-        - The ``ome_device_quick_deploy`` module will assign slot static IP, if blade is 
-          not present (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/532).
+        - If the blade is not present, then the ``ome_device_quick_deploy`` module
+          can assign a static IP to the slot (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/532).
       known_issues:
         - ome_device_network_services - Issue(212681) - The module does not provide
           a proper error message if unsupported values are provided for the following
