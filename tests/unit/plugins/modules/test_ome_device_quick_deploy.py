@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
+# Version 8.3.0
 # Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -233,6 +233,22 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         with pytest.raises(Exception) as err:
             self.module.check_mode_validation(f_module, deploy_data)
         assert err.value.args[0] == "Unable to complete the operation because the entered slot(s) '1' does not exist."
+        param = {"device_id": 25012, "hostname": "192.168.1.6", "setting_type": "ServerQuickDeploy",
+                 "quick_deploy_options": {
+                     "ipv4_enabled": True, "ipv4_network_type": "Static", "ipv4_subnet_mask": "255.255.255.0",
+                     "ipv4_gateway": "0.0.0.0", "ipv6_enabled": True, "ipv6_network_type": "Static",
+                     "ipv6_prefix_length": "1", "ipv6_gateway": "0.0.0.0",
+                     "slots": [{"slot_id": 5, "slot_ipv4_address": "192.168.0.1",
+                                "slot_ipv6_address": "::", "vlan_id": ""}]}}
+        f_module = self.get_module_mock(params=param)
+        deploy_data = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "255.255.255.0",
+                       "IpV4Gateway": "0.0.0.0", "ProtocolTypeV6": True, "NetworkTypeV6": "Static",
+                       "PrefixLength": "1", "IpV6Gateway": "0.0.0.0",
+                       "Slots": [{"SlotId": 5, "SlotIPV4Address": "192.168.0.1",
+                                  "SlotIPV6Address": "::", "VlanId": ""}]}
+        with pytest.raises(Exception) as err:
+            self.module.check_mode_validation(f_module, deploy_data)
+        assert err.value.args[0] == "No changes found to be applied."
 
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])

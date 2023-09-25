@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
+# Version 8.3.0
 # Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -65,10 +65,11 @@ options:
     description: Local path of the certificate file to be uploaded. This option is applicable for C(upload).
         Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
 requirements:
-    - "python >= 3.8.6"
+    - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
+  - "Jennifer John (@Jennifer-John)"
 '''
 
 EXAMPLES = r'''
@@ -96,7 +97,7 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     command: "generate_csr"
     distinguished_name: "hostname.com"
-    subject_alternative_names: "hostname1.chassis.com, hostname2.chassis.com"
+    subject_alternative_names: "hostname1.chassis.com,hostname2.chassis.com"
     department_name: "Remote Access Group"
     business_name: "Dell Inc."
     locality: "Round Rock"
@@ -175,7 +176,7 @@ def get_resource_parameters(module):
                    "BusinessName": module.params["business_name"],
                    "Locality": module.params["locality"], "State": module.params["country_state"],
                    "Country": module.params["country"], "Email": module.params["email"],
-                   "San": module.params["subject_alternative_names"]}
+                   "San": get_san(module.params["subject_alternative_names"])}
     else:
         file_path = module.params["upload_file"]
         uri = csr_uri.format("UploadCertificate")
@@ -185,6 +186,13 @@ def get_resource_parameters(module):
         else:
             module.fail_json(msg="No such file or directory.")
     return method, uri, payload
+
+
+def get_san(subject_alternative_names):
+    if not subject_alternative_names:
+        return subject_alternative_names
+
+    return subject_alternative_names.replace(" ", "")
 
 
 def main():
