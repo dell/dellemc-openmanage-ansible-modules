@@ -51,3 +51,8 @@ homepage: https://github.com/dell/dellemc-openmanage-ansible-modules
 issues: https://github.com/dell/dellemc-openmanage-ansible-modules/issues
 
 documentation: https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/docs
+
+build_ignore:
+  - BuildNumber.txt
+  - codecov.yml
+
