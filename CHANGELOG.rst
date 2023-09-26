@@ -5,6 +5,42 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v8.3.0
+======
+
+Release Summary
+---------------
+
+- Module to manage OME alert policies.
+- Support for RAID6 and RAID60 for module ``redfish_storage_volume``.
+- Support for reboot type options for module ``ome_firmware``.
+
+Minor Changes
+-------------
+
+- Module ``ome_firmware`` is enhanced to support reboot type options.
+- Module ``redfish_storage_volume`` is enhanced to support RAID6 and RAID60.
+
+Bugfixes
+--------
+
+- ome_device_quick_deploy - If the blade is not present, then the module can assign a static IP to the slot (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/532).
+
+Known Issues
+------------
+
+- ca_path missing - Issue(275740) - The roles idrac_attributes, redfish_storage_volume, and idrac_server_powerstate have a missing parameter ca_path.
+- idrac_firmware - Issue(276335) - This module fails on the Python 3.11.x version with NFS shares. Use a different Python version or Share type.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(275231) - This module does not deploy a new configuration to a slot that has disabled IPv6.
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_alert_policies - Manage OME alert policies.
+
 v8.2.0
 ======
 
