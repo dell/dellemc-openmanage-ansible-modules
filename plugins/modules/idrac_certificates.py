@@ -39,10 +39,11 @@ options:
       - Type of the iDRAC certificate.
       - C(HTTPS) The Dell self-signed SSL certificate.
       - C(CA) Certificate Authority(CA) signed SSL certificate.
-      - C(CSC) The custom signed SSL certificate.
+      - C(CUSTOMCERTIFICATE) The PKCS12 Certificate and private key. 
+      - C(CSC) The custom singing SSL certificate.
       - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
     type: str
-    choices: ['HTTPS', 'CA', 'CSC', 'CLIENT_TRUST_CERTIFICATE']
+    choices: ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE']
     default: 'HTTPS'
   certificate_path:
     description:
@@ -108,6 +109,7 @@ requirements:
   - "python >= 3.8.6"
 author:
   - "Jagadeesh N V(@jagadeeshnv)"
+  - "Kristian Lamb V(@kristian_lamb)"
 notes:
     - The certificate operations are supported on iDRAC firmware 5.10.10.00 and above.
     - Run this module from a system that has direct access to Dell iDRAC.
@@ -155,6 +157,18 @@ EXAMPLES = r'''
     command: "export"
     certificate_type: "HTTPS"
     certificate_path: "/home/omam/mycert_dir"
+
+- name: Import a CUSTOMCERTIFICATE certificate.
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    validate_certs: False
+    command: "import"
+    certificate_type: "CUSTOMCERTIFICATE"
+    certificate_path: "/path/to/idrac_cert.pfx"
+    passphrase: "cert_passphrase"
+    reset: False
 
 - name: Import a CSC certificate.
   dellemc.openmanage.idrac_certificates:
@@ -273,10 +287,12 @@ csr_transform = {"common_name": "CommonName",
 action_url_map = {"generate_csr": {},
                   "import": {'Server': "#DelliDRACCardService.ImportSSLCertificate",
                              'CA': "#DelliDRACCardService.ImportSSLCertificate",
+                             'CustomCertificate': "#DelliDRACCardService.ImportSSLCertificate",
                              'CSC': "#DelliDRACCardService.ImportSSLCertificate",
                              'ClientTrustCertificate': "#DelliDRACCardService.ImportSSLCertificate"},
                   "export": {'Server': "#DelliDRACCardService.ExportSSLCertificate",
                              'CA': "#DelliDRACCardService.ExportSSLCertificate",
+                             'CustomCertificate': "#DelliDRACCardService.ExportSSLCertificate",
                              'CSC': "#DelliDRACCardService.ExportSSLCertificate",
                              'ClientTrustCertificate': "#DelliDRACCardService.ExportSSLCertificate"},
                   "reset": {'Server': "#DelliDRACCardService.SSLResetCfg"}}
@@ -284,14 +300,16 @@ action_url_map = {"generate_csr": {},
 dflt_url_map = {"generate_csr": {'Server': CSR_SSL},
                 "import": {'Server': IMPORT_SSL,
                            'CA': IMPORT_SSL,
+                           'CUSTOMCERTIFICATE': IMPORT_SSL,
                            'CSC': IMPORT_SSL,
                            'ClientTrustCertificate': IMPORT_SSL},
                 "export": {'Server': EXPORT_SSL,
                            'CA': EXPORT_SSL,
+                           'CUSTOMCERTIFICATE': EXPORT_SSL,
                            'CSC': EXPORT_SSL,
                            'ClientTrustCertificate': EXPORT_SSL},
                 "reset": {'Server': RESET_SSL}}
-certype_map = {'HTTPS': "Server", 'CA': "CA", 'CSC': "CSC",
+certype_map = {'HTTPS': "Server", 'CA': "CA", 'CUSTOMCERTIFICATE': "CustomCertificate", 'CSC': "CSC",
                'CLIENT_TRUST_CERTIFICATE': "ClientTrustCertificate"}
 
 
@@ -331,6 +349,7 @@ def get_ssl_payload(module, op, certype):
 
 payload_map = {"Server": get_ssl_payload,
                "CA": get_ssl_payload,
+               "CustomCertificate": get_ssl_payload,
                "CSC": get_ssl_payload,
                "ClientTrustCertificate": get_ssl_payload}
 
@@ -389,7 +408,7 @@ def certificate_action(module, idrac, actions, op, certype, res_id):
 
 
 def write_to_file(module, cert_data, dkey):
-    f_ext = {'HTTPS': ".pem", 'CA': ".pem", 'CSC': ".crt", 'CLIENT_TRUST_CERTIFICATE': ".crt"}
+    f_ext = {'HTTPS': ".pem", 'CA': ".pem", 'CUSTOMCERTIFICATE': ".pem", 'CSC': ".crt", 'CLIENT_TRUST_CERTIFICATE': ".crt"}
     path = module.params.get('certificate_path')
     if not (os.path.exists(path) or os.path.isdir(path)):
         module.exit_json(msg="Provided directory path '{0}' is not valid.".format(path), failed=True)
@@ -471,7 +490,7 @@ def main():
         "command": {"type": 'str', "default": 'generate_csr',
                     "choices": ['generate_csr', 'export', 'import', 'reset']},
         "certificate_type": {"type": 'str', "default": 'HTTPS',
-                             "choices": ['HTTPS', 'CA', 'CSC', 'CLIENT_TRUST_CERTIFICATE']},
+                             "choices": ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE']},
         "certificate_path": {"type": 'path'},
         "passphrase": {"type": 'str', "no_log": True},
         "cert_params": {"type": 'dict', "options": {
