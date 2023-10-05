@@ -39,7 +39,7 @@ options:
       - Type of the iDRAC certificate.
       - C(HTTPS) The Dell self-signed SSL certificate.
       - C(CA) Certificate Authority(CA) signed SSL certificate.
-      - C(CUSTOMCERTIFICATE) The PKCS12 Certificate and private key. 
+      - C(CUSTOMCERTIFICATE) The PKCS12 Certificate and private key.
       - C(CSC) The custom singing SSL certificate.
       - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
     type: str
