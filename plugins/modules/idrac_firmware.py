@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.4.0
+# Copyright (C) 2018-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -658,8 +658,8 @@ def update_firmware_redfish(idrac, module, repo_urls):
                 payload['ShareName'] = '\\'.join(cifs[3:])
                 payload['ShareType'] = 'CIFS'
             else:
-                nfs = urlparse(share_name)
-                payload['IPAddress'] = nfs.scheme
+                nfs = urlparse("nfs://" + share_name)
+                payload['IPAddress'] = nfs.netloc.strip(':')
                 payload['ShareName'] = nfs.path.strip('/')
                 payload['ShareType'] = 'NFS'
             resp = idrac.invoke_request(PATH, method="POST", data=payload)
