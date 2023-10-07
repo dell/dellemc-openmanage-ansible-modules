@@ -34,6 +34,9 @@ NO_CHANGES_MSG = "No changes found to be applied."
 RESET_UNTRACK = "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
 RESET_SUCCESS = "iDRAC has been reset successfully."
 RESET_FAIL = "Unable to reset the iDRAC. For changes to reflect, manually reset the iDRAC."
+MAINTENACE_OFFSET_DIFF_MSG = "The maintenance time must be post-fixed with local offset to {0}."
+MAINTENACE_OFFSET_BEHIND_MSG = "The specified maintenance time window occurs in the past, provide a future time to schedule the maintenance window."
+APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time {0} is not supported."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -438,3 +441,34 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
         job_resp = redfish_obj.invoke_request("GET", job_uri, api_timeout=120)
         return job_resp, ""
     return job_resp, job_msg
+
+
+def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
+    resp = idrac_obj.invoke_request(method='GET', uri=base_uri).json_data
+    if search_label and search_label in resp:
+        return resp[search_label]
+    return resp
+
+
+def get_scheduled_job_resp(idrac_obj, job_type):
+    # job_type can be like 'NICConfiguration' or 'BIOSConfiguration'
+    job_resp = {}
+    job_list = idrac_obj.invoke_request(
+        MANAGER_JOB_URI, "GET").json_data.get('Members', [])
+    for each_job in job_list:
+        if each_job.get("JobType") == job_type and each_job.get("JobState") in ["Scheduled", "Running", "Starting"]:
+            job_resp = each_job
+            break
+    return job_resp
+
+
+def delete_job(idrac_obj, job_id):
+    resp = idrac_obj.invoke_request(uri=MANAGER_JOB_ID_URI.format(job_id), method="DELETE")
+    return resp.json_data
+
+def get_current_time(redfish_obj):
+    res_id = get_manager_res_id(redfish_obj)
+    resp = redfish_obj.invoke_request(MANAGERS_URI+'/'+res_id, "GET")
+    curr_time = resp.json_data.get("DateTime")
+    date_offset = resp.json_data.get("DateTimeLocalOffset")
+    return curr_time, date_offset

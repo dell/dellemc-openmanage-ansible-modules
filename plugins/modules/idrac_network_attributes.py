@@ -215,14 +215,14 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key, wait_for_idrac_job_completion, \
     get_dynamic_uri, get_scheduled_job_resp, delete_job, get_current_time
+from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-
+from ansible.module_utils.common.dict_transformations import recursive_diff
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 CHASSIS_URI = "/redfish/v1/Chassis"
 REGISTRY_URI = '/redfish/v1/Registries'
-MANAGERS_URI = '/redfish/v1/Managers'
 GET_ALL_JOBS = "/redfish/v1/JobService/Jobs?$expand=*($levels=1)"
 SINGLE_JOB = "/redfish/v1/JobService/Jobs/{job_id}"
 
@@ -255,6 +255,10 @@ class IDRACNetworkAttributes:
         self.network_adapter_id_uri = None
         self.network_device_function_id = None
         self.manager_uri = None
+    
+    def __get_idrac_firmware_version(self) -> str:
+        firm_version = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
+        return firm_version.json_data.get('FirmwareVersion', '')
 
     def __get_resource_id(self):
         odata = '@odata.id'
@@ -273,6 +277,36 @@ class IDRACNetworkAttributes:
         else:
             res_id_uri = res_id_members[0][odata]
         return res_id_uri
+
+    def __get_registry_fw_less_than_6_more_than_3(self):
+        reg = {}
+        network_device_function_id = self.module.params.get('network_device_function_id')
+        registry = get_dynamic_uri(self.idrac, REGISTRY_URI, 'Members')
+        for each_member in registry:
+            if network_device_function_id in each_member.get('@odata.id'):
+                location = get_dynamic_uri(self.idrac, each_member.get('@odata.id'), 'Location')
+                if location:
+                    uri = location[0].get('Uri')
+                    attr = get_dynamic_uri(self.idrac, uri, 'RegistryEntries').get('Attributes', {})
+                    for each_attr in attr:
+                        reg.update({each_attr['AttributeName']: each_attr['CurrentValue']})
+                    break
+        return reg
+
+    def get_current_server_registry(self):
+        reg = {}
+        oem_network_attributes = self.module.params.get('oem_network_attributes')
+        firm_ver = self.__get_idrac_firmware_version()
+        if oem_network_attributes:
+            if LooseVersion(firm_ver) >= '6.0': # iDRAC9 FW Ver >= 6.0
+                oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id, 'Links')
+                uri = oem_links.get('Oem').get('Dell').get('DellNetworkAttributes').get('@odata.id')
+                reg = get_dynamic_uri(self.idrac, uri).get('Attributes', {})
+            if '3.0' < LooseVersion(firm_ver) < '6.0': # iDRAC9 FW Ver < 6.0
+                reg = self.__get_registry_fw_less_than_6_more_than_3()
+        else: # For Redfish
+            pass
+        return reg
 
     def _extract_error_msg(self, resp):
         error_info = {}
@@ -312,13 +346,12 @@ class IDRACNetworkAttributes:
                 rf_set['ApplyTime'] = aplytm
         return rf_set, reboot_req
 
-    def get_diff_between_current_and_module_input(self, attr, uri) -> tuple[int, dict]:
+    def get_diff_between_current_and_module_input(self, module_attr, server_attr) -> tuple[int, dict]:
         diff = 0
         invalid = {}
-        attributes = get_dynamic_uri(self.idrac, uri).get('Attributes', {})
-        for each_attr in attr:
-            if each_attr in attributes:
-                if attr[each_attr] != attributes[each_attr]:
+        for each_attr in module_attr:
+            if each_attr in server_attr:
+                if server_attr[each_attr] != module_attr[each_attr]:
                     diff += 1
             else:
                 invalid.update({each_attr: 'Attribute does not exist.'})
@@ -371,10 +404,6 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         self.validate_job_timeout()
         oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id, 'Links')
         self.oem_uri = oem_links.get('Oem').get('Dell').get('DellNetworkAttributes').get('@odata.id')
-
-    def __get_idrac_firmware_version(self) -> str:
-        firm_version = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
-        return firm_version.json_data.get('FirmwareVersion', '')
 
     def clear_pending(self):
         resp = get_dynamic_uri(self.idrac, self.oem_uri, '@Redfish.Settings')
@@ -474,15 +503,17 @@ def main():
     try:
         module = get_module_parameters()
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
-            if (oem_attribute := module.params.get('oem_network_attributes')) or (clear_pending := module.params.get('clear_pending')):
+            if module_attribute := module.params.get('oem_network_attributes') or module.params.get('clear_pending'):
                 base_uri = CHASSIS_URI
                 network_attr_obj = OEMNetworkAttributes(idrac, module, base_uri)
-                if clear_pending:
+                if module.params.get('clear_pending'):
                     network_attr_obj.clear_pending()
-                diff, invalid_attr = network_attr_obj.get_diff_between_current_and_module_input(oem_attribute, network_attr_obj.oem_uri)
             else:
+                module_attribute = module.params.get('network_attributes')
                 base_uri = SYSTEMS_URI
                 network_attr_obj = NetworkAttributes(idrac, module, base_uri)
+            server_reg = network_attr_obj.get_current_server_registry()
+            diff, invalid_attr = network_attr_obj.get_diff_between_current_and_module_input(module_attribute, server_reg)
             perform_operation_for_main(module, network_attr_obj, diff, invalid_attr)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
