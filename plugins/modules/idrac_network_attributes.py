@@ -125,41 +125,41 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Configure iDRAC network settings
+- name: Configure iDRAC oem network attributes
   dellemc.openmanage.idrac_network:
-       idrac_ip:   "192.168.0.1"
-       idrac_user: "user_name"
-       idrac_password:  "user_password"
-       ca_path: "/path/to/ca_cert.pem"
-       register_idrac_on_dns: Enabled
-       dns_idrac_name: None
-       auto_config: None
-       static_dns: None
-       setup_idrac_nic_vlan: Enabled
-       vlan_id: 0
-       vlan_priority: 1
-       enable_nic: Enabled
-       nic_selection: Dedicated
-       failover_network: T_None
-       auto_detect: Disabled
-       auto_negotiation: Enabled
-       network_speed: T_1000
-       duplex_mode: Full
-       nic_mtu: 1500
-       ip_address: "192.168.0.1"
-       enable_dhcp: Enabled
-       enable_ipv4: Enabled
-       static_dns_1: "192.168.0.1"
-       static_dns_2: "192.168.0.1"
-       dns_from_dhcp: Enabled
-       static_gateway: None
-       static_net_mask: None
+    idrac_ip:   "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password:  "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    network_adapter_id: 'NIC.Mezzanine.1A'
+    network_device_function_id: 'NIC.Mezzanine.1A-1-1'
+    oem_network_attributes:
+        VLanId: 10
+    resource_id: 'System.Embedded.1'
+    apply_time: "AtMaintenanceWindowStart"
+    maintenance_window:
+      start_time: "2023-10-06T15:00:00-05:00"
+      duration: 600
+    job_wait: true
+    job_wait_timeout: 1500
+
+- name: Clear pending oem network attribute
+  dellemc.openmanage.idrac_network:
+    idrac_ip:   "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password:  "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    network_adapter_id: 'NIC.Mezzanine.1A'
+    network_device_function_id: 'NIC.Mezzanine.1A-1-1'
+    apply_time: "Immediate"
+    clear_pending: true
+
 """
 
 RETURN = r'''
 ---
 msg:
-  description: Successfully configured the idrac network settings.
+  description: Successfully configured the idrac network attributes.
   returned: always
   type: str
   sample: "Successfully configured the idrac network settings."
@@ -228,21 +228,25 @@ SINGLE_JOB = "/redfish/v1/JobService/Jobs/{job_id}"
 
 GET_NETWORK_ADAPTER_URI = "/redfish/v1/Systems/{resource_id}/NetworkAdapters"
 GET_NETWORK_DEVICE_FUNC_URI = "/redfish/v1/Systems/{resource_id}/NetworkAdapters/{network_adapter_id}/NetworkDeviceFunctions"
-DMTF_GET_PATCH_NETWORK_ATTR_URI = "/redfish/v1/Systems/{resource_id}/NetworkAdapters/{network_adapter_id}/NetworkDeviceFunctions/{network_device_function_id}/Settings"
+DMTF_GET_PATCH_NETWORK_ATTR_URI = "/redfish/v1/Systems/{resource_id}/NetworkAdapters/{network_adapter_id}/NetworkDeviceFunctions/ \
+{network_device_function_id}/Settings"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 
 SUCCESS_MSG = "Successfully updated the network attributes."
 SUCCESS_CLEAR_PENDING_ATTR_MSG = "Successfully cleared the pending network attributes."
 SCHEDULE_MSG = "Successfully scheduled the job for network attributes update."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the `job_wait_timeout` parameter cannot be negative or zero."
-MAINTENACE_OFFSET_DIFF_MSG = "The maintenance time must be post-fixed with local offset to <idrac_time_offset>."
+MAINTENACE_OFFSET_DIFF_MSG = "The maintenance time must be post-fixed with local offset to {0}."
 MAINTENACE_OFFSET_BEHIND_MSG = "The specified maintenance time window occurs in the past, provide a future time to schedule the maintenance window."
-APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time <apply_time> is not supported."
-INVALID_ATTR_MSG = "Unable to update the network attributes because invalid values are entered. Enter the valid values for the network attributes and retry the operation."
-VALID_AND_INVALID_ATTR_MSG = "Successfully updated the network attributes for valid values. Unable to update other attributes because invalid values are entered. Enter the valid values and retry the operation."
+APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time {0} is not supported."
+INVALID_ATTR_MSG = "Unable to update the network attributes because invalid values are entered. \
+    Enter the valid values for the network attributes and retry the operation."
+VALID_AND_INVALID_ATTR_MSG = "Successfully updated the network attributes for valid values. \
+    Unable to update other attributes because invalid values are entered. Enter the valid values and retry the operation."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
-INVALID_ID_MSG = "{0} is not valid {1}."
+INVALID_ID_MSG = "Unable to complete the operation because " + \
+                 "the value `{0}` for the input  `{1}` parameter is invalid."
 JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to complete. Currently can not clear pending attributes."
 
 
@@ -255,7 +259,7 @@ class IDRACNetworkAttributes:
         self.network_adapter_id_uri = None
         self.network_device_function_id = None
         self.manager_uri = None
-    
+
     def __get_idrac_firmware_version(self) -> str:
         firm_version = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
         return firm_version.json_data.get('FirmwareVersion', '')
@@ -267,14 +271,14 @@ class IDRACNetworkAttributes:
         res_id_input = self.module.params.get('resource_id')
         res_id_members = get_dynamic_uri(self.idrac, self.base_uri, 'Members')
         for each in res_id_members:
-            if res_id_input and res_id_input in each[odata]:
+            if res_id_input and res_id_input == each[odata].split('/')[-1]:
                 res_id_uri = each[odata]
                 found = True
                 break
         if not found and res_id_input:
             self.module.exit_json(failed=True, msg=INVALID_ID_MSG.format(
                 res_id_input, 'resource_id'))
-        else:
+        elif res_id_input is None:
             res_id_uri = res_id_members[0][odata]
         return res_id_uri
 
@@ -293,31 +297,6 @@ class IDRACNetworkAttributes:
                     break
         return reg
 
-    def get_current_server_registry(self):
-        reg = {}
-        oem_network_attributes = self.module.params.get('oem_network_attributes')
-        firm_ver = self.__get_idrac_firmware_version()
-        if oem_network_attributes:
-            if LooseVersion(firm_ver) >= '6.0': # iDRAC9 FW Ver >= 6.0
-                oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id, 'Links')
-                uri = oem_links.get('Oem').get('Dell').get('DellNetworkAttributes').get('@odata.id')
-                reg = get_dynamic_uri(self.idrac, uri).get('Attributes', {})
-            if '3.0' < LooseVersion(firm_ver) < '6.0': # iDRAC9 FW Ver < 6.0
-                reg = self.__get_registry_fw_less_than_6_more_than_3()
-        else: # For Redfish
-            pass
-        return reg
-
-    def _extract_error_msg(self, resp):
-        error_info = {}
-        error = resp.json_data.get('error')
-        for each_dict_err in error.get("@Message.ExtendedInfo"):
-            key = each_dict_err.get('MessageArgs')[0]
-            msg = each_dict_err.get('Message')
-            if key not in error_info:
-                error_info.update({key: msg})
-        return error_info
-
     def __validate_time(self, mtime):
         curr_time, date_offset = get_current_time(self.idrac)
         if not mtime.endswith(date_offset):
@@ -331,7 +310,7 @@ class IDRACNetworkAttributes:
         if rf_settings:
             if 'Maintenance' in aplytm:
                 if aplytm not in rf_settings:
-                    self.module.exit_json(failed=True, status_msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(aplytm))
+                    self.module.exit_json(failed=True, msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(aplytm))
                 else:
                     rf_set['ApplyTime'] = aplytm
                     m_win = self.module.params.get('maintenance_window')
@@ -339,21 +318,42 @@ class IDRACNetworkAttributes:
                     rf_set['MaintenanceWindowStartTime'] = m_win.get('start_time')
                     rf_set['MaintenanceWindowDurationInSeconds'] = m_win.get('duration')
             else:  # assuming OnReset is always
-                if aplytm == "Immediate":
-                    if aplytm not in rf_settings:
-                        reboot_req = True
-                        aplytm = 'OnReset'
+                if aplytm == "Immediate" and aplytm not in rf_settings:
+                    reboot_req = True
+                    aplytm = 'OnReset'
                 rf_set['ApplyTime'] = aplytm
         return rf_set, reboot_req
 
+    def get_current_server_registry(self):
+        reg = {}
+        oem_network_attributes = self.module.params.get('oem_network_attributes')
+        firm_ver = self.__get_idrac_firmware_version()
+        if oem_network_attributes:
+            if LooseVersion(firm_ver) >= '6.0':
+                oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id, 'Links')
+                uri = oem_links.get('Oem').get('Dell').get('DellNetworkAttributes').get('@odata.id')
+                reg = get_dynamic_uri(self.idrac, uri).get('Attributes', {})
+            if '3.0' < LooseVersion(firm_ver) < '6.0':
+                reg = self.__get_registry_fw_less_than_6_more_than_3()
+        else:  # For Redfish
+            pass
+        return reg
+
+    def extract_error_msg(self, resp):
+        error_info = {}
+        error = resp.json_data.get('error')
+        for each_dict_err in error.get("@Message.ExtendedInfo"):
+            key = each_dict_err.get('MessageArgs')[0]
+            msg = each_dict_err.get('Message')
+            if key not in error_info:
+                error_info.update({key: msg})
+        return error_info
+
     def get_diff_between_current_and_module_input(self, module_attr, server_attr) -> tuple[int, dict]:
-        diff = 0
         invalid = {}
+        diff = recursive_diff(module_attr, server_attr)
         for each_attr in module_attr:
-            if each_attr in server_attr:
-                if server_attr[each_attr] != module_attr[each_attr]:
-                    diff += 1
-            else:
+            if each_attr not in server_attr:
                 invalid.update({each_attr: 'Attribute does not exist.'})
         return diff, invalid
 
@@ -441,7 +441,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
 
         patch_uri = get_dynamic_uri(self.idrac, self.oem_uri).get('@Redfish.Settings', {}).get('SettingsObject', {}).get('@odata.id')
         response = self.idrac.invoke_request(method='PATCH', uri=patch_uri, data=payload)
-        invalid_attr = self._extract_error_msg(response)
+        invalid_attr = self.extract_error_msg(response)
         job_tracking_uri = response.headers["Location"]
         job_resp, error_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
                                                             job_wait=job_wait,
@@ -520,7 +520,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-        module.fail_json(msg=str(err), failed=True)
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
