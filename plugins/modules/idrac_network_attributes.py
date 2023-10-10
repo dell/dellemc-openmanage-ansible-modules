@@ -256,7 +256,7 @@ JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to
 
 class IDRACNetworkAttributes:
 
-    def __init__(self, idrac, module, base_uri) -> None:
+    def __init__(self, idrac, module, base_uri):
         self.module = module
         self.idrac = idrac
         self.base_uri = base_uri
@@ -405,7 +405,7 @@ class IDRACNetworkAttributes:
 
 
 class OEMNetworkAttributes(IDRACNetworkAttributes):
-    def __init__(self, idrac, module, base_uri) -> None:
+    def __init__(self, idrac, module, base_uri):
         super().__init__(idrac, module, base_uri)
 
     def clear_pending(self) -> None:
@@ -461,7 +461,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
 
 
 class NetworkAttributes(IDRACNetworkAttributes):
-    def __init__(self, idrac, module, base_uri) -> None:
+    def __init__(self, idrac, module, base_uri):
         super().__init__(idrac, module, base_uri)
 
 
