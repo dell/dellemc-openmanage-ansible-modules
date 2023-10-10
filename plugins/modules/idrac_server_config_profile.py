@@ -186,7 +186,7 @@ requirements:
 author:
   - "Jagadeesh N V(@jagadeeshnv)"
   - "Felix Stephen (@felixs88)"
-  - "Jennifer John (@jenniferjohn)"
+  - "Jennifer John (@Jennifer-John)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
