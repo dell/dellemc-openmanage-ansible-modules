@@ -150,6 +150,8 @@ EXAMPLES = """
     network_adapter_id: 'NIC.Mezzanine.1A'
     network_device_function_id: 'NIC.Mezzanine.1A-1-1'
     apply_time: "Immediate"
+    oem_network_attributes:
+        VLanId: 14
     clear_pending: true
 
 """
