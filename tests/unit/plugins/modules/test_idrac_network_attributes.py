@@ -14,6 +14,7 @@ __metaclass__ = type
 
 import pytest
 import json
+import random
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_network_attributes
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -44,7 +45,7 @@ JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to
 class TestIDRACNetworkAttributes(FakeAnsibleModule):
     module = idrac_network_attributes
     uri = '/redfish/v1/api'
-
+    
     @pytest.fixture
     def idrac_ntwrk_attr_mock(self):
         idrac_obj = MagicMock()
@@ -672,14 +673,52 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             idr_obj.perform_operation()
         assert exc.value.args[0] == error_msg
 
-    # def test_perform_operation_for_main(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-    #                                                    idrac_ntwrk_attr_mock, mocker):
-    #     f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-    #     with pytest.raises(Exception) as exc:
-    #         self.module.get_module_parameters()
-    #     assert exc.value.args[0] == True
+    def test_perform_operation_for_main(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
+                                                       idrac_ntwrk_attr_mock, mocker):
+        obj = MagicMock()
+        invalid_attr = {'a': 'Attribute does not exist.'}
+        # Scenario 1: When diff is false
+        diff = ()
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+        assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
 
+        # Scenario 2: When diff is True and check mode is True
+        diff = ({'a': 123}, {'c': 789})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+        assert exc.value.args[0] == CHANGES_FOUND_MSG
 
+        # Scenario 3: When diff is True and JobState is completed and
+        #             There is invalid_attr in normal mode
+        def return_data():
+            return ({'JobState': "Completed"}, invalid_attr)
+        obj.perform_operation = return_data
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+        assert exc.value.args[0] == VALID_AND_INVALID_ATTR_MSG
+
+        # Scenario 4: When diff is True and JobState is completed and
+        #             There is no invalid_attr in normal mode
+        invalid_attr = {}
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+        assert exc.value.args[0] == SUCCESS_MSG
+
+        # Scenario 5: When diff is True and JobState is not completed and
+        #             There is no invalid_attr in normal mode
+        invalid_attr = {}
+        def return_data():
+            return ({'JobState': "Starting"}, invalid_attr)
+        obj.perform_operation = return_data
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+        assert exc.value.args[0] == SCHEDULE_MSG
 
     # def test_user_info_main_success_case_all(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
     #                                          idrac_ntwrk_attr_mock, mocker):
@@ -715,25 +754,39 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
     #     assert resp['failed'] is True
     #     assert resp['msg'] == "Unable to retrieve the user information."
 
-    # @pytest.mark.parametrize("exc_type",
-    #                          [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    # def test_idrac_network_attributes_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
-    #                                                       idrac_connection_ntwrk_attr_mock, idrac_ntwrk_attr_mock):
-    #     idrac_ntwrk_attr_mock.status_code = 400
-    #     idrac_ntwrk_attr_mock.success = False
-    #     json_str = to_text(json.dumps({"data": "out"}))
-    #     if exc_type not in [HTTPError, SSLValidationError]:
-    #         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_accounts_uri",
-    #                      side_effect=exc_type('test'))
-    #     else:
-    #         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_accounts_uri",
-    #                      side_effect=exc_type('http://testhost.com', 400,
-    #                                           'http error message',
-    #                                           {"accept-type": "application/json"},
-    #                                           StringIO(json_str)))
-    #     if exc_type != URLError:
-    #         result = self._run_module_with_fail_json(idrac_default_args)
-    #         assert result['failed'] is True
-    #     else:
-    #         result = self._run_module(idrac_default_args)
-    #     assert 'msg' in result
+    @pytest.mark.parametrize("exc_type",
+                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
+    def test_idrac_network_attributes_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
+                                                          idrac_connection_ntwrk_attr_mock, idrac_ntwrk_attr_mock):
+        obj = MagicMock()
+        obj.perform_validation_for_network_adapter_id.return_value = None
+        obj.perform_validation_for_network_device_function_id.return_value = None
+        obj.get_diff_between_current_and_module_input.return_value = (None, None)
+        obj.clear_pending.return_value = None
+        idrac_ntwrk_attr_mock.status_code = 400
+        idrac_ntwrk_attr_mock.success = False
+        idrac_default_args.update({'apply_time': "Immediate",
+                                   'network_adapter_id': 'Some_adapter_id',
+                                   'network_device_function_id': 'some_device_id',
+                                   'clear_pending': random.choice([True, False])})
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.OEMNetworkAttributes", return_value=obj)
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type not in [HTTPError, SSLValidationError]:
+            tmp = {'oem_network_attributes': {'VlanId': 10}}
+            mocker.patch(MODULE_PATH + "idrac_network_attributes.perform_operation_for_main",
+                         side_effect=exc_type('test'))
+        else:
+            tmp = {'network_attributes': {'abc': 10}}
+            mocker.patch(MODULE_PATH + "idrac_network_attributes.perform_operation_for_main",
+                         side_effect=exc_type('http://testhost.com', 400,
+                                              'http error message',
+                                              {"accept-type": "application/json"},
+                                              StringIO(json_str)))
+        idrac_default_args.update(tmp)
+        if exc_type != URLError:
+            result = self._run_module(idrac_default_args)
+            assert result['failed'] is True
+        else:
+            result = self._run_module(idrac_default_args)
+            assert result['unreachable'] is True
+        assert 'msg' in result

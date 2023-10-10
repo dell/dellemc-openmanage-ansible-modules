@@ -461,7 +461,7 @@ class NetworkAttributes(IDRACNetworkAttributes):
         super().__init__(idrac, module, base_uri)
 
 
-def perform_operation_for_main(module, obj, diff, invalid_attr):
+def perform_operation_for_main(module, obj, diff, _invalid_attr):
     if diff:
         if module.check_mode:
             module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
@@ -474,7 +474,7 @@ def perform_operation_for_main(module, obj, diff, invalid_attr):
             module.exit_json(msg=msg, invalid_attributes=invalid_attr,
                              job_status=job_resp, changed=True)
     else:
-        module.exit_json(msg=NO_CHANGES_FOUND_MSG, invalid_attributes=invalid_attr)
+        module.exit_json(msg=NO_CHANGES_FOUND_MSG, invalid_attributes=_invalid_attr)
 
 
 def main():
