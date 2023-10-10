@@ -466,9 +466,10 @@ def delete_job(idrac_obj, job_id):
     resp = idrac_obj.invoke_request(uri=MANAGER_JOB_ID_URI.format(job_id), method="DELETE")
     return resp.json_data
 
+
 def get_current_time(redfish_obj):
     res_id = get_manager_res_id(redfish_obj)
-    resp = redfish_obj.invoke_request(MANAGERS_URI+'/'+res_id, "GET")
+    resp = redfish_obj.invoke_request(MANAGERS_URI + '/' + res_id, "GET")
     curr_time = resp.json_data.get("DateTime")
     date_offset = resp.json_data.get("DateTimeLocalOffset")
     return curr_time, date_offset

@@ -45,7 +45,7 @@ JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to
 class TestIDRACNetworkAttributes(FakeAnsibleModule):
     module = idrac_network_attributes
     uri = '/redfish/v1/api'
-    
+
     @pytest.fixture
     def idrac_ntwrk_attr_mock(self):
         idrac_obj = MagicMock()
@@ -57,22 +57,24 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                        return_value=idrac_ntwrk_attr_mock)
         idrac_conn_mock.return_value.__enter__.return_value = idrac_ntwrk_attr_mock
         return idrac_conn_mock
-    
+
     def test_idrac_firmware_version(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                     idrac_ntwrk_attr_mock, mocker):
         resp = MagicMock()
         resp.json_data = {'@odata.id': '/some/odata/value',
-                'FirmwareVersion': '1.2.3.4'}
+                          'FirmwareVersion': '1.2.3.4'}
         mocker.patch(MODULE_PATH + "idrac_network_attributes.iDRACRedfishAPI.invoke_request",
                      return_value=resp)
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         ver = idr_obj._IDRACNetworkAttributes__get_idrac_firmware_version()
         assert ver == '1.2.3.4'
 
     def test_resource_id(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                                             idrac_ntwrk_attr_mock, mocker):
-        resource_id_list =  [
+                         idrac_ntwrk_attr_mock, mocker):
+        resource_id_list = [
             {
                 "@odata.id": "/redfish/v1/Chassis/System.Embedded.1"
             },
@@ -95,25 +97,32 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                    'network_device_function_id': 'NIC.Mezzanine.1A-1-1',
                                    'apply_time': 'Immediate'})
         # Scenario-1: Default resource_id, Expectation: should pick first uri from list
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         sys_id = idr_obj._IDRACNetworkAttributes__get_resource_id()
         assert sys_id == "/redfish/v1/Chassis/System.Embedded.1"
 
         # Scenario-2: Provide resource_id which is in list, Expectation: should pick uri from list
         idrac_default_args.update({'resource_id': 'Enclosure.Internal.0-0'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         sys_id = idr_obj._IDRACNetworkAttributes__get_resource_id()
         assert sys_id == "/redfish/v1/Chassis/Enclosure.Internal.0-0"
 
         # Scenario-3: Provide invalid resource_id which is not in list, Expectation: Throw valid error msg
         idrac_default_args.update({'resource_id': 'abcdef'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj._IDRACNetworkAttributes__get_resource_id()
-        assert exc.value.args[0] == INVALID_ID_MSG.format('abcdef', 'resource_id')
+        assert exc.value.args[0] == INVALID_ID_MSG.format(
+            'abcdef', 'resource_id')
 
     def test_get_registry_fw_less_than_6_more_than_3(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                                      idrac_ntwrk_attr_mock, mocker):
@@ -134,6 +143,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                              }
                                             ]}
         # Scenario 1: Got the registry Members list, Got Location, Got Attributes
+
         def mock_get_dynamic_uri_request(*args, **kwargs):
             if args[2] == 'Members':
                 return registry_list
@@ -147,8 +157,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         idrac_default_args.update({'network_adapter_id': 'NIC.Mezzanine.1A',
                                    'network_device_function_id': 'NIC.Mezzanine.1A-1-1',
                                    'apply_time': 'Immediate'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj._IDRACNetworkAttributes__get_registry_fw_less_than_6_more_than_3()
         assert data == {'ChipMdl': None, 'DeviceName': None}
 
@@ -166,8 +178,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         idrac_default_args.update({'network_adapter_id': 'NIC.Mezzanine.1A',
                                    'network_device_function_id': 'NIC.Mezzanine.1A-1-1',
                                    'apply_time': 'Immediate'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj._IDRACNetworkAttributes__get_registry_fw_less_than_6_more_than_3()
         assert data == {}
 
@@ -185,8 +199,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         idrac_default_args.update({'network_adapter_id': 'NIC.Mezzanine.1A',
                                    'network_device_function_id': 'NIC.Mezzanine.1A-1-1',
                                    'apply_time': 'Immediate'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj._IDRACNetworkAttributes__get_registry_fw_less_than_6_more_than_3()
         assert data == {}
 
@@ -200,29 +216,35 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                    'apply_time': 'Immediate'})
         # Scenario 1: When mtime does not end with offset
         m_time = "2022-09-14T05:59:35+05:00"
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj._IDRACNetworkAttributes__validate_time(m_time)
         assert exc.value.args[0] == MAINTENACE_OFFSET_DIFF_MSG.format(resp[1])
 
         # Scenario 2: When mtime is less than current time
         m_time = "2021-09-14T05:59:35-05:00"
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj._IDRACNetworkAttributes__validate_time(m_time)
         assert exc.value.args[0] == MAINTENACE_OFFSET_BEHIND_MSG
 
         # Scenario 2: When mtime is greater than current time
         m_time = "2024-09-14T05:59:35-05:00"
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj._IDRACNetworkAttributes__validate_time(m_time)
         assert data is None
 
     def test_get_redfish_apply_time(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                           idrac_ntwrk_attr_mock, mocker):
+                                    idrac_ntwrk_attr_mock, mocker):
         resp = ("2022-09-14T05:59:35-05:00", "-05:00")
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__validate_time",
                      return_value=resp)
@@ -237,52 +259,72 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                                           "duration": 600}})
 
         # Scenario 1: When Maintenance is not supported but 'AtMaintenanceWindowStart' is passed
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
-            idr_obj._IDRACNetworkAttributes__get_redfish_apply_time('AtMaintenanceWindowStart', rf_settings)
-        assert exc.value.args[0] == APPLY_TIME_NOT_SUPPORTED_MSG.format('AtMaintenanceWindowStart')
+            idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
+                'AtMaintenanceWindowStart', rf_settings)
+        assert exc.value.args[0] == APPLY_TIME_NOT_SUPPORTED_MSG.format(
+            'AtMaintenanceWindowStart')
 
         # Scenario 2: When Maintenance is not supported but 'InMaintenanceWindowOnReset' is passed
         idrac_default_args.update({'apply_time': 'InMaintenanceWindowOnReset'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
-            idr_obj._IDRACNetworkAttributes__get_redfish_apply_time('InMaintenanceWindowOnReset', rf_settings)
-        assert exc.value.args[0] == APPLY_TIME_NOT_SUPPORTED_MSG.format('InMaintenanceWindowOnReset')
+            idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
+                'InMaintenanceWindowOnReset', rf_settings)
+        assert exc.value.args[0] == APPLY_TIME_NOT_SUPPORTED_MSG.format(
+            'InMaintenanceWindowOnReset')
 
         # Scenario 3: When ApplyTime does not support Maintenance
         rf_settings.append('InMaintenanceWindowOnReset')
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
-        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time('InMaintenanceWindowOnReset', rf_settings)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
+            'InMaintenanceWindowOnReset', rf_settings)
         assert data == ({'ApplyTime': 'InMaintenanceWindowOnReset',
                          'MaintenanceWindowDurationInSeconds': 600,
                          'MaintenanceWindowStartTime': '2022-09-14T06:59:35-05:00'},
-                         False)
+                        False)
 
         # Scenario 4: When ApplyTime is Immediate
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
-        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time('Immediate', rf_settings)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
+            'Immediate', rf_settings)
         assert data == ({'ApplyTime': 'Immediate'}, False)
 
         # Scenario 5: When ApplyTime does not support Immediate
         rf_settings.remove('Immediate')
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
-        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time('Immediate', rf_settings)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
+            'Immediate', rf_settings)
         assert data == ({'ApplyTime': 'OnReset'}, True)
 
         # Scenario 6: When AppyTime is empty
         rf_settings = []
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
-        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time('Immediate', rf_settings)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
+            'Immediate', rf_settings)
         assert data == ({}, False)
 
     def test_current_server_registry(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                           idrac_ntwrk_attr_mock, mocker):
+                                     idrac_ntwrk_attr_mock, mocker):
         links = {
             "PhysicalPortAssignment": {
                 "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkPorts/NIC.Mezzanine.1A-1"
@@ -291,7 +333,8 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                 "Dell": {
                     "@odata.type": "#DellOem.v1_3_0.DellOemLinks",
                     "DellNetworkAttributes": {
-                        "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1"
+                        "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/" +
+                                     "NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1"
                     },
                     "CPUAffinity": [],
                     "CPUAffinity@odata.count": 0
@@ -319,8 +362,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         firm_ver = '6.1'
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_idrac_firmware_version",
                      return_value=firm_ver)
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj.get_current_server_registry()
         assert data == {}
 
@@ -329,8 +374,10 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_idrac_firmware_version",
                      return_value=firm_ver)
         idrac_default_args.update({'oem_network_attributes': 'some value'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj.get_current_server_registry()
         assert data == {'abc': False}
 
@@ -339,13 +386,15 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_idrac_firmware_version",
                      return_value=firm_ver)
         idrac_default_args.update({'oem_network_attributes': 'some value'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj.get_current_server_registry()
         assert data == {'xyz': True}
-    
+
     def test_extract_error_info(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                           idrac_ntwrk_attr_mock, mocker):
+                                idrac_ntwrk_attr_mock, mocker):
         error_info = {
             "error": {
                 "@Message.ExtendedInfo": [
@@ -375,22 +424,28 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                     }]}}
         obj = MagicMock()
         obj.json_data = error_info
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj.extract_error_msg(obj)
         assert data == {'BusDeviceFunction': 'AttributeValue cannot be changed to read only AttributeName BusDeviceFunction.',
                         'ChipMdl': 'AttributeValue cannot be changed to read only AttributeName ChipMdl.',
                         'ControllerBIOSVersion': 'AttributeValue cannot be changed to read only AttributeName ControllerBIOSVersion.'
                         }
-    
+
     def test_get_diff_between_current_and_module_input(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                                        idrac_ntwrk_attr_mock, mocker):
         module_attr = {'a': 123, 'b': 456}
         server_attr = {'c': 789, 'b': 456}
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
-        data = idr_obj.get_diff_between_current_and_module_input(module_attr, server_attr)
-        assert data == (({'a': 123}, {'c': 789}), {'a': 'Attribute does not exist.'})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        data = idr_obj.get_diff_between_current_and_module_input(
+            module_attr, server_attr)
+        assert data == (({'a': 123}, {'c': 789}), {
+                        'a': 'Attribute does not exist.'})
 
     def test_perform_validation_for_network_adapter_id(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                                        idrac_ntwrk_attr_mock, mocker):
@@ -405,6 +460,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                 "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1B"
             }
         ]
+
         def mock_get_dynamic_uri_request(*args, **kwargs):
             if args[2] == 'NetworkAdapters':
                 return netwkr_adapters
@@ -416,23 +472,27 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
 
         # Scenario 1: When network_adapter_id is in server network adapter list
         idrac_default_args.update({'network_adapter_id': 'NIC.Mezzanine.1B'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         idr_obj.perform_validation_for_network_adapter_id()
         assert idr_obj.network_adapter_id_uri == "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1B"
 
         # Scenario 2: When network_adapter_id is not in server network adapter list
         network_adapter_id = 'random value'
         idrac_default_args.update({'network_adapter_id': network_adapter_id})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.perform_validation_for_network_adapter_id()
-        assert exc.value.args[0] == INVALID_ID_MSG.format(network_adapter_id, 'network_adapter_id')
-
+        assert exc.value.args[0] == INVALID_ID_MSG.format(
+            network_adapter_id, 'network_adapter_id')
 
     def test_perform_validation_for_network_device_function_id(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                                                       idrac_ntwrk_attr_mock, mocker):
+                                                               idrac_ntwrk_attr_mock, mocker):
         netwkr_devices = {
             "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions"
         }
@@ -444,6 +504,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                 "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-2-1"
             }
         ]
+
         def mock_get_dynamic_uri_request(*args, **kwargs):
             if args[2] == 'NetworkDeviceFunctions':
                 return netwkr_devices
@@ -454,57 +515,73 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                      side_effect=mock_get_dynamic_uri_request)
 
         # Scenario 1: When network_adapter_id is in server network adapter list
-        idrac_default_args.update({'network_device_function_id': 'NIC.Mezzanine.1A-2-1'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        device_uri = "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-2-1"
+        idrac_default_args.update(
+            {'network_device_function_id': 'NIC.Mezzanine.1A-2-1'})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         idr_obj.perform_validation_for_network_device_function_id()
-        assert idr_obj.network_device_function_id == "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-2-1"
+        assert idr_obj.network_device_function_id == device_uri
 
         # Scenario 2: When network_adapter_id is not in server network adapter list
         network_device_function_id = 'random value'
-        idrac_default_args.update({'network_device_function_id': network_device_function_id})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        idrac_default_args.update(
+            {'network_device_function_id': network_device_function_id})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.perform_validation_for_network_device_function_id()
-        assert exc.value.args[0] == INVALID_ID_MSG.format(network_device_function_id, 'network_device_function_id')
+        assert exc.value.args[0] == INVALID_ID_MSG.format(
+            network_device_function_id, 'network_device_function_id')
 
     def test_validate_job_timeout(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                                                       idrac_ntwrk_attr_mock, mocker):
-        
+                                  idrac_ntwrk_attr_mock, mocker):
+
         # Scenario 1: when job_wait is True and job_wait_timeout is in negative
         idrac_default_args.update({'job_wait': True, 'job_wait_timeout': -120})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.validate_job_timeout()
         assert exc.value.args[0] == TIMEOUT_NEGATIVE_OR_ZERO_MSG
 
         # Scenario 2: when job_wait is False
-        idrac_default_args.update({'job_wait': False, 'job_wait_timeout': -120})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        idrac_default_args.update(
+            {'job_wait': False, 'job_wait_timeout': -120})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj.validate_job_timeout()
         assert data is None
 
     def test_apply_time(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                                                       idrac_ntwrk_attr_mock, mocker):
+                        idrac_ntwrk_attr_mock, mocker):
         redfish_settings = {
             "SettingsObject": {
-                "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1/Settings"
+                "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/" +
+                             "Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1/Settings"
             }
         }
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_dynamic_uri",
                      return_value=redfish_settings)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_redfish_apply_time",
                      return_value=('abc', False))
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.IDRACNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         rf_set = idr_obj.apply_time(self.uri)
         assert rf_set == 'abc'
-    
+
     def test_clear_pending(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                                                       idrac_ntwrk_attr_mock, mocker):
+                           idrac_ntwrk_attr_mock, mocker):
         links = {
             "PhysicalPortAssignment": {
                 "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkPorts/NIC.Mezzanine.1A-1"
@@ -513,7 +590,8 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                 "Dell": {
                     "@odata.type": "#DellOem.v1_3_0.DellOemLinks",
                     "DellNetworkAttributes": {
-                        "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1"
+                        "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/" +
+                                     "Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1"
                     },
                     "CPUAffinity": [],
                     "CPUAffinity@odata.count": 0
@@ -522,19 +600,22 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         }
         redfish_settings = {
             "SettingsObject": {
-                "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1/Settings"
+                "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/" +
+                             "DellNetworkAttributes/NIC.Mezzanine.1A-1-1/Settings"
             }
         }
         action_setting_uri_resp = {
             "Actions": {
                 "#DellManager.ClearPending": {
-                    "target": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1/Settings/Actions/DellManager.ClearPending"
+                    "target": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/" +
+                              "DellNetworkAttributes/NIC.Mezzanine.1A-1-1/Settings/Actions/DellManager.ClearPending"
                 }
             },
             "Attributes": {}
         }
+
         def mock_get_dynamic_uri_request(*args, **kwargs):
-            if len(args)> 2:
+            if len(args) > 2:
                 if args[2] == 'Links':
                     return links
                 return redfish_settings
@@ -543,70 +624,85 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                      side_effect=mock_get_dynamic_uri_request)
 
         # Scenario 1: When there's no pending attributes
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.clear_pending()
         assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
-    
+
         # Scenario 2: When there's pending attributes and scheduled_job is running in normal mode
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_scheduled_job_resp",
-                     return_value={'Id':'JIDXXXXXX', 'JobState': 'Running'})
+                     return_value={'Id': 'JIDXXXXXX', 'JobState': 'Running'})
         action_setting_uri_resp.update({'Attributes': {'VLanId': 10}})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.clear_pending()
-        assert exc.value.args[0] == JOB_RUNNING_CLEAR_PENDING_ATTR.format('NICConfiguration')
+        assert exc.value.args[0] == JOB_RUNNING_CLEAR_PENDING_ATTR.format(
+            'NICConfiguration')
 
         # Scenario 3: When there's pending attributes and scheduled_job is Starting in normal mode
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_scheduled_job_resp",
-                     return_value={'Id':'JIDXXXXXX', 'JobState': 'Starting'})
+                     return_value={'Id': 'JIDXXXXXX', 'JobState': 'Starting'})
         action_setting_uri_resp.update({'Attributes': {'VLanId': 10}})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.clear_pending()
         assert exc.value.args[0] == SUCCESS_CLEAR_PENDING_ATTR_MSG
 
         # Scenario 4: Scenario 3 in check mode
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.clear_pending()
         assert exc.value.args[0] == CHANGES_FOUND_MSG
 
         # Scenario 5: When there's pending attribute but no job id is present in normal mode
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_scheduled_job_resp",
-                     return_value={'Id':'', 'JobState': 'Starting'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+                     return_value={'Id': '', 'JobState': 'Starting'})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.clear_pending()
         assert exc.value.args[0] == SUCCESS_CLEAR_PENDING_ATTR_MSG
 
         # Scenario 6: Scenario 5 in check_mode
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.clear_pending()
         assert exc.value.args[0] == CHANGES_FOUND_MSG
 
-        # Scenario 7: When Job is completed in check mode, ideally won't get this condition 
+        # Scenario 7: When Job is completed in check mode, ideally won't get this condition
         #             as function will return only scheduled job
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_scheduled_job_resp",
-                     return_value={'Id':'JIDXXXXXX', 'JobState': 'Completed'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+                     return_value={'Id': 'JIDXXXXXX', 'JobState': 'Completed'})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.clear_pending()
         assert exc.value.args[0] == CHANGES_FOUND_MSG
 
     def test_perform_operation_OEMNetworkAttributes(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                                                       idrac_ntwrk_attr_mock, mocker):
+                                                    idrac_ntwrk_attr_mock, mocker):
         obj = MagicMock()
         obj.headers = {'Location': self.uri}
-        obj.json_data = {'data':'some value'}
+        obj.json_data = {'data': 'some value'}
         links = {
             "PhysicalPortAssignment": {
                 "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkPorts/NIC.Mezzanine.1A-1"
@@ -615,7 +711,8 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                 "Dell": {
                     "@odata.type": "#DellOem.v1_3_0.DellOemLinks",
                     "DellNetworkAttributes": {
-                        "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1"
+                        "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/" +
+                                     "Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1"
                     },
                     "CPUAffinity": [],
                     "CPUAffinity@odata.count": 0
@@ -625,13 +722,15 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         apply_time = {'ApplyTime': 'Immediate'}
         redfish_settings = {"@Redfish.Settings": {
             "SettingsObject": {
-                "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/DellNetworkAttributes/NIC.Mezzanine.1A-1-1/Settings"
+                "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/NetworkAdapters/NIC.Mezzanine.1A/NetworkDeviceFunctions/NIC.Mezzanine.1A-1-1/Oem/Dell/" +
+                             "DellNetworkAttributes/NIC.Mezzanine.1A-1-1/Settings"
             }
         }
         }
-        error_info = { 'abc': 'Attribute does not exit.'}
+        error_info = {'abc': 'Attribute does not exit.'}
+
         def mock_get_dynamic_uri_request(*args, **kwargs):
-            if len(args)>2 and args[2] == 'Links':
+            if len(args) > 2 and args[2] == 'Links':
                 return links
             return redfish_settings
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_dynamic_uri",
@@ -649,17 +748,22 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                    'job_wait': True,
                                    'job_wait_timout': 1200})
         # Scenario 1: When Job has returned successfully and not error msg is there
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj.perform_operation()
-        assert data == ({'data': 'some value'}, {'abc': 'Attribute does not exit.'})
+        assert data == ({'data': 'some value'}, {
+                        'abc': 'Attribute does not exit.'})
 
         # Scenario 2: When Job has returned error msg
         error_msg = 'No job is found.'
         mocker.patch(MODULE_PATH + "idrac_network_attributes.wait_for_idrac_job_completion",
                      return_value=(obj, error_msg))
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.perform_operation()
         assert exc.value.args[0] == error_msg
@@ -667,28 +771,34 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         # Scenario 2: When apply_time_settings is {} and job is returning error msg
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.apply_time",
                      return_value={})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        idr_obj = self.module.OEMNetworkAttributes(idrac_connection_ntwrk_attr_mock, f_module, self.uri)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         with pytest.raises(Exception) as exc:
             idr_obj.perform_operation()
         assert exc.value.args[0] == error_msg
 
     def test_perform_operation_for_main(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                                                       idrac_ntwrk_attr_mock, mocker):
+                                        idrac_ntwrk_attr_mock, mocker):
         obj = MagicMock()
         invalid_attr = {'a': 'Attribute does not exist.'}
         # Scenario 1: When diff is false
         diff = ()
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as exc:
-            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+            self.module.perform_operation_for_main(
+                f_module, obj, diff, invalid_attr)
         assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
 
         # Scenario 2: When diff is True and check mode is True
         diff = ({'a': 123}, {'c': 789})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
         with pytest.raises(Exception) as exc:
-            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+            self.module.perform_operation_for_main(
+                f_module, obj, diff, invalid_attr)
         assert exc.value.args[0] == CHANGES_FOUND_MSG
 
         # Scenario 3: When diff is True and JobState is completed and
@@ -696,72 +806,46 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         def return_data():
             return ({'JobState': "Completed"}, invalid_attr)
         obj.perform_operation = return_data
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as exc:
-            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+            self.module.perform_operation_for_main(
+                f_module, obj, diff, invalid_attr)
         assert exc.value.args[0] == VALID_AND_INVALID_ATTR_MSG
 
         # Scenario 4: When diff is True and JobState is completed and
         #             There is no invalid_attr in normal mode
         invalid_attr = {}
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as exc:
-            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+            self.module.perform_operation_for_main(
+                f_module, obj, diff, invalid_attr)
         assert exc.value.args[0] == SUCCESS_MSG
 
         # Scenario 5: When diff is True and JobState is not completed and
         #             There is no invalid_attr in normal mode
         invalid_attr = {}
+
         def return_data():
             return ({'JobState': "Starting"}, invalid_attr)
         obj.perform_operation = return_data
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as exc:
-            self.module.perform_operation_for_main(f_module, obj, diff, invalid_attr)
+            self.module.perform_operation_for_main(
+                f_module, obj, diff, invalid_attr)
         assert exc.value.args[0] == SCHEDULE_MSG
-
-    # def test_user_info_main_success_case_all(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-    #                                          idrac_ntwrk_attr_mock, mocker):
-    #     idrac_default_args.update({"username": "test"})
-    #     mocker.patch(MODULE_PATH + "idrac_network_attributes.get_accounts_uri",
-    #                  return_value=("/acounts/accdetails"))
-    #     mocker.patch(MODULE_PATH + "idrac_network_attributes.get_user_name_accounts",
-    #                  return_value=({"UserName": "test"}))
-    #     idrac_ntwrk_attr_mock.status_code = 200
-    #     idrac_ntwrk_attr_mock.success = True
-    #     resp = self._run_module(idrac_default_args)
-    #     assert resp['msg'] == "Successfully retrieved the user information."
-    #     assert resp['user_info'][0].get("UserName") == "test"
-
-    #     mocker.patch(MODULE_PATH + "idrac_network_attributes.get_user_id_accounts",
-    #                  return_value=({"UserName": "test"}))
-    #     idrac_default_args.update({"user_id": "1234"})
-    #     idrac_default_args.pop("username")
-    #     resp = self._run_module(idrac_default_args)
-    #     assert resp['msg'] == "Successfully retrieved the user information."
-    #     assert resp['user_info'][0].get("UserName") == "test"
-
-    #     mocker.patch(MODULE_PATH + "idrac_network_attributes.get_all_accounts",
-    #                  return_value=([{"UserName": "test"}]))
-    #     idrac_default_args.pop("user_id")
-    #     resp = self._run_module(idrac_default_args)
-    #     assert resp['msg'] == "Successfully retrieved the information of 1 user(s)."
-    #     assert resp['user_info'][0].get("UserName") == "test"
-
-    #     mocker.patch(MODULE_PATH + "idrac_network_attributes.get_all_accounts",
-    #                  return_value=([]))
-    #     resp = self._run_module_with_fail_json(idrac_default_args)
-    #     assert resp['failed'] is True
-    #     assert resp['msg'] == "Unable to retrieve the user information."
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
     def test_idrac_network_attributes_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
-                                                          idrac_connection_ntwrk_attr_mock, idrac_ntwrk_attr_mock):
+                                                                   idrac_connection_ntwrk_attr_mock, idrac_ntwrk_attr_mock):
         obj = MagicMock()
         obj.perform_validation_for_network_adapter_id.return_value = None
         obj.perform_validation_for_network_device_function_id.return_value = None
-        obj.get_diff_between_current_and_module_input.return_value = (None, None)
+        obj.get_diff_between_current_and_module_input.return_value = (
+            None, None)
         obj.clear_pending.return_value = None
         idrac_ntwrk_attr_mock.status_code = 400
         idrac_ntwrk_attr_mock.success = False
@@ -769,7 +853,8 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                    'network_adapter_id': 'Some_adapter_id',
                                    'network_device_function_id': 'some_device_id',
                                    'clear_pending': random.choice([True, False])})
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.OEMNetworkAttributes", return_value=obj)
+        mocker.patch(
+            MODULE_PATH + "idrac_network_attributes.OEMNetworkAttributes", return_value=obj)
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             tmp = {'oem_network_attributes': {'VlanId': 10}}
