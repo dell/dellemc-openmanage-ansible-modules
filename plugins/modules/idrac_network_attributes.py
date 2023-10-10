@@ -114,10 +114,8 @@ options:
 requirements:
     - "python >= 3.9.6"
 author:
-    - "Felix Stephen (@felixs88)"
-    - "Anooja Vardhineni (@anooja-vardhineni)"
+    - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
-    - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
@@ -159,35 +157,39 @@ EXAMPLES = """
 RETURN = r'''
 ---
 msg:
-  description: Successfully configured the idrac network attributes.
-  returned: always
+  description: Status of the attribute update operation.
+  returned: when network attributes is applied
   type: str
-  sample: "Successfully configured the idrac network settings."
-network_status:
-  description: Status of the Network settings operation job.
-  returned: success
-  type: dict
-  sample: {
-    "@odata.context": "/redfish/v1/$metadata#DellJob.DellJob",
-    "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_856418531008",
-    "@odata.type": "#DellJob.v1_0_2.DellJob",
-    "CompletionTime": "2020-03-31T03:04:15",
-    "Description": "Job Instance",
-    "EndTime": null,
-    "Id": "JID_856418531008",
-    "JobState": "Completed",
-    "JobType": "ImportConfiguration",
-    "Message": "Successfully imported and applied Server Configuration Profile.",
-    "MessageArgs": [],
-    "MessageArgs@odata.count": 0,
-    "MessageId": "SYS053",
-    "Name": "Import Configuration",
-    "PercentComplete": 100,
-    "StartTime": "TIME_NOW",
-    "Status": "Success",
-    "TargetSettingsURI": null,
-    "retval": true
-}
+  sample: "Successfully updated the network attributes."
+invalid_attributes:
+    description: Dictionary of invalid attributes provided that cannot be applied.
+    returned: On invalid attributes or values
+    type: dict
+    sample: {
+        "IscsiInitiatorIpAddr": "Invalid AttributeValue for AttributeName IscsiInitiatorIpAddr",
+        "IscsiInitiatorSubnet": "Invalid AttributeValue for AttributeName IscsiInitiatorSubnet"
+    }
+job_status:
+    description: Returns the output for status of the job.
+    returned: always
+    type: dict
+    sample: {
+        "ActualRunningStartTime": null,
+        "ActualRunningStopTime": null,
+        "CompletionTime": null,
+        "Description": "Job Instance",
+        "EndTime": "TIME_NA",
+        "Id": "JID_914072844636",
+        "JobState": "Scheduled",
+        "JobType": "NICConfiguration",
+        "Message": "Task successfully scheduled.",
+        "MessageArgs": [],
+        "MessageId": "JCP001",
+        "Name": "Configure: NIC.Integrated.1-1-1",
+        "PercentComplete": 0,
+        "StartTime": "2023-08-07T06:21:24",
+        "TargetSettingsURI": null
+    }
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
