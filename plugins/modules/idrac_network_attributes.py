@@ -243,10 +243,10 @@ TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value for the `job_wait_timeout` parameter c
 MAINTENACE_OFFSET_DIFF_MSG = "The maintenance time must be post-fixed with local offset to {0}."
 MAINTENACE_OFFSET_BEHIND_MSG = "The specified maintenance time window occurs in the past, provide a future time to schedule the maintenance window."
 APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time {0} is not supported."
-INVALID_ATTR_MSG = "Unable to update the network attributes because invalid values are entered. \
-    Enter the valid values for the network attributes and retry the operation."
-VALID_AND_INVALID_ATTR_MSG = "Successfully updated the network attributes for valid values. \
-    Unable to update other attributes because invalid values are entered. Enter the valid values and retry the operation."
+INVALID_ATTR_MSG = "Unable to update the network attributes because invalid values are entered." + \
+    "Enter the valid values for the network attributes and retry the operation."
+VALID_AND_INVALID_ATTR_MSG = "Successfully updated the network attributes for valid values." + \
+    "Unable to update other attributes because invalid values are entered. Enter the valid values and retry the operation."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 INVALID_ID_MSG = "Unable to complete the operation because " + \
