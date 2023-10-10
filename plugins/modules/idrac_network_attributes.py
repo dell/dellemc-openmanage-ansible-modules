@@ -104,7 +104,7 @@ options:
     default: true
     description:
       - Provides the option to wait for job completion.
-      - This is applicable for I(job_wait) when I(apply_time) is C(Immediate) for I(network_attributes).
+      - This is applicable for I(job_wait) when I(apply_time) is C(Immediate) for I(oem_network_attributes).
   job_wait_timeout:
     type: int
     default: 1200
@@ -252,6 +252,7 @@ CHANGES_FOUND_MSG = "Changes found to be applied."
 INVALID_ID_MSG = "Unable to complete the operation because " + \
                  "the value `{0}` for the input  `{1}` parameter is invalid."
 JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to complete. Currently can not clear pending attributes."
+ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute does not exist.'
 
 
 class IDRACNetworkAttributes:
@@ -358,7 +359,7 @@ class IDRACNetworkAttributes:
         diff = recursive_diff(module_attr, server_attr)
         for each_attr in module_attr:
             if each_attr not in server_attr:
-                invalid.update({each_attr: 'Attribute does not exist.'})
+                invalid.update({each_attr: ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
         return diff, invalid
 
     def perform_validation_for_network_adapter_id(self):
