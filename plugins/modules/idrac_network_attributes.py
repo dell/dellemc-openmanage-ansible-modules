@@ -386,7 +386,7 @@ class IDRACNetworkAttributes:
                 break
         if not found_device:
             self.module.exit_json(failed=True, msg=INVALID_ID_MSG.format(network_device_function_id,
-                                                                             'network_device_function_id'))
+                                                                         'network_device_function_id'))
 
     def validate_job_timeout(self):
         if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
@@ -503,8 +503,8 @@ def main():
                                supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             if module_attribute := module.params.get('oem_network_attributes'):
-                    base_uri = CHASSIS_URI
-                    network_attr_obj = OEMNetworkAttributes(idrac, module, base_uri)
+                base_uri = CHASSIS_URI
+                network_attr_obj = OEMNetworkAttributes(idrac, module, base_uri)
             else:
                 module_attribute = module.params.get('network_attributes')
                 base_uri = SYSTEMS_URI
