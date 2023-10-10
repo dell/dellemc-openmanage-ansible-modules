@@ -496,9 +496,11 @@ def main():
         }
         specs.update(idrac_auth_params)
         module = AnsibleModule(argument_spec=specs,
-                            mutually_exclusive=[
-                                ('network_attributes', 'oem_network_attributes')],
-                            supports_check_mode=True)
+                               mutually_exclusive=[
+                                   ('network_attributes', 'oem_network_attributes')],
+                               required_one_of=[
+                                   ('network_attributes', 'oem_network_attributes')],
+                               supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             if module_attribute := module.params.get('oem_network_attributes'):
                     base_uri = CHASSIS_URI
