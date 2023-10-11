@@ -74,7 +74,7 @@ Parameters
 
     This is applicable only to *network_attributes* and *oem_network_attributes*.
 
-    ``Immediate`` allows the user to immediately reboot the host and apply the changes. *job_wait* is applicable.
+    ``Immediate`` allows the user to immediately reboot the host and apply the changes. *job_wait* is applicable. This is applicable only for *oem_network_attributes*.
 
     ``OnReset`` allows the user to apply the changes on the next reboot of the host server.
 
@@ -105,7 +105,7 @@ Parameters
   job_wait (optional, bool, True)
     Provides the option to wait for job completion.
 
-    This is applicable for *job_wait* when *apply_time* is ``Immediate`` for *oem_network_attributes*.
+    This is applicable when *apply_time* is ``Immediate`` for *oem_network_attributes*.
 
 
   job_wait_timeout (optional, int, 1200)
@@ -154,7 +154,7 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
+   - This module supports both IPv4 and IPv6 address.
    - This module supports ``check_mode``.
 
 
@@ -167,7 +167,7 @@ Examples
 
     
     ---
-    - name: Configure iDRAC oem network attributes
+    - name: Configure iDRAC OEM network attributes at start of maintenance window
       dellemc.openmanage.idrac_network_attributes:
         idrac_ip:   "192.168.0.1"
         idrac_user: "user_name"
@@ -177,7 +177,6 @@ Examples
         network_device_function_id: 'NIC.Mezzanine.1A-1-1'
         oem_network_attributes:
             VLanId: 10
-        resource_id: 'System.Embedded.1'
         apply_time: "AtMaintenanceWindowStart"
         maintenance_window:
           start_time: "2023-10-06T15:00:00-05:00"
@@ -185,7 +184,7 @@ Examples
         job_wait: true
         job_wait_timeout: 1500
 
-    - name: Clear pending oem network attribute
+    - name: Clear pending OEM network attribute
       dellemc.openmanage.idrac_network_attributes:
         idrac_ip:   "192.168.0.1"
         idrac_user: "user_name"

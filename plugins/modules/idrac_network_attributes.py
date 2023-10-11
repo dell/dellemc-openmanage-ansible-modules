@@ -73,7 +73,7 @@ options:
       - Apply time of the I(network_attributes) and I(oem_network_attributes).
       - This is applicable only to I(network_attributes) and I(oem_network_attributes).
       - C(Immediate) allows the user to immediately reboot the host and apply the changes. I(job_wait)
-        is applicable.
+        is applicable. This is applicable only for I(oem_network_attributes).
       - C(OnReset) allows the user to apply the changes on the next reboot of the host server.
       - C(AtMaintenanceWindowStart) allows the user to apply at the start of a maintenance window as specified
         in I(maintenance_window). A reboot job is scheduled.
@@ -104,7 +104,7 @@ options:
     default: true
     description:
       - Provides the option to wait for job completion.
-      - This is applicable for I(job_wait) when I(apply_time) is C(Immediate) for I(oem_network_attributes).
+      - This is applicable when I(apply_time) is C(Immediate) for I(oem_network_attributes).
   job_wait_timeout:
     type: int
     default: 1200
@@ -117,13 +117,13 @@ author:
     - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
-    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
+    - This module supports both IPv4 and IPv6 address.
     - This module supports C(check_mode).
 """
 
 EXAMPLES = """
 ---
-- name: Configure iDRAC oem network attributes
+- name: Configure iDRAC OEM network attributes at start of maintenance window
   dellemc.openmanage.idrac_network_attributes:
     idrac_ip:   "192.168.0.1"
     idrac_user: "user_name"
@@ -133,7 +133,6 @@ EXAMPLES = """
     network_device_function_id: 'NIC.Mezzanine.1A-1-1'
     oem_network_attributes:
         VLanId: 10
-    resource_id: 'System.Embedded.1'
     apply_time: "AtMaintenanceWindowStart"
     maintenance_window:
       start_time: "2023-10-06T15:00:00-05:00"
@@ -141,7 +140,7 @@ EXAMPLES = """
     job_wait: true
     job_wait_timeout: 1500
 
-- name: Clear pending oem network attribute
+- name: Clear pending OEM network attribute
   dellemc.openmanage.idrac_network_attributes:
     idrac_ip:   "192.168.0.1"
     idrac_user: "user_name"
