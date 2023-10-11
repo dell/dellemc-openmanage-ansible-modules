@@ -168,7 +168,7 @@ Examples
     
     ---
     - name: Configure iDRAC oem network attributes
-      dellemc.openmanage.idrac_network:
+      dellemc.openmanage.idrac_network_attributes:
         idrac_ip:   "192.168.0.1"
         idrac_user: "user_name"
         idrac_password:  "user_password"
@@ -186,7 +186,7 @@ Examples
         job_wait_timeout: 1500
 
     - name: Clear pending oem network attribute
-      dellemc.openmanage.idrac_network:
+      dellemc.openmanage.idrac_network_attributes:
         idrac_ip:   "192.168.0.1"
         idrac_user: "user_name"
         idrac_password:  "user_password"
