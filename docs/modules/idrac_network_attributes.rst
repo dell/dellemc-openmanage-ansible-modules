@@ -62,8 +62,6 @@ Parameters
   clear_pending (optional, bool, False)
     This parameter allows you to clear all the pending network attributes changes.
 
-    *clear_pending* is applicable only when *oem_network_attributes* is specified.
-
     ``false`` does not perform any operation.
 
     ``true`` discards any pending changes to network attributes, or if a job is in scheduled state, removes the job.
