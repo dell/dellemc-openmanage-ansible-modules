@@ -523,7 +523,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         idr_obj = self.module.IDRACNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         idr_obj.perform_validation_for_network_device_function_id()
-        assert idr_obj.network_device_function_id == device_uri
+        assert idr_obj.network_device_function_id_uri == device_uri
 
         # Scenario 2: When network_adapter_id is not in server network adapter list
         network_device_function_id = 'random value'

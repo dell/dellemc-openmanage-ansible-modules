@@ -262,7 +262,7 @@ class IDRACNetworkAttributes:
         self.idrac = idrac
         self.base_uri = base_uri
         self.network_adapter_id_uri = None
-        self.network_device_function_id = None
+        self.network_device_function_id_uri = None
         self.manager_uri = None
 
     def __get_idrac_firmware_version(self):
@@ -335,7 +335,7 @@ class IDRACNetworkAttributes:
         firm_ver = self.__get_idrac_firmware_version()
         if oem_network_attributes:
             if LooseVersion(firm_ver) >= '6.0':
-                oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id, 'Links')
+                oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id_uri, 'Links')
                 uri = oem_links.get('Oem').get('Dell').get('DellNetworkAttributes').get('@odata.id')
                 reg = get_dynamic_uri(self.idrac, uri).get('Attributes', {})
             if '3.0' < LooseVersion(firm_ver) < '6.0':
@@ -387,7 +387,7 @@ class IDRACNetworkAttributes:
         for each_device in network_device_list:
             if network_device_function_id in each_device.get(odata, ''):
                 found_device = True
-                self.network_device_function_id = each_device.get(odata, '')
+                self.network_device_function_id_uri = each_device.get(odata, '')
                 break
         if not found_device:
             self.module.exit_json(failed=True, msg=INVALID_ID_MSG.format(network_device_function_id,
@@ -410,7 +410,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         super().__init__(idrac, module, base_uri)
 
     def clear_pending(self):
-        oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id, 'Links')
+        oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id_uri, 'Links')
         oem_uri = oem_links.get('Oem').get('Dell').get('DellNetworkAttributes').get('@odata.id')
         resp = get_dynamic_uri(self.idrac, oem_uri, '@Redfish.Settings')
         settings_uri = resp.get('SettingsObject').get('@odata.id')
@@ -441,7 +441,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         job_wait = self.module.params.get('job_wait')
         job_wait_timeout = self.module.params.get('job_wait_timeout')
         payload = {'Attributes': oem_network_attributes}
-        oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id, 'Links')
+        oem_links = get_dynamic_uri(self.idrac, self.network_device_function_id_uri, 'Links')
         oem_uri = oem_links.get('Oem').get('Dell').get('DellNetworkAttributes').get('@odata.id')
         apply_time_setting = self.apply_time(oem_uri)
         if apply_time_setting:
