@@ -252,7 +252,7 @@ CHANGES_FOUND_MSG = "Changes found to be applied."
 INVALID_ID_MSG = "Unable to complete the operation because " + \
                  "the value `{0}` for the input  `{1}` parameter is invalid."
 JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to complete. Currently can not clear pending attributes."
-ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute does not exist.'
+ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 
 
 class IDRACNetworkAttributes:
@@ -311,23 +311,18 @@ class IDRACNetworkAttributes:
 
     def __get_redfish_apply_time(self, aplytm, rf_settings):
         rf_set = {}
-        reboot_req = False
         if rf_settings:
-            if 'Maintenance' in aplytm:
-                if aplytm not in rf_settings:
-                    self.module.exit_json(failed=True, msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(aplytm))
-                else:
-                    rf_set['ApplyTime'] = aplytm
-                    m_win = self.module.params.get('maintenance_window')
-                    self.__validate_time(m_win.get('start_time'))
-                    rf_set['MaintenanceWindowStartTime'] = m_win.get('start_time')
-                    rf_set['MaintenanceWindowDurationInSeconds'] = m_win.get('duration')
-            else:  # assuming OnReset is always
-                if aplytm == "Immediate" and aplytm not in rf_settings:
-                    reboot_req = True
-                    aplytm = 'OnReset'
+            if aplytm not in rf_settings:
+                self.module.exit_json(failed=True, msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(aplytm))
+            elif 'Maintenance' in aplytm:
                 rf_set['ApplyTime'] = aplytm
-        return rf_set, reboot_req
+                m_win = self.module.params.get('maintenance_window')
+                self.__validate_time(m_win.get('start_time'))
+                rf_set['MaintenanceWindowStartTime'] = m_win.get('start_time')
+                rf_set['MaintenanceWindowDurationInSeconds'] = m_win.get('duration')
+            else:
+                rf_set['ApplyTime'] = aplytm
+        return rf_set
 
     def get_current_server_registry(self):
         reg = {}
@@ -401,7 +396,7 @@ class IDRACNetworkAttributes:
         resp = get_dynamic_uri(self.idrac, setting_uri, "@Redfish.Settings")
         rf_settings = resp.get("SupportedApplyTimes", [])
         apply_time = self.module.params.get('apply_time', {})
-        rf_set, reboot_required = self.__get_redfish_apply_time(apply_time, rf_settings)
+        rf_set = self.__get_redfish_apply_time(apply_time, rf_settings)
         return rf_set
 
 

@@ -445,8 +445,10 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
 
 def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
     resp = idrac_obj.invoke_request(method='GET', uri=base_uri).json_data
-    if search_label and search_label in resp:
-        return resp[search_label]
+    if search_label:
+        if search_label in resp:
+            return resp[search_label]
+        return None
     return resp
 
 

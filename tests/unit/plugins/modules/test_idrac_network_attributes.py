@@ -40,6 +40,7 @@ NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 INVALID_ID_MSG = "Unable to complete the operation because the value `{0}` for the input  `{1}` parameter is invalid."
 JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to complete. Currently can not clear pending attributes."
+ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 
 
 class TestIDRACNetworkAttributes(FakeAnsibleModule):
@@ -289,10 +290,9 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
             'InMaintenanceWindowOnReset', rf_settings)
-        assert data == ({'ApplyTime': 'InMaintenanceWindowOnReset',
-                         'MaintenanceWindowDurationInSeconds': 600,
-                         'MaintenanceWindowStartTime': '2022-09-14T06:59:35-05:00'},
-                        False)
+        assert data == {'ApplyTime': 'InMaintenanceWindowOnReset',
+                        'MaintenanceWindowDurationInSeconds': 600,
+                        'MaintenanceWindowStartTime': '2022-09-14T06:59:35-05:00'}
 
         # Scenario 4: When ApplyTime is Immediate
         f_module = self.get_module_mock(
@@ -301,7 +301,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
             'Immediate', rf_settings)
-        assert data == ({'ApplyTime': 'Immediate'}, False)
+        assert data == {'ApplyTime': 'Immediate'}
 
         # Scenario 5: When ApplyTime does not support Immediate
         rf_settings.remove('Immediate')
@@ -309,9 +309,11 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.IDRACNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module, self.uri)
-        data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
-            'Immediate', rf_settings)
-        assert data == ({'ApplyTime': 'OnReset'}, True)
+        with pytest.raises(Exception) as exc:
+            idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
+                'Immediate', rf_settings)
+        assert exc.value.args[0] == APPLY_TIME_NOT_SUPPORTED_MSG.format(
+            'Immediate')
 
         # Scenario 6: When AppyTime is empty
         rf_settings = []
@@ -321,7 +323,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj._IDRACNetworkAttributes__get_redfish_apply_time(
             'Immediate', rf_settings)
-        assert data == ({}, False)
+        assert data == {}
 
     def test_current_server_registry(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                      idrac_ntwrk_attr_mock, mocker):
@@ -445,7 +447,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         data = idr_obj.get_diff_between_current_and_module_input(
             module_attr, server_attr)
         assert data == (({'a': 123}, {'c': 789}), {
-                        'a': 'Attribute does not exist.'})
+                        'a': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
 
     def test_perform_validation_for_network_adapter_id(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                                        idrac_ntwrk_attr_mock, mocker):
@@ -572,13 +574,13 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_dynamic_uri",
                      return_value=redfish_settings)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_redfish_apply_time",
-                     return_value=('abc', False))
+                     return_value={'AppyTime': "OnReset"})
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.IDRACNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         rf_set = idr_obj.apply_time(self.uri)
-        assert rf_set == 'abc'
+        assert rf_set == {'AppyTime': "OnReset"}
 
     def test_clear_pending(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                            idrac_ntwrk_attr_mock, mocker):
@@ -727,7 +729,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             }
         }
         }
-        error_info = {'abc': 'Attribute does not exit.'}
+        error_info = {'abc': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE}
 
         def mock_get_dynamic_uri_request(*args, **kwargs):
             if len(args) > 2 and args[2] == 'Links':
@@ -754,7 +756,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             idrac_connection_ntwrk_attr_mock, f_module, self.uri)
         data = idr_obj.perform_operation()
         assert data == ({'data': 'some value'}, {
-                        'abc': 'Attribute does not exit.'})
+                        'abc': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
 
         # Scenario 2: When Job has returned error msg
         error_msg = 'No job is found.'
@@ -782,7 +784,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
     def test_perform_operation_for_main(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                         idrac_ntwrk_attr_mock, mocker):
         obj = MagicMock()
-        invalid_attr = {'a': 'Attribute does not exist.'}
+        invalid_attr = {'a': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE}
         # Scenario 1: When diff is false
         diff = ()
         f_module = self.get_module_mock(
