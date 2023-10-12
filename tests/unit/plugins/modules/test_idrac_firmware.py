@@ -305,7 +305,7 @@ class TestidracFirmware(FakeAnsibleModule):
             self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
         assert exc.value.args[0] == 'Changes found to commit!'
         f_module.check_mode = False
-        idrac_default_args.update({"apply_update": True, "reboot": True, "job_wait": True, "share_name": "http://127.0.0.1/httpshare"})
+        idrac_default_args.update({"apply_update": True, "reboot": True, "job_wait": True, "share_name": "http://127.0.0.2/httpshare"})
         mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson", return_value=({"PackageList": []}, True, False))
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_redfish", return_value=(
             {"JobStatus": "Ok"}, {"Status": "Success", "JobStatus": "Ok", "PackageList": [],
@@ -322,11 +322,11 @@ class TestidracFirmware(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
         assert exc.value.args[0] == 'Unable to complete the repository update.'
-        idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": True, "share_name": "http://127.0.0.1/httpshare"})
+        idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": True, "share_name": "http://127.0.0.3/httpshare"})
         with pytest.raises(Exception) as exc:
             self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
         assert exc.value.args[0] == 'Firmware update failed.'
-        idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": False, "share_name": "http://127.0.0.1/httpshare"})
+        idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": False, "share_name": "http://127.0.0.4/httpshare"})
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = True
         mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson", return_value=({"PackageList": []}, True, False))
@@ -418,10 +418,10 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_user": "sharename", "share_password": "sharepswd",
                                    "share_mnt": "sharmnt", "reboot": True, "job_wait": True, "apply_update": True})
         f_module = self.get_module_mock(params=idrac_default_args)
-        result, msg = self.module.wait_for_job_completion(f_module, "JobService/Jobs/JID_123456789")
+        result, msg = self.module.wait_for_job_completion(f_module, "JobService/Jobs/JID_1234567890")
         assert msg is None
         redfish_response_mock.json_data = {"Members": {}, "JobState": "Completed", "PercentComplete": 100}
-        result, msg = self.module.wait_for_job_completion(f_module, "JobService/Jobs/JID_123456789", job_wait=True)
+        result, msg = self.module.wait_for_job_completion(f_module, "JobService/Jobs/JID_12345678", job_wait=True)
         assert result.json_data["JobState"] == "Completed"
         redfish_response_mock.json_data = {"Members": {}, "JobState": "New", "PercentComplete": 0}
         result, msg = self.module.wait_for_job_completion(f_module, "JobService/Jobs/JID_123456789", job_wait=True, apply_update=True)
