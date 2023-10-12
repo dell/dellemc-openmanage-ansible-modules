@@ -10,7 +10,8 @@
 #
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 DOCUMENTATION = """
@@ -213,14 +214,17 @@ error_info:
 '''
 
 import json
+
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key, wait_for_idrac_job_completion, \
-    get_dynamic_uri, get_scheduled_job_resp, delete_job, get_current_time
-from ansible.module_utils.compat.version import LooseVersion
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.dict_transformations import recursive_diff
+from ansible.module_utils.compat.version import LooseVersion
+from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
+    idrac_auth_params, iDRACRedfishAPI)
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    delete_job, get_current_time, get_dynamic_uri, get_scheduled_job_resp,
+    remove_key, wait_for_idrac_job_completion, xml_data_conversion)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 CHASSIS_URI = "/redfish/v1/Chassis"
@@ -261,7 +265,7 @@ class IDRACNetworkAttributes:
         self.redfish_uri = None
         self.oem_uri = None
 
-    def __get_idrac_firmware_version(self):
+    def _get_idrac_firmware_version(self):
         firm_version = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
         return firm_version.json_data.get('FirmwareVersion', '')
 
@@ -291,9 +295,9 @@ class IDRACNetworkAttributes:
         network_adapters = get_dynamic_uri(self.idrac, first_resource_id_uri, 'NetworkAdapters')[odata]
         network_adapter_list = get_dynamic_uri(self.idrac, network_adapters, 'Members')
         for each_adapter in network_adapter_list:
-            if network_adapter_id in each_adapter.get(odata, ''):
+            if network_adapter_id in each_adapter.get(odata):
                 found_adapter = True
-                network_adapter_id_uri = each_adapter.get(odata, '')
+                network_adapter_id_uri = each_adapter.get(odata)
                 break
         if not found_adapter:
             self.module.exit_json(failed=True, msg=INVALID_ID_MSG.format(network_adapter_id,
@@ -308,9 +312,9 @@ class IDRACNetworkAttributes:
         network_devices = get_dynamic_uri(self.idrac, network_adapter_id_uri, 'NetworkDeviceFunctions')[odata]
         network_device_list = get_dynamic_uri(self.idrac, network_devices, 'Members')
         for each_device in network_device_list:
-            if network_device_function_id in each_device.get(odata, ''):
+            if network_device_function_id in each_device.get(odata):
                 found_device = True
-                network_device_function_id_uri = each_device.get(odata, '')
+                network_device_function_id_uri = each_device.get(odata)
                 break
         if not found_device:
             self.module.exit_json(failed=True, msg=INVALID_ID_MSG.format(network_device_function_id,
@@ -354,16 +358,31 @@ class IDRACNetworkAttributes:
                 rf_set['ApplyTime'] = aplytm
         return rf_set
 
+    def __get_registry_fw_less_than_3(self):
+        reg = {}
+        network_device_function_id = self.module.params.get(
+            'network_device_function_id')
+        scp_response = self.idrac.export_scp(export_format="JSON", export_use="Default",
+                                             target="NIC", job_wait=True)
+        comp = scp_response.json_data["SystemConfiguration"]["Components"]
+        for each in comp:
+            if each.get('FQDD') == network_device_function_id:
+                for each_attr in each.get('Attributes'):
+                    reg.update({each_attr['Name']: each_attr['Value']})
+        return reg
+
     def get_current_server_registry(self):
         reg = {}
         oem_network_attributes = self.module.params.get('oem_network_attributes')
         network_attributes = self.module.params.get('network_attributes')
-        firm_ver = self.__get_idrac_firmware_version()
+        firm_ver = self._get_idrac_firmware_version()
         if oem_network_attributes:
             if LooseVersion(firm_ver) >= '6.0':
                 reg = get_dynamic_uri(self.idrac, self.oem_uri).get('Attributes', {})
-            if '3.0' < LooseVersion(firm_ver) < '6.0':
+            elif '3.0' < LooseVersion(firm_ver) < '6.0':
                 reg = self.__get_registry_fw_less_than_6_more_than_3()
+            else:
+                reg = self.__get_registry_fw_less_than_3()
         if network_attributes:  # For Redfish
             pass
         return reg
@@ -437,16 +456,24 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
 
     def perform_operation(self):
         oem_network_attributes = self.module.params.get('oem_network_attributes')
+        network_device_function_id = self.module.params.get('network_device_function_id')
         job_wait = self.module.params.get('job_wait')
         job_wait_timeout = self.module.params.get('job_wait_timeout')
-        payload = {'Attributes': oem_network_attributes}
+        payload, scp_resp, invalid_attr = {}, {}, {}
         apply_time_setting = self.apply_time(self.oem_uri)
+        firm_ver = self._get_idrac_firmware_version()
+        if LooseVersion(firm_ver) < '3.0':
+            root = """<SystemConfiguration>{0}</SystemConfiguration>"""
+            scp_payload = root.format(xml_data_conversion(oem_network_attributes, network_device_function_id))
+            resp = self.idrac.import_scp(import_buffer=scp_payload, target="NIC", job_wait=job_wait)
+            invalid_attr.update(self.extract_error_msg(resp))
+        else:
+            payload = {'Attributes': oem_network_attributes}
         if apply_time_setting:
             payload.update({"@Redfish.SettingsApplyTime": apply_time_setting})
-
         patch_uri = get_dynamic_uri(self.idrac, self.oem_uri).get('@Redfish.Settings', {}).get('SettingsObject', {}).get('@odata.id')
         response = self.idrac.invoke_request(method='PATCH', uri=patch_uri, data=payload)
-        invalid_attr = self.extract_error_msg(response)
+        invalid_attr.update(self.extract_error_msg(response))
         job_tracking_uri = response.headers["Location"]
         job_resp, error_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
                                                             job_wait=job_wait,
@@ -461,6 +488,9 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
 class NetworkAttributes(IDRACNetworkAttributes):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
+
+    def perform_operation(self):
+        pass
 
 
 def perform_operation_for_main(module, obj, diff, _invalid_attr):

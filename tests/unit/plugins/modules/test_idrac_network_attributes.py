@@ -8,20 +8,22 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import pytest
 import json
-import random
-from ansible_collections.dellemc.openmanage.plugins.modules import idrac_network_attributes
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
-from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from mock import MagicMock
-from ansible.module_utils._text import to_text
 from io import StringIO
+
+import pytest
+from ansible.module_utils._text import to_text
+from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.modules import \
+    idrac_network_attributes
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import \
+    FakeAnsibleModule
+from mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -80,15 +82,15 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                     idrac_ntwrk_attr_mock, mocker):
         resp = MagicMock()
         resp.json_data = {'@odata.id': '/some/odata/value',
-                          'FirmwareVersion': '1.2.3.4'}
+                          'FirmwareVersion': '6.00.00'}
         mocker.patch(MODULE_PATH + "idrac_network_attributes.iDRACRedfishAPI.invoke_request",
                      return_value=resp)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.IDRACNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module)
-        ver = idr_obj._IDRACNetworkAttributes__get_idrac_firmware_version()
-        assert ver == '1.2.3.4'
+        ver = idr_obj._get_idrac_firmware_version()
+        assert ver == '6.00.00'
 
     def test_resource_id(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                          idrac_ntwrk_attr_mock, mocker):
@@ -363,7 +365,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
 
         # Scenario 1: When Firmware version is greater and equal to 6.0 and oem_network_attributes is not given
         firm_ver = '6.1'
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_idrac_firmware_version",
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._get_idrac_firmware_version",
                      return_value=firm_ver)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
@@ -374,7 +376,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
 
         # Scenario 2: When Firmware version is greater and equal to 6.0 and oem_network_attributes is given
         firm_ver = '6.1'
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_idrac_firmware_version",
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._get_idrac_firmware_version",
                      return_value=firm_ver)
         idrac_default_args.update({'oem_network_attributes': 'some value'})
         f_module = self.get_module_mock(
@@ -386,7 +388,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
 
         # Scenario 3: When Firmware version is less than 6.0 and oem_network_attributes is given
         firm_ver = '4.0'
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_idrac_firmware_version",
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._get_idrac_firmware_version",
                      return_value=firm_ver)
         idrac_default_args.update({'oem_network_attributes': 'some value'})
         f_module = self.get_module_mock(
@@ -705,12 +707,16 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                      side_effect=mock_get_dynamic_uri_request)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.iDRACRedfishAPI.invoke_request",
                      return_value=obj)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.iDRACRedfishAPI.import_scp",
+                     return_value=obj)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.apply_time",
                      return_value=apply_time)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.extract_error_msg",
                      return_value=error_info)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.wait_for_idrac_job_completion",
                      return_value=(obj, False))
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._get_idrac_firmware_version",
+                     return_value='6.1')
 
         idrac_default_args.update({'oem_network_attributes': {'VlanId': 1},
                                    'job_wait': True,
@@ -720,6 +726,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             params=idrac_default_args, check_mode=True)
         idr_obj = self.module.OEMNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module)
+        # import pdb; pdb.set_trace()
         data = idr_obj.perform_operation()
         assert data == ({'data': 'some value'}, {
                         'abc': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
@@ -728,6 +735,8 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         error_msg = 'No job is found.'
         mocker.patch(MODULE_PATH + "idrac_network_attributes.wait_for_idrac_job_completion",
                      return_value=(obj, error_msg))
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._get_idrac_firmware_version",
+                     return_value='2.1')
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=True)
         idr_obj = self.module.OEMNetworkAttributes(
@@ -820,7 +829,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         idrac_default_args.update({'apply_time': "Immediate",
                                    'network_adapter_id': 'Some_adapter_id',
                                    'network_device_function_id': 'some_device_id',
-                                   'clear_pending': random.choice([True, False])})
+                                   'clear_pending': True if exec == 'URLError' else False})
         mocker.patch(
             MODULE_PATH + "idrac_network_attributes.OEMNetworkAttributes", return_value=obj)
         json_str = to_text(json.dumps({"data": "out"}))
@@ -831,15 +840,14 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         else:
             tmp = {'network_attributes': {'abc': 10}}
             mocker.patch(MODULE_PATH + "idrac_network_attributes.perform_operation_for_main",
-                         side_effect=exc_type('http://testhost.com', 400,
+                         side_effect=exc_type('nhttp://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
         idrac_default_args.update(tmp)
-        if exc_type != URLError:
-            result = self._run_module(idrac_default_args)
-            assert result['failed'] is True
-        else:
-            result = self._run_module(idrac_default_args)
+        result = self._run_module(idrac_default_args)
+        if exc_type == URLError:
             assert result['unreachable'] is True
+        else:
+            assert result['failed'] is True
         assert 'msg' in result

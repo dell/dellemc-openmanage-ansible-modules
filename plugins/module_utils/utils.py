@@ -472,3 +472,13 @@ def get_current_time(redfish_obj):
     curr_time = resp.json_data.get("DateTime")
     date_offset = resp.json_data.get("DateTimeLocalOffset")
     return curr_time, date_offset
+
+
+def xml_data_conversion(attr_dict, fqdd=None):
+    component = """<Component FQDD="{0}">{1}</Component>"""
+    attr = ""
+    for k, v in attr_dict.items():
+        key = re.sub(r"\.(?!\d)", "#", k)
+        attr += '<Attribute Name="{0}">{1}</Attribute>'.format(key, v)
+    root = component.format(fqdd, attr)
+    return root
