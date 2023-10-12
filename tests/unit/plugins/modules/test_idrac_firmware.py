@@ -34,7 +34,7 @@ class TestidracFirmware(FakeAnsibleModule):
     module = idrac_firmware
 
     @pytest.fixture
-    def idrac_firmware_update_mock(self, mocker):
+    def idrac_firmware_update_mock(self):
         omsdk_mock = MagicMock()
         idrac_obj = MagicMock()
         omsdk_mock.update_mgr = idrac_obj
@@ -162,7 +162,7 @@ class TestidracFirmware(FakeAnsibleModule):
         assert result[2]
 
     def test_update_firmware_url_omsdk(self, idrac_connection_firmware_mock, idrac_default_args, mocker):
-        idrac_default_args.update({"share_name": "http://downloads.dell.com", "catalog_file_name": "catalog.xml",
+        idrac_default_args.update({"share_name": "http://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "shareuser", "share_password": "sharepswd",
                                    "share_mnt": "sharmnt", "reboot": True, "job_wait": False, "ignore_cert_warning": True,
                                    "share_type": "http", "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
@@ -177,12 +177,12 @@ class TestidracFirmware(FakeAnsibleModule):
                    "RebootNeeded": True, "UserName": "username", "Password": "psw"}
         result = self.module.update_firmware_url_omsdk(f_module, idrac_connection_firmware_mock,
                                                        "http://downloads.dell.com/repo",
-                                                       "catalog.xml", True, True, True, True, payload)
+                                                       "Catalog.xml", True, True, True, True, payload)
         assert result[0] == {"InstanceID": "JID_12345678"}
 
     def test_update_firmware_url_omsdk_success_case02(self, idrac_connection_firmware_mock, idrac_default_args,
                                                       mocker, idrac_connection_firmware_redfish_mock):
-        idrac_default_args.update({"share_name": "http://downloads.dell.com", "catalog_file_name": "catalog.xml",
+        idrac_default_args.update({"share_name": "http://downloads.dell.com", "catalog_file_name": "Catalog.xml",
                                    "share_user": "shareuser", "share_password": "sharepswd",
                                    "share_mnt": "sharmnt",
                                    "reboot": True, "job_wait": False, "ignore_cert_warning": True,
@@ -221,7 +221,6 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
                                    "idrac_password": "idrac_password", "idrac_port": 443, "proxy_support": "Off", })
         mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson", return_value=("INSTANCENAME", False, False))
-        # mocker.patch(MODULE_PATH + "idrac_firmware.re")
         idrac_connection_firmware_redfish_mock.success = True
         idrac_connection_firmware_redfish_mock.json_data = {"FirmwareVersion": "2.70"}
         f_module = self.get_module_mock(params=idrac_default_args)
@@ -531,7 +530,6 @@ class TestidracFirmware(FakeAnsibleModule):
         f_module.check_mode = True
         idrac_connection_firmware_redfish_mock.status_code = 400
         idrac_connection_firmware_redfish_mock.success = False
-        mocker.patch(MODULE_PATH + 'idrac_firmware._validate_catalog_file', return_value=None)
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'idrac_firmware._validate_catalog_file',
