@@ -227,13 +227,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_scheduled_job_resp, remove_key, validate_and_get_first_resource_id_uri,
     wait_for_idrac_job_completion, xml_data_conversion)
 
-SYSTEMS_URI = "/redfish/v1/Systems"
-CHASSIS_URI = "/redfish/v1/Chassis"
 REGISTRY_URI = '/redfish/v1/Registries'
-GET_ALL_JOBS = "/redfish/v1/JobService/Jobs?$expand=*($levels=1)"
-SINGLE_JOB = "/redfish/v1/JobService/Jobs/{job_id}"
-
-GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 
 SUCCESS_MSG = "Successfully updated the network attributes."
 SUCCESS_CLEAR_PENDING_ATTR_MSG = "Successfully cleared the pending network attributes."
