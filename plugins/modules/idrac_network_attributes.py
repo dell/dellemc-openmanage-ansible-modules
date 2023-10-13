@@ -389,12 +389,13 @@ class IDRACNetworkAttributes:
 
     def extract_error_msg(self, resp):
         error_info = {}
-        error = resp.json_data.get('error')
-        for each_dict_err in error.get("@Message.ExtendedInfo"):
-            key = each_dict_err.get('MessageArgs')[0]
-            msg = each_dict_err.get('Message')
-            if key not in error_info:
-                error_info.update({key: msg})
+        if resp.status_code == 202 and resp.body:
+            error = resp.json_data.get('error')
+            for each_dict_err in error.get("@Message.ExtendedInfo"):
+                key = each_dict_err.get('MessageArgs')[0]
+                msg = each_dict_err.get('Message')
+                if key not in error_info:
+                    error_info.update({key: msg})
         return error_info
 
     def get_diff_between_current_and_module_input(self, module_attr, server_attr):
@@ -459,22 +460,21 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         network_device_function_id = self.module.params.get('network_device_function_id')
         job_wait = self.module.params.get('job_wait')
         job_wait_timeout = self.module.params.get('job_wait_timeout')
-        payload, scp_resp, invalid_attr = {}, {}, {}
-        apply_time_setting = self.apply_time(self.oem_uri)
+        invalid_attr = {}
         firm_ver = self._get_idrac_firmware_version()
         if LooseVersion(firm_ver) < '3.0':
             root = """<SystemConfiguration>{0}</SystemConfiguration>"""
             scp_payload = root.format(xml_data_conversion(oem_network_attributes, network_device_function_id))
-            resp = self.idrac.import_scp(import_buffer=scp_payload, target="NIC", job_wait=job_wait)
-            invalid_attr.update(self.extract_error_msg(resp))
+            resp = self.idrac.import_scp(import_buffer=scp_payload, target="NIC", job_wait=False)
         else:
             payload = {'Attributes': oem_network_attributes}
-        if apply_time_setting:
-            payload.update({"@Redfish.SettingsApplyTime": apply_time_setting})
-        patch_uri = get_dynamic_uri(self.idrac, self.oem_uri).get('@Redfish.Settings', {}).get('SettingsObject', {}).get('@odata.id')
-        response = self.idrac.invoke_request(method='PATCH', uri=patch_uri, data=payload)
-        invalid_attr.update(self.extract_error_msg(response))
-        job_tracking_uri = response.headers["Location"]
+            apply_time_setting = self.apply_time(self.oem_uri)
+            if apply_time_setting:
+                payload.update({"@Redfish.SettingsApplyTime": apply_time_setting})
+            patch_uri = get_dynamic_uri(self.idrac, self.oem_uri).get('@Redfish.Settings').get('SettingsObject').get('@odata.id')
+            resp = self.idrac.invoke_request(method='PATCH', uri=patch_uri, data=payload)
+        invalid_attr = self.extract_error_msg(resp)
+        job_tracking_uri = resp.headers["Location"]
         job_resp, error_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
                                                             job_wait=job_wait,
                                                             wait_timeout=job_wait_timeout)
@@ -532,11 +532,11 @@ def main():
                                    ('network_attributes', 'oem_network_attributes')],
                                supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
-            if module_attribute := module.params.get('oem_network_attributes'):
-                network_attr_obj = OEMNetworkAttributes(idrac, module)
-            else:
-                module_attribute = module.params.get('network_attributes')
+            if module_attribute := module.params.get('network_attributes'):
                 network_attr_obj = NetworkAttributes(idrac, module)
+            else:
+                module_attribute = module.params.get('oem_network_attributes')
+                network_attr_obj = OEMNetworkAttributes(idrac, module)
             network_attr_obj.set_dynamic_base_uri_and_validate_ids()
             network_attr_obj.validate_job_timeout()
             if module.params.get('clear_pending') and 'clear_pending' in dir(network_attr_obj):

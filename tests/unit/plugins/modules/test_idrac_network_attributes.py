@@ -428,7 +428,8 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                         ]
                     }]}}
         obj = MagicMock()
-        obj.json_data = error_info
+        obj.body = obj.json_data = error_info
+        obj.status_code = 202
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.IDRACNetworkAttributes(
@@ -726,7 +727,6 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             params=idrac_default_args, check_mode=True)
         idr_obj = self.module.OEMNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module)
-        # import pdb; pdb.set_trace()
         data = idr_obj.perform_operation()
         assert data == ({'data': 'some value'}, {
                         'abc': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
