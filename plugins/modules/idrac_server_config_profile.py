@@ -194,6 +194,7 @@ notes:
     - To import Server Configuration Profile (SCP) on the iDRAC8-based servers,
       the servers must have iDRAC Enterprise license or later.
     - For C(import) operation, C(check_mode) is supported only when I(target) is C(ALL).
+    - This module supports IPv4 and IPv6 addresses.
 '''
 
 EXAMPLES = r'''
@@ -916,7 +917,7 @@ def main():
             msg = "Successfully triggered the job to {0} the Server Configuration Profile."
             module.exit_json(msg=msg.format(command), scp_status=scp_status)
     except HTTPError as err:
-        module.exit_json(msg=str(err), error=json.load(err), failed=True)
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
