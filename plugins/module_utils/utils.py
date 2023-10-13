@@ -34,15 +34,18 @@ NO_CHANGES_MSG = "No changes found to be applied."
 RESET_UNTRACK = "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
 RESET_SUCCESS = "iDRAC has been reset successfully."
 RESET_FAIL = "Unable to reset the iDRAC. For changes to reflect, manually reset the iDRAC."
+INVALID_ID_MSG = "Unable to complete the operation because " + \
+                 "the value `{0}` for the input  `{1}` parameter is invalid."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
+CHASSIS_URI = "/redfish/v1/Chassis"
 IDRAC_RESET_URI = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 SYSTEM_RESET_URI = "/redfish/v1/Systems/{res_id}/Actions/ComputerSystem.Reset"
 MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
-
+GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 
 import time
 from datetime import datetime
@@ -482,3 +485,27 @@ def xml_data_conversion(attr_dict, fqdd=None):
         attr += '<Attribute Name="{0}">{1}</Attribute>'.format(key, v)
     root = component.format(fqdd, attr)
     return root
+
+
+def validate_and_get_first_resource_id_uri(module, idrac):
+    odata = '@odata.id'
+    found = False
+    res_id_uri = None
+    res_id_input = module.params.get('resource_id')
+    res_id_members = get_dynamic_uri(idrac, CHASSIS_URI, 'Members')
+    for each in res_id_members:
+        if res_id_input and res_id_input == each[odata].split('/')[-1]:
+            res_id_uri = each[odata]
+            found = True
+            break
+    if not found and res_id_input:
+        return res_id_uri, INVALID_ID_MSG.format(
+            res_id_input, 'resource_id')
+    elif res_id_input is None:
+        res_id_uri = res_id_members[0][odata]
+    return res_id_uri, ''
+
+
+def get_idrac_firmware_version(self):
+    firm_version = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
+    return firm_version.json_data.get('FirmwareVersion', '')

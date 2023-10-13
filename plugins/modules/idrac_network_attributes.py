@@ -223,8 +223,9 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
     idrac_auth_params, iDRACRedfishAPI)
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    delete_job, get_current_time, get_dynamic_uri, get_scheduled_job_resp,
-    remove_key, wait_for_idrac_job_completion, xml_data_conversion)
+    delete_job, get_current_time, get_dynamic_uri, get_idrac_firmware_version,
+    get_scheduled_job_resp, remove_key, validate_and_get_first_resource_id_uri,
+    wait_for_idrac_job_completion, xml_data_conversion)
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 CHASSIS_URI = "/redfish/v1/Chassis"
@@ -232,10 +233,6 @@ REGISTRY_URI = '/redfish/v1/Registries'
 GET_ALL_JOBS = "/redfish/v1/JobService/Jobs?$expand=*($levels=1)"
 SINGLE_JOB = "/redfish/v1/JobService/Jobs/{job_id}"
 
-GET_NETWORK_ADAPTER_URI = "/redfish/v1/Systems/{resource_id}/NetworkAdapters"
-GET_NETWORK_DEVICE_FUNC_URI = "/redfish/v1/Systems/{resource_id}/NetworkAdapters/{network_adapter_id}/NetworkDeviceFunctions"
-DMTF_GET_PATCH_NETWORK_ATTR_URI = "/redfish/v1/Systems/{resource_id}/NetworkAdapters/{network_adapter_id}/NetworkDeviceFunctions/ \
-{network_device_function_id}/Settings"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 
 SUCCESS_MSG = "Successfully updated the network attributes."
@@ -265,34 +262,14 @@ class IDRACNetworkAttributes:
         self.redfish_uri = None
         self.oem_uri = None
 
-    def _get_idrac_firmware_version(self):
-        firm_version = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
-        return firm_version.json_data.get('FirmwareVersion', '')
-
-    def __get_resource_id(self):
-        odata = '@odata.id'
-        found = False
-        res_id_uri = None
-        res_id_input = self.module.params.get('resource_id')
-        res_id_members = get_dynamic_uri(self.idrac, CHASSIS_URI, 'Members')
-        for each in res_id_members:
-            if res_id_input and res_id_input == each[odata].split('/')[-1]:
-                res_id_uri = each[odata]
-                found = True
-                break
-        if not found and res_id_input:
-            self.module.exit_json(failed=True, msg=INVALID_ID_MSG.format(
-                res_id_input, 'resource_id'))
-        elif res_id_input is None:
-            res_id_uri = res_id_members[0][odata]
-        return res_id_uri
-
     def __perform_validation_for_network_adapter_id(self):
         odata = '@odata.id'
         network_adapter_id = self.module.params.get('network_adapter_id')
         network_adapter_id_uri, found_adapter = '', False
-        first_resource_id_uri = self.__get_resource_id()
-        network_adapters = get_dynamic_uri(self.idrac, first_resource_id_uri, 'NetworkAdapters')[odata]
+        uri, error_msg = validate_and_get_first_resource_id_uri(self.module, self.idrac)
+        if error_msg:
+            self.module.exit_json(msg=error_msg, failed=True)
+        network_adapters = get_dynamic_uri(self.idrac, uri, 'NetworkAdapters')[odata]
         network_adapter_list = get_dynamic_uri(self.idrac, network_adapters, 'Members')
         for each_adapter in network_adapter_list:
             if network_adapter_id in each_adapter.get(odata):
@@ -375,7 +352,7 @@ class IDRACNetworkAttributes:
         reg = {}
         oem_network_attributes = self.module.params.get('oem_network_attributes')
         network_attributes = self.module.params.get('network_attributes')
-        firm_ver = self._get_idrac_firmware_version()
+        firm_ver = get_idrac_firmware_version()
         if oem_network_attributes:
             if LooseVersion(firm_ver) >= '6.0':
                 reg = get_dynamic_uri(self.idrac, self.oem_uri).get('Attributes', {})
@@ -461,7 +438,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         job_wait = self.module.params.get('job_wait')
         job_wait_timeout = self.module.params.get('job_wait_timeout')
         invalid_attr = {}
-        firm_ver = self._get_idrac_firmware_version()
+        firm_ver = get_idrac_firmware_version()
         if LooseVersion(firm_ver) < '3.0':
             root = """<SystemConfiguration>{0}</SystemConfiguration>"""
             scp_payload = root.format(xml_data_conversion(oem_network_attributes, network_device_function_id))
