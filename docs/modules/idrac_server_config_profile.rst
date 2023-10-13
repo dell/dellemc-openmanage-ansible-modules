@@ -225,6 +225,7 @@ Notes
    - This module supports ``check_mode``.
    - To import Server Configuration Profile (SCP) on the iDRAC8-based servers, the servers must have iDRAC Enterprise license or later.
    - For ``import`` operation, ``check_mode`` is supported only when *target* is ``ALL``.
+   - This module supports IPv4 and IPv6 addresses.
 
 
 
@@ -536,4 +537,5 @@ Authors
 
 - Jagadeesh N V(@jagadeeshnv)
 - Felix Stephen (@felixs88)
+- Jennifer John (@Jennifer-John)
 
