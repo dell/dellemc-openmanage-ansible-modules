@@ -12,7 +12,7 @@ idrac_network_attributes -- Configures the iDRAC network attributes
 Synopsis
 --------
 
-This module allows to configure iDRAC network settings.
+This module allows you to configure the port and partition network attributes on the network interface cards.
 
 
 
@@ -165,35 +165,143 @@ Examples
 
     
     ---
-    - name: Configure iDRAC OEM network attributes at start of maintenance window
+    - name: Configure OEM network attributes
       dellemc.openmanage.idrac_network_attributes:
-        idrac_ip:   "192.168.0.1"
+        idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
-        idrac_password:  "user_password"
-        ca_path: "/path/to/ca_cert.pem"
-        network_adapter_id: 'NIC.Mezzanine.1A'
-        network_device_function_id: 'NIC.Mezzanine.1A-1-1'
+        idrac_password: "user_password"
+        network_id: "NIC.Integrated.1"
+        network_port_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
-            VLanId: 10
-        apply_time: "AtMaintenanceWindowStart"
-        maintenance_window:
-          start_time: "2023-10-06T15:00:00-05:00"
-          duration: 600
-        job_wait: true
-        job_wait_timeout: 1500
+          IscsiInitiatorIpAddr: "192.168.1.0"
 
-    - name: Clear pending OEM network attribute
+    - name: Configure OEM network attributes to apply on reset
       dellemc.openmanage.idrac_network_attributes:
-        idrac_ip:   "192.168.0.1"
+        idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
-        idrac_password:  "user_password"
-        ca_path: "/path/to/ca_cert.pem"
-        network_adapter_id: 'NIC.Mezzanine.1A'
-        network_device_function_id: 'NIC.Mezzanine.1A-1-1'
-        apply_time: "Immediate"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
-            VLanId: 14
+          SNMP.1.AgentCommunity: public
+        apply_time: OnReset
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+
+    - name: Configure OEM network attributes to apply at maintainance window
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        oem_network_attributes:
+          SNMP.1.AgentCommunity: public
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+
+    - name: Clearing the pending attributes
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
         clear_pending: true
+
+    - name: Configure OEM network attributes and wait for the job
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        oem_network_attributes:
+          IscsiInitiatorIpAddr: "192.168.1.0"
+        job_wait: true
+        job_wait_timeout: 2000
+
+    - name: Configure redfish network attributes to update fiber channel on reset
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        network_attributes:
+          FibreChannel:
+            BootTargets:
+              - LUNID: '111'
+
+    - name: Configure redfish network attributes to apply on reset
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        network_attributes:
+          SNMP.1.AgentCommunity: public
+        apply_time: OnReset
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+
+    - name: Configure redfish network attributes of iscsi to apply at maintainance window start
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        network_attributes:
+          iSCSIBoot:
+            AuthenticationMethod: None
+            CHAPSecret: ValueCleared
+            CHAPUsername: ValueCleared
+            IPAddressType: IPv4
+            IPMaskDNSViaDHCP: true
+            InitiatorDefaultGateway: 0.0.0.0
+            InitiatorIPAddress: 1.0.0.1
+            InitiatorName: ValueCleared
+            InitiatorNetmask: 0.0.0.0
+            PrimaryDNS: 0.0.0.0
+            PrimaryLUN: 0
+            PrimaryTargetIPAddress: 1.0.0.0
+            PrimaryTargetName: ValueCleared
+            PrimaryTargetTCPPort: 3260
+            PrimaryVLANEnable:
+            PrimaryVLANId:
+            SecondaryDNS: 0.0.0.0
+            SecondaryLUN: 0
+            SecondaryTargetIPAddress: 0.0.0.0
+            SecondaryTargetName: ValueCleared
+            SecondaryTargetTCPPort: 3260
+            TargetInfoViaDHCP: false
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+
+    - name: Configure redfish network attributes to apply at maintainance window on reset
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        network_attributes:
+          Ethernet:
+            MACAddress: 00:11:22:AA:BB:CC
+            VLAN:
+              VLANEnable: false
+              VLANId: 1
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
 
 
 

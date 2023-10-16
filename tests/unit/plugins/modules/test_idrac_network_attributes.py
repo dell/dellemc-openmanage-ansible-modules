@@ -40,7 +40,7 @@ VALID_AND_INVALID_ATTR_MSG = "Successfully updated the network attributes for va
     "Unable to update other attributes because invalid values are entered. Enter the valid values and retry the operation."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
-INVALID_ID_MSG = "Unable to complete the operation because the value `{0}` for the input  `{1}` parameter is invalid."
+INVALID_ID_MSG = "Unable to complete the operation because the value `{0}` for the input `{1}` parameter is invalid."
 JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to complete. Currently can not clear pending attributes."
 ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 
@@ -301,16 +301,23 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         data = idr_obj._IDRACNetworkAttributes__get_registry_fw_less_than_3()
         assert data == {'VLanId': '10'}
 
-    def test_current_server_registry(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
-                                     idrac_ntwrk_attr_mock, mocker):
-        reg_greater_than_6 = {'Attributes': {'abc': False}}
+    def test_get_current_server_registry(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
+                                         idrac_ntwrk_attr_mock, mocker):
+        reg_greater_than_6 = {'abc': False}
         reg_less_than_6 = {'xyz': True}
         reg_less_than_3 = {'Qwerty': False}
+        redfish_resp = {'Ethernet': {'abc': 123},
+                        'FibreChannel': {},
+                        'iSCSIBoot': {'ghi': 789}
+                        }
 
         def mock_get_dynamic_uri_request(*args, **kwargs):
-            if len(args) > 2 and args[2] == 'Links':
-                return self.links
-            return reg_greater_than_6
+            if len(args) > 2:
+                if args[2] == 'Links':
+                    return self.links
+                elif args[2] == 'Attributes':
+                    return reg_greater_than_6
+            return redfish_resp
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_dynamic_uri",
                      side_effect=mock_get_dynamic_uri_request)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes._IDRACNetworkAttributes__get_registry_fw_less_than_6_more_than_3",
@@ -369,6 +376,19 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             idrac_connection_ntwrk_attr_mock, f_module)
         data = idr_obj.get_current_server_registry()
         assert data == {'Qwerty': False}
+
+        # Scenario 5: When network_attributes is given
+        firm_ver = '7.0'
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
+                     return_value=firm_ver)
+        idrac_default_args.update({'network_attributes': 'some value',
+                                   'oem_network_attributes': None})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        data = idr_obj.get_current_server_registry()
+        assert data == redfish_resp
 
     def test_extract_error_msg(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                idrac_ntwrk_attr_mock, mocker):

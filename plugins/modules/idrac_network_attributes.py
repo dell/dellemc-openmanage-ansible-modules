@@ -20,7 +20,7 @@ module: idrac_network_attributes
 short_description: Configures the iDRAC network attributes
 version_added: "8.4.0"
 description:
-  - This module allows to configure iDRAC network settings.
+  - This module allows you to configure the port and partition network attributes on the network interface cards.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
@@ -123,35 +123,143 @@ notes:
 
 EXAMPLES = """
 ---
-- name: Configure iDRAC OEM network attributes at start of maintenance window
+- name: Configure OEM network attributes
   dellemc.openmanage.idrac_network_attributes:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    network_adapter_id: 'NIC.Mezzanine.1A'
-    network_device_function_id: 'NIC.Mezzanine.1A-1-1'
+    idrac_password: "user_password"
+    network_id: "NIC.Integrated.1"
+    network_port_id: "NIC.Integrated.1-1-1"
     oem_network_attributes:
-        VLanId: 10
-    apply_time: "AtMaintenanceWindowStart"
-    maintenance_window:
-      start_time: "2023-10-06T15:00:00-05:00"
-      duration: 600
-    job_wait: true
-    job_wait_timeout: 1500
+      IscsiInitiatorIpAddr: "192.168.1.0"
 
-- name: Clear pending OEM network attribute
+- name: Configure OEM network attributes to apply on reset
   dellemc.openmanage.idrac_network_attributes:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
-    ca_path: "/path/to/ca_cert.pem"
-    network_adapter_id: 'NIC.Mezzanine.1A'
-    network_device_function_id: 'NIC.Mezzanine.1A-1-1'
-    apply_time: "Immediate"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
     oem_network_attributes:
-        VLanId: 14
+      SNMP.1.AgentCommunity: public
+    apply_time: OnReset
+    maintenance_window:
+      start_time: "2022-09-30T05:15:40-05:00"
+      duration: 600
+
+- name: Configure OEM network attributes to apply at maintainance window
+  dellemc.openmanage.idrac_network_attributes:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
+    oem_network_attributes:
+      SNMP.1.AgentCommunity: public
+    apply_time: AtMaintenanceWindowStart
+    maintenance_window:
+      start_time: "2022-09-30T05:15:40-05:00"
+      duration: 600
+
+- name: Clearing the pending attributes
+  dellemc.openmanage.idrac_network_attributes:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
     clear_pending: true
+
+- name: Configure OEM network attributes and wait for the job
+  dellemc.openmanage.idrac_network_attributes:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
+    oem_network_attributes:
+      IscsiInitiatorIpAddr: "192.168.1.0"
+    job_wait: true
+    job_wait_timeout: 2000
+
+- name: Configure redfish network attributes to update fiber channel on reset
+  dellemc.openmanage.idrac_network_attributes:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
+    network_attributes:
+      FibreChannel:
+        BootTargets:
+          - LUNID: '111'
+
+- name: Configure redfish network attributes to apply on reset
+  dellemc.openmanage.idrac_network_attributes:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
+    network_attributes:
+      SNMP.1.AgentCommunity: public
+    apply_time: OnReset
+    maintenance_window:
+      start_time: "2022-09-30T05:15:40-05:00"
+      duration: 600
+
+- name: Configure redfish network attributes of iscsi to apply at maintainance window start
+  dellemc.openmanage.idrac_network_attributes:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
+    network_attributes:
+      iSCSIBoot:
+        AuthenticationMethod: None
+        CHAPSecret: ValueCleared
+        CHAPUsername: ValueCleared
+        IPAddressType: IPv4
+        IPMaskDNSViaDHCP: true
+        InitiatorDefaultGateway: 0.0.0.0
+        InitiatorIPAddress: 1.0.0.1
+        InitiatorName: ValueCleared
+        InitiatorNetmask: 0.0.0.0
+        PrimaryDNS: 0.0.0.0
+        PrimaryLUN: 0
+        PrimaryTargetIPAddress: 1.0.0.0
+        PrimaryTargetName: ValueCleared
+        PrimaryTargetTCPPort: 3260
+        PrimaryVLANEnable:
+        PrimaryVLANId:
+        SecondaryDNS: 0.0.0.0
+        SecondaryLUN: 0
+        SecondaryTargetIPAddress: 0.0.0.0
+        SecondaryTargetName: ValueCleared
+        SecondaryTargetTCPPort: 3260
+        TargetInfoViaDHCP: false
+    apply_time: AtMaintenanceWindowStart
+    maintenance_window:
+      start_time: "2022-09-30T05:15:40-05:00"
+      duration: 600
+
+- name: Configure redfish network attributes to apply at maintainance window on reset
+  dellemc.openmanage.idrac_network_attributes:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
+    network_attributes:
+      Ethernet:
+        MACAddress: 00:11:22:AA:BB:CC
+        VLAN:
+          VLANEnable: false
+          VLANId: 1
+    maintenance_window:
+      start_time: "2022-09-30T05:15:40-05:00"
+      duration: 600
 
 """
 
@@ -243,7 +351,7 @@ VALID_AND_INVALID_ATTR_MSG = "Successfully updated the network attributes for va
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 INVALID_ID_MSG = "Unable to complete the operation because " + \
-                 "the value `{0}` for the input  `{1}` parameter is invalid."
+                 "the value `{0}` for the input `{1}` parameter is invalid."
 JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to complete. Currently can not clear pending attributes."
 ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 
@@ -349,13 +457,16 @@ class IDRACNetworkAttributes:
         firm_ver = get_idrac_firmware_version(self.idrac)
         if oem_network_attributes:
             if LooseVersion(firm_ver) >= '6.0':
-                reg = get_dynamic_uri(self.idrac, self.oem_uri).get('Attributes', {})
+                reg = get_dynamic_uri(self.idrac, self.oem_uri, 'Attributes')
             elif '3.0' < LooseVersion(firm_ver) < '6.0':
                 reg = self.__get_registry_fw_less_than_6_more_than_3()
             else:
                 reg = self.__get_registry_fw_less_than_3()
         if network_attributes:  # For Redfish
-            pass
+            resp = get_dynamic_uri(self.idrac, self.redfish_uri)
+            reg.update({'Ethernet': resp.get('Ethernet', {})})
+            reg.update({'FibreChannel': resp.get('FibreChannel', {})})
+            reg.update({'iSCSIBoot': resp.get('iSCSIBoot', {})})
         return reg
 
     def extract_error_msg(self, resp):
@@ -462,7 +573,30 @@ class NetworkAttributes(IDRACNetworkAttributes):
         super().__init__(idrac, module)
 
     def perform_operation(self):
-        pass
+        updatable_fields = ['Ethernet', 'iSCSIBoot', 'FibreChannel']
+        network_attributes = self.module.params.get('network_attributes')
+        job_wait = self.module.params.get('job_wait')
+        job_wait_timeout = self.module.params.get('job_wait_timeout')
+        payload, invalid_attr = {}, {}
+        for each_attr in network_attributes:
+            if each_attr in updatable_fields:
+                payload.update({each_attr: network_attributes[each_attr]})
+        apply_time_redfish_uri = '/'.join(self.redfish_uri.split('/')[:-1])
+        apply_time_setting = self.apply_time(apply_time_redfish_uri)
+        if apply_time_setting:
+            payload.update({"@Redfish.SettingsApplyTime": apply_time_setting})
+        resp = self.idrac.invoke_request(method='PATCH', uri=self.redfish_uri, data=payload)
+        invalid_attr = self.extract_error_msg(resp)
+        job_resp = {}
+        if job_tracking_uri := resp.headers.get("Location"):
+            job_resp, error_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
+                                                                job_wait=job_wait,
+                                                                wait_timeout=job_wait_timeout)
+
+            if error_msg:
+                self.module.exit_json(msg=error_msg, failed=True)
+            job_resp = remove_key(job_resp.json_data, regex_pattern='(.*?)@odata')
+        return job_resp, invalid_attr
 
 
 def perform_operation_for_main(module, obj, diff, _invalid_attr):
