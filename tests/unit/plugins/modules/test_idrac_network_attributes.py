@@ -722,7 +722,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                    'job_wait_timout': 1200})
         # Scenario 1: When Job has returned successfully and not error msg is there
         f_module = self.get_module_mock(
-            params=idrac_default_args, check_mode=True)
+            params=idrac_default_args, check_mode=False)
         idr_obj = self.module.OEMNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module)
         data = idr_obj.perform_operation()
@@ -736,7 +736,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
                      return_value='2.1')
         f_module = self.get_module_mock(
-            params=idrac_default_args, check_mode=True)
+            params=idrac_default_args, check_mode=False)
         idr_obj = self.module.OEMNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module)
         with pytest.raises(Exception) as exc:
@@ -747,12 +747,21 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.apply_time",
                      return_value={})
         f_module = self.get_module_mock(
-            params=idrac_default_args, check_mode=True)
+            params=idrac_default_args, check_mode=False)
         idr_obj = self.module.OEMNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module)
         with pytest.raises(Exception) as exc:
             idr_obj.perform_operation()
         assert exc.value.args[0] == error_msg
+
+        # Scenario 3: When location is not in response's headers
+        obj.headers = {}
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        resp, error_msg = idr_obj.perform_operation()
+        assert resp == {} and error_msg == error_info
 
     def test_perform_operation_for_main(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                         idrac_ntwrk_attr_mock, mocker):

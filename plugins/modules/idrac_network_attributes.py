@@ -346,7 +346,7 @@ class IDRACNetworkAttributes:
         reg = {}
         oem_network_attributes = self.module.params.get('oem_network_attributes')
         network_attributes = self.module.params.get('network_attributes')
-        firm_ver = get_idrac_firmware_version()
+        firm_ver = get_idrac_firmware_version(self.idrac)
         if oem_network_attributes:
             if LooseVersion(firm_ver) >= '6.0':
                 reg = get_dynamic_uri(self.idrac, self.oem_uri).get('Attributes', {})
@@ -432,7 +432,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         job_wait = self.module.params.get('job_wait')
         job_wait_timeout = self.module.params.get('job_wait_timeout')
         invalid_attr = {}
-        firm_ver = get_idrac_firmware_version()
+        firm_ver = get_idrac_firmware_version(self.idrac)
         if LooseVersion(firm_ver) < '3.0':
             root = """<SystemConfiguration>{0}</SystemConfiguration>"""
             scp_payload = root.format(xml_data_conversion(oem_network_attributes, network_device_function_id))
@@ -445,14 +445,15 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
             patch_uri = get_dynamic_uri(self.idrac, self.oem_uri).get('@Redfish.Settings').get('SettingsObject').get('@odata.id')
             resp = self.idrac.invoke_request(method='PATCH', uri=patch_uri, data=payload)
         invalid_attr = self.extract_error_msg(resp)
-        job_tracking_uri = resp.headers["Location"]
-        job_resp, error_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
-                                                            job_wait=job_wait,
-                                                            wait_timeout=job_wait_timeout)
+        job_resp = {}
+        if job_tracking_uri := resp.headers.get("Location"):
+            job_resp, error_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
+                                                                job_wait=job_wait,
+                                                                wait_timeout=job_wait_timeout)
 
-        if error_msg:
-            self.module.exit_json(msg=error_msg, failed=True)
-        job_resp = remove_key(job_resp.json_data, regex_pattern='(.*?)@odata')
+            if error_msg:
+                self.module.exit_json(msg=error_msg, failed=True)
+            job_resp = remove_key(job_resp.json_data, regex_pattern='(.*?)@odata')
         return job_resp, invalid_attr
 
 

@@ -506,6 +506,6 @@ def validate_and_get_first_resource_id_uri(module, idrac):
     return res_id_uri, ''
 
 
-def get_idrac_firmware_version(self):
-    firm_version = self.idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
+def get_idrac_firmware_version(idrac):
+    firm_version = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
     return firm_version.json_data.get('FirmwareVersion', '')
