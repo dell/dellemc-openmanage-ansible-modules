@@ -447,14 +447,47 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                                                        idrac_ntwrk_attr_mock, mocker):
         module_attr = {'a': 123, 'b': 456}
         server_attr = {'c': 789, 'b': 456}
+        # Scenario 1: Simple attribute which does not contain nested values
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.IDRACNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module)
         data = idr_obj.get_diff_between_current_and_module_input(
             module_attr, server_attr)
-        assert data == (({'a': 123}, {'c': 789}), {
-                        'a': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
+        assert data == (0, {'a': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
+
+        # Scenario 2: Complex attribute which contain nested values
+        module_attr = {'a': 123, 'b': 456, 'c': {'d': 789}}
+        server_attr = {'c': 789, 'b': 457, 'd': {'e': 123}}
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        data = idr_obj.get_diff_between_current_and_module_input(
+            module_attr, server_attr)
+        assert data == (2, {'a': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
+
+        # Scenario 3: Complex attribute which contain nested values and value matched
+        module_attr = {'a': 123, 'b': 456, 'c': {'d': 789}}
+        server_attr = {'c': {'d': 789}, 'b': 457, 'd': {'e': 123}}
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        data = idr_obj.get_diff_between_current_and_module_input(
+            module_attr, server_attr)
+        assert data == (1, {'a': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
+
+        # Scenario 3: module attr is None
+        module_attr = None
+        server_attr = {'a': 123}
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.IDRACNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        data = idr_obj.get_diff_between_current_and_module_input(
+            module_attr, server_attr)
+        assert data == (0, {})
 
     def test_perform_validation_for_network_adapter_id(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                                        idrac_ntwrk_attr_mock, mocker):
@@ -471,7 +504,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         ]
 
         def mock_get_dynamic_uri_request(*args, **kwargs):
-            if args[2] == 'NetworkAdapters':
+            if args[2] == 'NetworkInterfaces':
                 return netwkr_adapters
             return network_adapter_list
         mocker.patch(MODULE_PATH + "idrac_network_attributes.validate_and_get_first_resource_id_uri",

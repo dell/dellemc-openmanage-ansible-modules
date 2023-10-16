@@ -324,7 +324,6 @@ error_info:
 import json
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.common.dict_transformations import recursive_diff
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -336,6 +335,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     wait_for_idrac_job_completion, xml_data_conversion)
 
 REGISTRY_URI = '/redfish/v1/Registries'
+SYSTEMS_URI = "/redfish/v1/Systems"
 
 SUCCESS_MSG = "Successfully updated the network attributes."
 SUCCESS_CLEAR_PENDING_ATTR_MSG = "Successfully cleared the pending network attributes."
@@ -368,10 +368,10 @@ class IDRACNetworkAttributes:
         odata = '@odata.id'
         network_adapter_id = self.module.params.get('network_adapter_id')
         network_adapter_id_uri, found_adapter = '', False
-        uri, error_msg = validate_and_get_first_resource_id_uri(self.module, self.idrac)
+        uri, error_msg = validate_and_get_first_resource_id_uri(self.module, self.idrac, SYSTEMS_URI)
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
-        network_adapters = get_dynamic_uri(self.idrac, uri, 'NetworkAdapters')[odata]
+        network_adapters = get_dynamic_uri(self.idrac, uri, 'NetworkInterfaces')[odata]
         network_adapter_list = get_dynamic_uri(self.idrac, network_adapters, 'Members')
         for each_adapter in network_adapter_list:
             if network_adapter_id in each_adapter.get(odata):
@@ -481,13 +481,21 @@ class IDRACNetworkAttributes:
         return error_info
 
     def get_diff_between_current_and_module_input(self, module_attr, server_attr):
-        invalid = {}
+        diff, invalid = 0, {}
         if module_attr is None:
             module_attr = {}
-        diff = recursive_diff(module_attr, server_attr)
         for each_attr in module_attr:
-            if each_attr not in server_attr:
-                invalid.update({each_attr: ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
+            if each_attr in server_attr:
+                if isinstance(module_attr[each_attr], dict) and isinstance(server_attr[each_attr], dict):
+                    tmp_diff, tmp_invalid = self.get_diff_between_current_and_module_input(
+                        module_attr[each_attr], server_attr[each_attr])
+                    diff += tmp_diff
+                    invalid.update(tmp_invalid)
+                elif module_attr[each_attr] != server_attr[each_attr]:
+                    diff += 1
+            elif each_attr not in server_attr:
+                invalid.update(
+                    {each_attr: ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
         return diff, invalid
 
     def validate_job_timeout(self):
@@ -504,8 +512,8 @@ class IDRACNetworkAttributes:
     def set_dynamic_base_uri_and_validate_ids(self):
         network_device_function_id_uri = self.__perform_validation_for_network_device_function_id()
         resp = get_dynamic_uri(self.idrac, network_device_function_id_uri)
-        self.oem_uri = resp.get('Links').get('Oem').get('Dell').get('DellNetworkAttributes').get('@odata.id')
-        self.redfish_uri = resp.get("@Redfish.Settings").get("SettingsObject").get("@odata.id")
+        self.oem_uri = resp.get('Links', {}).get('Oem', {}).get('Dell', {}).get('DellNetworkAttributes', {}).get('@odata.id', {})
+        self.redfish_uri = resp.get("@Redfish.Settings", {}).get("SettingsObject", {}).get("@odata.id", {})
 
 
 class OEMNetworkAttributes(IDRACNetworkAttributes):

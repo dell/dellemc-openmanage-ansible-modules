@@ -487,12 +487,12 @@ def xml_data_conversion(attr_dict, fqdd=None):
     return root
 
 
-def validate_and_get_first_resource_id_uri(module, idrac):
+def validate_and_get_first_resource_id_uri(module, idrac, base_uri):
     odata = '@odata.id'
     found = False
     res_id_uri = None
     res_id_input = module.params.get('resource_id')
-    res_id_members = get_dynamic_uri(idrac, CHASSIS_URI, 'Members')
+    res_id_members = get_dynamic_uri(idrac, base_uri, 'Members')
     for each in res_id_members:
         if res_id_input and res_id_input == each[odata].split('/')[-1]:
             res_id_uri = each[odata]
