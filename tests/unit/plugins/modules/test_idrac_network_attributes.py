@@ -816,6 +816,83 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         resp, error_msg = idr_obj.perform_operation()
         assert resp == {} and error_msg == error_info
 
+    def test_perform_operation_NetworkAttributes(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
+                                                 idrac_ntwrk_attr_mock, mocker):
+        obj = MagicMock()
+        obj.headers = {'Location': self.uri}
+        obj.json_data = {'data': 'some value'}
+        apply_time = {'ApplyTime': 'Immediate'}
+        error_info = {'abc': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE}
+
+        def mock_get_dynamic_uri_request(*args, **kwargs):
+            if len(args) > 2 and args[2] == 'Links':
+                return self.links
+            return self.redfish_settings
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_dynamic_uri",
+                     side_effect=mock_get_dynamic_uri_request)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.iDRACRedfishAPI.invoke_request",
+                     return_value=obj)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.iDRACRedfishAPI.import_scp",
+                     return_value=obj)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.apply_time",
+                     return_value=apply_time)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.extract_error_msg",
+                     return_value=error_info)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.wait_for_idrac_job_completion",
+                     return_value=(obj, False))
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
+                     return_value='6.1')
+
+        idrac_default_args.update({'network_attributes': {'VlanId': 1},
+                                   'job_wait': True,
+                                   'job_wait_timout': 1200})
+        # Scenario 1: When Job has returned successfully and not error msg is there
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.NetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        idr_obj.redfish_uri = self.uri
+        data = idr_obj.perform_operation()
+        assert data == ({'data': 'some value'}, {
+                        'abc': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})
+
+        # Scenario 2: When Job has returned error msg
+        error_msg = 'No job is found.'
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.wait_for_idrac_job_completion",
+                     return_value=(obj, error_msg))
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
+                     return_value='2.1')
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.NetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        idr_obj.redfish_uri = self.uri
+        with pytest.raises(Exception) as exc:
+            idr_obj.perform_operation()
+        assert exc.value.args[0] == error_msg
+
+        # Scenario 2: When apply_time_settings is {} and job is returning error msg
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.apply_time",
+                     return_value={})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.NetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        idr_obj.redfish_uri = self.uri
+        with pytest.raises(Exception) as exc:
+            idr_obj.perform_operation()
+        assert exc.value.args[0] == error_msg
+
+        # Scenario 3: When location is not in response's headers
+        obj.headers = {}
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.NetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        idr_obj.redfish_uri = self.uri
+        resp, error_msg = idr_obj.perform_operation()
+        assert resp == {} and error_msg == error_info
+
     def test_perform_operation_for_main(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                         idrac_ntwrk_attr_mock, mocker):
         obj = MagicMock()

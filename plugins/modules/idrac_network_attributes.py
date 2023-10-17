@@ -471,7 +471,7 @@ class IDRACNetworkAttributes:
 
     def extract_error_msg(self, resp):
         error_info = {}
-        if resp.status_code == 202 and resp.body:
+        if resp.body:
             error = resp.json_data.get('error')
             for each_dict_err in error.get("@Message.ExtendedInfo"):
                 key = each_dict_err.get('MessageArgs')[0]
@@ -486,7 +486,10 @@ class IDRACNetworkAttributes:
             module_attr = {}
         for each_attr in module_attr:
             if each_attr in server_attr:
-                if isinstance(module_attr[each_attr], dict) and isinstance(server_attr[each_attr], dict):
+                data_type = type(server_attr[each_attr])
+                if not isinstance(module_attr[each_attr], data_type):
+                    diff += 1
+                elif isinstance(module_attr[each_attr], dict) and isinstance(server_attr[each_attr], dict):
                     tmp_diff, tmp_invalid = self.get_diff_between_current_and_module_input(
                         module_attr[each_attr], server_attr[each_attr])
                     diff += tmp_diff
