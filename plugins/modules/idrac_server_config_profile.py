@@ -674,7 +674,6 @@ def perform_check_mode(module, idrac, job_wait, http_share=True):
             module.exit_json(msg=NO_CHANGES_FOUND)
         else:
             module.fail_json(msg=scp_resp)
-        module.params["job_wait"] = job_wait
 
 
 def get_scp_share_details(module):
