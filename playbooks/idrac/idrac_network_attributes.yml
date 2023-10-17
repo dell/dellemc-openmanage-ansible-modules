@@ -1,0 +1,152 @@
+---
+- hosts: idrac
+  name: Dell OpenManage Ansible iDRAC Network Attributes.
+  gather_facts: false
+
+  tasks:
+    - name: Configure OEM network attributes
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: "NIC.Integrated.1"
+        network_port_id: "NIC.Integrated.1-1-1"
+        oem_network_attributes:
+          IscsiInitiatorIpAddr: "192.168.1.0"
+      delegate_to: localhost
+
+    - name: Configure OEM network attributes to apply on reset
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        oem_network_attributes:
+          SNMP.1.AgentCommunity: public
+        apply_time: OnReset
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+      delegate_to: localhost
+
+    - name: Configure OEM network attributes to apply at maintainance window
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        oem_network_attributes:
+          SNMP.1.AgentCommunity: public
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+      delegate_to: localhost
+
+    - name: Clearing the OEM pending attributes
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        clear_pending: true
+      delegate_to: localhost
+
+    - name: Configure OEM network attributes and wait for the job
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        oem_network_attributes:
+          IscsiInitiatorIpAddr: "192.168.1.0"
+        job_wait: true
+        job_wait_timeout: 2000
+      delegate_to: localhost
+
+    - name: Configure redfish network attributes to update fiber channel on reset
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        network_attributes:
+          FibreChannel:
+            BootTargets:
+              - LUNID: '111'
+      delegate_to: localhost
+
+    - name: Configure redfish network attributes to apply on reset
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        network_attributes:
+          SNMP.1.AgentCommunity: public
+        apply_time: OnReset
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+      delegate_to: localhost
+
+    - name: Configure redfish network attributes of iscsi to apply at maintainance window start
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        network_attributes:
+          iSCSIBoot:
+            AuthenticationMethod: None
+            CHAPSecret: ValueCleared
+            CHAPUsername: ValueCleared
+            IPAddressType: IPv4
+            IPMaskDNSViaDHCP: true
+            InitiatorDefaultGateway: 0.0.0.0
+            InitiatorIPAddress: 1.0.0.1
+            InitiatorName: ValueCleared
+            InitiatorNetmask: 0.0.0.0
+            PrimaryDNS: 0.0.0.0
+            PrimaryLUN: 0
+            PrimaryTargetIPAddress: 1.0.0.0
+            PrimaryTargetName: ValueCleared
+            PrimaryTargetTCPPort: 3260
+            PrimaryVLANEnable:
+            PrimaryVLANId:
+            SecondaryDNS: 0.0.0.0
+            SecondaryLUN: 0
+            SecondaryTargetIPAddress: 0.0.0.0
+            SecondaryTargetName: ValueCleared
+            SecondaryTargetTCPPort: 3260
+            TargetInfoViaDHCP: false
+        apply_time: AtMaintenanceWindowStart
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+      delegate_to: localhost
+
+    - name: Configure redfish network attributes to apply at maintainance window on reset
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        network_attributes:
+          Ethernet:
+            MACAddress: 00:11:22:AA:BB:CC
+            VLAN:
+              VLANEnable: false
+              VLANId: 1
+        maintenance_window:
+          start_time: "2022-09-30T05:15:40-05:00"
+          duration: 600
+      delegate_to: localhost
