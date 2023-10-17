@@ -548,6 +548,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
     def perform_operation(self):
         oem_network_attributes = self.module.params.get('oem_network_attributes')
         network_device_function_id = self.module.params.get('network_device_function_id')
+        apply_time = self.module.params.get('apply_time')
         job_wait = self.module.params.get('job_wait')
         job_wait_timeout = self.module.params.get('job_wait_timeout')
         invalid_attr = {}
@@ -564,15 +565,17 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
             patch_uri = get_dynamic_uri(self.idrac, self.oem_uri).get('@Redfish.Settings').get('SettingsObject').get('@odata.id')
             resp = self.idrac.invoke_request(method='PATCH', uri=patch_uri, data=payload)
         invalid_attr = self.extract_error_msg(resp)
+        job_wait = job_wait if apply_time == "Immediate" else False
         job_resp = {}
         if job_tracking_uri := resp.headers.get("Location"):
-            job_resp, error_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
-                                                                job_wait=job_wait,
-                                                                wait_timeout=job_wait_timeout)
+            job_resp, wait_timeout_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
+                                                                       job_wait=job_wait,
+                                                                       wait_timeout=job_wait_timeout)
 
-            if error_msg:
-                self.module.exit_json(msg=error_msg, failed=True)
-            job_resp = remove_key(job_resp.json_data, regex_pattern='(.*?)@odata')
+            if wait_timeout_msg:
+                self.module.exit_json(msg=wait_timeout_msg, changed=True)
+            job_resp = remove_key(job_resp.json_data,
+                                  regex_pattern='(.*?)@odata')
         return job_resp, invalid_attr
 
 
@@ -583,6 +586,7 @@ class NetworkAttributes(IDRACNetworkAttributes):
     def perform_operation(self):
         updatable_fields = ['Ethernet', 'iSCSIBoot', 'FibreChannel']
         network_attributes = self.module.params.get('network_attributes')
+        apply_time = self.module.params.get('apply_time')
         job_wait = self.module.params.get('job_wait')
         job_wait_timeout = self.module.params.get('job_wait_timeout')
         payload, invalid_attr = {}, {}
@@ -596,14 +600,16 @@ class NetworkAttributes(IDRACNetworkAttributes):
         resp = self.idrac.invoke_request(method='PATCH', uri=self.redfish_uri, data=payload)
         invalid_attr = self.extract_error_msg(resp)
         job_resp = {}
+        job_wait = job_wait if apply_time == "Immediate" else False
         if job_tracking_uri := resp.headers.get("Location"):
-            job_resp, error_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
-                                                                job_wait=job_wait,
-                                                                wait_timeout=job_wait_timeout)
+            job_resp, wait_timeout_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
+                                                                       job_wait=job_wait,
+                                                                       wait_timeout=job_wait_timeout)
 
-            if error_msg:
-                self.module.exit_json(msg=error_msg, failed=True)
-            job_resp = remove_key(job_resp.json_data, regex_pattern='(.*?)@odata')
+            if wait_timeout_msg:
+                self.module.exit_json(msg=wait_timeout_msg, changed=True)
+            job_resp = remove_key(job_resp.json_data,
+                                  regex_pattern='(.*?)@odata')
         return job_resp, invalid_attr
 
 
