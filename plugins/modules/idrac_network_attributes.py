@@ -483,6 +483,7 @@ class IDRACNetworkAttributes:
             reg.update({'Ethernet': resp.get('Ethernet', {})})
             reg.update({'FibreChannel': resp.get('FibreChannel', {})})
             reg.update({'iSCSIBoot': resp.get('iSCSIBoot', {})})
+        self.module.warn(json.dumps(reg))
         return reg
 
     def extract_error_msg(self, resp):
@@ -534,8 +535,7 @@ class IDRACNetworkAttributes:
         resp = get_dynamic_uri(self.idrac, network_device_function_id_uri)
         self.oem_uri = resp.get('Links', {}).get('Oem', {}).get(
             'Dell', {}).get('DellNetworkAttributes', {}).get('@odata.id', {})
-        self.redfish_uri = resp.get(
-            "@Redfish.Settings", {}).get("SettingsObject", {}).get("@odata.id", {})
+        self.redfish_uri = network_device_function_id_uri
 
 
 class OEMNetworkAttributes(IDRACNetworkAttributes):
@@ -640,12 +640,14 @@ class NetworkAttributes(IDRACNetworkAttributes):
         for each_attr in network_attributes:
             if each_attr in updatable_fields:
                 payload.update({each_attr: network_attributes[each_attr]})
-        apply_time_redfish_uri = '/'.join(self.redfish_uri.split('/')[:-1])
-        apply_time_setting = self.apply_time(apply_time_redfish_uri)
+        apply_time_setting = self.apply_time(self.redfish_uri)
         if apply_time_setting:
             payload.update({"@Redfish.SettingsApplyTime": apply_time_setting})
+        resp = get_dynamic_uri(self.idrac, self.redfish_uri)
+        patch_uri = resp.get(
+            "@Redfish.Settings", {}).get("SettingsObject", {}).get("@odata.id", {})
         resp = self.idrac.invoke_request(
-            method='PATCH', uri=self.redfish_uri, data=payload)
+            method='PATCH', uri=patch_uri, data=payload)
         invalid_attr = self.extract_error_msg(resp)
         job_resp = {}
         job_wait = job_wait if apply_time == "Immediate" else False
