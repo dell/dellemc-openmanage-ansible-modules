@@ -184,6 +184,7 @@ author:
   - "Jagadeesh N V(@jagadeeshnv)"
   - "Felix Stephen (@felixs88)"
   - "Jennifer John (@Jennifer-John)"
+  - "Shivam Sharma (@ShivamSh3)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
@@ -654,8 +655,11 @@ def run_export_import_scp_http(idrac, module):
         scp_response = idrac.export_scp(export_format=module.params["export_format"],
                                         export_use=module.params["export_use"],
                                         target=scp_target,
-                                        job_wait=module.params["job_wait"], share=share,
+                                        job_wait=False, share=share,  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well.
                                         include_in_export=include_in_export)
+        scp_response = wait_for_job_tracking_redfish(
+            module, idrac, scp_response
+        )
     scp_response = response_format_change(scp_response, module.params, scp_file_name_format)
     exit_on_failure(module, scp_response, command)
     return scp_response
@@ -713,7 +717,10 @@ def export_scp_redfish(module, idrac):
         scp_response = idrac.export_scp(export_format=module.params["export_format"],
                                         export_use=module.params["export_use"],
                                         target=scp_components, include_in_export=include_in_export,
-                                        job_wait=module.params["job_wait"], share=share, )
+                                        job_wait=False, share=share, )  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well.
+        scp_response = wait_for_job_tracking_redfish(
+            module, idrac, scp_response
+        )
     scp_response = response_format_change(scp_response, module.params, scp_file_name_format)
     exit_on_failure(module, scp_response, command)
     return scp_response
@@ -756,7 +763,9 @@ def preview_scp_redfish(module, idrac, http_share, import_job_wait=False):
             share["file_name"] = module.params.get("scp_file")
         buffer_text = get_buffer_text(module, share)
         scp_response = idrac.import_preview(import_buffer=buffer_text, target=scp_targets,
-                                            share=share, job_wait=job_wait_option)
+                                            share=share, job_wait=False)  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well
+        scp_response = wait_for_job_tracking_redfish(
+            module, idrac, scp_response)
     else:
         scp_response = idrac.import_preview(import_buffer=import_buffer, target=scp_targets, job_wait=job_wait_option)
     scp_response = response_format_change(scp_response, module.params, share.get("file_name"))
@@ -810,6 +819,17 @@ def import_scp_redfish(module, idrac, http_share):
 
 def idrac_import_scp_share(module, idrac, job_params):
     scp_response = idrac.import_scp_share(**job_params)
+    job_id = scp_response.headers["Location"].split("/")[-1]
+    if module.params["job_wait"]:
+        job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
+            idrac, iDRAC_JOB_URI.format(job_id=job_id))
+        if job_failed:
+            module.exit_json(failed=True, status_msg=job_dict, job_id=job_id)
+        scp_response = job_dict
+    return scp_response
+
+
+def wait_for_job_tracking_redfish(module, idrac, scp_response):
     job_id = scp_response.headers["Location"].split("/")[-1]
     if module.params["job_wait"]:
         job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
