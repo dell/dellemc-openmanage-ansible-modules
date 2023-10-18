@@ -59,18 +59,24 @@ options:
     type: str
   scp_components:
     description:
-      - If C(ALL), this module exports or imports all components configurations from SCP file.
-      - If C(IDRAC), this module exports or imports iDRAC configuration from SCP file.
-      - If C(BIOS), this module exports or imports BIOS configuration from SCP file.
-      - If C(NIC), this module exports or imports NIC configuration from SCP file.
-      - If C(RAID), this module exports or imports RAID configuration from SCP file.
-      - If C(EVENTFILTERS), this module exports or imports EVENTFILTERS configuration from SCP file.
-      - If C(SUPPORTASSIST), this module exports or imports SUPPORTASSIST configuration from SCP file.
-      - If C(LIFECYCLECONTROLLER), this module exports or imports LIFECYCLECONTROLLER configuration from SCP file.
+      - If C(ALL), this option exports or imports all components configurations from the SCP file.
+      - If C(IDRAC), this option exports or imports iDRAC configuration from the SCP file.
+      - If C(BIOS), this option exports or imports BIOS configuration from the SCP file.
+      - If C(NIC), this option exports or imports NIC configuration from the SCP file.
+      - If C(RAID), this option exports or imports RAID configuration from the SCP file.
+      - If C(FC), this option exports or imports FiberChannel configurations from the SCP file.
+      - If C(InfiniBand), this option exports or imports InfiniBand configuration from the SCP file.
+      - If C(SupportAssist), this option exports or imports SupportAssist configuration from the SCP file.
+      - If C(EventFilters), this option exports or imports EventFilters configuration from the SCP file.
+      - If C(System), this option exports or imports System configuration from the SCP file.
+      - If C(LifecycleController), this option exports or imports SupportAssist configuration from the SCP file.
+      - If C(AHCI), this option exports or imports EventFilters configuration from the SCP file.
+      - If C(PCIeSSD), this option exports or imports System configuration from the SCP file.
       - When I(command) is C(export) or C(import) I(target) with multiple components is supported only
         on iDRAC9 with firmware 6.10.00.00 and above.
-    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'EVENTFILTERS', 'SUPPORTASSIST', 'LIFECYCLECONTROLLER']
     type: list
+    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'FC', 'InfiniBand', 'SupportAssist',
+              'EventFilters', 'System', 'LifecycleController', 'AHCI', 'PCIeSSD']
     default: 'ALL'
     elements: str
     aliases: ['target']
@@ -187,6 +193,7 @@ author:
   - "Jagadeesh N V(@jagadeeshnv)"
   - "Felix Stephen (@felixs88)"
   - "Jennifer John (@Jennifer-John)"
+  - "Shivam Sharma (@ShivamSh3)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
     - Run this module from a system that has direct access to Dell iDRAC.
@@ -542,6 +549,9 @@ MUTUALLY_EXCLUSIVE = "import_buffer is mutually exclusive with {0}."
 PROXY_ERR_MSG = "proxy_support is enabled but all of the following are missing: proxy_server"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 FAIL_MSG = "Failed to {0} scp."
+TARGET_INVALID_MSG = "Unable to {command} the {invalid_targets} from the SCP file\
+ because the values {invalid_targets} are invalid.\
+ The valid values are {valid_targets}. Enter the valid values and retry the operation."
 
 
 def get_scp_file_format(module):
@@ -655,8 +665,11 @@ def run_export_import_scp_http(idrac, module):
         scp_response = idrac.export_scp(export_format=module.params["export_format"],
                                         export_use=module.params["export_use"],
                                         target=scp_target,
-                                        job_wait=module.params["job_wait"], share=share,
+                                        job_wait=False, share=share,  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well.
                                         include_in_export=include_in_export)
+        scp_response = wait_for_job_tracking_redfish(
+            module, idrac, scp_response
+        )
     scp_response = response_format_change(scp_response, module.params, scp_file_name_format)
     exit_on_failure(module, scp_response, command)
     return scp_response
@@ -713,7 +726,10 @@ def export_scp_redfish(module, idrac):
         scp_response = idrac.export_scp(export_format=module.params["export_format"],
                                         export_use=module.params["export_use"],
                                         target=scp_components, include_in_export=include_in_export,
-                                        job_wait=module.params["job_wait"], share=share, )
+                                        job_wait=False, share=share, )  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well.
+        scp_response = wait_for_job_tracking_redfish(
+            module, idrac, scp_response
+        )
     scp_response = response_format_change(scp_response, module.params, scp_file_name_format)
     exit_on_failure(module, scp_response, command)
     return scp_response
@@ -756,7 +772,9 @@ def preview_scp_redfish(module, idrac, http_share, import_job_wait=False):
             share["file_name"] = module.params.get("scp_file")
         buffer_text = get_buffer_text(module, share)
         scp_response = idrac.import_preview(import_buffer=buffer_text, target=scp_targets,
-                                            share=share, job_wait=job_wait_option)
+                                            share=share, job_wait=False)  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well
+        scp_response = wait_for_job_tracking_redfish(
+            module, idrac, scp_response)
     else:
         scp_response = idrac.import_preview(import_buffer=import_buffer, target=scp_targets, job_wait=job_wait_option)
     scp_response = response_format_change(scp_response, module.params, share.get("file_name"))
@@ -818,6 +836,17 @@ def idrac_import_scp_share(module, idrac, job_params):
     return scp_response
 
 
+def wait_for_job_tracking_redfish(module, idrac, scp_response):
+    job_id = scp_response.headers["Location"].split("/")[-1]
+    if module.params["job_wait"]:
+        job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
+            idrac, iDRAC_JOB_URI.format(job_id=job_id))
+        if job_failed:
+            module.exit_json(failed=True, status_msg=job_dict, job_id=job_id)
+        scp_response = job_dict
+    return scp_response
+
+
 def validate_input(module, scp_components):
     if len(scp_components) != 1 and "ALL" in scp_components:
         module.fail_json(msg=SCP_ALL_ERR_MSG)
@@ -827,6 +856,21 @@ def validate_input(module, scp_components):
                 module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("scp_file"))
             if module.params.get("share_name") is not None:
                 module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("share_name"))
+
+
+def validate_scp_components(module, idrac):
+    components = idrac.invoke_request(REDFISH_SCP_BASE_URI, "GET")
+    all_components = strip_substr_dict(components.json_data)
+    scp_components = module.params.get("scp_components")
+    command = module.params.get("command")
+    oem = all_components['Actions']['Oem']
+    for each in oem:
+        if 'SystemConfiguration' in each and command.lower() in each.lower():
+            allowable = oem.get(each).get('ShareParameters').get('Target@Redfish.AllowableValues')
+            invalid_comp = list(set(scp_components) - set(allowable))
+            if invalid_comp:
+                msg = TARGET_INVALID_MSG.format(command=command, invalid_targets=invalid_comp, valid_targets=allowable)
+                module.exit_json(msg=msg, failed=True)
 
 
 class ImportCommand():
@@ -895,6 +939,7 @@ def main():
         if module.params.get("share_name") is not None:
             http_share = module.params["share_name"].lower().startswith(('http://', 'https://'))
         with iDRACRedfishAPI(module.params) as idrac:
+            validate_scp_components(module, idrac)
             command = module.params['command']
             if command == 'import':
                 command_obj = ImportCommand(idrac, http_share, module)
@@ -930,7 +975,8 @@ def get_argument_spec():
         "share_password": {"required": False, "type": 'str',
                            "aliases": ['share_pwd'], "no_log": True},
         "scp_components": {"type": "list", "required": False, "elements": "str",
-                           "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'EVENTFILTERS', 'SUPPORTASSIST', 'LIFECYCLECONTROLLER'],
+                           "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'FC', 'InfiniBand', 'SupportAssist',
+                                       'EventFilters', 'System', 'LifecycleController', 'AHCI', 'PCIeSSD'],
                            "default": ['ALL'], "aliases": ["target"]},
         "scp_file": {"required": False, "type": 'str'},
         "shutdown_type": {"required": False,

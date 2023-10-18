@@ -22,6 +22,7 @@ JOB_SUCCESS_MSG = 'Successfully triggered the job to {0} the Server Configuratio
 PREVIEW_SUCCESS_MSG = 'Successfully previewed the Server Configuration Profile'
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
+JOB_TRACKING_CONST = 'idrac_server_config_profile.idrac_redfish_job_tracking'
 
 
 class TestServerConfigProfile(FakeAnsibleModule):
@@ -41,18 +42,26 @@ class TestServerConfigProfile(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"message": SUCCESS_MSG.format("export"),
+         "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "MessageId": "SYS043",
+                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.xml"},
          "mparams": {"share_name": "\\{SCP SHARE IP}\\share", "job_wait": True,
                      "scp_components": "IDRAC", "scp_file": "scp_file.xml",
                      "proxy_port": 80, "export_format": "XML"}},
         {"message": SUCCESS_MSG.format("export"),
+         "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS069",
+                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "mparams": {"share_name": "https://{SCP SHARE IP}/myshare/", "proxy_type": "socks4",
                      "proxy_support": True, "job_wait": True, "scp_components": "IDRAC",
                      "proxy_port": 80, "export_format": "JSON", "proxy_server": "PROXY_SERVER_IP",
                      "proxy_username": "proxy_username"}},
         {"message": JOB_SUCCESS_MSG.format("export"),
+         "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS053",
+                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "mparams": {"share_name": "{SCP SHARE IP}:/nfsshare", "job_wait": False,
                      "scp_components": "IDRAC", "scp_file": "scp_file.txt"}},
         {"message": JOB_SUCCESS_MSG.format("export"),
+         "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "MessageId": "SYS069",
+                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "mparams": {"share_name": "/share", "job_wait": False,
                      "scp_components": "IDRAC", "scp_file": "scp_file.json"}},
     ])
@@ -61,6 +70,14 @@ class TestServerConfigProfile(FakeAnsibleModule):
                                    "export_use": "Default", "include_in_export": "default"})
         idrac_default_args.update(params['mparams'])
         mocker.patch("builtins.open", mocker.mock_open())
+        if params.get('check_mode'):
+            mocker.patch(MODULE_PATH + 'idrac_server_config_profile.preview_scp_redfish',
+                         return_value=params['json_data'])
+        elif params['mparams']['job_wait']:
+            mocker.patch(MODULE_PATH + JOB_TRACKING_CONST,
+                         return_value=(False, None, params['json_data'], None))
+        else:
+            idrac_scp_redfish_mock.import_scp.return_value = params['json_data']
         result = self._run_module(idrac_default_args, check_mode=params.get('check_mode', False))
         assert params['message'] in result['msg']
 
@@ -118,7 +135,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'idrac_server_config_profile.preview_scp_redfish',
                          return_value=params['json_data'])
         elif params['mparams']['job_wait']:
-            mocker.patch(MODULE_PATH + 'idrac_server_config_profile.idrac_redfish_job_tracking',
+            mocker.patch(MODULE_PATH + JOB_TRACKING_CONST,
                          return_value=(False, None, params['json_data'], None))
         else:
             idrac_scp_redfish_mock.import_scp.return_value = params['json_data']
@@ -128,25 +145,31 @@ class TestServerConfigProfile(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [
         {"message": PREVIEW_SUCCESS_MSG,
          "check_mode": True,
+         "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("preview"), "MessageId": "SYS081",
+                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "mparams": {"share_name": "{SCP SHARE IP}:/nfsshare", "share_user": "sharename",
-                     "command": "preview", "job_wait": True,
+                     "share_password": "sharepswd", "command": "preview", "job_wait": True,
                      "scp_components": "IDRAC", "scp_file": "scp_file4.xml"}},
-        {"message": PREVIEW_SUCCESS_MSG,
-         "mparams": {"share_name": "https://{SCP SHARE IP}/nfsshare", "share_user": "sharename",
-                     "command": "preview", "job_wait": True,
+        {"message": JOB_SUCCESS_MSG.format("preview"),
+         "mparams": {"share_name": "http://{SCP SHARE IP}/nfsshare", "share_user": "sharename",
+                     "share_password": "sharepswd", "command": "preview", "job_wait": False,
                      "scp_components": "IDRAC", "scp_file": "scp_file4.xml"}},
     ])
     def test_preview_scp(self, params, idrac_scp_redfish_mock, idrac_default_args, mocker):
         idrac_default_args.update({"command": "preview"})
         idrac_default_args.update(params['mparams'])
+        if params['mparams']['job_wait']:
+            mocker.patch(MODULE_PATH + 'idrac_server_config_profile.idrac_redfish_job_tracking',
+                         return_value=(False, None, params['json_data'], None))
         result = self._run_module(idrac_default_args, check_mode=params.get('check_mode', False))
         assert params['message'] in result['msg']
 
     def test_preview_scp_redfish_throws_ex(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
         idrac_default_args.update({"share_name": "{SCP SHARE IP}:/nfsshare", "share_user": "sharename",
-                                   "command": "preview", "job_wait": True,
+                                   "share_password": "sharepswd", "command": "preview", "job_wait": False,
                                    "scp_components": "IDRAC", "scp_file": "scp_file5.xml"})
-        idrac_scp_redfish_mock.import_preview = MagicMock(return_value={"TaskStatus": "Critical"})
+        mocker.patch(MODULE_PATH + 'idrac_server_config_profile.response_format_change',
+                     return_value={"TaskStatus": "Critical"})
         with pytest.raises(Exception) as ex:
             self._run_module(idrac_default_args)
         assert ex.value.args[0]['msg'] == "Failed to preview scp."
@@ -156,7 +179,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
                                    "command": "import", "job_wait": True, "scp_components": "IDRAC",
                                    "scp_file": "scp_file2.xml", "end_host_power_state": "On",
                                    "shutdown_type": "Graceful"})
-        mocker.patch(MODULE_PATH + 'idrac_server_config_profile.idrac_redfish_job_tracking',
+        mocker.patch(MODULE_PATH + JOB_TRACKING_CONST,
                      return_value=(True, None, {"Status": "Failed"}, None))
         result = self._run_module(idrac_default_args)
         assert result['failed']
