@@ -483,7 +483,6 @@ class IDRACNetworkAttributes:
             reg.update({'Ethernet': resp.get('Ethernet', {})})
             reg.update({'FibreChannel': resp.get('FibreChannel', {})})
             reg.update({'iSCSIBoot': resp.get('iSCSIBoot', {})})
-        self.module.warn(json.dumps(reg))
         return reg
 
     def extract_error_msg(self, resp):
