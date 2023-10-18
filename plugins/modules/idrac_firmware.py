@@ -102,6 +102,7 @@ options:
         description:
           - The proxy type of the proxy server.
           - This is required when I(proxy_support) is C(ParametersProxy).
+          - "Note: SOCKS4 proxy does not support IPv6 address."
         choices: [HTTP, SOCKS]
         type: str
     proxy_uname:
@@ -124,7 +125,7 @@ notes:
         component jobs present.
     - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the
         module will return success with a proper message.
-    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip) and I(share_name).
     - This module supports C(check_mode).
 '''
 
