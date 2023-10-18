@@ -39,6 +39,7 @@ TIME_SLEEP = "idrac_firmware.time.sleep"
 VALIDATE_CATALOG = "idrac_firmware._validate_catalog_file"
 SHARE_PWD = "share_pwd"
 USER_PWD = "user_pwd"
+TEST_HOST = "'https://testhost.com'"
 
 
 class TestidracFirmware(FakeAnsibleModule):
@@ -187,8 +188,7 @@ class TestidracFirmware(FakeAnsibleModule):
         payload = {"ApplyUpdate": "True", "CatalogFile": CATALOG, "IgnoreCertWarning": "On",
                    "RebootNeeded": True, "UserName": "username", "Password": USER_PWD}
         result = self.module.update_firmware_url_omsdk(f_module, idrac_connection_firmware_mock,
-                                                       "http://downloads.dell.com/repo",
-                                                       CATALOG, True, True, True, True, payload)
+                                                       DELL_SHARE, CATALOG, True, True, True, True, payload)
         assert result[0] == {"InstanceID": "JID_12345678"}
 
     def test_update_firmware_url_omsdk_success_case02(self, idrac_connection_firmware_mock, idrac_default_args,
@@ -266,7 +266,7 @@ class TestidracFirmware(FakeAnsibleModule):
     def test_update_firmware_redfish_success_case03(self, idrac_connection_firmware_mock,
                                                     idrac_connection_firmware_redfish_mock,
                                                     idrac_default_args, mocker):
-        idrac_default_args.update({"share_name": "https://downloads.dell.com", "catalog_file_name": CATALOG,
+        idrac_default_args.update({"share_name": DELL_SHARE, "catalog_file_name": CATALOG,
                                    "share_user": "UserName", "share_password": SHARE_PWD, "share_mnt": "shrmnt",
                                    "reboot": True, "job_wait": False, "ignore_cert_warning": True, "apply_update": True})
         mocker.patch(MODULE_PATH + UPDATE_URL,
@@ -547,7 +547,7 @@ class TestidracFirmware(FakeAnsibleModule):
                          side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + VALIDATE_CATALOG,
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type(TEST_HOST, 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type == HTTPError:
             result = self._run_module(idrac_default_args)
