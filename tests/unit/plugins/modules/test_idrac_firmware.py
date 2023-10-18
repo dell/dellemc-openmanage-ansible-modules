@@ -38,6 +38,7 @@ WAIT_FOR_JOB = "idrac_firmware.wait_for_job_completion"
 TIME_SLEEP = "idrac_firmware.time.sleep"
 VALIDATE_CATALOG = "idrac_firmware._validate_catalog_file"
 SHARE_PWD = "share_pwd"
+USER_PWD = "user_pwd"
 
 
 class TestidracFirmware(FakeAnsibleModule):
@@ -184,7 +185,7 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_connection_firmware_mock.update_mgr.update_from_dell_repo_url.return_value = {"InstanceID": "JID_12345678"}
         f_module = self.get_module_mock(params=idrac_default_args)
         payload = {"ApplyUpdate": "True", "CatalogFile": CATALOG, "IgnoreCertWarning": "On",
-                   "RebootNeeded": True, "UserName": "username", "Password": "psw"}
+                   "RebootNeeded": True, "UserName": "username", "Password": USER_PWD}
         result = self.module.update_firmware_url_omsdk(f_module, idrac_connection_firmware_mock,
                                                        "http://downloads.dell.com/repo",
                                                        CATALOG, True, True, True, True, payload)
@@ -216,7 +217,7 @@ class TestidracFirmware(FakeAnsibleModule):
             "GetRepoBasedUpdateList_OUTPUT": {"Message": [{}]}}}
         }
         payload = {"ApplyUpdate": "True", "CatalogFile": CATALOG, "IgnoreCertWarning": "On", "RebootNeeded": True,
-                   "UserName": "username", "Password": "psw"}
+                   "UserName": "username", "Password": USER_PWD}
         result = self.module.update_firmware_url_omsdk(f_module, idrac_connection_firmware_mock,
                                                        DELL_SHARE, CATALOG, True, True, True,
                                                        False, payload)
