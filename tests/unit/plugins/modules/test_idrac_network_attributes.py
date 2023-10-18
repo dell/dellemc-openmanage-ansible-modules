@@ -43,6 +43,7 @@ CHANGES_FOUND_MSG = "Changes found to be applied."
 INVALID_ID_MSG = "Unable to complete the operation because the value `{0}` for the input `{1}` parameter is invalid."
 JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to complete. Currently can not clear pending attributes."
 ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
+CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8 = "Clear pending is not supported."
 
 
 class TestIDRACNetworkAttributes(FakeAnsibleModule):
@@ -667,6 +668,8 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             return action_setting_uri_resp
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_dynamic_uri",
                      side_effect=mock_get_dynamic_uri_request)
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
+                     return_value='6.1')
 
         # Scenario 1: When there's no pending attributes
         f_module = self.get_module_mock(
@@ -742,6 +745,17 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             idr_obj.clear_pending()
         assert exc.value.args[0] == CHANGES_FOUND_MSG
+
+        # Scenario 8: When Firmware version is less 3 and oem_network_attribute is not given
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
+                     return_value='2.9')
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.clear_pending()
+        assert exc.value.args[0] == CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8
 
     def test_perform_operation_OEMNetworkAttributes(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                                     idrac_ntwrk_attr_mock, mocker):
