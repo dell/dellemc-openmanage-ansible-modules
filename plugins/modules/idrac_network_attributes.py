@@ -557,7 +557,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
         pending_attributes = settings_uri_resp.get('Attributes')
         clear_pending_uri = settings_uri_resp.get('Actions').get(
             '#DellManager.ClearPending').get('target')
-        if not pending_attributes:
+        if not pending_attributes and not oem_network_attributes:
             self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
         job_resp = get_scheduled_job_resp(self.idrac, 'NICConfiguration')
         job_id, job_state = job_resp.get('Id'), job_resp.get('JobState')
@@ -567,16 +567,23 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
                 self.module.exit_json(failed=True, msg=JOB_RUNNING_CLEAR_PENDING_ATTR.format('NICConfiguration'),
                                       job_status=job_resp)
             elif job_state in ["Starting", "Scheduled", "Scheduling"]:
-                if self.module.check_mode:
+                if self.module.check_mode and not oem_network_attributes:
                     self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-                delete_job(self.idrac, job_id)
-                self.module.exit_json(
-                    msg=SUCCESS_CLEAR_PENDING_ATTR_MSG, changed=True)
-        if self.module.check_mode:
+                elif not self.module.check_mode:
+                    delete_job(self.idrac, job_id)
+                elif not oem_network_attributes:
+                    self.module.exit_json(
+                        msg=SUCCESS_CLEAR_PENDING_ATTR_MSG, changed=True)
+        if self.module.check_mode and not oem_network_attributes:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-        self.idrac.invoke_request(
-            clear_pending_uri, "POST", data="{}", dump=False)
-        self.module.exit_json(msg=SUCCESS_CLEAR_PENDING_ATTR_MSG, changed=True)
+        settings_uri_resp = get_dynamic_uri(self.idrac, settings_uri)
+        pending_attributes = settings_uri_resp.get('Attributes')
+        if pending_attributes and not self.module.check_mode:
+            self.idrac.invoke_request(
+                clear_pending_uri, "POST", data="{}", dump=False)
+        if not oem_network_attributes:
+            self.module.exit_json(
+                msg=SUCCESS_CLEAR_PENDING_ATTR_MSG, changed=True)
 
     def perform_operation(self):
         oem_network_attributes = self.module.params.get(
@@ -709,7 +716,7 @@ def main():
             perform_operation_for_main(
                 module, network_attr_obj, diff, invalid_attr)
     except HTTPError as err:
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.fail_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
