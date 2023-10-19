@@ -865,9 +865,9 @@ def validate_scp_components(module, idrac):
     command = module.params.get("command")
     oem = all_components['Actions']['Oem']
     operation_dict = {
-        "export" : "ExportSystemConfiguration",
-        "import" : "ImportSystemConfiguration",
-        "preview" : "ImportSystemConfigurationPreview"
+        "export": "ExportSystemConfiguration",
+        "import": "ImportSystemConfiguration",
+        "preview": "ImportSystemConfigurationPreview"
     }
     for each in oem:
         if each.endswith(operation_dict.get(command.lower())):
