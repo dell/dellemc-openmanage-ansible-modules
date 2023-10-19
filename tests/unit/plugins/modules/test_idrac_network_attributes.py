@@ -768,6 +768,21 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         data = idr_obj.clear_pending()
         assert data is None
 
+        # Scenario 10: When Fw vers is greater than 3, job exists, in starting, normal mode, without oem_network_attribute
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
+                     return_value='3.1')
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_scheduled_job_resp",
+                     return_value={'Id': 'JIDXXXXXX', 'JobState': 'Starting'})
+        idrac_default_args.update({'oem_network_attributes': None})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        import pdb; pdb.set_trace()
+        with pytest.raises(Exception) as exc:
+            idr_obj.clear_pending()
+        assert exc.value.args[0] == SUCCESS_CLEAR_PENDING_ATTR_MSG
+
     def test_perform_operation_OEMNetworkAttributes(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                                     idrac_ntwrk_attr_mock, mocker):
         obj = MagicMock()
