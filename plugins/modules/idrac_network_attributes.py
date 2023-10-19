@@ -333,10 +333,11 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     delete_job, get_current_time, get_dynamic_uri, get_idrac_firmware_version,
     get_scheduled_job_resp, remove_key, validate_and_get_first_resource_id_uri,
-    wait_for_idrac_job_completion, xml_data_conversion)
+    idrac_redfish_job_tracking, xml_data_conversion)
 
 REGISTRY_URI = '/redfish/v1/Registries'
 SYSTEMS_URI = "/redfish/v1/Systems"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 
 SUCCESS_MSG = "Successfully updated the network attributes."
 SUCCESS_CLEAR_PENDING_ATTR_MSG = "Successfully cleared the pending network attributes."
@@ -356,6 +357,7 @@ INVALID_ID_MSG = "Unable to complete the operation because " + \
 JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to complete. Currently can not clear pending attributes."
 ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8 = "Clear pending is not supported."
+WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
 
 
 class IDRACNetworkAttributes:
@@ -459,7 +461,7 @@ class IDRACNetworkAttributes:
             'network_device_function_id')
         scp_response = self.idrac.export_scp(export_format="JSON", export_use="Default",
                                              target="NIC", job_wait=True)
-        comp = scp_response.json_data["SystemConfiguration"]["Components"]
+        comp = scp_response.json_data.get("SystemConfiguration", {}).get("Components", {})
         for each in comp:
             if each.get('FQDD') == network_device_function_id:
                 for each_attr in each.get('Attributes'):
@@ -612,19 +614,20 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
                 '@Redfish.Settings').get('SettingsObject').get('@odata.id')
             resp = self.idrac.invoke_request(
                 method='PATCH', uri=patch_uri, data=payload)
-        invalid_attr = self.extract_error_msg(resp)
+            invalid_attr = self.extract_error_msg(resp)
         job_wait = job_wait if apply_time == "Immediate" else False
-        job_resp = {}
-        if job_tracking_uri := resp.headers.get("Location"):
-            job_resp, wait_timeout_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
-                                                                       job_wait=job_wait,
-                                                                       wait_timeout=job_wait_timeout)
-
-            if wait_timeout_msg:
-                self.module.exit_json(msg=wait_timeout_msg, changed=True)
-            job_resp = remove_key(job_resp.json_data,
+        job_dict = {}
+        if (job_tracking_uri := resp.headers.get("Location")):
+            job_id = job_tracking_uri.split("/")[-1]
+            wait_time = job_wait_timeout if job_wait else 20
+            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
+                                                                              max_job_wait_sec=wait_time)
+            if int(wait_time) >= int(job_wait_timeout):
+                self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
+                    job_wait_timeout), changed=True)
+            job_dict = remove_key(job_dict,
                                   regex_pattern='(.*?)@odata')
-        return job_resp, invalid_attr
+        return job_dict, invalid_attr
 
 
 class NetworkAttributes(IDRACNetworkAttributes):
@@ -650,18 +653,19 @@ class NetworkAttributes(IDRACNetworkAttributes):
         resp = self.idrac.invoke_request(
             method='PATCH', uri=patch_uri, data=payload)
         invalid_attr = self.extract_error_msg(resp)
-        job_resp = {}
         job_wait = job_wait if apply_time == "Immediate" else False
-        if job_tracking_uri := resp.headers.get("Location"):
-            job_resp, wait_timeout_msg = wait_for_idrac_job_completion(self.idrac, job_tracking_uri,
-                                                                       job_wait=job_wait,
-                                                                       wait_timeout=job_wait_timeout)
-
-            if wait_timeout_msg:
-                self.module.exit_json(msg=wait_timeout_msg, changed=True)
-            job_resp = remove_key(job_resp.json_data,
+        job_dict = {}
+        if (job_tracking_uri := resp.headers.get("Location")):
+            job_id = job_tracking_uri.split("/")[-1]
+            wait_time = job_wait_timeout if job_wait else 20
+            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
+                                                                              max_job_wait_sec=wait_time)
+            if int(wait_time) >= int(job_wait_timeout):
+                self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
+                    job_wait_timeout), changed=True)
+            job_dict = remove_key(job_dict,
                                   regex_pattern='(.*?)@odata')
-        return job_resp, invalid_attr
+        return job_dict, invalid_attr
 
 
 def perform_operation_for_main(module, obj, diff, _invalid_attr):
