@@ -22,7 +22,6 @@ JOB_SUCCESS_MSG = 'Successfully triggered the job to {0} the Server Configuratio
 PREVIEW_SUCCESS_MSG = 'Successfully previewed the Server Configuration Profile'
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
-INVALID_CONNECTION_MSG = "Unable to connect to the iDRAC."
 
 
 class TestServerConfigProfile(FakeAnsibleModule):
@@ -42,16 +41,16 @@ class TestServerConfigProfile(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"message": SUCCESS_MSG.format("export"),
-         "mparams": {"share_name": "\\192.168.0.1\\share", "job_wait": True,
+         "mparams": {"share_name": "\\{SCP SHARE IP}\\share", "job_wait": True,
                      "scp_components": "IDRAC", "scp_file": "scp_file.xml",
                      "proxy_port": 80, "export_format": "XML"}},
         {"message": SUCCESS_MSG.format("export"),
-         "mparams": {"share_name": "https://10.10.10.10/myshare/", "proxy_type": "socks4",
+         "mparams": {"share_name": "https://{SCP SHARE IP}/myshare/", "proxy_type": "socks4",
                      "proxy_support": True, "job_wait": True, "scp_components": "IDRAC",
-                     "proxy_port": 80, "export_format": "JSON", "proxy_server": "10.10.0.1",
+                     "proxy_port": 80, "export_format": "JSON", "proxy_server": "PROXY_SERVER_IP",
                      "proxy_username": "proxy_username"}},
         {"message": JOB_SUCCESS_MSG.format("export"),
-         "mparams": {"share_name": "192.168.0.1:/nfsshare", "job_wait": False,
+         "mparams": {"share_name": "{SCP SHARE IP}:/nfsshare", "job_wait": False,
                      "scp_components": "IDRAC", "scp_file": "scp_file.txt"}},
         {"message": JOB_SUCCESS_MSG.format("export"),
          "mparams": {"share_name": "/share", "job_wait": False,
@@ -68,44 +67,44 @@ class TestServerConfigProfile(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [
         {"message": CHANGES_FOUND,
          "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS081",
-                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
+                       "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "check_mode": True,
-         "mparams": {"share_name": "192.168.0.1:/nfsshare", "share_user": "sharename",
+         "mparams": {"share_name": "{SCP SHARE IP}:/nfsshare", "share_user": "sharename",
                      "job_wait": False, "scp_components": "IDRAC",
                      "scp_file": "scp_file1.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
         {"message": NO_CHANGES_FOUND,
          "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS069",
-                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
+                       "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "check_mode": True,
-         "mparams": {"share_name": "\\192.168.0.1\\share", "share_user": "sharename",
+         "mparams": {"share_name": "\\{SCP SHARE IP}\\share", "share_user": "sharename",
                      "job_wait": False, "scp_components": "IDRAC",
                      "scp_file": "scp_file1.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
         {"message": SUCCESS_MSG.format("import"),
          "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "MessageId": "SYS043",
-                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
+                       "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "mparams": {"share_name": "/share", "share_user": "sharename",
                      "job_wait": True, "scp_components": "IDRAC",
                      "scp_file": "scp_file1.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
         {"message": SUCCESS_MSG.format("import"),
          "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS069",
-                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-         "mparams": {"share_name": "http://10.10.0.1/share", "share_user": "sharename",
+                       "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
+         "mparams": {"share_name": "https://{SCP SHARE IP}/share", "share_user": "sharename",
                      "job_wait": True, "scp_components": "IDRAC",
                      "scp_file": "scp_file1.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
         {"message": SUCCESS_MSG.format("import"),
          "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS053",
-                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-         "mparams": {"share_name": "http://10.10.0.1/share", "share_user": "sharename",
+                       "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
+         "mparams": {"share_name": "https://{SCP SHARE IP}/share", "share_user": "sharename",
                      "job_wait": True, "scp_components": "IDRAC",
                      "scp_file": "scp_file1.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
         {"message": SUCCESS_MSG.format("import"),
          "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "MessageId": "SYS069",
-                       "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
+                       "PercentComplete": 100, "file": "https://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
          "mparams": {"command": "import", "job_wait": True, "scp_components": "IDRAC",
                      "import_buffer": "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                                        <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
@@ -129,11 +128,11 @@ class TestServerConfigProfile(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [
         {"message": PREVIEW_SUCCESS_MSG,
          "check_mode": True,
-         "mparams": {"share_name": "192.168.0.1:/nfsshare", "share_user": "sharename",
+         "mparams": {"share_name": "{SCP SHARE IP}:/nfsshare", "share_user": "sharename",
                      "command": "preview", "job_wait": True,
                      "scp_components": "IDRAC", "scp_file": "scp_file4.xml"}},
         {"message": PREVIEW_SUCCESS_MSG,
-         "mparams": {"share_name": "http://10.10.0.1/nfsshare", "share_user": "sharename",
+         "mparams": {"share_name": "https://{SCP SHARE IP}/nfsshare", "share_user": "sharename",
                      "command": "preview", "job_wait": True,
                      "scp_components": "IDRAC", "scp_file": "scp_file4.xml"}},
     ])
@@ -144,7 +143,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
         assert params['message'] in result['msg']
 
     def test_preview_scp_redfish_throws_ex(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
-        idrac_default_args.update({"share_name": "192.168.0.1:/nfsshare", "share_user": "sharename",
+        idrac_default_args.update({"share_name": "{SCP SHARE IP}:/nfsshare", "share_user": "sharename",
                                    "command": "preview", "job_wait": True,
                                    "scp_components": "IDRAC", "scp_file": "scp_file5.xml"})
         idrac_scp_redfish_mock.import_preview = MagicMock(return_value={"TaskStatus": "Critical"})
@@ -153,7 +152,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
         assert ex.value.args[0]['msg'] == "Failed to preview scp."
 
     def test_import_scp_http_throws_exception(self, idrac_scp_redfish_mock, idrac_default_args, mocker):
-        idrac_default_args.update({"share_name": "http://100.96.20.175/myshare/", "share_user": "sharename",
+        idrac_default_args.update({"share_name": "https://{SCP SHARE IP}/myshare/", "share_user": "sharename",
                                    "command": "import", "job_wait": True, "scp_components": "IDRAC",
                                    "scp_file": "scp_file2.xml", "end_host_power_state": "On",
                                    "shutdown_type": "Graceful"})
@@ -169,12 +168,12 @@ class TestServerConfigProfile(FakeAnsibleModule):
                      "scp_file": "scp_file3.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
         {"message": "proxy_support is enabled but all of the following are missing: proxy_server",
-         "mparams": {"share_name": "http://10.10.10.10/myshare/", "proxy_type": "http",
+         "mparams": {"share_name": "https://{SCP SHARE IP}/myshare/", "proxy_type": "http",
                      "proxy_support": True, "job_wait": True, "scp_components": "IDRAC",
                      "proxy_port": 80, "export_format": "JSON",
                      "proxy_username": "proxy_username"}},
         {"message": "import_buffer is mutually exclusive with share_name",
-         "mparams": {"share_name": "192.168.0.1:/nfsshare", "command": "preview", "job_wait": False,
+         "mparams": {"share_name": "{SCP SHARE IP}:/nfsshare", "command": "preview", "job_wait": False,
                      "import_buffer": "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                                        <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
         {"message": "import_buffer is mutually exclusive with scp_file",
@@ -182,12 +181,12 @@ class TestServerConfigProfile(FakeAnsibleModule):
                      "import_buffer": "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'> \
                                        <Value>Disabled</Value></Attribute></Component><Component FQDD='iDRAC.Embedded.1'>"}},
         {"message": "The option ALL cannot be used with options IDRAC, BIOS, NIC, or RAID.",
-         "mparams": {"share_name": "http://100.96.20.175/myshare/", "share_user": "sharename",
+         "mparams": {"share_name": "https://{SCP SHARE IP}/myshare/", "share_user": "sharename",
                      "command": "import", "job_wait": True, "scp_components": ["IDRAC", "ALL"],
                      "scp_file": "scp_file2.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
     ])
-    def test_scp_invalid(self, params, idrac_scp_redfish_mock, idrac_default_args, mocker):
+    def test_scp_invalid(self, params, idrac_scp_redfish_mock, idrac_default_args):
         idrac_default_args.update(params['mparams'])
         with pytest.raises(Exception) as ex:
             self._run_module(idrac_default_args)
