@@ -17,7 +17,7 @@ from io import StringIO
 
 import pytest
 from ansible.module_utils._text import to_text
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
+from urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import \
     idrac_network_attributes
@@ -757,6 +757,17 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             idr_obj.clear_pending()
         assert exc.value.args[0] == CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8
 
+        # Scenario 9: When Firmware version is less 3 and oem_network_attribute is given
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
+                     return_value='2.9')
+        idrac_default_args.update({'oem_network_attributes': {'somedata': 'somevalue'}})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.OEMNetworkAttributes(
+            idrac_connection_ntwrk_attr_mock, f_module)
+        data = idr_obj.clear_pending()
+        assert data is None
+
     def test_perform_operation_OEMNetworkAttributes(self, idrac_default_args, idrac_connection_ntwrk_attr_mock,
                                                     idrac_ntwrk_attr_mock, mocker):
         obj = MagicMock()
@@ -912,9 +923,9 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         obj = MagicMock()
         invalid_attr = {'a': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE}
         # Scenario 1: When diff is false
-        diff = ()
+        diff = 0
         f_module = self.get_module_mock(
-            params=idrac_default_args, check_mode=False)
+            params=idrac_default_args, check_mode=True)
         with pytest.raises(Exception) as exc:
             self.module.perform_operation_for_main(
                 f_module, obj, diff, invalid_attr)
@@ -965,6 +976,25 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
                 f_module, obj, diff, invalid_attr)
         assert exc.value.args[0] == SCHEDULE_MSG
 
+        # Scenario 6: When diff is False and check mode is there
+        diff = 0
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_operation_for_main(
+                f_module, obj, diff, invalid_attr)
+        assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
+
+        # Scenario 7: When diff is False and check mode is False, invalid is False
+        diff = 0
+        invalid_attr = {}
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_operation_for_main(
+                f_module, obj, diff, invalid_attr)
+        assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
+
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
     def test_idrac_network_attributes_main_exception_handling_case(self, exc_type, mocker, idrac_default_args,
@@ -974,27 +1004,25 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         obj.perform_validation_for_network_device_function_id.return_value = None
         obj.get_diff_between_current_and_module_input.return_value = (
             None, None)
+        obj.validate_job_timeout.return_value = None
         obj.clear_pending.return_value = None
-        idrac_ntwrk_attr_mock.status_code = 400
-        idrac_ntwrk_attr_mock.success = False
         idrac_default_args.update({'apply_time': "Immediate",
                                    'network_adapter_id': 'Some_adapter_id',
                                    'network_device_function_id': 'some_device_id',
                                    'clear_pending': True if exec == 'URLError' else False})
-        mocker.patch(
-            MODULE_PATH + "idrac_network_attributes.OEMNetworkAttributes", return_value=obj)
         json_str = to_text(json.dumps({"data": "out"}))
-        if exc_type not in [HTTPError, SSLValidationError]:
-            tmp = {'oem_network_attributes': {'VlanId': 10}}
-            mocker.patch(MODULE_PATH + "idrac_network_attributes.perform_operation_for_main",
-                         side_effect=exc_type('test'))
-        else:
-            tmp = {'network_attributes': {'abc': 10}}
-            mocker.patch(MODULE_PATH + "idrac_network_attributes.perform_operation_for_main",
+        if exc_type in [HTTPError, SSLValidationError]:
+            tmp = {'network_attributes': {'VlanId': 10}}
+            mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.set_dynamic_base_uri_and_validate_ids",
                          side_effect=exc_type('nhttp://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
+        else:
+
+            tmp = {'oem_network_attributes': {'VlanId': 10}}
+            mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.set_dynamic_base_uri_and_validate_ids",
+                         side_effect=exc_type('test'))
         idrac_default_args.update(tmp)
         result = self._run_module(idrac_default_args)
         if exc_type == URLError:

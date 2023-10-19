@@ -322,10 +322,11 @@ error_info:
 '''
 
 import json
+import time
+from urllib.error import HTTPError, URLError
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import (
     idrac_auth_params, iDRACRedfishAPI)
@@ -575,6 +576,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
                         msg=SUCCESS_CLEAR_PENDING_ATTR_MSG, changed=True)
         if self.module.check_mode and not oem_network_attributes:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+        time.sleep(5)
         settings_uri_resp = get_dynamic_uri(self.idrac, settings_uri)
         pending_attributes = settings_uri_resp.get('Attributes')
         if pending_attributes and not self.module.check_mode:
@@ -665,7 +667,8 @@ class NetworkAttributes(IDRACNetworkAttributes):
 def perform_operation_for_main(module, obj, diff, _invalid_attr):
     if diff:
         if module.check_mode:
-            module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+            module.exit_json(msg=CHANGES_FOUND_MSG, changed=True,
+                             invalid_attributes=_invalid_attr)
         else:
             job_resp, invalid_attr = obj.perform_operation()
             if job_resp.get('JobState') == "Completed":
@@ -675,6 +678,12 @@ def perform_operation_for_main(module, obj, diff, _invalid_attr):
             module.exit_json(msg=msg, invalid_attributes=invalid_attr,
                              job_status=job_resp, changed=True)
     else:
+        if module.check_mode:
+            module.exit_json(msg=NO_CHANGES_FOUND_MSG,
+                             invalid_attributes=_invalid_attr)
+        # When user has given only invalid attribute, diff will 0 and _invalid_attr will have dictionary,
+        elif _invalid_attr:  # Expecting HTTP Error from server.
+            job_resp, invalid_attr = obj.perform_operation()
         module.exit_json(msg=NO_CHANGES_FOUND_MSG,
                          invalid_attributes=_invalid_attr)
 
@@ -717,10 +726,16 @@ def main():
             perform_operation_for_main(
                 module, network_attr_obj, diff, invalid_attr)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err), failed=True)
+        err = remove_key(
+            err, regex_pattern='(.*?)@odata') if err and isinstance(err, dict) else err
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
+        err = remove_key(
+            err, regex_pattern='(.*?)@odata') if err and isinstance(err, dict) else err
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
+        err = remove_key(
+            err, regex_pattern='(.*?)@odata') if err and isinstance(err, dict) else err
         module.exit_json(msg=str(err), failed=True)
 
 
