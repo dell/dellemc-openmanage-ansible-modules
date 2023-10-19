@@ -59,15 +59,24 @@ options:
     type: str
   scp_components:
     description:
-      - If C(ALL), this module exports or imports all components configurations from SCP file.
-      - If C(IDRAC), this module exports or imports iDRAC configuration from SCP file.
-      - If C(BIOS), this module exports or imports BIOS configuration from SCP file.
-      - If C(NIC), this module exports or imports NIC configuration from SCP file.
-      - If C(RAID), this module exports or imports RAID configuration from SCP file.
+      - If C(ALL), this option exports or imports all components configurations from the SCP file.
+      - If C(IDRAC), this option exports or imports iDRAC configuration from the SCP file.
+      - If C(BIOS), this option exports or imports BIOS configuration from the SCP file.
+      - If C(NIC), this option exports or imports NIC configuration from the SCP file.
+      - If C(RAID), this option exports or imports RAID configuration from the SCP file.
+      - If C(FC), this option exports or imports FiberChannel configurations from the SCP file.
+      - If C(InfiniBand), this option exports or imports InfiniBand configuration from the SCP file.
+      - If C(SupportAssist), this option exports or imports SupportAssist configuration from the SCP file.
+      - If C(EventFilters), this option exports or imports EventFilters configuration from the SCP file.
+      - If C(System), this option exports or imports System configuration from the SCP file.
+      - If C(LifecycleController), this option exports or imports SupportAssist configuration from the SCP file.
+      - If C(AHCI), this option exports or imports EventFilters configuration from the SCP file.
+      - If C(PCIeSSD), this option exports or imports System configuration from the SCP file.
       - When I(command) is C(export) or C(import) I(target) with multiple components is supported only
         on iDRAC9 with firmware 6.10.00.00 and above.
     type: list
-    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
+    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'FC', 'InfiniBand', 'SupportAssist',
+              'EventFilters', 'System', 'LifecycleController', 'AHCI', 'PCIeSSD']
     default: 'ALL'
     elements: str
     aliases: ['target']
@@ -541,6 +550,9 @@ MUTUALLY_EXCLUSIVE = "import_buffer is mutually exclusive with {0}."
 PROXY_ERR_MSG = "proxy_support is enabled but all of the following are missing: proxy_server"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 FAIL_MSG = "Failed to {0} scp."
+TARGET_INVALID_MSG = "Unable to {command} the {invalid_targets} from the SCP file\
+ because the values {invalid_targets} are invalid.\
+ The valid values are {valid_targets}. Enter the valid values and retry the operation."
 
 
 def get_scp_file_format(module):
@@ -851,6 +863,21 @@ def validate_input(module, scp_components):
                 module.fail_json(msg=MUTUALLY_EXCLUSIVE.format("share_name"))
 
 
+def validate_scp_components(module, idrac):
+    components = idrac.invoke_request(REDFISH_SCP_BASE_URI, "GET")
+    all_components = strip_substr_dict(components.json_data)
+    scp_components = module.params.get("scp_components")
+    command = module.params.get("command")
+    oem = all_components['Actions']['Oem']
+    for each in oem:
+        if 'SystemConfiguration' in each and command.lower() in each.lower():
+            allowable = oem.get(each).get('ShareParameters').get('Target@Redfish.AllowableValues')
+            invalid_comp = list(set(scp_components) - set(allowable))
+            if invalid_comp:
+                msg = TARGET_INVALID_MSG.format(command=command, invalid_targets=invalid_comp, valid_targets=allowable)
+                module.exit_json(msg=msg, failed=True)
+
+
 class ImportCommand():
     def __init__(self, idrac, http_share, module):
         self.idrac = idrac
@@ -917,6 +944,7 @@ def main():
         if module.params.get("share_name") is not None:
             http_share = module.params["share_name"].lower().startswith(('http://', 'https://'))
         with iDRACRedfishAPI(module.params) as idrac:
+            validate_scp_components(module, idrac)
             command = module.params['command']
             if command == 'import':
                 command_obj = ImportCommand(idrac, http_share, module)
@@ -952,7 +980,8 @@ def get_argument_spec():
         "share_password": {"required": False, "type": 'str',
                            "aliases": ['share_pwd'], "no_log": True},
         "scp_components": {"type": "list", "required": False, "elements": "str",
-                           "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
+                           "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'FC', 'InfiniBand', 'SupportAssist',
+                                       'EventFilters', 'System', 'LifecycleController', 'AHCI', 'PCIeSSD'],
                            "default": ['ALL'], "aliases": ["target"]},
         "scp_file": {"required": False, "type": 'str'},
         "shutdown_type": {"required": False,

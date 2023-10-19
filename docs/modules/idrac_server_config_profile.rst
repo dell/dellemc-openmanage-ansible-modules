@@ -66,15 +66,31 @@ Parameters
 
 
   scp_components (optional, list, ALL)
-    If ``ALL``, this module exports or imports all components configurations from SCP file.
+    If ``ALL``, this option exports or imports all components configurations from the SCP file.
 
-    If ``IDRAC``, this module exports or imports iDRAC configuration from SCP file.
+    If ``IDRAC``, this option exports or imports iDRAC configuration from the SCP file.
 
-    If ``BIOS``, this module exports or imports BIOS configuration from SCP file.
+    If ``BIOS``, this option exports or imports BIOS configuration from the SCP file.
 
-    If ``NIC``, this module exports or imports NIC configuration from SCP file.
+    If ``NIC``, this option exports or imports NIC configuration from the SCP file.
 
-    If ``RAID``, this module exports or imports RAID configuration from SCP file.
+    If ``RAID``, this option exports or imports RAID configuration from the SCP file.
+
+    If ``FC``, this option exports or imports FiberChannel configurations from the SCP file.
+
+    If ``InfiniBand``, this option exports or imports InfiniBand configuration from the SCP file.
+
+    If ``SupportAssist``, this option exports or imports SupportAssist configuration from the SCP file.
+
+    If ``EventFilters``, this option exports or imports EventFilters configuration from the SCP file.
+
+    If ``System``, this option exports or imports System configuration from the SCP file.
+
+    If ``LifecycleController``, this option exports or imports SupportAssist configuration from the SCP file.
+
+    If ``AHCI``, this option exports or imports EventFilters configuration from the SCP file.
+
+    If ``PCIeSSD``, this option exports or imports System configuration from the SCP file.
 
     When *command* is ``export`` or ``import`` *target* with multiple components is supported only on iDRAC9 with firmware 6.10.00.00 and above.
 
