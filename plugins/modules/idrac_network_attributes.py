@@ -571,11 +571,8 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
             elif job_state in ["Starting", "Scheduled", "Scheduling"]:
                 if self.module.check_mode and not oem_network_attributes:
                     self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
-                elif not self.module.check_mode:
+                if not self.module.check_mode:
                     delete_job(self.idrac, job_id)
-                elif not oem_network_attributes:
-                    self.module.exit_json(
-                        msg=SUCCESS_CLEAR_PENDING_ATTR_MSG, changed=True)
         if self.module.check_mode and not oem_network_attributes:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         time.sleep(5)
