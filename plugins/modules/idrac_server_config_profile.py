@@ -726,7 +726,7 @@ def export_scp_redfish(module, idrac):
         scp_response = idrac.export_scp(export_format=module.params["export_format"],
                                         export_use=module.params["export_use"],
                                         target=scp_components, include_in_export=include_in_export,
-                                        job_wait=False, share=share, )  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well.
+                                        job_wait=False, share=share, )  # Assigning it as false because job tracking is done in idrac_redfish.py as well.
         scp_response = wait_for_job_tracking_redfish(
             module, idrac, scp_response
         )
@@ -754,7 +754,7 @@ def wait_for_response(scp_resp, module, share, idrac):
 def preview_scp_redfish(module, idrac, http_share, import_job_wait=False):
     import_buffer = module.params.get("import_buffer")
     command = module.params["command"]
-    scp_targets = ",".join(module.params["scp_components"])
+    scp_targets = 'ALL'  # Assigning it as ALL because it is the only target for preview.
     job_wait_option = module.params["job_wait"]
     if command == "import":
         job_wait_option = import_job_wait
@@ -772,7 +772,7 @@ def preview_scp_redfish(module, idrac, http_share, import_job_wait=False):
             share["file_name"] = module.params.get("scp_file")
         buffer_text = get_buffer_text(module, share)
         scp_response = idrac.import_preview(import_buffer=buffer_text, target=scp_targets,
-                                            share=share, job_wait=False)  # Hardcoding it as false because job tracking is done in idrac_redfish.py as well
+                                            share=share, job_wait=False)  # Assining it as false because job tracking is done in idrac_redfish.py as well
         scp_response = wait_for_job_tracking_redfish(
             module, idrac, scp_response)
     else:
@@ -831,7 +831,7 @@ def idrac_import_scp_share(module, idrac, job_params):
         job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
             idrac, iDRAC_JOB_URI.format(job_id=job_id))
         if job_failed:
-            module.exit_json(failed=True, status_msg=job_dict, job_id=job_id)
+            module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params("command")))
         scp_response = job_dict
     return scp_response
 
@@ -842,7 +842,7 @@ def wait_for_job_tracking_redfish(module, idrac, scp_response):
         job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
             idrac, iDRAC_JOB_URI.format(job_id=job_id))
         if job_failed:
-            module.exit_json(failed=True, status_msg=job_dict, job_id=job_id)
+            module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params("command")))
         scp_response = job_dict
     return scp_response
 
@@ -864,8 +864,13 @@ def validate_scp_components(module, idrac):
     scp_components = module.params.get("scp_components")
     command = module.params.get("command")
     oem = all_components['Actions']['Oem']
+    operation_dict = {
+        "export" : "ExportSystemConfiguration",
+        "import" : "ImportSystemConfiguration",
+        "preview" : "ImportSystemConfigurationPreview"
+    }
     for each in oem:
-        if 'SystemConfiguration' in each and command.lower() in each.lower():
+        if each.endswith(operation_dict.get(command.lower())):
             allowable = oem.get(each).get('ShareParameters').get('Target@Redfish.AllowableValues')
             invalid_comp = list(set(scp_components) - set(allowable))
             if invalid_comp:
