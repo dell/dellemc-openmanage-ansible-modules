@@ -518,7 +518,6 @@ error_info:
 
 import os
 import json
-import copy
 from datetime import datetime
 from os.path import exists
 from ansible.module_utils.basic import AnsibleModule
@@ -637,8 +636,7 @@ def run_export_import_scp_http(idrac, module):
     if share["share_type"] == "HTTPS":
         share["ignore_certificate_warning"] = IGNORE_WARNING[module.params["ignore_certificate_warning"]]
     if command == "import":
-        job_wait = copy.copy(module.params["job_wait"])
-        perform_check_mode(module, idrac, job_wait)
+        perform_check_mode(module, idrac)
         if share["share_type"] in ["HTTP", "HTTPS"]:
             proxy_share = get_proxy_share(module)
             share.update(proxy_share)
@@ -664,7 +662,7 @@ def run_export_import_scp_http(idrac, module):
     return scp_response
 
 
-def perform_check_mode(module, idrac, job_wait, http_share=True):
+def perform_check_mode(module, idrac, http_share=True):
     if module.check_mode:
         module.params["job_wait"] = True
         scp_resp = preview_scp_redfish(module, idrac, http_share, import_job_wait=True)
@@ -787,8 +785,7 @@ def import_scp_redfish(module, idrac, http_share):
     import_buffer = module.params.get("import_buffer")
     command = module.params["command"]
     scp_targets = ",".join(module.params["scp_components"])
-    job_wait = copy.copy(module.params["job_wait"])
-    perform_check_mode(module, idrac, job_wait, http_share)
+    perform_check_mode(module, idrac, http_share)
     share = {}
     if not import_buffer:
         share, _scp_file_name_format = get_scp_share_details(module)
@@ -797,7 +794,6 @@ def import_scp_redfish(module, idrac, http_share):
         share_dict = share
         if share["share_type"] == "LOCAL":
             share_dict = {}
-        module.params["job_wait"] = job_wait
         idrac_import_scp_params = {
             "import_buffer": buffer_text, "target": scp_targets, "share": share_dict, "job_wait": module.params["job_wait"],
             "host_powerstate": module.params["end_host_power_state"], "shutdown_type": module.params["shutdown_type"]
