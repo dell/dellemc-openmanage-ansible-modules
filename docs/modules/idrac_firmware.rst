@@ -117,6 +117,8 @@ Parameters
 
     This is required when *proxy_support* is ``ParametersProxy``.
 
+    Note: SOCKS4 proxy does not support IPv6 address.
+
 
   proxy_uname (optional, str, None)
     The user name for the proxy server.
@@ -168,7 +170,7 @@ Notes
    - Run this module from a system that has direct access to Dell iDRAC.
    - Module will report success based on the iDRAC firmware update parent job status if there are no individual component jobs present.
    - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the module will return success with a proper message.
-   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
+   - This module supports both IPv4 and IPv6 address for *idrac_ip* and *share_name*.
    - This module supports ``check_mode``.
 
 

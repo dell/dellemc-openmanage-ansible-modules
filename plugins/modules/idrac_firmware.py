@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.4.0
+# Copyright (C) 2018-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -102,6 +102,7 @@ options:
         description:
           - The proxy type of the proxy server.
           - This is required when I(proxy_support) is C(ParametersProxy).
+          - "Note: SOCKS4 proxy does not support IPv6 address."
         choices: [HTTP, SOCKS]
         type: str
     proxy_uname:
@@ -124,7 +125,7 @@ notes:
         component jobs present.
     - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the
         module will return success with a proper message.
-    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip) and I(share_name).
     - This module supports C(check_mode).
 '''
 
@@ -658,8 +659,8 @@ def update_firmware_redfish(idrac, module, repo_urls):
                 payload['ShareName'] = '\\'.join(cifs[3:])
                 payload['ShareType'] = 'CIFS'
             else:
-                nfs = urlparse(share_name)
-                payload['IPAddress'] = nfs.scheme
+                nfs = urlparse("nfs://" + share_name)
+                payload['IPAddress'] = nfs.netloc.strip(':')
                 payload['ShareName'] = nfs.path.strip('/')
                 payload['ShareType'] = 'NFS'
             resp = idrac.invoke_request(PATH, method="POST", data=payload)
