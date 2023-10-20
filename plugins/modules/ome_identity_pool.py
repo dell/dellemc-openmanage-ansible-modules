@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries.  All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -32,7 +32,7 @@ options:
     choices: [present, absent]
   pool_name:
     type: str
-    required: True
+    required: true
     description:
       - This option is mandatory for I(state) when creating, modifying and deleting an identity pool.
   new_pool_name:
@@ -124,13 +124,13 @@ options:
         description: Number of MAC addresses.I(identity_count) is required to option to create FC settings.
         type: int
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Deepak Joshi(@Dell-Deepak-Joshi))"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-    - This module does not support C(check_mode).
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -140,6 +140,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     pool_name: "pool1"
     pool_description: "Identity pool with Ethernet, FCoE, iSCSI and FC settings"
@@ -169,6 +170,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     pool_name: "pool2"
     pool_description: "create identity pool with ethernet"
     ethernet_settings:
@@ -180,6 +182,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     pool_name: "pool2"
     new_pool_name: "pool3"
     pool_description: "modifying identity pool with ethernet and fcoe settings"
@@ -195,6 +198,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     pool_name: "pool_new"
     new_pool_name: "pool_new2"
     pool_description: "modifying identity pool with iscsi and fc settings"
@@ -213,6 +217,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     pool_name: "pool2"
 '''
@@ -259,11 +264,13 @@ import codecs
 import binascii
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible.module_utils.urls import ConnectionError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 IDENTITY_URI = "IdentityPoolService/IdentityPools"
+CHANGES_FOUND = "Changes found to be applied."
+NO_CHANGES_FOUND = "No changes found to be applied."
 
 
 def get_identity_pool_id_by_name(pool_name, rest_obj):
@@ -305,12 +312,13 @@ def update_modify_setting(modify_payload, existing_payload, setting_type, sub_ke
     for sub_key in sub_keys:
         if sub_key not in modify_payload[setting_type] and sub_key in existing_payload[setting_type]:
             modify_payload[setting_type][sub_key] = existing_payload[setting_type][sub_key]
-        elif modify_payload[setting_type].get(sub_key) and existing_payload[setting_type].get(sub_key):
-            modify_setting = modify_payload[setting_type][sub_key]
-            existing_setting_payload = existing_payload[setting_type][sub_key]
-            diff_item = list(set(existing_setting_payload) - set(modify_setting))
-            for key in diff_item:
-                modify_payload[setting_type][sub_key][key] = existing_setting_payload[key]
+        elif existing_payload[setting_type]:
+            if modify_payload[setting_type].get(sub_key) and existing_payload[setting_type].get(sub_key):
+                modify_setting = modify_payload[setting_type][sub_key]
+                existing_setting_payload = existing_payload[setting_type][sub_key]
+                diff_item = list(set(existing_setting_payload) - set(modify_setting))
+                for key in diff_item:
+                    modify_payload[setting_type][sub_key][key] = existing_setting_payload[key]
 
 
 def get_updated_modify_payload(modify_payload, existing_payload):
@@ -483,15 +491,13 @@ def validate_modify_create_payload(setting_payload, module, action):
                                      " {0} an identity pool using Fc settings.".format(action))
         elif key == "IscsiSettings" and val:
             sub_config1 = val.get("Mac")
-            sub_config2 = val.get("InitiatorConfig")
-            sub_config3 = val.get("InitiatorIpPoolSettings")
+            sub_config2 = val.get("InitiatorIpPoolSettings")
             if sub_config1 is None or not all([sub_config1.get("IdentityCount"), sub_config1.get("StartingMacAddress")]):
                 module.fail_json(msg="Both starting MAC address and identity count is required to {0} an"
-                                     " identity pool using iSCSI settings.".format(action))
-            elif sub_config2 is None or not sub_config2.get("IqnPrefix"):
-                module.fail_json(msg="IQN prefix is required to {0} iSCSI settings.".format(action))
-            elif sub_config3 is None or not all([sub_config3.get("IpRange"), sub_config3.get("SubnetMask")]):
-                module.fail_json(msg="Both ip range and subnet mask in required to {0} an identity"
+                                     " identity pool using {1} settings.".format(action, ''.join(key.split('Settings'))))
+            elif sub_config2:
+                if not all([sub_config2.get("IpRange"), sub_config2.get("SubnetMask")]):
+                    module.fail_json(msg="Both ip range and subnet mask in required to {0} an identity"
                                      " pool using iSCSI settings.".format(action))
 
 
@@ -507,12 +513,12 @@ def pool_create_modify(module, rest_obj):
         method = "PUT"
         uri = uri + "({0})".format(pool_id)
         if compare_nested_dict(setting_payload, existing_payload):
-            module.exit_json(msg="No changes are made to the specified pool name: '{0}',"
-                                 " as the entered values are the same as the current "
-                                 "configuration.".format(setting_payload["Name"]))
+            module.exit_json(msg=NO_CHANGES_FOUND)
         else:
             setting_payload = get_updated_modify_payload(setting_payload, existing_payload)
     validate_modify_create_payload(setting_payload, module, action)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     resp = rest_obj.invoke_request(method, uri, data=setting_payload)
     msg = get_success_message(action, resp.json_data)
     return msg
@@ -527,6 +533,8 @@ def pool_delete(module, rest_obj):
             module.exit_json(msg=message)
         method = "DELETE"
         uri = IDENTITY_URI + "({0})".format(pool_id)
+        if module.check_mode:
+            module.exit_json(msg=CHANGES_FOUND, changed=True)
         rest_obj.invoke_request(method, uri)
         return {"msg": "Successfully deleted the identity pool."}
     except Exception as err:
@@ -555,24 +563,22 @@ def main():
                                                               "type": "dict"}}
     fc_settings = {"starting_address": {"type": "str"}, "identity_count": {"type": "int"}}
 
+    specs = {
+        "state": {"type": "str", "required": False, "default": "present", "choices": ['present', 'absent']},
+        "pool_name": {"required": True, "type": "str"},
+        "new_pool_name": {"required": False, "type": "str"},
+        "pool_description": {"required": False, "type": "str"},
+        "ethernet_settings": {"required": False, "type": "dict",
+                              "options": settings_options},
+        "fcoe_settings": {"required": False, "type": "dict", "options": settings_options},
+        "iscsi_settings": {"required": False, "type": "dict",
+                           "options": iscsi_specific_settings},
+        "fc_settings": {"required": False, "type": "dict", "options": fc_settings},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "state": {"type": "str", "required": False, "default": "present", "choices": ['present', 'absent']},
-            "pool_name": {"required": True, "type": "str"},
-            "new_pool_name": {"required": False, "type": "str"},
-            "pool_description": {"required": False, "type": "str"},
-            "ethernet_settings": {"required": False, "type": "dict",
-                                  "options": settings_options},
-            "fcoe_settings": {"required": False, "type": "dict", "options": settings_options},
-            "iscsi_settings": {"required": False, "type": "dict",
-                               "options": iscsi_specific_settings},
-            "fc_settings": {"required": False, "type": "dict", "options": fc_settings},
-        },
-        supports_check_mode=False
+        argument_spec=specs,
+        supports_check_mode=True
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
@@ -587,7 +593,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))

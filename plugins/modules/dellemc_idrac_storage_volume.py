@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.4.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.1.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -114,19 +114,20 @@ options:
       - >-
         This option represents whether a reset config operation needs to be performed on the RAID controller.
         Reset Config operation deletes all the virtual disks present on the RAID controller.
-    choices: [True, False]
-    default: False
+    choices: ['True', 'False']
+    default: 'False'
   raid_init_operation:
     type: str
     description: This option represents initialization configuration operation to be performed on the virtual disk.
     choices: [None, Fast]
 
 requirements:
-  - "omsdk"
-  - "python >= 2.7.5"
+  - "omsdk >= 1.2.488"
+  - "python >= 3.9.6"
 author: "Felix Stephen (@felixs88)"
 notes:
-    - Run this module from a system that has direct access to DellEMC iDRAC.
+    - Run this module from a system that has direct access to Dell iDRAC.
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
 '''
 
@@ -137,6 +138,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "create"
     controller_id: "RAID.Slot.1-1"
     volumes:
@@ -148,6 +150,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     raid_reset_config: "True"
     state: "create"
     controller_id: "RAID.Slot.1-1"
@@ -183,6 +186,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "view"
 
 - name: View specific volume details
@@ -190,6 +194,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "view"
     controller_id: "RAID.Slot.1-1"
     volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
@@ -199,6 +204,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "delete"
     volumes:
       - name: "volume_1"
@@ -208,6 +214,7 @@ EXAMPLES = r'''
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "delete"
     volumes:
       - name: "volume_1"
@@ -245,7 +252,7 @@ storage_status:
 import os
 import tempfile
 import copy
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omdrivers.types.iDRAC.RAID import RAIDactionTypes, RAIDdefaultReadPolicyTypes, RAIDinitOperationTypes, \
@@ -439,36 +446,33 @@ def run_server_raid_config(idrac, module):
 
 
 def main():
+    specs = {
+        "state": {"required": False, "choices": ['create', 'delete', 'view'], "default": 'view'},
+        "volume_id": {"required": False, "type": 'str'},
+        "volumes": {"required": False, "type": 'list', "elements": 'dict'},
+        "span_depth": {"required": False, "type": 'int', "default": 1},
+        "span_length": {"required": False, "type": 'int', "default": 1},
+        "number_dedicated_hot_spare": {"required": False, "type": 'int', "default": 0},
+        "volume_type": {"required": False,
+                        "choices": ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60'],
+                        "default": 'RAID 0'},
+        "disk_cache_policy": {"required": False, "choices": ["Default", "Enabled", "Disabled"],
+                              "default": "Default"},
+        "write_cache_policy": {"required": False, "choices": ["WriteThrough", "WriteBack", "WriteBackForce"],
+                               "default": "WriteThrough"},
+        "read_cache_policy": {"required": False, "choices": ["NoReadAhead", "ReadAhead", "AdaptiveReadAhead"],
+                              "default": "NoReadAhead"},
+        "stripe_size": {"required": False, "type": 'int', "default": 64 * 1024},
+        "capacity": {"required": False, "type": 'float'},
+        "controller_id": {"required": False, "type": 'str'},
+        "media_type": {"required": False, "choices": ['HDD', 'SSD']},
+        "protocol": {"required": False, "choices": ['SAS', 'SATA']},
+        "raid_reset_config": {"required": False, "choices": ['True', 'False'], "default": 'False'},
+        "raid_init_operation": {"required": False, "choices": ['None', 'Fast']}
+    }
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "idrac_ip": {"required": True, "type": 'str'},
-            "idrac_user": {"required": True, "type": 'str'},
-            "idrac_password": {"required": True, "type": 'str', "aliases": ["idrac_pwd"], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'},
-            "state": {"required": False,
-                      "choices": ['create', 'delete', 'view'], "default": 'view'},
-            "volume_id": {"required": False, "type": 'str'},
-            "volumes": {"required": False, "type": 'list', "elements": 'dict'},
-            "span_depth": {"required": False, "type": 'int', "default": 1},
-            "span_length": {"required": False, "type": 'int', "default": 1},
-            "number_dedicated_hot_spare": {"required": False, "type": 'int', "default": 0},
-            "volume_type": {"required": False,
-                            "choices": ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60'],
-                            "default": 'RAID 0'},
-            "disk_cache_policy": {"required": False, "choices": ["Default", "Enabled", "Disabled"],
-                                  "default": "Default"},
-            "write_cache_policy": {"required": False, "choices": ["WriteThrough", "WriteBack", "WriteBackForce"],
-                                   "default": "WriteThrough"},
-            "read_cache_policy": {"required": False, "choices": ["NoReadAhead", "ReadAhead", "AdaptiveReadAhead"],
-                                  "default": "NoReadAhead"},
-            "stripe_size": {"required": False, "type": 'int', "default": 64 * 1024},
-            "capacity": {"required": False, "type": 'float'},
-            "controller_id": {"required": False, "type": 'str'},
-            "media_type": {"required": False, "choices": ['HDD', 'SSD']},
-            "protocol": {"required": False, "choices": ['SAS', 'SATA']},
-            "raid_reset_config": {"required": False, "choices": ['True', 'False'], "default": 'False'},
-            "raid_init_operation": {"required": False, "choices": ['None', 'Fast']}
-        },
+        argument_spec=specs,
         supports_check_mode=True)
 
     try:

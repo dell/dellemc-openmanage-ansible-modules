@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.6.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.2.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -27,32 +27,32 @@ options:
     type: list
     description:
       - List of target device IDs.
-      - This is applicable for C(support_assist_collection) logs.
+      - This is applicable for C(support_assist_collection) and C(supportassist_collection) logs.
       - This option is mutually exclusive with I(device_service_tags) and I(device_group_name).
     elements: int
   device_service_tags:
     type: list
     description:
       - List of target identifier.
-      - This is applicable for C(support_assist_collection) logs.
+      - This is applicable for C(support_assist_collection) and C(supportassist_collection) logs.
       - This option is mutually exclusive with I(device_ids) and I(device_group_name).
     elements: str
   device_group_name:
     type: str
     description:
-      - Name of the device group to export C(support_assist_collection) logs of all devices within the group.
-      - This is applicable for C(support_assist_collection) logs.
+      - Name of the device group to export C(support_assist_collection) or C(supportassist_collection) logs of all devices within the group.
+      - This is applicable for C(support_assist_collection) and C(supportassist_collection) logs.
       - This option is not applicable for OpenManage Enterprise Modular.
       - This option is mutually exclusive with I(device_ids) and I(device_service_tags).
   log_type:
     type: str
     description:
       - C(application) is applicable for OpenManage Enterprise Modular to export the application log bundle.
-      - C(support_assist_collection) is applicable for one or more devices to export SupportAssist logs.
-      - C(support_assist_collection) supports both OpenManage Enterprise and OpenManage Enterprise Modular.
-      - C(support_assist_collection) does not support export of C(OS_LOGS) from OpenManage Enterprise.
+      - C(support_assist_collection) and C(supportassist_collection) is applicable for one or more devices to export SupportAssist logs.
+      - C(support_assist_collection) and C(supportassist_collection) supports both OpenManage Enterprise and OpenManage Enterprise Modular.
+      - C(support_assist_collection) and C(supportassist_collection) does not support export of C(OS_LOGS) from OpenManage Enterprise.
         If tried to export, the tasks will complete with errors, and the module fails.
-    choices: [application, support_assist_collection]
+    choices: [application, support_assist_collection, supportassist_collection]
     default: support_assist_collection
   mask_sensitive_info:
     type: bool
@@ -60,31 +60,32 @@ options:
       - Select this option to mask the personal identification information such as IPAddress,
         DNS, alert destination, email, gateway, inet6, MacAddress, netmask etc.
       - This option is applicable for C(application) of I(log_type).
-    default: False
+    default: false
   log_selectors:
     type: list
     description:
-      - By default, the SupportAssist logs contains only hardware logs. To collect additional logs
-        such as OS logs or RAID logs, specify these option in the choices list.
-      - If not provided the default hardware log will be exported.
+      - By default, the SupportAssist logs contain only hardware logs. To collect additional logs
+        such as OS logs, RAID logs or Debug logs, specify the log types to be collected in the choices list.
+      - If the log types are not specified, only the hardware logs are exported.
       - C(OS_LOGS) to collect OS Logs.
       - C(RAID_LOGS) to collect RAID controller logs.
-      - This option is applicable only for C(support_assist_collection) of I(log_type).
-    choices: [OS_LOGS, RAID_LOGS]
+      - C(DEBUG_LOGS) to collect Debug logs.
+      - This option is applicable only for C(support_assist_collection) and C(supportassist_collection) of I(log_type).
+    choices: [OS_LOGS, RAID_LOGS, DEBUG_LOGS]
     elements: str
   share_address:
     type: str
-    required: True
+    required: true
     description: Network share IP address.
   share_name:
     type: str
-    required: True
+    required: true
     description:
       - Network share path.
       - Filename is auto generated and should not be provided as part of I(share_name).
   share_type:
     type: str
-    required: True
+    required: true
     description: Network share type
     choices: [NFS, CIFS]
   share_user:
@@ -107,7 +108,7 @@ options:
     description:
       - Whether to wait for the Job completion or not.
       - The maximum wait time is I(job_wait_timeout).
-    default: True
+    default: true
   job_wait_timeout:
     type: int
     description:
@@ -119,11 +120,23 @@ options:
     description:
       - Test the availability of the network share location.
       - I(job_wait) and I(job_wait_timeout) options are not applicable for I(test_connection).
-    default: False
+    default: false
+  lead_chassis_only:
+    type: bool
+    description:
+      - Extract the logs from Lead chassis only.
+      - I(lead_chassis_only) is only applicable when I(log_type) is C(application) on OpenManage Enterprise Modular.
+    default: false
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
+  - "Sachin Apagundi(@sachin-apa)"
+notes:
+    - Run this module from a system that has direct access to OpenManage Enterprise.
+    - This module performs the test connection and device validations. It does not create a job for copying the
+      logs in check mode and always reports as changes found.
+    - This module supports C(check_mode).
 """
 
 
@@ -134,6 +147,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     share_type: CIFS
     share_address: "192.168.0.2"
     share_user: share_username
@@ -148,6 +162,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     share_address: "192.168.0.3"
     share_type: NFS
     share_name: nfs_share
@@ -160,6 +175,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     share_address: "192.168.0.3"
     share_user: share_username
     share_password: share_password
@@ -175,6 +191,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     share_address: "192.168.0.3"
     share_type: NFS
     share_name: nfs_share
@@ -251,16 +268,17 @@ import json
 import re
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2}
+LOG_SELECTOR = {"OS_LOGS": 1, "RAID_LOGS": 2, "DEBUG_LOGS": 3}
 JOB_URI = "JobService/Jobs"
 GROUP_URI = "GroupService/Groups"
 GROUP_DEVICE_URI = "GroupService/Groups({0})/Devices"
 DEVICE_URI = "DeviceService/Devices"
 DOMAIN_URI = "ManagementDomainService/Domains"
 EXE_HISTORY_URI = "JobService/Jobs({0})/ExecutionHistories"
+CHANGES_FOUND = "Changes found to be applied."
 
 
 def group_validation(module, rest_obj):
@@ -315,8 +333,22 @@ def extract_log_operation(module, rest_obj, device_lst=None):
     payload_params, target_params = [], []
     log_type = module.params["log_type"]
     if log_type == "application":
-        resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={"$filter": "Type eq 2000"})
-        resp_data = resp.json_data["value"]
+        lead_only = module.params["lead_chassis_only"]
+        resp_data = None
+        if lead_only:
+            domain_details = rest_obj.get_all_items_with_pagination(DOMAIN_URI)
+            key = "Id"
+            ch_device_id = None
+            for each_domain in domain_details["value"]:
+                if each_domain["DomainRoleTypeValue"] in ["LEAD", "STANDALONE"]:
+                    ch_device_id = each_domain["DeviceId"]
+            if ch_device_id:
+                resp = rest_obj.invoke_request("GET", DEVICE_URI,
+                                               query_param={"$filter": "{0} eq {1}".format(key, ch_device_id)})
+                resp_data = resp.json_data["value"]
+        else:
+            resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={"$filter": "Type eq 2000"})
+            resp_data = resp.json_data["value"]
         if resp_data:
             for dev in resp_data:
                 target_params.append({"Id": dev["Id"], "Data": "",
@@ -340,7 +372,7 @@ def extract_log_operation(module, rest_obj, device_lst=None):
         payload_params.append({"Key": "domainName", "Value": module.params["share_domain"]})
     if module.params.get("mask_sensitive_info") is not None and log_type == "application":
         payload_params.append({"Key": "maskSensitiveInfo", "Value": str(module.params["mask_sensitive_info"]).upper()})
-    if module.params.get("log_selectors") is not None and log_type == "support_assist_collection":
+    if module.params.get("log_selectors") is not None and (log_type == "support_assist_collection" or log_type == "supportassist_collection"):
         log_lst = [LOG_SELECTOR[i] for i in module.params["log_selectors"]]
         log_lst.sort()
         log_selector = ",".join(map(str, log_lst))
@@ -379,33 +411,34 @@ def find_failed_jobs(resp, rest_obj):
 
 
 def main():
+    specs = {
+        "device_ids": {"required": False, "type": "list", "elements": "int"},
+        "device_service_tags": {"required": False, "type": "list", "elements": "str"},
+        "device_group_name": {"required": False, "type": "str"},
+        "log_type": {"required": False, "type": "str", "default": "support_assist_collection",
+                     "choices": ["support_assist_collection", "application", "supportassist_collection"]},
+        "mask_sensitive_info": {"required": False, "type": "bool", "default": False},
+        "log_selectors": {"required": False, "type": "list",
+                          "choices": ["RAID_LOGS", "OS_LOGS", "DEBUG_LOGS"], "elements": "str"},
+        "share_address": {"required": True, "type": "str"},
+        "share_name": {"required": True, "type": "str"},
+        "share_type": {"required": True, "type": "str", "choices": ["NFS", "CIFS"]},
+        "share_user": {"required": False, "type": "str"},
+        "share_password": {"required": False, "type": "str", "no_log": True},
+        "share_domain": {"required": False, "type": "str"},
+        "job_wait": {"required": False, "type": "bool", "default": True},
+        "job_wait_timeout": {"required": False, "type": "int", "default": 60},
+        "test_connection": {"required": False, "type": "bool", "default": False},
+        "lead_chassis_only": {"required": False, "type": "bool", "default": False},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "device_ids": {"required": False, "type": "list", "elements": "int"},
-            "device_service_tags": {"required": False, "type": "list", "elements": "str"},
-            "device_group_name": {"required": False, "type": "str"},
-            "log_type": {"required": False, "type": "str", "default": "support_assist_collection",
-                         "choices": ["support_assist_collection", "application"]},
-            "mask_sensitive_info": {"required": False, "type": "bool", "default": False},
-            "log_selectors": {"required": False, "type": "list",
-                              "choices": ["RAID_LOGS", "OS_LOGS"], "elements": "str"},
-            "share_address": {"required": True, "type": "str"},
-            "share_name": {"required": True, "type": "str"},
-            "share_type": {"required": True, "type": "str", "choices": ["NFS", "CIFS"]},
-            "share_user": {"required": False, "type": "str"},
-            "share_password": {"required": False, "type": "str", "no_log": True},
-            "share_domain": {"required": False, "type": "str"},
-            "job_wait": {"required": False, "type": "bool", "default": True},
-            "job_wait_timeout": {"required": False, "type": "int", "default": 60},
-            "test_connection": {"required": False, "type": "bool", "default": False},
-        },
+        argument_spec=specs,
         required_if=[
             ['log_type', 'application', ['mask_sensitive_info']],
             ['log_type', 'support_assist_collection',
+             ['device_ids', 'device_service_tags', 'device_group_name'], True],
+            ['log_type', 'supportassist_collection',
              ['device_ids', 'device_service_tags', 'device_group_name'], True],
             ['share_type', 'CIFS', ['share_user', 'share_password']]
         ],
@@ -439,12 +472,16 @@ def main():
 
             # validation for device id/tag/group
             valid_device = []
-            if module.params["log_type"] == "support_assist_collection" and \
+            if (module.params["log_type"] == "support_assist_collection" or module.params["log_type"] == "supportassist_collection") and \
                     module.params.get("device_group_name") is not None:
                 valid_device = group_validation(module, rest_obj)
-            elif module.params["log_type"] == "support_assist_collection" and \
+            elif (module.params["log_type"] == "support_assist_collection" or module.params["log_type"] == "supportassist_collection") and \
                     module.params.get("device_group_name") is None:
                 valid_device = device_validation(module, rest_obj)
+
+            # exit if running in check mode
+            if module.check_mode:
+                module.exit_json(msg=CHANGES_FOUND, changed=True)
 
             # extract log job operation
             response = extract_log_operation(module, rest_obj, device_lst=valid_device)
@@ -468,12 +505,12 @@ def main():
             resp = response.json_data
             if resp:
                 resp = rest_obj.strip_substr_dict(resp)
-            module.exit_json(msg=message, job_status=resp)
+            module.exit_json(msg=message, job_status=resp, changed=True)
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.1.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -147,6 +147,8 @@ options:
         description:
           - List of attributes to be modified, when I(command) is C(modify).
           - List of attributes to be overridden when I(command) is C(assign).
+          - "Use the I(Id) If the attribute Id is available. If not, use the comma separated I (DisplayName).
+          For more details about using the I(DisplayName), see the example provided."
         type: list
         elements: dict
       Options:
@@ -160,11 +162,11 @@ options:
           - This is applicable when I(command) is C(assign).
         type: dict
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Jagadeesh N V (@jagadeeshnv)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-    - This module does not support C(check_mode).
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - This module supports C(check_mode).
     - C(assign) operation on a already assigned profile will not redeploy.
 '''
 
@@ -175,6 +177,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     template_name: "template 1"
     name_prefix: "omam_profile"
     number_of_profiles: 2
@@ -184,12 +187,13 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: create
     template_name: "template 1"
     name_prefix: "omam_profile"
     number_of_profiles: 1
     boot_to_network_iso:
-      boot_to_network: True
+      boot_to_network: true
       share_type: NFS
       share_ip: "192.168.0.1"
       iso_path: "path/to/my_iso.iso"
@@ -200,12 +204,13 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: create
     template_name: "template 1"
     name_prefix: "omam_profile"
     number_of_profiles: 1
     boot_to_network_iso:
-      boot_to_network: True
+      boot_to_network: true
       share_type: CIFS
       share_ip: "192.168.0.2"
       share_user: "username"
@@ -219,12 +224,13 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: modify
     name: "Profile 00001"
     new_name: "modified profile"
     description: "new description"
     boot_to_network_iso:
-      boot_to_network: True
+      boot_to_network: true
       share_type: NFS
       share_ip: "192.168.0.3"
       iso_path: "path/to/my_iso.iso"
@@ -233,16 +239,22 @@ EXAMPLES = r'''
       Attributes:
         - Id: 4506
           Value: "server attr 1"
-          IsIgnored: true
+          IsIgnored: false
         - Id: 4507
           Value: "server attr 2"
-          IsIgnored: true
+          IsIgnored: false
+        # Enter the comma separated string as appearing in the Detailed view on GUI
+        # System -> Server Topology -> ServerTopology 1 Aisle Name
+        - DisplayName: 'System, Server Topology, ServerTopology 1 Aisle Name'
+          Value: Aisle 5
+          IsIgnored: false
 
 - name: Delete a profile using profile name
   dellemc.openmanage.ome_profile:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     name: "Profile 00001"
 
@@ -251,9 +263,10 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     filters:
-      SelectAll: True
+      SelectAll: true
       Filters: =contains(ProfileName,'Profile 00002')
 
 - name: Delete profiles using profile list filter
@@ -261,6 +274,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     filters:
       ProfileIds:
@@ -272,11 +286,12 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: assign
     name: "Profile 00001"
     device_id: 12456
     boot_to_network_iso:
-      boot_to_network: True
+      boot_to_network: true
       share_type: NFS
       share_ip: "192.168.0.1"
       iso_path: "path/to/my_iso.iso"
@@ -290,16 +305,17 @@ EXAMPLES = r'''
         ShutdownType: 0
         TimeToWaitBeforeShutdown: 300
         EndHostPowerState: 1
-        StrictCheckingVlan: True
+        StrictCheckingVlan: true
       Schedule:
-        RunNow: True
-        RunLater: False
+        RunNow: true
+        RunLater: false
 
 - name: Unassign a profile using profile name
   dellemc.openmanage.ome_profile:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "unassign"
     name: "Profile 00003"
 
@@ -308,9 +324,10 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "unassign"
     filters:
-      SelectAll: True
+      SelectAll: true
       Filters: =contains(ProfileName,'Profile 00003')
 
 - name: Unassign profiles using profile list filter
@@ -318,6 +335,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "unassign"
     filters:
       ProfileIds:
@@ -329,6 +347,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "migrate"
     name: "Profile 00001"
     device_id: 12456
@@ -379,7 +398,7 @@ import json
 import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.common.dict_transformations import recursive_diff
@@ -389,7 +408,11 @@ TEMPLATE_VIEW = "TemplateService/Templates"
 DEVICE_VIEW = "DeviceService/Devices"
 JOB_URI = "JobService/Jobs({job_id})"
 PROFILE_ACTION = "ProfileService/Actions/ProfileService.{action}"
+PROFILE_ATTRIBUTES = "ProfileService/Profiles({profile_id})/AttributeDetails"
 PROFILE_NOT_FOUND = "Profile with the name '{name}' not found."
+CHANGES_MSG = "Changes found to be applied."
+NO_CHANGES_MSG = "No changes found to be applied."
+SEPRTR = ','
 
 
 def get_template_details(module, rest_obj):
@@ -465,6 +488,71 @@ def get_network_iso_payload(module):
     return iso_payload
 
 
+def recurse_subattr_list(subgroup, prefix, attr_detailed, attr_map, adv_list):
+    if isinstance(subgroup, list):
+        for each_sub in subgroup:
+            nprfx = "{0}{1}{2}".format(prefix, SEPRTR, each_sub.get("DisplayName"))
+            if each_sub.get("SubAttributeGroups"):
+                recurse_subattr_list(each_sub.get("SubAttributeGroups"), nprfx, attr_detailed, attr_map, adv_list)
+            else:
+                for attr in each_sub.get('Attributes'):
+                    attr['prefix'] = nprfx
+                    # case sensitive, remove whitespaces for optim
+                    constr = "{0}{1}{2}".format(nprfx, SEPRTR, attr['DisplayName'])
+                    if constr in adv_list:
+                        attr_detailed[constr] = attr['AttributeId']
+                    attr_map[attr['AttributeId']] = attr
+
+
+def get_subattr_all(attr_dtls, adv_list):
+    attr_detailed = {}
+    attr_map = {}
+    for each in attr_dtls:
+        recurse_subattr_list(each.get('SubAttributeGroups'), each.get('DisplayName'), attr_detailed, attr_map, adv_list)
+    return attr_detailed, attr_map
+
+
+def attributes_check(module, rest_obj, inp_attr, profile_id):
+    diff = 0
+    try:
+        resp = rest_obj.invoke_request("GET", PROFILE_ATTRIBUTES.format(profile_id=profile_id))
+        attr_dtls = resp.json_data
+        disp_adv_list = inp_attr.get("Attributes", {})
+        adv_list = []
+        for attr in disp_adv_list:
+            if attr.get("DisplayName"):
+                split_k = str(attr.get("DisplayName")).split(SEPRTR)
+                trimmed = map(str.strip, split_k)
+                n_k = SEPRTR.join(trimmed)
+                adv_list.append(n_k)
+        attr_detailed, attr_map = get_subattr_all(attr_dtls.get('AttributeGroups'), adv_list)
+        payload_attr = inp_attr.get("Attributes", [])
+        rem_attrs = []
+        for attr in payload_attr:
+            if attr.get("DisplayName"):
+                split_k = str(attr.get("DisplayName")).split(SEPRTR)
+                trimmed = map(str.strip, split_k)
+                n_k = SEPRTR.join(trimmed)
+                id = attr_detailed.get(n_k, "")
+                attr['Id'] = id
+                attr.pop("DisplayName", None)
+            else:
+                id = attr.get('Id')
+            if id:
+                ex_val = attr_map.get(id, {})
+                if not ex_val:
+                    rem_attrs.append(attr)
+                    continue
+                if attr.get('Value') != ex_val.get("Value") or attr.get('IsIgnored') != ex_val.get("IsIgnored"):
+                    diff = diff + 1
+        for rem in rem_attrs:
+            payload_attr.remove(rem)
+        # module.exit_json(attr_detailed=attr_detailed, inp_attr=disp_adv_list, payload_attr=payload_attr, adv_list=adv_list)
+    except Exception:
+        diff = 1
+    return diff
+
+
 def assign_profile(module, rest_obj):
     mparam = module.params
     payload = {}
@@ -512,7 +600,10 @@ def assign_profile(module, rest_obj):
     ad_opts = mparam.get("attributes")
     for opt in ad_opts_list:
         if ad_opts and ad_opts.get(opt):
+            attributes_check(module, rest_obj, ad_opts, prof['Id'])
             payload[opt] = ad_opts.get(opt)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
     resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action=action), data=payload)
     res_dict = {'msg': msg, 'changed': True}
     if action == 'AssignProfile':
@@ -550,6 +641,8 @@ def unassign_profile(module, rest_obj):
             module.fail_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
     if mparam.get('filters'):
         payload = mparam.get('filters')
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
     msg = "Successfully applied the unassign operation. No job was triggered."
     resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='UnassignProfiles'), data=payload)
     res_dict = {'msg': msg, 'changed': True}
@@ -576,7 +669,8 @@ def create_profile(module, rest_obj):
     boot_iso_dict = get_network_iso_payload(module)
     if boot_iso_dict:
         payload["NetworkBootToIso"] = boot_iso_dict
-    # module.exit_json(msg=payload)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_MSG, changed=True)
     resp = rest_obj.invoke_request('POST', PROFILE_VIEW, data=payload)
     profile_id_list = resp.json_data
     module.exit_json(msg="Successfully created {0} profile(s).".format(len(profile_id_list)),
@@ -603,19 +697,22 @@ def modify_profile(module, rest_obj):
     if boot_iso_dict:
         nest_diff = recursive_diff(boot_iso_dict, rdict)
         if nest_diff:
-            module.warn(json.dumps(nest_diff))
+            # module.warn(json.dumps(nest_diff))
             if nest_diff[0]:
                 diff += 1
         payload["NetworkBootToIso"] = boot_iso_dict
     ad_opts = mparam.get("attributes")
     if ad_opts and ad_opts.get("Attributes"):
-        payload["Attributes"] = ad_opts.get("Attributes")
-        diff += 1
+        diff = diff + attributes_check(module, rest_obj, ad_opts, prof['Id'])
+        if ad_opts.get("Attributes"):
+            payload["Attributes"] = ad_opts.get("Attributes")
     payload['Id'] = prof['Id']
     if diff:
-        resp = rest_obj.invoke_request('PUT', PROFILE_VIEW + "({0})".format(payload['Id']), data=payload)
+        if module.check_mode:
+            module.exit_json(msg=CHANGES_MSG, changed=True)
+        rest_obj.invoke_request('PUT', PROFILE_VIEW + "({0})".format(payload['Id']), data=payload)
         module.exit_json(msg="Successfully modified the profile.", changed=True)
-    module.exit_json(msg="No changes found to be applied.")
+    module.exit_json(msg=NO_CHANGES_MSG)
 
 
 def delete_profile(module, rest_obj):
@@ -625,13 +722,17 @@ def delete_profile(module, rest_obj):
         if prof:
             if prof['ProfileState'] > 0:
                 module.fail_json(msg="Profile has to be in an unassigned state for it to be deleted.")
-            resp = rest_obj.invoke_request('DELETE', PROFILE_VIEW + "({0})".format(prof['Id']))
+            if module.check_mode:
+                module.exit_json(msg=CHANGES_MSG, changed=True)
+            rest_obj.invoke_request('DELETE', PROFILE_VIEW + "({0})".format(prof['Id']))
             module.exit_json(msg="Successfully deleted the profile.", changed=True)
         else:
             module.exit_json(msg=PROFILE_NOT_FOUND.format(name=mparam.get('name')))
     if mparam.get('filters'):
         payload = mparam.get('filters')
-        resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='Delete'), data=payload)
+        if module.check_mode:
+            module.exit_json(msg=CHANGES_MSG, changed=True)
+        rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='Delete'), data=payload)
         module.exit_json(msg="Successfully completed the delete operation.", changed=True)
 
 
@@ -646,7 +747,7 @@ def migrate_profile(module, rest_obj):
     prof = get_profile(rest_obj, module)
     if prof:
         if target['Id'] == prof['TargetId']:
-            module.exit_json(msg="No changes found to be applied.")
+            module.exit_json(msg=NO_CHANGES_MSG)
         try:
             resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='GetInvalidTargetsForAssignProfile'),
                                            data={'Id': prof['Id']})
@@ -656,6 +757,8 @@ def migrate_profile(module, rest_obj):
             resp = None
         if prof['ProfileState'] == 4:  # migrate applicable in deployed state only
             payload['ProfileId'] = prof['Id']
+            if module.check_mode:
+                module.exit_json(msg=CHANGES_MSG, changed=True)
             resp = rest_obj.invoke_request('POST', PROFILE_ACTION.format(action='MigrateProfile'), data=payload)
             msg = "Successfully applied the migrate operation."
             res_dict = {'msg': msg, 'changed': True}
@@ -703,32 +806,30 @@ def main():
     assign_spec = {"Attributes": {"type": 'list', "elements": 'dict'},
                    "Options": {"type": 'dict'},
                    "Schedule": {"type": 'dict'}}
+    specs = {
+        "command": {"default": "create",
+                    "choices": ['create', 'modify', 'delete', 'assign', 'unassign', 'migrate']},
+        "name_prefix": {"default": "Profile", "type": 'str'},
+        "name": {"type": 'str'},
+        "new_name": {"type": 'str'},
+        "number_of_profiles": {"default": 1, "type": 'int'},
+        "template_name": {"type": 'str'},
+        "template_id": {"type": "int"},
+        "device_id": {"type": 'int'},
+        "device_service_tag": {"type": 'str'},
+        "description": {"type": 'str'},
+        "boot_to_network_iso": {"type": 'dict', "options": network_iso_spec,
+                                "required_if": [
+                                    ['boot_to_network', True, ['share_type', 'share_ip', 'iso_path']],
+                                    ['share_type', 'CIFS', ['share_user', 'share_password']]
+                                ]},
+        "filters": {"type": 'dict'},
+        "attributes": {"type": 'dict', "options": assign_spec},
+        "force": {"default": False, "type": 'bool'}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "command": {"default": "create",
-                        "choices": ['create', 'modify', 'delete', 'assign', 'unassign', 'migrate']},
-            "name_prefix": {"default": "Profile", "type": 'str'},
-            "name": {"type": 'str'},
-            "new_name": {"type": 'str'},
-            "number_of_profiles": {"default": 1, "type": 'int'},
-            "template_name": {"type": 'str'},
-            "template_id": {"type": "int"},
-            "device_id": {"type": 'int'},
-            "device_service_tag": {"type": 'str'},
-            "description": {"type": 'str'},
-            "boot_to_network_iso": {"type": 'dict', "options": network_iso_spec,
-                                    "required_if": [
-                                        ['boot_to_network', True, ['share_type', 'share_ip', 'iso_path']],
-                                        ['share_type', 'CIFS', ['share_user', 'share_password']]
-                                    ]},
-            "filters": {"type": 'dict'},
-            "attributes": {"type": 'dict', "options": assign_spec},
-            "force": {"default": False, "type": 'bool'}
-        },
+        argument_spec=specs,
         required_if=[
             ['command', 'create', ['template_name', 'template_id'], True],
             ['command', 'modify', ['name']],
@@ -746,7 +847,7 @@ def main():
             ['name', 'filters'],
             ['device_id', 'device_service_tag'],
             ['template_name', 'template_id']],
-        supports_check_mode=False)
+        supports_check_mode=True)
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
             profile_operation(module, rest_obj)
@@ -754,7 +855,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

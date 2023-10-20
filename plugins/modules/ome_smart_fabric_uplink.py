@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -88,11 +89,11 @@ options:
     description: Specify the name of the VLAN to be added as untagged to the uplink.
     type: str
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise Modular.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
     - This module supports C(check_mode).
 '''
 
@@ -103,6 +104,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -128,6 +130,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -154,6 +157,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -164,6 +168,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -175,6 +180,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "uplink1"
@@ -194,6 +200,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     fabric_name: "fabric1"
     name: "create1"
@@ -264,10 +271,11 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.common.dict_transformations import recursive_diff
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_item_and_list
 
 FABRIC_URI = "NetworkService/Fabrics"
 UPLINKS_URI = "NetworkService/Fabrics('{fabric_id}')/Uplinks"
@@ -284,11 +292,11 @@ NO_CHANGES_MSG = "No changes found to be applied to the uplink configuration."
 SAME_SERVICE_TAG_MSG = "Primary and Secondary service tags must not be the same."
 
 
-def get_item_id(rest_obj, name, uri, key='Name', attr='Id'):
+def get_item_id(rest_obj, name, uri, key='Name', attr='Id', value='value'):
     resp = rest_obj.invoke_request('GET', uri)
     tlist = []
-    if resp.success and resp.json_data.get('value'):
-        tlist = resp.json_data.get('value', [])
+    if resp.success and resp.json_data.get(value):
+        tlist = resp.json_data.get(value, [])
         for xtype in tlist:
             if xtype.get(key, "") == name:
                 return xtype.get(attr), tlist
@@ -427,24 +435,18 @@ def create_uplink(module, rest_obj, fabric_id, uplinks):
 def delete_uplink(module, rest_obj, fabric_id, uplink_id):
     if module.check_mode:
         module.exit_json(changed=True, msg=CHECK_MODE_MSG)
-    resp = rest_obj.invoke_request("DELETE", UPLINK_URI.format(fabric_id=fabric_id, uplink_id=uplink_id))
+    rest_obj.invoke_request("DELETE", UPLINK_URI.format(fabric_id=fabric_id, uplink_id=uplink_id))
     module.exit_json(msg="Successfully deleted the uplink.", changed=True)
 
 
-def modify_uplink(module, rest_obj, fabric_id, uplink_id, uplinks):
+def modify_uplink(module, rest_obj, fabric_id, uplink, uplinks):
     mparams = module.params
-    uplinks_payload = {}
-    for i in range(len(uplinks)):
-        if uplinks[i]['Id'] == uplink_id:
-            uplinks_payload = uplinks.pop(i)
-            break
     pload_keys = ["Id", "Name", "Description", "MediaType", "NativeVLAN", "UfdEnable", "Ports", "Networks"]
-    modify_payload = dict((pload_key, uplinks_payload[pload_key]) for pload_key in pload_keys)
+    modify_payload = dict((pload_key, uplink.get(pload_key)) for pload_key in pload_keys)
     port_list = list(port["Id"] for port in modify_payload["Ports"])
-    modify_payload["Ports"] = sorted(port_list)
+    modify_payload["Ports"] = sorted(list(set(port_list)))
     network_list = list(network["Id"] for network in modify_payload["Networks"])
     modify_payload["Networks"] = sorted(network_list)
-
     modify_data = {}
     if mparams.get("new_name"):
         modify_data["Name"] = mparams.get("new_name")
@@ -453,60 +455,57 @@ def modify_uplink(module, rest_obj, fabric_id, uplink_id, uplinks):
     if mparams.get("ufd_enable"):
         modify_data["UfdEnable"] = mparams.get("ufd_enable")
     if mparams.get("uplink_type"):
-        if mparams.get("uplink_type") != uplinks_payload["MediaType"]:
+        if mparams.get("uplink_type") != uplink.get("MediaType"):
             module.fail_json(msg="Uplink Type cannot be modified.")
         modify_data["MediaType"] = mparams["uplink_type"]
     if mparams.get("primary_switch_service_tag") or mparams.get("secondary_switch_service_tag"):
         if mparams.get("primary_switch_service_tag") == mparams.get("secondary_switch_service_tag"):
             module.fail_json(msg=SAME_SERVICE_TAG_MSG)
         payload_port_list = validate_ioms(module, rest_obj, uplinks)
-        modify_data["Ports"] = sorted(payload_port_list)
-    media_id, mtypes = get_item_id(rest_obj, uplinks_payload["MediaType"], MEDIA_TYPES)
+        modify_data["Ports"] = sorted(list(set(payload_port_list)))
+    media_id, mtypes = get_item_id(rest_obj, uplink.get("MediaType"), MEDIA_TYPES)
     if mparams.get("tagged_networks") and media_id:
         tagged_networks = validate_networks(module, rest_obj, fabric_id, media_id)
         modify_data["Networks"] = sorted(tagged_networks)
     if mparams.get("untagged_network") and media_id:
         untagged_id = validate_native_vlan(module, rest_obj, fabric_id, media_id)
         modify_data["NativeVLAN"] = untagged_id
-
     diff = recursive_diff(modify_data, modify_payload)
-    if diff[0]:
+    if diff and diff[0]:
         modify_payload.update(diff[0])
         if module.check_mode:
             module.exit_json(changed=True, msg=CHECK_MODE_MSG)
         modify_payload["Ports"] = list({"Id": port} for port in modify_payload["Ports"])
         modify_payload["Networks"] = list({"Id": net} for net in modify_payload["Networks"])
-        resp = rest_obj.invoke_request("PUT", UPLINK_URI.format(fabric_id=fabric_id, uplink_id=uplink_id), data=modify_payload)
+        resp = rest_obj.invoke_request("PUT", UPLINK_URI.format(fabric_id=fabric_id, uplink_id=uplink['Id']),
+                                       data=modify_payload)
         if isinstance(resp.json_data, dict):
-            module.exit_json(changed=True, msg="Successfully modified the uplink.", uplink_id=uplink_id,
+            module.exit_json(changed=True, msg="Successfully modified the uplink.", uplink_id=uplink['Id'],
                              additional_info=resp.json_data)
-        module.exit_json(changed=True, msg="Successfully modified the uplink.", uplink_id=uplink_id)
+        module.exit_json(changed=True, msg="Successfully modified the uplink.", uplink_id=uplink['Id'])
     module.exit_json(msg=NO_CHANGES_MSG)
 
 
 def main():
+    specs = {
+        "state": {"choices": ['present', 'absent'], "default": "present"},
+        "fabric_name": {"required": True, "type": "str"},
+        "name": {"required": True, "type": "str"},
+        "new_name": {"type": "str"},
+        "description": {"type": "str"},
+        "uplink_type": {
+            "choices": ['Ethernet', 'FCoE', 'FC Gateway', 'FC Direct Attach', 'Ethernet - No Spanning Tree']},
+        "ufd_enable": {"choices": ['Enabled', 'Disabled']},
+        "primary_switch_service_tag": {"type": "str"},
+        "primary_switch_ports": {"type": "list", "elements": "str"},
+        "secondary_switch_service_tag": {"type": "str"},
+        "secondary_switch_ports": {"type": "list", "elements": "str"},
+        "tagged_networks": {"type": "list", "elements": "str"},
+        "untagged_network": {"type": "str"}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
-            "fabric_name": {"required": True, "type": "str"},
-            "name": {"required": True, "type": "str"},
-            "new_name": {"required": False, "type": "str"},
-            "description": {"required": False, "type": "str"},
-            "uplink_type": {"required": False,
-                            "choices": ['Ethernet', 'FCoE', 'FC Gateway', 'FC Direct Attach',
-                                        'Ethernet - No Spanning Tree']},
-            "ufd_enable": {"required": False, "choices": ['Enabled', 'Disabled']},
-            "primary_switch_service_tag": {"required": False, "type": "str"},
-            "primary_switch_ports": {"required": False, "type": "list", "elements": "str"},
-            "secondary_switch_service_tag": {"required": False, "type": "str"},
-            "secondary_switch_ports": {"required": False, "type": "list", "elements": "str"},
-            "tagged_networks": {"required": False, "type": "list", "elements": "str"},
-            "untagged_network": {"required": False, "type": "str"}
-        },
+        argument_spec=specs,
         required_if=[['state', 'present',
                       ('new_name', 'description', 'uplink_type', 'ufd_enable',
                        'primary_switch_service_tag', 'primary_switch_ports', 'secondary_switch_service_tag',
@@ -520,15 +519,16 @@ def main():
             fabric_id, fabrics = get_item_id(rest_obj, module.params["fabric_name"], FABRIC_URI)
             if not fabric_id:
                 module.fail_json(msg="Fabric with name {0} does not exist.".format(module.params["fabric_name"]))
-            uplink_id, uplinks = get_item_id(rest_obj, module.params["name"],
-                                             UPLINKS_URI.format(fabric_id=fabric_id) + '?$expand=Ports,Networks')
+            uplink, uplinks = get_item_and_list(rest_obj, module.params["name"],
+                                                UPLINKS_URI.format(fabric_id=fabric_id) + '?$expand=Ports,Networks')
             if module.params["state"] == "present":
-                if uplink_id:
-                    modify_uplink(module, rest_obj, fabric_id, uplink_id, uplinks)
+                if uplink:
+                    uplinks.remove(uplink)
+                    modify_uplink(module, rest_obj, fabric_id, uplink, uplinks)
                 create_uplink(module, rest_obj, fabric_id, uplinks)
             else:
-                if uplink_id:
-                    delete_uplink(module, rest_obj, fabric_id, uplink_id)
+                if uplink:
+                    delete_uplink(module, rest_obj, fabric_id, uplink['Id'])
                 if module.check_mode:
                     module.exit_json(msg=NO_CHANGES_MSG)
                 module.exit_json(msg="Uplink {0} does not exist.".format(module.params["name"]))
@@ -536,9 +536,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

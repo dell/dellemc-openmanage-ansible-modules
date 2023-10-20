@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.1.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -80,16 +80,16 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 10800
   ignore_partial_failure:
     description:
       - "Provides the option to ignore partial failures. Partial failures occur when there is a combination of both
       discovered and undiscovered IPs."
-      - If C(False), then the partial failure is not ignored, and the module will error out.
-      - If C(True), then the partial failure is ignored.
-      - This option is only applicable if I(job_wait) is C(True).
+      - If C(false), then the partial failure is not ignored, and the module will error out.
+      - If C(true), then the partial failure is ignored.
+      - This option is only applicable if I(job_wait) is C(true).
     type: bool
     default: false
   discovery_config_targets:
@@ -366,12 +366,13 @@ options:
             description: KgKey for the IPMI protocol.
             type: str
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V (@jagadeeshnv)"
     - "Sajna Shetty (@Sajna-Shetty)"
+    - "Abhishek Sinha (@Abhishek-Dell)"
 notes:
-    - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module does not support C(check_mode).
     - If I(state) is C(present), then Idempotency is not supported.
 '''
@@ -383,6 +384,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discovery_server_1"
     discovery_config_targets:
       - network_address_detail:
@@ -398,6 +400,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discovery_chassis_1"
     discovery_config_targets:
       - network_address_detail:
@@ -413,6 +416,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discover_switch_1"
     discovery_config_targets:
       - network_address_detail:
@@ -427,6 +431,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discover_storage_1"
     discovery_config_targets:
       - network_address_detail:
@@ -444,6 +449,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     discovery_job_name: "Discovery-123"
 
@@ -452,6 +458,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     discovery_job_name: "Discovery-123"
     discovery_config_targets:
@@ -490,9 +497,9 @@ EXAMPLES = r'''
           password: ipmi_pwd
     schedule: RunLater
     cron: "0 0 9 ? * MON,WED,FRI *"
-    ignore_partial_failure: True
-    trap_destination: True
-    community_string: True
+    ignore_partial_failure: true
+    trap_destination: true
+    community_string: true
     email_recipient: test_email@company.com
 
 - name: Discover servers with ca check enabled
@@ -500,6 +507,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discovery_server_ca1"
     discovery_config_targets:
       - network_address_detail:
@@ -509,7 +517,7 @@ EXAMPLES = r'''
         wsman:
           username: user
           password: password
-          ca_check: True
+          ca_check: true
           certificate_data: "{{ lookup('ansible.builtin.file', '/path/to/certificate_data_file') }}"
 
 - name: Discover chassis with ca check enabled data
@@ -517,6 +525,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     discovery_job_name: "Discovery_chassis_ca1"
     discovery_config_targets:
       - network_address_detail:
@@ -526,7 +535,7 @@ EXAMPLES = r'''
         redfish:
           username: user
           password: password
-          ca_check: True
+          ca_check: true
           certificate_data: "-----BEGIN CERTIFICATE-----\r\n
           ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
           ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
@@ -590,6 +599,27 @@ discovery_ids:
   returned: when discoveries with duplicate name exist for I(state) is C(present)
   type: list
   sample: [1234, 5678]
+job_detailed_status:
+  description: Detailed last execution history of a job.
+  returned: All time.
+  type: list
+  sample: [
+        {
+            "ElapsedTime": "00:00:00",
+            "EndTime": null,
+            "ExecutionHistoryId": 564873,
+            "Id": 656893,
+            "IdBaseEntity": 0,
+            "JobStatus": {
+                "Id": 2050,
+                "Name": "Running"
+            },
+            "Key": "192.96.24.1",
+            "Progress": "0",
+            "StartTime": "2023-07-04 06:23:54.008",
+            "Value": "Running\nDiscovery of target 192.96.24.1 started.\nDiscovery target resolved to IP  192.96.24.1 ."
+        }
+    ]
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -614,10 +644,10 @@ error_info:
 
 import json
 import time
-from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import strip_substr_dict
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.common.dict_transformations import snake_dict_to_camel_dict
 
@@ -642,6 +672,11 @@ DISCOVERY_PARTIAL = "Some IPs are not discovered."
 ATLEAST_ONE_PROTOCOL = "Protocol not applicable for given device types."
 INVALID_DISCOVERY_ID = "Invalid discovery ID provided."
 SETTLING_TIME = 5
+JOB_STATUS_MAP = {
+    2020: "Scheduled", 2030: "Queued", 2040: "Starting", 2050: "Running", 2060: "completed successfully",
+    2070: "Failed", 2090: "completed with errors", 2080: "New", 2100: "Aborted", 2101: "Paused", 2102: "Stopped",
+    2103: "Canceled"
+}
 
 
 def check_existing_discovery(module, rest_obj):
@@ -712,39 +747,37 @@ def get_schedule(module):
     return schedule_payload
 
 
-def get_execution_details(module, rest_obj, job_id):
+def get_execution_details(rest_obj, job_id):
     try:
+        ips = {"Completed": [], "Failed": []}
+        job_detail_status = []
         resp = rest_obj.invoke_request('GET', JOB_EXEC_HISTORY.format(job_id=job_id))
         ex_hist = resp.json_data.get('value')
         # Sorting based on startTime and to get latest execution instance.
         tmp_dict = dict((x["StartTime"], x["Id"]) for x in ex_hist)
         sorted_dates = sorted(tmp_dict.keys())
         ex_url = JOB_EXEC_HISTORY.format(job_id=job_id) + "({0})/ExecutionHistoryDetails".format(tmp_dict[sorted_dates[-1]])
-        ips = {"Completed": [], "Failed": []}
         all_exec = rest_obj.get_all_items_with_pagination(ex_url)
         for jb_ip in all_exec.get('value'):
+            jb_ip = strip_substr_dict(jb_ip)
+            jb_ip.get('JobStatus', {}).pop('@odata.type', None)
+            job_detail_status.append(jb_ip)
             jobstatus = jb_ip.get('JobStatus', {}).get('Name', 'Unknown')
             jlist = ips.get(jobstatus, [])
             jlist.append(jb_ip.get('Key'))
             ips[jobstatus] = jlist
     except Exception:
-        ips = {"Completed": [], "Failed": []}
-    return ips
+        pass
+    return ips, job_detail_status
 
 
 def discovery_job_tracking(rest_obj, job_id, job_wait_sec):
-    job_status_map = {
-        2020: "Scheduled", 2030: "Queued", 2040: "Starting", 2050: "Running", 2060: "completed successfully",
-        2070: "Failed", 2090: "completed with errors", 2080: "New", 2100: "Aborted", 2101: "Paused", 2102: "Stopped",
-        2103: "Canceled"
-    }
     sleep_interval = 30
     max_retries = job_wait_sec // sleep_interval
     failed_job_status = [2070, 2100, 2101, 2102, 2103]
     success_job_status = [2060, 2020, 2090]
     job_url = (DISCOVERY_JOBS_URI + "({job_id})").format(job_id=job_id)
     loop_ctr = 0
-    job_failed = True
     time.sleep(SETTLING_TIME)
     while loop_ctr < max_retries:
         loop_ctr += 1
@@ -753,17 +786,15 @@ def discovery_job_tracking(rest_obj, job_id, job_wait_sec):
             job_dict = job_resp.json_data
             job_status = job_dict['JobStatusId']
             if job_status in success_job_status:
-                job_failed = False
-                return job_failed, JOB_TRACK_SUCCESS.format(job_status_map[job_status])
+                return JOB_TRACK_SUCCESS.format(JOB_STATUS_MAP[job_status])
             elif job_status in failed_job_status:
-                job_failed = True
-                return job_failed, JOB_TRACK_FAIL.format(job_status_map[job_status])
+                return JOB_TRACK_FAIL.format(JOB_STATUS_MAP[job_status])
             time.sleep(sleep_interval)
         except HTTPError:
-            return job_failed, JOB_TRACK_UNABLE.format(job_id)
+            return JOB_TRACK_UNABLE.format(job_id)
         except Exception as err:
-            return job_failed, str(err)
-    return job_failed, JOB_TRACK_INCOMPLETE.format(job_id, max_retries)
+            return str(err)
+    return JOB_TRACK_INCOMPLETE.format(job_id, max_retries)
 
 
 def get_job_data(discovery_json, rest_obj):
@@ -871,19 +902,22 @@ def exit_discovery(module, rest_obj, job_id):
     msg = DISCOVERY_SCHEDULED
     time.sleep(SETTLING_TIME)
     djob = get_discovery_job(rest_obj, job_id)
+    detailed_job = []
     if module.params.get("job_wait") and module.params.get('schedule') == 'RunNow':
-        job_failed, job_message = discovery_job_tracking(rest_obj, job_id,
-                                                         job_wait_sec=module.params["job_wait_timeout"])
-        if job_failed is True:
-            djob.update({"Completed": [], "Failed": []})
-            module.fail_json(msg=job_message, discovery_status=djob)
+        job_message = discovery_job_tracking(rest_obj, job_id, job_wait_sec=module.params["job_wait_timeout"])
         msg = job_message
-        ip_details = get_execution_details(module, rest_obj, job_id)
+        ip_details, detailed_job = get_execution_details(rest_obj, job_id)
         djob = get_discovery_job(rest_obj, job_id)
         djob.update(ip_details)
-        if ip_details.get("Failed") and module.params.get("ignore_partial_failure") is False:
-            module.fail_json(msg=DISCOVERY_PARTIAL, discovery_status=djob)
-    module.exit_json(msg=msg, discovery_status=djob, changed=True)
+        if djob["JobStatusId"] == 2090 and not module.params.get("ignore_partial_failure"):
+            module.fail_json(msg=DISCOVERY_PARTIAL, discovery_status=djob, job_detailed_status=detailed_job)
+        if djob["JobStatusId"] == 2090 and module.params.get("ignore_partial_failure"):
+            module.exit_json(msg=JOB_TRACK_SUCCESS.format(JOB_STATUS_MAP[djob["JobStatusId"]]), discovery_status=djob,
+                             job_detailed_status=detailed_job, changed=True)
+        if ip_details.get("Failed"):
+            module.fail_json(msg=JOB_TRACK_FAIL.format(JOB_STATUS_MAP[djob["JobStatusId"]]), discovery_status=djob,
+                             job_detailed_status=detailed_job)
+    module.exit_json(msg=msg, discovery_status=djob, job_detailed_status=detailed_job, changed=True)
 
 
 def create_discovery(module, rest_obj):
@@ -989,44 +1023,42 @@ def main():
                   "timeout": {"type": 'int', "default": 60},
                   "kgkey": {"type": 'str', "no_log": True}
                   }
-    DiscoveryConfigModel = {"device_types": {"required": True, 'type': 'list', "elements": 'str'},
-                            "network_address_detail": {"required": True, "type": 'list', "elements": 'str'},
-                            "wsman": {"type": 'dict', "options": http_creds,
-                                      "required_if": [['ca_check', True, ('certificate_data',)]]},
-                            "storage": {"type": 'dict', "options": http_creds,
+    discovery_config_model = {"device_types": {"required": True, 'type': 'list', "elements": 'str'},
+                              "network_address_detail": {"required": True, "type": 'list', "elements": 'str'},
+                              "wsman": {"type": 'dict', "options": http_creds,
                                         "required_if": [['ca_check', True, ('certificate_data',)]]},
-                            "redfish": {"type": 'dict', "options": http_creds,
-                                        "required_if": [['ca_check', True, ('certificate_data',)]]},
-                            "vmware": {"type": 'dict', "options": http_creds,
-                                       "required_if": [['ca_check', True, ('certificate_data',)]]},
-                            "snmp": {"type": 'dict', "options": snmp_creds},
-                            "ssh": {"type": 'dict', "options": ssh_creds},
-                            "ipmi": {"type": 'dict', "options": ipmi_creds},
-                            }
+                              "storage": {"type": 'dict', "options": http_creds,
+                                          "required_if": [['ca_check', True, ('certificate_data',)]]},
+                              "redfish": {"type": 'dict', "options": http_creds,
+                                          "required_if": [['ca_check', True, ('certificate_data',)]]},
+                              "vmware": {"type": 'dict', "options": http_creds,
+                                         "required_if": [['ca_check', True, ('certificate_data',)]]},
+                              "snmp": {"type": 'dict', "options": snmp_creds},
+                              "ssh": {"type": 'dict', "options": ssh_creds},
+                              "ipmi": {"type": 'dict', "options": ipmi_creds},
+                              }
+    specs = {
+        "discovery_job_name": {"type": 'str'},
+        "discovery_id": {"type": 'int'},
+        "state": {"default": "present", "choices": ['present', 'absent']},
+        "new_name": {"type": 'str'},
+        "discovery_config_targets":
+            {"type": 'list', "elements": 'dict', "options": discovery_config_model,
+             "required_one_of": [
+                 ('wsman', 'storage', 'redfish', 'vmware', 'snmp', 'ssh', 'ipmi')
+             ]},
+        "schedule": {"default": 'RunNow', "choices": ['RunNow', 'RunLater']},
+        "cron": {"type": 'str'},
+        "job_wait": {"type": 'bool', "default": True},
+        "job_wait_timeout": {"type": 'int', "default": 10800},
+        "trap_destination": {"type": 'bool', "default": False},
+        "community_string": {"type": 'bool', "default": False},
+        "email_recipient": {"type": 'str'},
+        "ignore_partial_failure": {"type": 'bool', "default": False}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "type": 'int', "default": 443},
-            "discovery_job_name": {"type": 'str'},
-            "discovery_id": {"type": 'int'},
-            "state": {"default": "present", "choices": ['present', 'absent']},
-            "new_name": {"type": 'str'},
-            "discovery_config_targets":
-                {"type": 'list', "elements": 'dict', "options": DiscoveryConfigModel,
-                 "required_one_of": [
-                     ('wsman', 'storage', 'redfish', 'vmware', 'snmp', 'ssh', 'ipmi')
-                 ]},
-            "schedule": {"default": 'RunNow', "choices": ['RunNow', 'RunLater']},
-            "cron": {"type": 'str'},
-            "job_wait": {"type": 'bool', "default": True},
-            "job_wait_timeout": {"type": 'int', "default": 10800},
-            "trap_destination": {"type": 'bool', "default": False},
-            "community_string": {"type": 'bool', "default": False},
-            "email_recipient": {"type": 'str'},
-            "ignore_partial_failure": {"type": 'bool', "default": False}
-        },
+        argument_spec=specs,
         required_if=[
             ['state', 'present', ('discovery_config_targets',)],
             ['schedule', 'RunLater', ('cron',)]
@@ -1053,7 +1085,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

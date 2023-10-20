@@ -1,0 +1,8 @@
+# For SSH into Linux
+192.168.0.2 ansible_ssh_user=user ansible_ssh_pass=password
+
+# For SSH into windows
+192.168.0.3 ansible_ssh_user=user ansible_ssh_pass=password ansible_remote_tmp="C:\\Users\\user\\tmp" become_method=runas ansible_shell_type=cmd shell_type=cmd
+
+[idrac]
+192.168.0.1

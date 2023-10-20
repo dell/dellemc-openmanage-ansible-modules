@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -55,11 +55,11 @@ options:
     type: str
     description: The physical location of the chassis.
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:
-  - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
   - This module supports C(check_mode).
 """
 
@@ -70,6 +70,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25011
     data_center: data center 1
     room: room 1
@@ -83,6 +84,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: GHRT2RL
     data_center: data center 2
     room: room 7
@@ -96,6 +98,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     data_center: data center 3
     room: room 3
     aisle: aisle 1
@@ -153,7 +156,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 
 LOCATION_API = "DeviceService/Devices({0})/Settings('Location')"
 DEVICE_URI = "DeviceService/Devices"
@@ -180,9 +183,9 @@ def validate_dictionary(module, loc_resp):
     rack_slot = module.params.get("rack_slot")
     location = module.params.get("location")
     req_dict = {"DataCenter": data_center, "Room": room, "Aisle": aisle, "RackName": rack, "Location": location}
-    req_filter_none = dict((k, v.lower()) for k, v in req_dict.items() if v is not None)
+    req_filter_none = dict((k, v) for k, v in req_dict.items() if v is not None)
     keys = list(req_filter_none.keys())
-    exit_dict = dict((k, v.lower()) for k, v in loc_resp.items() if k in keys and v is not None)
+    exit_dict = dict((k, v) for k, v in loc_resp.items() if k in keys and v is not None)
     if rack_slot is not None:
         req_dict.update({"RackSlot": rack_slot})
         req_filter_none.update({"RackSlot": rack_slot})
@@ -265,21 +268,19 @@ def device_validation(module, rest_obj):
 
 
 def main():
+    specs = {
+        "device_id": {"required": False, "type": "int"},
+        "device_service_tag": {"required": False, "type": "str"},
+        "data_center": {"required": False, "type": "str"},
+        "room": {"required": False, "type": "str"},
+        "aisle": {"required": False, "type": "str"},
+        "rack": {"required": False, "type": "str"},
+        "rack_slot": {"required": False, "type": "int"},
+        "location": {"required": False, "type": "str"},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "device_id": {"required": False, "type": "int"},
-            "device_service_tag": {"required": False, "type": "str"},
-            "data_center": {"required": False, "type": "str"},
-            "room": {"required": False, "type": "str"},
-            "aisle": {"required": False, "type": "str"},
-            "rack": {"required": False, "type": "str"},
-            "rack_slot": {"required": False, "type": "int"},
-            "location": {"required": False, "type": "str"},
-        },
+        argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],
         supports_check_mode=True
     )
@@ -293,7 +294,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

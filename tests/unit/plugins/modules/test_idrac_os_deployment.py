@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -14,10 +14,9 @@ __metaclass__ = type
 
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_os_deployment
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args, exit_json, \
-    fail_json, AnsibleFailJson, AnsibleExitJson
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -49,7 +48,7 @@ class TestOsDeployment(FakeAnsibleModule):
     @pytest.fixture
     def omsdk_mock(self, mocker):
         mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.UserCredentials')
-        mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.WsManOptions')
+        mocker.patch(MODULE_UTIL_PATH + 'dellemc_idrac.ProtoPreference')
 
     @pytest.fixture
     def fileonshare_mock(self, mocker):
@@ -85,6 +84,7 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
+                  "ca_path": "/path/to/ca_cert.pem",
                   "share_name": "dummy_share_name", "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }
@@ -98,7 +98,8 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Success"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
-                  "share_name": None, "share_password": "dummy_share_password",
+                  "ca_path": "/path/to/ca_cert.pem",
+                  "share_name": "", "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }
         set_module_args(params)
@@ -111,6 +112,7 @@ class TestOsDeployment(FakeAnsibleModule):
         idrac_connection_mock.return_value.__enter__.return_value = idrac_mock
         fileonshare_mock.side_effect = RuntimeError("Error in Runtime")
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
+                  "ca_path": "/path/to/ca_cert.pem",
                   "share_name": "invalid_share_name", "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }
@@ -122,6 +124,7 @@ class TestOsDeployment(FakeAnsibleModule):
                                                        fileonshare_mock, omsdk_mock, minutes_to_cim_format_mock):
         idrac_mock.config_mgr.boot_to_network_iso.return_value = {"Status": "Failure"}
         params = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
+                  "ca_path": "/path/to/ca_cert.pem",
                   "share_name": "dummy_share_name", "share_password": "dummy_share_password",
                   "iso_image": "dummy_iso_image", "expose_duration": "100"
                   }

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.1.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -54,7 +54,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             data = self.module._get_device_id_from_service_tags([Constants.service_tag1],
                                                                 ome_connection_mock_for_firmware_baseline_compliance_info,
                                                                 f_module)
-        assert exc.value.args[0] == "Failed to fetch the device information."
+        assert exc.value.args[0] == "Unable to fetch the device information."
 
     def test_get_device_id_from_service_tags_for_baseline_error_case(self,
                                                                      ome_connection_mock_for_firmware_baseline_compliance_info,
@@ -77,7 +77,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             self.module._get_device_id_from_service_tags(["#$%^&"],
                                                          ome_connection_mock_for_firmware_baseline_compliance_info,
                                                          f_module)
-        assert exc.value.args[0] == "Failed to fetch the device information."
+        assert exc.value.args[0] == "Unable to fetch the device information."
 
     def test_get_device_ids_from_group_ids_success_case(self, ome_response_mock,
                                                         ome_connection_mock_for_firmware_baseline_compliance_info):
@@ -95,7 +95,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             device_ids = self.module.get_device_ids_from_group_ids(f_module, ["123", "345"],
                                                                    ome_connection_mock_for_firmware_baseline_compliance_info)
-        assert exc.value.args[0] == "Failed to fetch the device ids from specified I(device_group_names)."
+        assert exc.value.args[0] == "Unable to fetch the device ids from specified device_group_names."
 
     def test_get_device_ids_from_group_ids_error_case(self, ome_connection_mock_for_firmware_baseline_compliance_info,
                                                       ome_response_mock):
@@ -115,7 +115,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.get_device_ids_from_group_ids(f_module, ["123456"],
                                                       ome_connection_mock_for_firmware_baseline_compliance_info)
-        assert exc.value.args[0] == "Failed to fetch the device ids from specified I(device_group_names)."
+        assert exc.value.args[0] == "Unable to fetch the device ids from specified device_group_names."
 
     def test_get_device_ids_from_group_names_success_case(self, mocker, ome_response_mock,
                                                           ome_connection_mock_for_firmware_baseline_compliance_info):
@@ -140,7 +140,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             device_ids = self.module.get_device_ids_from_group_names(f_module,
                                                                      ome_connection_mock_for_firmware_baseline_compliance_info)
-        assert ex.value.args[0] == "Failed to fetch the specified I(device_group_names)."
+        assert ex.value.args[0] == "Unable to fetch the specified device_group_names."
 
     def test_get_device_ids_from_group_names_error_case(self, ome_connection_mock_for_firmware_baseline_compliance_info,
                                                         ome_response_mock):
@@ -160,7 +160,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.get_device_ids_from_group_names(f_module,
                                                         ome_connection_mock_for_firmware_baseline_compliance_info)
-        assert exc.value.args[0] == "Failed to fetch the specified I(device_group_names)."
+        assert exc.value.args[0] == "Unable to fetch the specified device_group_names."
 
     def test_get_identifiers_with_device_ids(self, ome_connection_mock_for_firmware_baseline_compliance_info,
                                              module_mock, default_ome_args):
@@ -227,7 +227,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"baseline_name": "not_exits"})
         with pytest.raises(AnsibleFailJSonException) as exc:
             self.module.get_baseline_id_from_name(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
-        assert exc.value.args[0] == "Specified I(baseline_name) does not exist in the system."
+        assert exc.value.args[0] == "Specified baseline_name does not exist in the system."
 
     def test_get_baseline_id_from_name_when_baseline_is_empty(self, default_ome_args,
                                                               ome_connection_mock_for_firmware_baseline_compliance_info,
@@ -247,7 +247,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         f_module = self.get_module_mock(params={"baseline_notexist": "data"})
         with pytest.raises(AnsibleFailJSonException) as exc:
             self.module.get_baseline_id_from_name(ome_connection_mock_for_firmware_baseline_compliance_info, f_module)
-        assert exc.value.args[0] == "I(baseline_name) is a mandatory option."
+        assert exc.value.args[0] == "baseline_name is a mandatory option."
 
     def test_get_baseline_id_from_name_with_http_error_handlin_case(self,
                                                                     ome_connection_mock_for_firmware_baseline_compliance_info,
@@ -317,10 +317,30 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
-    def test_get_baselines_report_by_device_ids_exception_handling(self, mocker, exc_type,
-                                                                   ome_connection_mock_for_firmware_baseline_compliance_info,
-                                                                   ome_response_mock):
+    def _test_get_baselines_report_by_device_ids_exception_handling(self, mocker, exc_type,
+                                                                    ome_connection_mock_for_firmware_baseline_compliance_info,
+                                                                    ome_response_mock):
         """when invalid value for expose_durationis given """
+        err_dict = {"file": {
+            "error": {
+                "code": "Base.1.0.GeneralError",
+                "message": "A general error has occurred. See ExtendedInfo for more information.",
+                "@Message.ExtendedInfo": [
+                    {
+                        "MessageId": "CUPD3090",
+                        "RelatedProperties": [],
+                        "Message": "Unable to retrieve baseline list either because the device "
+                                   "ID(s) entered are invalid, the ID(s) provided are not "
+                                   "associated with a baseline or a group is used as a target for "
+                                   "a baseline.",
+                        "MessageArgs": [],
+                        "Severity": "Critical",
+                        "Resolution": "Make sure the entered device ID(s) are valid and retry the operation."
+                    }
+                ]
+            }
+        }
+        }
         mocker.patch(
             'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_identifiers',
             return_value=([], "device_ids"))
@@ -328,7 +348,7 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             ome_connection_mock_for_firmware_baseline_compliance_info.invoke_request.side_effect = exc_type('test')
         else:
             ome_connection_mock_for_firmware_baseline_compliance_info.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 400, '', {}, None)
+                'http://testhost.com', 400, '', err_dict, None)
         f_module = self.get_module_mock()
         with pytest.raises(exc_type):
             self.module.get_baselines_report_by_device_ids(
@@ -484,9 +504,9 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
             'ansible_collections.dellemc.openmanage.plugins.modules.ome_firmware_baseline_compliance_info.get_baselines_report_by_device_ids',
             return_value=None)
         ome_default_args.update({"device_ids": [Constants.device_id1]})
-        result = self._run_module_with_fail_json(ome_default_args)
+        result = self._run_module(ome_default_args)
         assert 'baseline_compliance_info' not in result
-        assert result['msg'] == "Failed to fetch the compliance baseline information."
+        assert result['msg'] == "Unable to fetch the compliance baseline information."
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])

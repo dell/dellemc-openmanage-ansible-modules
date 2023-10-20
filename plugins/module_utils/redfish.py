@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -30,14 +30,27 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
+import os
+import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+
+redfish_auth_params = {
+    "baseuri": {"required": True, "type": "str"},
+    "username": {"required": True, "type": "str"},
+    "password": {"required": True, "type": "str", "no_log": True},
+    "validate_certs": {"type": "bool", "default": True},
+    "ca_path": {"type": "path"},
+    "timeout": {"type": "int", "default": 30},
+}
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/Sessions",
     "SESSION_ID": "/redfish/v1/Sessions/{Id}",
 }
+
+HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
 
 
 class OpenURLResponse(object):
@@ -82,13 +95,31 @@ class Redfish(object):
         self.hostname = self.module_params["baseuri"]
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
-        self.validate_certs = self.module_params.get("validate_certs", False)
+        self.validate_certs = self.module_params.get("validate_certs", True)
+        self.ca_path = self.module_params.get("ca_path")
+        self.timeout = self.module_params.get("timeout", 30)
         self.use_proxy = self.module_params.get("use_proxy", True)
         self.req_session = req_session
         self.session_id = None
         self.protocol = 'https'
         self.root_uri = '/redfish/v1/'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+
+        try:
+            ip_addr, port = self.hostname, self.protocol
+            if ']:' in ip_addr:
+                ip_addr, port = ip_addr.split(']:')
+            ip_addr = ip_addr.strip('[]')
+            if ip_addr.count(':') == 1:
+                ip_addr, port = ip_addr.split(':')
+
+            data = socket.getaddrinfo(ip_addr, port)
+            if "AF_INET6" == data[0][0]._name_:
+                ip_addr, port = data[0][4][0], data[0][4][1]
+                self.hostname = "[{0}]:{1}".format(ip_addr, port)
+        except (socket.gaierror, IndexError):
+            msg = HOST_UNRESOLVED_MSG.format(self.hostname)
+            raise URLError(msg)
 
     def _get_base_url(self):
         """builds base url"""
@@ -109,9 +140,14 @@ class Redfish(object):
         req_header = self._headers
         if headers:
             req_header.update(headers)
+        if api_timeout is None:
+            api_timeout = self.timeout
+        if self.ca_path is None:
+            self.ca_path = self._get_omam_ca_env()
         url_kwargs = {
             "method": method,
             "validate_certs": self.validate_certs,
+            "ca_path": self.ca_path,
             "use_proxy": self.use_proxy,
             "headers": req_header,
             "timeout": api_timeout,
@@ -119,7 +155,7 @@ class Redfish(object):
         }
         return url_kwargs
 
-    def _args_without_session(self, path, method, api_timeout=30, headers=None):
+    def _args_without_session(self, path, method, api_timeout, headers=None):
         """Creates an argument spec in case of basic authentication"""
         req_header = self._headers
         if headers:
@@ -131,14 +167,14 @@ class Redfish(object):
             url_kwargs["force_basic_auth"] = True
         return url_kwargs
 
-    def _args_with_session(self, method, api_timeout=30, headers=None):
+    def _args_with_session(self, method, api_timeout, headers=None):
         """Creates an argument spec, in case of authentication with session"""
         url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
         url_kwargs["force_basic_auth"] = False
         return url_kwargs
 
     def invoke_request(self, method, path, data=None, query_param=None, headers=None,
-                       api_timeout=30, dump=True):
+                       api_timeout=None, dump=True):
         """
         Sends a request through open_url
         Returns :class:`OpenURLResponse` object.
@@ -196,3 +232,7 @@ class Redfish(object):
             if chkstr in str(k).lower():
                 odata_dict.pop(k)
         return odata_dict
+
+    def _get_omam_ca_env(self):
+        """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
+        return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")

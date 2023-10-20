@@ -1,0 +1,8 @@
+---
+https_port: 443
+validate_certs: true
+https_timeout: 30
+target:
+  - System
+computer_system_id: ""
+manager_id: ""

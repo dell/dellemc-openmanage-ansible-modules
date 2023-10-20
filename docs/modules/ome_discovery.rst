@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -88,17 +88,17 @@ Parameters
   job_wait_timeout (optional, int, 10800)
     The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   ignore_partial_failure (optional, bool, False)
     Provides the option to ignore partial failures. Partial failures occur when there is a combination of both discovered and undiscovered IPs.
 
-    If ``False``, then the partial failure is not ignored, and the module will error out.
+    If ``false``, then the partial failure is not ignored, and the module will error out.
 
-    If ``True``, then the partial failure is ignored.
+    If ``true``, then the partial failure is ignored.
 
-    This option is only applicable if *job_wait* is ``True``.
+    This option is only applicable if *job_wait* is ``true``.
 
 
   discovery_config_targets (optional, list, None)
@@ -423,6 +423,22 @@ Parameters
     OpenManage Enterprise HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -430,7 +446,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module does not support ``check_mode``.
    - If *state* is ``present``, then Idempotency is not supported.
 
@@ -449,6 +465,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_server_1"
         discovery_config_targets:
           - network_address_detail:
@@ -464,6 +481,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_chassis_1"
         discovery_config_targets:
           - network_address_detail:
@@ -479,6 +497,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discover_switch_1"
         discovery_config_targets:
           - network_address_detail:
@@ -493,6 +512,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discover_storage_1"
         discovery_config_targets:
           - network_address_detail:
@@ -510,6 +530,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         discovery_job_name: "Discovery-123"
 
@@ -518,6 +539,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "present"
         discovery_job_name: "Discovery-123"
         discovery_config_targets:
@@ -556,9 +578,9 @@ Examples
               password: ipmi_pwd
         schedule: RunLater
         cron: "0 0 9 ? * MON,WED,FRI *"
-        ignore_partial_failure: True
-        trap_destination: True
-        community_string: True
+        ignore_partial_failure: true
+        trap_destination: true
+        community_string: true
         email_recipient: test_email@company.com
 
     - name: Discover servers with ca check enabled
@@ -566,6 +588,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_server_ca1"
         discovery_config_targets:
           - network_address_detail:
@@ -575,7 +598,7 @@ Examples
             wsman:
               username: user
               password: password
-              ca_check: True
+              ca_check: true
               certificate_data: "{{ lookup('ansible.builtin.file', '/path/to/certificate_data_file') }}"
 
     - name: Discover chassis with ca check enabled data
@@ -583,6 +606,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         discovery_job_name: "Discovery_chassis_ca1"
         discovery_config_targets:
           - network_address_detail:
@@ -592,7 +616,7 @@ Examples
             redfish:
               username: user
               password: password
-              ca_check: True
+              ca_check: true
               certificate_data: "-----BEGIN CERTIFICATE-----\r\n
               ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
               ABCDEFGHIJKLMNOPQRSTUVWXYZaqwertyuiopasdfghjklzxcvbnmasdasagasvv\r\n
@@ -619,6 +643,10 @@ discovery_ids (when discoveries with duplicate name exist for I(state) is C(pres
   IDs of the discoveries with duplicate names.
 
 
+job_detailed_status (All time., list, [{'ElapsedTime': '00:00:00', 'EndTime': None, 'ExecutionHistoryId': 564873, 'Id': 656893, 'IdBaseEntity': 0, 'JobStatus': {'Id': 2050, 'Name': 'Running'}, 'Key': '192.96.24.1', 'Progress': '0', 'StartTime': '2023-07-04 06:23:54.008', 'Value': 'Running\nDiscovery of target 192.96.24.1 started.\nDiscovery target resolved to IP  192.96.24.1 .'}])
+  Detailed last execution history of a job.
+
+
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
   Details of the HTTP Error.
 
@@ -638,4 +666,5 @@ Authors
 
 - Jagadeesh N V (@jagadeeshnv)
 - Sajna Shetty (@Sajna-Shetty)
+- Abhishek Sinha (@Abhishek-Dell)
 

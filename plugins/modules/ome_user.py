@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -53,10 +53,10 @@ options:
       - >-
         Refer OpenManage Enterprise API Reference Guide for more details.
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module does not support C(check_mode).
 '''
 
@@ -67,26 +67,28 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     attributes:
       UserName: "user1"
       Password: "UserPassword"
       RoleId: "10"
-      Enabled: True
+      Enabled: true
 
 - name: Create user with all parameters
   dellemc.openmanage.ome_user:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     attributes:
       UserName: "user2"
       Description: "user2 description"
       Password: "UserPassword"
       RoleId: "10"
-      Enabled: True
+      Enabled: true
       DirectoryServiceId: 0
       UserTypeId: 1
-      Locked: False
+      Locked: false
       Name: "user2"
 
 - name: Modify existing user
@@ -94,11 +96,12 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "present"
     attributes:
       UserName: "user3"
       RoleId: "10"
-      Enabled: True
+      Enabled: true
       Description: "Modify user Description"
 
 - name: Delete existing user using id
@@ -106,6 +109,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     user_id: 1234
 
@@ -114,6 +118,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     name: "name"
 '''
@@ -147,8 +152,9 @@ user_status:
 '''
 
 import json
+from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -225,26 +231,22 @@ def exit_module(module, response, http_method):
 
 
 def main():
+    specs = {
+        "state": {"required": False, "type": 'str', "default": "present",
+                  "choices": ['present', 'absent']},
+        "user_id": {"required": False, "type": 'int'},
+        "name": {"required": False, "type": 'str'},
+        "attributes": {"required": False, "type": 'dict', "default": {}},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "state": {"required": False, "type": 'str', "default": "present",
-                      "choices": ['present', 'absent']},
-            "user_id": {"required": False, "type": 'int'},
-            "name": {"required": False, "type": 'str'},
-            "attributes": {"required": False, "type": 'dict'},
-        },
+        argument_spec=specs,
         mutually_exclusive=[['user_id', 'name'], ],
         required_if=[['state', 'present', ['attributes']], ],
         supports_check_mode=False)
 
     try:
         _validate_inputs(module)
-        if module.params.get("attributes") is None:
-            module.params["attributes"] = {}
         with RestOME(module.params, req_session=True) as rest_obj:
             method, path, payload = _get_resource_parameters(module, rest_obj)
             resp = rest_obj.invoke_request(method, path, data=payload)
@@ -252,7 +254,7 @@ def main():
                 exit_module(module, resp, method)
     except HTTPError as err:
         fail_module(module, msg=str(err), user_status=json.load(err))
-    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, OSError, SSLError) as err:
         fail_module(module, msg=str(err))
 
 

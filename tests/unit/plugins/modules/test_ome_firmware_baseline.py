@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.4.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.1.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -13,14 +13,15 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
-import pytest
-from ssl import SSLError
 from io import StringIO
+from ssl import SSLError
+
+import pytest
+from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_firmware_baseline
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 BASELINE_JOB_RUNNING = "Firmware baseline '{name}' with ID {id} is running. Please retry after job completion."
 MULTI_BASLEINES = "Multiple baselines present. Run the module again using a specific ID."
@@ -44,6 +45,7 @@ payload_out1 = {
     "CatalogId": 12,
     "RepositoryId": 23,
     "DowngradeEnabled": True,
+    'FilterNoRebootRequired': True,
     "Is64Bit": True,
     "Targets": [
         {"Id": 123,
@@ -55,6 +57,7 @@ payload_out1 = {
 payload_out2 = {
     "Name": "baseline1",
     "CatalogId": 12,
+    'FilterNoRebootRequired': False,
     "RepositoryId": 23, 'Description': None, 'DowngradeEnabled': True, 'Is64Bit': True,
     "Targets": [
         {"Id": 123,
@@ -360,12 +363,14 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
                       "baseline_name": "baseline1",
                       "baseline_description": "baseline_description",
                       "downgrade_enabled": True,
-                      "is_64_bit": True}
+                      "is_64_bit": True,
+                      "filter_no_reboot_required": True}
     payload_param2 = {"catalog_name": "cat1",
                       "baseline_name": "baseline1",
                       "baseline_description": None,
                       "downgrade_enabled": None,
-                      "is_64_bit": None}
+                      "is_64_bit": None,
+                      "filter_no_reboot_required": False}
 
     @pytest.mark.parametrize("params", [{"inp": payload_param1, "out": payload_out1},
                                         {"inp": payload_param2, "out": payload_out2}])
@@ -444,16 +449,65 @@ class TestOmeFirmwareBaseline(FakeAnsibleModule):
         targets = self.module.get_target_list(f_module, ome_connection_mock_for_firmware_baseline)
         assert targets == params["out"]
 
-    def _test_main_success(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock, mocker):
-        mocker.patch(MODULE_PATH + 'check_existing_baseline', return_value=[])
-        mocker.patch(MODULE_PATH + '_get_baseline_payload', return_value=payload_out1)
+    @pytest.mark.parametrize("params", [
+        {"json_data": {"JobId": 1234},
+         "check_existing_baseline": [],
+         "mparams": {"state": "absent", "baseline_name": "b1", "device_ids": [12, 23], 'catalog_name': 'c1',
+                     'job_wait': False},
+         'message': NO_CHANGES_MSG, "success": True
+         },
+        {"json_data": {"JobId": 1234},
+         "check_existing_baseline": [{"name": "b1", "Id": 123, "TaskStatusId": 2060}], "check_mode": True,
+         "mparams": {"state": "absent", "baseline_id": 123, "device_ids": [12, 23], 'catalog_name': 'c1',
+                     'job_wait': False},
+         'message': "Changes found to be applied.", "success": True
+         },
+        {"json_data": {"JobId": 1234},
+         "check_existing_baseline": [], "check_mode": True,
+         "mparams": {"state": "present", "baseline_name": "b1", "device_ids": [12, 23], 'catalog_name': 'c1',
+                     'job_wait': False},
+         'message': "Changes found to be applied.", "success": True
+         }
+    ])
+    def test_main_success(self, params, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock, mocker):
+        mocker.patch(MODULE_PATH + 'check_existing_baseline', return_value=params.get("check_existing_baseline"))
+        mocker.patch(MODULE_PATH + '_get_baseline_payload', return_value=params.get("_get_baseline_payload"))
         ome_response_mock.success = True
-        ome_response_mock.json_data = baseline_status1
-        ome_default_args.update({"baseline_name": "b1", "device_ids": [12, 23], 'catalog_name': 'c1',
-                                 'job_wait': False})
-        result = self._run_module(ome_default_args)
-        assert result["changed"] is True
-        assert 'baseline_status' in result
+        ome_response_mock.json_data = params.get("json_data")
+        ome_default_args.update(params.get('mparams'))
+        result = self._run_module(ome_default_args, check_mode=params.get("check_mode", False))
+        assert result["msg"] == params['message']
+
+    @pytest.mark.parametrize("params", [
+        {"json_data": {"JobId": 1234},
+         "check_existing_baseline": [], "check_mode": True,
+         "mparams": {"state": "present", "baseline_id": 123, "device_ids": [12, 23], 'catalog_name': 'c1',
+                     'job_wait': False},
+         'message': INVALID_BASELINE_ID, "success": True
+         },
+        {"json_data": {"JobId": 1234},
+         "check_existing_baseline": [{"Name": "b1", "Id": 123, "TaskStatusId": 2050, "TaskId": 2050}], "check_mode": True,
+         "mparams": {"state": "present", "baseline_id": 123, "device_ids": [12, 23], 'catalog_name': 'c1',
+                     'job_wait': False},
+         'message': "Firmware baseline 'b1' with ID 123 is running. Please retry after job completion.", "success": True
+         },
+        {"json_data": {"JobId": 1234},
+         "check_existing_baseline": [{"Name": "b1", "Id": 123, "TaskStatusId": 2060, "TaskId": 2050}],
+         "check_mode": True, "get_catrepo_ids": (None, None),
+         "mparams": {"state": "present", "baseline_id": 123, "device_ids": [12, 23], 'catalog_name': 'c1',
+                     'job_wait': False},
+         'message': "No Catalog with name c1 found", "success": True
+         },
+    ])
+    def test_main_failure(self, params, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock, mocker):
+        mocker.patch(MODULE_PATH + 'check_existing_baseline', return_value=params.get("check_existing_baseline"))
+        mocker.patch(MODULE_PATH + '_get_baseline_payload', return_value=params.get("_get_baseline_payload"))
+        mocker.patch(MODULE_PATH + 'get_catrepo_ids', return_value=params.get("get_catrepo_ids"))
+        ome_response_mock.success = True
+        ome_response_mock.json_data = params.get("json_data")
+        ome_default_args.update(params.get('mparams'))
+        result = self._run_module_with_fail_json(ome_default_args)
+        assert result["msg"] == params['message']
 
     def test_main_failure01(self, ome_connection_mock_for_firmware_baseline, ome_default_args, ome_response_mock,
                             mocker):

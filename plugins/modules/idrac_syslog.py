@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.1.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -30,14 +30,15 @@ options:
     type: str
     default: Enabled
 requirements:
-  - "omsdk"
-  - "python >= 2.7.5"
+  - "omsdk >= 1.2.488"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
-    - Run this module from a system that has direct access to Dell EMC iDRAC.
+    - Run this module from a system that has direct access to Dell iDRAC.
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
 """
 
@@ -48,6 +49,7 @@ EXAMPLES = """
        idrac_ip:  "192.168.0.1"
        idrac_user:  "user_name"
        idrac_password:  "user_password"
+       ca_path: "/path/to/ca_cert.pem"
        share_name:  "192.168.0.2:/share"
        share_password:  "share_user_pwd"
        share_user:  "share_user_name"
@@ -59,6 +61,7 @@ EXAMPLES = """
        idrac_ip:  "192.168.0.1"
        idrac_user:  "user_name"
        idrac_password:  "user_password"
+       ca_path: "/path/to/ca_cert.pem"
        share_name:  "192.168.0.2:/share"
        share_password:  "share_user_pwd"
        share_user:  "share_user_name"
@@ -122,7 +125,7 @@ error_info:
 
 
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
@@ -161,18 +164,16 @@ def run_setup_idrac_syslog(idrac, module):
 
 
 def main():
+    specs = {
+        "share_name": {"required": True, "type": 'str'},
+        "share_user": {"required": False, "type": 'str'},
+        "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
+        "share_mnt": {"required": False, "type": 'str'},
+        "syslog": {"required": False, "choices": ['Enabled', 'Disabled'], "default": 'Enabled'}
+    }
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "idrac_ip": {"required": True, "type": 'str'},
-            "idrac_user": {"required": True, "type": 'str'},
-            "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'},
-            "share_name": {"required": True, "type": 'str'},
-            "share_user": {"required": False, "type": 'str'},
-            "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
-            "share_mnt": {"required": False, "type": 'str'},
-            "syslog": {"required": False, "choices": ['Enabled', 'Disabled'], "default": 'Enabled'}
-        },
+        argument_spec=specs,
         supports_check_mode=True)
 
     try:

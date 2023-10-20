@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -15,13 +15,13 @@ __metaclass__ = type
 import json
 import pytest
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_firmware
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from mock import MagicMock, Mock
 from io import StringIO
 from ansible.module_utils._text import to_text
-from ansible.module_utils.six.moves.urllib.parse import urlparse, ParseResult
+from ansible.module_utils.six.moves.urllib.parse import ParseResult
 from pytest import importorskip
 
 importorskip("omsdk.sdkfile")
@@ -123,7 +123,7 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_firmware_job_mock
         return idrac_firmware_job_mock
 
-    def test_main_idrac_firmware_success_Case(self, idrac_connection_firmware_mock,
+    def test_main_idrac_firmware_success_case(self, idrac_connection_firmware_mock,
                                               idrac_connection_firmware_redfish_mock,
                                               idrac_default_args, mocker):
         idrac_default_args.update({"share_name": "sharename", "catalog_file_name": "Catalog.xml",
@@ -134,8 +134,8 @@ class TestidracFirmware(FakeAnsibleModule):
         message = {"Status": "Success", "update_msg": "Successfully updated the firmware.",
                    "update_status": "Success", 'changed': False, 'failed': False}
         idrac_connection_firmware_redfish_mock.success = True
-        idrac_connection_firmware_redfish_mock.json_data = {"FirmwareVersion": "2.70"}
-        mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_omsdk', return_value=message)
+        idrac_connection_firmware_redfish_mock.json_data = {}
+        mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_redfish', return_value=message)
         result = self._run_module(idrac_default_args)
         assert result == {'msg': 'Successfully updated the firmware.', 'update_status': 'Success',
                           'changed': False, 'failed': False}
@@ -225,7 +225,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "shrmnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True,
-                                   "apply_update": True
+                                   "apply_update": True, "proxy_support": "Off",
                                    })
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
@@ -297,7 +297,7 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_connection_firmware_redfish_mock.json_data = {"FirmwareVersion": "3.30"}
         mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson", return_value=("INSTANCENAME", False, False))
         idrac_connection_firmware_mock.ServerGeneration = "14"
-        result = self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module)
+        result = self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
         assert result["changed"] is False
         assert result["update_msg"] == "Successfully triggered the job to update the firmware."
 
@@ -308,7 +308,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "sharemnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True,
-                                   "apply_update": True
+                                   "apply_update": True, "proxy_support": "Off",
                                    })
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
@@ -355,7 +355,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_user": "UserName", "share_password": "sharepswd",
                                    "share_mnt": "sharemnt",
                                    "reboot": True, "job_wait": True, "ignore_cert_warning": True,
-                                   "apply_update": True})
+                                   "apply_update": True, "proxy_support": "Off", })
         mocker.patch(MODULE_PATH + "idrac_firmware.update_firmware_url_omsdk",
                      return_value=({"update_status": {"job_details": {"data": {"StatusCode": 200,
                                                                                "body": {"PackageList": [{}]}}}}},
@@ -463,7 +463,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_mnt": "sharmnt",
                                    "reboot": True, "job_wait": False, "ignore_cert_warning": True,
                                    "share_type": "http", "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
-                                   "idrac_password": "idrac_password", "idrac_port": 443
+                                   "idrac_password": "idrac_password", "idrac_port": 443, "proxy_support": "Off",
                                    })
         mocker.patch(MODULE_PATH + "idrac_firmware.get_jobid",
                      return_value="23451")
@@ -516,7 +516,7 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_mnt": "sharmnt",
                                    "reboot": True, "job_wait": False, "ignore_cert_warning": True,
                                    "share_type": "http", "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
-                                   "idrac_password": "idrac_password", "idrac_port": 443
+                                   "idrac_password": "idrac_password", "idrac_port": 443, "proxy_support": "Off",
                                    })
         mocker.patch(MODULE_PATH + "idrac_firmware.get_jobid",
                      return_value="23451")
@@ -585,9 +585,9 @@ class TestidracFirmware(FakeAnsibleModule):
                                    "share_mnt": "sharmnt", "apply_update": False,
                                    "reboot": False, "job_wait": True, "ignore_cert_warning": True,
                                    "idrac_ip": "idrac_ip", "idrac_user": "idrac_user",
-                                   "idrac_password": "idrac_password", "idrac_port": 443})
+                                   "idrac_password": "idrac_password", "idrac_port": 443, "proxy_support": "Off", })
         mocker.patch(MODULE_PATH + "idrac_firmware._convert_xmltojson", return_value=("INSTANCENAME", False, False))
-        mocker.patch(MODULE_PATH + "idrac_firmware.re")
+        # mocker.patch(MODULE_PATH + "idrac_firmware.re")
         idrac_connection_firmware_redfish_mock.success = True
         idrac_connection_firmware_redfish_mock.json_data = {"FirmwareVersion": "2.70"}
         f_module = self.get_module_mock(params=idrac_default_args)

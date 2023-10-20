@@ -1,18 +1,15 @@
 ---
 - hosts: ome
-  connection: local
-  name: Dell EMC OpenManage Ansible VLAN operations.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  name: Dell OpenManage Ansible VLAN operations.
+  gather_facts: false
 
   tasks:
-    - name: "Create a VLAN range"
-      ome_network_vlan:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Create a VLAN range
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan1"
         description: "VLAN desc"
@@ -20,12 +17,14 @@
         vlan_minimum: 35
         vlan_maximum: 40
       tags: create_vlan_range
+      delegate_to: localhost
 
-    - name: "Create a VLAN with a single value"
-      ome_network_vlan:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Create a VLAN with a single value
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan2"
         description: "VLAN desc"
@@ -33,12 +32,14 @@
         vlan_minimum: 127
         vlan_maximum: 127
       tags: create_vlan_single
+      delegate_to: localhost
 
-    - name: "Modify a VLAN"
-      ome_network_vlan:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Modify a VLAN
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "vlan1"
         new_name: "vlan_gold1"
@@ -47,12 +48,15 @@
         vlan_minimum: 45
         vlan_maximum: 50
       tags: modify_vlan
+      delegate_to: localhost
 
-    - name: "Delete a VLAN"
-      ome_network_vlan:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Delete a VLAN
+      dellemc.openmanage.ome_network_vlan:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "vlan1"
       tags: delete_vlan
+      delegate_to: localhost

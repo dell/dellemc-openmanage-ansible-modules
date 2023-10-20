@@ -1,0 +1,101 @@
+---
+- name: Converge idrac_firmware
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Update firmware from repository on HTTPS Share with apply_update as false
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: false
+        catalog_file_name: "Catalog.xml"
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with apply_update as false"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+      when: not ansible_check_mode
+
+    - name: Update firmware from repository on HTTPS Share with ignore_cert_warning as false
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "Catalog.xml"
+        ignore_cert_warning: false
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with ignore_cert_warning as false"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+      when: not ansible_check_mode
+
+    - name: Update firmware from repository on HTTPS Share with reboot as false
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: false
+        job_wait: true
+        apply_update: true
+        catalog_file_name: "Catalog.xml"
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with reboot as false"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+      when: not ansible_check_mode
+
+    - name: Update firmware from repository on HTTPS Share with job_wait as false
+      ansible.builtin.import_role:
+        name: "idrac_firmware"
+      vars:
+        hostname: "{{ lookup('env', 'hostname') }}"
+        username: "{{ lookup('env', 'username') }}"
+        password: "{{ lookup('env', 'password') }}"
+        validate_certs: false
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        share_user: "{{ lookup('env', 'shareuser') }}"
+        share_password: "{{ lookup('env', 'sharepassword') }}"
+        reboot: true
+        job_wait: false
+        apply_update: true
+        catalog_file_name: "Catalog.xml"
+      tags: molecule-idempotence-notest
+
+    - name: "Verifying update firmware from repository on a HTTPS Share with job_wait as false"
+      ansible.builtin.assert:
+        that:
+          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+            or same version installed on the server."
+      when: not ansible_check_mode

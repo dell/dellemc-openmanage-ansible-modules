@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.1.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -91,11 +91,11 @@ options:
         type: list
         elements: str
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
 '''
 
@@ -106,6 +106,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     template_id: 78
     nic_identifier: NIC Slot 4
     untagged_networks:
@@ -134,6 +135,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     template_id: 78
     nic_identifier: NIC Slot 4
     untagged_networks:
@@ -191,8 +193,8 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 NETWORK_HIERARCHY_VIEW = 4  # For Network hierarchy View in a Template
@@ -344,14 +346,10 @@ def validate_vlans(module, rest_obj):
     vlan_name_id_map["0"] = 0
     tagged_list = module.params.get("tagged_networks")
     untag_list = module.params.get("untagged_networks")
-    if not tagged_list and not untag_list:
-        module.fail_json(msg="Either tagged_networks | untagged_networks "
-                             "data needs to be provided")
     untag_dict = {}
     if untag_list:
         for utg in untag_list:
             p = utg["port"]
-            excl_flag = False
             if utg.get("untagged_network_id") is not None:
                 if p in untag_dict:
                     module.fail_json(msg="port {0} is repeated for "
@@ -362,12 +360,7 @@ def validate_vlans(module, rest_obj):
                                          "valid vlan id for port {1}".
                                      format(vlan, p))
                 untag_dict[p] = vlan
-                excl_flag = True
             if utg.get("untagged_network_name"):
-                if excl_flag:
-                    module.fail_json(msg="Options untagged_network_name | "
-                                         "untagged_network_id are mutually exclusive "
-                                         "for port {0}".format(p))
                 vlan = utg.get("untagged_network_name")
                 if vlan in vlan_name_id_map:
                     if p in untag_dict:
@@ -419,20 +412,18 @@ def main():
     port_tagged_spec = {"port": {"required": True, "type": "int"},
                         "tagged_network_ids": {"type": "list", "elements": "int"},
                         "tagged_network_names": {"type": "list", "elements": "str"}}
+    specs = {
+        "template_name": {"required": False, "type": "str"},
+        "template_id": {"required": False, "type": "int"},
+        "nic_identifier": {"required": True, "type": "str"},
+        "untagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_untagged_spec,
+                              "mutually_exclusive": [("untagged_network_id", "untagged_network_name")]},
+        "tagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_tagged_spec},
+        "propagate_vlan": {"type": "bool", "default": True}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "template_name": {"required": False, "type": "str"},
-            "template_id": {"required": False, "type": "int"},
-            "nic_identifier": {"required": True, "type": "str"},
-            "untagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_untagged_spec,
-                                  "mutually_exclusive": [("untagged_network_id", "untagged_network_name")]},
-            "tagged_networks": {"required": False, "type": "list", "elements": "dict", "options": port_tagged_spec},
-            "propagate_vlan": {"type": "bool", "default": True}
-        },
+        argument_spec=specs,
         required_one_of=[("template_id", "template_name"),
                          ("untagged_networks", "tagged_networks")],
         mutually_exclusive=[("template_id", "template_name")],
@@ -449,7 +440,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

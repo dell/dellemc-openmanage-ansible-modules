@@ -26,8 +26,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk
-- python >= 2.7.5
+- omsdk >= 1.2.503
+- python >= 3.9.6
 
 
 
@@ -61,23 +61,69 @@ Parameters
 
 
   ignore_cert_warning (optional, bool, True)
-    Specifies if certificate warnings are ignored when HTTPS share is used. If ``True`` option is set, then the certificate warnings are ignored.
+    Specifies if certificate warnings are ignored when HTTPS share is used. If ``true`` option is set, then the certificate warnings are ignored.
 
 
   apply_update (optional, bool, True)
-    If *apply_update* is set to ``True``, then the packages are applied.
+    If *apply_update* is set to ``true``, then the packages are applied.
 
-    If *apply_update* is set to ``False``, no updates are applied, and a catalog report of packages is generated and returned.
+    If *apply_update* is set to ``false``, no updates are applied, and a catalog report of packages is generated and returned.
 
 
   reboot (optional, bool, False)
     Provides the option to apply the update packages immediately or in the next reboot.
 
-    If *reboot* is set to ``True``,  then the packages  are applied immediately.
+    If *reboot* is set to ``true``,  then the packages  are applied immediately.
 
-    If *reboot* is set to ``False``, then the packages are staged and applied in the next reboot.
+    If *reboot* is set to ``false``, then the packages are staged and applied in the next reboot.
 
     Packages that do not require a reboot are applied immediately irrespective of I (reboot).
+
+
+  proxy_support (optional, str, Off)
+    Specifies if a proxy should be used.
+
+    Proxy parameters are applicable on ``HTTP``, ``HTTPS``, and ``FTP`` share type of repositories.
+
+    ``ParametersProxy``, sets the proxy parameters for the current firmware operation.
+
+    ``DefaultProxy``, iDRAC uses the proxy values set by default.
+
+    Default Proxy can be set in the Lifecycle Controller attributes using :ref:`dellemc.openmanage.idrac_attributes <dellemc.openmanage.idrac_attributes_module>`.
+
+    ``Off``, will not use the proxy.
+
+    For iDRAC8 based servers, use proxy server with basic authentication.
+
+    For iDRAC9 based servers, ensure that you use digest authentication for the proxy server, basic authentication is not supported.
+
+
+  proxy_server (optional, str, None)
+    The IP address of the proxy server.
+
+    This IP will not be validated. The download job will be created even for invalid *proxy_server*. Please check the results of the job for error details.
+
+    This is required when *proxy_support* is ``ParametersProxy``.
+
+
+  proxy_port (optional, int, None)
+    The Port for the proxy server.
+
+    This is required when *proxy_support* is ``ParametersProxy``.
+
+
+  proxy_type (optional, str, None)
+    The proxy type of the proxy server.
+
+    This is required when *proxy_support* is ``ParametersProxy``.
+
+
+  proxy_uname (optional, str, None)
+    The user name for the proxy server.
+
+
+  proxy_passwd (optional, str, None)
+    The password for the proxy server.
 
 
   idrac_ip (True, str, None)
@@ -96,6 +142,22 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -103,9 +165,10 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - Module will report success based on the iDRAC firmware update parent job status if there are no individual component jobs present.
    - For server with iDRAC firmware 5.00.00.00 and later, if the repository contains unsupported packages, then the module will return success with a proper message.
+   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
    - This module supports ``check_mode``.
 
 
@@ -123,10 +186,11 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "192.168.0.0:/share"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
            catalog_file_name: "Catalog.xml"
 
     - name: Update firmware from repository on a CIFS Share
@@ -134,12 +198,13 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "full_cifs_path"
            share_user: "share_user"
            share_password: "share_password"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
            catalog_file_name: "Catalog.xml"
 
     - name: Update firmware from repository on a HTTP
@@ -147,30 +212,50 @@ Examples
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "http://downloads.dell.com"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
 
     - name: Update firmware from repository on a HTTPS
       dellemc.openmanage.idrac_firmware:
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name: "https://downloads.dell.com"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           reboot: true
+           job_wait: true
+           apply_update: true
+
+    - name: Update firmware from repository on a HTTPS via proxy
+      dellemc.openmanage.idrac_firmware:
+           idrac_ip: "192.168.0.1"
+           idrac_user: "user_name"
+           idrac_password: "user_password"
+           ca_path: "/path/to/ca_cert.pem"
+           share_name: "https://downloads.dell.com"
+           reboot: true
+           job_wait: true
+           apply_update: true
+           proxy_support: ParametersProxy
+           proxy_server: 192.168.1.10
+           proxy_type: HTTP
+           proxy_port: 80
+           proxy_uname: "proxy_user"
+           proxy_passwd: "proxy_pwd"
 
     - name: Update firmware from repository on a FTP
       dellemc.openmanage.idrac_firmware:
            idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
            idrac_password: "user_password"
-           share_name: "ftp://ftp.dell.com"
-           reboot: True
-           job_wait: True
-           apply_update: True
+           ca_path: "/path/to/ca_cert.pem"
+           share_name: "ftp://ftp.mydomain.com"
+           reboot: true
+           job_wait: true
+           apply_update: true
 
 
 
@@ -200,4 +285,5 @@ Authors
 
 - Rajeev Arakkal (@rajeevarakkal)
 - Felix Stephen (@felixs88)
+- Jagadeesh N V (@jagadeeshnv)
 

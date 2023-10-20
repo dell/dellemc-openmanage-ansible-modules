@@ -1,0 +1,6 @@
+---
+- name: Testing for idrac rest
+  hosts: localhost
+  remote_user: root
+  roles:
+    - idrac_reset

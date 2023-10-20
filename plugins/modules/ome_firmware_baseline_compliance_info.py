@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.1.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -61,10 +61,10 @@ options:
     type: list
     elements: str
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author: "Sajna Shetty(@Sajna-Shetty)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
 '''
 
@@ -75,6 +75,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_ids:
         - 11111
         - 22222
@@ -84,6 +85,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tags:
         - MXL1234
         - MXL4567
@@ -93,6 +95,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_group_names:
         - "group1"
         - "group2"
@@ -102,6 +105,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: "baseline_name"
 '''
 
@@ -220,8 +224,9 @@ error_info:
 '''
 
 import json
+from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -231,6 +236,9 @@ baselines_report_by_device_ids_path = "UpdateService/Actions/UpdateService.GetBa
 device_is_list_path = "DeviceService/Devices"
 baselines_compliance_report_path = "UpdateService/Baselines({Id})/DeviceComplianceReports"
 group_service_path = "GroupService/Groups"
+EXIT_MESSAGE = "Unable to retrieve baseline list either because the device ID(s) entered are invalid, " \
+               "the ID(s) provided are not associated with a baseline or a group is used as a target for a baseline."
+MSG_ID = "CUPD3090"
 
 
 def _get_device_id_from_service_tags(service_tags, rest_obj, module):
@@ -251,7 +259,7 @@ def _get_device_id_from_service_tags(service_tags, rest_obj, module):
                     service_tag_dict.update({item["Id"]: item["DeviceServiceTag"]})
             return service_tag_dict
         else:
-            module.fail_json(msg="Failed to fetch the device information.")
+            module.exit_json(msg="Unable to fetch the device information.", baseline_compliance_info=[])
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
 
@@ -267,7 +275,8 @@ def get_device_ids_from_group_ids(module, grou_id_list, rest_obj):
                 for device_item in grp_list_value:
                     device_id_list.append(device_item["Id"])
         if len(device_id_list) == 0:
-            module.fail_json(msg="Failed to fetch the device ids from specified I(device_group_names).")
+            module.exit_json(msg="Unable to fetch the device ids from specified device_group_names.",
+                             baseline_compliance_info=[])
         return device_id_list
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
@@ -286,7 +295,8 @@ def get_device_ids_from_group_names(module, rest_obj):
                         group_id_list.append(group['Id'])
                         break
         else:
-            module.fail_json(msg="Failed to fetch the specified I(device_group_names).")
+            module.exit_json(msg="Unable to fetch the specified device_group_names.",
+                             baseline_compliance_info=[])
         return get_device_ids_from_group_ids(module, group_id_list, rest_obj)
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
@@ -316,11 +326,12 @@ def get_baseline_id_from_name(rest_obj, module):
                         baseline_id = baseline["Id"]
                         break
                 else:
-                    module.fail_json(msg="Specified I(baseline_name) does not exist in the system.")
+                    module.exit_json(msg="Specified baseline_name does not exist in the system.",
+                                     baseline_compliance_info=[])
             else:
-                module.fail_json(msg="No baseline exists in the system.")
+                module.exit_json(msg="No baseline exists in the system.", baseline_compliance_info=[])
         else:
-            module.fail_json(msg="I(baseline_name) is a mandatory option.")
+            module.fail_json(msg="baseline_name is a mandatory option.")
         return baseline_id
     except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
@@ -338,8 +349,16 @@ def get_baselines_report_by_device_ids(rest_obj, module):
                 "device_service_tags": "Device details not available as the service tag(s) provided are invalid."
             }
             message = identifier_map[identifier]
-            module.fail_json(msg=message)
-    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+            module.exit_json(msg=message)
+    except HTTPError as err:
+        err_message = json.load(err)
+        err_list = err_message.get('error', {}).get('@Message.ExtendedInfo', [{"Message": EXIT_MESSAGE}])
+        if err_list:
+            err_reason = err_list[0].get("Message", EXIT_MESSAGE)
+            if MSG_ID in err_list[0].get('MessageId'):
+                module.exit_json(msg=err_reason)
+        raise err
+    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
 
 
@@ -366,17 +385,15 @@ def validate_inputs(module):
 
 
 def main():
+    specs = {
+        "baseline_name": {"type": 'str', "required": False},
+        "device_service_tags": {"required": False, "type": "list", "elements": 'str'},
+        "device_ids": {"required": False, "type": "list", "elements": 'int'},
+        "device_group_names": {"required": False, "type": "list", "elements": 'str'},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "type": 'int', "default": 443},
-            "baseline_name": {"type": 'str', "required": False},
-            "device_service_tags": {"required": False, "type": "list", "elements": 'str'},
-            "device_ids": {"required": False, "type": "list", "elements": 'int'},
-            "device_group_names": {"required": False, "type": "list", "elements": 'str'},
-        },
+        argument_spec=specs,
         mutually_exclusive=[['baseline_name', 'device_service_tags', 'device_ids', 'device_group_names']],
         required_one_of=[['device_ids', 'device_service_tags', 'device_group_names', 'baseline_name']],
         supports_check_mode=True
@@ -392,10 +409,10 @@ def main():
         if data:
             module.exit_json(baseline_compliance_info=data)
         else:
-            module.fail_json(msg="Failed to fetch the compliance baseline information.")
+            module.exit_json(msg="Unable to fetch the compliance baseline information.")
     except HTTPError as err:
         module.fail_json(msg=str(err), error_info=json.load(err))
-    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+    except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

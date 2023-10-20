@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -102,7 +102,7 @@ Parameters
   job_wait_timeout (optional, int, 10800)
     The maximum wait time of *job_wait* in seconds.The job will only be tracked for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   hostname (True, str, None)
@@ -119,6 +119,22 @@ Parameters
 
   port (optional, int, 443)
     OpenManage Enterprise HTTPS port.
+
+
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
 
 
 
@@ -146,6 +162,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         names: "baseline1"
         template_name: "template1"
         description: "description of baseline"
@@ -158,6 +175,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         names: "baseline1"
         template_id: 1234
         description: "description of baseline"
@@ -170,6 +188,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         names: "baseline2"
         template_id: 2
         job_wait_timeout: 1000
@@ -183,6 +202,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: delete
         names:
           - baseline1
@@ -193,6 +213,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: modify
         names: "baseline1"
         new_name: "baseline_update"
@@ -207,6 +228,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "remediate"
         names: "baseline1"
         device_ids:
@@ -217,6 +239,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "remediate"
         names: "baseline1"
         device_service_tags:
@@ -228,6 +251,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "remediate"
         names: "baseline1"
 
@@ -270,4 +294,5 @@ Authors
 ~~~~~~~
 
 - Sajna Shetty(@Sajna-Shetty)
+- Abhishek Sinha(@Abhishek-Dell)
 

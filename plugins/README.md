@@ -1,6 +1,6 @@
 # dellemc.openmanage collections Plugins Directory
 
-Here are the list of modules and module_utils supported by Dell EMC.
+Here are the list of modules and module_utils supported by Dell.
 
 ```
 ├── doc_fragments
@@ -10,20 +10,24 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── omem_auth_options.py
     ├── oment_auth_options.py
     └── redfish_auth_options.py
+├── inventory
+    └── ome_inventory.py
 ├── module_utils
     ├── dellemc_idrac.py
     ├── idrac_redfish.py
     ├── ome.py
-    └── redfish.py
+    ├── redfish.py
+    └── utils.py
 └── modules
     ├── dellemc_configure_idrac_eventing.py
     ├── dellemc_configure_idrac_services.py
-    ├── dellemc_get_firmware_inventory.py
-    ├── dellemc_get_system_inventory.py
     ├── dellemc_idrac_lc_attributes.py
     ├── dellemc_idrac_storage_volume.py
     ├── dellemc_system_lockdown_mode.py
+    ├── idrac_attributes.py
     ├── idrac_bios.py
+    ├── idrac_boot.py
+    ├── idrac_certificates.py
     ├── idrac_firmware.py
     ├── idrac_firmware_info.py
     ├── idrac_lifecycle_controller_job_status_info.py
@@ -39,20 +43,35 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── idrac_system_info.py
     ├── idrac_timezone_ntp.py
     ├── idrac_user.py
+    ├── idrac_user_info.py
+    ├── idrac_virtual_media.py
     ├── ome_active_directory.py
+    ├── ome_alert_policies_message_id_info.py
+    ├── ome_alert_policies_info.py
+    ├── ome_alert_policies_actions_info.py
+    ├── ome_alert_policies_category_info.py
+    ├── ome_application_alerts_smtp.py
+    ├── ome_application_alerts_syslog.py
     ├── ome_application_certificate.py
+    ├── ome_application_console_preferences.py
     ├── ome_application_network_address.py
     ├── ome_application_network_proxy.py
+    ├── ome_application_network_settings.py
     ├── ome_application_network_time.py
     ├── ome_application_network_webserver.py
+    ├── ome_application_security_settings.py
     ├── ome_chassis_slots.py
     ├── ome_configuration_compliance_baseline.py
     ├── ome_configuration_compliance_info.py
     ├── ome_device_group.py
     ├── ome_device_info.py
+    ├── ome_device_local_access_configuration.py
     ├── ome_device_location.py
     ├── ome_device_mgmt_network.py
+    ├── ome_device_network_services.py
     ├── ome_device_power_settings.py
+    ├── ome_device_quick_deploy.py
+    ├── ome_devices.py
     ├── ome_diagnostics.py
     ├── ome_discovery.py
     ├── ome_domain_user_groups.py
@@ -69,16 +88,23 @@ Here are the list of modules and module_utils supported by Dell EMC.
     ├── ome_network_vlan_info.py
     ├── ome_powerstate.py
     ├── ome_profile.py
+    ├── ome_profile_info.py
+    ├── ome_server_interface_profile_info.py
+    ├── ome_server_interface_profiles.py
+    ├── ome_smart_fabric_info.py
     ├── ome_smart_fabric.py
+    ├── ome_smart_fabric_uplink_info.py
     ├── ome_smart_fabric_uplink.py
     ├── ome_template.py
     ├── ome_template_identity_pool.py
     ├── ome_template_info.py
     ├── ome_template_network_vlan.py
+    ├── ome_template_network_vlan_info.py
     ├── ome_user.py
     ├── ome_user_info.py
     ├── redfish_event_subscription.py
     ├── redfish_firmware.py
+    ├── redfish_firmware_rollback.py
     ├── redfish_powerstate.py
     └── redfish_storage_volume.py
 ```

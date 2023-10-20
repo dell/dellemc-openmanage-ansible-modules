@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 2.1.1
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -19,7 +19,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_address
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -208,7 +208,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         ome_default_args.update({"enable_nic": True, "interface_name": "eth0"})
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
-        error_message = "No changes made to network configuration as entered values are the same as current configured values"
+        error_message = "No changes found to be applied."
         with pytest.raises(Exception, match=error_message) as err:
             self.module.get_updated_payload(ome_connection_mock_for_application_network_address, f_module, ipv4, ipv6,
                                             dns, vlan)

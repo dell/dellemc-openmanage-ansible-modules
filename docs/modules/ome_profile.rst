@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -181,6 +181,8 @@ Parameters
 
       List of attributes to be overridden when *command* is ``assign``.
 
+      Use the *Id* If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the *DisplayName*, see the example provided.
+
 
     Options (optional, dict, None)
       Provides the different shut down options.
@@ -211,6 +213,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -218,8 +236,8 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-   - This module does not support ``check_mode``.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+   - This module supports ``check_mode``.
    - ``assign`` operation on a already assigned profile will not redeploy.
 
 
@@ -237,6 +255,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         template_name: "template 1"
         name_prefix: "omam_profile"
         number_of_profiles: 2
@@ -246,12 +265,13 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
         name_prefix: "omam_profile"
         number_of_profiles: 1
         boot_to_network_iso:
-          boot_to_network: True
+          boot_to_network: true
           share_type: NFS
           share_ip: "192.168.0.1"
           iso_path: "path/to/my_iso.iso"
@@ -262,12 +282,13 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: create
         template_name: "template 1"
         name_prefix: "omam_profile"
         number_of_profiles: 1
         boot_to_network_iso:
-          boot_to_network: True
+          boot_to_network: true
           share_type: CIFS
           share_ip: "192.168.0.2"
           share_user: "username"
@@ -281,12 +302,13 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: modify
         name: "Profile 00001"
         new_name: "modified profile"
         description: "new description"
         boot_to_network_iso:
-          boot_to_network: True
+          boot_to_network: true
           share_type: NFS
           share_ip: "192.168.0.3"
           iso_path: "path/to/my_iso.iso"
@@ -295,16 +317,22 @@ Examples
           Attributes:
             - Id: 4506
               Value: "server attr 1"
-              IsIgnored: true
+              IsIgnored: false
             - Id: 4507
               Value: "server attr 2"
-              IsIgnored: true
+              IsIgnored: false
+            # Enter the comma separated string as appearing in the Detailed view on GUI
+            # System -> Server Topology -> ServerTopology 1 Aisle Name
+            - DisplayName: 'System, Server Topology, ServerTopology 1 Aisle Name'
+              Value: Aisle 5
+              IsIgnored: false
 
     - name: Delete a profile using profile name
       dellemc.openmanage.ome_profile:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         name: "Profile 00001"
 
@@ -313,9 +341,10 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         filters:
-          SelectAll: True
+          SelectAll: true
           Filters: =contains(ProfileName,'Profile 00002')
 
     - name: Delete profiles using profile list filter
@@ -323,6 +352,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         filters:
           ProfileIds:
@@ -334,11 +364,12 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: assign
         name: "Profile 00001"
         device_id: 12456
         boot_to_network_iso:
-          boot_to_network: True
+          boot_to_network: true
           share_type: NFS
           share_ip: "192.168.0.1"
           iso_path: "path/to/my_iso.iso"
@@ -352,16 +383,17 @@ Examples
             ShutdownType: 0
             TimeToWaitBeforeShutdown: 300
             EndHostPowerState: 1
-            StrictCheckingVlan: True
+            StrictCheckingVlan: true
           Schedule:
-            RunNow: True
-            RunLater: False
+            RunNow: true
+            RunLater: false
 
     - name: Unassign a profile using profile name
       dellemc.openmanage.ome_profile:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "unassign"
         name: "Profile 00003"
 
@@ -370,9 +402,10 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "unassign"
         filters:
-          SelectAll: True
+          SelectAll: true
           Filters: =contains(ProfileName,'Profile 00003')
 
     - name: Unassign profiles using profile list filter
@@ -380,6 +413,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "unassign"
         filters:
           ProfileIds:
@@ -391,6 +425,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "migrate"
         name: "Profile 00001"
         device_id: 12456

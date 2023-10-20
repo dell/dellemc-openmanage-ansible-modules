@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -90,6 +90,22 @@ Parameters
     OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -98,7 +114,7 @@ Notes
 
 .. note::
    - This module initiates the refresh inventory task. It may take a minute for new names to be reflected. If the task exceeds 300 seconds to refresh, the task times out.
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -116,6 +132,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         slot_options:
           - chassis_service_tag: ABC1234
             slots:
@@ -135,6 +152,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_id: 10054
             slot_name: slot_device_name_1
@@ -144,6 +162,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_service_tag: ABC1234
             slot_name: service_tag_slot
@@ -153,6 +172,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_options:
           - device_id: 10054
             slot_name: sled_name_1

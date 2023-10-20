@@ -1,30 +1,32 @@
 ---
 - hosts: ome
-  connection: local
   name: Fetching ome user facts.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
     - name: Retrieve basic details of all accounts.
-      ome_user_info:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_user_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost
 
     - name: Retrieve details of a specific account identified by its account ID.
-      ome_user_info:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        account_id: "{{account_id}}"
-        
+      dellemc.openmanage.ome_user_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        account_id: "{{ account_id }}"
+      delegate_to: localhost
+
     - name: Retrieve details of a specific user using filter with UserName.
-      ome_user_info:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      dellemc.openmanage.ome_user_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         system_query_options:
-            filter: "UserName eq 'test'"
+          filter: "UserName eq 'test'"
+      delegate_to: localhost

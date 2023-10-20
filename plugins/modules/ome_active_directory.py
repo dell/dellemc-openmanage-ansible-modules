@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -16,8 +16,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 module: ome_active_directory
-short_description: "Configure Active Directory groups to be used with Directory Services on OpenManage Enterprise
-and OpenManage Enterprise Modular"
+short_description: Configure Active Directory groups to be used with Directory Services
 description: "This module allows to add, modify, and delete OpenManage Enterprise connection with Active Directory
 Service."
 version_added: "4.0.0"
@@ -93,34 +92,34 @@ options:
       - Enables testing the connection to the domain controller.
       - The connection to the domain controller is tested with the provided Active Directory service details.
       - If test fails, module will error out.
-      - If C(yes), I(domain_username) and I(domain_password) has to be provided.
-    default: no
+      - If C(true), I(domain_username) and I(domain_password) has to be provided.
+    default: false
   domain_password:
     type: str
     description:
       - Provide the domain password.
-      - This is applicable when I(test_connection) is C(yes).
+      - This is applicable when I(test_connection) is C(true).
   domain_username:
     type: str
     description:
       - Provide the domain username either in the UPN (username@domain) or NetBIOS (domain\\\\username) format.
-      - This is applicable when I(test_connection) is C(yes).
+      - This is applicable when I(test_connection) is C(true).
   validate_certificate:
     type: bool
     description:
       - Enables validation of SSL certificate of the domain controller.
-      - The module will always report change when this is C(yes).
-    default: no
+      - The module will always report change when this is C(true).
+    default: false
   certificate_file:
     type: path
     description:
       - Provide the full path of the SSL certificate.
       - The certificate should be a Root CA Certificate encoded in Base64 format.
-      - This is applicable when I(validate_certificate) is C(yes).
+      - This is applicable when I(validate_certificate) is C(true).
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 notes:
-  - The module will always report change when I(validate_certificate) is C(yes).
+  - The module will always report change when I(validate_certificate) is C(true).
   - Run this module from a system that has direct access to OpenManage Enterprise.
   - This module supports C(check_mode).
 """
@@ -132,11 +131,12 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad1
     domain_server:
       - domainname.com
     group_domain: domainname.com
-    test_connection: yes
+    test_connection: true
     domain_username: user@domainname
     domain_password: domain_password
 
@@ -145,12 +145,13 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
     domain_controller_lookup: MANUAL
     domain_server:
       - 192.68.20.181
     group_domain: domainname.com
-    validate_certificate: yes
+    validate_certificate: true
     certificate_file: "/path/to/certificate/file.cer"
 
 - name: Modify domain controller IP address, network_timeout and group_domain
@@ -158,6 +159,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
     domain_controller_lookup: MANUAL
     domain_server:
@@ -170,6 +172,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
     state: absent
 
@@ -178,11 +181,12 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     name: my_ad2
-    test_connection: yes
+    test_connection: true
     domain_username: user@domainname
     domain_password: domain_password
-    validate_certificate: yes
+    validate_certificate: true
     certificate_file: "/path/to/certificate/file.cer"
 """
 
@@ -234,16 +238,14 @@ error_info:
   }
 """
 
-
 import json
 import os
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.common.dict_transformations import recursive_diff
-
 
 AD_URI = "AccountService/ExternalAccountProvider/ADAccountProvider"
 TEST_CONNECTION = "AccountService/ExternalAccountProvider/Actions/ExternalAccountProvider.TestADConnection"
@@ -395,32 +397,30 @@ def delete_ad(module, rest_obj, ad):
     ad = rest_obj.strip_substr_dict(ad)
     if module.check_mode:
         module.exit_json(msg=CHANGES_FOUND, active_directory=ad, changed=True)
-    resp = rest_obj.invoke_request('POST', DELETE_AD, data={"AccountProviderIds": [int(ad['Id'])]})
+    rest_obj.invoke_request('POST', DELETE_AD, data={"AccountProviderIds": [int(ad['Id'])]})
     module.exit_json(msg=DELETE_SUCCESS, active_directory=ad, changed=True)
 
 
 def main():
+    specs = {
+        "state": {"type": 'str', "choices": ["present", "absent"], "default": 'present'},
+        "name": {"type": 'str'},
+        "id": {"type": 'int'},
+        "domain_controller_lookup": {"type": 'str', "choices": ['MANUAL', 'DNS'], "default": 'DNS'},
+        "domain_server": {"type": 'list', "elements": 'str'},
+        "group_domain": {"type": 'str'},
+        "domain_controller_port": {"type": 'int', "default": 3269},
+        "network_timeout": {"type": 'int', "default": 120},
+        "search_timeout": {"type": 'int', "default": 120},
+        "validate_certificate": {"type": 'bool', "default": False},
+        "certificate_file": {"type": 'path'},
+        "test_connection": {"type": 'bool', "default": False},
+        "domain_username": {"type": 'str'},
+        "domain_password": {"type": 'str', "no_log": True}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"type": "int", "default": 443},
-            "state": {"type": 'str', "choices": ["present", "absent"], "default": 'present'},
-            "name": {"type": 'str'},
-            "id": {"type": 'int'},
-            "domain_controller_lookup": {"type": 'str', "choices": ['MANUAL', 'DNS'], "default": 'DNS'},
-            "domain_server": {"type": 'list', "elements": 'str'},
-            "group_domain": {"type": 'str'},
-            "domain_controller_port": {"type": 'int', "default": 3269},
-            "network_timeout": {"type": 'int', "default": 120},
-            "search_timeout": {"type": 'int', "default": 120},
-            "validate_certificate": {"type": 'bool', "default": False},
-            "certificate_file": {"type": 'path'},
-            "test_connection": {"type": 'bool', "default": False},
-            "domain_username": {"type": 'str'},
-            "domain_password": {"type": 'str', "no_log": True}
-        },
+        argument_spec=specs,
         required_one_of=[('name', 'id')],
         required_if=[
             ('test_connection', True, ('domain_username', 'domain_password',)),
@@ -447,7 +447,9 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (
+            IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
+            OSError) as err:
         module.fail_json(msg=str(err))
 
 

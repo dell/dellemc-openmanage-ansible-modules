@@ -1,28 +1,48 @@
 namespace: dellemc
 name: openmanage
-version: 4.3.0
+version: 8.3.0
 readme: README.md
 authors:
-- Rajeev Arakkal <Rajeev_Arakkal@Dell.com>
-- Jagadeesh N V <Jagadeesh_N_V@Dell.com>
-- Felix Stephen <Felix_S@Dell.com>
-- Sachin Apagundi <Sachin_Apagundi@Dell.com>
-- Sajna N Shetty <Sajna_Shetty@Dell.com>
-- Anooja Vardhineni <Anooja_Vardhineni@Dellteam.com>
+  - Jagadeesh N V <Jagadeesh.N.V@Dell.com>
+  - Felix Stephen <Felix.S@Dell.com>
+  - Sachin Apagundi <Sachin.Apagundi@Dell.com>
+  - Husniya Hameed <Husniya.Hameed@Dellteam.com>
+  - Abhishek Sinha <Abhishek.Sinha10@Dell.com>
+  - Kritika Bhateja <Kritika.Bhateja@Dell.com>
+  - Shivam Sharma <Shivam.Sharma3@Dell.com>
+  - Rajshekar P <Rajshekar.P@Dell.com>
+  - Jennifer John <Jennifer.John@Dell.com>
+  - Lovepreet Singh <Lovepreet.Singh1@dell.com>
 
-description: Dell EMC OpenManage Ansible Modules allows data center and IT
+description: Dell OpenManage Ansible Modules allows data center and IT
   administrators to use RedHat Ansible to automate and orchestrate the
-  configuration, deployment, and update of Dell EMC PowerEdge Servers and
+  configuration, deployment, and update of Dell PowerEdge Servers and
   modular infrastructure by leveraging the management automation
   capabilities in-built into the Integrated Dell Remote Access Controller
   (iDRAC), OpenManage Enterprise and OpenManage Enterprise Modular.
 
-license_file: 'COPYING.md'
+license_file: LICENSE
 
-tags: ['dellemc', 'openmanage', 'idrac', 'ome', 'openmanage_enterprise',
-       'redfish', 'redfish_api', 'poweredge_servers', 'automation', 'devops']
+tags:
+  [
+    "dell",
+    "dellemc",
+    "openmanage",
+    "infrastructure",
+    "idrac",
+    "ome",
+    "openmanage_enterprise",
+    "redfish",
+    "redfish_api",
+    "poweredge_servers",
+    "automation",
+    "devops",
+  ]
 
-dependencies: {}
+dependencies: {
+  "ansible.utils": ">=2.10.2",
+  "ansible.windows": ">=1.14.0"
+}
 
 repository: https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections
 
@@ -31,3 +51,7 @@ homepage: https://github.com/dell/dellemc-openmanage-ansible-modules
 issues: https://github.com/dell/dellemc-openmanage-ansible-modules/issues
 
 documentation: https://github.com/dell/dellemc-openmanage-ansible-modules/tree/collections/docs
+
+build_ignore:
+  - BuildNumber.txt
+  - codecov.yml

@@ -1,0 +1,81 @@
+---
+- name: Converge idrac gather facts for bios
+  hosts: all
+  gather_facts: false
+  vars:
+    hostname: "{{ lookup('env', 'hostname') }}"
+    username: "{{ lookup('env', 'username') }}"
+    password: "{{ lookup('env', 'password') }}"
+    validate_certs: false
+    target:
+      - BIOS
+    uri_method: "GET"
+    uri_headers:
+      Accept: "application/json"
+      Content-Type: "application/json"
+      OData-Version: "4.0"
+    uri_body_format: "json"
+    uri_status_code:
+      - 200
+      - 400
+      - 401
+      - 404
+      - -1
+    uri_return_content: true
+    diff_data: {}
+    exclude_keys: []
+    api_system: "/redfish/v1/Systems/System.Embedded.1"
+
+  tasks:
+    - name: Gather Facts for the BIOS component
+      ansible.builtin.include_role:
+        name: "idrac_gather_facts"
+
+    - name: Assert bios dict for length
+      ansible.builtin.assert:
+        that:
+          - "{{ bios | length > 0 }}"
+
+    - name: Fetching BIOS info
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ api_system }}/Bios"
+        validate_certs: false
+        method: "{{ uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ uri_headers }}"
+        body_format: "{{ uri_body_format }}"
+        status_code: "{{ uri_status_code }}"
+        return_content: "{{ uri_return_content }}"
+      register: bios_result
+      no_log: true
+
+    - name: Response filter
+      ansible.builtin.set_fact:
+        api_response:
+          "{{ bios_result.json | ansible.utils.remove_keys(target=['@odata.context',
+          '@odata.type', '@odata.id', 'SettingsObject', 'Actions', 'AttributeRegistry', 'Description',
+          'Id', 'Links', 'Name']) }}"
+      vars:
+        jquery: "Oem.Dell.DellSystem"
+
+    - name: Set the keys diff
+      ansible.builtin.set_fact:
+        diff_keys: "{{ bios.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+
+    - name: Set a diff of dict
+      ansible.builtin.set_fact:
+        diff_data: "{{ diff_data | combine({item: bios[item]}) }}"
+      loop: "{{ bios.keys() }}"
+      when:
+        - diff_keys | length == 0
+        - bios[item] != api_response[item]
+        - item not in exclude_keys
+
+    - name: Assert the difference in Keys
+      ansible.builtin.assert:
+        that:
+          - "{{ (diff_keys | length) == 0 }}"
+          - "{{ (diff_data | length) == 0 }}"
+        fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+        success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"

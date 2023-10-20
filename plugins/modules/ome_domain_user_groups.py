@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.2.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -16,10 +16,10 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 module: ome_domain_user_groups
-short_description: Create, modify, or delete an Active Directory user group on
+short_description: Create, modify, or delete an Active Directory/LDAP user group on
   OpenManage Enterprise and OpenManage Enterprise Modular
 version_added: "4.0.0"
-description: This module allows to create, modify, or delete an Active Directory user group on
+description: This module allows to create, modify, or delete an Active Directory/LDAP user group on
   OpenManage Enterprise and OpenManage Enterprise Modular.
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
@@ -27,21 +27,21 @@ options:
   state:
     type: str
     description:
-      - C(present) imports or modifies the Active Directory user group.
-      - C(absent) deletes an existing Active Directory user group.
+      - C(present) imports or modifies the Active Directory/LDAP user group.
+      - C(absent) deletes an existing Active Directory/LDAP user group.
     choices: [present, absent]
     default: present
   group_name:
     type: str
-    required: True
+    required: true
     description:
-      - The desired Active Directory user group name to be imported or removed.
+      - The desired Active Directory/LDAP user group name to be imported or removed.
       - "Examples for user group name: Administrator or Account Operators or Access Control Assistance Operator."
       - I(group_name) value is case insensitive.
   role:
     type: str
     description:
-      - The desired roles and privilege for the imported Active Directory user group.
+      - The desired roles and privilege for the imported Active Directory/LDAP user group.
       - "OpenManage Enterprise Modular Roles: CHASSIS ADMINISTRATOR, COMPUTE MANAGER, STORAGE MANAGER,
         FABRIC MANAGER, VIEWER."
       - "OpenManage Enterprise Roles: ADMINISTRATOR, DEVICE MANAGER, VIEWER."
@@ -49,26 +49,33 @@ options:
   directory_name:
     type: str
     description:
-      - The directory name set while adding the Active Directory.
+      - The directory name set while adding the Active Directory/LDAP.
       - I(directory_name) is mutually exclusive with I(directory_id).
+  directory_type:
+    type: str
+    description:
+      - Type of the account.
+    choices: ['AD', 'LDAP']
+    default: 'AD'
   directory_id:
     type: int
     description:
-      - The ID of the Active Directory.
+      - The ID of the Active Directory/LDAP.
       - I(directory_id) is mutually exclusive with I(directory_name).
   domain_username:
     type: str
     description:
-      - Active directory domain username.
+      - Active Directory/LDAP domain username.
       - "Example: username@domain or domain\\username."
   domain_password:
     type: str
     description:
-      - Active directory domain password.
+      - Active Directory/LDAP domain password.
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
+  - "Abhishek Sinha (@Abhishek-Dell)"
 notes:
   - This module supports C(check_mode) and idempotency.
   - Run this module from a system that has direct access to OpenManage Enterprise
@@ -82,6 +89,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     group_name: account operators
     directory_name: directory_name
@@ -94,6 +102,7 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     group_name: account operators
     role: viewer
@@ -103,17 +112,41 @@ EXAMPLES = r"""
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     group_name: administrators
+
+- name: Import LDAP directory group.
+  dellemc.openmanage.ome_domain_user_groups:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    directory_type: LDAP
+    state: present
+    group_name: account operators
+    directory_name: directory_name
+    role: administrator
+    domain_username: username@domain
+    domain_password: domain_password
+
+- name: Remove LDAP directory group.
+  dellemc.openmanage.ome_domain_user_groups:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    state: absent
+    group_name: account operators
 """
 
 RETURN = r"""
 ---
 msg:
   type: str
-  description: Overall status of the Active Directory user group operation.
+  description: Overall status of the Active Directory/LDAP user group operation.
   returned: always
-  sample: Successfully imported the active directory user group.
+  sample: Successfully imported the Active Directory/LDAP user group.
 domain_user_status:
   description: Details of the domain user operation, when I(state) is C(present).
   returned: When I(state) is C(present).
@@ -162,14 +195,15 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 ROLE_URI = "AccountService/Roles"
 ACCOUNT_URI = "AccountService/Accounts"
 GET_AD_ACC = "AccountService/ExternalAccountProvider/ADAccountProvider"
+GET_LDAP_ACC = "AccountService/ExternalAccountProvider/LDAPAccountProvider"
 IMPORT_ACC_PRV = "AccountService/Actions/AccountService.ImportExternalAccountProvider"
-SEARCH_AD = "AccountService/ExternalAccountProvider/Actions/ExternalAccountProvider.SearchGroups"
+SEARCH_GROUPS = "AccountService/ExternalAccountProvider/Actions/ExternalAccountProvider.SearchGroups"
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_FOUND = "Changes found to be applied."
 
@@ -182,7 +216,8 @@ def get_directory(module, rest_obj):
     dir_id = None
     if user_dir_name is None and user_dir_id is None:
         module.fail_json(msg="missing required arguments: directory_name or directory_id")
-    directory_resp = rest_obj.invoke_request("GET", GET_AD_ACC)
+    URI = GET_AD_ACC if module.params.get("directory_type") == "AD" else GET_LDAP_ACC
+    directory_resp = rest_obj.invoke_request("GET", URI)
     for dire in directory_resp.json_data["value"]:
         if user_dir_name is not None and dire["Name"] == user_dir_name:
             dir_id = dire["Id"]
@@ -198,16 +233,17 @@ def get_directory(module, rest_obj):
 
 def search_directory(module, rest_obj, dir_id):
     group_name, obj_gui_id, common_name = module.params["group_name"], None, None
-    payload = {"DirectoryServerId": dir_id, "Type": "AD",
+    payload = {"DirectoryServerId": dir_id,
+               "Type": module.params["directory_type"],
                "UserName": module.params["domain_username"],
                "Password": module.params["domain_password"],
                "CommonName": group_name}
     try:
-        resp = rest_obj.invoke_request("POST", SEARCH_AD, data=payload)
-        for ad in resp.json_data:
-            if ad["CommonName"].lower() == group_name.lower():
-                obj_gui_id = ad["ObjectGuid"]
-                common_name = ad["CommonName"]
+        resp = rest_obj.invoke_request("POST", SEARCH_GROUPS, data=payload)
+        for key in resp.json_data:
+            if key["CommonName"].lower() == group_name.lower():
+                obj_gui_id = key["ObjectGuid"]
+                common_name = key["CommonName"]
                 break
         else:
             module.fail_json(msg="Unable to complete the operation because the entered "
@@ -224,7 +260,7 @@ def directory_user(module, rest_obj):
     user = get_directory_user(module, rest_obj)
     new_role_id = get_role(module, rest_obj)
     dir_id = get_directory(module, rest_obj)
-    domain_resp, msg = None, ''
+    domain_resp, local_msg, msg = None, '', ''
     if user is None:
         obj_gui_id, common_name = search_directory(module, rest_obj, dir_id)
         if module.check_mode:
@@ -235,7 +271,7 @@ def directory_user(module, rest_obj):
              "IsBuiltin": False, "Enabled": True, "ObjectGuid": obj_gui_id}
         ]
         domain_resp = rest_obj.invoke_request("POST", IMPORT_ACC_PRV, data=payload)
-        msg = 'imported'
+        local_msg, msg = 'import', 'imported'
     else:
         if (int(user["RoleId"]) == new_role_id):
             user = rest_obj.strip_substr_dict(user)
@@ -247,9 +283,9 @@ def directory_user(module, rest_obj):
             if module.check_mode:
                 module.exit_json(msg=CHANGES_FOUND, changed=True, domain_user_status=payload)
             domain_resp = rest_obj.invoke_request("PUT", update_uri, data=payload)
-            msg = 'updated'
+            local_msg, msg = 'update', 'updated'
     if domain_resp is None:
-        module.fail_json(msg="Unable to complete the Active Directory user account.")
+        module.fail_json(msg="Unable to {0} the domain user group.".format(local_msg))
     return domain_resp.json_data, msg
 
 
@@ -290,30 +326,29 @@ def get_directory_user(module, rest_obj):
 
 def delete_directory_user(rest_obj, user_id):
     delete_uri, changed = "{0}('{1}')".format(ACCOUNT_URI, user_id), False
-    msg = "Invalid active directory user group name provided."
+    msg = "Invalid domain user group name provided."
     resp = rest_obj.invoke_request('DELETE', delete_uri)
     if resp.status_code == 204:
         changed = True
-        msg = "Successfully deleted the active directory user group."
+        msg = "Successfully deleted the domain user group."
     return msg, changed
 
 
 def main():
+    specs = {
+        "state": {"required": False, "type": 'str', "default": "present",
+                  "choices": ['present', 'absent']},
+        "group_name": {"required": True, "type": 'str'},
+        "role": {"required": False, "type": 'str'},
+        "directory_name": {"required": False, "type": 'str'},
+        "directory_type": {"type": 'str', "choices": ['AD', 'LDAP'], "default": "AD"},
+        "directory_id": {"required": False, "type": 'int'},
+        "domain_username": {"required": False, "type": 'str'},
+        "domain_password": {"required": False, "type": 'str', "no_log": True},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "state": {"required": False, "type": 'str', "default": "present",
-                      "choices": ['present', 'absent']},
-            "group_name": {"required": True, "type": 'str'},
-            "role": {"required": False, "type": 'str'},
-            "directory_name": {"required": False, "type": 'str'},
-            "directory_id": {"required": False, "type": 'int'},
-            "domain_username": {"required": False, "type": 'str'},
-            "domain_password": {"required": False, "type": 'str', "no_log": True},
-        },
+        argument_spec=specs,
         mutually_exclusive=[['directory_name', 'directory_id'], ],
         supports_check_mode=True)
     try:
@@ -323,10 +358,10 @@ def main():
                 if isinstance(resp, list):
                     resp = resp[0]
                 module.exit_json(
-                    msg="Successfully {0} the active directory user group.".format(msg),
+                    msg="Successfully {0} the domain user group.".format(msg),
                     domain_user_status=resp, changed=True
                 )
-            if module.params["state"] == "absent":
+            else:
                 user = get_directory_user(module, rest_obj)
                 msg, changed = delete_directory_user(rest_obj, int(user["Id"]))
                 user = rest_obj.strip_substr_dict(user)
@@ -335,7 +370,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

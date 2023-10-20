@@ -1,0 +1,9 @@
+scenario:
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - converge
+    - cleanup
+    - destroy

@@ -2,15 +2,12 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2019-2021 Dell Inc.
+# Dell OpenManage Ansible Modules
+# Version 8.1.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-# All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
-# Other trademarks may be trademarks of their respective owners.
 #
-
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
@@ -62,10 +59,12 @@ options:
                 type: str
 
 requirements:
-    - "python >= 2.7.5"
-author: "Sajna Shetty(@Sajna-Shetty)"
+    - "python >= 3.8.6"
+author:
+  - "Sajna Shetty (@Sajna-Shetty)"
+  - "Felix Stephen (@felixs88)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
 '''
 
@@ -76,12 +75,14 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
 
 - name: Retrieve basic inventory for devices identified by IDs 33333 or 11111 using filtering
   dellemc.openmanage.ome_device_info:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "basic_inventory"
     system_query_options:
       filter: "Id eq 33333 or Id eq 11111"
@@ -91,6 +92,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "detailed_inventory"
     system_query_options:
       device_id:
@@ -102,6 +104,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "detailed_inventory"
     system_query_options:
       device_service_tag:
@@ -113,6 +116,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "detailed_inventory"
     system_query_options:
       device_id:
@@ -127,6 +131,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     fact_subset: "subsystem_health"
     system_query_options:
       device_service_tag:
@@ -190,8 +195,10 @@ device_info:
   }
 '''
 
+from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import get_all_data_with_pagination
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -365,18 +372,16 @@ def main():
         "filter": {"type": 'str', "required": False},
     }}
 
+    specs = {
+        "fact_subset": {"required": False, "default": "basic_inventory",
+                        "choices": ['basic_inventory', 'detailed_inventory', 'subsystem_health']},
+        "system_query_options": system_query_options,
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "fact_subset": {"required": False, "default": "basic_inventory",
-                            "choices": ['basic_inventory', 'detailed_inventory', 'subsystem_health']},
-            "system_query_options": system_query_options,
-        },
+        argument_spec=specs,
         required_if=[['fact_subset', 'detailed_inventory', ['system_query_options']],
-                     ['fact_subset', 'subsystem_health', ['system_query_options']], ],
+                     ['fact_subset', 'subsystem_health', ['system_query_options']]],
         supports_check_mode=True)
 
     try:
@@ -387,18 +392,21 @@ def main():
             if device_facts.get("basic_inventory"):
                 query_param = _get_query_parameters(module.params)
                 if query_param is not None:
-                    resp = rest_obj.invoke_request('GET', device_facts["basic_inventory"], query_param=query_param)
-                    device_facts = resp.json_data
-                    resp_status.append(resp.status_code)
+                    device_report = get_all_data_with_pagination(rest_obj, device_facts["basic_inventory"], query_param)
+                    if not device_report.get("report_list", []):
+                        module.exit_json(msg="No devices present.", device_info=[])
+                    device_facts = {"@odata.context": device_report["resp_obj"].json_data["@odata.context"],
+                                    "@odata.count": len(device_report["report_list"]),
+                                    "value": device_report["report_list"]}
+                    resp_status.append(device_report["resp_obj"].status_code)
                 else:
                     device_report = rest_obj.get_all_report_details(DEVICE_RESOURCE_COLLECTION[DEVICE_LIST]["resource"])
                     device_facts = {"@odata.context": device_report["resp_obj"].json_data["@odata.context"],
                                     "@odata.count": len(device_report["report_list"]),
                                     "value": device_report["report_list"]}
-                    if device_facts["@odata.count"] > 0:
-                        resp_status.append(200)
-                    else:
-                        resp_status.append(400)
+                    resp_status.append(device_report["resp_obj"].status_code)
+                    if device_facts["@odata.count"] == 0:
+                        module.exit_json(msg="No devices present.", device_info=[])
             else:
                 for identifier_type, path_dict_map in device_facts.items():
                     for identifier, path in path_dict_map.items():
@@ -417,8 +425,11 @@ def main():
         if 200 in resp_status:
             module.exit_json(device_info=device_facts)
         else:
-            module.fail_json(msg="Failed to fetch the device information")
-    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+            module.exit_json(msg="Unable to fetch the device information because the requested device id(s) or "
+                                 "device service tag(s) does not exist.",
+                             device_info=[])
+
+    except (URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

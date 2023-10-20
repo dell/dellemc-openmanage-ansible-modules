@@ -1,0 +1,47 @@
+---
+- name: Get Storage information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Storage"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    timeout: "{{ https_timeout }}"
+    force_basic_auth: true
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  register: virtual_disk_result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+
+- name: Get all storage controller ids.
+  ansible.builtin.set_fact:
+    storage_ids_list: "{{ virtual_disk_result.json.Members | map('dict2items') | flatten | map(attribute='value') | default('') }}"
+
+- name: Get Virtual Disk information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ item }}/Volumes?$expand=*($levels=1)"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    timeout: "{{ https_timeout }}"
+    force_basic_auth: true
+    headers: "{{ uri_headers }}"
+    body_format: "{{ uri_body_format }}"
+    status_code: "{{ uri_status_code }}"
+    return_content: "{{ uri_return_content }}"
+  loop: "{{ storage_ids_list }}"
+  register: result
+  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+
+- name: Set Virtual Disk facts
+  ansible.builtin.set_fact:
+    virtual_disk:
+      "{{ result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Members', 'defined') |
+      map(attribute='Members') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.type',
+      '@odata.id', 'Actions', 'EncryptionTypes@odata.count', 'Identifiers@odata.count', 'Links',
+      'Operations@odata.count', 'DellVirtualDisk', 'DellVirtualDisk@Redfish.Deprecated']) }}"

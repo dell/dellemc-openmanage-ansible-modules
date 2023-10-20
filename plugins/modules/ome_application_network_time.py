@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries.  All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries.  All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -55,11 +55,11 @@ options:
       - This option is applicable when I(enable_ntp) is true.
     type: str
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
 '''
 
@@ -70,6 +70,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     enable_ntp: false
     system_time: "2020-03-31 21:35:18"
     time_zone: "TZ_ID_11"
@@ -79,6 +80,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     enable_ntp: true
     time_zone: "TZ_ID_66"
     primary_ntp_address: "192.168.0.2"
@@ -138,8 +140,8 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 TIME_CONFIG = "ApplicationService/Network/TimeConfiguration"
@@ -161,7 +163,7 @@ def get_payload(module):
         "secondary_ntp_address2": "SecondaryNTPAddress2"
     }
     backup_params = params.copy()
-    remove_keys = ["hostname", "username", "password", "port"]
+    remove_keys = ["hostname", "username", "password", "port", "ca_path", "validate_certs", "timeout"]
     remove_unwanted_keys(remove_keys, backup_params)
     payload = dict([(proxy_payload_map[key], val) for key, val in backup_params.items() if val is not None])
     return payload
@@ -220,19 +222,17 @@ def validate_input(module):
 
 
 def main():
+    specs = {
+        "enable_ntp": {"required": True, "type": "bool"},
+        "time_zone": {"required": False, "type": "str"},
+        "system_time": {"required": False, "type": "str"},
+        "primary_ntp_address": {"required": False, "type": "str"},
+        "secondary_ntp_address1": {"required": False, "type": "str"},
+        "secondary_ntp_address2": {"required": False, "type": "str"},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "enable_ntp": {"required": True, "type": "bool"},
-            "time_zone": {"required": False, "type": "str"},
-            "system_time": {"required": False, "type": "str"},
-            "primary_ntp_address": {"required": False, "type": "str"},
-            "secondary_ntp_address1": {"required": False, "type": "str"},
-            "secondary_ntp_address2": {"required": False, "type": "str"},
-        },
+        argument_spec=specs,
         required_if=[['enable_ntp', False, ('time_zone', 'system_time',), True],
                      ['enable_ntp', True, ('time_zone', 'primary_ntp_address',
                                            'secondary_ntp_address1', 'secondary_ntp_address2'), True]],
@@ -254,7 +254,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))

@@ -26,7 +26,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -37,8 +37,6 @@ Parameters
     Select ``present`` to create or modify a user account.
 
     Select ``absent`` to remove a user account.
-
-    Ensure Lifecycle Controller is available because the user operation uses the capabilities of Lifecycle Controller.
 
 
   user_name (True, str, None)
@@ -65,6 +63,12 @@ Parameters
     A user with ``ReadOnly`` privilege can only log in to iDRAC.
 
     A user with ``None``, no privileges assigned.
+
+    Will be ignored, if custom_privilege parameter is provided.
+
+
+  custom_privilege (optional, int, None)
+    The privilege level assigned to the user.
 
 
   ipmi_lan_privilege (optional, str, None)
@@ -125,6 +129,22 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -132,7 +152,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports ``check_mode``.
 
 
@@ -150,6 +170,7 @@ Examples
         idrac_ip: 198.162.0.1
         idrac_user: idrac_user
         idrac_password: idrac_password
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         user_name: user_name
         user_password: user_password
@@ -167,6 +188,7 @@ Examples
         idrac_ip: 198.162.0.1
         idrac_user: idrac_user
         idrac_password: idrac_password
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         user_name: user_name
         new_user_name: new_user_name
@@ -177,6 +199,7 @@ Examples
         idrac_ip: 198.162.0.1
         idrac_user: idrac_user
         idrac_password: idrac_password
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         user_name: user_name
 

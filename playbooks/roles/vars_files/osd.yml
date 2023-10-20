@@ -1,0 +1,27 @@
+os_name: rhel
+os_version: 9
+source:
+  protocol: "{{ repo_details.proto }}"
+  hostname: "{{ repo_details.ip }}"
+  iso_path: "/users/rhel"
+  iso_name: "esxi.iso"
+  # ks_path: "/users/rhel/myks.cfg"
+  # is_custom_iso: true
+  # username: "username"
+  # password: "password"
+destination:
+  protocol: "{{ repo_details.proto }}"
+  hostname: "{{ repo_details.ip }}"
+  iso_path: "/{{ http_path }}"
+  # iso_name: "my_custom_rhel_name.iso"
+  mountpoint: "/var/www/repo"
+  os_type: "linux"
+  username: "username"
+  password: "password"
+
+wait_for_os_deployment: true
+os_deployment_timeout: 30
+eject_iso: true
+delete_custom_iso: true
+rhel_rootpw: ""
+esxi_rootpw: ""

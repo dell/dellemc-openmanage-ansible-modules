@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 2.1.2
-# Copyright (C) 2019-2020 Dell Inc.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -17,7 +17,7 @@ __metaclass__ = type
 import pytest
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args, AnsibleFailJson, \
     AnsibleExitJson
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from mock import MagicMock
 import ast
 
 

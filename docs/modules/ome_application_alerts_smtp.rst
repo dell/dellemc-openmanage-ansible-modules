@@ -16,6 +16,11 @@ This module allows to configure SMTP or email configurations on OpenManage Enter
 
 
 
+Requirements
+------------
+The below requirements are needed on the host that executes this module.
+
+- python >= 3.8.6
 
 
 
@@ -37,9 +42,9 @@ Parameters
   enable_authentication (True, bool, None)
     Enable or disable authentication to access the SMTP server.
 
-    The *credentials* are mandatory if *enable_authentication* is ``True``.
+    The *credentials* are mandatory if *enable_authentication* is ``true``.
 
-    The module will always report change when this is ``True``.
+    The module will always report change when this is ``true``.
 
 
   credentials (optional, dict, None)
@@ -71,6 +76,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -78,8 +99,8 @@ Notes
 -----
 
 .. note::
-   - The module will always report change when *enable_authentication* is ``True``.
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise or OpenManage Enterprise Modular.
+   - The module will always report change when *enable_authentication* is ``true``.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - This module support ``check_mode``.
 
 
@@ -97,6 +118,7 @@ Examples
         hostname: "192.168.0.1"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         destination_address: "localhost"
         port_number: 25
         use_ssl: true
@@ -109,6 +131,7 @@ Examples
         hostname: "192.168.0.1"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         destination_address: "localhost"
         port_number: 25
         use_ssl: false

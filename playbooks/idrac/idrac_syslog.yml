@@ -1,17 +1,15 @@
 ---
 - hosts: idrac
-  connection: local
   name: Configure iDRAC syslog attributes
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
-  - name: Configure iDRAC syslog attributes
-    idrac_syslog:
-       idrac_ip:   "{{ idrac_ip }}"
-       idrac_user: "{{ idrac_user }}"
-       idrac_password:  "{{ idrac_password }}"
-       share_name: "{{ playbook_dir }}"
-       syslog: "Disabled"
+    - name: Configure iDRAC syslog attributes
+      dellemc.openmanage.idrac_syslog:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        share_name: "{{ playbook_dir }}"
+        syslog: "Disabled"
+      delegate_to: localhost

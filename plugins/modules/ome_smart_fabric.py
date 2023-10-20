@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.6.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -75,11 +75,11 @@ options:
        to represent the entire fabric. Enable this feature only when connecting to such a solution."
     choices: ['Enabled', 'Disabled']
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise Modular.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
     - This module supports C(check_mode).
 '''
 
@@ -90,6 +90,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "fabric1"
     description: "fabric desc"
@@ -103,6 +104,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "fabric1"
     new_name: "fabric_gold1"
@@ -113,6 +115,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     name: "fabric1"
 '''
@@ -177,7 +180,7 @@ error_info:
 import json
 import socket
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ssl import SSLError
@@ -697,22 +700,20 @@ def main():
                       '2xMX9116n_Fabric_Switching_Engines_in_same_chassis',
                       '2xMX9116n_Fabric_Switching_Engines_in_different_chassis'
                       ]
+    specs = {
+        "state": {"type": "str", "required": False, "default": "present", "choices": ['present', 'absent']},
+        "name": {"required": True, "type": "str"},
+        "new_name": {"required": False, "type": "str"},
+        "description": {"required": False, "type": "str"},
+        "fabric_design": {"required": False, "type": "str",
+                          "choices": design_choices},
+        "primary_switch_service_tag": {"required": False, "type": "str"},
+        "secondary_switch_service_tag": {"required": False, "type": "str"},
+        "override_LLDP_configuration": {"required": False, "type": "str", "choices": ['Enabled', 'Disabled']},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "state": {"type": "str", "required": False, "default": "present", "choices": ['present', 'absent']},
-            "name": {"required": True, "type": "str"},
-            "new_name": {"required": False, "type": "str"},
-            "description": {"required": False, "type": "str"},
-            "fabric_design": {"required": False, "type": "str",
-                              "choices": design_choices},
-            "primary_switch_service_tag": {"required": False, "type": "str"},
-            "secondary_switch_service_tag": {"required": False, "type": "str"},
-            "override_LLDP_configuration": {"required": False, "type": "str", "choices": ['Enabled', 'Disabled']},
-        },
+        argument_spec=specs,
         required_if=[['state', 'present', ('new_name', 'description', 'fabric_design', 'primary_switch_service_tag',
                                            'secondary_switch_service_tag', 'override_LLDP_configuration',), True]],
         supports_check_mode=True
@@ -726,7 +727,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

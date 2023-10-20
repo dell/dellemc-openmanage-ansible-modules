@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.1.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -19,6 +19,11 @@ DOCUMENTATION = """
 module: dellemc_idrac_lc_attributes
 short_description: Enable or disable Collect System Inventory on Restart (CSIOR) property for all iDRAC/LC jobs
 version_added: "1.0.0"
+deprecated:
+  removed_at_date: "2024-07-31"
+  why: Replaced with M(dellemc.openmanage.idrac_attributes).
+  alternative: Use M(dellemc.openmanage.idrac_attributes) instead.
+  removed_from_collection: dellemc.openmanage
 description:
     -  This module is responsible for enabling or disabling of Collect System Inventory on Restart (CSIOR)
         property for all iDRAC/LC jobs.
@@ -26,21 +31,28 @@ extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
     share_name:
-        required: True
         type: str
-        description: Network share or a local path.
+        description:
+          - (deprecated)Network share or a local path.
+          - This option is deprecated and will be removed in the later version.
     share_user:
         type: str
-        description: Network share user in the format 'user@domain' or 'domain\\user' if user is
+        description:
+          - (deprecated)Network share user in the format 'user@domain' or 'domain\\user' if user is
             part of a domain else 'user'. This option is mandatory for CIFS Network Share.
+          - This option is deprecated and will be removed in the later version.
     share_password:
         type: str
-        description: Network share user password. This option is mandatory for CIFS Network Share.
+        description:
+          - (deprecated)Network share user password. This option is mandatory for CIFS Network Share.
+          - This option is deprecated and will be removed in the later version.
         aliases: ['share_pwd']
     share_mnt:
         type: str
-        description: Local mount path of the network share with read-write permission for ansible user.
+        description:
+          - (deprecated)Local mount path of the network share with read-write permission for ansible user.
             This option is mandatory for Network Share.
+          - This option is deprecated and will be removed in the later version.
     csior:
         type: str
         description: Whether to Enable or Disable Collect System Inventory on Restart (CSIOR)
@@ -48,12 +60,13 @@ options:
         choices: [Enabled, Disabled]
         default: Enabled
 requirements:
-    - "omsdk"
-    - "python >= 2.7.5"
+    - "omsdk >= 1.2.488"
+    - "python >= 3.9.6"
 author: "Felix Stephen (@felixs88)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
-    - Run this module from a system that has direct access to Dell EMC iDRAC.
+    - Run this module from a system that has direct access to Dell iDRAC.
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
 """
 
@@ -64,8 +77,7 @@ EXAMPLES = """
        idrac_ip:   "192.168.0.1"
        idrac_user: "user_name"
        idrac_password:  "user_password"
-       share_name: "192.168.0.1:/share"
-       share_mnt: "/mnt/share"
+       ca_path: "/path/to/ca_cert.pem"
        csior: "Enabled"
 """
 
@@ -120,15 +132,16 @@ error_info:
   }
 '''
 
+import os
+import tempfile
 import json
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 try:
     from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
 
@@ -143,13 +156,8 @@ def run_setup_idrac_csior(idrac, module):
     module -- Ansible module
     """
     idrac.use_redfish = True
-    upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                    mount_point=module.params['share_mnt'],
-                                                    isFolder=True,
-                                                    creds=UserCredentials(
-                                                        module.params['share_user'],
-                                                        module.params['share_password'])
-                                                    )
+    share_path = tempfile.gettempdir() + os.sep
+    upd_share = file_share_manager.create_share_obj(share_path=share_path, isFolder=True)
     if not upd_share.IsValid:
         module.fail_json(msg="Unable to access the share. Ensure that the share name, "
                              "share mount, and share credentials provided are correct.")
@@ -179,23 +187,16 @@ def run_setup_idrac_csior(idrac, module):
 
 # Main
 def main():
+    specs = dict(
+        share_name=dict(required=False, type='str'),
+        share_password=dict(required=False, type='str', aliases=['share_pwd'], no_log=True),
+        share_user=dict(required=False, type='str'),
+        share_mnt=dict(required=False, type='str'),
+        csior=dict(required=False, choices=['Enabled', 'Disabled'], default='Enabled')
+    )
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec=dict(
-
-            # iDRAC credentials
-            idrac_ip=dict(required=True, type='str'),
-            idrac_user=dict(required=True, type='str'),
-            idrac_password=dict(required=True, type='str', aliases=['idrac_pwd'], no_log=True),
-            idrac_port=dict(required=False, default=443, type='int'),
-
-            # Export Destination
-            share_name=dict(required=True, type='str'),
-            share_password=dict(required=False, type='str', aliases=['share_pwd'], no_log=True),
-            share_user=dict(required=False, type='str'),
-            share_mnt=dict(required=False, type='str'),
-            csior=dict(required=False, choices=['Enabled', 'Disabled'], default='Enabled')
-        ),
-
+        argument_spec=specs,
         supports_check_mode=True)
 
     try:
@@ -208,8 +209,6 @@ def main():
                                               "No changes were applied" in status.get('Message')):
                     msg = status.get('Message')
                     changed = False
-                elif status.get('Status') == "Failed":
-                    module.fail_json(msg="Failed to configure the iDRAC LC attributes.")
                 module.exit_json(msg=msg, lc_attribute_status=status, changed=changed)
             else:
                 module.fail_json(msg="Failed to configure the iDRAC LC attributes.")

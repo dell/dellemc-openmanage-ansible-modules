@@ -1,0 +1,6 @@
+---
+# vars file for idrac_bios
+mutual_exclusive_msg: "attributes/clear_pending and reset_bios is mutually exclusive."
+clear_pending_out: ""
+attributes_out: ""
+reset_bios_out: ""

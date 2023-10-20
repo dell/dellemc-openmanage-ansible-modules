@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.2.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -17,15 +17,16 @@ __metaclass__ = type
 import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import redfish_firmware
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
 from ansible.module_utils._text import to_text
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch, mock_open
+from mock import patch, mock_open
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+JOB_URI = "JobService/Jobs/{job_id}"
 
 
 @pytest.fixture
@@ -108,7 +109,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_main_redfish_firmware_success_case(self, redfish_firmware_connection_mock, redfish_default_args, mocker,
                                                 redfish_response_mock):
-        redfish_default_args.update({"image_uri": "/home/firmware_repo/component.exe"})
+        redfish_default_args.update({"image_uri": "/home/firmware_repo/component.exe", "job_wait": False})
         redfish_firmware_connection_mock.headers.get("Location").return_value = "https://multipart/form-data"
         redfish_firmware_connection_mock.headers.get("Location").split().return_value = "multipart/form-data"
         mocker.patch(MODULE_PATH + 'redfish_firmware.firmware_update',
@@ -117,22 +118,21 @@ class TestRedfishFirmware(FakeAnsibleModule):
         redfish_response_mock.status_code = 201
         redfish_response_mock.success = True
         result = self._run_module(redfish_default_args)
-        assert result == {'changed': True,
-                          'msg': 'Successfully submitted the firmware update task.',
-                          'task': {'id': redfish_response_mock.headers.get().split().__getitem__(),
-                                   'uri': redfish_response_mock.headers.get()}}
+        assert result['changed'] is True
+        assert result['msg'] == 'Successfully submitted the firmware update task.'
+        assert result['task']['id'] == redfish_response_mock.headers.get().split().__getitem__()
+        assert result['task']['uri'] == JOB_URI.format(job_id=redfish_response_mock.headers.get().split().__getitem__())
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
     def test_main_redfish_firmware_exception_handling_case(self, exc_type, mocker, redfish_default_args,
                                                            redfish_firmware_connection_mock,
                                                            redfish_response_mock):
-        redfish_default_args.update({"image_uri": "/home/firmware_repo/component.exe"})
+        redfish_default_args.update({"image_uri": "/home/firmware_repo/component.exe", "job_wait_timeout": 0})
         redfish_response_mock.json_data = {"value": [{"image_uri": "/home/firmware_repo/component.exe"}]}
         redfish_response_mock.status_code = 400
         redfish_response_mock.success = False
         json_str = to_text(json.dumps({"data": "out"}))
-
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'redfish_firmware.firmware_update',
                          side_effect=exc_type('test'))
@@ -140,7 +140,10 @@ class TestRedfishFirmware(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'redfish_firmware.firmware_update',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-        result = self._run_module_with_fail_json(redfish_default_args)
+        if exc_type == HTTPError:
+            result = self._run_module(redfish_default_args)
+        else:
+            result = self._run_module_with_fail_json(redfish_default_args)
         assert 'task' not in result
         assert 'msg' in result
         assert result['failed'] is True
@@ -149,7 +152,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_get_update_service_target_success_case(self, redfish_default_args, redfish_firmware_connection_mock,
                                                     redfish_response_mock):
-        redfish_default_args.update({"transfer_protocol": "HTTP"})
+        redfish_default_args.update({"transfer_protocol": "HTTP", "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
@@ -171,7 +174,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_get_update_service_target_uri_none_case(self, redfish_default_args, redfish_firmware_connection_mock,
                                                      redfish_response_mock):
-        redfish_default_args.update({"transfer_protocol": "HTTP"})
+        redfish_default_args.update({"transfer_protocol": "HTTP", "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
@@ -194,7 +197,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
 
     def test_get_update_service_target_failed_case(self, redfish_default_args, redfish_firmware_connection_mock,
                                                    redfish_response_mock):
-        redfish_default_args.update({"transfer_protocol": "HTTP"})
+        redfish_default_args.update({"transfer_protocol": "HTTP", "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
@@ -219,7 +222,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_firmware._get_update_service_target',
                      return_value=('2134', 'http://dell.com', 'redfish'))
         redfish_default_args.update({"image_uri": "http://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"})
+                                     "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
@@ -235,7 +238,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
         redfish_default_args.update({"image_uri": "nhttp://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"})
+                                     "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
@@ -249,14 +252,18 @@ class TestRedfishFirmware(FakeAnsibleModule):
             result = self.module.firmware_update(redfish_firmware_connection_mock, f_module)
         assert result == redfish_response_mock
 
-    def test_firmware_update_success_case03(self, redfish_default_args, redfish_firmware_connection_mock,
+    @pytest.mark.parametrize("params", [{"ip": "192.161.1.1:443"}, {"ip": "192.161.1.1"},
+                                        {"ip": "82f5:d985:a2d5:f0c3:5392:cc52:27d1:4da6"},
+                                        {"ip": "[82f5:d985:a2d5:f0c3:5392:cc52:27d1:4da6]"},
+                                        {"ip": "[82f5:d985:a2d5:f0c3:5392:cc52:27d1:4da6]:443"}])
+    def test_firmware_update_success_case03(self, params, redfish_default_args, redfish_firmware_connection_mock,
                                             redfish_response_mock, mocker):
         mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
                      return_value=('2134', 'nhttp://dell.com', 'multipart/form-data'))
         mocker.patch(MODULE_PATH + "redfish_firmware._encode_form_data",
                      return_value=({"file": (3, "nhttp://dell.com", "multipart/form-data")}, "multipart/form-data"))
-        redfish_default_args.update({"image_uri": "nhttp://home/firmware_repo/component.exe",
-                                     "transfer_protocol": "HTTP"})
+        redfish_default_args.update({"baseuri": params["ip"], "image_uri": "nhttp://home/firmware_repo/component.exe",
+                                     "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 201
         redfish_response_mock.success = True

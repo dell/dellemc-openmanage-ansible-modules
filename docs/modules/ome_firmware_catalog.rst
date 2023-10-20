@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -104,7 +104,7 @@ Parameters
 
 
   check_certificate (optional, bool, False)
-    The certificate warnings are ignored when *repository_type* is HTTPS. If ``True``. If not, certificate warnings are not ignored.
+    The certificate warnings are ignored when *repository_type* is HTTPS. If ``true``. If not, certificate warnings are not ignored.
 
 
   job_wait (optional, bool, True)
@@ -116,7 +116,7 @@ Parameters
   job_wait_timeout (optional, int, 600)
     The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
 
 
   hostname (True, str, None)
@@ -135,6 +135,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -143,7 +159,8 @@ Notes
 
 .. note::
    - If *repository_password* is provided, then the module always reports the changed status.
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise or OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
+   - This module supports IPv4 and IPv6 addresses.
    - This module supports ``check_mode``.
 
 
@@ -161,19 +178,21 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "HTTPS"
         source: "downloads.dell.com"
         source_path: "catalog"
         file_name: "catalog.gz"
-        check_certificate: True
+        check_certificate: true
 
     - name: Create a catalog from HTTP repository
       dellemc.openmanage.ome_firmware_catalog:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "HTTP"
@@ -186,6 +205,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "CIFS"
@@ -201,6 +221,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "NFS"
@@ -213,16 +234,18 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "catalog_description"
         repository_type: "DELL_ONLINE"
-        check_certificate: True
+        check_certificate: true
 
     - name: Modify a catalog using a repository from CIFS share
       dellemc.openmanage.ome_firmware_catalog:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_name: "catalog_name"
         catalog_description: "new catalog_description"
         repository_type: "CIFS"
@@ -238,6 +261,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         catalog_id: 10
         new_catalog_name: "new_catalog_name"
         repository_type: "DELL_ONLINE"
@@ -248,6 +272,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         catalog_name: ["catalog_name1", "catalog_name2"]
 
@@ -256,6 +281,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         catalog_id: [11, 34]
 

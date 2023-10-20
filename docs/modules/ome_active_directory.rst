@@ -1,8 +1,8 @@
 .. _ome_active_directory_module:
 
 
-ome_active_directory -- Configure Active Directory groups to be used with Directory Services on OpenManage Enterprise and OpenManage Enterprise Modular
-=======================================================================================================================================================
+ome_active_directory -- Configure Active Directory groups to be used with Directory Services
+============================================================================================
 
 .. contents::
    :local:
@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -94,25 +94,25 @@ Parameters
 
     If test fails, module will error out.
 
-    If ``yes``, *domain_username* and *domain_password* has to be provided.
+    If ``true``, *domain_username* and *domain_password* has to be provided.
 
 
   domain_password (optional, str, None)
     Provide the domain password.
 
-    This is applicable when *test_connection* is ``yes``.
+    This is applicable when *test_connection* is ``true``.
 
 
   domain_username (optional, str, None)
     Provide the domain username either in the UPN (username@domain) or NetBIOS (domain\\username) format.
 
-    This is applicable when *test_connection* is ``yes``.
+    This is applicable when *test_connection* is ``true``.
 
 
   validate_certificate (optional, bool, False)
     Enables validation of SSL certificate of the domain controller.
 
-    The module will always report change when this is ``yes``.
+    The module will always report change when this is ``true``.
 
 
   certificate_file (optional, path, None)
@@ -120,7 +120,7 @@ Parameters
 
     The certificate should be a Root CA Certificate encoded in Base64 format.
 
-    This is applicable when *validate_certificate* is ``yes``.
+    This is applicable when *validate_certificate* is ``true``.
 
 
   hostname (True, str, None)
@@ -139,6 +139,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -146,7 +162,7 @@ Notes
 -----
 
 .. note::
-   - The module will always report change when *validate_certificate* is ``yes``.
+   - The module will always report change when *validate_certificate* is ``true``.
    - Run this module from a system that has direct access to OpenManage Enterprise.
    - This module supports ``check_mode``.
 
@@ -165,11 +181,12 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad1
         domain_server:
           - domainname.com
         group_domain: domainname.com
-        test_connection: yes
+        test_connection: true
         domain_username: user@domainname
         domain_password: domain_password
 
@@ -178,12 +195,13 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
         domain_controller_lookup: MANUAL
         domain_server:
           - 192.68.20.181
         group_domain: domainname.com
-        validate_certificate: yes
+        validate_certificate: true
         certificate_file: "/path/to/certificate/file.cer"
 
     - name: Modify domain controller IP address, network_timeout and group_domain
@@ -191,6 +209,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
         domain_controller_lookup: MANUAL
         domain_server:
@@ -203,6 +222,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
         state: absent
 
@@ -211,11 +231,12 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: my_ad2
-        test_connection: yes
+        test_connection: true
         domain_username: user@domainname
         domain_password: domain_password
-        validate_certificate: yes
+        validate_certificate: true
         certificate_file: "/path/to/certificate/file.cer"
 
 

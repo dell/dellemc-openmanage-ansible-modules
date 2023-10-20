@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.1.0
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -12,7 +12,7 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import patch, mock_open
+from mock import patch, mock_open
 
 import pytest
 import json
@@ -435,7 +435,8 @@ class TestOmeFirmware(FakeAnsibleModule):
 
     def test_job_payload_for_update_case_02(self, ome_connection_firmware_mock, ome_response_mock):
         """baseline case"""
-        f_module = self.get_module_mock(params={'schedule': 'RebootNow'})
+        f_module = self.get_module_mock(params={'schedule': 'RebootNow',
+                                                'reboot_type': 'GracefulReboot'})
         target_data = {}
         baseline = {"baseline_id": 1, "repo_id": 2, "catalog_id": 3}
         ome_connection_firmware_mock.get_job_type_id.return_value = ome_response_mock
@@ -450,7 +451,8 @@ class TestOmeFirmware(FakeAnsibleModule):
 
     def test_job_payload_for_update_case_03(self, ome_connection_firmware_mock, ome_response_mock):
         """response None case"""
-        f_module = self.get_module_mock(params={'schedule': 'RebootNow'})
+        f_module = self.get_module_mock(params={'schedule': 'RebootNow',
+                                                'reboot_type': 'PowerCycle'})
         target_data = {}
         ome_connection_firmware_mock.get_job_type_id.return_value = ome_response_mock
         payload = self.module.job_payload_for_update(ome_connection_firmware_mock, f_module, target_data)

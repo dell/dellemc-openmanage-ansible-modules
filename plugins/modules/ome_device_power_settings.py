@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -77,11 +77,11 @@ options:
         choices: ['GRID_1', 'GRID_2']
         default: GRID_1
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:
-  - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
   - This module supports C(check_mode).
 """
 
@@ -92,6 +92,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25011
     power_configuration:
       enable_power_cap: true
@@ -102,6 +103,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: GHRT2RL
     redundancy_configuration:
       redundancy_policy: GRID_REDUNDANCY
@@ -111,6 +113,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25012
     hot_spare_configuration:
       enable_hot_spare: true
@@ -133,7 +136,6 @@ power_details:
     "EnablePowerCapSettings": true,
     "MaxPowerCap": "3424",
     "MinPowerCap": "3291",
-    "PowerBudgetOverride": false,
     "PowerCap": "3425",
     "PrimaryGrid": "GRID_1",
     "RedundancyPolicy": "NO_REDUNDANCY",
@@ -169,7 +171,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 POWER_API = "DeviceService/Devices({0})/Settings('Power')"
 DEVICE_URI = "DeviceService/Devices"
 DOMAIN_URI = "ManagementDomainService/Domains"
@@ -228,8 +230,7 @@ def check_mode_validation(module, loc_data):
     power_data = {"PowerCap": loc_data.get("PowerCap"), "MinPowerCap": loc_data["MinPowerCap"],
                   "MaxPowerCap": loc_data["MaxPowerCap"], "RedundancyPolicy": loc_data.get("RedundancyPolicy"),
                   "EnablePowerCapSettings": loc_data["EnablePowerCapSettings"],
-                  "EnableHotSpare": loc_data["EnableHotSpare"], "PrimaryGrid": loc_data.get("PrimaryGrid"),
-                  "PowerBudgetOverride": loc_data["PowerBudgetOverride"]}
+                  "EnableHotSpare": loc_data["EnableHotSpare"], "PrimaryGrid": loc_data.get("PrimaryGrid")}
     cloned_data = copy.deepcopy(power_data)
     if module.params.get("power_configuration") is not None:
         if module.params["power_configuration"]["enable_power_cap"] is None:
@@ -304,20 +305,18 @@ def main():
     hot_spare_options = {"enable_hot_spare": {"required": True, "type": "bool"},
                          "primary_grid": {"required": False, "type": "str", "default": "GRID_1",
                                           "choices": ["GRID_1", "GRID_2"]}}
+    specs = {
+        "device_id": {"required": False, "type": "int"},
+        "device_service_tag": {"required": False, "type": "str"},
+        "power_configuration": {"type": "dict", "required": False, "options": power_options,
+                                "required_if": [["enable_power_cap", True, ("power_cap",), True]]},
+        "redundancy_configuration": {"type": "dict", "required": False, "options": redundancy_options},
+        "hot_spare_configuration": {"type": "dict", "required": False, "options": hot_spare_options,
+                                    "required_if": [["enable_hot_spare", True, ("primary_grid",)]]},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "device_id": {"required": False, "type": "int"},
-            "device_service_tag": {"required": False, "type": "str"},
-            "power_configuration": {"type": "dict", "required": False, "options": power_options,
-                                    "required_if": [["enable_power_cap", True, ("power_cap",), True]]},
-            "redundancy_configuration": {"type": "dict", "required": False, "options": redundancy_options},
-            "hot_spare_configuration": {"type": "dict", "required": False, "options": hot_spare_options,
-                                        "required_if": [["enable_hot_spare", True, ("primary_grid",)]]},
-        },
+        argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],
         required_one_of=[["power_configuration", "redundancy_configuration", "hot_spare_configuration"]],
         supports_check_mode=True,
@@ -334,7 +333,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

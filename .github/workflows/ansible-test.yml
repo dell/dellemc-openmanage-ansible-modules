@@ -15,18 +15,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.10]
+        ansible-version: [stable-2.13, stable-2.14, stable-2.15]
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Install ansible (${{ matrix.ansible-version }})
-        run: pip install pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
 
       - name: Build a collection tarball
         run: ansible-galaxy collection build --output-path "${GITHUB_WORKSPACE}/.cache/collection-tarballs"
@@ -43,50 +43,37 @@ jobs:
 # https://docs.ansible.com/ansible/latest/dev_guide/testing_units.html
 
   unit:
-    name: Unit Tests
+    name: Unit Tests (Ⓐ${{ matrix.ansible }} with ${{ matrix.python }})
     needs: [build]
-    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        python-version: [2.7, 3.8, 3.9]
-        ansible-version: [stable-2.10, devel]
+        python: ['3.8', '3.9', '3.10', '3.11']
+        ansible:
+          - stable-2.13
+          - stable-2.14
+          - stable-2.15
+          - devel
         exclude:
-          - ansible-version: devel
-            python-version: 2.7
+          - ansible: stable-2.13
+            python: '3.11'
+          - ansible: stable-2.14
+            python: '3.8'
+          - ansible: stable-2.15
+            python: '3.8'
+          - ansible: devel
+            python: '3.8'
+          - ansible: devel
+            python: '3.9'
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+      - name: Perform unit testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install ansible (${{ matrix.ansible-version }}) version
-        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
-
-      - name: Download migrated collection artifacts
-        uses: actions/download-artifact@v1
-        with:
-          name: collection
-          path: .cache/collection-tarballs
-
-      - name: Setup Unit test Pre-requisites
-        run: |
-          ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
-          git clone https://github.com/ansible/ansible.git
-          cp -rf ansible/test/units/compat /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/
-          cp -rf ansible/test/units/modules/utils.py /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/
-          sed -i 's/units/ansible_collections.dellemc.openmanage.tests.unit/' /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/unit/plugins/modules/utils.py
-          if [ -f /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt ]; then pip install -r /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage/tests/requirements.txt; fi
-
-
-      - name: Run Unit tests using ansible-test
-        run: ansible-test units -v --color --python ${{ matrix.python-version }} --coverage
-        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
-
-      - name: Generate coverage report
-        run: ansible-test coverage xml -v --group-by command --group-by version
-        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+          testing-type: units
+          coverage: always
+          ansible-core-version: ${{ matrix.ansible }}
+          target-python-version: ${{ matrix.python }}
 
 ###
 # Sanity tests (REQUIRED)
@@ -94,24 +81,78 @@ jobs:
 # https://docs.ansible.com/ansible/latest/dev_guide/testing_sanity.html
 
   sanity:
-    name: Sanity Tests
+    name: Sanity (Ⓐ${{ matrix.ansible }} with ${{ matrix.python }})
+    needs: [build]
+    strategy:
+      matrix:
+        python: ['3.8', '3.9', '3.10', '3.11']
+        ansible:
+          - stable-2.13
+          - stable-2.14
+          - stable-2.15
+          - devel
+        exclude:
+          - ansible: stable-2.13
+            python: '3.11'
+          - ansible: stable-2.14
+            python: '3.8'
+          - ansible: stable-2.15
+            python: '3.8'
+          - ansible: devel
+            python: '3.8'
+          - ansible: devel
+            python: '3.9'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Perform sanity testing
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          target-python-version: ${{ matrix.python }}
+          testing-type: sanity
+          pull-request-change-detection: true
+          coverage: never
+
+  lint:
+    name: Ansible lint
     runs-on: ubuntu-latest
     needs: [build]
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.9, stable-2.10, devel]
-
+        python-version: ['3.9', '3.10', '3.11']
+        ansible-version: [stable-2.13, stable-2.14, stable-2.15, devel]
+        exclude:
+          - ansible-version: stable-2.13
+            python-version: '3.11'
+          - ansible-version: stable-2.14
+            python-version: '3.8'
+          - ansible-version: stable-2.15
+            python-version: '3.8'
+          - ansible-version: devel
+            python-version: '3.8'
+          - ansible-version: devel
+            python-version: '3.9'
     steps:
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+      # Important: This sets up your GITHUB_WORKSPACE environment variable
+      - name: Checkout the source code
+        uses: actions/checkout@v3
         with:
-          # it is just required to run that once as "ansible-test sanity" in the docker image
-          # will run on all python versions it supports.
-          python-version: 3.8
+          fetch-depth: 0 # needed for progressive mode to work
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install ansible (${{ matrix.ansible-version }}) version
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+
+      - name: Install ansible lint
+        run: pip install ansible-lint==6.16.2 pytest --disable-pip-version-check
+
+      - name: Install ansible posix
+        run: ansible-galaxy collection install ansible.posix
 
       - name: Download migrated collection artifacts
         uses: actions/download-artifact@v1
@@ -119,12 +160,9 @@ jobs:
           name: collection
           path: .cache/collection-tarballs
 
-      - name: Setup Sanity test Pre-requisites
+      - name: Install collection build
         run: ansible-galaxy collection install .cache/collection-tarballs/*.tar.gz
 
-      # run ansible-test sanity inside of Docker.
-      # The docker container has all the pinned dependencies that are required
-      # and all python versions ansible supports.
-      - name: Run sanity tests
-        run: ansible-test sanity --docker -v --color
-        working-directory: /home/runner/.ansible/collections/ansible_collections/dellemc/openmanage
+      - name: Run Ansible lint
+        run: ansible-lint --show-relpath
+        working-directory: /home/runner/work/dellemc-openmanage-ansible-modules/dellemc-openmanage-ansible-modules

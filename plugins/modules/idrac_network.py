@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.1.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -18,12 +18,39 @@ DOCUMENTATION = """
 module: idrac_network
 short_description: Configures the iDRAC network attributes
 version_added: "2.1.0"
+deprecated:
+  removed_at_date: "2024-07-31"
+  why: Replaced with M(dellemc.openmanage.idrac_attributes).
+  alternative: Use M(dellemc.openmanage.idrac_attributes) instead.
+  removed_from_collection: dellemc.openmanage
 description:
     - This module allows to configure iDRAC network settings.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
-  - dellemc.openmanage.network_share_options
 options:
+    share_name:
+        type: str
+        description:
+          - (deprecated)Network share or a local path.
+          - This option is deprecated and will be removed in the later version.
+    share_user:
+        type: str
+        description:
+          - (deprecated)Network share user name. Use the format 'user@domain' or 'domain\\user' if user is part of a domain.
+            This option is mandatory for CIFS share.
+          - This option is deprecated and will be removed in the later version.
+    share_password:
+        type: str
+        description:
+          - (deprecated)Network share user password. This option is mandatory for CIFS share.
+          - This option is deprecated and will be removed in the later version.
+        aliases: ['share_pwd']
+    share_mnt:
+        type: str
+        description:
+          - (deprecated)Local mount path of the network share with read-write permission for ansible user.
+            This option is mandatory for network shares.
+          - This option is deprecated and will be removed in the later version.
     setup_idrac_nic_vlan:
         type: str
         description: Allows to configure VLAN on iDRAC.
@@ -108,14 +135,15 @@ options:
         type: str
         description: Enter the static IP subnet mask to iDRAC.
 requirements:
-    - "omsdk"
-    - "python >= 2.7.5"
+    - "omsdk >= 1.2.488"
+    - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
     - This module requires 'Administrator' privilege for I(idrac_user).
-    - Run this module from a system that has direct access to Dell EMC iDRAC.
+    - Run this module from a system that has direct access to Dell iDRAC.
+    - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
 """
 
@@ -126,10 +154,7 @@ EXAMPLES = """
        idrac_ip:   "192.168.0.1"
        idrac_user: "user_name"
        idrac_password:  "user_password"
-       share_name: "192.168.0.1:/share"
-       share_password:  "share_pwd"
-       share_user: "share_user"
-       share_mnt: "/mnt/share"
+       ca_path: "/path/to/ca_cert.pem"
        register_idrac_on_dns: Enabled
        dns_idrac_name: None
        auto_config: None
@@ -209,10 +234,12 @@ error_info:
   }
 '''
 
+import os
+import tempfile
 import json
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 try:
     from omdrivers.enums.iDRAC.iDRAC import (DNSRegister_NICTypes, DNSDomainFromDHCP_NICStaticTypes,
@@ -220,23 +247,16 @@ try:
                                              Selection_NICTypes, Failover_NICTypes,
                                              AutoDetect_NICTypes, Autoneg_NICTypes,
                                              Speed_NICTypes, Duplex_NICTypes, DHCPEnable_IPv4Types,
-                                             DNSFromDHCP_IPv4Types, Enable_IPv4Types,
-                                             DNSFromDHCP_IPv4StaticTypes)
+                                             Enable_IPv4Types, DNSFromDHCP_IPv4StaticTypes)
     from omsdk.sdkfile import file_share_manager
-    from omsdk.sdkcreds import UserCredentials
 except ImportError:
     pass
 
 
 def run_idrac_network_config(idrac, module):
     idrac.use_redfish = True
-    upd_share = file_share_manager.create_share_obj(share_path=module.params['share_name'],
-                                                    mount_point=module.params['share_mnt'],
-                                                    isFolder=True,
-                                                    creds=UserCredentials(
-                                                        module.params['share_user'],
-                                                        module.params['share_password'])
-                                                    )
+    share_path = tempfile.gettempdir() + os.sep
+    upd_share = file_share_manager.create_share_obj(share_path=share_path, isFolder=True)
     if not upd_share.IsValid:
         module.fail_json(msg="Unable to access the share. Ensure that the share name, "
                              "share mount, and share credentials provided are correct.")
@@ -346,55 +366,50 @@ def run_idrac_network_config(idrac, module):
 
 # Main
 def main():
+    specs = {
+        # Export Destination
+        "share_name": {"required": False, "type": 'str'},
+        "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
+        "share_user": {"required": False, "type": 'str'},
+        "share_mnt": {"required": False, "type": 'str'},
+
+        # setup DNS
+        "register_idrac_on_dns": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None},
+        "dns_idrac_name": {"required": False, "default": None, "type": 'str'},
+        "auto_config": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None, 'type': 'str'},
+        "static_dns": {"required": False, "default": None, "type": "str"},
+
+        # set up idrac vlan
+        "setup_idrac_nic_vlan": {"required": False, "choices": ['Enabled', 'Disabled']},
+        "vlan_id": {"required": False, "type": 'int'},
+        "vlan_priority": {"required": False, "type": 'int'},
+
+        # set up NIC
+        "enable_nic": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None},
+        "nic_selection": {"required": False, "choices": ['Dedicated', 'LOM1', 'LOM2', 'LOM3', 'LOM4'], "default": None},
+        "failover_network": {"required": False, "choices": ['ALL', 'LOM1', 'LOM2', 'LOM3', 'LOM4', 'T_None'],
+                             "default": None},
+        "auto_detect": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None},
+        "auto_negotiation": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None},
+        "network_speed": {"required": False, "choices": ['T_10', 'T_100', 'T_1000'], "default": None},
+        "duplex_mode": {"required": False, "choices": ['Full', 'Half'], "default": None},
+        "nic_mtu": {"required": False, 'type': 'int'},
+
+        # setup iDRAC IPV4
+        "ip_address": {"required": False, "default": None, "type": "str"},
+        "enable_dhcp": {"required": False, "choices": ["Enabled", "Disabled"], "default": None},
+        "enable_ipv4": {"required": False, "choices": ["Enabled", "Disabled"], "default": None},
+
+        # setup iDRAC Static IPv4
+        "dns_from_dhcp": {"required": False, "choices": ["Enabled", "Disabled"], "default": None},
+        "static_dns_1": {"required": False, "default": None, "type": "str"},
+        "static_dns_2": {"required": False, "default": None, "type": "str"},
+        "static_gateway": {"required": False, "type": "str"},
+        "static_net_mask": {"required": False, "type": "str"},
+    }
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec={
-
-            # iDRAC credentials
-            "idrac_ip": {"required": True, "type": 'str'},
-            "idrac_user": {"required": True, "type": 'str'},
-            "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'},
-
-            # Export Destination
-            "share_name": {"required": True, "type": 'str'},
-            "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
-            "share_user": {"required": False, "type": 'str'},
-            "share_mnt": {"required": False, "type": 'str'},
-
-            # setup DNS
-            "register_idrac_on_dns": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None},
-            "dns_idrac_name": {"required": False, "default": None, "type": 'str'},
-            "auto_config": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None, 'type': 'str'},
-            "static_dns": {"required": False, "default": None, "type": "str"},
-
-            # set up idrac vlan
-            "setup_idrac_nic_vlan": {"required": False, "choices": ['Enabled', 'Disabled']},
-            "vlan_id": {"required": False, "type": 'int'},
-            "vlan_priority": {"required": False, "type": 'int'},
-
-            # set up NIC
-            "enable_nic": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None},
-            "nic_selection": {"required": False, "choices": ['Dedicated', 'LOM1', 'LOM2', 'LOM3', 'LOM4'], "default": None},
-            "failover_network": {"required": False, "choices": ['ALL', 'LOM1', 'LOM2', 'LOM3', 'LOM4', 'T_None'],
-                                 "default": None},
-            "auto_detect": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None},
-            "auto_negotiation": {"required": False, "choices": ['Enabled', 'Disabled'], "default": None},
-            "network_speed": {"required": False, "choices": ['T_10', 'T_100', 'T_1000'], "default": None},
-            "duplex_mode": {"required": False, "choices": ['Full', 'Half'], "default": None},
-            "nic_mtu": {"required": False, 'type': 'int'},
-
-            # setup iDRAC IPV4
-            "ip_address": {"required": False, "default": None, "type": "str"},
-            "enable_dhcp": {"required": False, "choices": ["Enabled", "Disabled"], "default": None},
-            "enable_ipv4": {"required": False, "choices": ["Enabled", "Disabled"], "default": None},
-
-            # setup iDRAC Static IPv4
-            "dns_from_dhcp": {"required": False, "choices": ["Enabled", "Disabled"], "default": None},
-            "static_dns_1": {"required": False, "default": None, "type": "str"},
-            "static_dns_2": {"required": False, "default": None, "type": "str"},
-            "static_gateway": {"required": False, "type": "str"},
-            "static_net_mask": {"required": False, "type": "str"},
-        },
+        argument_spec=specs,
         supports_check_mode=True)
 
     try:

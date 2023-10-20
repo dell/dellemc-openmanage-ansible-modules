@@ -1,18 +1,24 @@
-# OpenManage Ansible Modules Documentation
- 
-Dell EMC OpenManage Ansible Modules allows data center and IT administrators to use RedHat Ansible to automate and orchestrate the configuration, deployment, and update of Dell EMC PowerEdge Servers and modular infrastructure by leveraging the management automation capabilities in-built into the Integrated Dell Remote Access Controller (iDRAC), OpenManage Enterprise and OpenManage Enterprise Modular.
+<!--
+Copyright (c) 2023 Dell Inc., or its subsidiaries. All Rights Reserved.
 
-OpenManage Ansible Modules simplifies and automates provisioning, deployment, and updates of PowerEdge servers and modular infrastructure. It allows system administrators and software developers to introduce the physical infrastructure provisioning into their software provisioning stack, integrate with existing DevOps pipelines and manage their infrastructure using version-controlled playbooks, server configuration profiles, and templates in line with the Infrastructure-as-Code (IaC) principles.
- 
+Licensed under the GPL, Version 3.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.gnu.org/licenses/gpl-3.0.txt
+-->
+# OpenManage Ansible Modules Documentation
+
 ### iDRAC Modules
 - [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)
 - [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)
-- [dellemc_get_firmware_inventory](modules/dellemc_get_firmware_inventory.rst)
-- [dellemc_get_system_inventory](modules/dellemc_get_system_inventory.rst)
 - [dellemc_idrac_lc_attributes](modules/dellemc_idrac_lc_attributes.rst)
 - [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)
 - [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)
+- [idrac_attributes](modules/idrac_attributes.rst)
 - [idrac_bios](modules/idrac_bios.rst)
+- [idrac_boot](modules/idrac_boot.rst)
+- [idrac_certificates](modules/idrac_certificates.rst)
 - [idrac_firmware](modules/idrac_firmware.rst)
 - [idrac_firmware_info](modules/idrac_firmware_info.rst)
 - [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)
@@ -28,6 +34,8 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 - [idrac_system_info](modules/idrac_system_info.rst)
 - [idrac_timezone_ntp](modules/idrac_timezone_ntp.rst)
 - [idrac_user](modules/idrac_user.rst)
+- [idrac_user_info](modules/idrac_user_info.rst)
+- [idrac_virtual_media](modules/idrac_virtual_media.rst)
 - [redfish_event_subscription](modules/redfish_event_subscription.rst)
 - [redfish_firmware](modules/redfish_firmware.rst)
 - [redfish_powerstate](modules/redfish_powerstate.rst)
@@ -35,22 +43,33 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
  
 ### OpenManage Enterprise Modules
 - [ome_active_directory](modules/ome_active_directory.rst)
+- [ome_alert_policies](modules/ome_alert_policies.rst)
+- [ome_alert_policies_message_id_info](modules/ome_alert_policies_message_id_info.rst)
+- [ome_alert_policies_info](modules/ome_alert_policies_info.rst)
+- [ome_alert_policies_actions_info](modules/ome_alert_policies_actions_info.rst)
+- [ome_alert_policies_category_info](modules/ome_alert_policies_category_info.rst)
 - [ome_application_alerts_smtp](modules/ome_application_alerts_smtp.rst)
 - [ome_application_alerts_syslog](modules/ome_application_alerts_syslog.rst)
 - [ome_application_certificate](modules/ome_application_certificate.rst)
+- [ome_application_console_preferences](modules/ome_application_console_preferences.rst)
 - [ome_application_network_address](modules/ome_application_network_address.rst)
 - [ome_application_network_proxy](modules/ome_application_network_proxy.rst)
+- [ome_application_network_settings](modules/ome_application_network_settings.rst)
 - [ome_application_network_time](modules/ome_application_network_time.rst)
 - [ome_application_network_webserver](modules/ome_application_network_webserver.rst)
+- [ome_application_security_settings](modules/ome_application_security_settings.rst)
 - [ome_chassis_slots](modules/ome_chassis_slots.rst)
 - [ome_configuration_compliance_baseline](modules/ome_configuration_compliance_baseline.rst)
 - [ome_configuration_compliance_info](modules/ome_configuration_compliance_info.rst)
 - [ome_device_group](modules/ome_device_group.rst)
 - [ome_device_info](modules/ome_device_info.rst)
+- [ome_device_local_access_configuration](modules/ome_device_local_access_configuration.rst)
 - [ome_device_location](modules/ome_device_location.rst)
 - [ome_device_mgmt_network](modules/ome_device_mgmt_network.rst)
 - [ome_device_network_services](modules/ome_device_network_services.rst)
 - [ome_device_power_settings](modules/ome_device_power_settings.rst)
+- [ome_device_quick_deploy](modules/ome_device_quick_deploy.rst)
+- [ome_devices](modules/ome_devices.rst)
 - [ome_diagnostics](modules/ome_diagnostics.rst)
 - [ome_discovery](modules/ome_discovery.rst)
 - [ome_domain_user_groups](modules/ome_domain_user_groups.rst)
@@ -67,12 +86,17 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 - [ome_network_vlan_info](modules/ome_network_vlan_info.rst)
 - [ome_powerstate](modules/ome_powerstate.rst)
 - [ome_profile](modules/ome_profile.rst)
+- [ome_profile_info](modules/ome_profile_info.rst)
+- [ome_server_interface_profile_info](modules/ome_server_interface_profile_info.rst)
+- [ome_server_interface_profiles](modules/ome_server_interface_profiles.rst)
+- [ome_smart_fabric_info](modules/ome_smart_fabric_info.rst)
 - [ome_smart_fabric](modules/ome_smart_fabric.rst)
+- [ome_smart_fabric_uplink_info](modules/ome_smart_fabric_uplink_info.rst)
 - [ome_smart_fabric_uplink](modules/ome_smart_fabric_uplink.rst)
 - [ome_template](modules/ome_template.rst)
 - [ome_template_identity_pool](modules/ome_template_identity_pool.rst)
 - [ome_template_info](modules/ome_template_info.rst)
 - [ome_template_network_vlan](modules/ome_template_network_vlan.rst)
+- [ome_template_network_vlan_info](modules/ome_template_network_vlan_info.rst)
 - [ome_user](modules/ome_user.rst)
 - [ome_user_info](modules/ome_user_info.rst)
- 

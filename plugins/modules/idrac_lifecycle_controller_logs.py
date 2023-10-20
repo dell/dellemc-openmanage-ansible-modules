@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.1.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -28,7 +28,7 @@ options:
       - Network share or local path.
       - CIFS, NFS network share types are supported.
     type: str
-    required: True
+    required: true
   share_user:
     type: str
     description: Network share user in the format 'user@domain' or 'domain\\user' if user is
@@ -40,18 +40,19 @@ options:
   job_wait:
     description: Whether to wait for the running job completion or not.
     type: bool
-    default: True
+    default: true
 
 requirements:
-  - "omsdk"
-  - "python >= 2.7.5"
+  - "omsdk >= 1.2.488"
+  - "python >= 3.9.6"
 author:
   - "Rajeev Arakkal (@rajeevarakkal)"
   - "Anooja Vardhineni (@anooja-vardhineni)"
 notes:
   - This module requires 'Administrator' privilege for I(idrac_user).
   - Exporting data to a local share is supported only on iDRAC9-based PowerEdge Servers and later.
-  - Run this module from a system that has direct access to Dell EMC iDRAC.
+  - Run this module from a system that has direct access to Dell iDRAC.
+  - This module supports both IPv4 and IPv6 address for I(idrac_ip).
   - This module does not support C(check_mode).
 """
 
@@ -62,6 +63,7 @@ EXAMPLES = r'''
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     share_name: "192.168.0.0:/nfsfileshare"
 
 - name: Export lifecycle controller logs to CIFS share.
@@ -69,6 +71,7 @@ EXAMPLES = r'''
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     share_name: "\\\\192.168.0.2\\share"
     share_user: "share_user_name"
     share_password: "share_user_pwd"
@@ -78,6 +81,7 @@ EXAMPLES = r'''
     idrac_ip: "190.168.0.1"
     idrac_user: "user_name"
     idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     share_name: "/example/export_lc"
 '''
 
@@ -130,11 +134,13 @@ error_info:
 """
 
 
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection
+import socket
+import json
+import copy
+from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-import json
 try:
     from omsdk.sdkfile import file_share_manager
     from omsdk.sdkcreds import UserCredentials
@@ -178,6 +184,10 @@ def run_export_lc_logs(idrac, module):
                                                       creds=UserCredentials(module.params['share_user'],
                                                                             module.params['share_password']),
                                                       isFolder=True)
+    data = socket.getaddrinfo(module.params["idrac_ip"], module.params["idrac_port"])
+    if "AF_INET6" == data[0][0]._name_:
+        ip = copy.deepcopy(module.params["idrac_ip"])
+        lclog_file_name_format = "{ip}_%Y%m%d_%H%M%S_LC_Log.log".format(ip=ip.replace(":", ".").replace("..", "."))
     lc_log_file = myshare.new_file(lclog_file_name_format)
     job_wait = module.params['job_wait']
     msg = idrac.log_mgr.lclog_export(lc_log_file, job_wait)
@@ -186,18 +196,15 @@ def run_export_lc_logs(idrac, module):
 
 # Main()
 def main():
+    specs = {
+        "share_name": {"required": True, "type": 'str'},
+        "share_user": {"required": False, "type": 'str'},
+        "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
+        "job_wait": {"required": False, "type": 'bool', "default": True},
+    }
+    specs.update(idrac_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "idrac_ip": {"required": True, "type": 'str'},
-            "idrac_user": {"required": True, "type": 'str'},
-            "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
-            "idrac_port": {"required": False, "default": 443, "type": 'int'},
-
-            "share_name": {"required": True, "type": 'str'},
-            "share_user": {"required": False, "type": 'str'},
-            "share_password": {"required": False, "type": 'str', "aliases": ['share_pwd'], "no_log": True},
-            "job_wait": {"required": False, "type": 'bool', "default": True},
-        },
+        argument_spec=specs,
         supports_check_mode=False)
 
     try:

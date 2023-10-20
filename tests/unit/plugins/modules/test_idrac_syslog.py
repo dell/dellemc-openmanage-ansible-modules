@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.2.0
+# Copyright (C) 2018-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -17,8 +17,8 @@ import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_syslog
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from mock import MagicMock
 from io import StringIO
 from ansible.module_utils._text import to_text
 from pytest import importorskip
@@ -72,6 +72,17 @@ class TestSetupSyslog(FakeAnsibleModule):
                               'changed': False,
                               'msg': {'Status': 'Success', 'message': 'No changes found to commit!'}},
                           'changed': False}
+
+    @pytest.mark.parametrize("mock_message", [{"Status": "Success", "Message": "No changes found to commit!"},
+                                              {"Status": "Success", "Message": "No changes found"}])
+    def test_main_setup_syslog_success_case01_extra(self, mock_message, idrac_connection_setup_syslog_mock, idrac_default_args, mocker,
+                                                    idrac_file_manager_mock):
+        idrac_default_args.update({"share_name": "sharename", 'share_password': None, "syslog": "Enabled",
+                                   'share_mnt': None, 'share_user': None})
+        mocker.patch(
+            MODULE_PATH + 'idrac_syslog.run_setup_idrac_syslog', return_value=mock_message)
+        result = self._run_module(idrac_default_args)
+        assert result['msg'] == "Successfully fetch the syslogs."
 
     def test_run_setup_idrac_syslog_success_case01(self, idrac_connection_setup_syslog_mock, idrac_default_args,
                                                    idrac_file_manager_mock):
@@ -195,3 +206,63 @@ class TestSetupSyslog(FakeAnsibleModule):
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    def test_run_setup_idrac_syslog_invalid_share(self, idrac_connection_setup_syslog_mock, idrac_default_args,
+                                                  idrac_file_manager_mock, mocker):
+        idrac_default_args.update(
+            {"share_name": "dummy_share_name", "share_mnt": "mountname", "share_user": "shareuser",
+             "syslog": "Disabled", "share_password": "sharepassword"})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        obj = MagicMock()
+        obj.IsValid = True
+
+        mocker.patch(
+            MODULE_PATH + "idrac_syslog.file_share_manager.create_share_obj", return_value=(obj))
+        message = {"changes_applicable": True, "message": "changes found to commit!", "changed": True,
+                   "Status": "Success"}
+        idrac_connection_setup_syslog_mock.config_mgr.disable_syslog.return_value = message
+        msg = self.module.run_setup_idrac_syslog(
+            idrac_connection_setup_syslog_mock, f_module)
+        assert msg == {'changes_applicable': True,
+                       'message': 'changes found to commit!', 'changed': True, 'Status': 'Success'}
+
+        obj.IsValid = False
+        mocker.patch(
+            MODULE_PATH + "idrac_syslog.file_share_manager.create_share_obj", return_value=(obj))
+        with pytest.raises(Exception) as exc:
+            self.module.run_setup_idrac_syslog(
+                idrac_connection_setup_syslog_mock, f_module)
+        assert exc.value.args[0] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."
+
+    def test_run_setup_idrac_syslog_disabled(self, idrac_connection_setup_syslog_mock, idrac_default_args,
+                                             idrac_file_manager_mock, mocker):
+        idrac_default_args.update(
+            {"share_name": "dummy_share_name", "share_mnt": "mountname", "share_user": "shareuser",
+             "syslog": "Disabled", "share_password": "sharepassword"})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=True)
+        obj = MagicMock()
+        obj.IsValid = True
+
+        mocker.patch(
+            MODULE_PATH + "idrac_syslog.file_share_manager.create_share_obj", return_value=(obj))
+        message = {"changes_applicable": True, "message": "changes found to commit!", "changed": True,
+                   "Status": "Success"}
+        idrac_connection_setup_syslog_mock.config_mgr.is_change_applicable.return_value = message
+        idrac_connection_setup_syslog_mock.config_mgr.disable_syslog.return_value = message
+        msg = self.module.run_setup_idrac_syslog(
+            idrac_connection_setup_syslog_mock, f_module)
+        assert msg == {'changes_applicable': True,
+                       'message': 'changes found to commit!', 'changed': True, 'Status': 'Success'}
+
+    def test_main_idrac_configure_timezone_attr_exception_handling_case(self, idrac_connection_setup_syslog_mock, idrac_default_args,
+                                                                        idrac_file_manager_mock, mocker):
+        idrac_default_args.update(
+            {"share_name": "dummy_share_name", "share_mnt": "mountname", "share_user": "shareuser",
+             "syslog": "Disabled", "share_password": "sharepassword"})
+        mocker.patch(
+            MODULE_PATH + 'idrac_syslog.run_setup_idrac_syslog',
+            side_effect=AttributeError('NoneType'))
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result['msg'] == "Unable to access the share. Ensure that the share name, share mount, and share credentials provided are correct."

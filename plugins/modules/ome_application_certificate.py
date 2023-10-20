@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.3.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
 
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -53,13 +54,22 @@ options:
   email:
     description: Email associated with the issuer. This option is applicable for C(generate_csr).
     type: str
+  subject_alternative_names:
+    description:
+      - Subject alternative name required for the certificate signing request generation.
+      - Supports up to 4 comma separated values starting from primary, secondary, Tertiary and Quaternary values.
+    type: str
+    version_added: 8.1.0
   upload_file:
     type: str
     description: Local path of the certificate file to be uploaded. This option is applicable for C(upload).
         Once the certificate is uploaded, OpenManage Enterprise cannot be accessed for a few seconds.
 requirements:
-    - "python >= 2.7.5"
-author: "Felix Stephen (@felixs88)"
+    - "python >= 3.9.6"
+author:
+  - "Felix Stephen (@felixs88)"
+  - "Kritika Bhateja (@Kritika-Bhateja-03)"
+  - "Jennifer John (@Jennifer-John)"
 '''
 
 EXAMPLES = r'''
@@ -69,8 +79,25 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "generate_csr"
     distinguished_name: "hostname.com"
+    department_name: "Remote Access Group"
+    business_name: "Dell Inc."
+    locality: "Round Rock"
+    country_state: "Texas"
+    country: "US"
+    email: "support@dell.com"
+
+- name: Generate a certificate signing request with subject alternative names
+  dellemc.openmanage.ome_application_certificate:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "generate_csr"
+    distinguished_name: "hostname.com"
+    subject_alternative_names: "hostname1.chassis.com,hostname2.chassis.com"
     department_name: "Remote Access Group"
     business_name: "Dell Inc."
     locality: "Round Rock"
@@ -83,6 +110,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "upload"
     upload_file: "/path/certificate.cer"
 '''
@@ -131,9 +159,8 @@ error_info:
 
 import json
 import os
-from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -148,7 +175,8 @@ def get_resource_parameters(module):
                    "DepartmentName": module.params["department_name"],
                    "BusinessName": module.params["business_name"],
                    "Locality": module.params["locality"], "State": module.params["country_state"],
-                   "Country": module.params["country"], "Email": module.params["email"]}
+                   "Country": module.params["country"], "Email": module.params["email"],
+                   "San": get_san(module.params["subject_alternative_names"])}
     else:
         file_path = module.params["upload_file"]
         uri = csr_uri.format("UploadCertificate")
@@ -160,24 +188,30 @@ def get_resource_parameters(module):
     return method, uri, payload
 
 
+def get_san(subject_alternative_names):
+    if not subject_alternative_names:
+        return subject_alternative_names
+
+    return subject_alternative_names.replace(" ", "")
+
+
 def main():
+    specs = {
+        "command": {"type": "str", "required": False,
+                    "choices": ["generate_csr", "upload"], "default": "generate_csr"},
+        "distinguished_name": {"required": False, "type": "str"},
+        "department_name": {"required": False, "type": "str"},
+        "business_name": {"required": False, "type": "str"},
+        "locality": {"required": False, "type": "str"},
+        "country_state": {"required": False, "type": "str"},
+        "country": {"required": False, "type": "str"},
+        "email": {"required": False, "type": "str"},
+        "upload_file": {"required": False, "type": "str"},
+        "subject_alternative_names": {"required": False, "type": "str"}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "command": {"type": "str", "required": False,
-                        "choices": ["generate_csr", "upload"], "default": "generate_csr"},
-            "distinguished_name": {"required": False, "type": "str"},
-            "department_name": {"required": False, "type": "str"},
-            "business_name": {"required": False, "type": "str"},
-            "locality": {"required": False, "type": "str"},
-            "country_state": {"required": False, "type": "str"},
-            "country": {"required": False, "type": "str"},
-            "email": {"required": False, "type": "str"},
-            "upload_file": {"required": False, "type": "str"},
-        },
+        argument_spec=specs,
         required_if=[["command", "generate_csr", ["distinguished_name", "department_name",
                                                   "business_name", "locality", "country_state",
                                                   "country", "email"]],
@@ -201,7 +235,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))

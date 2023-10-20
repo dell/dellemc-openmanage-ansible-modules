@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.1.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.3.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -60,6 +60,7 @@ options:
       - This option is case sensitive.
       - This is applicable to I(device_service_tag), I(device_id), and I(baseline_name).
     type: list
+    default: []
     elements: str
   devices:
     description:
@@ -81,6 +82,7 @@ options:
       components:
         description: The target components to be updated. If not specified, all applicable device components are considered.
         type: list
+        default: []
         elements: str
   schedule:
     type: str
@@ -93,14 +95,29 @@ options:
       - RebootNow
       - StageForNextReboot
     default: RebootNow
+  reboot_type:
+    version_added: '8.3.0'
+    type: str
+    description:
+      - This option provides the choices to reboot the server immediately after the firmware update.
+      - This is applicable when I(schedule) is C(RebootNow).
+      - C(GracefulRebootForce) performs a graceful reboot with forced shutdown.
+      - C(GracefulReboot) performs a graceful reboot without forced shutdown.
+      - C(PowerCycle) performs a power cycle for a hard reset on the device.
+    choices:
+      - GracefulReboot
+      - GracefulRebootForce
+      - PowerCycle
+    default: GracefulRebootForce
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.9.6"
 author:
     - "Felix Stephen (@felixs88)"
     - "Jagadeesh N V (@jagadeeshnv)"
+    - "Abhishek Sinha (@ABHISHEK-SINHA10)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-    - This module does not support C(check_mode).
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -110,6 +127,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id:
       - 11111
       - 22222
@@ -120,6 +138,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag:
       - KLBR111
       - KLBR222
@@ -130,6 +149,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_group_names:
       - servers
     dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
@@ -139,6 +159,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
 
 - name: Stage firmware for the next reboot using baseline name
@@ -146,14 +167,16 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     schedule: StageForNextReboot
 
 - name: "Update firmware using baseline name and components."
-  dellemc.openmanage.ome_firmwar:
+  dellemc.openmanage.ome_firmware:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     components:
       - BIOS
@@ -163,6 +186,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     device_id:
       - 11111
@@ -175,6 +199,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     device_service_tag:
       - KLBR111
@@ -187,6 +212,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     devices:
       - id: 12345
@@ -202,6 +228,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     devices:
       - service_tag: ABCDE12
@@ -217,6 +244,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline_name: baseline_devices
     devices:
       - service_tag: ABCDE12
@@ -226,6 +254,17 @@ EXAMPLES = r'''
       - id: 12345
         components:
           - iDRAC with Lifecycle Controller
+
+- name: "Update firmware using baseline name and components and perform Powercycle."
+  dellemc.openmanage.ome_firmware:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    baseline_name: baseline_devices
+    components:
+      - BIOS
+    reboot_type: PowerCycle
 '''
 
 RETURN = r'''
@@ -313,8 +352,8 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible.module_utils.urls import ConnectionError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 
@@ -326,6 +365,7 @@ NO_CHANGES_MSG = "No changes found to be applied. Either there are no updates pr
 COMPLIANCE_READ_FAIL = "Failed to read compliance report."
 DUP_REQ_MSG = "Parameter 'dup_file' to be provided along with 'device_id'|'device_service_tag'|'device_group_names'"
 APPLICABLE_DUP = "Unable to get applicable components DUP."
+CHANGES_FOUND = "Changes found to be applied."
 
 
 def spawn_update_job(rest_obj, job_payload):
@@ -349,8 +389,11 @@ def job_payload_for_update(rest_obj, module, target_data, baseline=None):
               {"Key": "signVerify", "Value": "true"}]
     # reboot applicable only if staging false
     if schedule == "RebootNow":
-        params.append({"Key": "rebootType", "Value": "3"})
-        # reboot_dict = {"GracefulReboot": "2", "GracefulRebootForce": "3", "PowerCycle": "1"}
+        reboot_dict = {"PowerCycle": "1",
+                       "GracefulReboot": "2",
+                       "GracefulRebootForce": "3"}
+        reboot_type = module.params["reboot_type"]
+        params.append({"Key": "rebootType", "Value": reboot_dict[reboot_type]})
     payload = {
         "Id": 0, "JobName": "Firmware Update Task",
         "JobDescription": FW_JOB_DESC, "Schedule": "startnow",
@@ -491,6 +534,8 @@ def single_dup_update(rest_obj, module):
     else:
         device_id_tags = _validate_device_attributes(module)
         device_ids, id_tag_map = get_device_ids(rest_obj, module, device_id_tags)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     upload_status, token = upload_dup_file(rest_obj, module)
     if upload_status:
         report_payload = get_dup_applicability_payload(token, device_ids=device_ids, group_ids=group_ids,
@@ -534,6 +579,8 @@ def baseline_based_update(rest_obj, module, baseline, dev_comp_map):
         module.fail_json(msg=COMPLIANCE_READ_FAIL)
     if not compliance_report_list:
         module.exit_json(msg=NO_CHANGES_MSG)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     return compliance_report_list
 
 
@@ -581,30 +628,31 @@ def validate_inputs(module):
 
 
 def main():
-    module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"type": "int", "default": 443},
-            "device_service_tag": {"type": "list", "elements": 'str'},
-            "device_id": {"type": "list", "elements": 'int'},
-            "dup_file": {"type": "path"},
-            "device_group_names": {"type": "list", "elements": 'str'},
-            "components": {"type": "list", "elements": 'str', "default": []},
-            "baseline_name": {"type": "str"},
-            "schedule": {"type": 'str', "choices": ['RebootNow', 'StageForNextReboot'], "default": 'RebootNow'},
-            "devices": {
-                "type": 'list', "elements": 'dict',
-                "options": {
-                    "id": {'type': 'int'},
-                    "service_tag": {"type": 'str'},
-                    "components": {"type": "list", "elements": 'str', "default": []},
-                },
-                "mutually_exclusive": [('id', 'service_tag')],
-                "required_one_of": [('id', 'service_tag')]
+    specs = {
+        "device_service_tag": {"type": "list", "elements": 'str'},
+        "device_id": {"type": "list", "elements": 'int'},
+        "dup_file": {"type": "path"},
+        "device_group_names": {"type": "list", "elements": 'str'},
+        "components": {"type": "list", "elements": 'str', "default": []},
+        "baseline_name": {"type": "str"},
+        "schedule": {"type": 'str', "choices": ['RebootNow', 'StageForNextReboot'], "default": 'RebootNow'},
+        "reboot_type": {"type": 'str',
+                        "choices": ['PowerCycle', 'GracefulReboot', 'GracefulRebootForce'],
+                        "default": 'GracefulRebootForce'},
+        "devices": {
+            "type": 'list', "elements": 'dict',
+            "options": {
+                "id": {'type': 'int'},
+                "service_tag": {"type": 'str'},
+                "components": {"type": "list", "elements": 'str', "default": []},
             },
+            "mutually_exclusive": [('id', 'service_tag')],
+            "required_one_of": [('id', 'service_tag')]
         },
+    }
+    specs.update(ome_auth_params)
+    module = AnsibleModule(
+        argument_spec=specs,
         required_one_of=[["dup_file", "baseline_name"]],
         mutually_exclusive=[
             ["baseline_name", "dup_file"],
@@ -612,7 +660,7 @@ def main():
             ["device_group_names", "device_service_tag", "devices"],
             ["baseline_name", "device_group_names"],
             ["dup_file", "components", "devices"]],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     validate_inputs(module)
     update_status, baseline_details = {}, None
@@ -630,7 +678,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, OSError) as err:
         module.fail_json(msg=str(err))
     module.exit_json(msg="Successfully submitted the firmware update job.", update_status=update_status, changed=True)
 

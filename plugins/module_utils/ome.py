@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -31,10 +31,22 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import json
+import os
 import time
+import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+
+ome_auth_params = {
+    "hostname": {"required": True, "type": "str"},
+    "username": {"required": True, "type": "str"},
+    "password": {"required": True, "type": "str", "no_log": True},
+    "port": {"type": "int", "default": 443},
+    "validate_certs": {"type": "bool", "default": True},
+    "ca_path": {"type": "path"},
+    "timeout": {"type": "int", "default": 30},
+}
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "SessionService/Sessions",
@@ -43,6 +55,7 @@ SESSION_RESOURCE_COLLECTION = {
 
 JOB_URI = "JobService/Jobs({job_id})"
 JOB_SERVICE_URI = "JobService/Jobs"
+HOST_UNRESOLVED_MSG = "Unable to resolve hostname or IP {0}."
 
 
 class OpenURLResponse(object):
@@ -79,14 +92,26 @@ class RestOME(object):
 
     def __init__(self, module_params=None, req_session=False):
         self.module_params = module_params
-        self.hostname = self.module_params["hostname"]
+        self.hostname = str(self.module_params["hostname"]).strip('][')
         self.username = self.module_params["username"]
         self.password = self.module_params["password"]
         self.port = self.module_params["port"]
+        self.validate_certs = self.module_params.get("validate_certs", True)
+        self.ca_path = self.module_params.get("ca_path")
+        self.timeout = self.module_params.get("timeout", 30)
         self.req_session = req_session
         self.session_id = None
         self.protocol = 'https'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        try:
+            data = socket.getaddrinfo(self.hostname, self.port)
+            lastuple = data[-1]
+            self.hostname = lastuple[-1][0]
+            if "AF_INET6" == data[0][0]._name_:
+                self.hostname = "[{0}]".format(self.hostname)
+        except Exception:
+            msg = HOST_UNRESOLVED_MSG.format(self.hostname)
+            raise URLError(msg)
 
     def _get_base_url(self):
         """builds base url"""
@@ -109,9 +134,14 @@ class RestOME(object):
         req_header = self._headers
         if headers:
             req_header.update(headers)
+        if api_timeout is None:
+            api_timeout = self.timeout
+        if self.ca_path is None:
+            self.ca_path = self._get_omam_ca_env()
         url_kwargs = {
             "method": method,
-            "validate_certs": False,
+            "validate_certs": self.validate_certs,
+            "ca_path": self.ca_path,
             "use_proxy": True,
             "headers": req_header,
             "timeout": api_timeout,
@@ -119,7 +149,7 @@ class RestOME(object):
         }
         return url_kwargs
 
-    def _args_without_session(self, method, api_timeout=30, headers=None):
+    def _args_without_session(self, method, api_timeout, headers=None):
         """Creates an argument spec in case of basic authentication"""
         req_header = self._headers
         if headers:
@@ -130,14 +160,14 @@ class RestOME(object):
         url_kwargs["force_basic_auth"] = True
         return url_kwargs
 
-    def _args_with_session(self, method, api_timeout=30, headers=None):
+    def _args_with_session(self, method, api_timeout, headers=None):
         """Creates an argument spec, in case of authentication with session"""
         url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
         url_kwargs["force_basic_auth"] = False
         return url_kwargs
 
     def invoke_request(self, method, path, data=None, query_param=None, headers=None,
-                       api_timeout=30, dump=True):
+                       api_timeout=None, dump=True):
         """
         Sends a request through open_url
         Returns :class:`OpenURLResponse` object.
@@ -242,7 +272,7 @@ class RestOME(object):
             device_id = device_info["Id"]
         return {"Id": device_id, "value": device_info}
 
-    def get_all_items_with_pagination(self, uri):
+    def get_all_items_with_pagination(self, uri, query_param=None):
         """
          This implementation mainly to get all available items from ome for pagination
          supported GET uri
@@ -250,7 +280,7 @@ class RestOME(object):
         :return: dict.
         """
         try:
-            resp = self.invoke_request('GET', uri)
+            resp = self.invoke_request('GET', uri, query_param=query_param)
             data = resp.json_data
             total_items = data.get("value", [])
             total_count = data.get('@odata.count', 0)
@@ -374,3 +404,7 @@ class RestOME(object):
             job_allowed = True
             available_jobs = job_lst
         return job_allowed, available_jobs
+
+    def _get_omam_ca_env(self):
+        """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
+        return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")

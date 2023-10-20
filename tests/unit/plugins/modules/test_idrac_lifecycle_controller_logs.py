@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.2.0
+# Copyright (C) 2020-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -14,8 +14,8 @@ __metaclass__ = type
 import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_lifecycle_controller_logs
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from mock import MagicMock
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
@@ -67,23 +67,16 @@ class TestExportLcLogs(FakeAnsibleModule):
         result = self._run_module(idrac_default_args)
         assert result["msg"] == "Successfully exported the lifecycle controller logs."
 
-    def test_run_export_lc_logs_success_case01(self, idrac_connection_export_lc_logs_mock, idrac_default_args,
-                                               idrac_file_manager_export_lc_logs_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "job_wait": True})
-        idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "Success"}
-        f_module = self.get_module_mock(params=idrac_default_args)
-        msg = self.module.run_export_lc_logs(idrac_connection_export_lc_logs_mock, f_module)
-        assert msg == {'Status': 'Success'}
+        idrac_default_args.update({"job_wait": False})
+        mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs', return_value=message)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "The export lifecycle controller log job is submitted successfully."
 
-    def test_run_export_lc_logs_status_fail_case01(self, idrac_connection_export_lc_logs_mock, idrac_default_args,
-                                                   idrac_file_manager_export_lc_logs_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "job_wait": True})
-        idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {"Status": "failed"}
-        f_module = self.get_module_mock(params=idrac_default_args)
-        msg = self.module.run_export_lc_logs(idrac_connection_export_lc_logs_mock, f_module)
-        assert msg == {'Status': 'failed'}
+        message = {"Status": "Failed", "JobStatus": "Failed"}
+        mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs', return_value=message)
+        result = self._run_module_with_fail_json(idrac_default_args)
+        assert result["msg"] == "Unable to export the lifecycle controller logs."
+        assert result["failed"] is True
 
     @pytest.mark.parametrize("exc_type", [RuntimeError, SSLValidationError, ConnectionError, KeyError,
                                           ImportError, ValueError, TypeError, HTTPError, URLError])
@@ -100,9 +93,59 @@ class TestExportLcLogs(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'idrac_lifecycle_controller_logs.run_export_lc_logs',
                          side_effect=exc_type('http://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-        if not exc_type == URLError:
+        if exc_type != URLError:
             result = self._run_module_with_fail_json(idrac_default_args)
             assert result['failed'] is True
         else:
             result = self._run_module(idrac_default_args)
         assert 'msg' in result
+
+    @pytest.mark.parametrize("args_update", [{"share_user": "share@user"}, {"share_user": "shareuser"}, {"share_user": "share\\user"}])
+    def test_get_user_credentials(self, args_update, idrac_connection_export_lc_logs_mock, idrac_default_args, idrac_file_manager_export_lc_logs_mock, mocker):
+        idrac_default_args.update({"share_name": "sharename",
+                                   "share_password": "sharepassword", "job_wait": True})
+        obj = MagicMock()
+        obj.IsValid = True
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.file_share_manager.create_share_obj", return_value=(obj))
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idrac_default_args.update(args_update)
+        share = self.module.get_user_credentials(f_module)
+        assert share.IsValid is True
+
+    def test_run_export_lc_logs(self, idrac_connection_export_lc_logs_mock, idrac_default_args, idrac_file_manager_export_lc_logs_mock, mocker):
+        idrac_default_args.update({"idrac_port": 443, "share_name": "sharename", "share_user": "share@user",
+                                   "share_password": "sharepassword", "job_wait": True})
+        obj = MagicMock()
+        obj._name_ = "AF_INET6"
+        my_share = MagicMock()
+        my_share.new_file.return_value = "idrac_ip_file"
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.file_share_manager.create_share_obj", return_value=(my_share))
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.get_user_credentials", return_value=(my_share))
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.socket.getaddrinfo", return_value=([[obj]]))
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.copy.deepcopy", return_value=("idrac_ip"))
+        # mocker.patch(
+        #     MODULE_PATH + "idrac_lifecycle_controller_logs.myshare.new_file", return_value=("idrac_ip_file"))
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.copy.deepcopy", return_value=("idrac_ip"))
+        idrac_connection_export_lc_logs_mock.log_mgr.lclog_export.return_value = {
+            "Status": "Success"}
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        msg = self.module.run_export_lc_logs(
+            idrac_connection_export_lc_logs_mock, f_module)
+        assert msg['Status'] == "Success"
+
+        idrac_default_args.update({"idrac_port": 443, "share_name": "sharename", "share_user": "shareuser",
+                                   "share_password": "sharepassword", "job_wait": True})
+        obj._name_ = "AF_INET4"
+        mocker.patch(
+            MODULE_PATH + "idrac_lifecycle_controller_logs.socket.getaddrinfo", return_value=([[obj]]))
+        msg = self.module.run_export_lc_logs(
+            idrac_connection_export_lc_logs_mock, f_module)
+        assert msg['Status'] == "Success"

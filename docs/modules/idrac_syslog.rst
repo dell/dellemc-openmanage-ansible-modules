@@ -20,8 +20,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk
-- python >= 2.7.5
+- omsdk >= 1.2.488
+- python >= 3.9.6
 
 
 
@@ -48,6 +48,22 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
   share_name (True, str, None)
     Network share or a local path.
 
@@ -72,7 +88,8 @@ Notes
 
 .. note::
    - This module requires 'Administrator' privilege for *idrac_user*.
-   - Run this module from a system that has direct access to Dell EMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
+   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
    - This module supports ``check_mode``.
 
 
@@ -90,6 +107,7 @@ Examples
            idrac_ip:  "192.168.0.1"
            idrac_user:  "user_name"
            idrac_password:  "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name:  "192.168.0.2:/share"
            share_password:  "share_user_pwd"
            share_user:  "share_user_name"
@@ -101,6 +119,7 @@ Examples
            idrac_ip:  "192.168.0.1"
            idrac_user:  "user_name"
            idrac_password:  "user_password"
+           ca_path: "/path/to/ca_cert.pem"
            share_name:  "192.168.0.2:/share"
            share_password:  "share_user_pwd"
            share_user:  "share_user_name"

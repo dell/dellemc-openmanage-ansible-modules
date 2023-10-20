@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.2.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -96,9 +96,9 @@ options:
   check_certificate:
     type: bool
     description:
-      - The certificate warnings are ignored when I(repository_type) is HTTPS. If C(True). If not, certificate warnings
+      - The certificate warnings are ignored when I(repository_type) is HTTPS. If C(true). If not, certificate warnings
        are not ignored.
-    default: False
+    default: false
   job_wait:
     description:
       - Provides the option to wait for job completion.
@@ -109,18 +109,19 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 600
     version_added: 3.4.0
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Sajna Shetty(@Sajna-Shetty)"
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
     - If I(repository_password) is provided, then the module always reports the changed status.
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise or OpenManage Enterprise Modular.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
+    - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
 '''
 
@@ -131,19 +132,21 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "HTTPS"
     source: "downloads.dell.com"
     source_path: "catalog"
     file_name: "catalog.gz"
-    check_certificate: True
+    check_certificate: true
 
 - name: Create a catalog from HTTP repository
   dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "HTTP"
@@ -156,6 +159,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "CIFS"
@@ -171,6 +175,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "NFS"
@@ -183,16 +188,18 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "catalog_description"
     repository_type: "DELL_ONLINE"
-    check_certificate: True
+    check_certificate: true
 
 - name: Modify a catalog using a repository from CIFS share
   dellemc.openmanage.ome_firmware_catalog:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_name: "catalog_name"
     catalog_description: "new catalog_description"
     repository_type: "CIFS"
@@ -208,6 +215,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     catalog_id: 10
     new_catalog_name: "new_catalog_name"
     repository_type: "DELL_ONLINE"
@@ -218,6 +226,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     catalog_name: ["catalog_name1", "catalog_name2"]
 
@@ -226,6 +235,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     state: absent
     catalog_id: [11, 34]
 '''
@@ -246,7 +256,7 @@ catalog_status:
         "BaseLocation": null,
         "BundlesCount": 0,
         "Filename": "catalog.gz",
-        "Id": 0,
+        "Id": 12,
         "LastUpdated": null,
         "ManifestIdentifier": null,
         "ManifestVersion": null,
@@ -342,9 +352,11 @@ SETTLING_TIME = 3
 
 import json
 import time
+import os
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import remove_key
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -399,7 +411,7 @@ def exit_catalog(module, rest_obj, catalog_resp, operation, msg):
         msg = CATALOG_UPDATED.format(operation=operation)
     time.sleep(SETTLING_TIME)
     catalog = get_updated_catalog_info(module, rest_obj, catalog_resp)
-    module.exit_json(msg=msg, catalog_status=catalog, changed=True)
+    module.exit_json(msg=msg, catalog_status=remove_key(catalog), changed=True)
 
 
 def _get_catalog_payload(params, name):
@@ -512,11 +524,21 @@ def modify_catalog(module, rest_obj, catalog_list, all_catalog):
     new_catalog_current_setting = catalog_payload.copy()
     repo_id = new_catalog_current_setting["Repository"]["Id"]
     del new_catalog_current_setting["Repository"]["Id"]
+    fname = modify_payload.get('Filename')
+    # Special case handling for .gz catalog files
+    if fname and fname.lower().endswith('.gz'):
+        modify_payload['Filename'] = new_catalog_current_setting.get('Filename')
+        src_path = modify_payload.get('SourcePath')
+        if src_path is None:
+            src_path = new_catalog_current_setting.get('SourcePath', "")
+            if src_path.lower().endswith('.gz'):
+                src_path = os.path.dirname(src_path)
+        modify_payload['SourcePath'] = os.path.join(src_path, fname)
     diff = compare_payloads(modify_payload, new_catalog_current_setting)
-    if module.check_mode and diff:
-        module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True)
     if not diff:
         module.exit_json(msg=CHECK_MODE_CHANGE_NOT_FOUND_MSG, changed=False)
+    if module.check_mode:
+        module.exit_json(msg=CHECK_MODE_CHANGE_FOUND_MSG, changed=True)
     new_catalog_current_setting["Repository"].update(modify_payload["Repository"])
     catalog_payload.update(modify_payload)
     catalog_payload["Repository"] = new_catalog_current_setting["Repository"]
@@ -581,29 +603,27 @@ def perform_present_action(module, rest_obj, requested_catalog_list, all_catalog
 
 
 def main():
+    specs = {
+        "state": {"default": "present", "choices": ['present', 'absent']},
+        "catalog_name": {"type": 'list', "elements": 'str'},
+        "new_catalog_name": {"type": 'str'},
+        "catalog_id": {"type": 'list', "elements": 'int'},
+        "catalog_description": {"required": False, "type": 'str'},
+        "source": {"required": False, "type": 'str'},
+        "source_path": {"required": False, "type": 'str'},
+        "file_name": {"required": False, "type": 'str'},
+        "repository_type": {"required": False,
+                            "choices": ["NFS", "CIFS", "HTTP", "HTTPS", "DELL_ONLINE"]},
+        "repository_username": {"required": False, "type": 'str'},
+        "repository_password": {"required": False, "type": 'str', "no_log": True},
+        "repository_domain": {"required": False, "type": 'str'},
+        "check_certificate": {"required": False, "type": 'bool', "default": False},
+        "job_wait": {"type": 'bool', "default": True},
+        "job_wait_timeout": {"type": 'int', "default": 600}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "state": {"default": "present", "choices": ['present', 'absent']},
-            "catalog_name": {"type": 'list', "elements": 'str'},
-            "new_catalog_name": {"type": 'str'},
-            "catalog_id": {"type": 'list', "elements": 'int'},
-            "catalog_description": {"required": False, "type": 'str'},
-            "source": {"required": False, "type": 'str'},
-            "source_path": {"required": False, "type": 'str'},
-            "file_name": {"required": False, "type": 'str'},
-            "repository_type": {"required": False,
-                                "choices": ["NFS", "CIFS", "HTTP", "HTTPS", "DELL_ONLINE"]},
-            "repository_username": {"required": False, "type": 'str'},
-            "repository_password": {"required": False, "type": 'str', "no_log": True},
-            "repository_domain": {"required": False, "type": 'str'},
-            "check_certificate": {"required": False, "type": 'bool', "default": False},
-            "job_wait": {"type": 'bool', "default": True},
-            "job_wait_timeout": {"type": 'int', "default": 600}
-        },
+        argument_spec=specs,
         required_if=[
             ['state', 'present',
              ['repository_type'], False],
@@ -629,7 +649,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.1.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+
 # see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt
@@ -30,7 +30,7 @@ options:
           - The HTTPS URI of the destination to send events.
           - HTTPS is required.
         type: str
-        required: True
+        required: true
     event_type:
         description:
           - Specifies the event type to be subscribed.
@@ -55,7 +55,7 @@ options:
         default: present
         choices: ["present", "absent"]
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Trevor Squillario (@TrevorSquillario)"
     - "Sachin Apagundi (@sachin-apa)"
@@ -65,7 +65,7 @@ notes:
     - I(event_type) needs to be C(Alert) and I(event_format_type) needs to be C(Event) for event subscription.
     - Modifying a subscription is not supported.
     - Context is always set to RedfishEvent.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = """
@@ -75,6 +75,7 @@ EXAMPLES = """
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     destination: "https://192.168.1.100:8188"
     event_type: MetricReport
     event_format_type: MetricReport
@@ -85,6 +86,7 @@ EXAMPLES = """
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     destination: "https://server01.example.com:8188"
     event_type: Alert
     event_format_type: Event
@@ -95,6 +97,7 @@ EXAMPLES = """
     baseuri: "192.168.0.1"
     username: "user_name"
     password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
     destination: "https://server01.example.com:8188"
     state: absent
 """
@@ -193,7 +196,8 @@ error_info:
 
 import json
 import os
-from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish
+from ssl import SSLError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import Redfish, redfish_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
@@ -205,6 +209,7 @@ SUBSCRIPTION_UNABLE_DEL = "Unable to delete the subscription."
 SUBSCRIPTION_UNABLE_ADD = "Unable to add a subscription."
 SUBSCRIPTION_ADDED = "Successfully added the subscription."
 DESTINATION_MISMATCH = "No changes found to be applied."
+CHANGES_FOUND = "Changes found to be applied."
 
 
 def get_subscription_payload():
@@ -254,6 +259,8 @@ def create_subscription(obj, module):
     payload["Destination"] = module.params["destination"]
     payload["EventFormatType"] = module.params["event_format_type"]
     payload["EventTypes"] = [module.params["event_type"]]
+    if module.check_mode:
+        module.exit_json(changed=True, msg=CHANGES_FOUND)
     resp = obj.invoke_request("POST", "{0}{1}".format(obj.root_uri, "EventService/Subscriptions"), data=payload)
     return resp
 
@@ -277,18 +284,19 @@ def _get_formatted_payload(obj, existing_payload):
 
 
 def main():
+    specs = {
+        "destination": {"required": True, "type": "str"},
+        "event_type": {"type": "str", "default": "Alert", "choices": ['Alert', 'MetricReport']},
+        "event_format_type": {"type": "str", "default": "Event",
+                              "choices": ['Event', 'MetricReport']},
+        "state": {"type": "str", "default": "present", "choices": ['present', 'absent']},
+    }
+    specs.update(redfish_auth_params)
+
     module = AnsibleModule(
-        argument_spec={
-            "baseuri": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "destination": {"required": True, "type": "str"},
-            "event_type": {"type": "str", "default": "Alert", "choices": ['Alert', 'MetricReport']},
-            "event_format_type": {"type": "str", "default": "Event",
-                                  "choices": ['Event', 'MetricReport']},
-            "state": {"type": "str", "default": "present", "choices": ['present', 'absent']},
-        },
-        supports_check_mode=False)
+        argument_spec=specs,
+        supports_check_mode=True)
+
     try:
         _validate_inputs(module)
         with Redfish(module.params, req_session=True) as obj:
@@ -297,6 +305,8 @@ def main():
                 if module.params["state"] == "present":
                     module.exit_json(msg=SUBSCRIPTION_EXISTS, changed=False)
                 else:
+                    if module.check_mode:
+                        module.exit_json(changed=True, msg=CHANGES_FOUND)
                     delete_resp = delete_subscription(obj, subscription["Id"])
                     if delete_resp.success:
                         module.exit_json(msg=SUBSCRIPTION_DELETED, changed=True)
@@ -317,7 +327,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (RuntimeError, URLError, SSLValidationError, ConnectionError, KeyError,
-            ImportError, ValueError, TypeError, IOError, AssertionError) as e:
+            ImportError, ValueError, TypeError, IOError, AssertionError, OSError, SSLError) as e:
         module.fail_json(msg=str(e))
 
 

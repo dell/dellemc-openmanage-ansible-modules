@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -46,7 +46,7 @@ Parameters
   template_id (optional, int, None)
     ID of the existing template.
 
-    This option is applicable when *command* is ``modify``, ``deploy``, ``delete`` and ``export``.
+    This option is applicable when *command* is ``modify``, ``deploy``, ``delete``, ``clone`` and ``export``.
 
     This option is mutually exclusive with *template_name*.
 
@@ -54,7 +54,7 @@ Parameters
   template_name (optional, str, None)
     Name of the existing template.
 
-    This option is applicable when *command* is ``modify``, ``deploy``, ``delete`` and ``export``.
+    This option is applicable when *command* is ``modify``, ``deploy``, ``delete``, ``clone`` and ``export``.
 
     This option is mutually exclusive with *template_id*.
 
@@ -86,7 +86,7 @@ Parameters
   attributes (optional, dict, None)
     Payload data for the template operations. All the variables in this option are added as payload for ``create``, ``modify``, ``deploy``, ``import``, and ``clone`` operations. It takes the following attributes.
 
-    Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is applicable when *command* is ``deploy`` and ``modify``.
+    Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is applicable when *command* is ``deploy`` and ``modify``. Use the *Id* If the attribute Id is available. If not, use the comma separated I (DisplayName). For more details about using the *DisplayName*, see the example provided.
 
     Name: Name of the template. This is mandatory when *command* is ``create``, ``import``, ``clone``, and optional when *command* is ``modify``.
 
@@ -109,6 +109,18 @@ Parameters
     Refer OpenManage Enterprise API Reference Guide for more details.
 
 
+  job_wait (optional, bool, True)
+    Provides the option to wait for job completion.
+
+    This option is applicable when *command* is ``create``, or ``deploy``.
+
+
+  job_wait_timeout (optional, int, 1200)
+    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+
+    This option is applicable when *job_wait* is ``true``.
+
+
   hostname (True, str, None)
     OpenManage Enterprise or OpenManage Enterprise Modular IP address or hostname.
 
@@ -125,6 +137,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -132,8 +160,8 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-   - This module does not support ``check_mode``.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+   - This module supports ``check_mode``.
 
 
 
@@ -150,6 +178,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id: 25123
         attributes:
           Name: "New Template"
@@ -160,6 +189,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "modify"
         template_id: 12
         attributes:
@@ -173,11 +203,34 @@ Examples
               Value: "Test Attribute"
               IsIgnored: false
 
+    - name: Modify template name, description, and attribute using detailed view
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "modify"
+        template_id: 12
+        attributes:
+          Name: "New Custom Template"
+          Description: "Custom Template Description"
+          Attributes:
+            # Enter the comma separated string as appearing in the Detailed view on GUI
+            # NIC -> NIC.Integrated.1-1-1 -> NIC Configuration -> Wake On LAN1
+            - DisplayName: 'NIC, NIC.Integrated.1-1-1, NIC Configuration, Wake On LAN'
+              Value: Enabled
+              IsIgnored: false
+            # System -> LCD Configuration -> LCD 1 User Defined String for LCD
+            - DisplayName: 'System, LCD Configuration, LCD 1 User Defined String for LCD'
+              Value: LCD str by OMAM
+              IsIgnored: false
+
     - name: Deploy template on multiple devices
       dellemc.openmanage.ome_template:
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -192,6 +245,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_group_names:
@@ -203,6 +257,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -234,6 +289,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -267,6 +323,7 @@ Examples
         hostname:  "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -310,6 +367,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "delete"
         template_id: 12
 
@@ -318,6 +376,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "export"
         template_id: 12
 
@@ -327,6 +386,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "export"
         template_name: "my_template"
       register: result
@@ -341,6 +401,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "clone"
         template_id: 12
         attributes:
@@ -351,6 +412,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "import"
         attributes:
           Name: "Imported Template Name"
@@ -370,17 +432,19 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "import"
         attributes:
           Name: "Imported Template Name"
           Type: 2
-          Content: "{{ lookup('ansible.builtin.file.', '/path/to/xmlfile') }}"
+          Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"
 
     - name: "Deploy template and Operating System (OS) on multiple devices."
       dellemc.openmanage.ome_template:
         hostname: "192.168.0.1"
         username: "username"
-        password: "{{password}}"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         command: "deploy"
         template_id: 12
         device_id:
@@ -408,6 +472,47 @@ Examples
             RunLater: true
             RunNow: false
 
+    - name: Create a compliance template from reference device
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "create"
+        device_service_tag:
+          - "SVTG123"
+        template_view_type: "Compliance"
+        attributes:
+          Name: "Configuration Compliance"
+          Description: "Configuration Compliance Template"
+          Fqdds: "BIOS"
+
+    - name: Import a compliance template from XML file
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        template_view_type: "Compliance"
+        attributes:
+          Name: "Configuration Compliance"
+          Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
+          Type: 2
+
+    - name: Create a template from a reference device with Job wait as false
+      dellemc.openmanage.ome_template:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        device_id: 25123
+        attributes:
+          Name: "New Template"
+          Description: "New Template description"
+          Fqdds: iDRAC,BIOS,
+        job_wait: false
+
 
 
 Return Values
@@ -425,21 +530,25 @@ TemplateId (success, when I(command) is C(export), int, 13)
   ID of the template for ``export``.
 
 
-Content (success, when I(command) is C(export), str, <SystemConfiguration Model="PowerEdge R940" ServiceTag="DG22TR2" TimeStamp="Tue Sep 24 09:20:57.872551 2019">
+Content (success, when I(command) is C(export), str, <SystemConfiguration Model="PowerEdge R940" ServiceTag="DEFG123" TimeStamp="Tue Sep 24 09:20:57.872551 2019">
 <Component FQDD="AHCI.Slot.6-1">
 <Attribute Name="RAIDresetConfig">True</Attribute>
 <Attribute Name="RAIDforeignConfig">Clear</Attribute>
 </Component>
-<Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1">
+<Component FQDD="Disk.Direct.0-0:AHCI.Slot.6-1"> 
 <Attribute Name="RAIDPDState">Ready</Attribute>
-<Attribute Name="RAIDHotSpareStatus">No</Attribute>
+<Attribute Name="RAIDHotSpareStatus">No</Attribute> 
 </Component>
 <Component FQDD="Disk.Direct.1-1:AHCI.Slot.6-1">
 <Attribute Name="RAIDPDState">Ready </Attribute>
 <Attribute Name="RAIDHotSpareStatus">No</Attribute>
 </Component>
-</SystemConfiguration>
-) XML content of the exported template. This content can be written to a xml file.
+</SystemConfiguration>)
+  XML content of the exported template. This content can be written to a xml file.
+
+
+devices_assigned (I(command) is C(deploy), dict, {'10362': 28, '10312': 23})
+  Mapping of devices with the templates already deployed on them.
 
 
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.0.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'MessageId': 'GEN1234', 'RelatedProperties': [], 'Message': 'Unable to process the request because an error occurred.', 'MessageArgs': [], 'Severity': 'Critical', 'Resolution': 'Retry the operation. If the issue persists, contact your system administrator.'}]}})
@@ -460,4 +569,6 @@ Authors
 ~~~~~~~
 
 - Jagadeesh N V (@jagadeeshnv)
+- Husniya Hameed (@husniya_hameed)
+- Kritika Bhateja (@Kritika-Bhateja)
 

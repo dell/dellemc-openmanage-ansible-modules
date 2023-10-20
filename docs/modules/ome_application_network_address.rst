@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -213,6 +213,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -222,7 +238,7 @@ Notes
 .. note::
    - The configuration changes can only be applied to one interface at a time.
    - The system management consoles might be unreachable for some time after the configuration changes are applied.
-   - This module does not support ``check_mode``.
+   - This module supports ``check_mode``.
 
 
 
@@ -239,6 +255,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         enable_nic: true
         ipv4_configuration:
           enable: true
@@ -256,6 +273,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         ipv6_configuration:
           enable: true
           enable_auto_configuration: true
@@ -271,6 +289,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         management_vlan:
           enable_vlan: true
           vlan_id: 3344
@@ -283,6 +302,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         ipv4_configuration:
           enable: true
           use_dhcp_for_dns_server_names: false
@@ -299,6 +319,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         enable_nic: false
         interface_name: eth1
 
@@ -307,6 +328,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         enable_nic: true
         interface_name: eth1
         ipv4_configuration:

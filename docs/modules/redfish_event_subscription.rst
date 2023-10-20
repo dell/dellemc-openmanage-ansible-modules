@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -67,6 +67,22 @@ Parameters
     Password of the target out-of-band controller.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -78,7 +94,7 @@ Notes
    - *event_type* needs to be ``Alert`` and *event_format_type* needs to be ``Event`` for event subscription.
    - Modifying a subscription is not supported.
    - Context is always set to RedfishEvent.
-   - This module does not support ``check_mode``.
+   - This module supports ``check_mode``.
 
 
 
@@ -95,6 +111,7 @@ Examples
         baseuri: "192.168.0.1"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         destination: "https://192.168.1.100:8188"
         event_type: MetricReport
         event_format_type: MetricReport
@@ -105,6 +122,7 @@ Examples
         baseuri: "192.168.0.1"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         destination: "https://server01.example.com:8188"
         event_type: Alert
         event_format_type: Event
@@ -115,6 +133,7 @@ Examples
         baseuri: "192.168.0.1"
         username: "user_name"
         password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
         destination: "https://server01.example.com:8188"
         state: absent
 

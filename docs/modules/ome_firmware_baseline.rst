@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -60,13 +60,13 @@ Parameters
   downgrade_enabled (optional, bool, None)
     Indicates whether firmware downgrade is allowed for the devices in the baseline.
 
-    This value will be set to ``True`` by default, if not provided during baseline creation.
+    This value will be set to ``true`` by default, if not provided during baseline creation.
 
 
   is_64_bit (optional, bool, None)
     Indicates if the repository contains 64-bit DUPs.
 
-    This value will be set to ``True`` by default, if not provided during baseline creation.
+    This value will be set to ``true`` by default, if not provided during baseline creation.
 
 
   device_ids (optional, list, None)
@@ -96,7 +96,11 @@ Parameters
   job_wait_timeout (optional, int, 600)
     The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``True``.
+    This option is applicable when *job_wait* is ``true``.
+
+
+  filter_no_reboot_required (optional, bool, None)
+    Select only components with no reboot required allows to create a firmware/driver baseline that consists of only the components of the target devices that don't require a reboot of the target devices.
 
 
   hostname (True, str, None)
@@ -115,6 +119,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -122,7 +142,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise or OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise or OpenManage Enterprise Modular.
    - *device_group_names* option is not applicable for OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
@@ -141,9 +161,24 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: "baseline_name"
         baseline_description: "baseline_description"
         catalog_name: "catalog_name"
+        device_ids:
+          - 1010
+          - 2020
+
+    - name: Create baseline for device IDs with no reboot required
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "baseline_name"
+        baseline_description: "baseline_description"
+        catalog_name: "catalog_name"
+        filter_no_reboot_required: true
         device_ids:
           - 1010
           - 2020
@@ -153,9 +188,24 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: "baseline_name"
         baseline_description: "baseline_description"
         catalog_name: "catalog_name"
+        device_service_tags:
+          - "SVCTAG1"
+          - "SVCTAG2"
+
+    - name: Create baseline for servicetags with no reboot required
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "baseline_name"
+        baseline_description: "baseline_description"
+        catalog_name: "catalog_name"
+        filter_no_reboot_required: true
         device_service_tags:
           - "SVCTAG1"
           - "SVCTAG2"
@@ -165,19 +215,21 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: "baseline_name"
         baseline_description: "baseline_description"
         catalog_name: "catalog_name"
         device_group_names:
           - "Group1"
           - "Group2"
-        job_wait: no
+        job_wait: false
 
     - name: Modify an existing baseline
       dellemc.openmanage.ome_firmware_baseline:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: "existing_baseline_name"
         new_baseline_name: "new_baseline_name"
         baseline_description: "new baseline_description"
@@ -186,14 +238,25 @@ Examples
           - "Group3"
           - "Group4"
           - "Group5"
-        downgrade_enabled: no
-        is_64_bit: yes
+        downgrade_enabled: false
+        is_64_bit: true
+
+    - name: Modify no reboot filter in existing baseline
+      dellemc.openmanage.ome_firmware_baseline:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: "existing_baseline_name"
+        new_baseline_name: "new_baseline_name"
+        filter_no_reboot_required: true
 
     - name: Delete a baseline
       dellemc.openmanage.ome_firmware_baseline:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         baseline_name: "baseline_name"
 
@@ -206,7 +269,7 @@ msg (always, str, Successfully created the firmware baseline.)
   Overall status of the firmware baseline operation.
 
 
-baseline_status (success, dict, {'CatalogId': 123, 'Description': 'BASELINE DESCRIPTION', 'DeviceComplianceReports': [], 'DowngradeEnabled': True, 'Id': 23, 'Is64Bit': True, 'Name': 'my_baseline', 'RepositoryId': 123, 'RepositoryName': 'catalog123', 'RepositoryType': 'HTTP', 'Targets': [{'Id': 10083, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}, {'Id': 10076, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}], 'TaskId': 11235, 'TaskStatusId': 2060})
+baseline_status (success, dict, {'CatalogId': 123, 'Description': 'BASELINE DESCRIPTION', 'DeviceComplianceReports': [], 'DowngradeEnabled': True, 'FilterNoRebootRequired': True, 'Id': 23, 'Is64Bit': True, 'Name': 'my_baseline', 'RepositoryId': 123, 'RepositoryName': 'catalog123', 'RepositoryType': 'HTTP', 'Targets': [{'Id': 10083, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}, {'Id': 10076, 'Type': {'Id': 1000, 'Name': 'DEVICE'}}], 'TaskId': 11235, 'TaskStatusId': 2060})
   Details of the baseline status.
 
 
@@ -236,4 +299,5 @@ Authors
 ~~~~~~~
 
 - Jagadeesh N V(@jagadeeshnv)
+- Kritika Bhateja (@Kritika-Bhateja-03)
 

@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.8.6
 
 
 
@@ -64,7 +64,7 @@ Parameters
     enable_dhcp (optional, bool, None)
       Enable or disable the automatic request to obtain an IPv4 address from the IPv4 Dynamic Host Configuration Protocol (DHCP) server.
 
-      ``NOTE`` If this option is ``True``, the values provided for *static_ip_address*, *static_subnet_mask*, and *static_gateway* are not applied for these fields. However, the module may report changes.
+      ``NOTE`` If this option is ``true``, the values provided for *static_ip_address*, *static_subnet_mask*, and *static_gateway* are not applied for these fields. However, the module may report changes.
 
 
     static_ip_address (optional, str, None)
@@ -90,7 +90,7 @@ Parameters
 
       This option is applicable when *enable_dhcp* is true.
 
-      ``NOTE`` If this option is ``True``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
+      ``NOTE`` If this option is ``true``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
 
 
     static_preferred_dns_server (optional, str, None)
@@ -121,7 +121,7 @@ Parameters
 
       If *enable_auto_configuration* is ``true``, OpenManage Enterprise Modular retrieves IP configuration (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network.
 
-      ``NOTE`` If this option is ``True``, the values provided for *static_ip_address*, *static_prefix_length*, and *static_gateway* are not applied for these fields. However, the module may report changes.
+      ``NOTE`` If this option is ``true``, the values provided for *static_ip_address*, *static_prefix_length*, and *static_gateway* are not applied for these fields. However, the module may report changes.
 
 
     static_ip_address (optional, str, None)
@@ -147,7 +147,7 @@ Parameters
 
       This option is applicable when *enable_auto_configuration* is true
 
-      ``NOTE`` If this option is ``True``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
+      ``NOTE`` If this option is ``true``, the values provided for *static_preferred_dns_server* and *static_alternate_dns_server* are not applied for these fields. However, the module may report changes.
 
 
     static_preferred_dns_server (optional, str, None)
@@ -268,6 +268,22 @@ Parameters
     OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -275,7 +291,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
    - This module supports ``check_mode``.
 
 
@@ -293,6 +309,7 @@ Examples
         hostname: 192.168.0.1
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: CHAS123
         ipv4_configuration:
           enable_ipv4: true
@@ -317,7 +334,7 @@ Examples
           use_dhcp_for_dns_domain_name: false
           dns_name: "MX-SVCTAG"
           dns_domain_name: "dnslocaldomain"
-          auto_negotiation: no
+          auto_negotiation: false
           network_speed: 100_MB
 
     - name: Network settings for server
@@ -325,6 +342,7 @@ Examples
         hostname: 192.168.0.1
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: SRVR123
         ipv4_configuration:
           enable_ipv4: true
@@ -350,6 +368,7 @@ Examples
         hostname: 192.168.0.1
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag: IOM1234
         ipv4_configuration:
           enable_ipv4: true
@@ -372,6 +391,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id : 12345
         management_vlan:
           enable_vlan: true

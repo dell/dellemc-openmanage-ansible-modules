@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.17
+- python >= 3.9.6
 
 
 
@@ -61,7 +61,7 @@ Parameters
     This option is mutually exclusive with *dup_file* and *device_group_names*.
 
 
-  components (optional, list, None)
+  components (optional, list, [])
     List of components to be updated.
 
     If not provided, all components applicable are considered.
@@ -89,7 +89,7 @@ Parameters
       This option is mutually exclusive with *id*.
 
 
-    components (optional, list, None)
+    components (optional, list, [])
       The target components to be updated. If not specified, all applicable device components are considered.
 
 
@@ -100,6 +100,18 @@ Parameters
     if ``StageForNextReboot`` is chosen, the firmware will be staged and updated during the next reboot of the target device.
 
     if ``RebootNow`` will apply the firmware updates immediately.
+
+
+  reboot_type (optional, str, GracefulRebootForce)
+    This option provides the choices to reboot the server immediately after the firmware update.
+
+    This is applicable when *schedule* is ``RebootNow``.
+
+    ``GracefulRebootForce`` performs a graceful reboot with forced shutdown.
+
+    ``GracefulReboot`` performs a graceful reboot without forced shutdown.
+
+    ``PowerCycle`` performs a power cycle for a hard reset on the device.
 
 
   hostname (True, str, None)
@@ -118,6 +130,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -125,8 +153,8 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-   - This module does not support ``check_mode``.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+   - This module supports ``check_mode``.
 
 
 
@@ -143,6 +171,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_id:
           - 11111
           - 22222
@@ -153,6 +182,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_service_tag:
           - KLBR111
           - KLBR222
@@ -163,6 +193,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         device_group_names:
           - servers
         dup_file: "/path/BIOS_87V69_WN64_2.4.7.EXE"
@@ -172,6 +203,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
 
     - name: Stage firmware for the next reboot using baseline name
@@ -179,14 +211,16 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         schedule: StageForNextReboot
 
     - name: "Update firmware using baseline name and components."
-      dellemc.openmanage.ome_firmwar:
+      dellemc.openmanage.ome_firmware:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         components:
           - BIOS
@@ -196,6 +230,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         device_id:
           - 11111
@@ -208,6 +243,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         device_service_tag:
           - KLBR111
@@ -220,6 +256,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         devices:
           - id: 12345
@@ -235,6 +272,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         devices:
           - service_tag: ABCDE12
@@ -250,6 +288,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         baseline_name: baseline_devices
         devices:
           - service_tag: ABCDE12
@@ -259,6 +298,17 @@ Examples
           - id: 12345
             components:
               - iDRAC with Lifecycle Controller
+
+    - name: "Update firmware using baseline name and components and perform Powercycle."
+      dellemc.openmanage.ome_firmware:
+        hostname: "192.168.0.1"
+        username: "username"
+        password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        baseline_name: baseline_devices
+        components:
+          - BIOS
+        reboot_type: PowerCycle
 
 
 
@@ -292,4 +342,5 @@ Authors
 
 - Felix Stephen (@felixs88)
 - Jagadeesh N V (@jagadeeshnv)
+- Abhishek Sinha (@ABHISHEK-SINHA10)
 

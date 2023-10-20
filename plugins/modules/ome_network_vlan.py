@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -63,11 +63,11 @@ options:
               'Storage - iSCSI', 'Storage - FCoE', 'Storage - Data Replication',
               'VM Migration', 'VMWare FT Logging']
 requirements:
-    - "python >= 2.7.17"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
     - This module supports C(check_mode).
 '''
 
@@ -78,6 +78,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "vlan1"
     description: "VLAN desc"
@@ -91,6 +92,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "vlan2"
     description: "VLAN desc"
@@ -104,6 +106,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     state: present
     name: "vlan1"
     new_name: "vlan_gold1"
@@ -118,6 +121,7 @@ EXAMPLES = r'''
     hostname: "{{hostname}}"
     username: "{{username}}"
     password: "{{password}}"
+    ca_path: "/path/to/ca_cert.pem"
     state: "absent"
     name: "vlan1"
   tags: delete_vlan
@@ -180,8 +184,8 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 VLAN_CONFIG = "NetworkConfigurationService/Networks"
@@ -250,7 +254,7 @@ def create_vlan(module, rest_obj, vlans):
 def delete_vlan(module, rest_obj, vlan_id):
     if module.check_mode:
         module.exit_json(changed=True, msg=CHECK_MODE_MSG)
-    resp = rest_obj.invoke_request("DELETE", VLAN_ID_CONFIG.format(Id=vlan_id))
+    rest_obj.invoke_request("DELETE", VLAN_ID_CONFIG.format(Id=vlan_id))
     module.exit_json(msg="Successfully deleted the VLAN.", changed=True)
 
 
@@ -301,24 +305,22 @@ def check_existing_vlan(module, rest_obj):
 
 
 def main():
+    specs = {
+        "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
+        "name": {"required": True, "type": "str"},
+        "new_name": {"required": False, "type": "str"},
+        "description": {"required": False, "type": "str"},
+        "vlan_minimum": {"required": False, "type": "int"},
+        "vlan_maximum": {"required": False, "type": "int"},
+        "type": {"required": False, "type": "str",
+                 "choices": ['General Purpose (Bronze)', 'General Purpose (Silver)', 'General Purpose (Gold)',
+                             'General Purpose (Platinum)', 'Cluster Interconnect', 'Hypervisor Management',
+                             'Storage - iSCSI', 'Storage - FCoE', 'Storage - Data Replication', 'VM Migration',
+                             'VMWare FT Logging']}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "state": {"required": False, "choices": ['present', 'absent'], "default": "present"},
-            "name": {"required": True, "type": "str"},
-            "new_name": {"required": False, "type": "str"},
-            "description": {"required": False, "type": "str"},
-            "vlan_minimum": {"required": False, "type": "int"},
-            "vlan_maximum": {"required": False, "type": "int"},
-            "type": {"required": False, "type": "str",
-                     "choices": ['General Purpose (Bronze)', 'General Purpose (Silver)', 'General Purpose (Gold)',
-                                 'General Purpose (Platinum)', 'Cluster Interconnect', 'Hypervisor Management',
-                                 'Storage - iSCSI', 'Storage - FCoE', 'Storage - Data Replication', 'VM Migration',
-                                 'VMWare FT Logging']}
-        },
+        argument_spec=specs,
         required_if=[['state', 'present', ('new_name', 'description', 'vlan_minimum', 'vlan_maximum', 'type',), True]],
         supports_check_mode=True
     )
@@ -339,9 +341,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError) as err:
-        module.fail_json(msg=str(err))
-    except Exception as err:
+    except (IOError, ValueError, TypeError, ConnectionError, SSLValidationError, SSLError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

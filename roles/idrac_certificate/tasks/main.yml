@@ -1,0 +1,18 @@
+---
+# tasks file for idrac_certificate
+
+- name: Generate CSR
+  ansible.builtin.include_tasks: generate_csr.yml
+  when: command == "generate_csr"
+
+- name: Import certificate
+  ansible.builtin.include_tasks: import.yml
+  when: command == "import"
+
+- name: Export certificate
+  ansible.builtin.include_tasks: export.yml
+  when: command == "export"
+
+- name: Reset certificate
+  ansible.builtin.include_tasks: reset.yml
+  when: command == "reset"

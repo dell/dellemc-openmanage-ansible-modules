@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 2.1.3
-# Copyright (C) 2019-2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -21,7 +21,7 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 from ssl import SSLError
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_application_network_time
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 
@@ -270,7 +270,8 @@ class TestOmeTemplate(FakeAnsibleModule):
             "time_zone": "TZ_ID_66",
             "hostname": "192.168.0.1",
             "username": "username",
-            "password": "password"}
+            "password": "password",
+            "ca_path": "/path/ca_bundle"}
         assert payload == {"EnableNTP": True, "TimeZone": "TZ_ID_66", "PrimaryNTPAddress": "10.136.112.220",
                            "SecondaryNTPAddress1": "10.136.112.221",
                            "SecondaryNTPAddress2": "10.136.112.222"

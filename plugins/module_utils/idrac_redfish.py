@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Dell EMC OpenManage Ansible Modules
-# Version 4.0.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.0.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -32,9 +32,22 @@ __metaclass__ = type
 import json
 import re
 import time
+import os
+import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+
+idrac_auth_params = {
+    "idrac_ip": {"required": True, "type": 'str'},
+    "idrac_user": {"required": True, "type": 'str'},
+    "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
+    "idrac_port": {"required": False, "default": 443, "type": 'int'},
+    "validate_certs": {"type": "bool", "default": True},
+    "ca_path": {"type": "path"},
+    "timeout": {"type": "int", "default": 30},
+
+}
 
 SESSION_RESOURCE_COLLECTION = {
     "SESSION": "/redfish/v1/Sessions",
@@ -43,6 +56,7 @@ SESSION_RESOURCE_COLLECTION = {
 MANAGER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 EXPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration"
 IMPORT_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfiguration"
+IMPORT_PREVIEW = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfigurationPreview"
 
 
 class OpenURLResponse(object):
@@ -88,11 +102,25 @@ class iDRACRedfishAPI(object):
         self.password = module_params['idrac_password']
         self.port = module_params['idrac_port']
         self.validate_certs = module_params.get("validate_certs", False)
+        self.ca_path = module_params.get("ca_path")
+        self.timeout = module_params.get("timeout", 30)
         self.use_proxy = module_params.get("use_proxy", True)
         self.req_session = req_session
         self.session_id = None
         self.protocol = 'https'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+
+        try:
+            data = socket.getaddrinfo(self.ipaddress, self.port)
+            if "AF_INET6" == data[0][0]._name_:
+                ip_byte = socket.inet_pton(socket.AF_INET6, self.ipaddress)
+                ip_addr = socket.inet_ntop(socket.AF_INET6, ip_byte)
+                self.ipaddress = "[{0}]".format(ip_addr)
+        except socket.gaierror:
+            msg = "Unable to communicate with iDRAC {0}. This may be due to one of the following: " \
+                  "Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL " \
+                  "handshake.".format(self.ipaddress)
+            raise URLError(msg)
 
     def _get_url(self, uri):
         return "{0}://{1}:{2}{3}".format(self.protocol, self.ipaddress, self.port, uri)
@@ -112,9 +140,14 @@ class iDRACRedfishAPI(object):
         req_header = self._headers
         if headers:
             req_header.update(headers)
+        if api_timeout is None:
+            api_timeout = self.timeout
+        if self.ca_path is None:
+            self.ca_path = self._get_omam_ca_env()
         url_kwargs = {
             "method": method,
             "validate_certs": self.validate_certs,
+            "ca_path": self.ca_path,
             "use_proxy": self.use_proxy,
             "headers": req_header,
             "timeout": api_timeout,
@@ -122,7 +155,7 @@ class iDRACRedfishAPI(object):
         }
         return url_kwargs
 
-    def _args_without_session(self, path, method, api_timeout=30, headers=None):
+    def _args_without_session(self, path, method, api_timeout, headers=None):
         """Creates an argument spec in case of basic authentication"""
         req_header = self._headers
         if headers:
@@ -134,13 +167,13 @@ class iDRACRedfishAPI(object):
             url_kwargs["force_basic_auth"] = True
         return url_kwargs
 
-    def _args_with_session(self, method, api_timeout=30, headers=None):
+    def _args_with_session(self, method, api_timeout, headers=None):
         """Creates an argument spec, in case of authentication with session"""
         url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
         url_kwargs["force_basic_auth"] = False
         return url_kwargs
 
-    def invoke_request(self, uri, method, data=None, query_param=None, headers=None, api_timeout=30, dump=True):
+    def invoke_request(self, uri, method, data=None, query_param=None, headers=None, api_timeout=None, dump=True):
         try:
             if 'X-Auth-Token' in self._headers:
                 url_kwargs = self._args_with_session(method, api_timeout, headers=headers)
@@ -183,7 +216,7 @@ class iDRACRedfishAPI(object):
         This method fetches the connected server generation.
         :return: 14, 4.11.11.11
         """
-        model, firmware_version = None, None
+        firmware_version = None
         response = self.invoke_request(MANAGER_URI, 'GET')
         if response.status_code == 200:
             generation = int(re.search(r"\d+(?=G)", response.json_data["Model"]).group())
@@ -199,10 +232,14 @@ class iDRACRedfishAPI(object):
         """
         response = None
         while job_wait:
-            response = self.invoke_request(task_uri, "GET")
-            if response.json_data.get("TaskState") == "Running":
-                time.sleep(10)
-            else:
+            try:
+                response = self.invoke_request(task_uri, "GET")
+                if response.json_data.get("TaskState") == "Running":
+                    time.sleep(10)
+                else:
+                    break
+            except ValueError:
+                response = response.body
                 break
         return response
 
@@ -213,6 +250,7 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: object
         """
+        time.sleep(5)
         response = self.invoke_request(job_uri, "GET")
         while job_wait:
             response = self.invoke_request(job_uri, "GET")
@@ -225,7 +263,7 @@ class iDRACRedfishAPI(object):
         return response
 
     def export_scp(self, export_format=None, export_use=None, target=None,
-                   job_wait=False, share=None):
+                   job_wait=False, share=None, include_in_export="Default"):
         """
         This method exports system configuration details from the system.
         :param export_format: XML or JSON.
@@ -250,6 +288,21 @@ class iDRACRedfishAPI(object):
             payload["ShareParameters"]["Username"] = share["username"]
         if share.get("password") is not None:
             payload["ShareParameters"]["Password"] = share["password"]
+        if share.get("ignore_certificate_warning") is not None:
+            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
+        if share.get("proxy_support") is not None:
+            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
+        if share.get("proxy_type") is not None:
+            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
+        if share.get("proxy_port") is not None:
+            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
+        if share.get("proxy_server") is not None:
+            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
+        if share.get("proxy_username") is not None:
+            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
+        if share.get("proxy_password") is not None:
+            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
+        payload["IncludeInExport"] = include_in_export
         response = self.invoke_request(EXPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
@@ -257,7 +310,7 @@ class iDRACRedfishAPI(object):
         return response
 
     def import_scp_share(self, shutdown_type=None, host_powerstate=None, job_wait=True,
-                         target=None, share=None):
+                         target=None, import_buffer=None, share=None):
         """
         This method imports system configuration using share.
         :param shutdown_type: graceful
@@ -270,6 +323,8 @@ class iDRACRedfishAPI(object):
         """
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
                    "ShareParameters": {"Target": target}}
+        if import_buffer is not None:
+            payload["ImportBuffer"] = import_buffer
         if share is None:
             share = {}
         if share.get("share_ip") is not None:
@@ -284,7 +339,56 @@ class iDRACRedfishAPI(object):
             payload["ShareParameters"]["Username"] = share["username"]
         if share.get("password") is not None:
             payload["ShareParameters"]["Password"] = share["password"]
+        if share.get("ignore_certificate_warning") is not None:
+            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
+        if share.get("proxy_support") is not None:
+            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
+        if share.get("proxy_type") is not None:
+            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
+        if share.get("proxy_port") is not None:
+            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
+        if share.get("proxy_server") is not None:
+            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
+        if share.get("proxy_username") is not None:
+            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
+        if share.get("proxy_password") is not None:
+            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
         response = self.invoke_request(IMPORT_URI, "POST", data=payload)
+        return response
+
+    def import_preview(self, import_buffer=None, target=None, share=None, job_wait=False):
+        payload = {"ShareParameters": {"Target": target}}
+        if import_buffer is not None:
+            payload["ImportBuffer"] = import_buffer
+        if share is None:
+            share = {}
+        if share.get("share_ip") is not None:
+            payload["ShareParameters"]["IPAddress"] = share["share_ip"]
+        if share.get("share_name") is not None and share.get("share_name"):
+            payload["ShareParameters"]["ShareName"] = share["share_name"]
+        if share.get("share_type") is not None:
+            payload["ShareParameters"]["ShareType"] = share["share_type"]
+        if share.get("file_name") is not None:
+            payload["ShareParameters"]["FileName"] = share["file_name"]
+        if share.get("username") is not None:
+            payload["ShareParameters"]["Username"] = share["username"]
+        if share.get("password") is not None:
+            payload["ShareParameters"]["Password"] = share["password"]
+        if share.get("ignore_certificate_warning") is not None:
+            payload["ShareParameters"]["IgnoreCertificateWarning"] = share["ignore_certificate_warning"]
+        if share.get("proxy_support") is not None:
+            payload["ShareParameters"]["ProxySupport"] = share["proxy_support"]
+        if share.get("proxy_type") is not None:
+            payload["ShareParameters"]["ProxyType"] = share["proxy_type"]
+        if share.get("proxy_port") is not None:
+            payload["ShareParameters"]["ProxyPort"] = share["proxy_port"]
+        if share.get("proxy_server") is not None:
+            payload["ShareParameters"]["ProxyServer"] = share["proxy_server"]
+        if share.get("proxy_username") is not None:
+            payload["ShareParameters"]["ProxyUserName"] = share["proxy_username"]
+        if share.get("proxy_password") is not None:
+            payload["ShareParameters"]["ProxyPassword"] = share["proxy_password"]
+        response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
@@ -305,6 +409,21 @@ class iDRACRedfishAPI(object):
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
         return response
 
+    def import_preview_scp(self, import_buffer=None, target=None, job_wait=False):
+        """
+        This method imports preview system configuration details to the system.
+        :param import_buffer: import buffer payload content xml or json format
+        :param target: IDRAC or NIC or ALL or BIOS or RAID.
+        :param job_wait: True or False decide whether to wait till the job completion.
+        :return: json response
+        """
+        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}}
+        response = self.invoke_request(IMPORT_PREVIEW, "POST", data=payload)
+        if response.status_code == 202 and job_wait:
+            task_uri = response.headers["Location"]
+            response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
+        return response
+
     def get_idrac_local_account_attr(self, idrac_attribues, fqdd=None):
         """
         This method filtered from all the user attributes from the given idrac attributes.
@@ -320,3 +439,7 @@ class iDRACRedfishAPI(object):
                     break
             user_attr = dict([(attr["Name"], attr["Value"]) for attr in attributes if attr["Name"].startswith("Users.")])
         return user_attr
+
+    def _get_omam_ca_env(self):
+        """Check if the value is set in REQUESTS_CA_BUNDLE or CURL_CA_BUNDLE or OMAM_CA_BUNDLE or returns None"""
+        return os.environ.get("REQUESTS_CA_BUNDLE") or os.environ.get("CURL_CA_BUNDLE") or os.environ.get("OMAM_CA_BUNDLE")

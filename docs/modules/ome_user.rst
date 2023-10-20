@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -73,6 +73,22 @@ Parameters
     OpenManage Enterprise or OpenManage Enterprise Modular HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -80,7 +96,7 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module does not support ``check_mode``.
 
 
@@ -98,26 +114,28 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         attributes:
           UserName: "user1"
           Password: "UserPassword"
           RoleId: "10"
-          Enabled: True
+          Enabled: true
 
     - name: Create user with all parameters
       dellemc.openmanage.ome_user:
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         attributes:
           UserName: "user2"
           Description: "user2 description"
           Password: "UserPassword"
           RoleId: "10"
-          Enabled: True
+          Enabled: true
           DirectoryServiceId: 0
           UserTypeId: 1
-          Locked: False
+          Locked: false
           Name: "user2"
 
     - name: Modify existing user
@@ -125,11 +143,12 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "present"
         attributes:
           UserName: "user3"
           RoleId: "10"
-          Enabled: True
+          Enabled: true
           Description: "Modify user Description"
 
     - name: Delete existing user using id
@@ -137,6 +156,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         user_id: 1234
 
@@ -145,6 +165,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "name"
 

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 8.2.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -20,7 +20,7 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_discovery
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_discovery.'
 NO_CHANGES_MSG = "No changes found to be applied."
@@ -152,8 +152,7 @@ class TestOmeDiscovery(FakeAnsibleModule):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
         ome_connection_mock_for_discovery.get_all_items_with_pagination.return_value = params['pag_ret_val']
-        f_module = self.get_module_mock()
-        ips = self.module.get_execution_details(f_module, ome_connection_mock_for_discovery, 1)
+        ips, job_status = self.module.get_execution_details(ome_connection_mock_for_discovery, 1)
         assert ips == params['ips']
 
     @pytest.mark.parametrize("params", [{"json_data": {'JobStatusId': 2060}, 'job_wait_sec': 60, 'job_failed': False,
@@ -166,9 +165,8 @@ class TestOmeDiscovery(FakeAnsibleModule):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
         mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
-        job_failed, msg = self.module.discovery_job_tracking(ome_connection_mock_for_discovery, 1,
-                                                             params['job_wait_sec'])
-        assert job_failed == params['job_failed']
+        msg = self.module.discovery_job_tracking(ome_connection_mock_for_discovery, 1,
+                                                 params['job_wait_sec'])
         assert msg == params['msg']
 
     @pytest.mark.parametrize("params", [{"discovery_json": {'DiscoveryConfigTaskParam': [{'TaskId': 12}]},
@@ -223,8 +221,7 @@ class TestOmeDiscovery(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_connection_profile', return_value=params['get_conn_json'])
         disc_cfg_list = self.module.get_discovery_config(f_module, ome_connection_mock_for_discovery)
         assert disc_cfg_list[0]['DeviceType'] == params['DeviceType']
-        assert disc_cfg_list[0]['DiscoveryConfigTargets'] == params[
-            'DiscoveryConfigTargets']  # assert disc_cfg_list == params['disc_cfg_list']
+        assert disc_cfg_list[0]['DiscoveryConfigTargets'] == params['DiscoveryConfigTargets']
 
     @pytest.mark.parametrize("params", [{"json_data": {"@odata.type": "#DiscoveryConfigService.DiscoveryJob",
                                                        "@odata.id": "/api/DiscoveryConfigService/Jobs(12617)",
@@ -243,20 +240,22 @@ class TestOmeDiscovery(FakeAnsibleModule):
         assert djob == params['djob']
 
     @pytest.mark.parametrize("params", [
-        {"json_data": {"DiscoveryConfigGroupName": 'd1'}, 'job_failed': False, 'job_message': DISCOVER_JOB_COMPLETE,
+        {"json_data": {"DiscoveryConfigGroupName": 'd1'}, 'job_message': DISCOVER_JOB_COMPLETE,
          'mparams': {'job_wait': True, 'schedule': 'RunNow', 'job_wait_timeout': 1000}},
-        {"json_data": {"DiscoveryConfigGroupName": 'd1'}, 'job_failed': True, 'job_message': JOB_TRACK_FAIL,
+        {"json_data": {"DiscoveryConfigGroupName": 'd1'}, 'job_message': JOB_TRACK_FAIL,
          'mparams': {'job_wait': True, 'schedule': 'RunNow', 'job_wait_timeout': 1000}},
-        {"json_data": {"DiscoveryConfigGroupName": 'd1'}, 'job_failed': True, 'job_message': DISCOVERY_SCHEDULED,
+        {"json_data": {"DiscoveryConfigGroupName": 'd1'}, 'job_message': DISCOVERY_SCHEDULED,
          'mparams': {'job_wait': False, 'schedule': 'RunLater', 'job_wait_timeout': 1000}}])
     def test_create_discovery(self, params, mocker, ome_connection_mock_for_discovery, ome_response_mock):
         mocker.patch(MODULE_PATH + 'get_discovery_config', return_value={})
         mocker.patch(MODULE_PATH + 'get_schedule', return_value={})
         mocker.patch(MODULE_PATH + 'get_other_discovery_payload', return_value={})
         mocker.patch(MODULE_PATH + 'get_job_data', return_value=12)
-        mocker.patch(MODULE_PATH + 'get_execution_details', return_value={})
-        mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={})
-        mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value=(params['job_failed'], params['job_message']))
+        mocker.patch(MODULE_PATH + 'get_execution_details', return_value=({"Completed": ["192.168.0.1"], "Failed": []},
+                                                                          {"JobStatusId": 2050}))
+        mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2050})
+        mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value=(params['job_message']))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
         f_module = self.get_module_mock(params=params['mparams'])
@@ -305,11 +304,13 @@ class TestOmeDiscovery(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_other_discovery_payload', return_value={"DiscoveryConfigGroupId": 10})
         mocker.patch(MODULE_PATH + 'update_modify_payload', return_value=None)
         mocker.patch(MODULE_PATH + 'get_job_data', return_value=12)
-        mocker.patch(MODULE_PATH + 'get_execution_details', return_value={})
-        mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={})
+        mocker.patch(MODULE_PATH + 'get_execution_details', return_value=({"Completed": ["192.168.0.1"], "Failed": []},
+                                                                          {"JobStatusId": 2050}))
+        mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2050})
         mocker.patch(MODULE_PATH + 'get_discovery_config', return_value={})
         mocker.patch(MODULE_PATH + 'get_discovery_states', return_value={12: 15})
-        mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value=(params['job_failed'], params['job_message']))
+        mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value=(params['job_message']))
+        mocker.patch(MODULE_PATH + 'time.sleep', return_value=None)
         error_message = params["job_message"]
         with pytest.raises(Exception) as err:
             self.module.modify_discovery(f_module, ome_connection_mock_for_discovery, discov_list)

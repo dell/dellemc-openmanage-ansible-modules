@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.5.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 6.1.0
+# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -17,8 +17,7 @@ import json
 from ssl import SSLError
 from io import StringIO
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_device_group
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants, \
-    AnsibleFailJSonException
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
@@ -27,11 +26,11 @@ netaddr = pytest.importorskip("netaddr")
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_device_group.'
 ADD_STATIC_GROUP_MESSAGE = "Devices can be added only to the static device groups created using OpenManage Enterprise."
+REMOVE_STATIC_GROUP_MESSAGE = "Devices can be removed only from the static device groups created using OpenManage Enterprise."
 INVALID_IP_FORMAT = "The format {0} of the IP address provided is not supported or invalid."
 IP_NOT_EXISTS = "The IP addresses provided do not exist in OpenManage Enterprise."
 try:
     from netaddr import IPAddress, IPNetwork, IPRange
-    from netaddr.core import AddrFormatError
 
     HAS_NETADDR = True
 except ImportError:
@@ -211,6 +210,19 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.validate_group(group_resp, f_module, "name", "group1")
         assert exc.value.args[0] == ADD_STATIC_GROUP_MESSAGE
+
+    @pytest.mark.parametrize("inp", [{"TypeId": 3000, "MembershipTypeId": 24},
+                                     {"TypeId": 1000, "MembershipTypeId": 24},
+                                     {"TypeId": 2000, "MembershipTypeId": 12}])
+    def test_validate_group_case02(self, inp, ome_response_mock):
+        group_resp = {"Id": 25011, "CreatedBy": "user", "TypeId": inp["TypeId"],
+                      "MembershipTypeId": inp["MembershipTypeId"]}
+        f_module = self.get_module_mock(params={"name": "group1",
+                                                "device_ids": [25011],
+                                                "state": "absent"})
+        with pytest.raises(Exception) as exc:
+            self.module.validate_group(group_resp, f_module, "name", "group1")
+        assert exc.value.args[0] == REMOVE_STATIC_GROUP_MESSAGE
 
     @pytest.mark.parametrize("inp,out", [(['192.168.2.0'], [IPAddress('192.168.2.0')]),
                                          (['fe80::ffff:ffff:ffff:ffff'], [IPAddress('fe80::ffff:ffff:ffff:ffff')]),
@@ -518,3 +530,71 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
         each_device_list, key = self.module.get_device_id(ome_connection_mock_for_device_group, f_module)
         assert key == "IPAddresses"
         assert each_device_list == {1111: "192.168.2.10"}
+
+    def test_get_current_member_of_group(self, ome_connection_mock_for_device_group, ome_response_mock):
+        report_list = [{"Id": 3333, "DeviceServiceTag": "device1",
+                        "DeviceManagement": [{"NetworkAddress": "192.168.2.10"},
+                                             ]},
+                       {"Id": 1013, "DeviceServiceTag": "device1",
+                        "DeviceManagement": [{"NetworkAddress": "192.168.5.10"},
+                                             ]}
+                       ]
+        ome_connection_mock_for_device_group.get_all_report_details.return_value = {"report_list": report_list}
+        group_id = 1011
+        device_id_list = self.module.get_current_member_of_group(ome_connection_mock_for_device_group, group_id)
+        assert device_id_list == [3333, 1013]
+
+    def test_ome_device_group_remove_member_from_group(self, ome_connection_mock_for_device_group, ome_response_mock):
+        report_list = [{"Id": 25011, "DeviceServiceTag": "SEFRG2"}]
+        ome_connection_mock_for_device_group.get_all_report_details.return_value = {"report_list": report_list}
+        f_module = self.get_module_mock(params={"name": "Storage Services",
+                                                "device_ids": [25011],
+                                                "state": "absent"})
+        group_id = 1011
+        device_ids = [25011]
+        current_device_list = [25011]
+        ome_response_mock.status_code = 204
+        ome_response_mock.success = True
+        resp = self.module.remove_member_from_group(f_module, ome_connection_mock_for_device_group,
+                                                    group_id, device_ids, current_device_list)
+        assert resp.status_code == 204
+
+        f_module.check_mode = True
+        with pytest.raises(Exception, match="Changes found to be applied.") as exc:
+            self.module.remove_member_from_group(f_module, ome_connection_mock_for_device_group,
+                                                 group_id, device_ids, current_device_list)
+
+        f_module.check_mode = False
+        report_list = [{"Id": 25013, "DeviceServiceTag": "SEFRG4"}, {"Id": 25014, "DeviceServiceTag": "SEFRG5"}]
+        device_ids = [10000, 24000, 25013, 12345, 25014]
+        current_device_list = [25013, 25014]
+        ome_connection_mock_for_device_group.get_all_report_details.return_value = {"report_list": report_list}
+        resp = self.module.remove_member_from_group(f_module, ome_connection_mock_for_device_group,
+                                                    group_id, device_ids, current_device_list)
+        assert resp.status_code == 204
+
+        current_device_list = [25013, 25014]
+        device_ids = [25011]
+        f_module.check_mode = True
+        with pytest.raises(Exception, match="No changes found to be applied.") as exc:
+            self.module.remove_member_from_group(f_module, ome_connection_mock_for_device_group,
+                                                 group_id, device_ids, current_device_list)
+
+        current_device_list = [25013, 25014]
+        f_module.check_mode = False
+        device_ids = []
+        with pytest.raises(Exception, match="No changes found to be applied.") as exc:
+            self.module.remove_member_from_group(f_module, ome_connection_mock_for_device_group,
+                                                 group_id, device_ids, current_device_list)
+
+    def test_ome_device_group_main_absent_case(self, ome_connection_mock_for_device_group, mocker,
+                                               ome_response_mock, ome_default_args):
+        ome_default_args.update({"name": "Storage Services", "device_ids": [25011, 25012], "state": "absent"})
+        ome_response_mock.status_code = 200
+        ome_response_mock.success = True
+        mocker.patch(MODULE_PATH + 'get_group_id', return_value=1)
+        mocker.patch(MODULE_PATH + 'get_device_id', return_value=[25011, 25012])
+        mocker.patch(MODULE_PATH + 'get_current_member_of_group', return_value=[25011, 25012])
+        mocker.patch(MODULE_PATH + 'remove_member_from_group', return_value=(ome_response_mock))
+        result = self._run_module(ome_default_args)
+        assert result['msg'] == "Successfully removed member(s) from the device group."

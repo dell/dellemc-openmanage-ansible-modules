@@ -1,65 +1,71 @@
 ---
 - hosts: ome
-  connection: local
   name: Dell OpenManage Ansible User service.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  gather_facts: false
 
   tasks:
-  - name: create new user.
-    ome_user:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Create new user.
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         attributes:
-            UserName: "user1"
-            Password: "UserPassword"
-            RoleId: "10"
-            Enabled: True
-        
-  - name: create user with all parameters
-    ome_user:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+          UserName: "user1"
+          Password: "UserPassword"
+          RoleId: "10"
+          Enabled: true
+      delegate_to: localhost
+
+    - name: Create user with all parameters
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "present"
         attributes:
-            UserName: "user2"
-            Description: "user2 description"
-            Password: "UserPassword"
-            RoleId: "10"
-            Enabled: True
-            DirectoryServiceId: 0
-            UserTypeId: 1
-            Locked: False
-            Name: "user2"
+          UserName: "user2"
+          Description: "user2 description"
+          Password: "UserPassword"
+          RoleId: "10"
+          Enabled: true
+          DirectoryServiceId: 0
+          UserTypeId: 1
+          Locked: false
+          Name: "user2"
+      delegate_to: localhost
 
-  - name: modify existing user
-    ome_user:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Modify existing user
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "present"
         attributes:
-            UserName: "user3"
-            RoleId: "10"
-            Enabled: True
-            Description: "Modify user Description"
+          UserName: "user3"
+          RoleId: "10"
+          Enabled: true
+          Description: "Modify user Description"
+      delegate_to: localhost
 
-  - name: delete existing user using id.
-    ome_user:
-        hostname:  "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Delete existing user using id.
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         user_id: 61874
-        
-  - name: delete existing user using name.
-    ome_user:
-        hostname:  "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+      delegate_to: localhost
+
+    - name: Delete existing user using name.
+      dellemc.openmanage.ome_user:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "name"
+      delegate_to: localhost

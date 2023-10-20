@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2020-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -24,7 +24,7 @@ description:
 notes:
   - The configuration changes can only be applied to one interface at a time.
   - The system management consoles might be unreachable for some time after the configuration changes are applied.
-  - This module does not support C(check_mode).
+  - This module supports C(check_mode).
 extends_documentation_fragment:
   - dellemc.openmanage.ome_auth_options
 options:
@@ -182,7 +182,7 @@ options:
       - This option is not mandatory.
     type: int
 requirements:
-    - "python >= 2.7.5"
+    - "python >= 3.8.6"
 author:
     - "Jagadeesh N V(@jagadeeshnv)"
 '''
@@ -194,6 +194,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     enable_nic: true
     ipv4_configuration:
       enable: true
@@ -211,6 +212,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     ipv6_configuration:
       enable: true
       enable_auto_configuration: true
@@ -226,6 +228,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     management_vlan:
       enable_vlan: true
       vlan_id: 3344
@@ -238,6 +241,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     ipv4_configuration:
       enable: true
       use_dhcp_for_dns_server_names: false
@@ -254,6 +258,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     enable_nic: false
     interface_name: eth1
 
@@ -262,6 +267,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     enable_nic: true
     interface_name: eth1
     ipv4_configuration:
@@ -417,18 +423,19 @@ error_info:
   }
 '''
 
-
 import json
 import socket
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
-from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 
 IP_CONFIG = "ApplicationService/Network/AddressConfiguration"
 JOB_IP_CONFIG = "ApplicationService/Network/AdapterConfigurations"
 POST_IP_CONFIG = "ApplicationService/Actions/Network.ConfigureNetworkAdapter"
+CHANGES_FOUND = "Changes found to be applied."
+NO_CHANGES_FOUND = "No changes found to be applied."
 
 
 def validate_ip_address(address):
@@ -591,7 +598,7 @@ def get_network_config_data(rest_obj, module):
             return int_adp, "POST", POST_IP_CONFIG
         else:
             return pri_adp, "POST", POST_IP_CONFIG
-    except HTTPError as err:
+    except HTTPError:
         pass
     except Exception as err:
         raise err
@@ -623,8 +630,9 @@ def get_updated_payload(rest_obj, module, ipv4_payload, ipv6_payload, dns_payloa
             current_setting["Delay"] = delay
     if diff == 0:
         module.exit_json(
-            msg="No changes made to network configuration as entered values are the same as current configured "
-                "values", network_configuration=current_setting)
+            msg=NO_CHANGES_FOUND, network_configuration=current_setting)
+    if module.check_mode:
+        module.exit_json(changed=True, msg=CHANGES_FOUND)
     return current_setting, rest_method, uri
 
 
@@ -670,52 +678,52 @@ def main():
                    "dns_domain_name": {"required": False, "type": "str"}}
     management_vlan = {"enable_vlan": {"required": True, "type": "bool"},
                        "vlan_id": {"required": False, "type": "int"}}
+
+    specs = {
+        "enable_nic": {"required": False, "type": "bool", "default": True},
+        "interface_name": {"required": False, "type": "str"},
+        "ipv4_configuration":
+            {"required": False, "type": "dict", "options": ipv4_options,
+             "required_if": [
+                 ['enable', True, ('enable_dhcp',), True],
+                 ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
+                 ['use_dhcp_for_dns_server_names', False,
+                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]
+             ]
+             },
+        "ipv6_configuration":
+            {"required": False, "type": "dict", "options": ipv6_options,
+             "required_if": [
+                 ['enable', True, ('enable_auto_configuration',), True],
+                 ['enable_auto_configuration', False, ('static_ip_address', 'static_prefix_length', "static_gateway"),
+                  False],
+                 ['use_dhcp_for_dns_server_names', False,
+                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]
+             ]
+             },
+        "dns_configuration":
+            {"required": False, "type": "dict", "options": dns_options,
+             "required_if": [
+                 ['register_with_dns', True, ('dns_name',), False],
+                 ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)]
+             ]
+             },
+        "management_vlan":
+            {"required": False, "type": "dict", "options": management_vlan,
+             "required_if": [
+                 ['enable_vlan', True, ('vlan_id',), True]
+             ]
+             },
+        "reboot_delay": {"required": False, "type": "int"}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "enable_nic": {"required": False, "type": "bool", "default": True},
-            "interface_name": {"required": False, "type": "str"},
-            "ipv4_configuration":
-                {"required": False, "type": "dict", "options": ipv4_options,
-                 "required_if": [
-                     ['enable', True, ('enable_dhcp',), True],
-                     ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
-                     ['use_dhcp_for_dns_server_names', False,
-                      ('static_preferred_dns_server', 'static_alternate_dns_server'), True]
-                 ]
-                 },
-            "ipv6_configuration":
-                {"required": False, "type": "dict", "options": ipv6_options,
-                 "required_if": [
-                     ['enable', True, ('enable_auto_configuration',), True],
-                     ['enable_auto_configuration', False, ('static_ip_address', 'static_prefix_length', "static_gateway"), False],
-                     ['use_dhcp_for_dns_server_names', False,
-                      ('static_preferred_dns_server', 'static_alternate_dns_server'), True]
-                 ]
-                 },
-            "dns_configuration":
-                {"required": False, "type": "dict", "options": dns_options,
-                 "required_if": [
-                     ['register_with_dns', True, ('dns_name',), False],
-                     ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)]
-                 ]
-                 },
-            "management_vlan":
-                {"required": False, "type": "dict", "options": management_vlan,
-                 "required_if": [
-                     ['enable_vlan', True, ('vlan_id',), True]
-                 ]
-                 },
-            "reboot_delay": {"required": False, "type": "int"}
-        },
+        argument_spec=specs,
         required_if=[
             ["enable_nic", True,
              ("ipv4_configuration", "ipv6_configuration", "dns_configuration", "management_vlan"), True]
         ],
-        supports_check_mode=False
+        supports_check_mode=True
     )
     try:
         with RestOME(module.params, req_session=True) as rest_obj:
@@ -733,7 +741,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
     except Exception as err:
         module.fail_json(msg=str(err))

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.0.0
-# Copyright (C) 2018-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2018-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -15,8 +15,8 @@ __metaclass__ = type
 import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_network
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock, patch, Mock
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
+from mock import MagicMock, Mock
 from io import StringIO
 from ansible.module_utils._text import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
@@ -63,21 +63,28 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     def test_main_idrac_configure_network_success_case(self, idrac_connection_configure_network_mock, mocker,
                                                        idrac_default_args, idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename"})
+        idrac_default_args.update({"share_name": None})
         message = {'changed': False, 'msg': {'Status': "Success", "message": "No changes found to commit!"}}
-        mocker.patch(MODULE_PATH +
-                     'idrac_network.run_idrac_network_config', return_value=message)
+        mocker.patch(MODULE_PATH + 'idrac_network.run_idrac_network_config', return_value=message)
         result = self._run_module(idrac_default_args)
         assert result == {'msg': 'Successfully configured the idrac network settings.',
                           'network_status': {
                               'changed': False,
                               'msg': {'Status': 'Success', 'message': 'No changes found to commit!'}},
                           'changed': False, 'failed': False}
+        status_msg = {"Status": "Success", "Message": "No changes found to commit!"}
+        mocker.patch(MODULE_PATH + 'idrac_network.run_idrac_network_config', return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully configured the idrac network settings."
+        status_msg = {"Status": "Success", "Message": "No changes were applied"}
+        mocker.patch(MODULE_PATH + 'idrac_network.run_idrac_network_config', return_value=status_msg)
+        result = self._run_module(idrac_default_args)
+        assert result["msg"] == "Successfully configured the idrac network settings."
 
     def test_run_idrac_network_config_success_case01(self, idrac_connection_configure_network_mock, idrac_default_args,
                                                      idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "register_idrac_on_dns": "Enabled",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "register_idrac_on_dns": "Enabled",
                                    "dns_idrac_name": "testname", "auto_config": "Disabled", "static_dns": "staticdns",
                                    "setup_idrac_nic_vlan": "Enabled", "vlan_id": 4, "vlan_priority": "Enabled",
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
@@ -95,8 +102,8 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     def test_run_idrac_network_config_success_case02(self, idrac_connection_configure_network_mock, idrac_default_args,
                                                      idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "register_idrac_on_dns": "Enabled",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "register_idrac_on_dns": "Enabled",
                                    "dns_idrac_name": "testname", "auto_config": "Disabled", "static_dns": "staticdns",
                                    "setup_idrac_nic_vlan": "Enabled", "vlan_id": 4, "vlan_priority": "Enabled",
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
@@ -119,8 +126,8 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     def test_run_idrac_network_config_success_case03(self, idrac_connection_configure_network_mock, idrac_default_args,
                                                      idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "register_idrac_on_dns": "Enabled",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "register_idrac_on_dns": "Enabled",
                                    "dns_idrac_name": "testname", "auto_config": "Disabled", "static_dns": "staticdns",
                                    "setup_idrac_nic_vlan": "Enabled", "vlan_id": 4, "vlan_priority": "Enabled",
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
@@ -143,8 +150,8 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     def test_run_idrac_network_config_success_case04(self, idrac_connection_configure_network_mock,
                                                      idrac_default_args, idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "register_idrac_on_dns": "Enabled",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "register_idrac_on_dns": "Enabled",
                                    "dns_idrac_name": "testname", "auto_config": "Disabled", "static_dns": "staticdns",
                                    "setup_idrac_nic_vlan": "Enabled", "vlan_id": 4, "vlan_priority": "Enabled",
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
@@ -167,8 +174,8 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     def test_run_idrac_network_config_success_case05(self, idrac_connection_configure_network_mock, idrac_default_args,
                                                      idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "register_idrac_on_dns": None,
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "register_idrac_on_dns": None,
                                    "dns_idrac_name": None, "auto_config": None, "static_dns": None,
                                    "setup_idrac_nic_vlan": None, "vlan_id": None, "vlan_priority": None,
                                    "enable_nic": None, "nic_selection": None,
@@ -195,8 +202,8 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     def test_run_idrac_network_config_failed_case01(self, idrac_connection_configure_network_mock, idrac_default_args,
                                                     idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "register_idrac_on_dns": "Enabled",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "register_idrac_on_dns": "Enabled",
                                    "dns_idrac_name": "testname", "auto_config": "Disabled", "static_dns": "staticdns",
                                    "setup_idrac_nic_vlan": "Enabled", "vlan_id": 4, "vlan_priority": "Enabled",
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
@@ -215,8 +222,8 @@ class TestConfigNetwork(FakeAnsibleModule):
 
     def test_run_idrac_network_config_failed_case02(self, idrac_connection_configure_network_mock,
                                                     idrac_default_args, idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "register_idrac_on_dns": "Enabled",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "register_idrac_on_dns": "Enabled",
                                    "dns_idrac_name": "testname", "auto_config": "Disabled", "static_dns": "staticdns",
                                    "setup_idrac_nic_vlan": "Enabled", "vlan_id": 4, "vlan_priority": "Enabled",
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
@@ -232,15 +239,13 @@ class TestConfigNetwork(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = False
         msg = self.module.run_idrac_network_config(idrac_connection_configure_network_mock, f_module)
-        assert msg == {'Message': 'No changes were applied',
-                       'Status': 'failed',
-                       'changed': False,
+        assert msg == {'Message': 'No changes were applied', 'Status': 'failed', 'changed': False,
                        'changes_applicable': False}
 
     def test_run_idrac_network_config_failed_case03(self, idrac_connection_configure_network_mock,
                                                     idrac_default_args, idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename", "share_mnt": "mountname", "share_user": "shareuser",
-                                   "share_password": "sharepassword", "register_idrac_on_dns": "Enabled",
+        idrac_default_args.update({"share_name": None, "share_mnt": None, "share_user": None,
+                                   "share_password": None, "register_idrac_on_dns": "Enabled",
                                    "dns_idrac_name": "testname", "auto_config": "Disabled", "static_dns": "staticdns",
                                    "setup_idrac_nic_vlan": "Enabled", "vlan_id": 4, "vlan_priority": "Enabled",
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
@@ -262,7 +267,7 @@ class TestConfigNetwork(FakeAnsibleModule):
     def test_main_idrac_configure_network_exception_handling_case(self, exc_type, mocker, idrac_default_args,
                                                                   idrac_connection_configure_network_mock,
                                                                   idrac_file_manager_config_networking_mock):
-        idrac_default_args.update({"share_name": "sharename"})
+        idrac_default_args.update({"share_name": None})
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(

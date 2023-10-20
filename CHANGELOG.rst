@@ -1,9 +1,819 @@
-=================================================
-Dell EMC OpenManage Ansible Modules Release Notes
-=================================================
+=============================================
+Dell OpenManage Ansible Modules Release Notes
+=============================================
 
 .. contents:: Topics
 
+
+v8.3.0
+======
+
+Release Summary
+---------------
+
+- Module to manage OME alert policies.
+- Support for RAID6 and RAID60 for module ``redfish_storage_volume``.
+- Support for reboot type options for module ``ome_firmware``.
+
+Minor Changes
+-------------
+
+- Module ``ome_firmware`` is enhanced to support reboot type options.
+- Module ``redfish_storage_volume`` is enhanced to support RAID6 and RAID60.
+
+Bugfixes
+--------
+
+- ome_device_quick_deploy - If the blade is not present, then the module can assign a static IP to the slot (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/532).
+
+Known Issues
+------------
+
+- ca_path missing - Issue(275740) - The roles idrac_attributes, redfish_storage_volume, and idrac_server_powerstate have a missing parameter ca_path.
+- idrac_firmware - Issue(276335) - This module fails on the Python 3.11.x version with NFS shares. Use a different Python version or Share type.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(275231) - This module does not deploy a new configuration to a slot that has disabled IPv6.
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_alert_policies - Manage OME alert policies.
+
+v8.2.0
+======
+
+Release Summary
+---------------
+
+- redfish_firmware and ome_firmware_catalog module is enhanced to support IPv6 address.
+- Module to support firmware rollback of server components.
+- Support for retrieving alert policies, actions, categories and message id information of alert policies for OME and OME Modular.
+- ome_diagnostics module is enhanced to update changed flag status in response.
+
+Minor Changes
+-------------
+
+- Module ``ome_diagnostics`` is enhanced to update changed flag status in response.
+- Module ``ome_firmware_catalog`` is enhanced to support IPv6 address.
+- Module ``redfish_firmware`` is enhanced to support IPv6 address.
+
+Bugfixes
+--------
+
+- Update document on how to use with ansible. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/393).
+
+Known Issues
+------------
+
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_alert_policies_action_info - Get information on actions of alert policies.
+- dellemc.openmanage.ome_alert_policies_category_info - Retrieves information of all OME alert policy categories.
+- dellemc.openmanage.ome_alert_policies_info - Retrieves information of one or more OME alert policies.
+- dellemc.openmanage.ome_alert_policies_message_id_info - Get message ID information of alert policies.
+- dellemc.openmanage.redfish_firmware_rollback - To perform a component firmware rollback using component name.
+
+v8.1.0
+======
+
+Release Summary
+---------------
+
+- Support for subject alternative names while generating certificate signing requests on OME.
+- Create a user on iDRAC using custom privileges.
+- Create a firmware baseline on OME with the filter option of no reboot required.
+- Retrieve all server items in the output for ome_device_info.
+- Enhancement to add detailed job information for ome_discovery and ome_job_info.
+
+Minor Changes
+-------------
+
+- Module ``idrac_user`` is enhanced to configure custom privileges for an user.
+- Module ``ome_application_certificate`` is enhanced to support subject alternative names.
+- Module ``ome_discovery`` is enhanced to add detailed job information of each IP discovered.
+- Module ``ome_firmware_baseline`` is enhanced to support the option to select only components with no reboot required.
+- Module ``ome_job_info`` is enhanced to return last execution details and execution histories.
+
+Bugfixes
+--------
+
+- The Chassis Power PIN value must be of six numerical digits input from the module. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/492).
+- idrac_attributes module can now support modification of IPv6 attributes on iDRAC 8. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/488).
+- ome_device_info is limited to 50 responses with a query filter. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/499).
+
+Known Issues
+------------
+
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+v8.0.0
+======
+
+Release Summary
+---------------
+
+Role ``idrac_boot`` and ``idrac_job_queue`` is added to manage the boot order settings and iDRAC lifecycle controller job queue respectively. ``Role idrac_os_deployment`` is enhanced to remove the auto installations of required libraries and to support custom ISO and kickstart file as input. Dropped support for iDRAC7 based Dell PowerEdge Servers.
+
+Minor Changes
+-------------
+
+- All the module documentation and examples are updated to use true or false for Boolean values.
+- Role ``idrac_os_deployment`` is enhanced to remove the auto installation of required libraries and to support custom ISO and kickstart file as input.
+
+Removed Features (previously deprecated)
+----------------------------------------
+
+- The ``dellemc_get_firmware_inventory`` module is removed and replaced with the module ``idrac_firmware_info``.
+- The ``dellemc_get_system_inventory`` module is removed and replaced with the module ``idrac_system_info``.
+
+Bugfixes
+--------
+
+- Job tracking is fixed for iDRAC SCP import (https://github.com/dell/dellemc-openmanage-ansible-modules/pull/504).
+- OMSDK is handled for import error ``SNIMissingWarning`` that is undefined (https://github.com/dell/omsdk/issues/33).
+
+Known Issues
+------------
+
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Roles
+---------
+
+- dellemc.openmanage.idrac_boot - Configure the boot order settings
+- dellemc.openmanage.idrac_job_queue - Role to manage the iDRAC lifecycle controller job queue.
+
+v7.6.1
+======
+
+Release Summary
+---------------
+
+Removed the dependency of community general collections.
+
+Minor Changes
+-------------
+
+- Updated the idrac_gather_facts role to use jinja template filters.
+
+Known Issues
+------------
+
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+v7.6.0
+======
+
+Release Summary
+---------------
+
+- Role to configure the iDRAC system, manager, and lifecycle attributes for Dell PowerEdge servers.
+- Role to modify BIOS attributes, clear pending BIOS attributes, and reset the BIOS to default settings.
+- Role to reset and restart iDRAC (iDRAC8 and iDRAC9 only) for Dell PowerEdge servers.
+- Role to configure the physical disk, virtual disk, and storage controller settings on iDRAC9 based PowerEdge servers.
+
+Known Issues
+------------
+
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Roles
+---------
+
+- dellemc.openmanage.idrac_attributes - Role to configure iDRAC attributes.
+- dellemc.openmanage.idrac_bios - Role to modify BIOS attributes, clear pending BIOS attributes, and reset the BIOS to default settings.
+- dellemc.openmanage.idrac_reset - Role to reset and restart iDRAC (iDRAC8 and iDRAC9 only) for Dell PowerEdge servers.
+- dellemc.openmanage.idrac_storage_controller - Role to configure the physical disk, virtual disk, and storage controller settings on iDRAC9 based PowerEdge servers.
+
+v7.5.0
+======
+
+Release Summary
+---------------
+
+- redfish_firmware - This module is enhanced to include job tracking.
+- ome_template - This module is enhanced to include job tracking.
+- Role to support the iDRAC and Redfish firmware update and manage storage volume configuration is added.
+- Role to deploy the iDRAC operating system is enhanced to support ESXi version 8.X and HTTP or HTTPS for the destination.
+
+Known Issues
+------------
+
+- idrac_os_deployment- Issue(260496) - OS installation will support only NFS and CIFS share to store the custom ISO in the destination_path, HTTP/HTTPS/FTP not supported
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_user - Issue(192043) The module may error out with the message ``Unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Roles
+---------
+
+- dellemc.openmanage.idrac_firmware - Firmware update from a repository on a network share (CIFS, NFS, HTTP, HTTPS, FTP).
+- dellemc.openmanage.redfish_firmware - To perform a component firmware update using the image file available on the local or remote system.
+- dellemc.openmanage.redfish_storage_volume - Role to manage the storage volume configuration.
+
+v7.4.0
+======
+
+Release Summary
+---------------
+
+- Role to support the Import server configuration profile, Manage iDRAC power states, Manage iDRAC certificate,
+  Gather facts from iDRAC and Deploy operating system is added.
+- Plugin OME inventory is enhanced to support the environment variables for the input parameters.
+
+
+Known Issues
+------------
+
+- idrac_os_deployment- Issue(260496) - OS installation will support only NFS and CIFS share to store the custom ISO in the destination_path, HTTP/HTTPS/FTP not supported
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_user - Issue(192043) The module may error out with the message ``Unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Roles
+---------
+
+- dellemc.openmanage.idrac_certificate - Role to manage the iDRAC certificates - generate CSR, import/export certificates, and reset configuration - for PowerEdge servers.
+- dellemc.openmanage.idrac_gather_facts - Role to gather facts from the iDRAC Server.
+- dellemc.openmanage.idrac_import_server_config_profile - Role to import iDRAC Server Configuration Profile (SCP).
+- dellemc.openmanage.idrac_os_deployment - Role to deploy specified operating system and version on the servers.
+- dellemc.openmanage.idrac_server_powerstate - Role to manage the different power states of the specified device.
+
+v7.3.0
+======
+
+Release Summary
+---------------
+
+Support for iDRAC export Server Configuration Profile role and proxy settings, import buffer, include in export, and ignore certificate warning.
+
+Major Changes
+-------------
+
+- idrac_server_config_profile - This module is enhanced to support proxy settings, import buffer, include in export, and ignore certificate warning.
+
+Known Issues
+------------
+
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_inventory - Issue(256257) - All hosts are not retrieved for ``Modular System`` group and corresponding child groups.
+- ome_inventory - Issue(256589) - All hosts are not retrieved for ``Custom Groups`` group and corresponding child groups.
+- ome_inventory - Issue(256593) - All hosts are not retrieved for ``PLUGIN GROUPS`` group and corresponding child groups.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Roles
+---------
+
+- dellemc.openmanage.idrac_export_server_config_profile - Role to export iDRAC Server Configuration Profile (SCP).
+
+v7.2.0
+======
+
+Release Summary
+---------------
+
+Support for retrieving the inventory and host details of all child groups using parent groups, retrieving inventory of System and Plugin Groups, retrieving profiles with attributes, retrieving network configuration of a template, configuring controller attributes, configuring online capacity expansion, and importing the LDAP directory.
+
+Major Changes
+-------------
+
+- idrac_redfish_storage_controller - This module is enhanced to configure controller attributes and online capacity expansion.
+- ome_domian_user_groups - This module allows to import the LDAP directory groups.
+- ome_inventory - This plugin is enhanced to support inventory retrieval of System and Plugin Groups of OpenManage Enterprise.
+- ome_profile_info - This module allows to retrieve profiles with attributes on OpenManage Enterprise or OpenManage Enterprise Modular.
+- ome_template_network_vlan_info - This module allows to retrieve the network configuration of a template on OpenManage Enterprise or OpenManage Enterprise Modular.
+
+Known Issues
+------------
+
+- idrac_redfish_storage_controller - Issue(256164) - If incorrect value is provided for one of the attributes in the provided attribute list for controller configuration, then this module does not exit with error.
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_inventory - Issue(256257) - All hosts are not retrieved for ``Modular System`` group and corresponding child groups.
+- ome_inventory - Issue(256589) - All hosts are not retrieved for ``Custom Groups`` group and corresponding child groups.
+- ome_inventory - Issue(256593) - All hosts are not retrieved for ``PLUGIN GROUPS`` group and corresponding child groups.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_profile_info - Retrieve profiles with attribute details
+- dellemc.openmanage.ome_template_network_vlan_info - Retrieves network configuration of template.
+
+v7.1.0
+======
+
+Release Summary
+---------------
+
+Support for retrieving smart fabric and smart fabric uplink information and support for IPv6 address for OMSDK dependent iDRAC modules.
+
+Major Changes
+-------------
+
+- Support for IPv6 address for OMSDK dependent iDRAC modules.
+- ome_inventory - This plugin allows to create a inventory from the group on OpenManage Enterprise.
+- ome_smart_fabric_info - This module retrieves the list of smart fabrics in the inventory of OpenManage Enterprise Modular.
+- ome_smart_fabric_uplink_info - This module retrieve details of fabric uplink on OpenManage Enterprise Modular.
+
+Minor Changes
+-------------
+
+- redfish_firmware - This module supports timeout option.
+
+Known Issues
+------------
+
+- idrac_firmware - Issue(249879) - Firmware update of iDRAC9-based Servers fails if SOCKS proxy with authentication is used.
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Plugins
+-----------
+
+Inventory
+~~~~~~~~~
+
+- dellemc.openmanage.ome_inventory - Group inventory plugin on OpenManage Enterprise.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_smart_fabric_info - Retrieves the information of smart fabrics inventoried by OpenManage Enterprise Modular
+- dellemc.openmanage.ome_smart_fabric_uplink_info - Retrieve details of fabric uplink on OpenManage Enterprise Modular.
+
+v7.0.0
+======
+
+Release Summary
+---------------
+
+Rebranded from Dell EMC to Dell, enhanced idrac_firmware module to support proxy, and added support to retrieve iDRAC local user details.
+
+Major Changes
+-------------
+
+- Rebranded from Dell EMC to Dell.
+- idrac_firmware - This module is enhanced to support proxy.
+- idrac_user_info - This module allows to retrieve iDRAC Local user information details.
+
+Known Issues
+------------
+
+- idrac_firmware - Issue(249879) - Firmware update of iDRAC9-based Servers fails if SOCKS proxy with authentication is used.
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_user_info - Retrieve iDRAC Local user details.
+
+v6.3.0
+======
+
+Release Summary
+---------------
+
+Support for LockVirtualDisk operation and to configure Remote File Share settings using idrac_virtual_media module.
+
+Major Changes
+-------------
+
+- idrac_redfish_storage_controller - This module is enhanced to support LockVirtualDisk operation.
+- idrac_virtual_media - This module allows to configure Remote File Share settings.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_virtual_media - Configure the virtual media settings.
+
+v6.2.0
+======
+
+Release Summary
+---------------
+
+Added clear pending BIOS attributes, reset BIOS to default settings, and configure BIOS attribute using Redfish enhancements for idrac_bios.
+
+Major Changes
+-------------
+
+- idrac_bios - The module is enhanced to support clear pending BIOS attributes, reset BIOS to default settings, and configure BIOS attribute using Redfish.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+v6.1.0
+======
+
+Release Summary
+---------------
+
+Support for device-specific operations on OpenManage Enterprise and configuring boot settings on iDRAC.
+
+Major Changes
+-------------
+
+- idrac_boot - Support for configuring the boot settings on iDRAC.
+- ome_device_group - The module is enhanced to support the removal of devices from a static device group.
+- ome_devices - Support for performing device-specific operations on OpenManage Enterprise.
+
+Minor Changes
+-------------
+
+- ome_configuration_compliance_info - The module is enhanced to report single device compliance information.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_boot - Configure the boot order settings.
+- dellemc.openmanage.ome_devices - Perform device-specific operations on target devices
+
+v6.0.0
+======
+
+Release Summary
+---------------
+
+Added collection metadata for creating execution environments, deprecation of share parameters, and support for configuring iDRAC attributes using idrac_attributes module.
+
+Major Changes
+-------------
+
+- Added collection metadata for creating execution environments.
+- Refactored the Markdown (MD) files and content for better readability.
+- The share parameters are deprecated from the following modules - idrac_network, idrac_timezone_ntp, dellemc_configure_idrac_eventing, dellemc_configure_idrac_services, dellemc_idrac_lc_attributes, dellemc_system_lockdown_mode.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_attributes - Configure the iDRAC attributes
+
+v5.5.0
+======
+
+Release Summary
+---------------
+
+Support to generate certificate signing request, import, and export certificates on iDRAC.
+
+Minor Changes
+-------------
+
+- idrac_redfish_storage_controller - This module is updated to use the Job Service URL instead of Task Service URL for job tracking.
+- idrac_server_config_profile - This module is updated to use the Job Service URL instead of Task Service URL for job tracking.
+- redfish_firmware - This module is updated to use the Job Service URL instead of Task Service URL for job tracking.
+
+Bugfixes
+--------
+
+- idrac_server_config_profile - Issue(234817) – When an XML format is exported using the SCP, the module breaks while waiting for the job completion.
+- ome_application_console_preferences - Issue(224690) - The module does not display a proper error message when an unsupported value is provided for the parameters report_row_limit, email_sender_settings, and metric_collection_settings, and the value is applied on OpenManage Enterprise
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_certificates - Configure certificates for iDRAC.
+
+v5.4.0
+======
+
+Release Summary
+---------------
+
+Support for export, import, and preview the Server Configuration Profile (SCP) configuration using Redfish and added support for check mode.
+
+Major Changes
+-------------
+
+- idrac_server_config_profile - The module is enhanced to support export, import, and preview the SCP configuration using Redfish and added support for check mode.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_console_preferences - Issue(224690) - The module does not display a proper error message when an unsupported value is provided for the parameters report_row_limit, email_sender_settings, and metric_collection_settings, and the value is applied on OpenManage Enterprise.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+v5.3.0
+======
+
+Release Summary
+---------------
+
+Added check mode and idempotency support for redfish_storage_volume and idempotency support for ome_smart_fabric_uplink. For ome_diagnostics, added support for debug logs and added supportassist_collection as a choice for the log_type argument to export SupportAssist logs.
+
+Minor Changes
+-------------
+
+- ome_diagnostics - Added "supportassist_collection" as a choice for the log_type argument to export SupportAssist logs. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/309)
+- ome_diagnostics - The module is enhanced to support debug logs. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/308)
+- ome_smart_fabric_uplink - The module is enhanced to support idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/253)
+- redfish_storage_volume - The module is enhanced to support check mode and idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/245)
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_console_preferences - Issue(224690) - The module does not display a proper error message when an unsupported value is provided for the parameters report_row_limit, email_sender_settings, and metric_collection_settings, and the value is applied on OpenManage Enterprise.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+v5.2.0
+======
+
+Release Summary
+---------------
+
+Support to configure console preferences on OpenManage Enterprise.
+
+Minor Changes
+-------------
+
+- idrac_redfish_storage_controller - This module is enhanced to support the following settings with check mode and idempotency - UnassignSpare, EnableControllerEncryption, BlinkTarget, UnBlinkTarget,  ConvertToRAID, ConvertToNonRAID, ChangePDStateToOnline, ChangePDStateToOffline.
+- ome_diagnostics - The module is enhanced to support check mode and idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/345)
+- ome_diagnostics - This module is enhanced to extract log from lead chassis. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/310)
+- ome_profile - The module is enhanced to support check mode and idempotency.
+- ome_profile - The module is enhanced to support modifying a profile based on the attribute names instead of the ID.
+- ome_template - The module is enhanced to support check mode and idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/255)
+- ome_template - The module is enhanced to support modifying a template based on the attribute names instead of the ID. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/358)
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_console_preferences - Issue(224690) - The module does not display a proper error message when an unsupported value is provided for the parameters report_row_limit, email_sender_settings, and metric_collection_settings, and the value is applied on OpenManage Enterprise.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_application_console_preferences - Configures console preferences on OpenManage Enterprise.
+
+v5.1.0
+======
+
+Release Summary
+---------------
+
+Support for OpenManage Enterprise Modular server interface management.
+
+Minor Changes
+-------------
+
+- ome_application_network_address - The module is enhanced to support check mode and idempotency.
+- ome_device_info - The module is enhanced to return a blank list when devices or baselines are not present in the system.
+- ome_firmware_baseline_compliance_info - The module is enhanced to return a blank list when devices or baselines are not present in the system.
+- ome_firmware_baseline_info - The module is enhanced to return a blank list when devices or baselines are not present in the system.
+- ome_identity_pool - The iSCSI Initiator and Initiator IP Pool attributes are not mandatory to create an identity pool. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/329)
+- ome_identity_pool - The module is enhanced to support check mode and idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/328)
+- ome_template_identity_pool - The module is enhanced to support check mode and idempotency.
+- redfish_event_subscription - The module is enhanced to support check mode and idempotency.
+
+Bugfixes
+--------
+
+- idrac_firmware - Issue (220130) The socket.timout issue that occurs during the wait_for_job_completion() job is fixed.
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module errors out with the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_server_interface_profile_info - Retrieves the information of server interface profile on OpenManage Enterprise Modular.
+- dellemc.openmanage.ome_server_interface_profiles - Configures server interface profiles on OpenManage Enterprise Modular.
+
+v5.0.1
+======
+
+Release Summary
+---------------
+
+Support to provide custom or organizational CA signed certificate for SSL validation from the environment variable.
+
+Major Changes
+-------------
+
+- All modules can read custom or organizational CA signed certificate from the environment variables. Please refer to `SSL Certificate Validation <https://github.com/dell/dellemc-openmanage-ansible-modules#ssl-certificate-validation>` _ section in the `README.md <https://github.com/dell/dellemc-openmanage-ansible-modules /blob/collections/README.md#SSL-Certificate-Validation>` _ for modification to existing playbooks or setting environment variable.
+
+Bugfixes
+--------
+
+- All playbooks require modification because the validate_certs argument is set to True by default (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/357)
+- The ome_application_network_time and ome_application_network_proxy modules are breaking due to the changes introduced for SSL validation.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/360)
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module errors out with the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not  exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+v5.0.0
+======
+
+Release Summary
+---------------
+
+HTTPS SSL support for all modules and quick deploy settings.
+
+Major Changes
+-------------
+
+- All modules now support SSL over HTTPS and socket level timeout.
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- HTTPS SSL certificate validation is a **breaking change** and will require modification in the existing playbooks. Please refer to `SSL Certificate Validation <https://github.com/dell/dellemc-openmanage-ansible-modules#ssl-certificate-validation>`_ section in the `README.md <https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/README.md#SSL-Certificate-Validation>`_ for modification to existing playbooks.
+
+Bugfixes
+--------
+
+- idrac_bios - The issue while configuring boot sources is fixed (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/347)
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module errors out with the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not  exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(216352) - The module does not display a proper error message if an unsupported value is provided for the ipv6_prefix_length and vlan_id parameters.
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_device_quick_deploy - Configure Quick Deploy settings on OpenManage Enterprise Modular
+
+v4.4.0
+======
+
+Release Summary
+---------------
+
+Support to configure login security, session inactivity timeout, and local access settings.
+
+Minor Changes
+-------------
+
+- ome_firmware - The module is enhanced to support check mode and idempotency (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/274)
+- ome_template - An example task is added to create a compliance template from reference device (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/339)
+
+Bugfixes
+--------
+
+- ome_device_location - The issue that applies values of the location settings only in lowercase is fixed (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/341)
+
+Known Issues
+------------
+
+- idrac_user - Issue(192043) The module may error out with the message ``unable to perform the import or export operation because there are pending attribute changes or a configuration job is in progress``. Wait for the job to complete and run the task again.
+- ome_application_alerts_smtp - Issue(212310) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_application_alerts_syslog - Issue(215374) - The module does not provide a proper error message if the destination_address is more than 255 characters.
+- ome_device_local_access_configuration - Issue(215035) - The module reports ``Successfully updated the local access setting`` if an unsupported value is provided for the parameter timeout_limit. However, this value is not actually applied on OpenManage Enterprise Modular.
+- ome_device_local_access_configuration - Issue(217865) - The module does not display a proper error message if an unsupported value is provided for the user_defined and lcd_language parameters.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module errors out with the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not  exist or is not applicable for the resource URI.``
+- ome_smart_fabric_uplink - Issue(186024) - The module does not allow the creation of multiple uplinks of the same name even though it is supported by OpenManage Enterprise Modular. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.ome_application_network_settings - This module allows you to configure the session inactivity timeout settings
+- dellemc.openmanage.ome_application_security_settings - Configure the login security properties
+- dellemc.openmanage.ome_device_local_access_configuration - Configure local access settings on OpenManage Enterprise Modular
 
 v4.3.0
 ======
@@ -444,4 +1254,4 @@ v2.1.0
 Release Summary
 ---------------
 
-The `Dell EMC OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_ are available on Ansible Galaxy as a collection.
+The `Dell OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_ are available on Ansible Galaxy as a collection.

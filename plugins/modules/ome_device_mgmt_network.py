@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.2.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -62,7 +62,7 @@ options:
         description:
           - "Enable or disable the automatic request to obtain an IPv4 address from the IPv4 Dynamic Host Configuration
           Protocol (DHCP) server."
-          - "C(NOTE) If this option is C(True), the values provided for I(static_ip_address), I(static_subnet_mask),
+          - "C(NOTE) If this option is C(true), the values provided for I(static_ip_address), I(static_subnet_mask),
           and I(static_gateway) are not applied for these fields. However, the module may report changes."
         type: bool
       static_ip_address:
@@ -84,7 +84,7 @@ options:
         description:
           - This option allows to automatically request and obtain IPv4 address for the DNS Server from the DHCP server.
           - This option is applicable when I(enable_dhcp) is true.
-          - "C(NOTE) If this option is C(True), the values provided for I(static_preferred_dns_server) and
+          - "C(NOTE) If this option is C(true), the values provided for I(static_preferred_dns_server) and
           I(static_alternate_dns_server) are not applied for these fields. However, the module may report changes."
         type: bool
       static_preferred_dns_server:
@@ -114,7 +114,7 @@ options:
           advertisements(RA)"
           - "If I(enable_auto_configuration) is C(true), OpenManage Enterprise Modular retrieves IP configuration
           (IPv6 address, prefix, and gateway address) from a DHCPv6 server on the existing network."
-          - "C(NOTE) If this option is C(True), the values provided for I(static_ip_address), I(static_prefix_length),
+          - "C(NOTE) If this option is C(true), the values provided for I(static_ip_address), I(static_prefix_length),
           and I(static_gateway) are not applied for these fields. However, the module may report changes."
         type: bool
       static_ip_address:
@@ -136,7 +136,7 @@ options:
         description:
           - This option allows to automatically request and obtain a IPv6 address for the DNS server from the DHCP server.
           - This option is applicable when I(enable_auto_configuration) is true
-          - "C(NOTE) If this option is C(True), the values provided for I(static_preferred_dns_server) and I(static_alternate_dns_server)
+          - "C(NOTE) If this option is C(true), the values provided for I(static_preferred_dns_server) and I(static_alternate_dns_server)
           are not applied for these fields. However, the module may report changes."
         type: bool
       static_preferred_dns_server:
@@ -229,9 +229,9 @@ options:
           - Enter the IP address of the second alternate DNS server.
         type: str
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 notes:
-  - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
   - This module supports C(check_mode).
 """
 
@@ -242,6 +242,7 @@ EXAMPLES = """
     hostname: 192.168.0.1
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: CHAS123
     ipv4_configuration:
       enable_ipv4: true
@@ -266,7 +267,7 @@ EXAMPLES = """
       use_dhcp_for_dns_domain_name: false
       dns_name: "MX-SVCTAG"
       dns_domain_name: "dnslocaldomain"
-      auto_negotiation: no
+      auto_negotiation: false
       network_speed: 100_MB
 
 - name: Network settings for server
@@ -274,6 +275,7 @@ EXAMPLES = """
     hostname: 192.168.0.1
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: SRVR123
     ipv4_configuration:
       enable_ipv4: true
@@ -299,6 +301,7 @@ EXAMPLES = """
     hostname: 192.168.0.1
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: IOM1234
     ipv4_configuration:
       enable_ipv4: true
@@ -321,6 +324,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id : 12345
     management_vlan:
       enable_vlan: true
@@ -369,7 +373,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 DEVICE_URI = "DeviceService/Devices"
@@ -705,50 +709,48 @@ def main():
     dns_server_settings = {"preferred_dns_server": {"type": 'str'},
                            "alternate_dns_server1": {"type": 'str'},
                            "alternate_dns_server2": {"type": 'str'}}
+    specs = {
+        "enable_nic": {"type": 'bool', "default": True},
+        "device_id": {"type": 'int'},
+        "device_service_tag": {"type": 'str'},
+        "delay": {"type": 'int', "default": 0},
+        "ipv4_configuration":
+            {"type": "dict", "options": ipv4_options,
+             "required_if": [
+                 ['enable_ipv4', True, ('enable_dhcp',), True],
+                 ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
+                 ['use_dhcp_to_obtain_dns_server_address', False,
+                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
+             },
+        "ipv6_configuration":
+            {"type": "dict", "options": ipv6_options,
+             "required_if": [
+                 ['enable_ipv6', True, ('enable_auto_configuration',), True],
+                 ['enable_auto_configuration', False,
+                  ('static_ip_address', 'static_prefix_length', "static_gateway"), False],
+                 ['use_dhcpv6_to_obtain_dns_server_address', False,
+                  ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
+             },
+        "dns_configuration":
+            {"type": "dict", "options": dns_options,
+             "required_if": [
+                 ['register_with_dns', True, ('dns_name',), False],
+                 ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)],
+                 ['auto_negotiation', False, ('network_speed',)]]
+             },
+        "management_vlan":
+            {"type": "dict", "options": management_vlan,
+             "required_if": [
+                 ['enable_vlan', True, ('vlan_id',), True]]
+             },
+        "dns_server_settings":
+            {"type": "dict", "options": dns_server_settings,
+             "required_one_of": [("preferred_dns_server", "alternate_dns_server1", "alternate_dns_server2")]
+             }
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"type": 'int', "default": 443},
-            "enable_nic": {"type": 'bool', "default": True},
-            "device_id": {"type": 'int'},
-            "device_service_tag": {"type": 'str'},
-            "delay": {"type": 'int', "default": 0},
-            "ipv4_configuration":
-                {"type": "dict", "options": ipv4_options,
-                 "required_if": [
-                     ['enable_ipv4', True, ('enable_dhcp',), True],
-                     ['enable_dhcp', False, ('static_ip_address', 'static_subnet_mask', "static_gateway"), False],
-                     ['use_dhcp_to_obtain_dns_server_address', False,
-                      ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
-                 },
-            "ipv6_configuration":
-                {"type": "dict", "options": ipv6_options,
-                 "required_if": [
-                     ['enable_ipv6', True, ('enable_auto_configuration',), True],
-                     ['enable_auto_configuration', False,
-                      ('static_ip_address', 'static_prefix_length', "static_gateway"), False],
-                     ['use_dhcpv6_to_obtain_dns_server_address', False,
-                      ('static_preferred_dns_server', 'static_alternate_dns_server'), True]]
-                 },
-            "dns_configuration":
-                {"type": "dict", "options": dns_options,
-                 "required_if": [
-                     ['register_with_dns', True, ('dns_name',), False],
-                     ['use_dhcp_for_dns_domain_name', False, ('dns_domain_name',)],
-                     ['auto_negotiation', False, ('network_speed',)]]
-                 },
-            "management_vlan":
-                {"type": "dict", "options": management_vlan,
-                 "required_if": [
-                     ['enable_vlan', True, ('vlan_id',), True]]
-                 },
-            "dns_server_settings":
-                {"type": "dict", "options": dns_server_settings,
-                 "required_one_of": [("preferred_dns_server", "alternate_dns_server1", "alternate_dns_server2")]
-                 }
-        },
+        argument_spec=specs,
         required_one_of=[('device_id', 'device_service_tag')],
         mutually_exclusive=[('device_id', 'device_service_tag')],
         supports_check_mode=True
@@ -768,7 +770,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

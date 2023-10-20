@@ -22,8 +22,8 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- omsdk
-- python >= 2.7.5
+- omsdk >= 1.2.488
+- python >= 3.9.6
 
 
 
@@ -46,6 +46,22 @@ Parameters
     iDRAC port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -53,7 +69,8 @@ Notes
 -----
 
 .. note::
-   - Run this module from a system that has direct access to DellEMC iDRAC.
+   - Run this module from a system that has direct access to Dell iDRAC.
+   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
    - This module supports ``check_mode``.
 
 
@@ -72,6 +89,7 @@ Examples
            idrac_user: "user_name"
            idrac_password: "user_password"
            idrac_port: 443
+           ca_path: "/path/to/ca_cert.pem"
 
 
 

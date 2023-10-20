@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 2.1.2
-# Copyright (C) 2019-2020 Dell Inc.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2019-2022 Dell Inc.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 # All rights reserved. Dell, EMC, and other trademarks are trademarks of Dell Inc. or its subsidiaries.
@@ -16,9 +16,9 @@ __metaclass__ = type
 
 import pytest
 from ansible.module_utils import basic
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import set_module_args, exit_json, \
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.utils import exit_json, \
     fail_json, AnsibleFailJson, AnsibleExitJson
-from ansible_collections.dellemc.openmanage.tests.unit.compat.mock import MagicMock
+from mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 MODULE_UTIL_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.'
@@ -57,19 +57,21 @@ def redfish_response_mock(mocker):
 
 @pytest.fixture
 def ome_default_args():
-    default_args = {'hostname': '192.168.0.1', 'username': 'username', 'password': 'password'}
+    default_args = {'hostname': '192.168.0.1', 'username': 'username', 'password': 'password', "ca_path": "/path/ca_bundle"}
     return default_args
 
 
 @pytest.fixture
 def idrac_default_args():
-    default_args = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password"}
+    default_args = {"idrac_ip": "idrac_ip", "idrac_user": "idrac_user", "idrac_password": "idrac_password",
+                    "ca_path": "/path/to/ca_cert.pem"}
     return default_args
 
 
 @pytest.fixture
 def redfish_default_args():
-    default_args = {'baseuri': '192.168.0.1', 'username': 'username', 'password': 'password'}
+    default_args = {'baseuri': '192.168.0.1', 'username': 'username', 'password': 'password',
+                    "ca_path": "/path/to/ca_cert.pem"}
     return default_args
 
 

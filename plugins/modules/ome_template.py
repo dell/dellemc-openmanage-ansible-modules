@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.3.0
-# Copyright (C) 2019-2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.5.0
+# Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -39,13 +39,13 @@ options:
   template_id:
     description:
       - ID of the existing template.
-      - This option is applicable when I(command) is C(modify), C(deploy), C(delete) and C(export).
+      - This option is applicable when I(command) is C(modify), C(deploy), C(delete), C(clone) and C(export).
       - This option is mutually exclusive with I(template_name).
     type: int
   template_name:
     description:
       - Name of the existing template.
-      - This option is applicable when I(command) is C(modify), C(deploy), C(delete) and C(export).
+      - This option is applicable when I(command) is C(modify), C(deploy), C(delete), C(clone) and C(export).
       - This option is mutually exclusive with I(template_id).
     type: str
   device_id:
@@ -88,7 +88,9 @@ options:
         C(modify), C(deploy), C(import), and C(clone) operations. It takes the following attributes.
       - >-
         Attributes: List of dictionaries of attributes (if any) to be modified in the deployment template. This is
-        applicable when I(command) is C(deploy) and C(modify).
+        applicable when I(command) is C(deploy) and C(modify). Use the I(Id) If the attribute Id is available.
+        If not, use the comma separated I (DisplayName). For more details about using the I(DisplayName),
+        see the example provided.
       - >-
         Name: Name of the template. This is mandatory when I(command) is C(create), C(import), C(clone), and
         optional when I(command) is C(modify).
@@ -118,12 +120,27 @@ options:
         and servers. This is applicable when I(command) is C(create).
       - >-
         Refer OpenManage Enterprise API Reference Guide for more details.
+  job_wait:
+    type: bool
+    description:
+      - Provides the option to wait for job completion.
+      - This option is applicable when I(command) is C(create), or C(deploy).
+    default: true
+  job_wait_timeout:
+    type: int
+    description:
+      - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
+      - This option is applicable when I(job_wait) is C(true).
+    default: 1200
 requirements:
-    - "python >= 2.7.5"
-author: "Jagadeesh N V (@jagadeeshnv)"
+    - "python >= 3.8.6"
+author:
+    - "Jagadeesh N V (@jagadeeshnv)"
+    - "Husniya Hameed (@husniya_hameed)"
+    - "Kritika Bhateja (@Kritika-Bhateja)"
 notes:
-    - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
-    - This module does not support C(check_mode).
+    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
+    - This module supports C(check_mode).
 '''
 
 EXAMPLES = r'''
@@ -133,6 +150,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25123
     attributes:
       Name: "New Template"
@@ -143,6 +161,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "modify"
     template_id: 12
     attributes:
@@ -156,11 +175,34 @@ EXAMPLES = r'''
           Value: "Test Attribute"
           IsIgnored: false
 
+- name: Modify template name, description, and attribute using detailed view
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "modify"
+    template_id: 12
+    attributes:
+      Name: "New Custom Template"
+      Description: "Custom Template Description"
+      Attributes:
+        # Enter the comma separated string as appearing in the Detailed view on GUI
+        # NIC -> NIC.Integrated.1-1-1 -> NIC Configuration -> Wake On LAN1
+        - DisplayName: 'NIC, NIC.Integrated.1-1-1, NIC Configuration, Wake On LAN'
+          Value: Enabled
+          IsIgnored: false
+        # System -> LCD Configuration -> LCD 1 User Defined String for LCD
+        - DisplayName: 'System, LCD Configuration, LCD 1 User Defined String for LCD'
+          Value: LCD str by OMAM
+          IsIgnored: false
+
 - name: Deploy template on multiple devices
   dellemc.openmanage.ome_template:
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -175,6 +217,7 @@ EXAMPLES = r'''
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_group_names:
@@ -186,6 +229,7 @@ EXAMPLES = r'''
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -217,6 +261,7 @@ EXAMPLES = r'''
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -250,6 +295,7 @@ install OS using its image"
     hostname:  "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -293,6 +339,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "delete"
     template_id: 12
 
@@ -301,6 +348,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "export"
     template_id: 12
 
@@ -310,6 +358,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "export"
     template_name: "my_template"
   register: result
@@ -324,6 +373,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "clone"
     template_id: 12
     attributes:
@@ -334,6 +384,7 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "import"
     attributes:
       Name: "Imported Template Name"
@@ -353,17 +404,19 @@ install OS using its image"
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "import"
     attributes:
       Name: "Imported Template Name"
       Type: 2
-      Content: "{{ lookup('ansible.builtin.file.', '/path/to/xmlfile') }}"
+      Content: "{{ lookup('ansible.builtin.file', '/path/to/xmlfile') }}"
 
 - name: "Deploy template and Operating System (OS) on multiple devices."
   dellemc.openmanage.ome_template:
     hostname: "192.168.0.1"
     username: "username"
-    password: "{{password}}"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "deploy"
     template_id: 12
     device_id:
@@ -390,6 +443,47 @@ install OS using its image"
       Schedule:
         RunLater: true
         RunNow: false
+
+- name: Create a compliance template from reference device
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "create"
+    device_service_tag:
+      - "SVTG123"
+    template_view_type: "Compliance"
+    attributes:
+      Name: "Configuration Compliance"
+      Description: "Configuration Compliance Template"
+      Fqdds: "BIOS"
+
+- name: Import a compliance template from XML file
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "import"
+    template_view_type: "Compliance"
+    attributes:
+      Name: "Configuration Compliance"
+      Content: "{{ lookup('ansible.builtin.file', './test.xml') }}"
+      Type: 2
+
+- name: Create a template from a reference device with Job wait as false
+  dellemc.openmanage.ome_template:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    device_id: 25123
+    attributes:
+      Name: "New Template"
+      Description: "New Template description"
+      Fqdds: iDRAC,BIOS,
+    job_wait: false
 '''
 
 RETURN = r'''
@@ -413,12 +507,20 @@ Content:
   description: XML content of the exported template. This content can be written to a xml file.
   returned: success, when I(command) is C(export)
   type: str
-  sample: "<SystemConfiguration Model=\"PowerEdge R940\" ServiceTag=\"DG22TR2\" TimeStamp=\"Tue Sep 24 09:20:57.872551
+  sample: "<SystemConfiguration Model=\"PowerEdge R940\" ServiceTag=\"DEFG123\" TimeStamp=\"Tue Sep 24 09:20:57.872551
      2019\">\n<Component FQDD=\"AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDresetConfig\">True</Attribute>\n<Attribute
-     Name=\"RAIDforeignConfig\">Clear</Attribute>\n</Component>\n<Component FQDD=\"Disk.Direct.0-0:AHCI.Slot.6-1\">\n
-     <Attribute Name=\"RAIDPDState\">Ready</Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n
-     </Component>\n<Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready
-     </Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>\n"
+     Name=\"RAIDforeignConfig\">Clear</Attribute>\n</Component>\n<Component FQDD=\"Disk.Direct.0-0:AHCI.Slot.6-1\">
+     \n<Attribute Name=\"RAIDPDState\">Ready</Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>
+     \n</Component>\n<Component FQDD=\"Disk.Direct.1-1:AHCI.Slot.6-1\">\n<Attribute Name=\"RAIDPDState\">Ready
+     </Attribute>\n<Attribute Name=\"RAIDHotSpareStatus\">No</Attribute>\n</Component>\n</SystemConfiguration>"
+devices_assigned:
+  description: Mapping of devices with the templates already deployed on them.
+  returned: I(command) is C(deploy)
+  type: dict
+  sample: {
+        "10362": 28,
+        "10312": 23
+  }
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -442,18 +544,49 @@ error_info:
 '''
 
 import json
+import time
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import apply_diff_key, job_tracking
 
 
 TEMPLATES_URI = "TemplateService/Templates"
 TEMPLATE_PATH = "TemplateService/Templates({template_id})"
-TEMPALTE_ACTION = "TemplateService/Actions/TemplateService.{op}"
+TEMPLATE_ACTION = "TemplateService/Actions/TemplateService.{op}"
+TEMPLATE_ATTRIBUTES = "TemplateService/Templates({template_id})/AttributeDetails"
 DEVICE_URI = "DeviceService/Devices"
 GROUP_URI = "GroupService/Groups"
+PROFILE_URI = "ProfileService/Profiles"
+JOB_URI = "JobService/Jobs({job_id})"
+SEPRTR = ','
+NO_CHANGES_MSG = "No changes found to be applied."
+CHANGES_FOUND = "Changes found to be applied."
+TEMPLATE_NAME_EXISTS = "Template with name '{name}' already exists."
+DEPLOY_DEV_ASSIGNED = "The device(s) '{dev}' have been assigned the template(s) '{temp}' " \
+                      "respectively. Please unassign the profiles from the devices."
+MSG_DICT = {'create_when_job_wait_true': "Successfully created a template with ID {0}",
+            'create_when_job_wait_false': "Successfully submitted a template creation with job ID {0}",
+            'modify': "Successfully modified the template with ID {0}",
+            'deploy_when_job_wait_false': "Successfully submitted a template deployment with job ID {0}",
+            'deploy_when_job_wait_true': "Successfully deployed the template with ID {0}",
+            'fail': 'Failed to {command} template.',
+            'delete': "Deleted successfully",
+            'export': "Exported successfully",
+            'import': "Imported successfully",
+            'clone': "Cloned successfully",
+            'timed_out': "Template operation is in progress. Task excited after 'job_wait_timeout'."}
+
+
+def get_profiles(rest_obj):
+    try:
+        resp = rest_obj.invoke_request('GET', PROFILE_URI)
+        profile_list = resp.json_data.get("value")
+    except Exception:
+        profile_list = []
+    return profile_list
 
 
 def get_group_devices_all(rest_obj, uri):
@@ -529,30 +662,128 @@ def get_type_id_valid(rest_obj, typeid):
     if resp.success and resp.json_data.get('value'):
         tlist = resp.json_data.get('value', [])
         for xtype in tlist:
-            if xtype.get('Id') == typeid:  # use Name if str is passed
+            if xtype.get('Id') == typeid:
                 return True
     return False
 
 
-def get_create_payload(module_params, deviceid, view_id):
+def get_template_by_name(template_name, module, rest_obj):
+    template = {}
+    template_path = TEMPLATES_URI
+    query_param = {"$filter": "Name eq '{0}'".format(template_name)}
+    template_req = rest_obj.invoke_request("GET", template_path, query_param=query_param)
+    for each in template_req.json_data.get('value'):
+        if each['Name'] == template_name:
+            template = each
+            break
+    return template
+
+
+def recurse_subattr_list(subgroup, prefix, attr_detailed, attr_map, adv_list):
+    if isinstance(subgroup, list):
+        for each_sub in subgroup:
+            nprfx = "{0}{1}{2}".format(prefix, SEPRTR, each_sub.get("DisplayName"))
+            if each_sub.get("SubAttributeGroups"):
+                recurse_subattr_list(each_sub.get("SubAttributeGroups"), nprfx, attr_detailed, attr_map, adv_list)
+            else:
+                for attr in each_sub.get('Attributes'):
+                    attr['prefix'] = nprfx
+                    # case sensitive, remove whitespaces for optim
+                    constr = "{0}{1}{2}".format(nprfx, SEPRTR, attr['DisplayName'])
+                    if constr in adv_list:
+                        attr_detailed[constr] = attr['AttributeId']
+                    attr_map[attr['AttributeId']] = attr
+
+
+def get_subattr_all(attr_dtls, adv_list):
+    attr_detailed = {}
+    attr_map = {}
+    for each in attr_dtls:
+        recurse_subattr_list(each.get('SubAttributeGroups'), each.get('DisplayName'), attr_detailed, attr_map, adv_list)
+    return attr_detailed, attr_map
+
+
+def attributes_check(module, rest_obj, inp_attr, template_id):
+    diff = 0
+    try:
+        resp = rest_obj.invoke_request("GET", TEMPLATE_ATTRIBUTES.format(template_id=template_id))
+        attr_dtls = resp.json_data
+        disp_adv_list = inp_attr.get("Attributes", {})
+        adv_list = []
+        for attr in disp_adv_list:
+            if attr.get("DisplayName"):
+                split_k = str(attr.get("DisplayName")).split(SEPRTR)
+                trimmed = map(str.strip, split_k)
+                n_k = SEPRTR.join(trimmed)
+                adv_list.append(n_k)
+        attr_detailed, attr_map = get_subattr_all(attr_dtls.get('AttributeGroups'), adv_list)
+        payload_attr = inp_attr.get("Attributes", [])
+        rem_attrs = []
+        for attr in payload_attr:
+            if attr.get("DisplayName"):
+                split_k = str(attr.get("DisplayName")).split(SEPRTR)
+                trimmed = map(str.strip, split_k)
+                n_k = SEPRTR.join(trimmed)
+                id = attr_detailed.get(n_k, "")
+                attr['Id'] = id
+                attr.pop("DisplayName", None)
+            else:
+                id = attr.get('Id')
+            if id:
+                ex_val = attr_map.get(id, {})
+                if not ex_val:
+                    rem_attrs.append(attr)
+                    continue
+                if attr.get('Value') != ex_val.get("Value") or attr.get('IsIgnored') != ex_val.get("IsIgnored"):
+                    diff = diff + 1
+        for rem in rem_attrs:
+            payload_attr.remove(rem)
+        # module.exit_json(attr_detailed=attr_detailed, inp_attr=disp_adv_list, payload_attr=payload_attr, adv_list=adv_list)
+    except Exception:
+        diff = 1
+    return diff
+
+
+def get_create_payload(module, rest_obj, deviceid, view_id):
     create_payload = {"Fqdds": "All",
                       "ViewTypeId": view_id}
-    if isinstance(module_params.get("attributes"), dict):
-        create_payload.update(module_params.get("attributes"))
+    attrib_dict = module.params.get("attributes").copy()
+    if isinstance(attrib_dict, dict):
+        typeid = attrib_dict.get("Type") if attrib_dict.get("Type") else attrib_dict.get("TypeId")
+        if typeid:
+            create_payload["TypeId"] = typeid
+        attrib_dict.pop("Type", None)  # remove if exists as it is not required for create payload
+        create_payload.update(attrib_dict)
+        template = get_template_by_name(attrib_dict.get("Name"), module, rest_obj)
+        if template:
+            module.exit_json(msg=TEMPLATE_NAME_EXISTS.format(name=attrib_dict.get("Name")))
     create_payload["SourceDeviceId"] = int(deviceid)
     return create_payload
 
 
-def get_modify_payload(module_params, template_id, template_dict):
+def get_modify_payload(module, rest_obj, template_dict):
     modify_payload = {}
-    if isinstance(module_params.get("attributes"), dict):
-        modify_payload.update(module_params.get("attributes"))
-    modify_payload['Id'] = template_id
-    # Update with old template values
-    if not modify_payload.get("Name"):
-        modify_payload["Name"] = template_dict["Name"]
-    if not modify_payload.get("Description"):
-        modify_payload["Description"] = template_dict["Description"]
+    attrib_dict = module.params.get("attributes")
+    attrib_dict['Id'] = template_dict.get('Id')
+    modify_payload["Name"] = template_dict["Name"]
+    diff = 0
+    if attrib_dict.get("Name", template_dict["Name"]) != template_dict["Name"]:
+        template = get_template_by_name(attrib_dict.get("Name"), module, rest_obj)
+        if template:
+            module.exit_json(msg=TEMPLATE_NAME_EXISTS.format(name=attrib_dict.get("Name")))
+        modify_payload["Name"] = attrib_dict.get("Name")
+        diff = diff + 1
+    modify_payload["Description"] = template_dict["Description"]
+    diff = diff + apply_diff_key(attrib_dict, modify_payload, ["Description"])
+    # check attributes
+    if attrib_dict.get("Attributes"):
+        diff = diff + attributes_check(module, rest_obj, attrib_dict, template_dict.get('Id'))
+
+    if not diff:
+        module.exit_json(msg=NO_CHANGES_MSG)
+    if isinstance(attrib_dict, dict):
+        modify_payload.update(attrib_dict)
+    # module.exit_json(attrib_dict=attrib_dict, modify_payload=modify_payload)
     return modify_payload
 
 
@@ -569,9 +800,12 @@ def get_import_payload(module, rest_obj, view_id):
     attrib_dict = module.params.get("attributes").copy()
     import_payload = {}
     import_payload["Name"] = attrib_dict.pop("Name")
+    template = get_template_by_name(import_payload["Name"], module, rest_obj)
+    if template:
+        module.exit_json(msg=TEMPLATE_NAME_EXISTS.format(name=import_payload["Name"]))
     import_payload["ViewTypeId"] = view_id
     import_payload["Type"] = 2
-    typeid = attrib_dict.get("Type")
+    typeid = attrib_dict.get("Type") if attrib_dict.get("Type") else attrib_dict.get("TypeId")
     if typeid:
         if get_type_id_valid(rest_obj, typeid):
             import_payload["Type"] = typeid   # Type is mandatory for import
@@ -579,15 +813,19 @@ def get_import_payload(module, rest_obj, view_id):
             fail_module(module, msg="Type provided for 'import' operation is invalid")
     import_payload["Content"] = attrib_dict.pop("Content")
     if isinstance(attrib_dict, dict):
+        attrib_dict.pop("TypeId", None)  # remove if exists as it is not required for import payload
         import_payload.update(attrib_dict)
     return import_payload
 
 
-def get_clone_payload(module_params, template_id, view_id):
-    attrib_dict = module_params.get("attributes").copy()
+def get_clone_payload(module, rest_obj, template_id, view_id):
+    attrib_dict = module.params.get("attributes").copy()
     clone_payload = {}
     clone_payload["SourceTemplateId"] = template_id
     clone_payload["NewTemplateName"] = attrib_dict.pop("Name")
+    template = get_template_by_name(clone_payload["NewTemplateName"], module, rest_obj)
+    if template:
+        module.exit_json(msg=TEMPLATE_NAME_EXISTS.format(name=clone_payload["NewTemplateName"]))
     clone_payload["ViewTypeId"] = view_id
     if isinstance(attrib_dict, dict):
         clone_payload.update(attrib_dict)
@@ -604,72 +842,84 @@ def get_template_by_id(module, rest_obj, template_id):
                                 " requested template is not present.")
 
 
-def get_template_by_name(template_name, module, rest_obj):
-    """Filter out specific template based on name, and it returns template_id.
-
-    :param template_name: string
-    :param module: dictionary
-    :param rest_obj: object
-    :return: template_id: integer
-    """
-    template_id = None
-    template = None
-    template_path = TEMPLATES_URI
-    query_param = {"$filter": "Name eq '{0}'".format(template_name)}
-    template_req = rest_obj.invoke_request("GET", template_path, query_param=query_param)
-    for each in template_req.json_data.get('value'):
-        if each['Name'] == template_name:
-            template_id = each['Id']
-            template = each
-            break
-    else:
-        fail_module(module, msg="Unable to complete the operation because the"
-                                " requested template with name {0} is not present.".format(template_name))
-    return template, template_id
+def get_template_details(module, rest_obj):
+    id = module.params.get('template_id')
+    query_param = {"$filter": "Id eq {0}".format(id)}
+    srch = 'Id'
+    if not id:
+        id = module.params.get('template_name')
+        query_param = {"$filter": "Name eq '{0}'".format(id)}
+        srch = 'Name'
+    template = {}
+    resp = rest_obj.invoke_request('GET', TEMPLATES_URI, query_param=query_param)
+    if resp.success and resp.json_data.get('value'):
+        tlist = resp.json_data.get('value', [])
+        for xtype in tlist:
+            if xtype.get(srch) == id:
+                template = xtype
+    return template
 
 
 def _get_resource_parameters(module, rest_obj):
     command = module.params.get("command")
     rest_method = 'POST'
     payload = {}
-    template_id = module.params.get("template_id")
-    template_name = module.params.get("template_name")
-    if template_name:
-        template, template_id = get_template_by_name(template_name, module, rest_obj)
-    if command not in ["import", "create"] and template_id is None:
+    template = get_template_details(module, rest_obj)
+    template_id = template.get('Id')
+    # template_name = template.get('Name')
+    if command not in ["import", "create", "delete"] and not template:
         fail_module(module, msg="Enter a valid template_name or template_id")
     if command == "create":
         devid_list = get_device_ids(module, rest_obj)
         if len(devid_list) != 1:
             fail_module(module, msg="Create template requires only one reference device")
         view_id = get_view_id(rest_obj, module.params['template_view_type'])
-        payload = get_create_payload(module.params, devid_list[0], view_id)
+        payload = get_create_payload(module, rest_obj, devid_list[0], view_id)
         path = TEMPLATES_URI
+    elif command == 'import':
+        view_id = get_view_id(rest_obj, module.params['template_view_type'])
+        path = TEMPLATE_ACTION.format(op="Import")
+        payload = get_import_payload(module, rest_obj, view_id)
+    elif command == "delete":
+        if not template:
+            module.exit_json(msg=NO_CHANGES_MSG)
+        path = TEMPLATE_PATH.format(template_id=template_id)
+        rest_method = 'DELETE'
     elif command == "modify":
         path = TEMPLATE_PATH.format(template_id=template_id)
         template_dict = get_template_by_id(module, rest_obj, template_id)
-        payload = get_modify_payload(module.params, template_id, template_dict)
+        payload = get_modify_payload(module, rest_obj, template_dict)
         rest_method = 'PUT'
-    elif command == "delete":
-        path = TEMPLATE_PATH.format(template_id=template_id)
-        rest_method = 'DELETE'
     elif command == "export":
-        path = TEMPALTE_ACTION.format(op="Export")
+        path = TEMPLATE_ACTION.format(op="Export")
         payload = {'TemplateId': template_id}
     elif command == "deploy":
         devid_list = get_device_ids(module, rest_obj)
         if not devid_list:
             fail_module(module, msg="There are no devices provided for deploy operation")
-        path = TEMPALTE_ACTION.format(op="Deploy")
+        profile_list = get_profiles(rest_obj)
+        dev_temp_map = {}
+        for prof in profile_list:
+            target = prof["TargetId"]
+            if prof["ProfileState"] > 0 and target in devid_list:
+                if template_id == prof['TemplateId']:  # already same template deployed
+                    devid_list.remove(target)
+                else:
+                    dev_temp_map[prof["TargetId"]] = prof['TemplateId']
+        if dev_temp_map:
+            module.exit_json(devices_assigned=dev_temp_map,
+                             msg=DEPLOY_DEV_ASSIGNED.format(dev=','.join(map(str, dev_temp_map.keys())),
+                                                            temp=','.join(map(str, dev_temp_map.values()))))
+        if not devid_list:
+            module.exit_json(msg=NO_CHANGES_MSG)
+        path = TEMPLATE_ACTION.format(op="Deploy")
         payload = get_deploy_payload(module.params, devid_list, template_id)
     elif command == "clone":
         view_id = get_view_id(rest_obj, module.params['template_view_type'])
-        path = TEMPALTE_ACTION.format(op="Clone")
-        payload = get_clone_payload(module.params, template_id, view_id)
-    else:
-        view_id = get_view_id(rest_obj, module.params['template_view_type'])
-        path = TEMPALTE_ACTION.format(op="Import")
-        payload = get_import_payload(module, rest_obj, view_id)
+        path = TEMPLATE_ACTION.format(op="Clone")
+        payload = get_clone_payload(module, rest_obj, template_id, view_id)
+    if module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
     return path, payload, rest_method
 
 
@@ -706,51 +956,69 @@ def fail_module(module, **failmsg):
     module.fail_json(**failmsg)
 
 
-def exit_module(module, response):
+def exit_module(rest_obj, module, response, time_out=False):
     password_no_log(module.params.get("attributes"))
     resp = None
-    my_change = True
+    changed_flag = True
     command = module.params.get('command')
     result = {}
     if command in ["create", "modify", "deploy", "import", "clone"]:
         result["return_id"] = response.json_data
         resp = result["return_id"]
-        if command == 'deploy' and result["return_id"] == 0:
-            result["failed"] = True
-            command = 'deploy_fail'
-            my_change = False
+        if command == 'deploy':
+            if time_out:
+                command = 'timed_out'
+                changed_flag = False
+            elif not result["return_id"]:
+                result["failed"] = True
+                command = 'deploy_fail'
+                changed_flag = False
+            elif module.params["job_wait"]:
+                command = 'deploy_when_job_wait_true'
+            else:
+                command = 'deploy_when_job_wait_false'
+        elif command == 'create':
+            if time_out:
+                resp = get_job_id(rest_obj, resp)
+                command = 'timed_out'
+                changed_flag = False
+            elif module.params["job_wait"]:
+                command = 'create_when_job_wait_true'
+            else:
+                time.sleep(5)
+                resp = get_job_id(rest_obj, resp)
+                command = 'create_when_job_wait_false'
     if command == 'export':
-        my_change = False
+        changed_flag = False
         result = response.json_data
-    msg_dict = {'create': "Successfully created a template with ID {0}".format(resp),
-                'modify': "Successfully modified the template with ID {0}".format(resp),
-                'deploy': "Successfully created the template-deployment job with ID {0}".format(resp),
-                'deploy_fail': 'Failed to deploy template.',
-                'delete': "Deleted successfully",
-                'export': "Exported successfully",
-                'import': "Imported successfully",
-                'clone': "Cloned successfully"}
-    module.exit_json(msg=msg_dict.get(command), changed=my_change, **result)
+    message = MSG_DICT.get(command).format(resp)
+    module.exit_json(msg=message, changed=changed_flag, **result)
+
+
+def get_job_id(rest_obj, template_id):
+    template = rest_obj.invoke_request("GET", TEMPLATE_PATH.format(template_id=template_id))
+    job_id = template.json_data.get("TaskId")
+    return job_id
 
 
 def main():
+    specs = {
+        "command": {"required": False, "default": "create", "aliases": ['state'],
+                    "choices": ['create', 'modify', 'deploy', 'delete', 'export', 'import', 'clone']},
+        "template_id": {"required": False, "type": 'int'},
+        "template_name": {"required": False, "type": 'str'},
+        "template_view_type": {"required": False, "default": 'Deployment',
+                               "choices": ['Deployment', 'Compliance', 'Inventory', 'Sample', 'None']},
+        "device_id": {"required": False, "type": 'list', "default": [], "elements": 'int'},
+        "device_service_tag": {"required": False, "type": 'list', "default": [], "elements": 'str'},
+        "device_group_names": {"required": False, "type": 'list', "default": [], "elements": 'str'},
+        "attributes": {"required": False, "type": 'dict'},
+        "job_wait": {"required": False, "type": "bool", "default": True},
+        "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "command": {"required": False, "default": "create", "aliases": ['state'],
-                        "choices": ['create', 'modify', 'deploy', 'delete', 'export', 'import', 'clone']},
-            "template_id": {"required": False, "type": 'int'},
-            "template_name": {"required": False, "type": 'str'},
-            "template_view_type": {"required": False, "default": 'Deployment',
-                                   "choices": ['Deployment', 'Compliance', 'Inventory', 'Sample', 'None']},
-            "device_id": {"required": False, "type": 'list', "default": [], "elements": 'int'},
-            "device_service_tag": {"required": False, "type": 'list', "default": [], "elements": 'str'},
-            "device_group_names": {"required": False, "type": 'list', "default": [], "elements": 'str'},
-            "attributes": {"required": False, "type": 'dict'},
-        },
+        argument_spec=specs,
         required_if=[
             ['command', 'create', ['attributes']],
             ['command', 'modify', ['attributes']],
@@ -763,21 +1031,50 @@ def main():
             ['command', 'deploy', ['device_id', 'device_service_tag', 'device_group_names'], True],
         ],
         mutually_exclusive=[["template_id", "template_name"]],
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     try:
         _validate_inputs(module)
         with RestOME(module.params, req_session=True) as rest_obj:
             path, payload, rest_method = _get_resource_parameters(module, rest_obj)
             resp = rest_obj.invoke_request(rest_method, path, data=payload)
+            job_wait = module.params["job_wait"]
+            job_id = None
+            if job_wait:
+                if module.params["command"] == "create":
+                    template_id = resp.json_data
+                    count = 30
+                    sleep_time = 5
+                    while count > 0:
+                        try:
+                            job_id = get_job_id(rest_obj, template_id)
+                            if job_id:
+                                break
+                            time.sleep(sleep_time)
+                            count = count - sleep_time
+                        except HTTPError:
+                            time.sleep(sleep_time)
+                            count = count - sleep_time
+                            continue
+                elif module.params["command"] == "deploy":
+                    job_id = resp.json_data
+                if job_id:
+                    job_uri = JOB_URI.format(job_id=job_id)
+                    job_failed, msg, job_dict, wait_time = job_tracking(rest_obj, job_uri, max_job_wait_sec=module.params["job_wait_timeout"])
+                    if job_failed:
+                        if job_dict.get('LastRunStatus').get('Name') == "Running":
+                            exit_module(rest_obj, module, resp, True)
+                        else:
+                            message = MSG_DICT.get('fail').format(command=module.params["command"])
+                            module.fail_json(msg=message)
             if resp.success:
-                exit_module(module, resp)
+                exit_module(rest_obj, module, resp)
     except HTTPError as err:
         fail_module(module, msg=str(err), error_info=json.load(err))
     except URLError as err:
         password_no_log(module.params.get("attributes"))
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, SSLError, SSLValidationError, ConnectionError, TypeError, ValueError, KeyError) as err:
+    except (IOError, SSLError, SSLValidationError, ConnectionError, TypeError, ValueError, KeyError, OSError) as err:
         fail_module(module, msg=str(err))
 
 

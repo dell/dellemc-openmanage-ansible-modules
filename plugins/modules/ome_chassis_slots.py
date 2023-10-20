@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.6.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -44,7 +44,7 @@ options:
       slot_name:
         type: str
         description: Provide name for the slot.
-        required: True
+        required: true
   slot_options:
     type: list
     elements: dict
@@ -55,7 +55,7 @@ options:
       chassis_service_tag:
         type: str
         description: Service tag of the chassis.
-        required: True
+        required: true
       slots:
         type: list
         elements: dict
@@ -66,17 +66,17 @@ options:
           slot_number:
             type: int
             description: The slot number of the slot to be renamed.
-            required: True
+            required: true
           slot_name:
             type: str
             description: Provide name for the slot.
-            required: True
+            required: true
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 notes:
   - "This module initiates the refresh inventory task. It may take a minute for new names to be reflected.
   If the task exceeds 300 seconds to refresh, the task times out."
-  - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
   - This module supports C(check_mode).
 """
 
@@ -87,6 +87,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     slot_options:
       - chassis_service_tag: ABC1234
         slots:
@@ -106,6 +107,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_options:
       - device_id: 10054
         slot_name: slot_device_name_1
@@ -115,6 +117,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_options:
       - device_service_tag: ABC1234
         slot_name: service_tag_slot
@@ -124,6 +127,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_options:
       - device_id: 10054
         slot_name: sled_name_1
@@ -253,7 +257,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.common.dict_transformations import recursive_diff
 
 DEVICE_URI = "DeviceService/Devices"
@@ -552,33 +556,31 @@ def slot_number_config(module, rest_obj):
 
 
 def main():
+    specs = {
+        "device_options": {"type": 'list', "elements": 'dict',
+                           "options": {
+                               "slot_name": {"required": True, 'type': 'str'},
+                               "device_id": {"type": 'int'},
+                               "device_service_tag": {"type": 'str'}
+                           },
+                           "mutually_exclusive": [('device_id', 'device_service_tag')],
+                           "required_one_of": [('device_id', 'device_service_tag')]
+                           },
+        "slot_options": {"type": 'list', "elements": 'dict',
+                         "options": {
+                             "chassis_service_tag": {"required": True, 'type': 'str'},
+                             "slots": {"required": True, "type": 'list', "elements": 'dict',
+                                       "options": {
+                                           "slot_number": {"required": True, 'type': 'int'},
+                                           "slot_name": {"required": True, "type": 'str'}
+                                       },
+                                       },
+                         },
+                         },
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"type": "int", "default": 443},
-            "device_options": {"type": 'list', "elements": 'dict',
-                               "options": {
-                                   "slot_name": {"required": True, 'type': 'str'},
-                                   "device_id": {"type": 'int'},
-                                   "device_service_tag": {"type": 'str'}
-                               },
-                               "mutually_exclusive": [('device_id', 'device_service_tag')],
-                               "required_one_of": [('device_id', 'device_service_tag')]
-                               },
-            "slot_options": {"type": 'list', "elements": 'dict',
-                             "options": {
-                                 "chassis_service_tag": {"required": True, 'type': 'str'},
-                                 "slots": {"required": True, "type": 'list', "elements": 'dict',
-                                           "options": {
-                                               "slot_number": {"required": True, 'type': 'int'},
-                                               "slot_name": {"required": True, "type": 'str'}
-                                           },
-                                           },
-                             },
-                             },
-        },
+        argument_spec=specs,
         required_one_of=[('slot_options', 'device_options')],
         mutually_exclusive=[('slot_options', 'device_options')],
         supports_check_mode=True
@@ -601,7 +603,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

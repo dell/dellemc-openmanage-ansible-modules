@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 2.7.5
+- python >= 3.8.6
 
 
 
@@ -99,6 +99,22 @@ Parameters
     OpenManage Enterprise HTTPS port.
 
 
+  validate_certs (optional, bool, True)
+    If ``false``, the SSL certificates will not be validated.
+
+    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+
+    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+
+
+  ca_path (optional, path, None)
+    The Privacy Enhanced Mail (PEM) file that contains a CA certificate to be used for the validation.
+
+
+  timeout (optional, int, 30)
+    The socket level timeout in seconds.
+
+
 
 
 
@@ -106,10 +122,10 @@ Notes
 -----
 
 .. note::
-   - This module manages only static device groups on Dell EMC OpenManage Enterprise.
+   - This module manages only static device groups on Dell OpenManage Enterprise.
    - If a device group with the name *parent_group_name* does not exist, a new device group with the same name is created.
    - Make sure the entered parent group is not the descendant of the provided group.
-   - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise.
+   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
    - This module supports ``check_mode``.
 
 
@@ -127,6 +143,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         name: "group 1"
         description: "Group 1 description"
         parent_group_name: "group parent 1"
@@ -136,6 +153,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         group_id: 1234
         description: "Group description updated"
         parent_group_name: "group parent 2"
@@ -145,6 +163,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         name: "group 1"
 
@@ -153,6 +172,7 @@ Examples
         hostname: "192.168.0.1"
         username: "username"
         password: "password"
+        ca_path: "/path/to/ca_cert.pem"
         state: absent
         group_id:
           - 1234

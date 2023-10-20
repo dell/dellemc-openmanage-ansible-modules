@@ -1,18 +1,15 @@
 ---
 - hosts: ome
-  connection: local
-  name: Dell EMC OpenManage Ansible smart fabric operations.
-  gather_facts: False
-
-  collections:
-    - dellemc.openmanage
+  name: Dell OpenManage Ansible smart fabric operations.
+  gather_facts: false
 
   tasks:
-    - name: "Create a smart fabric"
-      ome_smart_fabric:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Create a smart fabric
+      dellemc.openmanage.ome_smart_fabric:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "fabric1"
         description: "fabric desc"
@@ -21,24 +18,28 @@
         secondary_switch_service_tag: "PXYT456"
         override_LLDP_configuration: "Enabled"
       tags: create_smart_fabric
+      delegate_to: localhost
 
-    - name: "Modify a smart fabric"
-      ome_smart_fabric:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Modify a smart fabric
+      dellemc.openmanage.ome_smart_fabric:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: present
         name: "fabric1"
         new_name: "fabric_gold1"
         description: "new description"
       tags: modify_smart_fabric
+      delegate_to: localhost
 
-
-    - name: "Delete a smart fabric"
-      ome_smart_fabric:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
+    - name: Delete a smart fabric
+      dellemc.openmanage.ome_smart_fabric:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        ca_path: "/path/to/ca_cert.pem"
         state: "absent"
         name: "fabric1"
       tags: delete_smart_fabric
+      delegate_to: localhost

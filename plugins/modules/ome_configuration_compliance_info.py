@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.2.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 6.1.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -25,27 +25,29 @@ extends_documentation_fragment:
   - dellemc.openmanage.oment_auth_options
 options:
   baseline:
-    required: True
+    required: true
     description:
       - The name of the created baseline.
       - A compliance report is generated even when the template is not associated with the baseline.
     type: str
   device_id:
-    required: False
+    required: false
     description:
       - The ID of the target device which is associated with the I(baseline).
     type: int
   device_service_tag:
-    required: False
+    required: false
     description:
       - The device service tag of the target device associated with the I(baseline).
       - I(device_service_tag) is mutually exclusive with I(device_id).
     type: str
 requirements:
-  - "python >= 2.7.5"
-author: "Felix Stephen A (@felixs88)"
+  - "python >= 3.8.6"
+author:
+  - "Felix Stephen A (@felixs88)"
+  - "Kritika Bhateja (@Kritika-Bhateja)"
 notes:
-  - Run this module from a system that has direct access to DellEMC OpenManage Enterprise.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise.
   - This module supports C(check_mode).
 '''
 
@@ -56,6 +58,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline: baseline_name
 
 - name: Retrieve the compliance report for a specific device associated with the baseline using the device ID.
@@ -63,6 +66,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline: baseline_name
     device_id: 10001
 
@@ -71,6 +75,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     baseline: baseline_name
     device_service_tag: 2HFGH3
 '''
@@ -144,7 +149,7 @@ error_info:
 import json
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 
@@ -153,9 +158,8 @@ CONFIG_COMPLIANCE_URI = "TemplateService/Baselines({0})/DeviceConfigComplianceRe
 COMPLIANCE_URI = "TemplateService/Baselines({0})/DeviceConfigComplianceReports({1})/DeviceComplianceDetails"
 
 
-def validate_device(module, rest_obj, device_id=None, service_tag=None, base_id=None):
-    device = rest_obj.get_all_report_details(CONFIG_COMPLIANCE_URI.format(base_id))
-    for each in device["report_list"]:
+def validate_device(module, report, device_id=None, service_tag=None, base_id=None):
+    for each in report.get("value"):
         if each["Id"] == device_id:
             break
         if each["ServiceTag"] == service_tag:
@@ -187,38 +191,40 @@ def compliance_report(module, rest_obj):
     device_id = module.params.get("device_id")
     device_service_tag = module.params.get("device_service_tag")
     baseline_id, template_id = get_baseline_id(module, baseline_name, rest_obj)
-    baseline_report = rest_obj.invoke_request("GET", CONFIG_COMPLIANCE_URI.format(baseline_id))
     report = []
-    if (device_id is not None and baseline_id is not None) \
-            or (device_service_tag is not None and baseline_id is not None):
-        if not baseline_report.json_data.get("value") and template_id == 0:
+    if device_id:
+        compliance_uri = COMPLIANCE_URI.format(baseline_id, device_id)
+        baseline_report = rest_obj.invoke_request("GET", compliance_uri)
+        if not baseline_report.json_data.get("ComplianceAttributeGroups") and template_id == 0:
             module.fail_json(msg="The compliance report of the device not found as "
                                  "there is no template associated with the baseline.")
-        device_id = validate_device(module, rest_obj, device_id=device_id,
-                                    service_tag=device_service_tag, base_id=baseline_id)
-        report = list(filter(lambda d: d['Id'] in [device_id], baseline_report.json_data["value"]))
+        device_compliance = baseline_report.json_data.get("ComplianceAttributeGroups")
     else:
-        report = baseline_report.json_data.get("value")
-    device_compliance = report
-    if device_compliance:
-        for each in device_compliance:
-            compliance_uri = COMPLIANCE_URI.format(baseline_id, each["Id"])
-            attr_group = rest_obj.invoke_request("GET", compliance_uri)
-            each["ComplianceAttributeGroups"] = attr_group.json_data.get("ComplianceAttributeGroups")
+        baseline_report = rest_obj.get_all_items_with_pagination(CONFIG_COMPLIANCE_URI.format(baseline_id))
+        if device_service_tag:
+            device_id = validate_device(module, baseline_report, device_id=device_id,
+                                        service_tag=device_service_tag, base_id=baseline_id)
+            report = list(filter(lambda d: d['Id'] in [device_id], baseline_report.get("value")))
+        else:
+            report = baseline_report.get("value")
+        device_compliance = report
+        if device_compliance:
+            for each in device_compliance:
+                compliance_uri = COMPLIANCE_URI.format(baseline_id, each["Id"])
+                attr_group = rest_obj.invoke_request("GET", compliance_uri)
+                each["ComplianceAttributeGroups"] = attr_group.json_data.get("ComplianceAttributeGroups")
     return device_compliance
 
 
 def main():
+    specs = {
+        "baseline": {"required": True, "type": "str"},
+        "device_id": {"required": False, "type": "int"},
+        "device_service_tag": {"required": False, "type": "str"},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "default": 443, "type": "int"},
-            "baseline": {"required": True, "type": "str"},
-            "device_id": {"required": False, "type": "int"},
-            "device_service_tag": {"required": False, "type": "str"},
-        },
+        argument_spec=specs,
         mutually_exclusive=[["device_id", "device_service_tag"]],
         supports_check_mode=True
     )
@@ -230,7 +236,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

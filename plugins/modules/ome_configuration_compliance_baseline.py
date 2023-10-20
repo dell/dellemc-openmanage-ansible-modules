@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 3.2.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.6.0
+# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -102,12 +102,14 @@ options:
   job_wait_timeout:
     description:
       - The maximum wait time of I(job_wait) in seconds.The job will only be tracked for this duration.
-      - This option is applicable when I(job_wait) is C(True).
+      - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 10800
 requirements:
-    - "python >= 2.7.5"
-author: "Sajna Shetty(@Sajna-Shetty)"
+    - "python >= 3.8.6"
+author:
+    - "Sajna Shetty(@Sajna-Shetty)"
+    - "Abhishek Sinha(@Abhishek-Dell)"
 notes:
     - This module supports C(check_mode).
     - Ensure that the devices have the required licenses to perform the baseline compliance operations.
@@ -120,6 +122,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     names: "baseline1"
     template_name: "template1"
     description: "description of baseline"
@@ -132,6 +135,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     names: "baseline1"
     template_id: 1234
     description: "description of baseline"
@@ -144,6 +148,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     names: "baseline2"
     template_id: 2
     job_wait_timeout: 1000
@@ -157,6 +162,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: delete
     names:
       - baseline1
@@ -167,6 +173,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: modify
     names: "baseline1"
     new_name: "baseline_update"
@@ -181,6 +188,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "remediate"
     names: "baseline1"
     device_ids:
@@ -191,6 +199,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "remediate"
     names: "baseline1"
     device_service_tags:
@@ -202,6 +211,7 @@ EXAMPLES = r'''
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     command: "remediate"
     names: "baseline1"
 '''
@@ -280,12 +290,12 @@ error_info:
 
 import json
 import time
-import re
 from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.compat.version import LooseVersion
 
 COMPLIANCE_BASELINE = "TemplateService/Baselines"
 REMEDIATE_BASELINE = "TemplateService/Actions/TemplateService.Remediate"
@@ -736,11 +746,10 @@ def create_remediate_payload(noncomplaint_devices, baseline_info, rest_obj):
             "RunLater": False
         }
     }
-    pattern = re.compile(r'(1|2|3)\.(0|1|2|3|4)\.?')
-    if pattern.match(ome_version):
-        payload["TargetIds"] = noncomplaint_devices
-    else:
+    if LooseVersion(ome_version) >= "3.5":
         payload["DeviceIds"] = noncomplaint_devices
+    else:
+        payload["TargetIds"] = noncomplaint_devices
     return payload
 
 
@@ -788,25 +797,23 @@ def compliance_operation(module, rest_obj):
 
 
 def main():
+    specs = {
+        "command": {"default": "create",
+                    "choices": ['create', 'modify', 'delete', 'remediate']},
+        "names": {"required": True, "type": 'list', "elements": 'str'},
+        "template_name": {"type": 'str'},
+        "template_id": {"type": 'int'},
+        "device_ids": {"required": False, "type": 'list', "elements": 'int'},
+        "device_service_tags": {"required": False, "type": 'list', "elements": 'str'},
+        "device_group_names": {"required": False, "type": 'list', "elements": 'str'},
+        "description": {"type": 'str'},
+        "job_wait": {"required": False, "type": 'bool', "default": True},
+        "job_wait_timeout": {"required": False, "type": 'int', "default": 10800},
+        "new_name": {"type": 'str'},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": 'str'},
-            "username": {"required": True, "type": 'str'},
-            "password": {"required": True, "type": 'str', "no_log": True},
-            "port": {"required": False, "default": 443, "type": 'int'},
-            "command": {"default": "create",
-                        "choices": ['create', 'modify', 'delete', 'remediate']},
-            "names": {"required": True, "type": 'list', "elements": 'str'},
-            "template_name": {"type": 'str'},
-            "template_id": {"type": 'int'},
-            "device_ids": {"required": False, "type": 'list', "elements": 'int'},
-            "device_service_tags": {"required": False, "type": 'list', "elements": 'str'},
-            "device_group_names": {"required": False, "type": 'list', "elements": 'str'},
-            "description": {"type": 'str'},
-            "job_wait": {"required": False, "type": 'bool', "default": True},
-            "job_wait_timeout": {"required": False, "type": 'int', "default": 10800},
-            "new_name": {"type": 'str'},
-        },
+        argument_spec=specs,
         required_if=[
             ['command', 'create', ['template_name', 'template_id'], True],
             ['command', 'remediate', ['device_ids', 'device_service_tags', 'job_wait', 'job_wait_timeout'], True],
@@ -828,7 +835,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError) as err:
+    except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 4.3.0
-# Copyright (C) 2021 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -79,11 +79,11 @@ options:
         required: true
         description: Enables or disables the remote RACADM settings.
 requirements:
-  - "python >= 2.7.17"
+  - "python >= 3.8.6"
 author:
   - "Felix Stephen (@felixs88)"
 notes:
-  - Run this module from a system that has direct access to Dell EMC OpenManage Enterprise Modular.
+  - Run this module from a system that has direct access to Dell OpenManage Enterprise Modular.
   - This module supports C(check_mode).
 """
 
@@ -94,6 +94,7 @@ EXAMPLES = """
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_id: 25011
     snmp_settings:
       enabled: true
@@ -109,6 +110,7 @@ EXAMPLES = """
     hostname: "192.168.0.2"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     device_service_tag: GHRT2RL
     snmp_settings:
       enabled: false
@@ -126,6 +128,7 @@ EXAMPLES = """
     hostname: "192.168.0.3"
     username: "username"
     password: "password"
+    ca_path: "/path/to/ca_cert.pem"
     snmp_settings:
       enabled: false
     ssh_settings:
@@ -192,7 +195,7 @@ from ssl import SSLError
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
+from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME, ome_auth_params
 
 DOMAIN_URI = "ManagementDomainService/Domains"
 DEVICE_URI = "DeviceService/Devices"
@@ -358,19 +361,17 @@ def main():
                    "max_auth_retries": {"type": "int", "required": False},
                    "idle_timeout": {"type": "float", "required": False}}
     racadm_options = {"enabled": {"type": "bool", "required": True}}
+    specs = {
+        "device_id": {"required": False, "type": "int"},
+        "device_service_tag": {"required": False, "type": "str"},
+        "snmp_settings": {"type": "dict", "required": False, "options": snmp_options,
+                          "required_if": [["enabled", True, ("community_name",)]]},
+        "ssh_settings": {"type": "dict", "required": False, "options": ssh_options},
+        "remote_racadm_settings": {"type": "dict", "required": False, "options": racadm_options},
+    }
+    specs.update(ome_auth_params)
     module = AnsibleModule(
-        argument_spec={
-            "hostname": {"required": True, "type": "str"},
-            "username": {"required": True, "type": "str"},
-            "password": {"required": True, "type": "str", "no_log": True},
-            "port": {"required": False, "type": "int", "default": 443},
-            "device_id": {"required": False, "type": "int"},
-            "device_service_tag": {"required": False, "type": "str"},
-            "snmp_settings": {"type": "dict", "required": False, "options": snmp_options,
-                              "required_if": [["enabled", True, ("community_name",)]]},
-            "ssh_settings": {"type": "dict", "required": False, "options": ssh_options},
-            "remote_racadm_settings": {"type": "dict", "required": False, "options": racadm_options},
-        },
+        argument_spec=specs,
         mutually_exclusive=[('device_id', 'device_service_tag')],
         required_one_of=[["snmp_settings", "ssh_settings", "remote_racadm_settings"]],
         supports_check_mode=True,
@@ -389,7 +390,7 @@ def main():
         module.fail_json(msg=str(err), error_info=json.load(err))
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError) as err:
+    except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
         module.fail_json(msg=str(err))
 
 

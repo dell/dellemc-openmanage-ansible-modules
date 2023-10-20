@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #
-# Dell EMC OpenManage Ansible Modules
-# Version 2.1.5
-# Copyright (C) 2020 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Dell OpenManage Ansible Modules
+# Version 7.0.0
+# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -15,7 +15,7 @@ __metaclass__ = type
 import pytest
 import json
 from ansible_collections.dellemc.openmanage.plugins.modules import ome_template_identity_pool
-from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule, Constants
+from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ssl import SSLError
@@ -23,6 +23,34 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_template_identity_pool.'
+template1 = \
+    {
+        "@odata.context": "/api/$metadata#TemplateService.Template",
+        "@odata.type": "#TemplateService.Template",
+        "@odata.id": "/api/TemplateService/Templates(9)",
+        "Id": 9,
+        "Name": "template",
+        "Description": None,
+        "Content": None,
+        "SourceDeviceId": 10116,
+        "TypeId": 2,
+        "ViewTypeId": 2,
+        "TaskId": 10125,
+        "HasIdentityAttributes": True,
+        "Status": 2060,
+        "IdentityPoolId": 1,
+        "IsPersistencePolicyValid": True,
+        "IsStatelessAvailable": True,
+        "IsBuiltIn": False,
+        "CreatedBy": "admin",
+        "CreationTime": "2022-02-02 09:33:25.887057",
+        "LastUpdatedBy": "admin",
+        "LastUpdatedTime": "2022-02-02 13:53:37.443315",
+        "Views@odata.navigationLink": "/api/TemplateService/Templates(9)/Views",
+        "AttributeDetails": {
+            "@odata.id": "/api/TemplateService/Templates(9)/AttributeDetails"
+        }
+    }
 
 
 @pytest.fixture
@@ -66,7 +94,7 @@ class TestOMETemplateIdentityPool(FakeAnsibleModule):
 
     def test_main_success(self, mocker, ome_default_args, ome_connection_mock_template_identity_pool,
                           ome_response_mock):
-        mocker.patch(MODULE_PATH + "get_template_id", return_value=10)
+        mocker.patch(MODULE_PATH + "get_template_id", return_value=template1)
         mocker.patch(MODULE_PATH + "get_identity_id", return_value=10)
         ome_default_args.update({"template_name": "template", "identity_pool_name": "pool_name"})
         ome_response_mock.json_data = {"msg": "Successfully assigned identity pool to template.", "changed": True}
@@ -109,11 +137,11 @@ class TestOMETemplateIdentityPool(FakeAnsibleModule):
         assert nic_bonding_tech == "LACP"
 
     def test_get_template_id(self, ome_connection_mock_template_identity_pool, ome_response_mock):
-        ome_response_mock.json_data = {"value": [{"Name": "template", "Id": 10, "IdentityPoolId": 5}]}
+        ome_response_mock.json_data = {"value": [{"Name": "template", "Id": 9, "IdentityPoolId": 1}]}
         ome_response_mock.success = True
         f_module = self.get_module_mock(params={"template_name": "template"})
         res_temp = self.module.get_template_id(ome_connection_mock_template_identity_pool, f_module)
-        assert res_temp == 10
+        assert res_temp == {"Name": "template", "Id": 9, "IdentityPoolId": 1}
 
     def test_get_identity_id(self, ome_connection_mock_template_identity_pool):
         data = {"report_list": [{"Name": "pool_name", "Id": 10}]}
