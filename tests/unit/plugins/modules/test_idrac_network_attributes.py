@@ -870,7 +870,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         job_state = {'JobState': "Completed"}
         invalid_attr = {'a': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE}
         mocker.patch(MODULE_PATH + "idrac_network_attributes.idrac_redfish_job_tracking",
-                     return_value=(False, 'some msg', job_state, 10))
+                     return_value=(False, 'some msg', job_state, 700))
         # Scenario 1: When diff is false
         diff = 0
         f_module = self.get_module_mock(
@@ -897,6 +897,9 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         def return_data():
             return (resp, invalid_attr, False)
         obj.perform_operation = return_data
+        obj.json_data = {'JobState': 'Completed'}
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.iDRACRedfishAPI.invoke_request",
+                     return_value=obj)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         with pytest.raises(Exception) as exc:
@@ -920,9 +923,9 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
 
         def return_data():
             return (resp, invalid_attr, False)
-        job_state = {'JobState': "Scheduled"}
-        mocker.patch(MODULE_PATH + "idrac_network_attributes.idrac_redfish_job_tracking",
-                     return_value=(False, 'some msg', job_state, 10))
+        obj.json_data = {'JobState': "Scheduled"}
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.iDRACRedfishAPI.invoke_request",
+                     return_value=obj)
         obj.perform_operation = return_data
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
@@ -949,6 +952,25 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             self.module.perform_operation_for_main(idrac_connection_ntwrk_attr_mock,
                                                    f_module, obj, diff, invalid_attr)
         assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
+
+        # Scenario 8: When Job_wait is True and wait time is less
+        diff = 1
+        invalid_attr = {}
+        resp = MagicMock()
+        resp.headers = {'Location': self.uri}
+
+        def return_data():
+            return (resp, invalid_attr, True)
+        obj.perform_operation = return_data
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.idrac_redfish_job_tracking",
+                     return_value=(False, 'msg', obj.json_data, 1200))
+        idrac_default_args.update({'job_wait_timeout': 1000})
+        h_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        with pytest.raises(Exception) as exc:
+            self.module.perform_operation_for_main(idrac_connection_ntwrk_attr_mock,
+                                                   h_module, obj, diff, invalid_attr)
+        assert exc.value.args[0] == WAIT_TIMEOUT_MSG.format(1000)
 
     @pytest.mark.parametrize("exc_type",
                              [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
