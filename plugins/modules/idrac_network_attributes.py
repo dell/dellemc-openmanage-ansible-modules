@@ -653,14 +653,21 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
             job_dict = {}
             if (job_tracking_uri := job_resp.headers.get("Location")):
                 job_id = job_tracking_uri.split("/")[-1]
-                job_wait_timeout = job_wait_timeout if job_wait else 20
-                job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(idrac, iDRAC_JOB_URI.format(job_id=job_id),
-                                                                                  max_job_wait_sec=job_wait_timeout)
-                if int(wait_time) >= int(job_wait_timeout):
-                    module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
-                        job_wait_timeout), changed=True)
-                job_dict = remove_key(job_dict,
-                                      regex_pattern='(.*?)@odata')
+                job_uri = iDRAC_JOB_URI.format(job_id=job_id)
+                if job_wait:
+                    job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(idrac, job_uri,
+                                                                                      max_job_wait_sec=job_wait_timeout,
+                                                                                      sleep_interval_secs=1)
+                    job_dict = remove_key(job_dict,
+                                          regex_pattern='(.*?)@odata')
+                    if int(wait_time) >= int(job_wait_timeout):
+                        module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
+                            job_wait_timeout), changed=True, job_status=job_dict)
+                else:
+                    job_resp = idrac.invoke_request(job_uri, 'GET')
+                    job_dict = job_resp.json_data
+                    job_dict = remove_key(job_dict,
+                                          regex_pattern='(.*?)@odata')
 
             if job_dict.get('JobState') == "Completed":
                 msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
