@@ -806,7 +806,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.extract_error_msg",
                      return_value=error_info)
         mocker.patch(MODULE_PATH + "idrac_network_attributes.idrac_redfish_job_tracking",
-                     return_value=(False, 'some msg', obj.json_data, 600))
+                     return_value=(False, 'some msg', obj.json_data, 10))
         mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
                      return_value='6.1')
 
@@ -818,7 +818,6 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.OEMNetworkAttributes(
             idrac_connection_ntwrk_attr_mock, f_module)
-        # import pdb; pdb.set_trace()
         data = idr_obj.perform_operation()
         assert data == ({'data': 'some value'}, {
                         'abc': ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE})

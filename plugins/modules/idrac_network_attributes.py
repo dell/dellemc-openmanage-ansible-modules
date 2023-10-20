@@ -612,13 +612,13 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
             resp = self.idrac.invoke_request(
                 method='PATCH', uri=patch_uri, data=payload)
             invalid_attr = self.extract_error_msg(resp)
-        job_wait = job_wait if apply_time == "Immediate" else False
+            job_wait = job_wait if apply_time == "Immediate" else False
         job_dict = {}
         if (job_tracking_uri := resp.headers.get("Location")):
             job_id = job_tracking_uri.split("/")[-1]
-            wait_time = job_wait_timeout if job_wait else 20
+            job_wait_timeout = job_wait_timeout if job_wait else 20
             job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
-                                                                              max_job_wait_sec=wait_time)
+                                                                              max_job_wait_sec=job_wait_timeout)
             if int(wait_time) >= int(job_wait_timeout):
                 self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
                     job_wait_timeout), changed=True)
@@ -710,6 +710,8 @@ def main():
         module = AnsibleModule(argument_spec=specs,
                                mutually_exclusive=[
                                    ('network_attributes', 'oem_network_attributes')],
+                               required_if=[["apply_time", "AtMaintenanceWindowStart", ("maintenance_window",)],
+                                            ["apply_time", "InMaintenanceWindowOnReset", ("maintenance_window",)]],
                                supports_check_mode=True)
         with iDRACRedfishAPI(module.params, req_session=True) as idrac:
             if module_attribute := module.params.get('network_attributes'):
