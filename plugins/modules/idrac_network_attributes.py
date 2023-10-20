@@ -593,7 +593,6 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
             'network_device_function_id')
         apply_time = self.module.params.get('apply_time')
         job_wait = self.module.params.get('job_wait')
-        job_wait_timeout = self.module.params.get('job_wait_timeout')
         invalid_attr = {}
         firm_ver = get_idrac_firmware_version(self.idrac)
         if LooseVersion(firm_ver) < '3.0':
@@ -614,18 +613,7 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
                 method='PATCH', uri=patch_uri, data=payload)
             invalid_attr = self.extract_error_msg(resp)
             job_wait = job_wait if apply_time == "Immediate" else False
-        job_dict = {}
-        if (job_tracking_uri := resp.headers.get("Location")):
-            job_id = job_tracking_uri.split("/")[-1]
-            job_wait_timeout = job_wait_timeout if job_wait else 20
-            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
-                                                                              max_job_wait_sec=job_wait_timeout)
-            if int(wait_time) >= int(job_wait_timeout):
-                self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
-                    job_wait_timeout), changed=True)
-            job_dict = remove_key(job_dict,
-                                  regex_pattern='(.*?)@odata')
-        return job_dict, invalid_attr
+        return resp, invalid_attr, job_wait
 
 
 class NetworkAttributes(IDRACNetworkAttributes):
@@ -637,7 +625,6 @@ class NetworkAttributes(IDRACNetworkAttributes):
         network_attributes = self.module.params.get('network_attributes')
         apply_time = self.module.params.get('apply_time')
         job_wait = self.module.params.get('job_wait')
-        job_wait_timeout = self.module.params.get('job_wait_timeout')
         payload, invalid_attr = {}, {}
         for each_attr in network_attributes:
             if each_attr in updatable_fields:
@@ -652,40 +639,42 @@ class NetworkAttributes(IDRACNetworkAttributes):
             method='PATCH', uri=patch_uri, data=payload)
         invalid_attr = self.extract_error_msg(resp)
         job_wait = job_wait if apply_time == "Immediate" else False
-        job_dict = {}
-        if (job_tracking_uri := resp.headers.get("Location")):
-            job_id = job_tracking_uri.split("/")[-1]
-            wait_time = job_wait_timeout if job_wait else 20
-            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, iDRAC_JOB_URI.format(job_id=job_id),
-                                                                              max_job_wait_sec=wait_time)
-            if int(wait_time) >= int(job_wait_timeout):
-                self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
-                    job_wait_timeout), changed=True)
-            job_dict = remove_key(job_dict,
-                                  regex_pattern='(.*?)@odata')
-        return job_dict, invalid_attr
+        return resp, invalid_attr, job_wait
 
 
-def perform_operation_for_main(module, obj, diff, _invalid_attr):
+def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
+    job_wait_timeout = module.params.get('job_wait_timeout')
     if diff:
         if module.check_mode:
             module.exit_json(msg=CHANGES_FOUND_MSG, changed=True,
                              invalid_attributes=_invalid_attr)
         else:
-            job_resp, invalid_attr = obj.perform_operation()
-            if job_resp.get('JobState') == "Completed":
+            job_resp, invalid_attr, job_wait = obj.perform_operation()
+            job_dict = {}
+            if (job_tracking_uri := job_resp.headers.get("Location")):
+                job_id = job_tracking_uri.split("/")[-1]
+                job_wait_timeout = job_wait_timeout if job_wait else 20
+                job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(idrac, iDRAC_JOB_URI.format(job_id=job_id),
+                                                                                  max_job_wait_sec=job_wait_timeout)
+                if int(wait_time) >= int(job_wait_timeout):
+                    module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
+                        job_wait_timeout), changed=True)
+                job_dict = remove_key(job_dict,
+                                      regex_pattern='(.*?)@odata')
+
+            if job_dict.get('JobState') == "Completed":
                 msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
             else:
                 msg = SCHEDULE_MSG
             module.exit_json(msg=msg, invalid_attributes=invalid_attr,
-                             job_status=job_resp, changed=True)
+                             job_status=job_dict, changed=True)
     else:
         if module.check_mode:
             module.exit_json(msg=NO_CHANGES_FOUND_MSG,
                              invalid_attributes=_invalid_attr)
         # When user has given only invalid attribute, diff will 0 and _invalid_attr will have dictionary,
         elif _invalid_attr:  # Expecting HTTP Error from server.
-            job_resp, invalid_attr = obj.perform_operation()
+            job_resp, invalid_attr, job_wait = obj.perform_operation()
         module.exit_json(msg=NO_CHANGES_FOUND_MSG,
                          invalid_attributes=_invalid_attr)
 
@@ -727,8 +716,8 @@ def main():
             server_reg = network_attr_obj.get_current_server_registry()
             diff, invalid_attr = network_attr_obj.get_diff_between_current_and_module_input(
                 module_attribute, server_reg)
-            perform_operation_for_main(
-                module, network_attr_obj, diff, invalid_attr)
+            perform_operation_for_main(idrac,
+                                       module, network_attr_obj, diff, invalid_attr)
     except HTTPError as err:
         err = remove_key(
             err, regex_pattern='(.*?)@odata') if err and isinstance(err, dict) else err
