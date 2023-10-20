@@ -935,6 +935,7 @@ def main():
         argument_spec=specs,
         required_if=[
             ["command", "export", ["share_name"]],
+            ["proxy_support", True, ["proxy_server"]]
         ],
         supports_check_mode=True)
 
