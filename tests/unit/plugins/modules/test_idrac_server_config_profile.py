@@ -40,46 +40,46 @@ class TestServerConfigProfile(FakeAnsibleModule):
         idrac_conn_class_mock.return_value.__enter__.return_value = idrac_server_configure_profile_mock
         return idrac_server_configure_profile_mock
 
-    @pytest.mark.parametrize("params", [
+    @pytest.mark.parametrize("param", [
         {"message": SUCCESS_MSG.format("export"),
          "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "MessageId": "SYS043",
                        "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.xml"},
-         "mparams": {"share_name": "\\{SCP SHARE IP}\\share", "job_wait": True,
-                     "scp_components": "IDRAC", "scp_file": "scp_file.xml",
-                     "proxy_port": 80, "export_format": "XML"}},
+         "mparam": {"share_name": "\\{SCP SHARE IP}\\share", "job_wait": True,
+                    "scp_components": "IDRAC", "scp_file": "scp_file.xml",
+                    "proxy_port": 80, "export_format": "XML"}},
         {"message": SUCCESS_MSG.format("export"),
          "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS069",
                        "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-         "mparams": {"share_name": "https://{SCP SHARE IP}/myshare/", "proxy_type": "socks4",
-                     "proxy_support": True, "job_wait": True, "scp_components": "IDRAC",
-                     "proxy_port": 80, "export_format": "JSON", "proxy_server": "PROXY_SERVER_IP",
-                     "proxy_username": "proxy_username"}},
+         "mparam": {"share_name": "https://{SCP SHARE IP}/myshare/", "proxy_type": "socks4",
+                    "proxy_support": True, "job_wait": True, "scp_components": "IDRAC",
+                    "proxy_port": 80, "export_format": "JSON", "proxy_server": "PROXY_SERVER_IP",
+                    "proxy_username": "proxy_username"}},
         {"message": JOB_SUCCESS_MSG.format("export"),
          "json_data": {"Id": "JID_932024672685", "Message": SUCCESS_MSG.format("import"), "MessageId": "SYS053",
                        "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-         "mparams": {"share_name": "{SCP SHARE IP}:/nfsshare", "job_wait": False,
-                     "scp_components": "IDRAC", "scp_file": "scp_file.txt"}},
+         "mparam": {"share_name": "{SCP SHARE IP}:/nfsshare", "job_wait": False,
+                    "scp_components": "IDRAC", "scp_file": "scp_file.txt"}},
         {"message": JOB_SUCCESS_MSG.format("export"),
          "json_data": {"Id": "JID_932024672685", "Message": NO_CHANGES_FOUND, "MessageId": "SYS069",
                        "PercentComplete": 100, "file": "http://{SCP SHARE PATH}/{SCP FILE NAME}.json"},
-         "mparams": {"share_name": "/share", "job_wait": False,
-                     "scp_components": "IDRAC", "scp_file": "scp_file.json"}},
+         "mparam": {"share_name": "/share", "job_wait": False,
+                    "scp_components": "IDRAC", "scp_file": "scp_file.json"}},
     ])
-    def test_run_export_scp(self, params, idrac_scp_redfish_mock, idrac_default_args, mocker):
+    def test_run_export_scp(self, param, idrac_scp_redfish_mock, idrac_default_args, mocker):
         idrac_default_args.update({"share_user": "sharename", "command": "export",
                                    "export_use": "Default", "include_in_export": "default"})
-        idrac_default_args.update(params['mparams'])
+        idrac_default_args.update(param['mparam'])
         mocker.patch("builtins.open", mocker.mock_open())
-        if params.get('check_mode'):
-            mocker.patch(MODULE_PATH + 'idrac_server_config_profile.preview_scp_redfish',
-                         return_value=params['json_data'])
-        elif params['mparams']['job_wait']:
+        if param['mparam']['job_wait']:
             mocker.patch(MODULE_PATH + JOB_TRACKING_CONST,
-                         return_value=(False, None, params['json_data'], None))
+                         return_value=(False, None, param['json_data'], None))
+        elif param.get('check_mode'):
+            mocker.patch(MODULE_PATH + 'idrac_server_config_profile.preview_scp_redfish',
+                         return_value=param['json_data'])
         else:
-            idrac_scp_redfish_mock.import_scp.return_value = params['json_data']
-        result = self._run_module(idrac_default_args, check_mode=params.get('check_mode', False))
-        assert params['message'] in result['msg']
+            idrac_scp_redfish_mock.import_scp.return_value = param['json_data']
+        res = self._run_module(idrac_default_args, check_mode=param.get('check_mode', False))
+        assert param['message'] in res['msg']
 
     @pytest.mark.parametrize("params", [
         {"message": CHANGES_FOUND,
@@ -190,7 +190,7 @@ class TestServerConfigProfile(FakeAnsibleModule):
                      "command": "import", "job_wait": False, "scp_components": "IDRAC",
                      "scp_file": "scp_file3.xml", "end_host_power_state": "On",
                      "shutdown_type": "Graceful"}},
-        {"message": "proxy_support is enabled but all of the following are missing: proxy_server",
+        {"message": "proxy_support is True but all of the following are missing: proxy_server",
          "mparams": {"share_name": "https://{SCP SHARE IP}/myshare/", "proxy_type": "http",
                      "proxy_support": True, "job_wait": True, "scp_components": "IDRAC",
                      "proxy_port": 80, "export_format": "JSON",
