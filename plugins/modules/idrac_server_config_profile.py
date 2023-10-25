@@ -654,7 +654,8 @@ def run_export_import_scp_http(idrac, module):
             "target": scp_target, "share": share, "job_wait": module.params["job_wait"],
             "host_powerstate": module.params["end_host_power_state"], "shutdown_type": module.params["shutdown_type"]
         }
-        scp_response = idrac_import_scp_share(module, idrac, idrac_import_scp_params)
+        scp_response = idrac.import_scp_share(**idrac_import_scp_params)
+        wait_for_job_tracking_redfish(module, idrac, scp_response)
     elif command == "export":
         scp_file_name_format = get_scp_file_format(module)
         share["file_name"] = scp_file_name_format
@@ -700,6 +701,9 @@ def get_scp_share_details(module):
         cifs_share = share_name.split("\\", 3)
         share_ip = cifs_share[2]
         share_path_name = cifs_share[-1]
+        domain_list = ["\\", "@"]
+        if not any(domain in module.params.get("share_user") for domain in domain_list):
+              module.params["share_user"] = ".\\{0}".format(module.params.get("share_user"))
         share = {"share_ip": share_ip, "share_name": share_path_name, "share_type": "CIFS",
                  "username": module.params.get("share_user"), "password": module.params.get("share_password")}
         if command == "export":
@@ -816,23 +820,12 @@ def import_scp_redfish(module, idrac, http_share):
             "import_buffer": buffer_text, "target": scp_targets, "share": share_dict, "job_wait": module.params["job_wait"],
             "host_powerstate": module.params["end_host_power_state"], "shutdown_type": module.params["shutdown_type"]
         }
-        scp_response = idrac_import_scp_share(module, idrac, idrac_import_scp_params)
+        scp_response = idrac.import_scp_share(**idrac_import_scp_params)
+        wait_for_job_tracking_redfish(module, idrac, scp_response)
     else:
         scp_response = idrac.import_scp(import_buffer=import_buffer, target=scp_targets, job_wait=module.params["job_wait"])
     scp_response = response_format_change(scp_response, module.params, share.get("file_name"))
     exit_on_failure(module, scp_response, command)
-    return scp_response
-
-
-def idrac_import_scp_share(module, idrac, job_params):
-    scp_response = idrac.import_scp_share(**job_params)
-    job_id = scp_response.headers["Location"].split("/")[-1]
-    if module.params["job_wait"]:
-        job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
-            idrac, iDRAC_JOB_URI.format(job_id=job_id))
-        if job_failed:
-            module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
-        scp_response = job_dict
     return scp_response
 
 
@@ -841,7 +834,8 @@ def wait_for_job_tracking_redfish(module, idrac, scp_response):
     if module.params["job_wait"]:
         job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
             idrac, iDRAC_JOB_URI.format(job_id=job_id))
-        if job_failed or "SYS045" in job_dict.get("MessageId", ""):
+        error_codes = ["SYS045", "SYS046"]
+        if job_failed or any(error_code in job_dict.get("MessageId", "") for error_code in error_codes):
             module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
         scp_response = job_dict
     return scp_response
