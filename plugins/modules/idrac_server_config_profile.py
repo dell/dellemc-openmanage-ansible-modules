@@ -552,7 +552,10 @@ FAIL_MSG = "Failed to {0} scp."
 TARGET_INVALID_MSG = "Unable to {command} the {invalid_targets} from the SCP file\
  because the values {invalid_targets} are invalid.\
  The valid values are {valid_targets}. Enter the valid values and retry the operation."
-ERROR_CODES = ["SYS045", "SYS046", "SYS078"]
+DOMAIN_LIST = ["\\", "@"]
+ERROR_CODES = ["SYS041", "SYS044", "SYS045", "SYS046", "SYS047", "SYS048", "SYS050", "SYS051", "SYS062",
+               "SYS063", "SYS064", "SYS065", "SYS067", "SYS068", "SYS070", "SYS071", "SYS072",
+               "SYS073", "SYS075", "SYS076", "SYS077", "SYS078", "SYS079", "SYS080"]
 
 
 def get_scp_file_format(module):
@@ -702,8 +705,7 @@ def get_scp_share_details(module):
         cifs_share = share_name.split("\\", 3)
         share_ip = cifs_share[2]
         share_path_name = cifs_share[-1]
-        domain_list = ["\\", "@"]
-        if not any(domain in module.params.get("share_user") for domain in domain_list):
+        if not any(domain in module.params.get("share_user") for domain in DOMAIN_LIST):
             module.params["share_user"] = ".\\{0}".format(module.params.get("share_user"))
         share = {"share_ip": share_ip, "share_name": share_path_name, "share_type": "CIFS",
                  "username": module.params.get("share_user"), "password": module.params.get("share_password")}
@@ -835,7 +837,7 @@ def wait_for_job_tracking_redfish(module, idrac, scp_response):
     if module.params["job_wait"]:
         job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
             idrac, iDRAC_JOB_URI.format(job_id=job_id))
-        if job_failed or any(error_code in job_dict.get("MessageId", "") for error_code in ERROR_CODES):
+        if job_failed or job_dict.get("MessageId", "") in ERROR_CODES:
             module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
         scp_response = job_dict
     return scp_response
