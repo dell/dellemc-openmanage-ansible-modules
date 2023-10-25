@@ -552,6 +552,7 @@ FAIL_MSG = "Failed to {0} scp."
 TARGET_INVALID_MSG = "Unable to {command} the {invalid_targets} from the SCP file\
  because the values {invalid_targets} are invalid.\
  The valid values are {valid_targets}. Enter the valid values and retry the operation."
+ERROR_CODES = ["SYS045", "SYS046", "SYS078"]
 
 
 def get_scp_file_format(module):
@@ -703,7 +704,7 @@ def get_scp_share_details(module):
         share_path_name = cifs_share[-1]
         domain_list = ["\\", "@"]
         if not any(domain in module.params.get("share_user") for domain in domain_list):
-              module.params["share_user"] = ".\\{0}".format(module.params.get("share_user"))
+            module.params["share_user"] = ".\\{0}".format(module.params.get("share_user"))
         share = {"share_ip": share_ip, "share_name": share_path_name, "share_type": "CIFS",
                  "username": module.params.get("share_user"), "password": module.params.get("share_password")}
         if command == "export":
@@ -776,7 +777,7 @@ def preview_scp_redfish(module, idrac, http_share, import_job_wait=False):
             share["file_name"] = module.params.get("scp_file")
         buffer_text = get_buffer_text(module, share)
         scp_response = idrac.import_preview(import_buffer=buffer_text, target=scp_targets,
-                                            share=share, job_wait=False)  # Assining it as false because job tracking is done in idrac_redfish.py as well
+                                            share=share, job_wait=False)  # Assigning it as false because job tracking is done in idrac_redfish.py as well
         scp_response = wait_for_job_tracking_redfish(
             module, idrac, scp_response)
     else:
@@ -834,8 +835,7 @@ def wait_for_job_tracking_redfish(module, idrac, scp_response):
     if module.params["job_wait"]:
         job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
             idrac, iDRAC_JOB_URI.format(job_id=job_id))
-        error_codes = ["SYS045", "SYS046"]
-        if job_failed or any(error_code in job_dict.get("MessageId", "") for error_code in error_codes):
+        if job_failed or any(error_code in job_dict.get("MessageId", "") for error_code in ERROR_CODES):
             module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
         scp_response = job_dict
     return scp_response
