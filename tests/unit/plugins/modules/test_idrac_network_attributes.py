@@ -893,7 +893,8 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         #             There is invalid_attr in normal mode
         resp = MagicMock()
         resp.headers = {'Location': self.uri}
-
+        mocker.patch(MODULE_PATH + "idrac_network_attributes.get_idrac_firmware_version",
+                     return_value='6.1')
         def return_data():
             return (resp, invalid_attr, False)
         obj.perform_operation = return_data

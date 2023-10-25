@@ -616,8 +616,8 @@ class OEMNetworkAttributes(IDRACNetworkAttributes):
                 '@Redfish.Settings').get('SettingsObject').get('@odata.id')
             resp = self.idrac.invoke_request(
                 method='PATCH', uri=patch_uri, data=payload)
-            invalid_attr = self.extract_error_msg(resp)
             job_wait = job_wait if apply_time == "Immediate" else False
+        invalid_attr = self.extract_error_msg(resp)
         return resp, invalid_attr, job_wait
 
 
@@ -668,8 +668,9 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
                     if int(wait_time) >= int(job_wait_timeout):
                         module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
                             job_wait_timeout), changed=True, job_status=job_dict)
-                    if job_failed or job_dict.get("MessageId") == "SYS067":
-                        module.fail_json(msg=INVALID_ATTR_MSG)
+                    if job_failed:
+                        module.fail_json(
+                            msg=job_dict.get("Message"), invalid_attributes=invalid_attr, job_status=job_dict)
                 else:
                     job_resp = idrac.invoke_request(job_uri, 'GET')
                     job_dict = job_resp.json_data
@@ -677,7 +678,20 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
                                           regex_pattern='(.*?)@odata')
 
             if job_dict.get('JobState') == "Completed":
+                firm_ver = get_idrac_firmware_version(idrac)
                 msg = SUCCESS_MSG if not invalid_attr else VALID_AND_INVALID_ATTR_MSG
+                if LooseVersion(firm_ver) < '3.0' and isinstance(obj, OEMNetworkAttributes):
+                    message_id = job_dict.get("MessageId")
+                    if message_id == "SYS053":
+                        module.exit_json(msg=msg, changed=True, job_status=job_dict)
+                    elif message_id == "SYS055":
+                        module.exit_json(
+                            msg=VALID_AND_INVALID_ATTR_MSG, changed=True, job_status=job_dict)
+                    elif message_id == "SYS067":
+                        module.fail_json(msg=INVALID_ATTR_MSG,
+                                         job_status=job_dict)
+                    else:
+                        module.fail_json(msg=job_dict.get("Message"))
             else:
                 msg = SCHEDULE_MSG
             module.exit_json(msg=msg, invalid_attributes=invalid_attr,
