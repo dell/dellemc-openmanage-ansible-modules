@@ -730,16 +730,11 @@ def main():
             perform_operation_for_main(idrac,
                                        module, network_attr_obj, diff, invalid_attr)
     except HTTPError as err:
-        err = remove_key(
-            err, regex_pattern='(.*?)@odata') if err and isinstance(err, dict) else err
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
+        module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
-        err = remove_key(
-            err, regex_pattern='(.*?)@odata') if err and isinstance(err, dict) else err
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
-        err = remove_key(
-            err, regex_pattern='(.*?)@odata') if err and isinstance(err, dict) else err
         module.exit_json(msg=str(err), failed=True)
 
 
