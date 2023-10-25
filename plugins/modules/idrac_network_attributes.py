@@ -364,7 +364,6 @@ JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to
 ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8 = "Clear pending is not supported."
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
-FAILED_MSG = "Unable to update the network attributes."
 
 
 class IDRACNetworkAttributes:
@@ -670,7 +669,7 @@ def perform_operation_for_main(idrac, module, obj, diff, _invalid_attr):
                         module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
                             job_wait_timeout), changed=True, job_status=job_dict)
                     if job_failed or job_dict.get("MessageId") == "SYS067":
-                        module.fail_json(msg=FAILED_MSG)
+                        module.fail_json(msg=INVALID_ATTR_MSG)
                 else:
                     job_resp = idrac.invoke_request(job_uri, 'GET')
                     job_dict = job_resp.json_data
