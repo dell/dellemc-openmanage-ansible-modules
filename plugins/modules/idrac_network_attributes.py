@@ -364,7 +364,7 @@ JOB_RUNNING_CLEAR_PENDING_ATTR = "{0} Config job is running. Wait for the job to
 ATTRIBUTE_NOT_EXIST_CHECK_IDEMPOTENCY_MODE = 'Attribute is not valid.'
 CLEAR_PENDING_NOT_SUPPORTED_WITHOUT_ATTR_IDRAC8 = "Clear pending is not supported."
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
-FAILED_MSG = "Failed to update network attributes."
+FAILED_MSG = "Unable to update the network attributes."
 
 
 class IDRACNetworkAttributes:
