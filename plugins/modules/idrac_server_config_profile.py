@@ -841,7 +841,7 @@ def wait_for_job_tracking_redfish(module, idrac, scp_response):
     if module.params["job_wait"]:
         job_failed, _msg, job_dict, _wait_time = idrac_redfish_job_tracking(
             idrac, iDRAC_JOB_URI.format(job_id=job_id))
-        if job_failed:
+        if job_failed or "SYS045" in job_dict.get("MessageId", ""):
             module.exit_json(failed=True, status_msg=job_dict, job_id=job_id, msg=FAIL_MSG.format(module.params["command"]))
         scp_response = job_dict
     return scp_response
