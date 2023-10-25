@@ -68,6 +68,8 @@ Parameters
 
     *apply_time* value will be ignored and will not have any impact for *clear_pending* operation.
 
+    This operation is not supported for iDRAC8.
+
 
   apply_time (True, str, None)
     Apply time of the *network_attributes* and *oem_network_attributes*.
@@ -81,6 +83,8 @@ Parameters
     ``AtMaintenanceWindowStart`` allows the user to apply at the start of a maintenance window as specified in *maintenance_window*. A reboot job is scheduled.
 
     ``InMaintenanceWindowOnReset`` allows to apply after a manual reset but within the maintenance window as specified in *maintenance_window*.
+
+    This is not applicable for iDRAC8 and value will be ignored and will not have any impact for configuring *oem_network_attributes*.
 
 
   maintenance_window (optional, dict, None)
