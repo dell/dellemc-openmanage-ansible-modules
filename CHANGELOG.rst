@@ -23,7 +23,7 @@ Known Issues
 ------------
 
 - ca_path missing - Issue(275740) - The roles idrac_attributes, redfish_storage_volume, and idrac_server_powerstate have a missing parameter ca_path.
-- idrac_firmware - Issue(279282) - Unable to update the firmware using HTTP, HTTPS, and FTP shares on iDRAC8.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares on iDRAC8.
 - idrac_network_attributes - Issue(279049) - This module does not provide a proper error message if unsupported values are provided for the parameter ``ome_network_attributes``.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
 - ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
