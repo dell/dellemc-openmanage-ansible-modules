@@ -41,7 +41,7 @@ options:
     description:
       - "Dictionary of network attributes and value. To view the list of attributes and its structure, see the below API
         U(https://I(idrac_ip)/redfish/v1/Systems/System.Embedded.1/NetworkAdapters/<network_id>/NetworkDeviceFunctions/
-        <network_port_id>/Settings)."
+        <network_port_id>/Settings) and U(https://<idrac_ip>/redfish/v1/Schemas/NetworkDeviceFunction.v1_8_0.json)."
       - I(network_attributes) is mutually exclusive with I(oem_network_attributes).
   oem_network_attributes:
     type: dict
@@ -66,6 +66,7 @@ options:
       - This parameter allows you to clear all the pending network attributes changes.
       - C(false) does not perform any operation.
       - C(true) discards any pending changes to network attributes, or if a job is in scheduled state, removes the job.
+      - I(apply_time) value will be ignored and will not have any impact for I(clear_pending) operation.
   apply_time:
     type: str
     required: true
@@ -73,7 +74,7 @@ options:
       - Apply time of the I(network_attributes) and I(oem_network_attributes).
       - This is applicable only to I(network_attributes) and I(oem_network_attributes).
       - C(Immediate) allows the user to immediately reboot the host and apply the changes. I(job_wait)
-        is applicable. This is applicable only for I(oem_network_attributes).
+        is applicable. This is applicable for I(oem_network_attributes) and I(job_wait).
       - C(OnReset) allows the user to apply the changes on the next reboot of the host server.
       - C(AtMaintenanceWindowStart) allows the user to apply at the start of a maintenance window as specified
         in I(maintenance_window). A reboot job is scheduled.
@@ -130,6 +131,7 @@ EXAMPLES = """
     idrac_password: "user_password"
     network_id: "NIC.Integrated.1"
     network_port_id: "NIC.Integrated.1-1-1"
+    apply_time: "Immediate"
     oem_network_attributes:
       IscsiInitiatorIpAddr: "192.168.1.0"
 
@@ -177,6 +179,7 @@ EXAMPLES = """
     idrac_password: "user_password"
     network_id: NIC.Integrated.1
     network_port_id: "NIC.Integrated.1-1-1"
+    apply_time: "Immediate"
     oem_network_attributes:
       IscsiInitiatorIpAddr: "192.168.1.0"
     job_wait: true
@@ -189,6 +192,7 @@ EXAMPLES = """
     idrac_password: "user_password"
     network_id: NIC.Integrated.1
     network_port_id: "NIC.Integrated.1-1-1"
+    apply_time: "OnReset"
     network_attributes:
       FibreChannel:
         BootTargets:

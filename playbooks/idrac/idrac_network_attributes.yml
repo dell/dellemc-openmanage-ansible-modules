@@ -11,6 +11,7 @@
         idrac_password: "user_password"
         network_id: "NIC.Integrated.1"
         network_port_id: "NIC.Integrated.1-1-1"
+        apply_time: "Immediate"
         oem_network_attributes:
           IscsiInitiatorIpAddr: "192.168.1.0"
       delegate_to: localhost
@@ -62,6 +63,7 @@
         idrac_password: "user_password"
         network_id: NIC.Integrated.1
         network_port_id: "NIC.Integrated.1-1-1"
+        apply_time: "Immediate"
         oem_network_attributes:
           IscsiInitiatorIpAddr: "192.168.1.0"
         job_wait: true
@@ -75,6 +77,7 @@
         idrac_password: "user_password"
         network_id: NIC.Integrated.1
         network_port_id: "NIC.Integrated.1-1-1"
+        apply_time: "OnReset"
         network_attributes:
           FibreChannel:
             BootTargets:
