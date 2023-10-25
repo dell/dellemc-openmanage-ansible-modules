@@ -213,6 +213,7 @@ Examples
         idrac_password: "user_password"
         network_id: NIC.Integrated.1
         network_port_id: "NIC.Integrated.1-1-1"
+        apply_time: "Immediate"
         clear_pending: true
 
     - name: Configure OEM network attributes and wait for the job
