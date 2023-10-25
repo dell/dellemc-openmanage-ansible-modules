@@ -1555,8 +1555,9 @@ releases:
           OpenManage Enterprise Modular, it does not allow the creation of multiple
           uplinks of the same name. If an uplink is created using the same name as an
           existing uplink, the existing uplink is modified.
-        - idrac_firmware - Issue(279282) - This module does not support firmware update
-          using HTTP, HTTPS, and FTP shares on iDRAC8.
+        - idrac_firmware - Issue(279282) - idrac_firmware - Issue(279282) - This module
+          does not support firmware update using HTTP, HTTPS, and FTP shares with
+          authentication on iDRAC8.
         - idrac_network_attributes - Issue(279049) - This module does not provide
           a proper error message if unsupported values are provided for the parameter
           ``ome_network_attributes``.
