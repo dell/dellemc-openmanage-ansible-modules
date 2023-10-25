@@ -659,7 +659,7 @@ def run_export_import_scp_http(idrac, module):
             "host_powerstate": module.params["end_host_power_state"], "shutdown_type": module.params["shutdown_type"]
         }
         scp_response = idrac.import_scp_share(**idrac_import_scp_params)
-        wait_for_job_tracking_redfish(module, idrac, scp_response)
+        scp_response = wait_for_job_tracking_redfish(module, idrac, scp_response)
     elif command == "export":
         scp_file_name_format = get_scp_file_format(module)
         share["file_name"] = scp_file_name_format
@@ -824,7 +824,7 @@ def import_scp_redfish(module, idrac, http_share):
             "host_powerstate": module.params["end_host_power_state"], "shutdown_type": module.params["shutdown_type"]
         }
         scp_response = idrac.import_scp_share(**idrac_import_scp_params)
-        wait_for_job_tracking_redfish(module, idrac, scp_response)
+        scp_response = wait_for_job_tracking_redfish(module, idrac, scp_response)
     else:
         scp_response = idrac.import_scp(import_buffer=import_buffer, target=scp_targets, job_wait=module.params["job_wait"])
     scp_response = response_format_change(scp_response, module.params, share.get("file_name"))
