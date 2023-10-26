@@ -16,15 +16,15 @@ Module to manage iDRAC network attributes.
 Bugfixes
 --------
 
-- idrac_firmware - Issue(276335) - This module fails on the Python 3.11.x version with NFS shares. Use a different Python version or Share type.
-- idrac_server_config_profile - The import scp module fails to appropriately handle the absence of a file, incorrectly reporting success instead of the expected failure. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/544).
+- idrac_firmware - Issue(276335) - This module fails on the Python 3.11.x version with NFS share. Use a different Python version or Share type.
+- idrac_server_config_profile - The import for Server Configuration Profile (SCP) operation fails to handle the absence of a file and incorrectly reports success instead of the expected failure. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/544).
 
 Known Issues
 ------------
 
 - ca_path missing - Issue(275740) - The roles idrac_attributes, redfish_storage_volume, and idrac_server_powerstate have a missing parameter ca_path.
 - idrac_firmware - Issue(279282) - idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
-- idrac_network_attributes - Issue(279049) - This module does not provide a proper error message if unsupported values are provided for the parameter ``ome_network_attributes``.
+- idrac_network_attributes - Issue(279049) -  If unsupported values are provided for the parameter ``ome_network_attributes``, then this module does not provide a correct error message.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
 - ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
 - ome_device_quick_deploy - Issue(275231) - This module does not deploy a new configuration to a slot that has disabled IPv6.
