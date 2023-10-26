@@ -25,6 +25,7 @@ You may obtain a copy of the License at
 - [idrac_lifecycle_controller_job_status_info](modules/idrac_lifecycle_controller_job_status_info.rst)
 - [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)
 - [idrac_lifecycle_controller_status_info](modules/idrac_lifecycle_controller_status_info.rst)
+- [idrac_network_attributes](modules/idrac_network_attributes.rst)
 - [idrac_network](modules/idrac_network.rst)
 - [idrac_os_deployment](modules/idrac_os_deployment.rst)
 - [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)

@@ -34,15 +34,18 @@ NO_CHANGES_MSG = "No changes found to be applied."
 RESET_UNTRACK = "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
 RESET_SUCCESS = "iDRAC has been reset successfully."
 RESET_FAIL = "Unable to reset the iDRAC. For changes to reflect, manually reset the iDRAC."
+INVALID_ID_MSG = "Unable to complete the operation because " + \
+                 "the value `{0}` for the input  `{1}` parameter is invalid."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
+CHASSIS_URI = "/redfish/v1/Chassis"
 IDRAC_RESET_URI = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 SYSTEM_RESET_URI = "/redfish/v1/Systems/{res_id}/Actions/ComputerSystem.Reset"
 MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
-
+GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
 
 import time
 from datetime import datetime
@@ -438,3 +441,71 @@ def wait_for_redfish_job_complete(redfish_obj, job_uri, job_wait=True, wait_time
         job_resp = redfish_obj.invoke_request("GET", job_uri, api_timeout=120)
         return job_resp, ""
     return job_resp, job_msg
+
+
+def get_dynamic_uri(idrac_obj, base_uri, search_label=''):
+    resp = idrac_obj.invoke_request(method='GET', uri=base_uri).json_data
+    if search_label:
+        if search_label in resp:
+            return resp[search_label]
+        return None
+    return resp
+
+
+def get_scheduled_job_resp(idrac_obj, job_type):
+    # job_type can be like 'NICConfiguration' or 'BIOSConfiguration'
+    job_resp = {}
+    job_list = idrac_obj.invoke_request(
+        MANAGER_JOB_URI, "GET").json_data.get('Members', [])
+    for each_job in job_list:
+        if each_job.get("JobType") == job_type and each_job.get("JobState") in ["Scheduled", "Running", "Starting"]:
+            job_resp = each_job
+            break
+    return job_resp
+
+
+def delete_job(idrac_obj, job_id):
+    resp = idrac_obj.invoke_request(uri=MANAGER_JOB_ID_URI.format(job_id), method="DELETE")
+    return resp.json_data
+
+
+def get_current_time(redfish_obj):
+    res_id = get_manager_res_id(redfish_obj)
+    resp = redfish_obj.invoke_request(MANAGERS_URI + '/' + res_id, "GET")
+    curr_time = resp.json_data.get("DateTime")
+    date_offset = resp.json_data.get("DateTimeLocalOffset")
+    return curr_time, date_offset
+
+
+def xml_data_conversion(attr_dict, fqdd=None):
+    component = """<Component FQDD="{0}">{1}</Component>"""
+    attr = ""
+    for k, v in attr_dict.items():
+        key = re.sub(r"\.(?!\d)", "#", k)
+        attr += '<Attribute Name="{0}">{1}</Attribute>'.format(key, v)
+    root = component.format(fqdd, attr)
+    return root
+
+
+def validate_and_get_first_resource_id_uri(module, idrac, base_uri):
+    odata = '@odata.id'
+    found = False
+    res_id_uri = None
+    res_id_input = module.params.get('resource_id')
+    res_id_members = get_dynamic_uri(idrac, base_uri, 'Members')
+    for each in res_id_members:
+        if res_id_input and res_id_input == each[odata].split('/')[-1]:
+            res_id_uri = each[odata]
+            found = True
+            break
+    if not found and res_id_input:
+        return res_id_uri, INVALID_ID_MSG.format(
+            res_id_input, 'resource_id')
+    elif res_id_input is None:
+        res_id_uri = res_id_members[0][odata]
+    return res_id_uri, ''
+
+
+def get_idrac_firmware_version(idrac):
+    firm_version = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
+    return firm_version.json_data.get('FirmwareVersion', '')
