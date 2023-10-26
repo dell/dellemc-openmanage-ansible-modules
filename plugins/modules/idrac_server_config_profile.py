@@ -64,10 +64,13 @@ options:
       - If C(BIOS), this module exports or imports BIOS configuration from SCP file.
       - If C(NIC), this module exports or imports NIC configuration from SCP file.
       - If C(RAID), this module exports or imports RAID configuration from SCP file.
+      - If C(EVENTFILTERS), this module exports or imports EVENTFILTERS configuration from SCP file.
+      - If C(SUPPORTASSIST), this module exports or imports SUPPORTASSIST configuration from SCP file.
+      - If C(LIFECYCLECONTROLLER), this module exports or imports LIFECYCLECONTROLLER configuration from SCP file.
       - When I(command) is C(export) or C(import) I(target) with multiple components is supported only
         on iDRAC9 with firmware 6.10.00.00 and above.
+    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'EVENTFILTERS', 'SUPPORTASSIST', 'LIFECYCLECONTROLLER']
     type: list
-    choices: ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID']
     default: 'ALL'
     elements: str
     aliases: ['target']
@@ -840,7 +843,7 @@ def main():
         "share_password": {"required": False, "type": 'str',
                            "aliases": ['share_pwd'], "no_log": True},
         "scp_components": {"type": "list", "required": False, "elements": "str",
-                           "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID'],
+                           "choices": ['ALL', 'IDRAC', 'BIOS', 'NIC', 'RAID', 'EVENTFILTERS', 'SUPPORTASSIST', 'LIFECYCLECONTROLLER'],
                            "default": ['ALL'], "aliases": ["target"]},
         "scp_file": {"required": False, "type": 'str'},
         "shutdown_type": {"required": False,
