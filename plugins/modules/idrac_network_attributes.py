@@ -147,9 +147,6 @@ EXAMPLES = """
     oem_network_attributes:
       SNMP.1.AgentCommunity: public
     apply_time: OnReset
-    maintenance_window:
-      start_time: "2022-09-30T05:15:40-05:00"
-      duration: 600
 
 - name: Configure OEM network attributes to apply at maintainance window
   dellemc.openmanage.idrac_network_attributes:
@@ -174,6 +171,18 @@ EXAMPLES = """
     network_port_id: "NIC.Integrated.1-1-1"
     apply_time: "Immediate"
     clear_pending: true
+
+- name: Clearing the OEM pending attributes and apply the OEM network attributes
+  dellemc.openmanage.idrac_network_attributes:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    network_id: NIC.Integrated.1
+    network_port_id: "NIC.Integrated.1-1-1"
+    apply_time: "Immediate"
+    clear_pending: true
+    oem_network_attributes:
+      VLANId: 1
 
 - name: Configure OEM network attributes and wait for the job
   dellemc.openmanage.idrac_network_attributes:
@@ -211,9 +220,6 @@ EXAMPLES = """
     network_attributes:
       SNMP.1.AgentCommunity: public
     apply_time: OnReset
-    maintenance_window:
-      start_time: "2022-09-30T05:15:40-05:00"
-      duration: 600
 
 - name: Configure redfish network attributes of iscsi to apply at maintainance window start
   dellemc.openmanage.idrac_network_attributes:
@@ -283,8 +289,8 @@ invalid_attributes:
     returned: On invalid attributes or values
     type: dict
     sample: {
-        "IscsiInitiatorIpAddr": "Invalid AttributeValue for AttributeName IscsiInitiatorIpAddr",
-        "IscsiInitiatorSubnet": "Invalid AttributeValue for AttributeName IscsiInitiatorSubnet"
+        "IscsiInitiatorIpAddr": "Attribute is not valid.",
+        "IscsiInitiatorSubnet": "Attribute is not valid."
     }
 job_status:
     description: Returns the output for status of the job.
@@ -296,7 +302,7 @@ job_status:
         "CompletionTime": null,
         "Description": "Job Instance",
         "EndTime": "TIME_NA",
-        "Id": "JID_914072844636",
+        "Id": "JID_XXXXXXXXX",
         "JobState": "Scheduled",
         "JobType": "NICConfiguration",
         "Message": "Task successfully scheduled.",
