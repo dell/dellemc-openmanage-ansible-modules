@@ -60,7 +60,7 @@ Parameters
 
 
   clear_pending (optional, bool, False)
-    This parameter allows you to clear all the pending network attributes changes.
+    This parameter allows you to clear all the pending OEM network attributes changes.
 
     ``false`` does not perform any operation.
 
@@ -180,7 +180,7 @@ Examples
         network_port_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
-          IscsiInitiatorIpAddr: "192.168.1.0"
+          BannerMessageTimeout: "4"
 
     - name: Configure OEM network attributes to apply on reset
       dellemc.openmanage.idrac_network_attributes:
@@ -190,11 +190,8 @@ Examples
         network_id: NIC.Integrated.1
         network_port_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
-          SNMP.1.AgentCommunity: public
+          BannerMessageTimeout: "4"
         apply_time: OnReset
-        maintenance_window:
-          start_time: "2022-09-30T05:15:40-05:00"
-          duration: 600
 
     - name: Configure OEM network attributes to apply at maintainance window
       dellemc.openmanage.idrac_network_attributes:
@@ -204,7 +201,7 @@ Examples
         network_id: NIC.Integrated.1
         network_port_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
-          SNMP.1.AgentCommunity: public
+          BannerMessageTimeout: "4"
         apply_time: AtMaintenanceWindowStart
         maintenance_window:
           start_time: "2022-09-30T05:15:40-05:00"
@@ -220,6 +217,18 @@ Examples
         apply_time: "Immediate"
         clear_pending: true
 
+    - name: Clearing the OEM pending attributes and apply the OEM network attributes
+      dellemc.openmanage.idrac_network_attributes:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        network_id: NIC.Integrated.1
+        network_port_id: "NIC.Integrated.1-1-1"
+        apply_time: "Immediate"
+        clear_pending: true
+        oem_network_attributes:
+          BannerMessageTimeout: "4"
+
     - name: Configure OEM network attributes and wait for the job
       dellemc.openmanage.idrac_network_attributes:
         idrac_ip: "192.168.0.1"
@@ -229,7 +238,9 @@ Examples
         network_port_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
-          IscsiInitiatorIpAddr: "192.168.1.0"
+          LnkSpeed: "10MbpsHalf"
+          WakeOnLan: "Enabled"
+          VLanMode: "Enabled"
         job_wait: true
         job_wait_timeout: 2000
 
@@ -240,11 +251,11 @@ Examples
         idrac_password: "user_password"
         network_id: NIC.Integrated.1
         network_port_id: "NIC.Integrated.1-1-1"
-        apply_time: "OnReset"
+        apply_time: OnReset
         network_attributes:
-          FibreChannel:
-            BootTargets:
-              - LUNID: '111'
+          Ethernet:
+            VLAN:
+              VLANEnable: true
 
     - name: Configure redfish network attributes to apply on reset
       dellemc.openmanage.idrac_network_attributes:
@@ -254,11 +265,10 @@ Examples
         network_id: NIC.Integrated.1
         network_port_id: "NIC.Integrated.1-1-1"
         network_attributes:
-          SNMP.1.AgentCommunity: public
+          Ethernet:
+            VLAN:
+              VLANEnable: true
         apply_time: OnReset
-        maintenance_window:
-          start_time: "2022-09-30T05:15:40-05:00"
-          duration: 600
 
     - name: Configure redfish network attributes of iscsi to apply at maintainance window start
       dellemc.openmanage.idrac_network_attributes:
@@ -269,28 +279,7 @@ Examples
         network_port_id: "NIC.Integrated.1-1-1"
         network_attributes:
           iSCSIBoot:
-            AuthenticationMethod: None
-            CHAPSecret: ValueCleared
-            CHAPUsername: ValueCleared
-            IPAddressType: IPv4
-            IPMaskDNSViaDHCP: true
-            InitiatorDefaultGateway: 0.0.0.0
             InitiatorIPAddress: 1.0.0.1
-            InitiatorName: ValueCleared
-            InitiatorNetmask: 0.0.0.0
-            PrimaryDNS: 0.0.0.0
-            PrimaryLUN: 0
-            PrimaryTargetIPAddress: 1.0.0.0
-            PrimaryTargetName: ValueCleared
-            PrimaryTargetTCPPort: 3260
-            PrimaryVLANEnable:
-            PrimaryVLANId:
-            SecondaryDNS: 0.0.0.0
-            SecondaryLUN: 0
-            SecondaryTargetIPAddress: 0.0.0.0
-            SecondaryTargetName: ValueCleared
-            SecondaryTargetTCPPort: 3260
-            TargetInfoViaDHCP: false
         apply_time: AtMaintenanceWindowStart
         maintenance_window:
           start_time: "2022-09-30T05:15:40-05:00"
@@ -305,7 +294,6 @@ Examples
         network_port_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
-            MACAddress: 00:11:22:AA:BB:CC
             VLAN:
               VLANEnable: false
               VLANId: 1
@@ -324,11 +312,11 @@ msg (when network attributes is applied, str, Successfully updated the network a
   Status of the attribute update operation.
 
 
-invalid_attributes (On invalid attributes or values, dict, {'IscsiInitiatorIpAddr': 'Invalid AttributeValue for AttributeName IscsiInitiatorIpAddr', 'IscsiInitiatorSubnet': 'Invalid AttributeValue for AttributeName IscsiInitiatorSubnet'})
+invalid_attributes (On invalid attributes or values, dict, {'IscsiInitiatorIpAddr': 'Attribute is not valid.', 'IscsiInitiatorSubnet': 'Attribute is not valid.'})
   Dictionary of invalid attributes provided that cannot be applied.
 
 
-job_status (always, dict, {'ActualRunningStartTime': None, 'ActualRunningStopTime': None, 'CompletionTime': None, 'Description': 'Job Instance', 'EndTime': 'TIME_NA', 'Id': 'JID_914072844636', 'JobState': 'Scheduled', 'JobType': 'NICConfiguration', 'Message': 'Task successfully scheduled.', 'MessageArgs': [], 'MessageId': 'JCP001', 'Name': 'Configure: NIC.Integrated.1-1-1', 'PercentComplete': 0, 'StartTime': '2023-08-07T06:21:24', 'TargetSettingsURI': None})
+job_status (always, dict, {'ActualRunningStartTime': None, 'ActualRunningStopTime': None, 'CompletionTime': None, 'Description': 'Job Instance', 'EndTime': 'TIME_NA', 'Id': 'JID_XXXXXXXXX', 'JobState': 'Scheduled', 'JobType': 'NICConfiguration', 'Message': 'Task successfully scheduled.', 'MessageArgs': [], 'MessageId': 'JCP001', 'Name': 'Configure: NIC.Integrated.1-1-1', 'PercentComplete': 0, 'StartTime': '2023-08-07T06:21:24', 'TargetSettingsURI': None})
   Returns the output for status of the job.
 
 

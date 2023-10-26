@@ -63,7 +63,7 @@ options:
     type: bool
     default: false
     description:
-      - This parameter allows you to clear all the pending network attributes changes.
+      - This parameter allows you to clear all the pending OEM network attributes changes.
       - C(false) does not perform any operation.
       - C(true) discards any pending changes to network attributes, or if a job is in scheduled state, removes the job.
       - I(apply_time) value will be ignored and will not have any impact for I(clear_pending) operation.
@@ -135,7 +135,7 @@ EXAMPLES = """
     network_port_id: "NIC.Integrated.1-1-1"
     apply_time: "Immediate"
     oem_network_attributes:
-      IscsiInitiatorIpAddr: "192.168.1.0"
+      BannerMessageTimeout: "4"
 
 - name: Configure OEM network attributes to apply on reset
   dellemc.openmanage.idrac_network_attributes:
@@ -145,7 +145,7 @@ EXAMPLES = """
     network_id: NIC.Integrated.1
     network_port_id: "NIC.Integrated.1-1-1"
     oem_network_attributes:
-      SNMP.1.AgentCommunity: public
+      BannerMessageTimeout: "4"
     apply_time: OnReset
 
 - name: Configure OEM network attributes to apply at maintainance window
@@ -156,7 +156,7 @@ EXAMPLES = """
     network_id: NIC.Integrated.1
     network_port_id: "NIC.Integrated.1-1-1"
     oem_network_attributes:
-      SNMP.1.AgentCommunity: public
+      BannerMessageTimeout: "4"
     apply_time: AtMaintenanceWindowStart
     maintenance_window:
       start_time: "2022-09-30T05:15:40-05:00"
@@ -182,7 +182,7 @@ EXAMPLES = """
     apply_time: "Immediate"
     clear_pending: true
     oem_network_attributes:
-      VLANId: 1
+      BannerMessageTimeout: "4"
 
 - name: Configure OEM network attributes and wait for the job
   dellemc.openmanage.idrac_network_attributes:
@@ -193,7 +193,9 @@ EXAMPLES = """
     network_port_id: "NIC.Integrated.1-1-1"
     apply_time: "Immediate"
     oem_network_attributes:
-      IscsiInitiatorIpAddr: "192.168.1.0"
+      LnkSpeed: "10MbpsHalf"
+      WakeOnLan: "Enabled"
+      VLanMode: "Enabled"
     job_wait: true
     job_wait_timeout: 2000
 
@@ -204,11 +206,11 @@ EXAMPLES = """
     idrac_password: "user_password"
     network_id: NIC.Integrated.1
     network_port_id: "NIC.Integrated.1-1-1"
-    apply_time: "OnReset"
+    apply_time: OnReset
     network_attributes:
-      FibreChannel:
-        BootTargets:
-          - LUNID: '111'
+      Ethernet:
+        VLAN:
+          VLANEnable: true
 
 - name: Configure redfish network attributes to apply on reset
   dellemc.openmanage.idrac_network_attributes:
@@ -218,7 +220,9 @@ EXAMPLES = """
     network_id: NIC.Integrated.1
     network_port_id: "NIC.Integrated.1-1-1"
     network_attributes:
-      SNMP.1.AgentCommunity: public
+      Ethernet:
+        VLAN:
+          VLANEnable: true
     apply_time: OnReset
 
 - name: Configure redfish network attributes of iscsi to apply at maintainance window start
@@ -230,28 +234,7 @@ EXAMPLES = """
     network_port_id: "NIC.Integrated.1-1-1"
     network_attributes:
       iSCSIBoot:
-        AuthenticationMethod: None
-        CHAPSecret: ValueCleared
-        CHAPUsername: ValueCleared
-        IPAddressType: IPv4
-        IPMaskDNSViaDHCP: true
-        InitiatorDefaultGateway: 0.0.0.0
         InitiatorIPAddress: 1.0.0.1
-        InitiatorName: ValueCleared
-        InitiatorNetmask: 0.0.0.0
-        PrimaryDNS: 0.0.0.0
-        PrimaryLUN: 0
-        PrimaryTargetIPAddress: 1.0.0.0
-        PrimaryTargetName: ValueCleared
-        PrimaryTargetTCPPort: 3260
-        PrimaryVLANEnable:
-        PrimaryVLANId:
-        SecondaryDNS: 0.0.0.0
-        SecondaryLUN: 0
-        SecondaryTargetIPAddress: 0.0.0.0
-        SecondaryTargetName: ValueCleared
-        SecondaryTargetTCPPort: 3260
-        TargetInfoViaDHCP: false
     apply_time: AtMaintenanceWindowStart
     maintenance_window:
       start_time: "2022-09-30T05:15:40-05:00"
@@ -266,7 +249,6 @@ EXAMPLES = """
     network_port_id: "NIC.Integrated.1-1-1"
     network_attributes:
       Ethernet:
-        MACAddress: 00:11:22:AA:BB:CC
         VLAN:
           VLANEnable: false
           VLANId: 1
