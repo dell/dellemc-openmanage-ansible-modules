@@ -90,7 +90,7 @@ Parameters
 
     If ``AHCI``, this option exports or imports EventFilters configuration from the SCP file.
 
-    If ``PCIeSSD``, this option exports or imports System configuration from the SCP file.
+    If ``PCIeSSD``, this option exports or imports PCIeSSD configuration from the SCP file.
 
     When *command* is ``export`` or ``import`` *target* with multiple components is supported only on iDRAC9 with firmware 6.10.00.00 and above.
 
