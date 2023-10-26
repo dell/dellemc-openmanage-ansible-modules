@@ -71,7 +71,7 @@ options:
       - If C(System), this option exports or imports System configuration from the SCP file.
       - If C(LifecycleController), this option exports or imports SupportAssist configuration from the SCP file.
       - If C(AHCI), this option exports or imports EventFilters configuration from the SCP file.
-      - If C(PCIeSSD), this option exports or imports System configuration from the SCP file.
+      - If C(PCIeSSD), this option exports or imports PCIeSSD configuration from the SCP file.
       - When I(command) is C(export) or C(import) I(target) with multiple components is supported only
         on iDRAC9 with firmware 6.10.00.00 and above.
     type: list
