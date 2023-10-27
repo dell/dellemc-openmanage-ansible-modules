@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.13, stable-2.14, stable-2.15]
+        ansible-version: [stable-2.14, stable-2.15]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -49,13 +49,10 @@ jobs:
       matrix:
         python: ['3.8', '3.9', '3.10', '3.11']
         ansible:
-          - stable-2.13
           - stable-2.14
           - stable-2.15
           - devel
         exclude:
-          - ansible: stable-2.13
-            python: '3.11'
           - ansible: stable-2.14
             python: '3.8'
           - ansible: stable-2.15
@@ -87,13 +84,10 @@ jobs:
       matrix:
         python: ['3.8', '3.9', '3.10', '3.11']
         ansible:
-          - stable-2.13
           - stable-2.14
           - stable-2.15
           - devel
         exclude:
-          - ansible: stable-2.13
-            python: '3.11'
           - ansible: stable-2.14
             python: '3.8'
           - ansible: stable-2.15
@@ -121,10 +115,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.9', '3.10', '3.11']
-        ansible-version: [stable-2.13, stable-2.14, stable-2.15, devel]
+        ansible-version: [stable-2.14, stable-2.15, devel]
         exclude:
-          - ansible-version: stable-2.13
-            python-version: '3.11'
           - ansible-version: stable-2.14
             python-version: '3.8'
           - ansible-version: stable-2.15
