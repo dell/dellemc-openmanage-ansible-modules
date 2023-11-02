@@ -21,4 +21,4 @@
       organization_name: "{{ cert_params.organization_name | default(omit) }}"
       subject_alt_name: "{{ cert_params.subject_alt_name | default(omit) }}"
   register: idrac_certificate_out
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_certificate_delegate }}"

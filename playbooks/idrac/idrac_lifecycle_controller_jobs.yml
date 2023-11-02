@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Delete LC job
+- name: Delete LC job
+  hosts: idrac
   gather_facts: false
 
   tasks:

@@ -14,4 +14,4 @@
     validate_certs: "{{ validate_certs }}"
     resource_id: "{{ resource_id | default(omit) }}"
   register: idrac_server_powerstate_out
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_server_powerstate_task_delegate }}"

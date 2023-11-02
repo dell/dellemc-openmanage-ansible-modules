@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Dell OpenManage Ansible iDRAC Redfish Storage Controller service.
+- name: Dell OpenManage Ansible iDRAC Redfish Storage Controller service.
+  hosts: idrac
   gather_facts: false
 
   tasks:

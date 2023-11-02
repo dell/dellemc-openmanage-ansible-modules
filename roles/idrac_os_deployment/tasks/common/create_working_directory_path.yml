@@ -3,7 +3,7 @@
   delegate_to: "{{ idrac_os_deployment_delegate }}"
   ansible.builtin.tempfile:
     state: directory
-    prefix: "{{ temp_file_prefix }}"
+    prefix: "{{ idrac_os_deployment_temp_file_prefix }}"
   register: idrac_os_deployment_wd
 
 - name: Set custom iso filename
@@ -19,9 +19,9 @@
   register: idrac_os_deployment_create_extract_dir
   delegate_to: "{{ idrac_os_deployment_delegate }}"
   ansible.builtin.file:
-    path: "{{ idrac_os_deployment_wd.path }}/{{ iso_extract_dir }}"
+    path: "{{ idrac_os_deployment_wd.path }}/{{ idrac_os_deployment_extract_dir }}"
     state: directory
-    mode: "{{ iso_extract_dir_mode }}"
+    mode: "{{ idrac_os_deployment_iso_extract_dir_mode }}"
 
 - name: Set extracted directory path
   ansible.builtin.set_fact:

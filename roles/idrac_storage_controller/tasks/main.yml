@@ -22,7 +22,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: reset_config_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: reset_config is true
 
 - name: Storage controller attributes configuration.
@@ -35,7 +35,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: attributes_config_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: attributes is defined
 
 - name: Storage set controller key configuration.
@@ -48,7 +48,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: set_controller_key_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: set_controller_key is true and key is defined and key_id is defined and mode is undefined
 
 - name: Storage remove controller key configuration.
@@ -59,7 +59,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: remove_controller_key_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: remove_key is true
 
 - name: Storage controller rekey configuration.
@@ -74,7 +74,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: storage_controller_rekey
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: rekey is true
 
 - name: Storage enable controller encryption.
@@ -88,7 +88,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: enable_encryption_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when:
     set_controller_key is true and key is defined and key_id is defined and mode is defined
 
@@ -101,7 +101,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: pd_state_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: disks.status is defined
 
 - name: Change physical disk raid state.
@@ -113,7 +113,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: raid_state_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: disks.raid_state is defined
 
 - name: Assign dedicated hot spare
@@ -126,7 +126,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: assign_dedicated_spare_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: volumes.id is defined and volumes.dedicated_hot_spare is defined
 
 - name: Assign global hot spare
@@ -138,7 +138,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: assign_global_spare_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: disks.id is defined and disks.global_hot_spare is true
 
 - name: Unassign hot spare
@@ -150,7 +150,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: unassign_hotspare_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: disks.global_hot_spare is false and disks.id is defined
 
 - name: Lock virtual disk
@@ -162,7 +162,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: lock_vd_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: volumes.encrypted is true
 
 - name: Online capacity expansion of a volume using target
@@ -176,7 +176,7 @@
     job_wait: "{{ job_wait }}"
     job_wait_timeout: "{{ job_wait_timeout }}"
   register: oce_vd_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: volumes.expand_capacity_disk is defined or volumes.expand_capacity_size is defined
 
 - name: Blink and Un-blink virtual disk
@@ -186,7 +186,7 @@
     controller_id: "{{ controller_id }}"
     volume_id: "{{ volumes.id }}"
   register: blink_vd_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: volumes.blink is defined
 
 - name: Blink and Un-blink physical disk
@@ -196,5 +196,5 @@
     controller_id: "{{ controller_id }}"
     target: "{{ disks.id }}"
   register: blink_pd_out
-  delegate_to: "{{ task_delegate }}"
+  delegate_to: "{{ idrac_storage_controller_task_delegate }}"
   when: disks.blink is defined

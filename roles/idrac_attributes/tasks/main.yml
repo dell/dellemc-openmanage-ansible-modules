@@ -12,4 +12,4 @@
     resource_id: "{{ manager_id | default(omit) }}"
     timeout: "{{ https_timeout }}"
   register: idrac_attributes_out
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_attributes_delegate }}"

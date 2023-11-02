@@ -1,3 +1,2 @@
 ---
-job_wait: true
-job_wait_timeout: 300
+idrac_storage_controller_task_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"

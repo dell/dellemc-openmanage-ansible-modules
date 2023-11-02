@@ -3,17 +3,17 @@
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ api_chassis }}/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
     validate_certs: "{{ validate_certs }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: power_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Power Supply Metrics ids
   ansible.builtin.set_fact:
@@ -23,50 +23,50 @@
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ item['@odata.id'] }}"
     validate_certs: "{{ validate_certs }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   loop: "{{ power_metrics_ids }}"
   register: power_metrics_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Thermal Metrics information.
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ api_chassis }}/ThermalSubsystem/ThermalMetrics"
     validate_certs: "{{ validate_certs }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: thermal_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Memory information.
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Memory?$expand=*($levels=1)"
     validate_certs: "{{ validate_certs }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
-    headers: "{{ uri_headers }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: memory_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Memory Metrics ids
   ansible.builtin.set_fact:
@@ -77,18 +77,18 @@
     url: "https://{{ hostname }}:{{ https_port }}{{ item['@odata.id'] }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   loop: "{{ memory_metrics_ids }}"
   register: memory_metrics_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Set Power Supply/Thermal/Memory Metrics facts
   ansible.builtin.set_fact:

@@ -84,46 +84,6 @@ notes:
   - Run this plugin on a system that has direct access to Dell OpenManage Enterprise.
 """
 
-EXAMPLES = """
----
-# To retrieve all the groups host details.
-plugin: dellemc.openmanage.ome_inventory
-hostname: "192.168.0.1"
-username: username
-password: password
-
-# To retrieve specific group host details.
-plugin: dellemc.openmanage.ome_inventory
-hostname: "192.168.0.1"
-username: username
-password: password
-ome_group_name: group_name
-
-# To set host variables to specific group host.
-plugin: dellemc.openmanage.ome_inventory
-hostname: "192.168.0.1"
-username: username
-password: password
-ome_group_name: group_name
-host_vars:
-  idrac_user: username
-  idrac_password: password
-
-# To set host variables and multiple group variables.
-plugin: dellemc.openmanage.ome_inventory
-hostname: "192.168.0.1"
-username: username
-password: password
-host_vars:
-  idrac_user: username
-  idrac_password: password
-group_vars:
-  group_name:
-    attribute: value
-  group_name_one:
-    new_attribute: new_value
-"""
-
 from ansible.plugins.inventory import BaseInventoryPlugin
 from ansible_collections.dellemc.openmanage.plugins.module_utils.ome import RestOME
 

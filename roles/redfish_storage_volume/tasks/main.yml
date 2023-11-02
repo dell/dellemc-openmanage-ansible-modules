@@ -6,7 +6,7 @@
 
 - name: Get the volume type from the mapping
   ansible.builtin.set_fact:
-    redfish_storage_volume_volume_type: "{{ volume_type_map[raid_type] }}"
+    redfish_storage_volume_volume_type: "{{ redfish_storage_volume_type_map[raid_type] }}"
   when: raid_type is defined
 
 - name: Performing the operation on redfish storage volume
@@ -50,6 +50,6 @@
   delegate_to: "{{ redfish_storage_volume_delegate }}"
   failed_when: "'json' not in job_result"
   until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
-  retries: "{{ job_wait_timeout // polling_interval }}"
-  delay: "{{ polling_interval }}"
+  retries: "{{ job_wait_timeout // redfish_storage_volume_polling_interval }}"
+  delay: "{{ redfish_storage_volume_polling_interval }}"
   when: job_wait is true and not ansible_check_mode

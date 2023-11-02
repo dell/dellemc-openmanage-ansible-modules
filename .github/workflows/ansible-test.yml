@@ -141,7 +141,7 @@ jobs:
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
 
       - name: Install ansible lint
-        run: pip install ansible-lint==6.16.2 pytest --disable-pip-version-check
+        run: pip install ansible-lint pytest --disable-pip-version-check
 
       - name: Install ansible posix
         run: ansible-galaxy collection install ansible.posix

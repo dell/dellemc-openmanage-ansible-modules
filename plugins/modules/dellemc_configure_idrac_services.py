@@ -150,24 +150,24 @@ EXAMPLES = """
 ---
 - name: Configure the iDRAC services attributes
   dellemc.openmanage.dellemc_configure_idrac_services:
-       idrac_ip:   "192.168.0.1"
-       idrac_user: "user_name"
-       idrac_password:  "user_password"
-       ca_path: "/path/to/ca_cert.pem"
-       enable_web_server: "Enabled"
-       http_port: 80
-       https_port: 443
-       ssl_encryption: "Auto_Negotiate"
-       tls_protocol: "TLS_1_2_Only"
-       timeout: "1800"
-       snmp_enable: "Enabled"
-       snmp_protocol: "SNMPv3"
-       community_name: "public"
-       alert_port: 162
-       discovery_port: 161
-       trap_format: "SNMPv3"
-       ipmi_lan:
-         community_name: "public"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    enable_web_server: "Enabled"
+    http_port: 80
+    https_port: 443
+    ssl_encryption: "Auto_Negotiate"
+    tls_protocol: "TLS_1_2_Only"
+    timeout: "1800"
+    snmp_enable: "Enabled"
+    snmp_protocol: "SNMPv3"
+    community_name: "public"
+    alert_port: 162
+    discovery_port: 161
+    trap_format: "SNMPv3"
+    ipmi_lan:
+      community_name: "public"
 """
 
 RETURN = r'''

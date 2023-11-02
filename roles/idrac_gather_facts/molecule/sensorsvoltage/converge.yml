@@ -9,19 +9,19 @@
     validate_certs: false
     target:
       - Sensors_Voltage
-    uri_method: "GET"
-    uri_headers:
+    idrac_gather_facts_uri_method: "GET"
+    idrac_gather_facts_uri_headers:
       Accept: "application/json"
       Content-Type: "application/json"
       OData-Version: "4.0"
-    uri_body_format: "json"
-    uri_status_code:
+    idrac_gather_facts_uri_body_format: "json"
+    idrac_gather_facts_uri_status_code:
       - 200
       - 400
       - 401
       - 404
       - -1
-    uri_return_content: true
+    idrac_gather_facts_uri_return_content: true
     diff_data: {}
     exclude_keys: []
 
@@ -40,13 +40,13 @@
         url: "https://{{ hostname }}{{ api_chassis }}/Power#/Voltages"
         validate_certs: "{{ validate_certs }}"
         ca_path: "{{ ca_path | default(omit) }}"
-        method: "{{ uri_method }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
         user: "{{ username }}"
         password: "{{ password }}"
-        headers: "{{ uri_headers }}"
-        body_format: "{{ uri_body_format }}"
-        status_code: "{{ uri_status_code }}"
-        return_content: "{{ uri_return_content }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
       register: voltage_result
       no_log: true
 

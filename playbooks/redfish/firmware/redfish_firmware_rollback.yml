@@ -1,8 +1,7 @@
 ---
-- hosts: redfish_hosts
+- name: "Ansible Module for Simple Firmware Rollback"
+  hosts: redfish_hosts
   gather_facts: false
-  name: "Ansible Module for Simple Firmware Rollback"
-
   tasks:
 
     - name: Rollback a BIOS component firmware
