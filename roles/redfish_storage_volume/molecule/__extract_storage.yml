@@ -1,0 +1,35 @@
+---
+- name: Fetching Storage controller from iDRAC
+  ansible.builtin.include_tasks:
+    file: ../__get_helper.yml
+  vars:
+    url: "Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
+  no_log: true
+
+- name: Extracting Controller id
+  ansible.builtin.set_fact:
+    controller_id: "{{ item.Id }}"
+    drive_list_odata: "{{ item.Drives }}"
+    drive_list: []
+  when:
+    - loop_on is defined and search_in_name is defined
+    - search_in_name in item.Name
+  loop: "{{ loop_on }}"
+  no_log: true
+
+- name: Extracting Drives id
+  ansible.builtin.set_fact:
+    drive_list: "{{ drive_list +  [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
+  loop: "{{ drive_list_odata }}"
+  when: drive_list_odata is defined
+  no_log: true
+
+- name: Checking controller exist
+  ansible.builtin.fail:
+    msg: "{{ search_in_name }} controller is not found."
+  when: controller_id is undefined
+
+- name: Checking Drive list is empty
+  ansible.builtin.fail:
+    msg: "{{ controller_id }} does not have drives."
+  when: controller_id is defined and drive_list == []

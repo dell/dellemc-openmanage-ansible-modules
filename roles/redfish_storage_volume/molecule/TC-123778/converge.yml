@@ -1,0 +1,116 @@
+---
+- name: Ansible - Role - redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID10 with apply_time with default values
+  hosts: all
+  vars:
+    failure: {}
+    raid: "RAID0"
+  gather_facts: false
+
+  tasks:
+    - name: Running for PERC Controller
+      block:
+        - name: Extracting data
+          ansible.builtin.include_tasks:
+            file: ../__extract_storage.yml
+          vars:
+            loop_on: "{{ fetched_output.json.Members }}"
+            search_in_name: 'PERC'
+
+        - name: "Create a {{ raid }} volume for PERC"
+          ansible.builtin.import_role:
+            name: redfish_storage_volume
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            state: present
+            raid_type: "{{ raid }}"
+            name: "VD_PERC"
+            controller_id: "{{ controller_id }}"
+            drives: "{{ drive_list }}"
+            job_wait: true
+
+        - name: Asserting operation with check mode.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "Changes found to be applied."
+          when: ansible_check_mode
+
+        - name: Asserting operation with normal mode.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "Successfully submitted create volume task."
+          when: not ansible_check_mode
+
+        - name: Asserting operation with idempotence.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "No changes found to be applied."
+          when: not ansible_check_mode and not redfish_storage_volume_out.changed
+
+      rescue:
+        - name: Set the failure messages for PERC
+          ansible.builtin.set_fact:
+            failure: "{{  failure | combine({'PERC': {'msg': ansible_failed_result.msg, 
+                      'failed_task_name': ansible_failed_task.name}}) }}"
+
+      always:
+        - name: Deleting VD
+          ansible.builtin.include_tasks:
+            file: ../__delete_virtual_drive.yml
+          when: redfish_storage_volume_out.changed
+
+    - name: Running for BOSS Controller
+      block:
+        - name: Extracting data
+          ansible.builtin.include_tasks:
+            file: ../__extract_storage.yml
+          vars:
+            loop_on: "{{ fetched_output.json.Members }}"
+            search_in_name: 'BOSS'
+
+        - name: "Create a {{ raid }} volume for BOSS"
+          ansible.builtin.import_role:
+            name: redfish_storage_volume
+          vars:
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+            validate_certs: false
+            state: present
+            raid_type: "{{ raid }}"
+            name: "VD_BOSS"
+            controller_id: "{{ controller_id }}"
+            drives: "{{ drive_list }}"
+            job_wait: true
+
+        - name: Asserting operation with check mode.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "Changes found to be applied."
+          when: ansible_check_mode
+
+        - name: Asserting operation with normal mode.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "Successfully submitted create volume task."
+          when: not ansible_check_mode
+
+        - name: Asserting operation with idempotence.
+          ansible.builtin.assert:
+            that: redfish_storage_volume_out.msg == "No changes found to be applied."
+          when: not ansible_check_mode and not redfish_storage_volume_out.changed
+
+      rescue:
+        - name: Set the failure messages for BOSS
+          ansible.builtin.set_fact:
+            failure: "{{  failure | combine({'BOSS': {'msg': ansible_failed_result.msg, 
+                      'failed_task_name': ansible_failed_task.name}}) }}"
+
+      always:
+        - name: Deleting VD
+          ansible.builtin.include_tasks:
+            file: ../__delete_virtual_drive.yml
+          when: redfish_storage_volume_out.changed
+
+    - name: Collecting failure
+      ansible.builtin.debug:
+        var: failure
+      when: failure
+      failed_when: true

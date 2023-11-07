@@ -1,0 +1,16 @@
+---
+- name: Fetching data from iDRAC
+  ansible.builtin.uri:
+    url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/{{ url }}"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    method: GET
+    body: {}
+    validate_certs: false
+    force_basic_auth: true
+    body_format: json
+    return_content: true
+    status_code: 200
+    headers: 'Accept=application/json'
+  register: fetched_output
+  when: url is defined
