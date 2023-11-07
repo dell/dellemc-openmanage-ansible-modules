@@ -16,6 +16,7 @@
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
     state: "{{ state | default(omit) }}"
     controller_id: "{{ controller_id | default(omit) }}"
     volume_type: "{{ redfish_storage_volume_volume_type | default(omit) }}"
