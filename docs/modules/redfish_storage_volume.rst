@@ -75,7 +75,7 @@ Parameters
     \ :emphasis:`volume\_type`\  is mutually exclusive with \ :emphasis:`raid\_type`\ .
 
 
-  name (optional, str, None)
+  volume_name (optional, str, None)
     Name of the volume to be created.
 
     Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
@@ -151,6 +151,28 @@ Parameters
     \ :literal:`RAID60`\  to create a RAID60 type volume.
 
     \ :emphasis:`raid\_type`\  is mutually exclusive with \ :emphasis:`volume\_type`\ .
+
+
+  apply_time (optional, str, None)
+    Apply time of the Volume configuration.
+
+    \ :literal:`Immediate`\  allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for \ :emphasis:`job\_wait`\ .
+
+    \ :literal:`OnReset`\  allows you to apply the changes on the next reboot of the host server.
+
+    \ :emphasis:`apply\_time`\  has a default value based on the different types of the controller. For example, BOSS-S1 and BOSS-N1 controllers have a default value of \ :emphasis:`apply\_time`\  as \ :literal:`OnReset`\ , and PERC controllers have a default value of \ :emphasis:`apply\_time`\  as \ :literal:`Immediate`\ .
+
+
+  reboot_server (optional, bool, False)
+    Reboot the server to apply the changes.
+
+    \ :emphasis:`reboot\_server`\  is applicable only when \ :emphasis:`apply\_timeout`\  is \ :literal:`OnReset`\  or when the default value for the apply time of the controller is \ :literal:`OnReset`\ .
+
+
+  force_reboot (optional, bool, False)
+    Reboot the server forcefully to apply the changes when the normal reboot fails.
+
+    \ :emphasis:`force\_reboot`\  is applicable only when \ :emphasis:`reboot\_server`\  is \ :literal:`true`\ .
 
 
   baseuri (True, str, None)
@@ -233,6 +255,47 @@ Examples
         volume_type: "NonRedundant"
         drives:
            - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+
+    - name: Create a RAID0 on PERC controller on reset
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        apply_time: OnReset
+
+    - name: Create a RAID0 on BOSS controller with restart
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        apply_time: OnReset
+        restart_server: true
+
+    - name: Create a RAID0 on BOSS controller with force restart
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        restart_server: true
+        force_restart: true
 
     - name: Modify a volume's encryption type settings
       dellemc.openmanage.redfish_storage_volume:
