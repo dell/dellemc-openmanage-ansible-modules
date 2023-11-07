@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.3.0
+# Version 8.5.0
 # Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -67,11 +67,12 @@ options:
       - I(volume_type) is mutually exclusive with I(raid_type).
     type: str
     choices: [NonRedundant, Mirrored, StripedWithParity, SpannedMirrors, SpannedStripesWithParity]
-  name:
+  volume_name:
     description:
       - Name of the volume to be created.
       - Only applicable when I(state) is C(present).
     type: str
+    aliases: ['name']
   drives:
     description:
       - FQDD of the Physical disks.
@@ -134,6 +135,31 @@ options:
     type: str
     choices: [RAID0, RAID1, RAID5, RAID6, RAID10, RAID50, RAID60]
     version_added: 8.3.0
+  apply_time:
+    description:
+      - Apply time of the Volume configuration.
+      - C(Immediate) allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for I(job_wait).
+      - C(OnReset) allows you to apply the changes on the next reboot of the host server.
+      - I(apply_time) has a default value based on the different types of the controller.
+        For example, BOSS-S1 and BOSS-N1 controllers have a default value of I(apply_time) as C(OnReset),
+        and PERC controllers have a default value of I(apply_time) as C(Immediate).
+    type: str
+    choices: [Immediate, OnReset]
+    version_added: 8.5.0
+  reboot_server:
+    description:
+      - Reboot the server to apply the changes.
+      - I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).
+    type: bool
+    default: false
+    version_added: 8.5.0
+  force_reboot:
+    description:
+      - Reboot the server forcefully to apply the changes when the normal reboot fails.
+      - I(force_reboot) is applicable only when I(reboot_server) is C(true).
+    type: bool
+    default: false
+    version_added: 8.5.0
 
 requirements:
   - "python >= 3.9.6"
@@ -180,6 +206,47 @@ EXAMPLES = r'''
     volume_type: "NonRedundant"
     drives:
        - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+
+- name: Create a RAID0 on PERC controller on reset
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID0"
+    drives:
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+    apply_time: OnReset
+
+- name: Create a RAID0 on BOSS controller with restart
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID0"
+    drives:
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+    apply_time: OnReset
+    restart_server: true
+
+- name: Create a RAID0 on BOSS controller with force restart
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID0"
+    drives:
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+    restart_server: true
+    force_restart: true
 
 - name: Modify a volume's encryption type settings
   dellemc.openmanage.redfish_storage_volume:
@@ -293,6 +360,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job, wait_for_redfish_job_complete
 
 
 VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
@@ -301,10 +369,15 @@ CONTROLLER_URI = "{storage_base_uri}/{controller_id}"
 SETTING_VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}/Settings"
 CONTROLLER_VOLUME_URI = "{storage_base_uri}/{controller_id}/Volumes"
 VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
+APPLY_TIME_INFO_API = CONTROLLER_URI + "/Volumes"
+REBOOT_API = "Actions/ComputerSystem.Reset"
 storage_collection_map = {}
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 RAID_TYPE_NOT_SUPPORTED_MSG = "RAID Type {raid_type} is not supported."
+APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time {apply_time} is not supported. The supported values \
+are {supported_apply_time_values}. Enter the valid values and retry the operation"
+REBOOT_FAIL = "Failed to reboot the server."
 volume_type_map = {"NonRedundant": "RAID0",
                    "Mirrored": "RAID1",
                    "StripedWithParity": "RAID5",
@@ -319,6 +392,8 @@ def fetch_storage_resource(module, session_obj):
         system_members = system_resp.json_data.get("Members")
         if system_members:
             system_id_res = system_members[0]["@odata.id"]
+            global SYSTEM_ID
+            SYSTEM_ID = system_id_res.split('/')[-1]
             system_id_res_resp = session_obj.invoke_request("GET", system_id_res)
             system_id_res_data = system_id_res_resp.json_data.get("Storage")
             if system_id_res_data:
@@ -346,6 +421,7 @@ def volume_payload(module):
     encryption_types = params.get("encryption_types")
     volume_type = params.get("volume_type")
     raid_type = params.get("raid_type")
+    apply_time = params.get("apply_time")
     if capacity_bytes:
         capacity_bytes = int(capacity_bytes)
     if drives:
@@ -370,6 +446,8 @@ def volume_payload(module):
         raid_payload.update({"RAIDType": volume_type_map.get(volume_type)})
     if raid_type:
         raid_payload.update({"RAIDType": raid_type})
+    if apply_time is not None:
+        raid_payload.update({"@Redfish.OperationApplyTime": apply_time})
     return raid_payload
 
 
@@ -541,6 +619,25 @@ def check_raid_type_supported(module, session_obj):
             raise err
 
 
+def check_apply_time_supported(module, session_obj):
+    """
+    checks whether the apply time is supported
+    """
+    apply_time = module.params.get("apply_time")
+    command = module.params.get("command")
+    try:
+        specified_controller_id = module.params.get("controller_id")
+        uri = APPLY_TIME_INFO_API.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=specified_controller_id)
+        resp = session_obj.invoke_request("GET", uri)
+        supported_apply_time_values = resp.json_data['@Redfish.OperationApplyTimeSupport']['SupportedValues']
+        if apply_time not in supported_apply_time_values:
+            module.exit_json(msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(apply_time=apply_time, supported_apply_time_values=supported_apply_time_values),
+                             failed=True)
+        return True
+    except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+        raise err
+
+
 def perform_volume_create_modify(module, session_obj):
     """
     perform volume creation and modification for state present
@@ -656,6 +753,39 @@ def validate_inputs(module):
                          " volume_id must be specified to perform further actions.")
 
 
+def perform_force_reboot(module, session_obj):
+    payload = {"ResetType": "ForceRestart"}
+    job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
+    if reset_status and job_resp_status:
+        job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+        job_resp, job_msg = wait_for_redfish_job_complete(session_obj, job_uri)
+        job_status = job_resp.json_data
+        if job_status["JobState"] != "RebootCompleted":
+            if job_msg:
+                module.fail_json(msg=JOB_WAIT_MSG.format(module.params["reboot_timeout"]))
+            else:
+                module.exit_json(msg=REBOOT_FAIL, failed=True)
+    elif not reset_status and reset_fail:
+        module.exit_json(msg=reset_fail, failed=True)
+
+
+def perform_reboot(module, session_obj):
+    payload = {"ResetType": "GracefulRestart"}
+    force_reboot = module.params.get("force_reboot")
+    job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
+    if reset_status and job_resp_status:
+        job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+        job_resp, job_msg = wait_for_redfish_job_complete(session_obj, job_uri)
+        job_status = job_resp.json_data
+        if job_status["JobState"] != "RebootCompleted":
+            if force_reboot:
+                perform_force_reboot(module, session_obj)
+            else:
+                module.exit_json(msg=REBOOT_FAIL, failed=True)
+    elif not reset_status and reset_fail:
+        module.exit_json(msg=reset_fail, failed=True)
+
+
 def main():
     specs = {
         "state": {"type": "str", "required": False, "choices": ['present', 'absent']},
@@ -679,6 +809,9 @@ def main():
         "volume_id": {"required": False, "type": "str"},
         "oem": {"required": False, "type": "dict"},
         "initialize_type": {"type": "str", "required": False, "choices": ['Fast', 'Slow'], "default": "Fast"},
+        "apply_time": {"required": False, "type": "str", "choices": ['Immediate', 'OnReset']},
+        "reboot_server": {"required": False, "type": "bool", "default": 'False'},
+        "force_reboot": {"required": False, "type": "bool", "default": 'False'}
     }
 
     specs.update(redfish_auth_params)
@@ -695,8 +828,15 @@ def main():
         validate_inputs(module)
         with Redfish(module.params, req_session=True) as session_obj:
             fetch_storage_resource(module, session_obj)
+            apply_time = module.params.get("apply_time")
+            reboot_server = module.params.get("reboot_server")
+            apply_time_supported = False
+            if apply_time is not None:
+                apply_time_supported = check_apply_time_supported(module, session_obj)
             status_message = configure_raid_operation(module, session_obj)
             task_status = {"uri": status_message.get("task_uri"), "id": status_message.get("task_id")}
+            if apply_time_supported and apply_time == "OnReset" and reboot_server:
+                perform_reboot(module, session_obj)
             module.exit_json(msg=status_message["msg"], task=task_status, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
