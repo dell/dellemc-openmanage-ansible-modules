@@ -67,12 +67,12 @@ options:
       - I(volume_type) is mutually exclusive with I(raid_type).
     type: str
     choices: [NonRedundant, Mirrored, StripedWithParity, SpannedMirrors, SpannedStripesWithParity]
-  volume_name:
+  name:
     description:
       - Name of the volume to be created.
       - Only applicable when I(state) is C(present).
     type: str
-    aliases: ['name']
+    aliases: ['volume_name']
   drives:
     description:
       - FQDD of the Physical disks.
@@ -160,6 +160,22 @@ options:
     type: bool
     default: false
     version_added: 8.5.0
+  job_wait:
+    description:
+      - This parameter provides the option to wait for the job completion.
+      - This is applicable when I(apply_time) is C(Immediate).
+      - This is applicable when I(apply_time) is C(OnReset) and I(reboot_server) is C(true).
+    type: bool
+    default: true
+    version_added: 8.5.0
+  job_wait_timeout:
+    description:
+      - This parameter is the maximum wait time of I(job_wait) in seconds.
+      - This option is applicable when I(job_wait) is C(true).
+    type: int
+    default: 300
+    version_added: 8.5.0
+
 
 requirements:
   - "python >= 3.9.6"
@@ -360,7 +376,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job, wait_for_redfish_job_complete
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job,\
+    wait_for_redfish_job_complete, strip_substr_dict, wait_for_job_completion
 
 
 VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
@@ -377,6 +394,10 @@ NO_CHANGES_FOUND = "No changes found to be applied."
 RAID_TYPE_NOT_SUPPORTED_MSG = "RAID Type {raid_type} is not supported."
 APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time {apply_time} is not supported. The supported values \
 are {supported_apply_time_values}. Enter the valid values and retry the operation"
+JOB_COMPLETION = "The job is successfully completed."
+JOB_SUBMISSION = "The job to perform the operation is successfully submitted."
+JOB_FAILURE_PROGRESS_MSG = "Unable to complete the task initiated for creating the storage volume."
+JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for reboot job status."
 REBOOT_FAIL = "Failed to reboot the server."
 volume_type_map = {"NonRedundant": "RAID0",
                    "Mirrored": "RAID1",
@@ -619,21 +640,26 @@ def check_raid_type_supported(module, session_obj):
             raise err
 
 
-def check_apply_time_supported(module, session_obj):
+def check_apply_time_supported_and_reboot_required(module, session_obj):
     """
-    checks whether the apply time is supported
+    checks whether the apply time is supported and reboot operation is required or not
     """
     apply_time = module.params.get("apply_time")
-    command = module.params.get("command")
+    reboot_server = module.params.get("reboot_server")
     try:
         specified_controller_id = module.params.get("controller_id")
         uri = APPLY_TIME_INFO_API.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=specified_controller_id)
         resp = session_obj.invoke_request("GET", uri)
         supported_apply_time_values = resp.json_data['@Redfish.OperationApplyTimeSupport']['SupportedValues']
-        if apply_time not in supported_apply_time_values:
-            module.exit_json(msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(apply_time=apply_time, supported_apply_time_values=supported_apply_time_values),
-                             failed=True)
-        return True
+        if apply_time:
+            if apply_time not in supported_apply_time_values:
+                module.exit_json(msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(apply_time=apply_time, supported_apply_time_values=supported_apply_time_values),
+                                 failed=True)
+            elif reboot_server and apply_time == "OnReset":
+                return True
+        if reboot_server and supported_apply_time_values[0] == "OnReset":
+            return True
+        return False
     except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
 
@@ -786,6 +812,21 @@ def perform_reboot(module, session_obj):
         module.exit_json(msg=reset_fail, failed=True)
 
 
+def track_job(module, session_obj, job_wait, job_id, job_url):
+    resp, msg = wait_for_job_completion(session_obj, job_url, job_wait=job_wait,
+                                        wait_timeout=module.params["job_wait_timeout"])
+    module.exit_json(msg=resp)
+    job_data = strip_substr_dict(resp.json_data)
+    if job_data["Oem"]["Dell"]["JobState"] == "Failed":
+        changed, failed = False, True
+        module.exit_json(msg=JOB_FAILURE_PROGRESS_MSG, task={"id": job_id, "uri": job_url},
+                         status=job_data, changed=changed, failed=failed)
+    else:
+        changed, failed = True, False
+        module.exit_json(msg=JOB_COMPLETION, task={"id": job_id, "uri": job_url},
+                         status=job_data, changed=changed, failed=failed)
+
+
 def main():
     specs = {
         "state": {"type": "str", "required": False, "choices": ['present', 'absent']},
@@ -797,7 +838,7 @@ def main():
         "raid_type": {"type": "str", "required": False,
                       "choices": ['RAID0', 'RAID1', 'RAID5',
                                   'RAID6', 'RAID10', 'RAID50', 'RAID60']},
-        "name": {"required": False, "type": "str"},
+        "name": {"required": False, "type": "str", "aliases": ['volume_name']},
         "controller_id": {"required": False, "type": "str"},
         "drives": {"elements": "str", "required": False, "type": "list"},
         "block_size_bytes": {"required": False, "type": "int"},
@@ -811,7 +852,9 @@ def main():
         "initialize_type": {"type": "str", "required": False, "choices": ['Fast', 'Slow'], "default": "Fast"},
         "apply_time": {"required": False, "type": "str", "choices": ['Immediate', 'OnReset']},
         "reboot_server": {"required": False, "type": "bool", "default": 'False'},
-        "force_reboot": {"required": False, "type": "bool", "default": 'False'}
+        "force_reboot": {"required": False, "type": "bool", "default": 'False'},
+        "job_wait": {"required": False, "type": "bool", "default": True},
+        "job_wait_timeout": {"required": False, "type": "int", "default": 300}
     }
 
     specs.update(redfish_auth_params)
@@ -828,16 +871,21 @@ def main():
         validate_inputs(module)
         with Redfish(module.params, req_session=True) as session_obj:
             fetch_storage_resource(module, session_obj)
-            apply_time = module.params.get("apply_time")
-            reboot_server = module.params.get("reboot_server")
-            apply_time_supported = False
-            if apply_time is not None:
-                apply_time_supported = check_apply_time_supported(module, session_obj)
+            state = module.params.get("state")
+            reboot_required = False
+            if state == "present":
+                reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj)
             status_message = configure_raid_operation(module, session_obj)
-            task_status = {"uri": status_message.get("task_uri"), "id": status_message.get("task_id")}
-            if apply_time_supported and apply_time == "OnReset" and reboot_server:
+            if reboot_required:
                 perform_reboot(module, session_obj)
-            module.exit_json(msg=status_message["msg"], task=task_status, changed=True)
+            job_id = status_message.get("task_id")
+            job_url = status_message.get("task_uri")
+            job_wait = module.params.get("job_wait")
+            if job_wait:
+                track_job(module, session_obj, job_wait, job_id, job_url)
+            else:
+                task_status = {"uri": status_message.get("task_uri"), "id": status_message.get("task_id")}
+                module.exit_json(msg=status_message["msg"], task=task_status, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
