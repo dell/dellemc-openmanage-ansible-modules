@@ -1,11 +1,6 @@
----
-- name: Get controller id
-  ansible.builtin.set_fact:
-    ctrl_id: "{{ pd_data.Id | split(':') | last }}"
-
-- name: Get Storage information.
+- name: Fetching Presence and Status Sensor info
   ansible.builtin.uri:
-    url: "https://{{ hostname }}{{ api_system }}/Storage/{{ ctrl_id }}/Drives/{{ pd_data.Id }}"
+    url: "https://{{ hostname }}{{ api_system }}/Oem/Dell/DellPresenceAndStatusSensors/{{ passensor_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -16,25 +11,23 @@
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
   no_log: true
-  register: disk_result
+  register: passensor_result
 
-- name: Filter Physical Disk data
+- name: Set presence and status sensor facts
   ansible.builtin.set_fact:
-    api_response: "{{ disk_result.json | ansible.utils.remove_keys(target=[
-      '@odata.context', '@odata.id', '@odata.type', 'Actions', 'Assembly', 'Links', 'DellDriveSMARTAttributes',
-      'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"
+    api_response: "{{ passensor_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
-    diff_keys: "{{ pd_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+    diff_keys: "{{ passensor_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
 
-- name: Set a Diff of dict
+- name: Set a diff of dict
   ansible.builtin.set_fact:
-    diff_data: "{{ diff_data | combine({item: pd_data[item]}) }}"
-  loop: "{{ pd_data.keys() }}"
+    diff_data: "{{ diff_data | combine({item: passensor_data[item]}) }}"
+  loop: "{{ passensor_data.keys() }}"
   when:
     - diff_keys | length == 0
-    - pd_data[item] != api_response[item]
+    - passensor_data[item] != api_response[item]
     - item not in exclude_keys
 
 - name: Assert the difference in Keys

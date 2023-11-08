@@ -1,6 +1,6 @@
-- name: Fetching CPU information.
+- name: Fetching PCIeDevice info
   ansible.builtin.uri:
-    url: "https://{{ hostname }}{{ api_system }}/Processors/{{ cpu_data.Id }}"
+    url: "https://{{ hostname }}{{ api_chassis }}/PCIeDevices/{{ pci_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -10,25 +10,24 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: cpu_result
   no_log: true
+  register: pci_result
 
-- name: Set CPU facts
+- name: Set pcie device facts
   ansible.builtin.set_fact:
-    api_response: "{{ cpu_result.json | ansible.utils.remove_keys(target=[
-      '@odata.context', '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
+    api_response: "{{ pci_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', '@odata.etag']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
-    diff_keys: "{{ cpu_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+    diff_keys: "{{ pci_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
 
 - name: Set a diff of dict
   ansible.builtin.set_fact:
-    diff_data: "{{ diff_data | combine({item: cpu_data[item]}) }}"
-  loop: "{{ cpu_data.keys() }}"
+    diff_data: "{{ diff_data | combine({item: pci_data[item]}) }}"
+  loop: "{{ pci_data.keys() }}"
   when:
     - diff_keys | length == 0
-    - cpu_data[item] != api_response[item]
+    - pci_data[item] != api_response[item]
     - item not in exclude_keys
 
 - name: Assert the difference in Keys

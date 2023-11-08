@@ -37,7 +37,7 @@
           - "{{ backplane | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: backplane_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/backplane_assert.yml
       with_items: "{{ backplane }}"
       loop_control:
         loop_var: backplane_data

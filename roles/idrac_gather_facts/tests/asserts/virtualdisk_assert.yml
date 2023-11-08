@@ -1,6 +1,11 @@
-- name: Fetching memory info
+---
+- name: Get controller id
+  ansible.builtin.set_fact:
+    ctrl_id: "{{ virtualdisk_data.Id | split(':') | last }}"
+
+- name: Get Storage information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}{{ api_system }}/Memory/{{ memory_data.Id }}"
+    url: "https://{{ hostname }}{{ api_system }}/Storage/{{ ctrl_id }}/Volumes/{{ virtualdisk_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -10,26 +15,21 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: memory_result
   no_log: true
+  register: virtualdisk_result
 
-- name: Set memory facts
+- name: Filter Virtual Disk data
   ansible.builtin.set_fact:
-    api_response: "{{ memory_result.json| ansible.utils.remove_keys(
-      target=['@odata.context', '@odata.id', '@odata.type', 'AllowedSpeedsMHz@odata.count', 'CPUAffinity@odata.count',
-      'Processors@odata.count', 'MaxTDPMilliWatts@odata.count', 'OperatingMemoryModes@odata.count']) }}"
+    api_response: "{{ virtualdisk_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'Actions',
+      'EncryptionTypes@odata.count', 'Identifiers@odata.count', 'Links', 'Operations@odata.count', 'DellVirtualDisk', 'DellVirtualDisk@Redfish.Deprecated']) }}"
 
-- name: Set the keys diff
+- name: Set a Diff of dict
   ansible.builtin.set_fact:
-    diff_keys: "{{ memory_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
-
-- name: Set a diff of dict
-  ansible.builtin.set_fact:
-    diff_data: "{{ diff_data | combine({item: memory_data[item]}) }}"
-  loop: "{{ memory_data.keys() }}"
+    diff_data: "{{ diff_data | combine({item: virtualdisk_data[item]}) }}"
+  loop: "{{ virtualdisk_data.keys() }}"
   when:
     - diff_keys | length == 0
-    - memory_data[item] != api_response[item]
+    - virtualdisk_data[item] != api_response[item]
     - item not in exclude_keys
 
 - name: Assert the difference in Keys

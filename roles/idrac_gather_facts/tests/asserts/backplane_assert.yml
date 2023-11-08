@@ -1,6 +1,6 @@
-- name: Fetching Fan info
+- name: Get PCIeSSDBackPlanes information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}{{ api_chassis }}/ThermalSubsystem/Fans/{{ fan_data.Id }}"
+    url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellPCIeSSDBackPlanes/{{ backplane_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -10,25 +10,24 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: fan_result
+  register: backplane_result
   no_log: true
 
-- name: Set fan facts
+- name: Set backplane facts
   ansible.builtin.set_fact:
-    api_response: "{{ fan_result.json | ansible.utils.remove_keys(
-      target=['@odata.context', '@odata.id', '@odata.type']) }}"
+    api_response: "{{ backplane_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
-    diff_keys: "{{ fan_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+    diff_keys: "{{ backplane_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
 
-- name: Set a diff of dict
+- name: Set a Diff of dict
   ansible.builtin.set_fact:
-    diff_data: "{{ diff_data | combine({item: fan_data[item]}) }}"
-  loop: "{{ fan_data.keys() }}"
+    diff_data: "{{ diff_data | combine({item: backplane_data[item]}) }}"
+  loop: "{{ backplane_data.keys() }}"
   when:
     - diff_keys | length == 0
-    - fan_data[item] != api_response[item]
+    - backplane_data[item] != api_response[item]
     - item not in exclude_keys
 
 - name: Assert the difference in Keys

@@ -1,6 +1,6 @@
-- name: Fetching EnclosureEMM info
+- name: Fetching memory info
   ansible.builtin.uri:
-    url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosureEMM/{{ enclosureemm_data.Id }}"
+    url: "https://{{ hostname }}{{ api_system }}/Memory/{{ memory_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -10,25 +10,25 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: enclosureemm_result
+  register: memory_result
   no_log: true
 
-- name: Set enclosureemm facts
+- name: Set memory facts
   ansible.builtin.set_fact:
-    api_response: "{{ enclosureemm_result.json | ansible.utils.remove_keys(
-      target=['@odata.context', '@odata.id', '@odata.type', 'Description', 'Links']) }}"
+    api_response: "{{ memory_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'AllowedSpeedsMHz@odata.count',
+      'CPUAffinity@odata.count', 'Processors@odata.count', 'MaxTDPMilliWatts@odata.count', 'OperatingMemoryModes@odata.count']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
-    diff_keys: "{{ enclosureemm_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+    diff_keys: "{{ memory_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
 
 - name: Set a diff of dict
   ansible.builtin.set_fact:
-    diff_data: "{{ diff_data | combine({item: enclosureemm_data[item]}) }}"
-  loop: "{{ enclosureemm_data.keys() }}"
+    diff_data: "{{ diff_data | combine({item: memory_data[item]}) }}"
+  loop: "{{ memory_data.keys() }}"
   when:
     - diff_keys | length == 0
-    - enclosureemm_data[item] != api_response[item]
+    - memory_data[item] != api_response[item]
     - item not in exclude_keys
 
 - name: Assert the difference in Keys

@@ -15,9 +15,8 @@
 
 - name: Set hostnic facts
   ansible.builtin.set_fact:
-    api_response: "{{ hostnic_result.json | ansible.utils.remove_keys(target=[
-      '@odata.context', '@odata.id', '@odata.type', 'HostEthernetInterfaces',
-      'ManagerEthernetInterface']) }}"
+    api_response: "{{ hostnic_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'HostEthernetInterfaces',
+     'ManagerEthernetInterface']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:

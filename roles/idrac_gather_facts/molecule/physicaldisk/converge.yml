@@ -37,7 +37,7 @@
           - "{{ physical_disk | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: physicaldisk_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/physicaldisk_assert.yml
       with_items: "{{ physical_disk }}"
       loop_control:
         loop_var: pd_data

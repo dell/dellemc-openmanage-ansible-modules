@@ -1,11 +1,6 @@
----
-- name: Get controller id
-  ansible.builtin.set_fact:
-    ctrl_id: "{{ virtualdisk_data.Id | split(':') | last }}"
-
-- name: Get Storage information.
+- name: Fetching Enclosure info
   ansible.builtin.uri:
-    url: "https://{{ hostname }}{{ api_system }}/Storage/{{ ctrl_id }}/Volumes/{{ virtualdisk_data.Id }}"
+    url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures/{{ enclosure_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -15,28 +10,24 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  register: enclosure_result
   no_log: true
-  register: virtualdisk_result
 
-- name: Filter Virtual Disk data
+- name: Set enclosure facts
   ansible.builtin.set_fact:
-    api_response:
-      "{{ virtualdisk_result.json | ansible.utils.remove_keys(target=[
-      '@odata.context', '@odata.type', '@odata.id', 'Actions', 'EncryptionTypes@odata.count',
-      'Identifiers@odata.count', 'Links', 'Operations@odata.count', 'DellVirtualDisk',
-      'DellVirtualDisk@Redfish.Deprecated']) }}"
+    api_response: "{{ enclosure_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
-    diff_keys: "{{ virtualdisk_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+    diff_keys: "{{ enclosure_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
 
-- name: Set a Diff of dict
+- name: Set a diff of dict
   ansible.builtin.set_fact:
-    diff_data: "{{ diff_data | combine({item: virtualdisk_data[item]}) }}"
-  loop: "{{ virtualdisk_data.keys() }}"
+    diff_data: "{{ diff_data | combine({item: enclosure_data[item]}) }}"
+  loop: "{{ enclosure_data.keys() }}"
   when:
     - diff_keys | length == 0
-    - virtualdisk_data[item] != api_response[item]
+    - enclosure_data[item] != api_response[item]
     - item not in exclude_keys
 
 - name: Assert the difference in Keys

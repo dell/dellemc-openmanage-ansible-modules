@@ -65,10 +65,10 @@
           ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri', 'TemperatureReadingsCelsius@odata.count']) }}"
 
     - name: Call assertion for thermal metrics
-      ansible.builtin.include_tasks: tmetrics_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/tmetrics_assert.yml
 
     - name: Call assertion for memory metrics
-      ansible.builtin.include_tasks: mmetrics_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/mmetrics_assert.yml
       with_items: "{{ memory_metrics }}"
       loop_control:
         loop_var: memory_data
@@ -97,7 +97,7 @@
         psu_ids: "{{ power_result.json.Members | json_query(jq) }}"
 
     - name: Call assertion for Power metrics
-      ansible.builtin.include_tasks: psmetrics_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/psmetrics_assert.yml
       with_items: "{{ power_metrics }}"
       loop_control:
         loop_var: power_data

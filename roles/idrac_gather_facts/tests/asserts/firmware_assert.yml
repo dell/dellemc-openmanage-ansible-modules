@@ -1,6 +1,6 @@
-- name: Get NIC information.
+- name: Fetching Firmware info
   ansible.builtin.uri:
-    url: "https://{{ hostname }}{{ api_system }}/EthernetInterfaces/{{ nic_data.Id }}"
+    url: "https://{{ hostname }}/redfish/v1/UpdateService/FirmwareInventory/{{ firmware_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -10,26 +10,25 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: nic_result
+  register: firmware_result
   no_log: true
 
-- name: Set nic facts
+- name: Set firmware facts
   ansible.builtin.set_fact:
-    api_response: "{{ nic_result.json| ansible.utils.remove_keys(target=[
-      '@odata.context', '@odata.id', '@odata.type', 'IPv4Addresses@odata.count', 'IPv6AddressPolicyTable@odata.count',
-      'IPv6Addresses@odata.count', 'IPv6StaticAddresses@odata.count', 'NameServers@odata.count']) }}"
+    api_response: "{{ firmware_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Classifications@odata.count',
+      'IdentityInfoType@odata.count', 'IdentityInfoValue@odata.count']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:
-    diff_keys: "{{ nic_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+    diff_keys: "{{ firmware_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
 
 - name: Set a diff of dict
   ansible.builtin.set_fact:
-    diff_data: "{{ diff_data | combine({item: nic_data[item]}) }}"
-  loop: "{{ nic_data.keys() }}"
+    diff_data: "{{ diff_data | combine({item: firmware_data[item]}) }}"
+  loop: "{{ firmware_data.keys() }}"
   when:
     - diff_keys | length == 0
-    - nic_data[item] != api_response[item]
+    - firmware_data[item] != api_response[item]
     - item not in exclude_keys
 
 - name: Assert the difference in Keys

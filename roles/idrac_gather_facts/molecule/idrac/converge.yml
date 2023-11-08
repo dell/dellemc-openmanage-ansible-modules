@@ -84,4 +84,4 @@
           api_lifecycle_controller_attributes: "{{ response_lc_attr.json.Attributes }}"
 
     - name: Call assertion For System Attributes
-      ansible.builtin.include_tasks: system_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/system_assert.yml

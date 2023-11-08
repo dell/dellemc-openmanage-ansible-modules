@@ -57,7 +57,7 @@
           '@odata.id', '@odata.type']) }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: sensorsvoltage_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/sensorsvoltage_assert.yml
       with_items: "{{ voltages }}"
       loop_control:
         loop_var: sensorsvoltage_data

@@ -32,7 +32,7 @@
         name: "idrac_gather_facts"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: passensor_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/passensor_assert.yml
       with_items: "{{ presence_and_status_sensor }}"
       loop_control:
         loop_var: passensor_data

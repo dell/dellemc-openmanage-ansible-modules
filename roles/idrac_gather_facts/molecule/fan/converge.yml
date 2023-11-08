@@ -31,7 +31,7 @@
         name: "idrac_gather_facts"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: fan_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/fan_assert.yml
       with_items: "{{ fan }}"
       loop_control:
         loop_var: fan_data
