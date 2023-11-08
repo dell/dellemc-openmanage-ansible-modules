@@ -166,7 +166,7 @@ options:
       - This is applicable when I(apply_time) is C(Immediate).
       - This is applicable when I(apply_time) is C(OnReset) and I(reboot_server) is C(true).
     type: bool
-    default: true
+    default: false
     version_added: 8.5.0
   job_wait_timeout:
     description:
@@ -853,7 +853,7 @@ def main():
         "apply_time": {"required": False, "type": "str", "choices": ['Immediate', 'OnReset']},
         "reboot_server": {"required": False, "type": "bool", "default": 'False'},
         "force_reboot": {"required": False, "type": "bool", "default": 'False'},
-        "job_wait": {"required": False, "type": "bool", "default": True},
+        "job_wait": {"required": False, "type": "bool", "default": False},
         "job_wait_timeout": {"required": False, "type": "int", "default": 300}
     }
 
@@ -871,9 +871,10 @@ def main():
         validate_inputs(module)
         with Redfish(module.params, req_session=True) as session_obj:
             fetch_storage_resource(module, session_obj)
-            state = module.params.get("state")
+            # state = module.params.get("state")
+            controller_id = module.params.get("controller_id")
             reboot_required = False
-            if state == "present":
+            if controller_id:
                 reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj)
             status_message = configure_raid_operation(module, session_obj)
             if reboot_required:
