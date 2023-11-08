@@ -8,7 +8,6 @@
     file: ../__get_helper.yml
   vars:
     url: "Systems/System.Embedded.1/Storage/{{ controller_id }}/Volumes"
-  no_log: true
 
 - name: Extracting volume_id
   ansible.builtin.set_fact:
