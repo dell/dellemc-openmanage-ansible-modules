@@ -6,13 +6,18 @@
     url: "Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
   no_log: true
 
+- name: Intializing set_fact variable
+  ansible.builtin.set_fact:
+      controller_id: ""
+      drive_list: []
+
 - name: Extracting Controller id
   ansible.builtin.set_fact:
     controller_id: "{{ item.Id }}"
     drive_list_odata: "{{ item.Drives }}"
-    drive_list: []
   when:
     - search_in_name is defined and search_in_name in item.Name
+    - item.Oem.Dell.DellController.CurrentControllerMode == 'RAID'
   loop: "{{ fetched_output.json.Members }}"
 
 - name: Extracting Drives id

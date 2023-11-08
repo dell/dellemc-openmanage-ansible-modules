@@ -4,6 +4,7 @@
   vars:
     failure: {}
     raid: "RAID0"
+    minimum_required_drives: 1
   gather_facts: false
 
   tasks:
@@ -13,9 +14,20 @@
       vars:
         search_in_name: 'PERC'
 
+    - name: Setting PERC controller_id
+      ansible.builtin.set_fact:
+        perc_raid_controller_id: "{{ controller_id }}"
+      when: controller_id != ""
+
     - name: Running for PERC Controller
-      when: controller_id is defined
+      when: perc_raid_controller_id is defined
       block:
+        - name: "Checking minimum number of drives for {{ raid }}"
+          ansible.builtin.debug:
+            msg: "Minimum number of required drives: {{ minimum_required_drives }}, current: {{ drive_list | length }}"
+          when: drive_list | length < minimum_required_drives
+          failed_when: true
+
         - name: "Create a {{ raid }} volume for PERC"
           ansible.builtin.import_role:
             name: redfish_storage_volume
@@ -27,7 +39,7 @@
             state: present
             raid_type: "{{ raid }}"
             name: "VD_PERC"
-            controller_id: "{{ controller_id }}"
+            controller_id: "{{ perc_raid_controller_id }}"
             drives: "{{ drive_list }}"
             job_wait: true
 
@@ -56,17 +68,30 @@
         - name: Deleting VD
           ansible.builtin.include_tasks:
             file: ../__delete_virtual_drive.yml
-          when: redfish_storage_volume_out.changed
-    
+          when:
+            - redfish_storage_volume_out is defined
+            - redfish_storage_volume_out.changed
+
     - name: Fetching data from iDRAC for BOSS
       ansible.builtin.include_tasks:
         file: ../__extract_storage.yml
       vars:
         search_in_name: 'BOSS'
 
+    - name: Setting BOSS controller_id
+      ansible.builtin.set_fact:
+        boss_raid_controller_id: "{{ controller_id }}"
+      when: controller_id != ""
+
     - name: Running for BOSS Controller
-      when: controller_id is defined
+      when: boss_raid_controller_id is defined
       block:
+        - name: "Checking minimum number of drives for {{ raid }}"
+          ansible.builtin.debug:
+            msg: "Minimum number of required drives: {{ minimum_required_drives }}, current: {{ drive_list | length }}"
+          when: drive_list | length < minimum_required_drives
+          failed_when: true
+
         - name: "Create a {{ raid }} volume for BOSS"
           ansible.builtin.import_role:
             name: redfish_storage_volume
@@ -78,7 +103,7 @@
             state: present
             raid_type: "{{ raid }}"
             name: "VD_BOSS"
-            controller_id: "{{ controller_id }}"
+            controller_id: "{{ boss_raid_controller_id }}"
             drives: "{{ drive_list }}"
             job_wait: true
 
@@ -89,7 +114,7 @@
 
         - name: Asserting operation with normal mode.
           ansible.builtin.assert:
-            that: redfish_storage_volume_out.msg == "Successfully submitted create volume task."
+            that: redfish_storage_volume_out.msg == "Successfully scheduled create volume task."
           when: not ansible_check_mode
 
         - name: Asserting operation with idempotence.
@@ -107,10 +132,18 @@
         - name: Deleting VD
           ansible.builtin.include_tasks:
             file: ../__delete_virtual_drive.yml
-          when: redfish_storage_volume_out.changed
+          when:
+            - redfish_storage_volume_out is defined
+            - redfish_storage_volume_out.changed
 
     - name: Collecting failure
       ansible.builtin.debug:
         var: failure
       when: failure
+      failed_when: true
+
+    - name: Executing if both PERC and BOSS is not found.
+      ansible.builtin.debug:
+        msg: "iDRAC doesn't have PERC and BOSS raid controller."
+      when: perc_raid_controller_id is undefined and boss_raid_controller_id is undefined
       failed_when: true
