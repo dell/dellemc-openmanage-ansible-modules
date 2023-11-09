@@ -167,6 +167,15 @@ class InventoryModule(BaseInventoryPlugin):
                 for key, val in dict(dict(group_vars)[group]).items():
                     self.inventory.set_variable(group, key, val)
 
+    def _get_device_host(self, mgmt):
+        if len(mgmt["DeviceManagement"]) == 1 and mgmt["DeviceManagement"][0]["NetworkAddress"].startswith("["):
+            dev_host = mgmt["DeviceManagement"][0]["NetworkAddress"][1:-1]
+        elif len(mgmt["DeviceManagement"]) == 2 and mgmt["DeviceManagement"][0]["NetworkAddress"].startswith("["):
+            dev_host = mgmt["DeviceManagement"][1]["NetworkAddress"]
+        else:
+            dev_host = mgmt["DeviceManagement"][0]["NetworkAddress"]
+        return dev_host
+
     def _get_all_devices(self, device_uri):
         device_host = []
         device_host_uri = device_uri.strip("/api/")
@@ -185,12 +194,8 @@ class InventoryModule(BaseInventoryPlugin):
             device_data = device_resp.get("report_list", [])
             if device_data is not None:
                 for mgmt in device_data:
-                    if len(mgmt["DeviceManagement"]) == 1 and mgmt["DeviceManagement"][0]["NetworkAddress"].startswith("["):
-                        device_host.append(mgmt["DeviceManagement"][0]["NetworkAddress"][1:-1])
-                    elif len(mgmt["DeviceManagement"]) == 2 and mgmt["DeviceManagement"][0]["NetworkAddress"].startswith("["):
-                        device_host.append(mgmt["DeviceManagement"][1]["NetworkAddress"])
-                    else:
-                        device_host.append(mgmt["DeviceManagement"][0]["NetworkAddress"])
+                    if (len(mgmt["DeviceManagement"]) != 0):
+                        device_host.append(self._get_device_host(mgmt))
         return device_host
 
     def _set_child_group(self, group_data):
