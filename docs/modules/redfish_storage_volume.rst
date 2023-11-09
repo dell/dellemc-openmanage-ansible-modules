@@ -75,7 +75,7 @@ Parameters
     \ :emphasis:`volume\_type`\  is mutually exclusive with \ :emphasis:`raid\_type`\ .
 
 
-  volume_name (optional, str, None)
+  name (optional, str, None)
     Name of the volume to be created.
 
     Only applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
@@ -173,6 +173,20 @@ Parameters
     Reboot the server forcefully to apply the changes when the normal reboot fails.
 
     \ :emphasis:`force\_reboot`\  is applicable only when \ :emphasis:`reboot\_server`\  is \ :literal:`true`\ .
+
+
+  job_wait (optional, bool, True)
+    This parameter provides the option to wait for the job completion.
+
+    This is applicable when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\ .
+
+    This is applicable when \ :emphasis:`apply\_time`\  is \ :literal:`OnReset`\  and \ :emphasis:`reboot\_server`\  is \ :literal:`true`\ .
+
+
+  job_wait_timeout (optional, int, 300)
+    This parameter is the maximum wait time of \ :emphasis:`job\_wait`\  in seconds.
+
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   baseuri (True, str, None)
