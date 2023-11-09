@@ -173,7 +173,7 @@ options:
       - This parameter is the maximum wait time of I(job_wait) in seconds.
       - This option is applicable when I(job_wait) is C(true).
     type: int
-    default: 300
+    default: 1200
     version_added: 8.5.0
 
 
@@ -376,7 +376,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job,\
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job, \
     wait_for_redfish_job_complete, strip_substr_dict, wait_for_job_completion
 
 
@@ -395,7 +395,7 @@ RAID_TYPE_NOT_SUPPORTED_MSG = "RAID Type {raid_type} is not supported."
 APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time {apply_time} is not supported. The supported values \
 are {supported_apply_time_values}. Enter the valid values and retry the operation"
 JOB_COMPLETION = "The job is successfully completed."
-JOB_SUBMISSION = "The job to perform the operation is successfully submitted."
+JOB_SUBMISSION = "The job is successfully submitted."
 JOB_FAILURE_PROGRESS_MSG = "Unable to complete the task initiated for creating the storage volume."
 JOB_WAIT_MSG = "Task excited after waiting for {0} seconds. Check console for reboot job status."
 REBOOT_FAIL = "Failed to reboot the server."
@@ -815,7 +815,6 @@ def perform_reboot(module, session_obj):
 def track_job(module, session_obj, job_wait, job_id, job_url):
     resp, msg = wait_for_job_completion(session_obj, job_url, job_wait=job_wait,
                                         wait_timeout=module.params["job_wait_timeout"])
-    module.exit_json(msg=resp)
     job_data = strip_substr_dict(resp.json_data)
     if job_data["Oem"]["Dell"]["JobState"] == "Failed":
         changed, failed = False, True
@@ -854,7 +853,7 @@ def main():
         "reboot_server": {"required": False, "type": "bool", "default": 'False'},
         "force_reboot": {"required": False, "type": "bool", "default": 'False'},
         "job_wait": {"required": False, "type": "bool", "default": False},
-        "job_wait_timeout": {"required": False, "type": "int", "default": 300}
+        "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
 
     specs.update(redfish_auth_params)
