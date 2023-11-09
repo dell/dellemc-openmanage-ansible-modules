@@ -4,11 +4,6 @@
   ansible.builtin.set_fact:
     redfish_storage_volume_baseuri: "{{ hostname }}:{{ https_port }}"
 
-- name: Get the volume type from the mapping
-  ansible.builtin.set_fact:
-    redfish_storage_volume_volume_type: "{{ volume_type_map[raid_type] }}"
-  when: raid_type is defined
-
 - name: Performing the operation on redfish storage volume
   dellemc.openmanage.redfish_storage_volume:
     baseuri: "{{ redfish_storage_volume_baseuri }}"
@@ -18,9 +13,10 @@
     validate_certs: "{{ validate_certs }}"
     state: "{{ state | default(omit) }}"
     controller_id: "{{ controller_id | default(omit) }}"
-    volume_type: "{{ redfish_storage_volume_volume_type | default(omit) }}"
+    raid_type: "{{ raid_type | default(omit) }}"
     drives: "{{ drives | default([]) }}"
-    name: "{{ name | default(omit) }}"
+    # name: "{{ name | default(omit) }}"
+    name: "{{ volume_name | default(name) | default(omit) }}"
     volume_id: "{{ volume_id | default(omit) }}"
     initialize_type: "{{ initialization_type | default(omit) }}"
     command: "{{ command | default(omit) }}"

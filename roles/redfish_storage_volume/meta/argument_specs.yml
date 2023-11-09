@@ -74,15 +74,23 @@ argument_specs:
           - C(RAID0) to create a RAID0 type volume.
           - C(RAID1) to create a RAID1 type volume.
           - C(RAID5) to create a RAID5 type volume.
+          - C(RAID6) to create a RAID6 type volume.
           - C(RAID10) to create a RAID10 type volume.
           - C(RAID50) to create a RAID50 type volume.
+          - C(RAID60) to create a RAID60 type volume.
         type: str
-        choices: ["RAID0", "RAID1", "RAID5", "RAID10", "RAID50"]
+        choices: [RAID0, RAID1, RAID5, RAID6, RAID10, RAID50, RAID60]
       name:
         description:
           - Name of the volume to be created.
           - Only applicable when I(state) is C(present).
+          - This will be deprecated. Please use I(volume_name) for specifying the volume name.
         type: str
+      volume_name:  
+        description:
+          - Name of the volume to be created.
+          - Only applicable when I(state) is C(present).
+        type: str  
       drives:
         description:
           - FQDD of the Physical disks.
@@ -108,10 +116,8 @@ argument_specs:
         description:
           - The following encryption types can be selected.
           - C(ControllerAssisted) The volume is encrypted by the storage controller entity.
-          - C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities
-            of the drive hardware.
-          - C(SoftwareAssisted) The volume is encrypted by the software running
-            on the system or the operating system.
+          - C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities of the drive hardware.
+          - C(SoftwareAssisted) The volume is encrypted by the software running on the system or the operating system.
           - Only applicable when I(state) is C(present).
         type: str
         choices: [NativeDriveEncryption, ControllerAssisted, SoftwareAssisted]
@@ -132,6 +138,29 @@ argument_specs:
         type: str
         choices: [Fast, Slow]
         default: Fast
+      read_cache_policy:
+        description:
+          - The controller uses the read policy for creating or modifying the virtual disk.
+          - C(ReadAhead) Indicates that for the given volume the controller reads sequentially ahead of the requested data and stores the
+            additional data in cache memory. This process speeds up sequential data reading.
+          - C(AdaptiveReadAhead) Indicates that for the given volume, if the two most recent disk accesses occurred in sequential sectors, then the
+            control uses the Read-Ahead cache policy. If the read requests are random, then the controller returns to No Read-Ahead mode.
+          - C(Off) indicates that for the given volume No Read-Ahead policy is used.
+        type: str
+        choices: [ReadAhead, AdaptiveReadAhead, "Off"]
+        default: ReadAhead
+      write_cache_policy:
+        description:
+          - The controller uses the write policy for creating or modifying the virtual disk.
+          - C(WriteThrough) Indicates that for the given volume, the controller sends a data transfer completion signal to the host system
+            when the disk subsystem has received all the data in a transaction.
+          - C(ProtectedWriteBack) Indicates that for the given volume, the controller sends a data transfer completion signal to the host system when the
+            controller cache has received all the data in a transaction. The controller then writes the cached data to the storage device in the background.
+          - C(UnProtectedWriteBack) When using force write-back caching, the write cache is enabled regardless of whether the controller has a battery.
+          - If the controller does not have a battery and force write-back caching is used, then data loss may occur in case of a power failure.
+        type: str
+        choices: [ProtectedWriteBack, WriteThrough, UnprotectedWriteBack]
+        default: ProtectedWriteBack
       job_wait:
         description: Determines whether to wait for the job completion or not.
         type: bool
@@ -142,3 +171,29 @@ argument_specs:
           - This option is applicable when I(job_wait) is C(True).
         type: int
         default: 300
+      apply_time:
+        description:
+          - Apply time of the Volume configuration.
+          - C(Immediate) allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for I(job_wait).
+          - C(OnReset) allows you to apply the changes on the next reboot of the host server.
+          - I(apply_time) has a default value based on the different types of the controller.
+          - For example, BOSS-S1 and BOSS-N1 controllers have a default value of I(apply_time) as C(OnReset).
+          - PERC controllers have a default value of I(apply_time) as C(Immediate).
+        type: str
+        choices: [Immediate, OnReset]
+        version_added: 8.5.0
+      reboot_server:
+        description:
+          - Reboot the server to apply the changes.
+          - I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or
+            when the default value for the apply time of the controller is C(OnReset).
+        type: bool
+        default: false
+        version_added: 8.5.0
+      force_reboot:
+        description:
+          - Reboot the server forcefully to apply the changes when the normal reboot fails.
+          - I(force_reboot) is applicable only when I(reboot_server) is C(true).
+        type: bool
+        default: false
+        version_added: 8.5.0
