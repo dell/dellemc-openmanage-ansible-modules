@@ -15,7 +15,6 @@
     controller_id: "{{ controller_id | default(omit) }}"
     raid_type: "{{ raid_type | default(omit) }}"
     drives: "{{ drives | default([]) }}"
-    # name: "{{ name | default(omit) }}"
     name: "{{ volume_name | default(name) | default(omit) }}"
     volume_id: "{{ volume_id | default(omit) }}"
     initialize_type: "{{ initialization_type | default(omit) }}"

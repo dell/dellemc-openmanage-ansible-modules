@@ -79,7 +79,7 @@ argument_specs:
           - C(RAID50) to create a RAID50 type volume.
           - C(RAID60) to create a RAID60 type volume.
         type: str
-        choices: [RAID0, RAID1, RAID5, RAID6, RAID10, RAID50, RAID60]
+        choices: ["RAID0", "RAID1", "RAID5", "RAID6", "RAID10", "RAID50", "RAID60"]
       name:
         description:
           - Name of the volume to be created.
@@ -116,8 +116,10 @@ argument_specs:
         description:
           - The following encryption types can be selected.
           - C(ControllerAssisted) The volume is encrypted by the storage controller entity.
-          - C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities of the drive hardware.
-          - C(SoftwareAssisted) The volume is encrypted by the software running on the system or the operating system.
+          - C(NativeDriveEncryption) The volume utilizes the native drive encryption capabilities
+            of the drive hardware.
+          - C(SoftwareAssisted) The volume is encrypted by the software running
+            on the system or the operating system.
           - Only applicable when I(state) is C(present).
         type: str
         choices: [NativeDriveEncryption, ControllerAssisted, SoftwareAssisted]

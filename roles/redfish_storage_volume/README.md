@@ -156,6 +156,16 @@ dellemc.openmanage
     <td></td>
     <td>str</td>
     <td>- Name of the volume to be created.</br>
+- Only applicable when I(state) is C(present).</br>
+- This will be deprecated. Please use I(volume_name) for specifying the volume name.</td>
+  </tr>
+  <tr>
+    <td>volume_name</td>
+    <td>false</td>
+    <td></td>
+    <td></td>
+    <td>str</td>
+    <td>- Name of the volume to be created.</br>
 - Only applicable when I(state) is C(present).</td>
   </tr>
   <tr>
