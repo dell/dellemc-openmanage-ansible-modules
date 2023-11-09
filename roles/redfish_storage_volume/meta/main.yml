@@ -1,5 +1,7 @@
 galaxy_info:
-  author: Kritika-Bhateja
+  author: |
+    "Kritika-Bhateja
+    Lovepreet-Singh"
   description: The role helps to manage the storage volume configuration.
   company: Dell Technologies
   license: GPL-3.0-only
