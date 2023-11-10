@@ -14,3 +14,4 @@
     headers: 'Accept=application/json'
   register: fetched_output
   when: url is defined
+  check_mode: false
