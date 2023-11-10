@@ -166,7 +166,7 @@ options:
       - This is applicable when I(apply_time) is C(Immediate).
       - This is applicable when I(apply_time) is C(OnReset) and I(reboot_server) is C(true).
     type: bool
-    default: true
+    default: false
     version_added: 8.5.0
   job_wait_timeout:
     description:
@@ -377,7 +377,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job, \
-    wait_for_redfish_job_complete, strip_substr_dict, wait_for_job_completion
+    strip_substr_dict, wait_for_job_completion
 
 
 VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
@@ -639,14 +639,13 @@ def check_raid_type_supported(module, session_obj):
             raise err
 
 
-def check_apply_time_supported_and_reboot_required(module, session_obj):
+def get_apply_time(module, session_obj):
     """
-    checks whether the apply time is supported and reboot operation is required or not
+    gets the apply time from user if given otherwise fetches from server
     """
     apply_time = module.params.get("apply_time")
-    reboot_server = module.params.get("reboot_server")
+    specified_controller_id = module.params.get("controller_id")
     try:
-        specified_controller_id = module.params.get("controller_id")
         uri = APPLY_TIME_INFO_API.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=specified_controller_id)
         resp = session_obj.invoke_request("GET", uri)
         supported_apply_time_values = resp.json_data['@Redfish.OperationApplyTimeSupport']['SupportedValues']
@@ -654,13 +653,23 @@ def check_apply_time_supported_and_reboot_required(module, session_obj):
             if apply_time not in supported_apply_time_values:
                 module.exit_json(msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(apply_time=apply_time, supported_apply_time_values=supported_apply_time_values),
                                  failed=True)
-            elif reboot_server and apply_time == "OnReset":
-                return True
-        if reboot_server and supported_apply_time_values[0] == "OnReset":
-            return True
-        return False
+        else:
+            apply_time = supported_apply_time_values[0]
+        # module.exit_json(msg = apply_time)
+        return apply_time
     except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
+
+
+def check_apply_time_supported_and_reboot_required(module, session_obj):
+    """
+    checks whether the apply time is supported and reboot operation is required or not.
+    """
+    apply_time = get_apply_time(module, session_obj)
+    reboot_server = module.params.get("reboot_server")
+    if reboot_server and apply_time == "OnReset":
+        return True
+    return False
 
 
 def perform_volume_create_modify(module, session_obj):
@@ -784,12 +793,12 @@ def perform_force_reboot(module, session_obj):
     if reset_status and job_resp_status:
         job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
         resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=300)
-        if resp.status_code == 200:
+        if resp:
             job_data = strip_substr_dict(resp.json_data)
             if job_data["JobState"] == "Failed":
                 module.exit_json(msg=REBOOT_FAIL, failed=True)
         else:
-            module.exit_json(msg=msg, failed=True)
+            module.exit_json(msg=msg)
 
 
 def perform_reboot(module, session_obj):
@@ -799,29 +808,44 @@ def perform_reboot(module, session_obj):
     if reset_status and job_resp_status:
         job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
         resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=300)
-        if resp.status_code == 200:
+        if resp:
             job_data = strip_substr_dict(resp.json_data)
-            if job_data["JobState"] == "Failed":
+            if force_reboot and job_data["JobState"] == "Failed":
                 perform_force_reboot(module, session_obj)
         else:
-            module.exit_json(msg=msg, failed=True)
+            module.exit_json(msg=msg)
 
 
-def track_job(module, session_obj, job_wait, job_id, job_url):
-    resp, msg = wait_for_job_completion(session_obj, job_url, job_wait=job_wait,
-                                        wait_timeout=module.params["job_wait_timeout"])
-    if resp.status_code == 200:
+def check_job_tracking_required(module, session_obj, reboot_required, controller_id):
+    job_wait = module.params.get("job_wait")
+    apply_time = None
+    if controller_id:
+        apply_time = get_apply_time(module, session_obj)
+    if job_wait:
+        if apply_time == "OnReset" and not reboot_required:
+            return False
+        return True
+    return False
+
+
+def track_job(module, session_obj, job_id, job_url):
+    resp, msg = wait_for_job_completion(session_obj, job_url,
+                                        wait_timeout=module.params.get("job_wait_timeout"))
+    if resp:
         job_data = strip_substr_dict(resp.json_data)
         if job_data["Oem"]["Dell"]["JobState"] == "Failed":
             changed, failed = False, True
             module.exit_json(msg=JOB_FAILURE_PROGRESS_MSG, task={"id": job_id, "uri": job_url},
                              changed=changed, failed=failed)
+        elif job_data["Oem"]["Dell"]["JobState"] == "Scheduled":
+            task_status = {"uri": job_url, "id": job_id}
+            module.exit_json(msg=JOB_SUBMISSION, task=task_status, changed=True)
         else:
             changed, failed = True, False
             module.exit_json(msg=JOB_COMPLETION, task={"id": job_id, "uri": job_url},
                              changed=changed, failed=failed)
     else:
-        module.exit_json(msg=msg, failed=True)
+        module.exit_json(msg=msg)
 
 
 def main():
@@ -850,7 +874,7 @@ def main():
         "apply_time": {"required": False, "type": "str", "choices": ['Immediate', 'OnReset']},
         "reboot_server": {"required": False, "type": "bool", "default": 'False'},
         "force_reboot": {"required": False, "type": "bool", "default": 'False'},
-        "job_wait": {"required": False, "type": "bool", "default": True},
+        "job_wait": {"required": False, "type": "bool", "default": False},
         "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
 
@@ -868,7 +892,6 @@ def main():
         validate_inputs(module)
         with Redfish(module.params, req_session=True) as session_obj:
             fetch_storage_resource(module, session_obj)
-            # state = module.params.get("state")
             controller_id = module.params.get("controller_id")
             reboot_required = False
             if controller_id:
@@ -876,13 +899,13 @@ def main():
             status_message = configure_raid_operation(module, session_obj)
             if reboot_required:
                 perform_reboot(module, session_obj)
+            job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id)
             job_id = status_message.get("task_id")
             job_url = status_message.get("task_uri")
-            job_wait = module.params.get("job_wait")
-            if job_wait:
-                track_job(module, session_obj, job_wait, job_id, job_url)
+            if job_tracking_required:
+                track_job(module, session_obj, job_id, job_url)
             else:
-                task_status = {"uri": status_message.get("task_uri"), "id": status_message.get("task_id")}
+                task_status = {"uri": job_url, "id": job_id}
                 module.exit_json(msg=status_message["msg"], task=task_status, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
