@@ -24,6 +24,9 @@
     block_size_bytes: "{{ block_size_bytes | default(omit) | int }}"
     capacity_bytes: "{{ capacity_bytes | default(omit) }}"
     optimum_io_size_bytes: "{{ optimum_to_size_bytes | default(omit) | int }}"
+    apply_time: "{{ apply_time | default(omit) }}"
+    reboot_server: "{{ reboot_server | default(omit) }}"
+    force_reboot: "{{ force_reboot | default(omit) }}"
   register: redfish_storage_volume_out
   delegate_to: "{{ redfish_storage_volume_delegate }}"
 
@@ -45,6 +48,6 @@
   delegate_to: "{{ redfish_storage_volume_delegate }}"
   failed_when: "'json' not in job_result"
   until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
-  retries: "{{ job_wait_timeout // polling_interval }}"
-  delay: "{{ polling_interval }}"
+  retries: "{{ job_wait_timeout // redfish_storage_volume_polling_interval }}"
+  delay: "{{ redfish_storage_volume_polling_interval }}"
   when: job_wait is true and not ansible_check_mode

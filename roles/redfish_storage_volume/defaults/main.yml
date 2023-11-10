@@ -6,7 +6,5 @@ https_port: 443
 initialize_type: "Fast"
 job_wait: true
 job_wait_timeout: 300
-read_cache_policy: ReadAhead
-write_cache_policy: ProtectedWriteBack
 reboot_server: false
 force_reboot: false

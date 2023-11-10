@@ -236,33 +236,8 @@ Only applicable when I(state) is C(present).</td>
     <td>[Fast, Slow]</td>
     <td>str</td>
     <td>- Initialization type of existing volume.</br> Only applicable when I(command) is C(initialize).</td>
-  <tr>
-    <td>read_cache_policy</td>
-    <td>false</td>
-    <td>ReadAhead</td>
-    <td>[ReadAhead, AdaptiveReadAhead, Off]</td>
-    <td>str</td>
-    <td>- The controller uses the read policy for creating or modifying the virtual disk.</br>
-C(ReadAhead) Indicates that for the given volume the controller reads sequentially ahead of the requested data and stores the
-additional data in cache memory. This process speeds up sequential data reading.</br>
-C(AdaptiveReadAhead) Indicates that for the given volume, if the two most recent disk accesses occurred in sequential sectors, then the control uses the Read-Ahead cache policy. If the read requests are random, then the controller returns to No Read-Ahead mode.</br>
-C(Off) indicates that for the given volume No Read-Ahead policy is used.</td>
   </tr>
   <tr>
-    <td>write_cache_policy</td>
-    <td>false</td>
-    <td>ProtectedWriteBack</td>
-    <td>[ProtectedWriteBack, WriteThrough, UnprotectedWriteBack]</td>
-    <td>str</td>
-    <td>- The controller uses the write policy for creating or modifying the virtual disk.</br>
-C(WriteThrough) Indicates that for the given volume, the controller sends a data transfer completion signal to the host system
-when the disk subsystem has received all the data in a transaction.</br>
-C(ProtectedWriteBack) Indicates that for the given volume, the controller sends a data transfer completion signal to the host system when the controller cache has received all the data in a transaction. The controller then writes the cached data to the storage device in the background.</br>
-C(UnProtectedWriteBack) When using force write-back caching, the write cache is enabled regardless of whether the controller has a battery.</br>
-If the controller does not have a battery and force write-back caching is used, then data loss may occur in case of a power failure.</td>
-  </tr>
-  </tr>
-    <tr>
     <td>job_wait</td>
     <td>false</td>
     <td>true</td>
@@ -285,11 +260,11 @@ If the controller does not have a battery and force write-back caching is used, 
     <td>[Immediate, OnReset]</td>
     <td>str</td>
     <td>- Apply time of the Volume configuration.</br>
-C(Immediate) allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for I(job_wait).</br>
-C(OnReset) allows you to apply the changes on the next reboot of the host server.</br>
-I(apply_time) has a default value based on the different types of the controller.</br>
-For example, BOSS-S1 and BOSS-N1 controllers have a default value of I(apply_time) as C(OnReset).</br>
-PERC controllers have a default value of I(apply_time) as C(Immediate).</td>
+- C(Immediate) allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for I(job_wait).</br>
+- C(OnReset) allows you to apply the changes on the next reboot of the host server.</br>
+- I(apply_time) has a default value based on the different types of the controller.</br>
+- For example, BOSS-S1 and BOSS-N1 controllers have a default value of I(apply_time) as C(OnReset).</br>
+- PERC controllers have a default value of I(apply_time) as C(Immediate).</td>
   </tr>
   <tr>
     <td>reboot_server</td>
@@ -298,7 +273,7 @@ PERC controllers have a default value of I(apply_time) as C(Immediate).</td>
     <td></td>
     <td>bool</td>
     <td>- Reboot the server to apply the changes.</br>
-I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).</td>
+- I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).</td>
   </tr>
   <tr>
     <td>force_reboot</td>
@@ -307,7 +282,7 @@ I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or when 
     <td></td>
     <td>bool</td>
     <td>- Reboot the server forcefully to apply the changes when the normal reboot fails.</br>
-I(force_reboot) is applicable only when I(reboot_server) is C(true).</td>
+- I(force_reboot) is applicable only when I(reboot_server) is C(true).</td>
   </tr>
 </tbody>
 </table>
