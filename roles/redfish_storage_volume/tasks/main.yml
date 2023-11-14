@@ -4,6 +4,11 @@
   ansible.builtin.set_fact:
     redfish_storage_volume_baseuri: "{{ hostname }}:{{ https_port }}"
 
+- name: Validate job_wait_timeout
+  ansible.builtin.fail:
+    msg: "The 'job_wait_timeout' parameter must be greater than zero"
+  when: job_wait_timeout <=0
+
 - name: Performing the operation on redfish storage volume
   dellemc.openmanage.redfish_storage_volume:
     baseuri: "{{ redfish_storage_volume_baseuri }}"
