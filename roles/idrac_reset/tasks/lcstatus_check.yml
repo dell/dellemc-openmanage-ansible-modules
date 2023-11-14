@@ -20,7 +20,7 @@
       block:
         - name: Get lifecycle controller status for iDRAC9
           ansible.builtin.uri:
-            url: "https://{{ hostname }}:{{ https_port }}{{ lifecycle_status_api }}"
+            url: "https://{{ hostname }}:{{ https_port }}{{ idrac_reset_lifecycle_status_api }}"
             user: "{{ username }}"
             password: "{{ password }}"
             validate_certs: "{{ validate_certs }}"
@@ -52,7 +52,8 @@
         - name: Check whether lifecycle controller status is ready or not
           ansible.builtin.uri:
             url: "https://{{ hostname }}:{{ https_port }}/wsman"
-            validate_certs: false
+            validate_certs: "{{ validate_certs }}"
+            ca_path: "{{ ca_path | default(omit) }}"
             method: POST
             user: "{{ username }}"
             password: "{{ password }}"
@@ -67,7 +68,7 @@
 
         - name: Parse lifecycle controller status response
           ansible.builtin.set_fact:
-            idrac_lc_status: "{{ idrac_lc_status | default({}) | combine({item.key: get_remote_services_api_status_code[item.key][item.value]}) }}"
+            idrac_lc_status: "{{ idrac_lc_status | default({}) | combine({item.key: idrac_reset_get_remote_services_api_status_code[item.key][item.value]}) }}"
           with_dict:
             LCStatus: "{{ wsman_envelope_for_idrac_lc_status.content | trim | regex_findall('(?<=<n1:LCStatus>).*(?=</n1:LCStatus>)') | first }}"
           when: wsman_envelope_for_idrac_lc_status.content is search(".*<n1:ReturnValue>0</n1:ReturnValue>.*")

@@ -1,9 +1,4 @@
 ---
-# tasks file for idrac_reset
-- name: Set Delagate to
-  ansible.builtin.set_fact:
-    idrac_reset_task_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
-
 - name: Setting uri options
   ansible.builtin.set_fact:
     idrac_opts: &idrac_opts
@@ -34,7 +29,7 @@
 
 - name: Validate credentials.
   ansible.builtin.fail:
-    msg: "The authentication credentials included with this request are missing or invalid."
+    msg: "{{ idrac_reset_invalid_creds }}"
   when: idrac_reset_connection.status == 401
 
 - name: Get the manager firmware version
@@ -65,7 +60,7 @@
 
 - name: Perform reset operation
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ reset_api }}"
+    url: "https://{{ hostname }}:{{ https_port }}{{ idrac_reset_reset_api }}"
     <<: *idrac_opts
     method: "POST"
     body: '{"ResetType": "{{ reset_to_default }}" }'
@@ -91,10 +86,10 @@
       ansible.builtin.wait_for:
         host: "{{ hostname }}"
         port: "{{ https_port }}"
-        delay: "{{ delay_for_idrac_connection }}"
-        timeout: "{{ wait_for_idrac_reachable }}"
-        connect_timeout: "{{ connect_timeout }}"
-        sleep: "{{ sleep_interval }}"
+        delay: "{{ idrac_reset_delay_for_idrac_connection }}"
+        timeout: "{{ idrac_reset_wait_for_idrac_reachable }}"
+        connect_timeout: "{{ idrac_reset_connect_timeout }}"
+        sleep: "{{ idrac_reset_sleep_interval }}"
         active_connection_states:
           - "ESTABLISHED"
       when:
@@ -110,21 +105,21 @@
 
     - name: Set fact when restart is triggered successfully
       ansible.builtin.set_fact:
-        idrac_reset_out: {msg: "{{ idrac_restart_trigger }}"}
+        idrac_reset_out: {msg: "{{ idrac_reset_restart_trigger }}"}
       when:
         - wait_for_idrac is false
         - idrac_reset_restart_result is not skipped and idrac_reset_restart_result.status == 204
 
     - name: Set fact when reset is triggered successfully
       ansible.builtin.set_fact:
-        idrac_reset_out: {msg: "{{ idrac_reset_trigger }}"}
+        idrac_reset_out: {msg: "{{ idrac_reset_reset_trigger }}"}
       when:
         - wait_for_idrac is false
         - idrac_reset_result is not skipped and idrac_reset_result.status == 200
 
     - name: Set fact when restart is done successfully
       ansible.builtin.set_fact:
-        idrac_reset_out: {msg: "{{ idrac_restarted_success }}"}
+        idrac_reset_out: {msg: "{{ idrac_reset_idrac_restarted_success }}"}
       when:
         - wait_for_idrac is true
         - idrac_reset_connection_status is not failed
