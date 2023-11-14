@@ -25,3 +25,4 @@
     state: absent
     volume_id: "{{ volume_id_list[0] }}"
     job_wait: true
+  when: volume_id_list is defined and volume_id_list != []

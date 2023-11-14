@@ -4,7 +4,6 @@
     file: ../__get_helper.yml
   vars:
     url: "Systems/System.Embedded.1/Storage?$expand=*($levels=1)"
-  no_log: true
 
 - name: Intializing set_fact variable
   ansible.builtin.set_fact:
@@ -17,7 +16,7 @@
     drive_list_odata: "{{ item.Drives }}"
   when:
     - search_in_name is defined and search_in_name in item.Name
-    - item.Oem.Dell.DellController.CurrentControllerMode == 'RAID'
+    - item.StorageControllers[0].SupportedRAIDTypes != []
   loop: "{{ fetched_output.json.Members }}"
 
 - name: Extracting Drives id

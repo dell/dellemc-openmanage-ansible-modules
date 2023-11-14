@@ -38,9 +38,9 @@
             validate_certs: false
             state: present
             raid_type: "{{ raid }}"
-            name: "VD_PERC"
+            volume_name: "VD_PERC"
             controller_id: "{{ perc_raid_controller_id }}"
-            drives: "{{ drive_list }}"
+            drives: "{{ drive_list[: minimum_required_drives] }}"
             job_wait: true
 
         - name: Asserting operation with check mode.

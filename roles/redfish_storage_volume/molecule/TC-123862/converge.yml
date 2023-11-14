@@ -1,5 +1,5 @@
 ---
-- name: Ansible - Role - redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID0 with apply_time with default values
+- name: Ansible - Role- redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID0 with apply_time as Immediate
   hosts: all
   vars:
     failure: {}
@@ -41,6 +41,8 @@
             volume_name: "VD_PERC"
             controller_id: "{{ perc_raid_controller_id }}"
             drives: "{{ drive_list[: minimum_required_drives] }}"
+            optimum_io_size_bytes: 65536
+            apply_time: "Immediate"
             job_wait: true
 
         - name: Asserting operation with check mode.
@@ -106,11 +108,7 @@
             name: "VD_BOSS"
             controller_id: "{{ boss_raid_controller_id }}"
             drives: "{{ drive_list[: minimum_required_drives] }}"
-            job_wait: false
-
-        - name: Waiting for Job completion
-          ansible.builtin.include_tasks:
-            file: ../__job_tracking.yml
+            job_wait: true
 
         - name: Asserting operation with check mode.
           ansible.builtin.assert:
@@ -119,7 +117,7 @@
 
         - name: Asserting operation with normal mode.
           ansible.builtin.assert:
-            that: redfish_storage_volume_out.msg == "Successfully submitted create volume task."
+            that: redfish_storage_volume_out.msg == "Successfully scheduled create volume task."
           when: not ansible_check_mode
 
         - name: Asserting operation with idempotence.

@@ -1,0 +1,70 @@
+---
+- name: GracefulRestart of iDRAC
+  ansible.builtin.import_role:
+    name: idrac_server_powerstate
+  vars:
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    validate_certs: false
+    reset_type: "GracefulRestart"
+    resource_id: "System.Embedded.1"
+  when:
+    - not ansible_check_mode
+    - redfish_storage_volume_out is defined
+    - redfish_storage_volume_out.changed
+
+- name: Waiting for LC to be ready
+  ansible.builtin.uri:
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    timeout: "{{ https_timeout }}"
+    validate_certs: false
+    return_content: true
+    force_basic_auth: true
+    body_format: "json"
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+      OData-Version: "4.0"
+    url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+    method: POST
+    body: {}
+  until: lc_status_result.json.LCStatus == "Ready"
+  register: lc_status_result
+  check_mode: false
+  retries: 60
+  delay: 10
+  when:
+    - not ansible_check_mode
+    - redfish_storage_volume_out is defined
+    - redfish_storage_volume_out.changed
+
+- ansible.builtin.debug:
+    var: lc_status_result
+
+- name: Job tracking
+  ansible.builtin.uri:
+    url: "https://{{ lookup('env', 'IDRAC_IP') }}{{ redfish_storage_volume_out.task.uri }}"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    timeout: "{{ https_timeout }}"
+    validate_certs: false
+    method: "GET"
+    status_code: 200, 202
+    return_content: true
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+  register: job_result
+  until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
+  retries: "{{ 1200 // 10 }}"
+  delay: "{{ 10 }}"
+  when:
+    - not ansible_check_mode
+    - redfish_storage_volume_out is defined
+    - redfish_storage_volume_out.changed
+
+- ansible.builtin.debug:
+    var: job_result
