@@ -14,6 +14,10 @@
     - redfish_storage_volume_out is defined
     - redfish_storage_volume_out.changed
 
+- name: Waiting for 30 secs before LC tracking
+  ansible.builtin.wait_for:
+    timeout: 30
+
 - name: Waiting for LC to be ready
   ansible.builtin.uri:
     user: "{{ lookup('env', 'IDRAC_USER') }}"
@@ -40,9 +44,6 @@
     - redfish_storage_volume_out is defined
     - redfish_storage_volume_out.changed
 
-- ansible.builtin.debug:
-    var: lc_status_result
-
 - name: Job tracking
   ansible.builtin.uri:
     url: "https://{{ lookup('env', 'IDRAC_IP') }}{{ redfish_storage_volume_out.task.uri }}"
@@ -65,6 +66,3 @@
     - not ansible_check_mode
     - redfish_storage_volume_out is defined
     - redfish_storage_volume_out.changed
-
-- ansible.builtin.debug:
-    var: job_result
