@@ -21,9 +21,9 @@
     command: "{{ command | default(omit) }}"
     encryption_types: "{{ encryption_types | default(omit) }}"
     encrypted: "{{ encrypted | default(omit) }}"
-    block_size_bytes: "{{ block_size_bytes | default(omit) | int }}"
+    block_size_bytes: "{{ block_size_bytes | default(omit) }}"
     capacity_bytes: "{{ capacity_bytes | default(omit) }}"
-    optimum_io_size_bytes: "{{ optimum_to_size_bytes | default(omit) | int }}"
+    optimum_io_size_bytes: "{{ optimum_io_size_bytes | default(omit) }}"
     apply_time: "{{ apply_time | default(omit) }}"
     reboot_server: "{{ reboot_server | default(omit) }}"
     force_reboot: "{{ force_reboot | default(omit) }}"
@@ -50,4 +50,4 @@
   until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
   retries: "{{ job_wait_timeout // redfish_storage_volume_polling_interval }}"
   delay: "{{ redfish_storage_volume_polling_interval }}"
-  when: job_wait is true and not ansible_check_mode
+  when: job_wait is true and not ansible_check_mode and redfish_storage_volume_out.task is defined
