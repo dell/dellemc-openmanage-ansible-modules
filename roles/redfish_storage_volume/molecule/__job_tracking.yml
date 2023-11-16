@@ -9,40 +9,18 @@
     validate_certs: false
     reset_type: "GracefulRestart"
     resource_id: "System.Embedded.1"
-  when:
-    - not ansible_check_mode
-    - redfish_storage_volume_out is defined
-    - redfish_storage_volume_out.changed
 
-- name: Waiting for 30 secs before LC tracking
+- name: Waiting for 60 secs before LC tracking
   ansible.builtin.wait_for:
-    timeout: 30
-
-- name: Waiting for LC to be ready
-  ansible.builtin.uri:
-    user: "{{ lookup('env', 'IDRAC_USER') }}"
-    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-    timeout: "{{ https_timeout }}"
-    validate_certs: false
-    return_content: true
-    force_basic_auth: true
-    body_format: "json"
-    headers:
-      Content-Type: "application/json"
-      Accept: "application/json"
-      OData-Version: "4.0"
-    url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
-    method: POST
-    body: {}
-  until: lc_status_result.json.LCStatus == "Ready"
-  register: lc_status_result
-  check_mode: false
-  retries: 60
-  delay: 10
+    timeout: 60
   when:
     - not ansible_check_mode
-    - redfish_storage_volume_out is defined
-    - redfish_storage_volume_out.changed
+    - idrac_server_powerstate_out is defined
+    - idrac_server_powerstate_out.changed
+
+- name: Waiting for LC status to be ready
+  ansible.builtin.include_tasks:
+    file: ../__lc_status.yml
 
 - name: Job tracking
   ansible.builtin.uri:
@@ -62,7 +40,3 @@
   until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
   retries: "{{ 1200 // 10 }}"
   delay: "{{ 10 }}"
-  when:
-    - not ansible_check_mode
-    - redfish_storage_volume_out is defined
-    - redfish_storage_volume_out.changed
