@@ -32,27 +32,7 @@
     apply_time: "{{ apply_time | default(omit) }}"
     reboot_server: "{{ reboot_server | default(omit) }}"
     force_reboot: "{{ force_reboot | default(omit) }}"
+    job_wait: "{{ job_wait | default(omit) }}"
+    job_wait_timeout: "{{ job_wait_timeout | default(omit) }}"
   register: redfish_storage_volume_out
   delegate_to: "{{ redfish_storage_volume_delegate }}"
-
-- name: Checking job status
-  ansible.builtin.uri:
-    url: "https://{{ redfish_storage_volume_baseuri }}{{ redfish_storage_volume_out.task.uri }}"
-    user: "{{ username }}"
-    password: "{{ password }}"
-    timeout: "{{ https_timeout }}"
-    validate_certs: "{{ validate_certs }}"
-    method: "GET"
-    status_code: 200, 202
-    return_content: true
-    force_basic_auth: true
-    headers:
-      Content-Type: "application/json"
-      Accept: "application/json"
-  register: job_result
-  delegate_to: "{{ redfish_storage_volume_delegate }}"
-  failed_when: "'json' not in job_result"
-  until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
-  retries: "{{ job_wait_timeout // redfish_storage_volume_polling_interval }}"
-  delay: "{{ redfish_storage_volume_polling_interval }}"
-  when: job_wait is true and not ansible_check_mode and redfish_storage_volume_out.task is defined
