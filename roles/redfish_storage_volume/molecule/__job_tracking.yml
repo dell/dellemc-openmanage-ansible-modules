@@ -1,0 +1,24 @@
+---
+- name: Performing iDRAC reset and waiting for LC to be ready
+  ansible.builtin.include_tasks:
+    file: ../__idrac_reset.yml
+  when: reset is defined and reset
+
+- name: Job tracking
+  ansible.builtin.uri:
+    url: "https://{{ lookup('env', 'IDRAC_IP') }}{{ redfish_storage_volume_out.task.uri }}"
+    user: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+    timeout: "{{ https_timeout }}"
+    validate_certs: false
+    method: "GET"
+    status_code: 200, 202
+    return_content: true
+    force_basic_auth: true
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+  register: job_result
+  until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
+  retries: "{{ 1200 // 10 }}"
+  delay: "{{ 10 }}"
