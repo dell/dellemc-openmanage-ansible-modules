@@ -183,7 +183,7 @@ Parameters
     This is applicable when \ :emphasis:`apply\_time`\  is \ :literal:`OnReset`\  and \ :emphasis:`reboot\_server`\  is \ :literal:`true`\ .
 
 
-  job_wait_timeout (optional, int, 300)
+  job_wait_timeout (optional, int, 1200)
     This parameter is the maximum wait time of \ :emphasis:`job\_wait`\  in seconds.
 
     This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .

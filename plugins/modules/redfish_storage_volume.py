@@ -166,7 +166,7 @@ options:
       - This is applicable when I(apply_time) is C(Immediate).
       - This is applicable when I(apply_time) is C(OnReset) and I(reboot_server) is C(true).
     type: bool
-    default: true
+    default: false
     version_added: 8.5.0
   job_wait_timeout:
     description:
@@ -655,7 +655,6 @@ def get_apply_time(module, session_obj):
                                  failed=True)
         else:
             apply_time = supported_apply_time_values[0]
-        # module.exit_json(msg = apply_time)
         return apply_time
     except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
         raise err
@@ -792,11 +791,11 @@ def perform_force_reboot(module, session_obj):
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
         job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
-        resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=300)
+        resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
         if resp:
             job_data = strip_substr_dict(resp.json_data)
             if job_data["JobState"] == "Failed":
-                module.exit_json(msg=REBOOT_FAIL, failed=True)
+                module.exit_json(msg=REBOOT_FAIL, job_status=job_data, failed=True)
         else:
             module.exit_json(msg=msg)
 
@@ -807,7 +806,7 @@ def perform_reboot(module, session_obj):
     job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
     if reset_status and job_resp_status:
         job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
-        resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=300)
+        resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
         if resp:
             job_data = strip_substr_dict(resp.json_data)
             if force_reboot and job_data["JobState"] == "Failed":
@@ -836,14 +835,14 @@ def track_job(module, session_obj, job_id, job_url):
         if job_data["Oem"]["Dell"]["JobState"] == "Failed":
             changed, failed = False, True
             module.exit_json(msg=JOB_FAILURE_PROGRESS_MSG, task={"id": job_id, "uri": job_url},
-                             changed=changed, failed=failed)
+                             changed=changed, job_status=job_data, failed=failed)
         elif job_data["Oem"]["Dell"]["JobState"] == "Scheduled":
             task_status = {"uri": job_url, "id": job_id}
-            module.exit_json(msg=JOB_SUBMISSION, task=task_status, changed=True)
+            module.exit_json(msg=JOB_SUBMISSION, task=task_status, job_status=job_data, changed=True)
         else:
             changed, failed = True, False
             module.exit_json(msg=JOB_COMPLETION, task={"id": job_id, "uri": job_url},
-                             changed=changed, failed=failed)
+                             changed=changed, job_status=job_data, failed=failed)
     else:
         module.exit_json(msg=msg)
 
@@ -874,7 +873,7 @@ def main():
         "apply_time": {"required": False, "type": "str", "choices": ['Immediate', 'OnReset']},
         "reboot_server": {"required": False, "type": "bool", "default": 'False'},
         "force_reboot": {"required": False, "type": "bool", "default": 'False'},
-        "job_wait": {"required": False, "type": "bool", "default": True},
+        "job_wait": {"required": False, "type": "bool", "default": False},
         "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
 
