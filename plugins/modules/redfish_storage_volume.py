@@ -393,7 +393,7 @@ CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 RAID_TYPE_NOT_SUPPORTED_MSG = "RAID Type {raid_type} is not supported."
 APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time {apply_time} is not supported. The supported values \
-are {supported_apply_time_values}. Enter the valid values and retry the operation"
+are {supported_apply_time_values}. Enter the valid values and retry the operation."
 JOB_COMPLETION = "The job is successfully completed."
 JOB_SUBMISSION = "The job is successfully submitted."
 JOB_FAILURE_PROGRESS_MSG = "Unable to complete the task initiated for creating the storage volume."
@@ -905,7 +905,9 @@ def main():
                 track_job(module, session_obj, job_id, job_url)
             else:
                 task_status = {"uri": job_url, "id": job_id}
-                module.exit_json(msg=status_message["msg"], task=task_status, changed=True)
+                resp = session_obj.invoke_request("GET", job_url)
+                job_data = strip_substr_dict(resp.json_data)
+                module.exit_json(msg=status_message["msg"], task=task_status, job_status=job_data, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:

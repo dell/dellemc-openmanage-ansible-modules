@@ -800,3 +800,63 @@ class TestStorageVolume(FakeAnsibleModule):
                                                                                           '', {}, None)
         with pytest.raises(HTTPError) as ex:
             self.module.check_raid_type_supported(f_module, redfish_connection_mock_for_storage_volume)
+
+    def test_get_apply_time_success_case(self, redfish_response_mock,
+                                         redfish_connection_mock_for_storage_volume,
+                                         storage_volume_base_uri):
+        param = {"controller_id": "controller_id", "apply_time": "Immediate"}
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.json_data = {"@Redfish.OperationApplyTimeSupport": {"SupportedValues": ["Immediate"]}}
+        self.module.get_apply_time(f_module,
+                                   redfish_connection_mock_for_storage_volume)
+
+    def test_get_apply_time_supported_failure_case(self, redfish_response_mock,
+                                                   redfish_connection_mock_for_storage_volume,
+                                                   storage_volume_base_uri):
+        param = {"controller_id": "controller_id", "apply_time": "Immediate"}
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        redfish_response_mock.json_data = {"@Redfish.OperationApplyTimeSupport": {"SupportedValues": ["OnReset"]}}
+        with pytest.raises(Exception) as exc:
+            self.module.get_apply_time(f_module,
+                                       redfish_connection_mock_for_storage_volume)
+        assert exc.value.args[0] == "Apply time Immediate \
+is not supported. The supported values are ['OnReset']. Enter the valid values and retry the operation."
+
+    def test_get_apply_time_supported_exception_case(self, redfish_response_mock,
+                                                     redfish_connection_mock_for_storage_volume,
+                                                     storage_volume_base_uri):
+        param = {"controller_id": "controller_id", "apply_time": "Immediate"}
+        f_module = self.get_module_mock(params=param)
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
+                                                                                          '', {}, None)
+        with pytest.raises(HTTPError) as ex:
+            self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume)
+
+    def test_check_apply_time_supported_and_reboot_required_success_case01(self, mocker,
+                                                                           redfish_response_mock,
+                                                                           redfish_connection_mock_for_storage_volume,
+                                                                           storage_volume_base_uri):
+        param = {"reboot_server": True}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
+                     return_value="OnReset")
+        apply_time = self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume)
+        val = self.module.check_apply_time_supported_and_reboot_required(f_module,
+                                                                         redfish_connection_mock_for_storage_volume)
+        assert val is True
+
+    def test_check_job_tracking_required_success_case01(self, mocker, redfish_response_mock,
+                                                        redfish_connection_mock_for_storage_volume,
+                                                        storage_volume_base_uri):
+        param = {"job_wait": True}
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
+                     return_value="OnReset")
+        f_module = self.get_module_mock(params=param)
+        redfish_response_mock.success = True
+        val = self.module.check_job_tracking_required(f_module,
+                                                      redfish_connection_mock_for_storage_volume,
+                                                      reboot_required=False,
+                                                      controller_id="controller_id")
+        assert not val
