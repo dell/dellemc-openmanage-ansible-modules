@@ -166,7 +166,7 @@ options:
       - This is applicable when I(apply_time) is C(Immediate).
       - This is applicable when I(apply_time) is C(OnReset) and I(reboot_server) is C(true).
     type: bool
-    default: false
+    default: true
     version_added: 8.5.0
   job_wait_timeout:
     description:
@@ -874,7 +874,7 @@ def main():
         "apply_time": {"required": False, "type": "str", "choices": ['Immediate', 'OnReset']},
         "reboot_server": {"required": False, "type": "bool", "default": 'False'},
         "force_reboot": {"required": False, "type": "bool", "default": 'False'},
-        "job_wait": {"required": False, "type": "bool", "default": False},
+        "job_wait": {"required": False, "type": "bool", "default": True},
         "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
 

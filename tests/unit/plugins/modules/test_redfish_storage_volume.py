@@ -56,7 +56,8 @@ class TestStorageVolume(FakeAnsibleModule):
 
     @pytest.mark.parametrize("param", arg_list1)
     def test_redfish_storage_volume_main_success_case_01(self, mocker, redfish_default_args, module_mock,
-                                                         redfish_connection_mock_for_storage_volume, param):
+                                                         redfish_connection_mock_for_storage_volume, param,
+                                                         storage_volume_base_uri):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.validate_inputs')
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.fetch_storage_resource')
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.configure_raid_operation',
