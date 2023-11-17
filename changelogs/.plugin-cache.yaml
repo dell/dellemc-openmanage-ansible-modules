@@ -8,30 +8,38 @@ objects:
       description: Modify and clear BIOS attributes, and reset BIOS settings
       name: idrac_bios
       version_added: 7.6.0
+    idrac_boot:
+      description: Configure the boot order settings
+      name: idrac_boot
+      version_added: 8.0.0
     idrac_certificate:
-      description: Role to manage the iDRAC certificates - Generate CSR, Import/Export
-        certificates, and Reset configuration - for PowerEdge servers.
+      description: This role allows to generate certificate signing request, import,
+        and export certificates on iDRAC
       name: idrac_certificate
       version_added: 7.4.0
     idrac_export_server_config_profile:
-      description: Role to export iDRAC Server Configuration Profile (SCP).
+      description: Role to export iDRAC Server Configuration Profile (SCP)
       name: idrac_export_server_config_profile
       version_added: 7.3.0
     idrac_firmware:
       description: Firmware update from a repository on a network share (CIFS, NFS,
-        HTTP, HTTPS, FTP).
+        HTTP, HTTPS, FTP)
       name: idrac_firmware
       version_added: 7.5.0
     idrac_gather_facts:
-      description: Role to get the facts from the iDRAC Server.
+      description: Role to get the facts from the iDRAC Server
       name: idrac_gather_facts
       version_added: 7.4.0
     idrac_import_server_config_profile:
-      description: Import iDRAC Server Configuration Profile (SCP).
+      description: Import iDRAC Server Configuration Profile (SCP)
       name: idrac_import_server_config_profile
       version_added: 7.4.0
+    idrac_job_queue:
+      description: Role to manage the iDRAC lifecycle controller job queue.
+      name: idrac_job_queue
+      version_added: 8.0.0
     idrac_os_deployment:
-      description: Role to deploy specified operating system and version on the servers.
+      description: Role to deploy operating system on the iDRAC servers
       name: idrac_os_deployment
       version_added: 7.5.0
     idrac_reset:
@@ -39,7 +47,7 @@ objects:
       name: idrac_reset
       version_added: 7.6.0
     idrac_server_powerstate:
-      description: Role to manage the different power states of the specified device.
+      description: Role to manage the different power states of the specified device
       name: idrac_server_powerstate
       version_added: 7.4.0
     idrac_storage_controller:
@@ -49,11 +57,11 @@ objects:
       version_added: 7.6.0
     redfish_firmware:
       description: Update a component firmware using the image file available on the
-        local or remote system.
+        local or remote system
       name: redfish_firmware
       version_added: 7.5.0
     redfish_storage_volume:
-      description: Role to manage the storage volume configuration.
+      description: Role to manage the storage volume configuration
       name: redfish_storage_volume
       version_added: 7.5.0
 plugins:
@@ -79,16 +87,6 @@ plugins:
     dellemc_configure_idrac_services:
       description: Configures the iDRAC services related attributes
       name: dellemc_configure_idrac_services
-      namespace: ''
-      version_added: 1.0.0
-    dellemc_get_firmware_inventory:
-      description: Get Firmware Inventory
-      name: dellemc_get_firmware_inventory
-      namespace: ''
-      version_added: 1.0.0
-    dellemc_get_system_inventory:
-      description: Get the PowerEdge Server System Inventory
-      name: dellemc_get_system_inventory
       namespace: ''
       version_added: 1.0.0
     dellemc_idrac_lc_attributes:
@@ -164,6 +162,11 @@ plugins:
       name: idrac_network
       namespace: ''
       version_added: 2.1.0
+    idrac_network_attributes:
+      description: Configures the iDRAC network attributes
+      name: idrac_network_attributes
+      namespace: ''
+      version_added: 8.4.0
     idrac_os_deployment:
       description: Boot to a network ISO image
       name: idrac_os_deployment
@@ -220,6 +223,31 @@ plugins:
       name: ome_active_directory
       namespace: ''
       version_added: 4.0.0
+    ome_alert_policies:
+      description: Manage OME alert policies.
+      name: ome_alert_policies
+      namespace: ''
+      version_added: 8.3.0
+    ome_alert_policies_actions_info:
+      description: Get information on actions of alert policies.
+      name: ome_alert_policies_actions_info
+      namespace: ''
+      version_added: 8.2.0
+    ome_alert_policies_category_info:
+      description: Retrieves information of all OME alert policy categories.
+      name: ome_alert_policies_category_info
+      namespace: ''
+      version_added: 8.2.0
+    ome_alert_policies_info:
+      description: Retrieves information of one or more OME alert policies.
+      name: ome_alert_policies_info
+      namespace: ''
+      version_added: 8.2.0
+    ome_alert_policies_message_id_info:
+      description: Get message ID information of alert policies.
+      name: ome_alert_policies_message_id_info
+      namespace: ''
+      version_added: 8.2.0
     ome_application_alerts_smtp:
       description: This module allows to configure SMTP or email configurations
       name: ome_application_alerts_smtp
@@ -513,6 +541,11 @@ plugins:
       name: redfish_firmware
       namespace: ''
       version_added: 2.1.0
+    redfish_firmware_rollback:
+      description: To perform a component firmware rollback using component name
+      name: redfish_firmware_rollback
+      namespace: ''
+      version_added: 8.2.0
     redfish_powerstate:
       description: Manage device power state
       name: redfish_powerstate
@@ -528,4 +561,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 7.6.0
+version: 8.5.0
