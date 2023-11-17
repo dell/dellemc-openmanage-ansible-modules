@@ -16,6 +16,6 @@
     return_content: true
     status_code: 200
     headers: 'Accept=application/json'
-  register: fetched_output
+  register: redfish_storage_volume_fetched_output
   when: url is defined
   check_mode: false

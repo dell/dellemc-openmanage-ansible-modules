@@ -7,20 +7,20 @@
 
 - name: Intializing set_fact variable
   ansible.builtin.set_fact:
-      controller_id: ""
-      drive_list: []
+      redfish_storage_volume_controller_id: ""
+      redfish_storage_volume_drive_list: []
 
 - name: Extracting Controller id
   ansible.builtin.set_fact:
-    controller_id: "{{ item.Id }}"
-    drive_list_odata: "{{ item.Drives }}"
+    redfish_storage_volume_controller_id: "{{ item.Id }}"
+    redfish_storage_volume_drive_list_odata: "{{ item.Drives }}"
   when:
-    - search_in_name is defined and search_in_name in item.Name
+    - redfish_storage_volume_search_in_name is defined and redfish_storage_volume_search_in_name in item.Name
     - item.StorageControllers[0].SupportedRAIDTypes != []
-  loop: "{{ fetched_output.json.Members }}"
+  loop: "{{ redfish_storage_volume_fetched_output.json.Members }}"
 
 - name: Extracting Drives id
   ansible.builtin.set_fact:
-    drive_list: "{{ drive_list + [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
+    redfish_storage_volume_drive_list: "{{ redfish_storage_volume_drive_list + [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
   loop: "{{ drive_list_odata }}"
-  when: drive_list_odata is defined
+  when: redfish_storage_volume_drive_list_odata is defined

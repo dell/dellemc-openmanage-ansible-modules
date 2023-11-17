@@ -11,8 +11,8 @@
 
 - name: Extracting volume_id
   ansible.builtin.set_fact:
-    volume_id_list: "{{ volume_id_list | default([]) + [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
-  loop: "{{ fetched_output.json.Members }}"
+    redfish_storage_volume_volume_id_list: "{{ redfish_storage_volume_volume_id_list | default([]) + [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
+  loop: "{{ redfish_storage_volume_fetched_output.json.Members }}"
 
 - name: "Deleting virtual disk in {{ controller_id }}"
   ansible.builtin.import_role:
@@ -23,9 +23,9 @@
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     state: absent
-    volume_id: "{{ volume_id_list[0] }}"
+    volume_id: "{{ redfish_storage_volume_volume_id_list[0] }}"
     job_wait: true
-  when: volume_id_list is defined and volume_id_list != []
+  when: redfish_storage_volume_volume_id_list is defined and redfish_storage_volume_volume_id_list != []
 
 - name: Waiting for Job completion
   ansible.builtin.include_tasks:
