@@ -6,6 +6,12 @@ roles/redfish_storage_volume/molecule/mirrored/converge.yml var-naming[no-role-p
 roles/redfish_storage_volume/molecule/initialization/converge.yml var-naming[no-role-prefix]
 roles/redfish_storage_volume/molecule/default/converge.yml var-naming[no-role-prefix]
 roles/redfish_storage_volume/defaults/main.yml var-naming[no-role-prefix]
+roles/redfish_storage_volume/molecule/RAID6/converge.yml var-naming[no-role-prefix]
+roles/redfish_storage_volume/molecule/RAID60/converge.yml var-naming[no-role-prefix]
+roles/redfish_storage_volume/molecule/__delete_virtual_drive.yml var-naming[no-role-prefix]
+roles/redfish_storage_volume/molecule/apply_time_default/converge.yml var-naming[no-role-prefix]
+roles/redfish_storage_volume/molecule/apply_time_immediate/converge.yml var-naming[no-role-prefix]
+
 
 roles/redfish_firmware/molecule/negative/converge.yml var-naming[no-role-prefix]
 roles/redfish_firmware/molecule/default/converge.yml var-naming[no-role-prefix]

@@ -61,7 +61,7 @@
       rescue:
         - name: Set the failure messages for PERC
           ansible.builtin.set_fact:
-            redfish_storage_volume_failure: "{{  redfish_storage_volume_failure | combine({'PERC': {'msg': ansible_failed_result.msg, 
+            redfish_storage_volume_failure: "{{  redfish_storage_volume_failure | combine({'PERC': {'msg': ansible_failed_result.msg,
                       'failed_task_name': ansible_failed_task.name}}) }}"
 
       always:

@@ -7,8 +7,8 @@
 
 - name: Intializing set_fact variable
   ansible.builtin.set_fact:
-      redfish_storage_volume_controller_id: ""
-      redfish_storage_volume_drive_list: []
+    redfish_storage_volume_controller_id: ""
+    redfish_storage_volume_drive_list: []
 
 - name: Extracting Controller id
   ansible.builtin.set_fact:

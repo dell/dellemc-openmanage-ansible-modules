@@ -4,7 +4,7 @@
   vars:
     redfish_storage_volume_failure: {}
     redfish_storage_volume_raid: "RAID0"
-    redfish_storage_volume_minimum_required_drives: 1
+    redfish_storage_volume_minimum_drives: 1
   gather_facts: false
 
   tasks:
@@ -13,7 +13,6 @@
         file: ../__extract_storage.yml
       vars:
         redfish_storage_volume_search_in_name: 'PERC'
-      ignore_errors: true
 
     - name: Setting PERC controller_id
       ansible.builtin.set_fact:
@@ -25,8 +24,8 @@
       block:
         - name: "Checking minimum number of drives for {{ redfish_storage_volume_raid }}"
           ansible.builtin.debug:
-            msg: "Minimum number of required drives: {{ redfish_storage_volume_minimum_required_drives }}, current: {{ redfish_storage_volume_drive_list | length }}"
-          when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_required_drives
+            msg: "Minimum number of required drives: {{ redfish_storage_volume_minimum_drives }}, current: {{ redfish_storage_volume_drive_list | length }}"
+          when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_drives
           failed_when: true
 
         - name: "Create a volume for PERC, raid_type {{ redfish_storage_volume_raid }}"
@@ -41,7 +40,7 @@
             raid_type: "{{ redfish_storage_volume_raid }}"
             volume_name: "VD_PERC"
             controller_id: "{{ redfish_storage_volume_perc_raid_controller_id }}"
-            drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_required_drives] }}"
+            drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_drives] }}"
             job_wait: true
 
         - name: Asserting operation with check mode.
@@ -62,7 +61,7 @@
       rescue:
         - name: Set the failure messages for PERC
           ansible.builtin.set_fact:
-            redfish_storage_volume_failure: "{{  redfish_storage_volume_failure | combine({'PERC': {'msg': ansible_failed_result.msg, 
+            redfish_storage_volume_failure: "{{  redfish_storage_volume_failure | combine({'PERC': {'msg': ansible_failed_result.msg,
                       'failed_task_name': ansible_failed_task.name}}) }}"
 
       always:
@@ -79,7 +78,6 @@
         file: ../__extract_storage.yml
       vars:
         search_in_name: 'BOSS'
-      ignore_errors: true
 
     - name: Setting BOSS controller_id
       ansible.builtin.set_fact:
@@ -91,8 +89,8 @@
       block:
         - name: "Checking minimum number of drives for {{ redfish_storage_volume_raid }}"
           ansible.builtin.debug:
-            msg: "Minimum number of required drives: {{ redfish_storage_volume_minimum_required_drives }}, current: {{ redfish_storage_volume_drive_list | length }}"
-          when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_required_drives
+            msg: "Minimum number of required drives: {{ redfish_storage_volume_minimum_drives }}, current: {{ redfish_storage_volume_drive_list | length }}"
+          when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_drives
           failed_when: true
 
         - name: "Create a volume for BOSS, raid_type {{ redfish_storage_volume_raid }}"
@@ -105,9 +103,9 @@
             validate_certs: false
             state: present
             raid_type: "{{ redfish_storage_volume_raid }}"
-            name: "VD_BOSS"
+            volume_name: "VD_BOSS"
             controller_id: "{{ redfish_storage_volume_boss_raid_controller_id }}"
-            drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_required_drives] }}"
+            drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_drives] }}"
             job_wait: false
 
         - name: Asserting operation with check mode.
@@ -135,7 +133,7 @@
       rescue:
         - name: Set the failure messages for BOSS
           ansible.builtin.set_fact:
-            redfish_storage_volume_failure: "{{  redfish_storage_volume_failure | combine({'BOSS': {'msg': ansible_failed_result.msg, 
+            redfish_storage_volume_failure: "{{  redfish_storage_volume_failure | combine({'BOSS': {'msg': ansible_failed_result.msg,
                       'failed_task_name': ansible_failed_task.name}}) }}"
 
       always:
