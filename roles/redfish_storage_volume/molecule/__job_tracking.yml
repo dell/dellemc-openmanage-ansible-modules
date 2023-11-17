@@ -19,6 +19,7 @@
       Content-Type: "application/json"
       Accept: "application/json"
   register: job_result
+  failed_when: "'json' not in job_result"
   until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
   retries: "{{ 1200 // 10 }}"
   delay: "{{ 10 }}"
