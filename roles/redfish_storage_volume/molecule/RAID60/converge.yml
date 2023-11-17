@@ -2,9 +2,9 @@
 - name: Ansible - Role- redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID60 VD
   hosts: all
   vars:
-    failure: {}
-    raid: "RAID60"
-    minimum_required_drives: 8
+    redfish_storage_volume_failure: {}
+    redfish_storage_volume_raid: "RAID60"
+    redfish_storage_volume_minimum_required_drives: 8
   gather_facts: false
 
   tasks:
@@ -12,23 +12,23 @@
       ansible.builtin.include_tasks:
         file: ../__extract_storage.yml
       vars:
-        search_in_name: 'PERC'
+        redfish_storage_volume_search_in_name: 'PERC'
 
     - name: Setting PERC controller_id
       ansible.builtin.set_fact:
-        perc_raid_controller_id: "{{ controller_id }}"
-      when: controller_id != ""
+        redfish_storage_volume_perc_raid_controller_id: "{{ redfish_storage_volume_controller_id }}"
+      when: redfish_storage_volume_controller_id != ""
 
     - name: Running for PERC Controller
-      when: perc_raid_controller_id is defined
+      when: redfish_storage_volume_perc_raid_controller_id is defined
       block:
-        - name: "Checking minimum number of drives for {{ raid }}"
+        - name: "Checking minimum number of drives for {{ redfish_storage_volume_raid }}"
           ansible.builtin.debug:
-            msg: "Minimum number of required drives: {{ minimum_required_drives }}, current: {{ drive_list | length }}"
-          when: drive_list | length < minimum_required_drives
+            msg: "Minimum number of required drives: {{ redfish_storage_volume_minimum_required_drives }}, current: {{ redfish_storage_volume_drive_list | length }}"
+          when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_required_drives
           failed_when: true
 
-        - name: "Create a {{ raid }} volume for PERC"
+        - name: "Create a volume for PERC, raid_type {{ redfish_storage_volume_raid }}"
           ansible.builtin.import_role:
             name: dellemc.openmanage.redfish_storage_volume
           vars:
@@ -37,10 +37,10 @@
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             validate_certs: false
             state: present
-            raid_type: "{{ raid }}"
+            raid_type: "{{ redfish_storage_volume_raid }}"
             volume_name: "VD_PERC"
-            controller_id: "{{ perc_raid_controller_id }}"
-            drives: "{{ drive_list[: minimum_required_drives] }}"
+            controller_id: "{{ redfish_storage_volume_perc_raid_controller_id }}"
+            drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_required_drives] }}"
             job_wait: true
 
         - name: Asserting operation with check mode.
@@ -61,7 +61,7 @@
       rescue:
         - name: Set the failure messages for PERC
           ansible.builtin.set_fact:
-            failure: "{{  failure | combine({'PERC': {'msg': ansible_failed_result.msg, 
+            redfish_storage_volume_failure: "{{  redfish_storage_volume_failure | combine({'PERC': {'msg': ansible_failed_result.msg, 
                       'failed_task_name': ansible_failed_task.name}}) }}"
 
       always:
@@ -75,6 +75,6 @@
 
     - name: Collecting failure
       ansible.builtin.debug:
-        var: failure
-      when: failure
+        var: redfish_storage_volume_failure
+      when: redfish_storage_volume_failure
       failed_when: true
