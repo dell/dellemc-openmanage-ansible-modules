@@ -1,5 +1,5 @@
 ---
-- name: TC-123863 - Ansible - Role- redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID1 with apply_time(OnReset) with reboot_server(true) with force_reboot(false)
+- name: TC-123863 - [Check Mode] [Idempotency] Validate creating RAID1 with apply_time(OnReset) with reboot_server(true) with force_reboot(false)
   hosts: all
   vars:
     redfish_storage_volume_failure: {}
