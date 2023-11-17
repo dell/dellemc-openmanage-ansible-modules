@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Server Configuration Profile
+- name: Server Configuration Profile
+  hosts: idrac
   gather_facts: false
 
   tasks:

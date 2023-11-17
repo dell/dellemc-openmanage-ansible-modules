@@ -4,7 +4,7 @@
   ansible.builtin.copy:
     src: "{{ idrac_os_deployment_kickstart_file }}"
     dest: "{{ idrac_os_deployment_iso_extract_dir }}/{{ idrac_os_deployment_rhel_ks_filename }}"
-    mode: "{{ copy_mode }}"
+    mode: "{{ idrac_os_deployment_copy_mode }}"
 
 - name: Append ks path to the linux boot menu
   delegate_to: "{{ idrac_os_deployment_delegate }}"

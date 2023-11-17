@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible template inventory details.
+- name: Dell OpenManage Ansible template inventory details.
+  hosts: ome
   gather_facts: false
 
   tasks:

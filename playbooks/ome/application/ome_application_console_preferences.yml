@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OME Application Console Preferences.
+- name: Dell OME Application Console Preferences.
+  hosts: ome
   gather_facts: false
 
   tasks:

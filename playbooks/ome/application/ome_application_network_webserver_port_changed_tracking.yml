@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OME Application network webserver port change and track webserver till the service restarts.
+- name: Dell OME Application network webserver port change and track webserver till the service restarts.
+  hosts: ome
   gather_facts: false
   vars:
     # 5 minutes wait max

@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Configure Boot Mode Setting
+- name: Configure Boot Mode Setting
+  hosts: idrac
   gather_facts: false
 
   tasks:

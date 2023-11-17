@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Fetching message ids of ome alert policies .
+- name: Fetching message ids of ome alert policies .
+  hosts: ome
   gather_facts: false
 
   tasks:
