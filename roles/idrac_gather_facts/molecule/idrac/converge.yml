@@ -91,4 +91,3 @@
 
     - name: Call assertion For Manager Attributes
       ansible.builtin.include_tasks: ../../tests/asserts/manager_assert.yml
-
