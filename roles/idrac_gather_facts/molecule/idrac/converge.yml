@@ -85,3 +85,9 @@
 
     - name: Call assertion For System Attributes
       ansible.builtin.include_tasks: ../../tests/asserts/system_assert.yml
+
+    - name: Call assertion For LC Attributes
+      ansible.builtin.include_tasks: ../../tests/asserts/lc_assert.yml
+
+    - name: Call assertion For Manager Attributes
+      ansible.builtin.include_tasks: ../../tests/asserts/manager_assert.yml

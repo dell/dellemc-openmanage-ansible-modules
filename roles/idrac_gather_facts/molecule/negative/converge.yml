@@ -18,7 +18,7 @@
     - name: Asserting after performing opeartion with invalid hostname
       ansible.builtin.assert:
         that:
-          - connection.status == -1
+          - idrac_gather_facts_connection.status == -1
 
     - name: To check for wrong username
       ansible.builtin.import_role:
@@ -36,7 +36,7 @@
     - name: Asserting after performing opeartion with invalid username
       ansible.builtin.assert:
         that:
-          - connection.status == 401
+          - idrac_gather_facts_connection.status == 401
 
     - name: To check for wrong password
       ansible.builtin.import_role:
@@ -54,7 +54,7 @@
     - name: Asserting after performing opeartion with invalid password
       ansible.builtin.assert:
         that:
-          - connection.status == -1
+          - idrac_gather_facts_connection.status == -1
 
     - name: To check for wrong system id
       ansible.builtin.import_role:
