@@ -19,6 +19,7 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
+from mock import MagicMock
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
@@ -809,7 +810,8 @@ class TestStorageVolume(FakeAnsibleModule):
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"@Redfish.OperationApplyTimeSupport": {"SupportedValues": ["Immediate"]}}
         self.module.get_apply_time(f_module,
-                                   redfish_connection_mock_for_storage_volume)
+                                   redfish_connection_mock_for_storage_volume,
+                                   controller_id="controller_id")
 
     def test_get_apply_time_supported_failure_case(self, redfish_response_mock,
                                                    redfish_connection_mock_for_storage_volume,
@@ -820,7 +822,8 @@ class TestStorageVolume(FakeAnsibleModule):
         redfish_response_mock.json_data = {"@Redfish.OperationApplyTimeSupport": {"SupportedValues": ["OnReset"]}}
         with pytest.raises(Exception) as exc:
             self.module.get_apply_time(f_module,
-                                       redfish_connection_mock_for_storage_volume)
+                                       redfish_connection_mock_for_storage_volume,
+                                       controller_id="controller_id")
         assert exc.value.args[0] == "Apply time Immediate \
 is not supported. The supported values are ['OnReset']. Enter the valid values and retry the operation."
 
@@ -832,7 +835,8 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
                                                                                           '', {}, None)
         with pytest.raises(HTTPError) as ex:
-            self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume)
+            self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume,
+                                       controller_id="controller_id")
 
     def test_check_apply_time_supported_and_reboot_required_success_case01(self, mocker,
                                                                            redfish_response_mock,
@@ -844,7 +848,8 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
                      return_value="OnReset")
         apply_time = self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume)
         val = self.module.check_apply_time_supported_and_reboot_required(f_module,
-                                                                         redfish_connection_mock_for_storage_volume)
+                                                                         redfish_connection_mock_for_storage_volume,
+                                                                         controller_id="controller_id")
         assert val is True
 
     def test_check_job_tracking_required_success_case01(self, mocker, redfish_response_mock,
@@ -860,3 +865,140 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
                                                       reboot_required=False,
                                                       controller_id="controller_id")
         assert not val
+
+    def test_check_job_tracking_required_success_case02(self, mocker, redfish_response_mock,
+                                                        redfish_connection_mock_for_storage_volume,
+                                                        storage_volume_base_uri):
+        param = {"job_wait": True}
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
+                     return_value="Immediate")
+        f_module = self.get_module_mock(params=param)
+        val = self.module.check_job_tracking_required(f_module,
+                                                      redfish_connection_mock_for_storage_volume,
+                                                      reboot_required=True,
+                                                      controller_id="controller_id")
+        assert val
+
+    def test_perform_reboot_timeout_case(self, mocker, redfish_response_mock,
+                                         redfish_connection_mock_for_storage_volume,
+                                         storage_volume_base_uri,
+                                         redfish_default_args):
+        param = {"force_reboot": False}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
+                     return_value=({"JobState": "Completed", "Id": "JID_123456789"}, True, ""))
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=("", "The job is not complete after 2 seconds."))
+        with pytest.raises(Exception) as exc:
+            self.module.perform_reboot(f_module, redfish_connection_mock_for_storage_volume)
+        assert exc.value.args[0] == "The job is not complete after 2 seconds."
+
+    def test_perform_reboot_success_case01(self, mocker, redfish_response_mock,
+                                           redfish_connection_mock_for_storage_volume,
+                                           storage_volume_base_uri,
+                                           redfish_default_args):
+        param = {"force_reboot": False}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
+                     return_value=({"JobState": "Completed", "Id": "JID_123456789"}, True, ""))
+        redfish_response_mock.json_data = {"JobState": "Completed"}
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=(redfish_response_mock, "The job is completed."))
+        val = self.module.perform_reboot(f_module, redfish_connection_mock_for_storage_volume)
+        assert val is None
+
+    def test_perform_reboot_success_case02(self, mocker, redfish_response_mock,
+                                           redfish_connection_mock_for_storage_volume,
+                                           storage_volume_base_uri,
+                                           redfish_default_args):
+        param = {"force_reboot": True}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
+                     return_value=({"JobState": "Failed", "Id": "JID_123456789"}, True, ""))
+        redfish_response_mock.json_data = {"JobState": "Failed"}
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=(redfish_response_mock, "The job is failed."))
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.perform_force_reboot",
+                     return_value="")
+        val = self.module.perform_reboot(f_module, redfish_connection_mock_for_storage_volume)
+        assert val is None
+
+    def test_perform_reboot_without_output_case(self, mocker, redfish_response_mock,
+                                                redfish_connection_mock_for_storage_volume,
+                                                storage_volume_base_uri,
+                                                redfish_default_args):
+        param = {"force_reboot": False}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
+                     return_value=("", False, ""))
+
+        val = self.module.perform_reboot(f_module, redfish_connection_mock_for_storage_volume)
+        assert val is None
+
+    def test_perform_force_reboot_timeout_case(self, mocker, redfish_response_mock,
+                                               redfish_connection_mock_for_storage_volume,
+                                               storage_volume_base_uri,
+                                               redfish_default_args):
+        param = {"force_reboot": False}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
+                     return_value=({"JobState": "Completed", "Id": "JID_123456789"}, True, ""))
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=("", "The job is not complete after 2 seconds."))
+        with pytest.raises(Exception) as exc:
+            self.module.perform_force_reboot(f_module, redfish_connection_mock_for_storage_volume)
+        assert exc.value.args[0] == "The job is not complete after 2 seconds."
+
+    def test_perform_force_reboot_success_case01(self, mocker, redfish_response_mock,
+                                                 redfish_connection_mock_for_storage_volume,
+                                                 storage_volume_base_uri,
+                                                 redfish_default_args):
+        param = {"force_reboot": False}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
+                     return_value=({"JobState": "Completed", "Id": "JID_123456789"}, True, ""))
+        redfish_response_mock.json_data = {"JobState": "Completed"}
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=(redfish_response_mock, "The job is completed."))
+        val = self.module.perform_force_reboot(f_module, redfish_connection_mock_for_storage_volume)
+        assert val is None
+
+    def test_perform_reboot_success_case02(self, mocker, redfish_response_mock,
+                                           redfish_connection_mock_for_storage_volume,
+                                           storage_volume_base_uri,
+                                           redfish_default_args):
+        param = {"force_reboot": True}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
+                     return_value=({"JobState": "Completed", "Id": "JID_123456789"}, True, ""))
+        redfish_response_mock.json_data = {"JobState": "Failed"}
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=(redfish_response_mock, "The job is completed."))
+        with pytest.raises(Exception) as exc:
+            self.module.perform_force_reboot(f_module, redfish_connection_mock_for_storage_volume)
+        assert exc.value.args[0] == "Failed to reboot the server."
+
+    def test_perform_force_reboot_without_output_case(self, mocker, redfish_response_mock,
+                                                      redfish_connection_mock_for_storage_volume,
+                                                      storage_volume_base_uri,
+                                                      redfish_default_args):
+        f_module = self.get_module_mock()
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
+                     return_value=("", False, ""))
+        val = self.module.perform_force_reboot(f_module, redfish_connection_mock_for_storage_volume)
+        assert val is None
+
+    def test_track_job_failure_case(self, mocker, redfish_response_mock,
+                                    redfish_connection_mock_for_storage_volume,
+                                    storage_volume_base_uri,
+                                    redfish_default_args):
+        job_id = "JID_123456789"
+        job_url = "/redfish/v1/Managers/iDRAC.Embedded.1/JID_123456789"
+        f_module = self.get_module_mock()
+        redfish_response_mock.json_data={"Oem": { "Dell": {"JobState": "Scheduled"}}}
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=(redfish_response_mock, "The job is scheduled."))
+        with pytest.raises(Exception) as exc:
+            self.module.track_job(f_module, redfish_connection_mock_for_storage_volume, job_id, job_url)
+        # assert result.msg == 
+        assert exc.value.args[0] == "The job is successfully submitted."

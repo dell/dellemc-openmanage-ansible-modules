@@ -398,6 +398,7 @@ JOB_COMPLETION = "The job is successfully completed."
 JOB_SUBMISSION = "The job is successfully submitted."
 JOB_FAILURE_PROGRESS_MSG = "Unable to complete the task initiated for creating the storage volume."
 REBOOT_FAIL = "Failed to reboot the server."
+CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
 volume_type_map = {"NonRedundant": "RAID0",
                    "Mirrored": "RAID1",
                    "StripedWithParity": "RAID5",
@@ -504,8 +505,6 @@ def check_specified_identifier_exists_in_the_system(module, session_obj, uri, er
         return resp
     except HTTPError as err:
         if err.code == 404:
-            if module.check_mode:
-                return err
             module.exit_json(msg=err_message, failed=True)
         raise err
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
@@ -518,8 +517,7 @@ def check_controller_id_exists(module, session_obj):
     """
     specified_controller_id = module.params.get("controller_id")
     uri = CONTROLLER_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=specified_controller_id)
-    err_message = "Specified Controller {0} does " \
-                  "not exist in the System.".format(specified_controller_id)
+    err_message = CONTROLLER_NOT_EXIST_ERROR.format(controller_id=specified_controller_id)
     resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, err_message)
     if resp.success:
         return check_physical_disk_exists(module, resp.json_data["Drives"])
@@ -639,14 +637,13 @@ def check_raid_type_supported(module, session_obj):
             raise err
 
 
-def get_apply_time(module, session_obj):
+def get_apply_time(module, session_obj, controller_id):
     """
     gets the apply time from user if given otherwise fetches from server
     """
     apply_time = module.params.get("apply_time")
-    specified_controller_id = module.params.get("controller_id")
     try:
-        uri = APPLY_TIME_INFO_API.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=specified_controller_id)
+        uri = APPLY_TIME_INFO_API.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
         resp = session_obj.invoke_request("GET", uri)
         supported_apply_time_values = resp.json_data['@Redfish.OperationApplyTimeSupport']['SupportedValues']
         if apply_time:
@@ -660,11 +657,11 @@ def get_apply_time(module, session_obj):
         raise err
 
 
-def check_apply_time_supported_and_reboot_required(module, session_obj):
+def check_apply_time_supported_and_reboot_required(module, session_obj, controller_id):
     """
     checks whether the apply time is supported and reboot operation is required or not.
     """
-    apply_time = get_apply_time(module, session_obj)
+    apply_time = get_apply_time(module, session_obj, controller_id)
     reboot_server = module.params.get("reboot_server")
     if reboot_server and apply_time == "OnReset":
         return True
@@ -819,7 +816,7 @@ def check_job_tracking_required(module, session_obj, reboot_required, controller
     job_wait = module.params.get("job_wait")
     apply_time = None
     if controller_id:
-        apply_time = get_apply_time(module, session_obj)
+        apply_time = get_apply_time(module, session_obj, controller_id)
     if job_wait:
         if apply_time == "OnReset" and not reboot_required:
             return False
@@ -892,10 +889,19 @@ def main():
         with Redfish(module.params, req_session=True) as session_obj:
             fetch_storage_resource(module, session_obj)
             controller_id = module.params.get("controller_id")
-            reboot_required = False
+            volume_id = module.params.get("volume_id")
+            reboot_server = module.params.get("reboot_server")
+            reboot_required = module.params.get("reboot_required")
             if controller_id:
-                reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj)
+                uri = CONTROLLER_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
+                resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, CONTROLLER_NOT_EXIST_ERROR.format(controller_id=controller_id))
+                reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj, controller_id)
             status_message = configure_raid_operation(module, session_obj)
+            if volume_id and reboot_server:
+                controller_id = volume_id.split(":")[-1]
+                uri = CONTROLLER_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
+                resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, CONTROLLER_NOT_EXIST_ERROR.format(controller_id=controller_id))
+                reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj, controller_id)
             if reboot_required:
                 perform_reboot(module, session_obj)
             job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id)
