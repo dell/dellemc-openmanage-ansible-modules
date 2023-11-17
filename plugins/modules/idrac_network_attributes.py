@@ -256,7 +256,6 @@ EXAMPLES = """
     maintenance_window:
       start_time: "2022-09-30T05:15:40-05:00"
       duration: 600
-
 """
 
 RETURN = r'''

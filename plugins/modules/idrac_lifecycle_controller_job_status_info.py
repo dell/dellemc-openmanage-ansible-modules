@@ -42,11 +42,11 @@ EXAMPLES = """
 ---
 - name: Show status of a Lifecycle Control job
   dellemc.openmanage.idrac_lifecycle_controller_job_status_info:
-       idrac_ip:  "192.168.0.1"
-       idrac_user:  "user_name"
-       idrac_password:  "user_password"
-       ca_path: "/path/to/ca_cert.pem"
-       job_id:  "JID_1234567890"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    job_id: "JID_1234567890"
 """
 
 RETURN = r'''

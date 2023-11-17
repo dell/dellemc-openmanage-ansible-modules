@@ -83,10 +83,10 @@ Examples
     ---
     - name: Get Installed Firmware Inventory
       dellemc.openmanage.idrac_firmware_info:
-          idrac_ip:   "192.168.0.1"
-          idrac_user: "user_name"
-          idrac_password:  "user_password"
-          ca_path: "/path/to/ca_cert.pem"
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
 
 
 

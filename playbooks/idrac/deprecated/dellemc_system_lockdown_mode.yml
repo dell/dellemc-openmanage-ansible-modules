@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Configure System lockdown mode
+- name: Configure System lockdown mode
+  hosts: idrac
   gather_facts: false
 
   tasks:

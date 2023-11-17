@@ -221,7 +221,7 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     volume_type: "NonRedundant"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
 
 - name: Create a RAID0 on PERC controller on reset
   dellemc.openmanage.redfish_storage_volume:
@@ -303,10 +303,10 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     raid_type: "RAID6"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
 
 - name: Create a RAID60 volume
   dellemc.openmanage.redfish_storage_volume:
@@ -317,14 +317,14 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     raid_type: "RAID60"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
 '''
 
 RETURN = r'''

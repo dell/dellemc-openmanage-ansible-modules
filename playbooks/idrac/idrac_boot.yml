@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Configure the boot order settings
+- name: Configure the boot order settings
+  hosts: idrac
   gather_facts: false
 
   tasks:

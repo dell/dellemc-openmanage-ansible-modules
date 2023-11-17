@@ -173,7 +173,7 @@ EXAMPLES = r'''
         span_length: 3
         span_depth: 1
         drives:
-           location: [7,3,5]
+          location: [7, 3, 5]
         disk_cache_policy: "Disabled"
         write_cache_policy: "WriteBack"
         read_cache_policy: "NoReadAhead"

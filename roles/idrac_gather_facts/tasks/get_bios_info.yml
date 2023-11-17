@@ -4,17 +4,17 @@
     url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Bios"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: bios_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Set BIOS facts
   ansible.builtin.set_fact:

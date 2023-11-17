@@ -14,7 +14,7 @@
         validate_certs: false
         state: present
         volume_type: "SpannedStripesWithParity"
-        name: "VD"
+        name: "VD" # noqa: var-naming[no-reserved]
         controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
         drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
         capacity_bytes: 214748364800

@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible AD directory user group operation.
+- name: Dell OpenManage Ansible AD directory user group operation.
+  hosts: ome
   gather_facts: false
 
   tasks:

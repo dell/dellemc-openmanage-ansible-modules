@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Configure the iDRAC network attributes
+- name: Configure the iDRAC network attributes
+  hosts: idrac
   gather_facts: false
 
   tasks:

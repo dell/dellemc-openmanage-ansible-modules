@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Configure the SMTP settings of OME and OME-M.
+- name: Configure the SMTP settings of OME and OME-M.
+  hosts: ome
   gather_facts: false
 
   tasks:
