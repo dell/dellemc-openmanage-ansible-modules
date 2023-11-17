@@ -95,7 +95,7 @@
           when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_drives
           failed_when: true
 
-        - name: "TC-123865 - Create a volume for BOSS, raid_type {{ redfish_storage_volume_raid }}"
+        - name: "TC-123865 - Ansible - Role - redfish_storage_volume - Provide invalid value to apply_time"
           ansible.builtin.import_role:
             name: dellemc.openmanage.redfish_storage_volume
           vars:
@@ -115,7 +115,10 @@
 
         - name: Asserting after performing operation for invalid apply_time for BOSS controller.
           ansible.builtin.assert:
-            that: redfish_storage_volume_out.msg == "Apply time Immediate is not supported. The supported values are ['OnReset']. Enter the valid values and retry the operation."
+            that:
+              - redfish_storage_volume_out.msg == "{{ error_msg }}"
+          vars:
+            error_msg: "Apply time Immediate is not supported. The supported values are ['OnReset']. Enter the valid values and retry the operation."
 
     - name: Collecting failure
       ansible.builtin.debug:
