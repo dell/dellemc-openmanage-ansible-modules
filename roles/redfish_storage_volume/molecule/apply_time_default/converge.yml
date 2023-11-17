@@ -77,12 +77,12 @@
       ansible.builtin.include_tasks:
         file: ../__extract_storage.yml
       vars:
-        search_in_name: 'BOSS'
+        redfish_storage_volume_search_in_name: 'BOSS'
 
     - name: Setting BOSS controller_id
       ansible.builtin.set_fact:
         redfish_storage_volume_boss_raid_controller_id: "{{ redfish_storage_volume_controller_id }}"
-      when: controller_id != ""
+      when: redfish_storage_volume_controller_id != ""
 
     - name: Running for BOSS Controller
       when: redfish_storage_volume_boss_raid_controller_id is defined

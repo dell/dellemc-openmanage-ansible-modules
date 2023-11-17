@@ -22,5 +22,5 @@
 - name: Extracting Drives id
   ansible.builtin.set_fact:
     redfish_storage_volume_drive_list: "{{ redfish_storage_volume_drive_list + [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
-  loop: "{{ drive_list_odata }}"
+  loop: "{{ redfish_storage_volume_drive_list_odata }}"
   when: redfish_storage_volume_drive_list_odata is defined
