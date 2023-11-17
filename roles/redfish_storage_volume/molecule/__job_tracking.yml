@@ -22,3 +22,4 @@
   until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
   retries: "{{ 1200 // 10 }}"
   delay: "{{ 10 }}"
+  check_mode: true

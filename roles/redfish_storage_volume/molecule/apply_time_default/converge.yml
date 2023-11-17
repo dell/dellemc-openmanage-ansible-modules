@@ -1,10 +1,10 @@
 ---
-- name: Ansible - Role - redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID0 with apply_time with default values
+- name: TC-123778 - Ansible - Role - redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID1 with apply_time with default values
   hosts: all
   vars:
     redfish_storage_volume_failure: {}
-    redfish_storage_volume_raid: "RAID0"
-    redfish_storage_volume_minimum_drives: 1
+    redfish_storage_volume_raid: "RAID1"
+    redfish_storage_volume_minimum_drives: 2
   gather_facts: false
 
   tasks:
@@ -50,7 +50,7 @@
 
         - name: Asserting operation with normal mode.
           ansible.builtin.assert:
-            that: redfish_storage_volume_out.msg == "Successfully submitted create volume task."
+            that: redfish_storage_volume_out.msg == "The job is successfully completed."
           when: not ansible_check_mode and redfish_storage_volume_out.changed
 
         - name: Asserting operation with idempotence.

@@ -7,7 +7,7 @@
   ansible.builtin.include_tasks:
     file: ../__get_helper.yml
   vars:
-    url: "Systems/System.Embedded.1/Storage/{{ controller_id }}/Volumes"
+    url: "Systems/System.Embedded.1/Storage/{{ redfish_storage_volume_controller_id }}/Volumes"
 
 - name: Extracting volume_id
   ansible.builtin.set_fact:

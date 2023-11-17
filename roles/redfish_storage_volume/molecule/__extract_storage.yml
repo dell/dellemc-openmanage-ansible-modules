@@ -17,6 +17,7 @@
   when:
     - redfish_storage_volume_search_in_name is defined and redfish_storage_volume_search_in_name in item.Name
     - item.StorageControllers[0].SupportedRAIDTypes != []
+    - redfish_storage_volume_raid in item.StorageControllers[0].SupportedRAIDTypes
   loop: "{{ redfish_storage_volume_fetched_output.json.Members }}"
 
 - name: Extracting Drives id
