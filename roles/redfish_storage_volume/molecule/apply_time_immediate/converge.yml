@@ -40,7 +40,7 @@
             raid_type: "{{ raid }}"
             volume_name: "VD_PERC"
             controller_id: "{{ perc_raid_controller_id }}"
-            drives: "{{ drive_list[: minimum_required_drives] }}"
+            drives: "{{ drive_list[:minimum_required_drives] }}"
             optimum_io_size_bytes: 65536
             apply_time: "Immediate"
             job_wait: true
@@ -107,7 +107,7 @@
             raid_type: "{{ raid }}"
             name: "VD_BOSS"
             controller_id: "{{ boss_raid_controller_id }}"
-            drives: "{{ drive_list[: minimum_required_drives] }}"
+            drives: "{{ drive_list[:minimum_required_drives] }}"
             apply_time: "Immediate"
             job_wait: true
 

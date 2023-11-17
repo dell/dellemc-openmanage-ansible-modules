@@ -11,7 +11,7 @@
 
 - name: Extracting volume_id
   ansible.builtin.set_fact:
-    volume_id_list: "{{ volume_id_list | default([]) +  [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
+    volume_id_list: "{{ volume_id_list | default([]) + [item['@odata.id'] | ansible.builtin.split('/') | last] }}"
   loop: "{{ fetched_output.json.Members }}"
 
 - name: "Deleting virtual disk in {{ controller_id }}"

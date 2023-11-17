@@ -4,7 +4,7 @@
   vars:
     redfish_storage_volume_failure: {}
     redfish_storage_volume_raid: "RAID60"
-    redfish_storage_volume_minimum_required_drives: 8
+    redfish_storage_volume_minimum_drives: 8
   gather_facts: false
 
   tasks:
@@ -24,8 +24,8 @@
       block:
         - name: "Checking minimum number of drives for {{ redfish_storage_volume_raid }}"
           ansible.builtin.debug:
-            msg: "Minimum number of required drives: {{ redfish_storage_volume_minimum_required_drives }}, current: {{ redfish_storage_volume_drive_list | length }}"
-          when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_required_drives
+            msg: "Minimum number of required drives: {{ redfish_storage_volume_minimum_drives }}, current: {{ redfish_storage_volume_drive_list | length }}"
+          when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_drives
           failed_when: true
 
         - name: "Create a volume for PERC, raid_type {{ redfish_storage_volume_raid }}"
@@ -40,7 +40,7 @@
             raid_type: "{{ redfish_storage_volume_raid }}"
             volume_name: "VD_PERC"
             controller_id: "{{ redfish_storage_volume_perc_raid_controller_id }}"
-            drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_required_drives] }}"
+            drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_drives] }}"
             job_wait: true
 
         - name: Asserting operation with check mode.
