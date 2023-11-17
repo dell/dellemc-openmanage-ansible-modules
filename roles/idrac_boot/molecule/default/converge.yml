@@ -28,7 +28,7 @@
         password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         boot_source_override_mode: 'uefi'
-      register: error_reg
+      register: idrac_boot_error_reg
       ignore_errors: true
 
     - name: Verify - TC-115437 - Ansible - Role - idrac_boot - Providing wrong username
@@ -47,7 +47,7 @@
         boot_source_override_mode: 'uefi'
       ignore_errors: true
       ignore_unreachable: true
-      register: error_reg
+      register: idrac_boot_error_reg
 
     - name: Verify - TC-115438 - Ansible - Role - idrac_boot - Providing wrong password
       ansible.builtin.assert:
@@ -90,7 +90,7 @@
         validate_certs: false
         boot_source_override_mode: 'uefi'
       ignore_errors: true
-      register: error_reg
+      register: idrac_boot_error_reg
 
     - name: Verify - TC-115440 - Ansible - Role - idrac_boot - Providing wrong resource_id
       ansible.builtin.assert:
@@ -112,7 +112,7 @@
         validate_certs: false
         boot_source_override_mode: 'uefi'
       ignore_errors: true
-      register: error_reg
+      register: idrac_boot_error_reg
 
     - name: Verify - TC-115441 - Ansible - Role - idrac_boot - Providing wrong ca_path
       ansible.builtin.assert:
@@ -134,7 +134,7 @@
         validate_certs: false
         boot_source_override_mode: 'uefi'
       ignore_errors: true
-      register: error_reg
+      register: idrac_boot_error_reg
 
     - name: Verify - TC-115442 - Ansible - Role - idrac_boot - Providing invalid https_timeout
       ansible.builtin.assert:
@@ -157,7 +157,7 @@
             job_wait_timeout: -1000
             validate_certs: false
             boot_source_override_mode: 'legacy'
-          register: error_reg
+          register: idrac_boot_error_reg
       rescue:
         - name: Verify - TC-115443 - Ansible - Role - idrac_boot - Providing invalid job_wait_timeout
           ansible.builtin.assert:
@@ -183,7 +183,7 @@
                 boot_option_reference: NIC.PxeDevice.2-1
                 enabled: true
           ignore_errors: true
-          register: error_reg
+          register: idrac_boot_error_reg
       rescue:
         - name: Verify - Check 1 - TC-115444 - mutual exclusivity between boot_option_reference and display_name
           ansible.builtin.assert:
@@ -210,7 +210,7 @@
               - Boot0001
               - Boot0002
           ignore_errors: true
-          register: error_reg
+          register: idrac_boot_error_reg
       rescue:
         - name: Verify - Check 2 - TC-115444 - mutual exclusivity between boot_options and boot_order
           ansible.builtin.assert:
@@ -233,7 +233,7 @@
                 enabled: true
             boot_source_override_mode: legacy
           ignore_errors: true
-          register: error_reg
+          register: idrac_boot_error_reg
       rescue:
         - name: Verify - Check 3 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_mode
           ansible.builtin.assert:
@@ -256,7 +256,7 @@
                 enabled: true
             boot_source_override_enabled: once
           ignore_errors: true
-          register: error_reg
+          register: idrac_boot_error_reg
       rescue:
         - name: Verify - Check 4 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_enabled
           ansible.builtin.assert:
@@ -279,7 +279,7 @@
                 enabled: true
             boot_source_override_target: cd
           ignore_errors: true
-          register: error_reg
+          register: idrac_boot_error_reg
       rescue:
         - name: Verify - Check 5 - TC-115444 - mutual exclusivity between boot_options and boot_source_override_target
           ansible.builtin.assert:
@@ -302,7 +302,7 @@
                 enabled: true
             uefi_target_boot_source_override: "VenHw(3A191845-5F86-4E78-8FCE-C4CFF59F9DAA)"
           ignore_errors: true
-          register: error_reg
+          register: idrac_boot_error_reg
       rescue:
         - name: Verify - Check 6 - TC-115444 - mutual exclusivity between boot_options and uefi_target_boot_source_override
           ansible.builtin.assert:

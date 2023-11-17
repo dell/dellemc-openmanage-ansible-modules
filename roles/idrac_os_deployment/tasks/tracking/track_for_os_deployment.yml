@@ -6,6 +6,6 @@
 
 - name: Set the Operating system success message
   ansible.builtin.set_fact:
-    idrac_os_deployment_out: "{{ success_message_os_deployment }}"
+    idrac_os_deployment_out: "{{ idrac_os_deployment_success_message_os_deployment }}"
   changed_when: true
-  no_log: "{{ set_no_log }}"
+  no_log: "{{ idrac_os_deployment_set_no_log }}"
