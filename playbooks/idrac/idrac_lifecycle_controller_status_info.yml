@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Check LC Ready Status
+- name: Check LC Ready Status
+  hosts: idrac
   gather_facts: false
 
   tasks:

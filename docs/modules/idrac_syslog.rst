@@ -104,27 +104,27 @@ Examples
     ---
     - name: Enable iDRAC syslog
       dellemc.openmanage.idrac_syslog:
-           idrac_ip:  "192.168.0.1"
-           idrac_user:  "user_name"
-           idrac_password:  "user_password"
+           idrac_ip: "192.168.0.1"
+           idrac_user: "user_name"
+           idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
-           share_name:  "192.168.0.2:/share"
-           share_password:  "share_user_pwd"
-           share_user:  "share_user_name"
-           share_mnt:  "/mnt/share"
-           syslog:  "Enabled"
+           share_name: "192.168.0.2:/share"
+           share_password: "share_user_pwd"
+           share_user: "share_user_name"
+           share_mnt: "/mnt/share"
+           syslog: "Enabled"
 
     - name: Disable iDRAC syslog
       dellemc.openmanage.idrac_syslog:
-           idrac_ip:  "192.168.0.1"
-           idrac_user:  "user_name"
-           idrac_password:  "user_password"
+           idrac_ip: "192.168.0.1"
+           idrac_user: "user_name"
+           idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
-           share_name:  "192.168.0.2:/share"
-           share_password:  "share_user_pwd"
-           share_user:  "share_user_name"
-           share_mnt:  "/mnt/share"
-           syslog:  "Disabled"
+           share_name: "192.168.0.2:/share"
+           share_password: "share_user_pwd"
+           share_user: "share_user_name"
+           share_mnt: "/mnt/share"
+           syslog: "Disabled"
 
 
 

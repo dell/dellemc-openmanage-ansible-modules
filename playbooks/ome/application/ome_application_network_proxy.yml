@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible Application network proxy setting.
+- name: Dell OpenManage Ansible Application network proxy setting.
+  hosts: ome
   gather_facts: false
 
   tasks:

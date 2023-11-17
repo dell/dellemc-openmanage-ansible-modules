@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage ansible port breakout configuration.
+- name: Dell OpenManage ansible port breakout configuration.
+  hosts: ome
   gather_facts: false
   vars:
     retries_count: 50

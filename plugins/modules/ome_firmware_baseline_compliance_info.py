@@ -77,8 +77,8 @@ EXAMPLES = r'''
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
     device_ids:
-        - 11111
-        - 22222
+      - 11111
+      - 22222
 
 - name: Retrieves device based compliance report for specified service Tags
   dellemc.openmanage.ome_firmware_baseline_compliance_info:
@@ -87,8 +87,8 @@ EXAMPLES = r'''
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
     device_service_tags:
-        - MXL1234
-        - MXL4567
+      - MXL1234
+      - MXL4567
 
 - name: Retrieves device based compliance report for specified group names
   dellemc.openmanage.ome_firmware_baseline_compliance_info:
@@ -97,8 +97,8 @@ EXAMPLES = r'''
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
     device_group_names:
-        - "group1"
-        - "group2"
+      - "group1"
+      - "group2"
 
 - name: Retrieves device compliance report for a specified baseline
   dellemc.openmanage.ome_firmware_baseline_compliance_info:

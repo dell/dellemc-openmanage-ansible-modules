@@ -39,7 +39,7 @@
 
   rescue:
     - name: Set the failure messages
-      no_log: "{{ set_no_log }}"
+      no_log: "{{ idrac_os_deployment_set_no_log }}"
       ansible.builtin.set_fact:
         idrac_os_deployment_failure: "{{ ansible_failed_result | combine({'failed_task_name': ansible_failed_task.name}) }}"
 

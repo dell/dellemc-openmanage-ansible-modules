@@ -50,8 +50,8 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         headers: 'Accept=application/json'
-      register: current_powerstate
-      until: current_powerstate.json.PowerState == "On"
+      register: idrac_server_powerstate_current_powerstate
+      until: idrac_server_powerstate_current_powerstate.json.PowerState == "On"
       retries: 10
       delay: 30
       when: not ansible_check_mode

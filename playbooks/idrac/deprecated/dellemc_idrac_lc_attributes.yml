@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Configure iDRAC CSIOR Setting
+- name: Configure iDRAC CSIOR Setting
+  hosts: idrac
   gather_facts: false
 
   tasks:

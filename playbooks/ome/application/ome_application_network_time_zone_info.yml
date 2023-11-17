@@ -1,7 +1,7 @@
 ---
-- hosts: ome
+- name: "Ome application network time zone informaion - Ansible Module"
+  hosts: ome
   gather_facts: false
-  name: "Ome application network time zone informaion - Ansible Module"
   vars:
     time_zone_uri: "/api/ApplicationService/Network/TimeZones"
 

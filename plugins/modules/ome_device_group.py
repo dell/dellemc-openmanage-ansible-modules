@@ -232,7 +232,6 @@ EXAMPLES = """
       - fe80::ffff:ffff:ffff:ffff
       - ::ffff:192.0.2.0/125
       - fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff
-
 """
 
 

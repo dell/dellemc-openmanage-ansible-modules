@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible smart fabric uplink configuration.
+- name: Dell OpenManage Ansible smart fabric uplink configuration.
+  hosts: ome
   gather_facts: false
 
   tasks:

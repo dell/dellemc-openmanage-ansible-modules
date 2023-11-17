@@ -207,7 +207,7 @@ Examples
         ca_path: "/path/to/ca_cert.pem"
         force: true
         virtual_media:
-            insert: false
+          insert: false
 
     - name: Insertion and ejection of image file in single task.
       dellemc.openmanage.idrac_virtual_media:

@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Dell OpenManage Ansible iDRAC boot operations.
+- name: Dell OpenManage Ansible iDRAC boot operations.
+  hosts: idrac
   vars:
     ansible_python_interpreter: /usr/bin/python3
     virtual_media_uri: "/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia/CD/Actions/VirtualMedia.InsertMedia"

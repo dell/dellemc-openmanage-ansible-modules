@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible slot name configuration.
+- name: Dell OpenManage Ansible slot name configuration.
+  hosts: ome
   gather_facts: false
 
   tasks:

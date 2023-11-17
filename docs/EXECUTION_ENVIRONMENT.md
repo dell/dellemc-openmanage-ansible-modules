@@ -35,7 +35,7 @@ Build a image with the required Ansible collections and libraries, and then uplo
     **execution-environment.yml**
 
     ```yaml
-    version: 1
+    version: 3
     dependencies:
       galaxy: requirements.yml
       python: requirements.txt
@@ -110,8 +110,8 @@ password=password
 3. Create a playbook.
 
 ```yaml
-- hosts: idrac
-  name: Get system inventory
+- name: Get system inventory
+  hosts: idrac
   gather_facts: false
 
   tasks:

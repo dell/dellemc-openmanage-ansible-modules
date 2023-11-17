@@ -11,7 +11,7 @@
         idrac_os_deployment_vm_iso_name: "{{ idrac_os_deployment_custom_iso_filename }}"
         idrac_os_deployment_vm_username: "{{ destination.username | default(omit) }}"
         idrac_os_deployment_vm_password: "{{ destination.password | default(omit) }}"
-      no_log: true
+      no_log: "{{ set_no_log }}"
 
     - name: Create virtual media mount url
       when: idrac_os_deployment_vm_protocol

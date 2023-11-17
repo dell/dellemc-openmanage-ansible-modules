@@ -14,7 +14,7 @@
           register: idrac_os_deployment_wget_cmd_out
           changed_when: idrac_os_deployment_wget_cmd_out.rc == 0
           failed_when: idrac_os_deployment_wget_cmd_out.rc != 0
-          no_log: true # to avoid printing username and password
+          no_log: "{{ set_no_log }}" # to avoid printing username and password
           ansible.builtin.command:
             "{{ (idrac_os_deployment_wget_cmd | format(idrac_os_deployment_iso_path, idrac_os_deployment_wd.path))
             + ('' if validate_certs else idrac_os_deployment_wget_cmd_vc)
@@ -23,7 +23,7 @@
         - name: Set the iso file path
           ansible.builtin.set_fact:
             idrac_os_deployment_iso_file: "{{ idrac_os_deployment_wd.path }}/{{ source.iso_name }}"
-            success_message_os_deployment: "{{ success_message_os_deployment_iso }}"
+            idrac_os_deployment_success_message_os_deployment: "{{ idrac_os_deployment_success_message_os_deployment_iso }}"
 
     - name: Copy the iso from local for protocol local, cifs, nfs
       when: source.protocol in ['local', 'cifs', 'nfs']
@@ -38,19 +38,19 @@
           ansible.builtin.copy:
             src: "{{ idrac_os_deployment_iso_path }}"
             dest: "{{ idrac_os_deployment_wd.path }}"
-            mode: "{{ src_copy_mode }}"
-          no_log: "{{ set_no_log }}"
+            mode: "{{ idrac_os_deployment_src_copy_mode }}"
+          no_log: "{{ idrac_os_deployment_set_no_log }}"
           register: idrac_os_deployment_iso_copy
 
         - name: Set the iso file path
           ansible.builtin.set_fact:
             idrac_os_deployment_iso_file: "{{ idrac_os_deployment_iso_copy.dest }}"
-            success_message_os_deployment: "{{ success_message_os_deployment_iso }}"
+            idrac_os_deployment_success_message_os_deployment: "{{ idrac_os_deployment_success_message_os_deployment_iso }}"
 
   rescue:
     - name: Log error for source iso download
       ansible.builtin.fail:
-        msg: "{{ err_msg_iso_file | format(idrac_os_deployment_iso_path) }}"
+        msg: "{{ idrac_os_deployment_err_msg_iso_file | format(idrac_os_deployment_iso_path) }}"
 
 - name: Download or copy the kickstart file
   delegate_to: "{{ idrac_os_deployment_delegate }}"
@@ -67,7 +67,7 @@
           register: idrac_os_deployment_wget_ks_cmd_out
           changed_when: idrac_os_deployment_wget_ks_cmd_out.rc == 0
           failed_when: idrac_os_deployment_wget_ks_cmd_out.rc != 0
-          no_log: true # to avoid printing username and password
+          no_log: "{{ set_no_log }}" # to avoid printing username and password
           ansible.builtin.command:
             "{{ (idrac_os_deployment_wget_cmd | format(idrac_os_deployment_ks_path, idrac_os_deployment_wd.path))
             + ('' if validate_certs else idrac_os_deployment_wget_cmd_vc)
@@ -76,7 +76,7 @@
         - name: Set the kickstart file path
           ansible.builtin.set_fact:
             idrac_os_deployment_kickstart_file: "{{ idrac_os_deployment_wd.path }}/{{ source.ks_path | basename }}"
-            success_message_os_deployment: "{{ success_message_os_deployment_ks }}"
+            idrac_os_deployment_success_message_os_deployment: "{{ idrac_os_deployment_success_message_os_deployment_ks }}"
 
     - name: Copy from local for protocol local, cifs, nfs
       when: source.protocol in ['local', 'cifs', 'nfs']
@@ -89,19 +89,19 @@
           ansible.builtin.copy:
             src: "{{ idrac_os_deployment_ks_path }}"
             dest: "{{ idrac_os_deployment_wd.path }}"
-            mode: "{{ src_copy_mode }}"
-          no_log: "{{ set_no_log }}"
+            mode: "{{ idrac_os_deployment_src_copy_mode }}"
+          no_log: "{{ idrac_os_deployment_set_no_log }}"
           register: idrac_os_deployment_ks_copy
 
         - name: Set the kickstart file path
           ansible.builtin.set_fact:
             idrac_os_deployment_kickstart_file: "{{ idrac_os_deployment_ks_copy.dest }}"
-            success_message_os_deployment: "{{ success_message_os_deployment_ks }}"
+            idrac_os_deployment_success_message_os_deployment: "{{ idrac_os_deployment_success_message_os_deployment_ks }}"
 
   rescue:
     - name: Log error for source kickstart download
       ansible.builtin.fail:
-        msg: "{{ err_msg_ks_file | format(idrac_os_deployment_ks_path) }}"
+        msg: "{{ idrac_os_deployment_err_msg_ks_file | format(idrac_os_deployment_ks_path) }}"
 
 - name: Validate kickstart file path extension
   when:
@@ -109,4 +109,4 @@
     - (idrac_os_deployment_kickstart_file | splitext | last) != ".cfg"
     - idrac_os_deployment_validate_kickstart_file_ext is true
   ansible.builtin.fail:
-    msg: "{{ err_msg_ks_file_ext | format(idrac_os_deployment_kickstart_file | splitext | last) }}"
+    msg: "{{ idrac_os_deployment_err_msg_ks_file_ext | format(idrac_os_deployment_kickstart_file | splitext | last) }}"

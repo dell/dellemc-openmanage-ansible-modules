@@ -7,14 +7,14 @@
       ansible.builtin.file:
         path: "{{ destination.mountpoint }}/{{ idrac_os_deployment_custom_iso_filename }}"
         state: touch
-        mode: "{{ dest_mode }}"
+        mode: "{{ idrac_os_deployment_dest_mode }}"
 
     - name: Copy custom iso to mounted path
       register: idrac_os_deployment_copy_to_destination
       ansible.builtin.copy:
         src: "{{ idrac_os_deployment_custom_iso_file }}"
         dest: "{{ destination.mountpoint }}"
-        mode: "{{ dest_mode }}"
+        mode: "{{ idrac_os_deployment_dest_mode }}"
 
 - name: Copy custom iso to HTTP or HTTPS share on linux
   when:

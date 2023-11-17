@@ -24,4 +24,4 @@
     proxy_uname: "{{ proxy_uname | default(omit) }}"
     proxy_passwd: "{{ proxy_passwd | default(omit) }}"
   register: "idrac_firmware_out"
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_firmware_delegate }}"

@@ -2,13 +2,9 @@
 # tasks file for idrac_bios
 - name: Performing idrac_bios operation
   block:
-    - name: Set delegate_to
-      ansible.builtin.set_fact:
-        task_delegate: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
-
     - name: Checking attributes/clear_pending and reset_bios is mutually exclusive
       ansible.builtin.fail:
-        msg: "{{ mutual_exclusive_msg }}"
+        msg: "{{ idrac_bios_mutual_exclusive_msg }}"
       when:
         - (attributes is defined and (reset_bios is defined and reset_bios))
           or
@@ -32,8 +28,8 @@
       dellemc.openmanage.idrac_bios:
         <<: *idrac_inputs
         clear_pending: "{{ clear_pending }}"
-      register: clear_pending_out
-      delegate_to: "{{ task_delegate }}"
+      register: idrac_bios_clear_pending_out
+      delegate_to: "{{ idrac_bios_delegate }}"
       when: clear_pending
 
     - name: Configuring the bios attributes
@@ -43,8 +39,8 @@
         apply_time: "{{ apply_time }}"
         maintenance_window: "{{ maintenance_window | default(omit) }}"
         reset_type: "{{ reset_type }}"
-      register: attributes_out
-      delegate_to: "{{ task_delegate }}"
+      register: idrac_bios_attributes_out
+      delegate_to: "{{ idrac_bios_delegate }}"
       when: attributes is defined
 
     - name: Performing the reset bios operation
@@ -52,8 +48,8 @@
         <<: *idrac_inputs
         reset_bios: "{{ reset_bios }}"
         reset_type: "{{ reset_type }}"
-      register: reset_bios_out
-      delegate_to: "{{ task_delegate }}"
+      register: idrac_bios_reset_bios_out
+      delegate_to: "{{ idrac_bios_delegate }}"
       when: reset_bios is defined and reset_bios
 
   always:
@@ -61,9 +57,9 @@
       ansible.builtin.set_fact:
         idrac_bios_out: "{{ idrac_bios_out | default({}) | combine({item.key: item.value}) }}"
       with_items:
-        - { "key": "clear_pending", "value": "{{ clear_pending_out }}" }
-        - { "key": "attributes", "value": "{{ attributes_out }}" }
-        - { "key": "reset_bios", "value": "{{ reset_bios_out }}" }
+        - { "key": "clear_pending", "value": "{{ idrac_bios_clear_pending_out }}" }
+        - { "key": "attributes", "value": "{{ idrac_bios_attributes_out }}" }
+        - { "key": "reset_bios", "value": "{{ idrac_bios_reset_bios_out }}" }
       no_log: true
 
     - name: Printing idrac_bios_out

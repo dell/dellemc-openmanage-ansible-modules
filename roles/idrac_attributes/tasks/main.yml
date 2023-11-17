@@ -5,6 +5,7 @@
     idrac_user: "{{ username }}"
     idrac_password: "{{ password }}"
     idrac_port: "{{ https_port }}"
+    ca_path: "{{ ca_path | default(omit) }}"
     validate_certs: "{{ validate_certs }}"
     idrac_attributes: "{{ idrac_attributes | default(omit) }}"
     system_attributes: "{{ system_attributes | default(omit) }}"
@@ -12,4 +13,4 @@
     resource_id: "{{ manager_id | default(omit) }}"
     timeout: "{{ https_timeout }}"
   register: idrac_attributes_out
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_attributes_delegate }}"

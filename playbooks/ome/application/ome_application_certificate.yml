@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OME Application Certificate Signing Request.
+- name: Dell OME Application Certificate Signing Request.
+  hosts: ome
   gather_facts: false
 
   tasks:

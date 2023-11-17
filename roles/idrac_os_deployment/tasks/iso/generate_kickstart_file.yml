@@ -7,7 +7,7 @@
       ansible.builtin.template:
         src: "{{ os_name | upper }}_{{ os_version | string | split('.') | first }}.j2"
         dest: "{{ idrac_os_deployment_wd.path }}/kickstart_{{ os_name }}_{{ hostname }}.cfg"
-        mode: "{{ ks_gen_mode }}"
+        mode: "{{ idrac_os_deployment_ks_gen_mode }}"
       register: idrac_os_deployment_ks_generate
 
     - name: Set ks file for specific idrac

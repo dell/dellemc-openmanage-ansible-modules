@@ -22,20 +22,20 @@
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         headers: 'Accept=application/json'
-      register: current_powerstate
+      register: idrac_server_powerstate_current_powerstate
       no_log: true
       tags: molecule-idempotence-notest
 
     - name: Fetching idrac_server_powerstate_wait_seconds from molecule env variable
       ansible.builtin.set_fact:
         wait_time: "{{ lookup('env', 'idrac_server_powerstate_wait_seconds', default=300) }}"
-      when: not ansible_check_mode and current_powerstate.json.PowerState == "On"
+      when: not ansible_check_mode and idrac_server_powerstate_current_powerstate.json.PowerState == "On"
       tags: molecule-idempotence-notest
 
     - name: "Waiting after performing PushPowerButton operation, Server is Powering On"
       ansible.builtin.pause:
         seconds: "{{ wait_time }}"
-      when: not ansible_check_mode and current_powerstate.json.PowerState == "On"
+      when: not ansible_check_mode and idrac_server_powerstate_current_powerstate.json.PowerState == "On"
       tags: molecule-idempotence-notest
 
     - name: Asserting PushPowerButton in check mode

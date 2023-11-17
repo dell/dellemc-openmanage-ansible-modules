@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Configure syslog forwarding settings on OpenManage Enterprise and OpenManage Enterprise Modular
+- name: Configure syslog forwarding settings on OpenManage Enterprise and OpenManage Enterprise Modular
+  hosts: ome
   gather_facts: false
 
   tasks:

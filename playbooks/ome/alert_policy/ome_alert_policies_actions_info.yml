@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible User service.
+- name: Dell OpenManage Ansible User service.
+  hosts: ome
   gather_facts: false
 
   tasks:

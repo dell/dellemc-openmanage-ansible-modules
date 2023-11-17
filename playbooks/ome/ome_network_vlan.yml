@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible VLAN operations.
+- name: Dell OpenManage Ansible VLAN operations.
+  hosts: ome
   gather_facts: false
 
   tasks:

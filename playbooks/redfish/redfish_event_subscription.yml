@@ -1,6 +1,6 @@
 ---
-- hosts: redfish
-  name: Configure Redfish subscriptions
+- name: Configure Redfish subscriptions
+  hosts: redfish
   gather_facts: false
 
   tasks:

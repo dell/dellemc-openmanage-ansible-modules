@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible template tag and untag.
+- name: Dell OpenManage Ansible template tag and untag.
+  hosts: ome
   gather_facts: false
 
   tasks:

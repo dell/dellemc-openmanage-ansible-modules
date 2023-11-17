@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OME Modular device network settings.
+- name: Dell OME Modular device network settings.
+  hosts: ome
   gather_facts: false
 
   tasks:

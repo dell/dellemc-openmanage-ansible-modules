@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Export Lifecycle Controller Logs
+- name: Export Lifecycle Controller Logs
+  hosts: idrac
   gather_facts: false
 
   tasks:

@@ -164,9 +164,9 @@ Examples
     ---
     - name: Configure the iDRAC eventing attributes
       dellemc.openmanage.dellemc_configure_idrac_eventing:
-           idrac_ip:   "192.168.0.1"
+           idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
-           idrac_password:  "user_password"
+           idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
            destination_number: "2"
            destination: "1.1.1.1"

@@ -72,11 +72,11 @@ EXAMPLES = """
 ---
 - name: Check System  Lockdown Mode
   dellemc.openmanage.dellemc_system_lockdown_mode:
-       idrac_ip:   "192.168.0.1"
-       idrac_user: "user_name"
-       idrac_password:  "user_password"
-       ca_path: "/path/to/ca_cert.pem"
-       lockdown_mode: "Disabled"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    lockdown_mode: "Disabled"
 """
 
 RETURN = r'''

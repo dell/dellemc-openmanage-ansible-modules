@@ -1,5 +1,5 @@
-- hosts: ome
-  name: Dell OpenManage Ansible Alert policy info
+- name: Dell OpenManage Ansible Alert policy info
+  hosts: ome
   gather_facts: false
 
   tasks:
@@ -10,7 +10,7 @@
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
       delegate_to: localhost
-    
+
     - name: Retrieve information about specific OME alert policy.
       dellemc.openmanage.ome_alert_policies_info:
         hostname: "{{ hostname }}"

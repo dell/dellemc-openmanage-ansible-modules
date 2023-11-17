@@ -4,17 +4,17 @@
     url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: system_api_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get first System Id from the system response
   ansible.builtin.set_fact:
@@ -34,7 +34,7 @@
 
 - name: Fail when system id is incorrect
   ansible.builtin.fail:
-    msg: "{{ invalid_sys_id_message | format(computer_system_id, (system_ids | join(','))) }}"
+    msg: "{{ idrac_gather_facts_invalid_sys_id_message | format(computer_system_id, (system_ids | join(','))) }}"
   when: computer_system_id != "" and not computer_system_id in system_ids
 
 - name: Get manager resource api id
@@ -42,17 +42,17 @@
     url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: manager_api_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get first manager resource id from manager response.
   ansible.builtin.set_fact:
@@ -72,7 +72,7 @@
 
 - name: Fail when manager id is incorrect
   ansible.builtin.fail:
-    msg: "{{ invalid_manager_id_message | format(manager_id, (manager_ids | join(','))) }}"
+    msg: "{{ idrac_gather_facts_invalid_manager_id_message | format(manager_id, (manager_ids | join(','))) }}"
   when: manager_id != "" and not manager_id in manager_ids
 
 - name: Get chassis resource api id
@@ -80,17 +80,17 @@
     url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Chassis"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: chassis_api_result
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get first chassis resource id from manager response.
   ansible.builtin.set_fact:

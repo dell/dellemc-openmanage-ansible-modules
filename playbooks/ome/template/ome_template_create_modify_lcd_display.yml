@@ -1,9 +1,9 @@
 ---
-- hosts: ome
-  name: "Creates a new template from the provided reference server device.
+- name: "Creates a new template from the provided reference server device.
     Track the template creation job till completion.
     Fetch the Attribute specific to LCD Configuration settings from the attribute view of the created template.
     Modify the created template with the user defined LCD string."
+  hosts: ome
   gather_facts: false
   vars:
     retries_count: 50

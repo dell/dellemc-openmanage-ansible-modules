@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Get LC job Status
+- name: Get LC job Status
+  hosts: idrac
   gather_facts: false
 
   tasks:

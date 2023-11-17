@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible Application network time setting.
+- name: Dell OpenManage Ansible Application network time setting.
+  hosts: ome
   gather_facts: false
 
   tasks:

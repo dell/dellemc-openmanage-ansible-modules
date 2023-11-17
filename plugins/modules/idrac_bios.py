@@ -146,20 +146,20 @@ EXAMPLES = """
 ---
 - name: Configure generic attributes of the BIOS
   dellemc.openmanage.idrac_bios:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
+    idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     attributes:
-      BootMode : "Bios"
+      BootMode: "Bios"
       OneTimeBootMode: "Enabled"
       BootSeqRetry: "Enabled"
 
 - name: Configure PXE generic attributes
   dellemc.openmanage.idrac_bios:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
+    idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     attributes:
       PxeDev1EnDis: "Enabled"
@@ -171,82 +171,82 @@ EXAMPLES = """
 
 - name: Configure BIOS attributes at Maintenance window
   dellemc.openmanage.idrac_bios:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
+    idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     apply_time: AtMaintenanceWindowStart
     maintenance_window:
       start_time: "2022-09-30T05:15:40-05:00"
       duration: 600
     attributes:
-      BootMode : "Bios"
+      BootMode: "Bios"
       OneTimeBootMode: "Enabled"
       BootSeqRetry: "Enabled"
 
 - name: Clear pending BIOS attributes
   dellemc.openmanage.idrac_bios:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
+    idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     clear_pending: true
 
 - name: Reset BIOS attributes to default settings.
   dellemc.openmanage.idrac_bios:
-    idrac_ip: "{{ idrac_ip }}"
-    idrac_user: "{{ idrac_user }}"
-    idrac_password: "{{ idrac_pwd }}"
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
     validate_certs: false
     reset_bios: true
 
 - name: Configure boot sources
   dellemc.openmanage.idrac_bios:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
+    idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     boot_sources:
-      - Name : "NIC.Integrated.1-2-3"
-        Enabled : true
-        Index : 0
+      - Name: "NIC.Integrated.1-2-3"
+        Enabled: true
+        Index: 0
 
 - name: Configure multiple boot sources
   dellemc.openmanage.idrac_bios:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
+    idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     boot_sources:
-      - Name : "NIC.Integrated.1-1-1"
-        Enabled : true
-        Index : 0
-      - Name : "NIC.Integrated.2-2-2"
-        Enabled : true
-        Index : 1
-      - Name : "NIC.Integrated.3-3-3"
-        Enabled : true
-        Index : 2
+      - Name: "NIC.Integrated.1-1-1"
+        Enabled: true
+        Index: 0
+      - Name: "NIC.Integrated.2-2-2"
+        Enabled: true
+        Index: 1
+      - Name: "NIC.Integrated.3-3-3"
+        Enabled: true
+        Index: 2
 
 - name: Configure boot sources - Enabling
   dellemc.openmanage.idrac_bios:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
+    idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     boot_sources:
-      - Name : "NIC.Integrated.1-1-1"
-        Enabled : true
+      - Name: "NIC.Integrated.1-1-1"
+        Enabled: true
 
 - name: Configure boot sources - Index
   dellemc.openmanage.idrac_bios:
-    idrac_ip:   "192.168.0.1"
+    idrac_ip: "192.168.0.1"
     idrac_user: "user_name"
-    idrac_password:  "user_password"
+    idrac_password: "user_password"
     ca_path: "/path/to/ca_cert.pem"
     boot_sources:
-      - Name : "NIC.Integrated.1-1-1"
-        Index : 0
+      - Name: "NIC.Integrated.1-1-1"
+        Index: 0
 """
 
 RETURN = """

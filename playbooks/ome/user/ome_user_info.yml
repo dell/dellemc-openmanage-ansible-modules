@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Fetching ome user facts.
+- name: Fetching ome user facts.
+  hosts: ome
   gather_facts: false
 
   tasks:

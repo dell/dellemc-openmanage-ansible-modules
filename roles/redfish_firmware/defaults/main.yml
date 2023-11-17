@@ -6,3 +6,4 @@ validate_certs: true
 https_timeout: 30
 job_wait_timeout: 3600
 transfer_protocol: HTTP
+job_wait: true

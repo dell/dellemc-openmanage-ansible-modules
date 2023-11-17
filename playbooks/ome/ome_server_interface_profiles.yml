@@ -1,6 +1,6 @@
 ---
-- hosts: omem
-  name: Dell OpenManage Ansible server interface profiles configuration.
+- name: Dell OpenManage Ansible server interface profiles configuration.
+  hosts: ome
   gather_facts: false
 
   tasks:

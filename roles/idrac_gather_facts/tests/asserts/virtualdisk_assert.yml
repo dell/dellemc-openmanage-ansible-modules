@@ -8,27 +8,20 @@
     url: "https://{{ hostname }}{{ api_system }}/Storage/{{ ctrl_id }}/Volumes/{{ virtualdisk_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   no_log: true
   register: virtualdisk_result
 
 - name: Filter Virtual Disk data
   ansible.builtin.set_fact:
-    api_response:
-      "{{ virtualdisk_result.json | ansible.utils.remove_keys(target=[
-      '@odata.context', '@odata.type', '@odata.id', 'Actions', 'EncryptionTypes@odata.count',
-      'Identifiers@odata.count', 'Links', 'Operations@odata.count', 'DellVirtualDisk',
-      'DellVirtualDisk@Redfish.Deprecated']) }}"
-
-- name: Set the keys diff
-  ansible.builtin.set_fact:
-    diff_keys: "{{ virtualdisk_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+    api_response: "{{ virtualdisk_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'Actions',
+      'EncryptionTypes@odata.count', 'Identifiers@odata.count', 'Links', 'Operations@odata.count', 'DellVirtualDisk', 'DellVirtualDisk@Redfish.Deprecated']) }}"
 
 - name: Set a Diff of dict
   ansible.builtin.set_fact:

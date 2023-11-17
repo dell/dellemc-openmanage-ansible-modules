@@ -65,7 +65,6 @@ EXAMPLES = """
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
     fabric_name: "f1"
-
 """
 
 RETURN = '''

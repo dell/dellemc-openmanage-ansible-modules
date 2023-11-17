@@ -1,7 +1,6 @@
 ---
-- hosts: ome
-  connection: local
-  name: Dell OpenManage Ansible Alert policy categories info
+- name: Dell OpenManage Ansible Alert policy categories info
+  hosts: ome
   gather_facts: false
 
   tasks:
@@ -11,3 +10,4 @@
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
+      delegate_to: localhost

@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible identity pool operations.
+- name: Dell OpenManage Ansible identity pool operations.
+  hosts: ome
   gather_facts: false
 
   tasks:

@@ -1,10 +1,10 @@
 ---
-- hosts: ome
+- name: "OME - Power state management job tracking."
+  hosts: ome
+  gather_facts: false
   vars:
     retries_count: 5
     polling_interval: 5 # in seconds
-  name: "OME - Power state management job tracking."
-  gather_facts: false
 
   tasks:
     - name: Power state operation based on device id

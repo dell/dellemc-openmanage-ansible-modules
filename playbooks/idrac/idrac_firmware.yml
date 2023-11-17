@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Update Firmware Inventory
+- name: Update Firmware Inventory
+  hosts: idrac
   gather_facts: false
 
   tasks:

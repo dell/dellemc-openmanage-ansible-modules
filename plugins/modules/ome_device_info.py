@@ -137,7 +137,6 @@ EXAMPLES = """
       device_service_tag:
         - MXL1234
         - MXL4567
-
 """
 
 RETURN = '''

@@ -3,20 +3,19 @@
     url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellEnclosures/{{ enclosure_data.Id }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: enclosure_result
   no_log: true
 
 - name: Set enclosure facts
   ansible.builtin.set_fact:
-    api_response: "{{ enclosure_result.json | ansible.utils.remove_keys(
-      target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
+    api_response: "{{ enclosure_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Links', 'Description']) }}"
 
 - name: Set the keys diff
   ansible.builtin.set_fact:

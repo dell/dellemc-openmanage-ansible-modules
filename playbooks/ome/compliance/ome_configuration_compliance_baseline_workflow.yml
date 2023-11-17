@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible configuration compliance baseline workflow.
+- name: Dell OpenManage Ansible configuration compliance baseline workflow.
+  hosts: ome
   gather_facts: false
 
   tasks:

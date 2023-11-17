@@ -85,9 +85,9 @@ EXAMPLES = """
 ---
 - name: Configure time zone and NTP on iDRAC
   dellemc.openmanage.idrac_timezone_ntp:
-       idrac_ip:   "190.168.0.1"
+       idrac_ip: "190.168.0.1"
        idrac_user: "user_name"
-       idrac_password:  "user_password"
+       idrac_password: "user_password"
        ca_path: "/path/to/ca_cert.pem"
        setup_idrac_timezone: "UTC"
        enable_ntp: Enabled

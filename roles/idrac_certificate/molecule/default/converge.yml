@@ -39,7 +39,7 @@
         certificate_type: "CLIENT_TRUST_CERTIFICATE"
         certificate_path: "/path/invalid-path/to/certificate.pem"
       ignore_errors: true
-      register: res_err
+      register: idrrac_certificate_res_err
 
     - name: Verifying Import a Client Trust Certificate invalid path
       ansible.builtin.assert:
@@ -60,7 +60,7 @@
         certificate_type: "CLIENT_TRUST_CERTIFICATE"
         certificate_path: "{{ lookup('env', 'invalid_certificate') }}"
       ignore_errors: true
-      register: res_err1
+      register: idrac_certificate_res_err1
 
     - name: Verifying Import a Client Trust Certificate invalid certificate
       ansible.builtin.assert:
@@ -81,7 +81,7 @@
         certificate_type: "CLIENT_TRUST_CERTIFICATE"
         certificate_path: "{{ lookup('env', 'invalid_certificate') }}"
       ignore_errors: true
-      register: res_err2
+      register: idrac_certificate_res_err2
 
     - name: Verifying Import a Client Trust Certificate invalid certificate
       ansible.builtin.assert:

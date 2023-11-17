@@ -11,4 +11,4 @@
     command: "reset"
     certificate_type: "HTTPS"
   register: idrac_certificate_out
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_certificate_delegate }}"

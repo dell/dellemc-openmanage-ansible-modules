@@ -63,7 +63,7 @@ EXAMPLES = r'''
       idrac_password: "user_password"
       ca_path: "/path/to/ca_cert.pem"
       share_name: "192.168.0.0:/nfsfileshare"
-      iso_image:  "unattended_os_image.iso"
+      iso_image: "unattended_os_image.iso"
       expose_duration: 180
 '''
 

@@ -13,7 +13,7 @@
         validate_certs: false
       ignore_errors: true
       ignore_unreachable: true
-      register: err
+      register: idrac_gather_facts_err
 
     - name: Asserting after performing opeartion with invalid hostname
       ansible.builtin.assert:
@@ -31,7 +31,7 @@
         target: ["Bios"]
       ignore_errors: true
       ignore_unreachable: true
-      register: err1
+      register: idrac_gather_facts_error
 
     - name: Asserting after performing opeartion with invalid username
       ansible.builtin.assert:
@@ -49,7 +49,7 @@
         target: ["Bios"]
       ignore_errors: true
       ignore_unreachable: true
-      register: err2
+      register: idrac_gather_facts_error
 
     - name: Asserting after performing opeartion with invalid password
       ansible.builtin.assert:
@@ -66,7 +66,7 @@
         validate_certs: false
         computer_system_id: "randomSystemID"
       ignore_errors: true
-      register: err4
+      register: idrac_gather_facts_error
 
     - name: Asserting after performing operation with invalid system id
       ansible.builtin.assert:
@@ -84,7 +84,7 @@
         manager_id: "randomManagerID"
         target: ["Firmware"]
       ignore_errors: true
-      register: err5
+      register: idrac_gather_facts_error
 
     - name: Asserting after performing operation with invalid manager id
       ansible.builtin.assert:

@@ -1,7 +1,7 @@
 ---
-- hosts: ome
-  name: "Deploy this template with desired LCD string on the target servers.
+- name: "Deploy this template with desired LCD string on the target servers.
     Track the template deploy operation job till completion."
+  hosts: ome
   gather_facts: false
   vars:
     retries_count: 50

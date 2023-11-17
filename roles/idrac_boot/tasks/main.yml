@@ -1,7 +1,7 @@
 ---
 - name: Fail when job_wait_timeout is negative.
   ansible.builtin.fail:
-    msg: "{{ job_wait_timeout_err }}"
+    msg: "{{ idrac_boot_job_wait_timeout_err }}"
   when: job_wait_timeout < 1
 
 - name: Configure the system boot settings

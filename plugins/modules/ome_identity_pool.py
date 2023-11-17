@@ -145,25 +145,25 @@ EXAMPLES = r'''
     pool_name: "pool1"
     pool_description: "Identity pool with Ethernet, FCoE, iSCSI and FC settings"
     ethernet_settings:
-        starting_mac_address: "50:50:50:50:50:00"
-        identity_count: 60
+      starting_mac_address: "50:50:50:50:50:00"
+      identity_count: 60
     fcoe_settings:
-        starting_mac_address: "70:70:70:70:70:00"
-        identity_count: 75
+      starting_mac_address: "70:70:70:70:70:00"
+      identity_count: 75
     iscsi_settings:
-        starting_mac_address: "60:60:60:60:60:00"
-        identity_count: 30
-        initiator_config:
-            iqn_prefix: "iqn.myprefix."
-        initiator_ip_pool_settings:
-            ip_range: "10.33.0.1-10.33.0.255"
-            subnet_mask: "255.255.255.0"
-            gateway: "192.168.4.1"
-            primary_dns_server : "10.8.8.8"
-            secondary_dns_server : "8.8.8.8"
+      starting_mac_address: "60:60:60:60:60:00"
+      identity_count: 30
+      initiator_config:
+        iqn_prefix: "iqn.myprefix."
+      initiator_ip_pool_settings:
+        ip_range: "10.33.0.1-10.33.0.255"
+        subnet_mask: "255.255.255.0"
+        gateway: "192.168.4.1"
+        primary_dns_server: "10.8.8.8"
+        secondary_dns_server: "8.8.8.8"
     fc_settings:
-        starting_address: "30:30:30:30:30:00"
-        identity_count: 45
+      starting_address: "30:30:30:30:30:00"
+      identity_count: 45
 
 - name: Create an identity pool using only ethernet settings
   dellemc.openmanage.ome_identity_pool:
@@ -174,8 +174,8 @@ EXAMPLES = r'''
     pool_name: "pool2"
     pool_description: "create identity pool with ethernet"
     ethernet_settings:
-        starting_mac_address: "aa-bb-cc-dd-ee-aa"
-        identity_count: 80
+      starting_mac_address: "aa-bb-cc-dd-ee-aa"
+      identity_count: 80
 
 - name: Modify an identity pool
   dellemc.openmanage.ome_identity_pool:
@@ -187,11 +187,11 @@ EXAMPLES = r'''
     new_pool_name: "pool3"
     pool_description: "modifying identity pool with ethernet and fcoe settings"
     ethernet_settings:
-        starting_mac_address: "90-90-90-90-90-90"
-        identity_count: 61
+      starting_mac_address: "90-90-90-90-90-90"
+      identity_count: 61
     fcoe_settings:
-        starting_mac_address: "aabb.ccdd.5050"
-        identity_count: 77
+      starting_mac_address: "aabb.ccdd.5050"
+      identity_count: 77
 
 - name: Modify an identity pool using iSCSI and FC settings
   dellemc.openmanage.ome_identity_pool:

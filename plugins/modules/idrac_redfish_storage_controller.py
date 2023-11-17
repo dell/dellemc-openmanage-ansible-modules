@@ -410,7 +410,7 @@ EXAMPLES = r'''
     command: "OnlineCapacityExpansion"
     volume_id: "Disk.Virtual.0:RAID.Integrated.1-1"
     target:
-    - "Disk.Bay.2:Enclosure.Internal.0-0:RAID.Integrated.1-1"
+      - "Disk.Bay.2:Enclosure.Internal.0-0:RAID.Integrated.1-1"
   tags:
     - oce_target
 

@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Storage volume configuration on iDRAC.
+- name: Storage volume configuration on iDRAC.
+  hosts: idrac
   gather_facts: false
 
   tasks:

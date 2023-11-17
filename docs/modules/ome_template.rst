@@ -227,7 +227,7 @@ Examples
 
     - name: Deploy template on multiple devices
       dellemc.openmanage.ome_template:
-        hostname:  "192.168.0.1"
+        hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
@@ -242,7 +242,7 @@ Examples
 
     - name: Deploy template on groups
       dellemc.openmanage.ome_template:
-        hostname:  "192.168.0.1"
+        hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
@@ -254,7 +254,7 @@ Examples
 
     - name: Deploy template on multiple devices along with the attributes values to be modified on the target devices
       dellemc.openmanage.ome_template:
-        hostname:  "192.168.0.1"
+        hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
@@ -275,18 +275,18 @@ Examples
             # Service tags not allowed.
             - DeviceId: 12765
               Attributes:
-                - Id : 15645
-                  Value : "0.0.0.0"
-                  IsIgnored : false
+                - Id: 15645
+                  Value: "0.0.0.0"
+                  IsIgnored: false
             - DeviceId: 10173
               Attributes:
-                - Id : 18968,
-                  Value : "hostname-1"
-                  IsIgnored : false
+                - Id: 18968,
+                  Value: "hostname-1"
+                  IsIgnored: false
 
     - name: Deploy template and Operating System (OS) on multiple devices
       dellemc.openmanage.ome_template:
-        hostname:  "192.168.0.1"
+        hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
@@ -320,7 +320,7 @@ Examples
     - name: "Deploy template on multiple devices and changes the device-level attributes. After the template is deployed,
     install OS using its image"
       dellemc.openmanage.ome_template:
-        hostname:  "192.168.0.1"
+        hostname: "192.168.0.1"
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
@@ -336,14 +336,14 @@ Examples
           Attributes:
             - DeviceId: 12765
               Attributes:
-                - Id : 15645
-                  Value : "0.0.0.0"
-                  IsIgnored : false
+                - Id: 15645
+                  Value: "0.0.0.0"
+                  IsIgnored: false
             - DeviceId: 10173
               Attributes:
-                - Id : 18968,
-                  Value : "hostname-1"
-                  IsIgnored : false
+                - Id: 18968,
+                  Value: "hostname-1"
+                  IsIgnored: false
           NetworkBootIsoModel:
             BootToNetwork: true
             ShareType: "NFS"

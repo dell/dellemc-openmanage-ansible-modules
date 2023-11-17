@@ -7,25 +7,28 @@ idrac_os_deployment_supported_os:
   ESXI: ["8"]
 
 # Validation Error messages
-err_msg_os_required: "The parameters `os_name` and `os_version` is required."
-err_msg_unsupported_os: "The combination of OS name %s and version %s is not supported."
-err_msg_destination_required: "Input parameter `destination` is required."
-err_msg_root_password: "Please provide the root password for %s."
-err_msg_custom_iso_local: "Custom iso as a source with local protocol is not supported."
-err_msg_hostname_required: "Source hostname is required when custom iso is true or when protocol is http/https."
-err_msg_template: "Template with the name %s_%s.j2 doesn't exists in templates."
-err_msg_kickstat_file: "Kickstart file does not exist or is not readable %s."
-err_msg_iso_file: "Download or Copy of ISO failed from the location %s, Please check if iso file exists or credentials are correct and retry."
-err_msg_ks_file: "Download or Copy of Kickstart failed from the location %s, Please check if iso file exists or credentials are correct and retry."
-err_msg_destination_iso_name: "In the destination `iso_name` cannot be empty, please provide the value or remove the var to auto name the custom iso file."
-err_msg_ks_file_ext: "The kickstart file extension should be `.cfg`and cannot be `%s`."
-err_msg_mountpoint_folder: "The folder specfied `destination.mountpoint` : %s doesn't exists."
+idrac_os_deployment_err_msg_os_required: "The parameters `os_name` and `os_version` is required."
+idrac_os_deployment_err_msg_unsupported_os: "The combination of OS name %s and version %s is not supported."
+idrac_os_deployment_err_msg_destination_required: "Input parameter `destination` is required."
+idrac_os_deployment_err_msg_root_password: "Please provide the root password for %s."
+idrac_os_deployment_err_msg_custom_iso_local: "Custom iso as a source with local protocol is not supported."
+idrac_os_deployment_err_msg_hostname_required: "Source hostname is required when custom iso is true or when protocol is http/https."
+idrac_os_deployment_err_msg_template: "Template with the name %s_%s.j2 doesn't exists in templates."
+idrac_os_deployment_err_msg_kickstat_file: "Kickstart file does not exist or is not readable %s."
+idrac_os_deployment_err_msg_iso_file: "Download or Copy of ISO failed from the location %s,
+ Please check if iso file exists or credentials are correct and retry."
+idrac_os_deployment_err_msg_ks_file: "Download or Copy of Kickstart failed from the location %s,
+ Please check if iso file exists or credentials are correct and retry."
+idrac_os_deployment_err_msg_destination_iso_name: "In the destination `iso_name` cannot be empty,
+ please provide the value or remove the var to auto name the custom iso file."
+idrac_os_deployment_err_msg_ks_file_ext: "The kickstart file extension should be `.cfg`and cannot be `%s`."
+idrac_os_deployment_err_msg_mountpoint_folder: "The folder specfied `destination.mountpoint` : %s doesn't exists."
 
 # Success messages
 idrac_os_deployment_out: ""
-success_message_os_deployment: "Successfully deployed the Operating System with the given custom iso."
-success_message_os_deployment_ks: "Successfully deployed the Operating System with the given kickstart file."
-success_message_os_deployment_iso: "Successfully deployed the Operating System."
+idrac_os_deployment_success_message_os_deployment: "Successfully deployed the Operating System with the given custom iso."
+idrac_os_deployment_success_message_os_deployment_ks: "Successfully deployed the Operating System with the given kickstart file."
+idrac_os_deployment_success_message_os_deployment_iso: "Successfully deployed the Operating System."
 
 # download wget command
 idrac_os_deployment_wget_cmd: "wget %s --directory-prefix=%s"
@@ -33,20 +36,16 @@ idrac_os_deployment_wget_cmd_vc: " --no-check-certificate"
 idrac_os_deployment_wget_cmd_creds: " --user=%s --password=%s"
 
 # Mode Settings
-get_url_mode: "0744"
-src_copy_mode: "0744"
-copy_mode: "0744"
-iso_extract_dir_mode: "0755"
-dest_mode: "0755"
-ks_gen_mode: "0744"
+idrac_os_deployment_src_copy_mode: "0744"
+idrac_os_deployment_copy_mode: "0744"
+idrac_os_deployment_iso_extract_dir_mode: "0755"
+idrac_os_deployment_dest_mode: "0755"
+idrac_os_deployment_ks_gen_mode: "0744"
 
-# get_url params
-get_url_validate_certs: "{{ validate_certs }}"
-get_url_timeout: "{{ https_timeout }}"
 
 # temp directory settings
-iso_extract_dir: extract
-temp_file_prefix: "omam_osd"
+idrac_os_deployment_extract_dir: extract
+idrac_os_deployment_temp_file_prefix: "omam_osd"
 
 # Attributes required to compile iso
 idrac_os_deployment_kickstart_file: ""
@@ -77,8 +76,7 @@ idrac_os_deployment_rhel_mkiso_cmd:
   -no-emul-boot -graft-points -joliet-long -V %s ."
 
 # Extra params
-set_no_log: false
-windows_user_tmp: "C:\\Users\\{{ ansible_ssh_user }}\\tmp"
+idrac_os_deployment_set_no_log: false
 idrac_os_deployment_validate_kickstart_file_ext: true
 idrac_os_deployment_copied_to_destination: false
 idrac_os_deployment_virtual_media_attached: false
