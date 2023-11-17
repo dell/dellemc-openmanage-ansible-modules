@@ -261,7 +261,7 @@ Examples
         devices:
           - id: 12345
             components:
-             - Lifecycle Controller
+              - Lifecycle Controller
           - id: 12346
             components:
               - Enterprise UEFI Diagnostics

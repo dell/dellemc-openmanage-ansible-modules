@@ -200,9 +200,9 @@ Examples
     ---
     - name: Configure iDRAC network settings
       dellemc.openmanage.idrac_network:
-           idrac_ip:   "192.168.0.1"
+           idrac_ip: "192.168.0.1"
            idrac_user: "user_name"
-           idrac_password:  "user_password"
+           idrac_password: "user_password"
            ca_path: "/path/to/ca_cert.pem"
            register_idrac_on_dns: Enabled
            dns_idrac_name: None

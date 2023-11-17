@@ -26,6 +26,6 @@
     shutdown_type: "{{ shutdown_type }}"
     end_host_power_state: "{{ end_host_power_state }}"
     command: 'import'
-    job_wait: "{{ job_wait }}"
+    job_wait: "{{ idrac_import_server_config_profile_job_wait }}"
   register: idrac_import_server_config_profile_out
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_import_server_config_profile_delagate }}"

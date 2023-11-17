@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible device operations.
+- name: Dell OpenManage Ansible device operations.
+  hosts: ome
   gather_facts: false
 
   tasks:

@@ -4,51 +4,51 @@
     url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/System.Embedded.1"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: sys_attr
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Manager information.
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: mgr_attr
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Lifecycle controller information.
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/LifecycleController.Embedded.1"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ uri_method }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
     user: "{{ username }}"
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
-    headers: "{{ uri_headers }}"
-    body_format: "{{ uri_body_format }}"
-    status_code: "{{ uri_status_code }}"
-    return_content: "{{ uri_return_content }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: lc_attr
-  delegate_to: "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Set System, Manager, Lifecycle controller facts
   ansible.builtin.set_fact:

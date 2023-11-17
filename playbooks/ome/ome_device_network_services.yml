@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: OpenManage Ansible Modules for network services settings.
+- name: OpenManage Ansible Modules for network services settings.
+  hosts: ome
   gather_facts: false
 
   tasks:

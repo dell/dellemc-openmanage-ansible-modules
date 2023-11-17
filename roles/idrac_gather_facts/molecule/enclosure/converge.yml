@@ -10,19 +10,19 @@
     validate_certs: false
     target:
       - Enclosure
-    uri_method: "GET"
-    uri_headers:
+    idrac_gather_facts_uri_method: "GET"
+    idrac_gather_facts_uri_headers:
       Accept: "application/json"
       Content-Type: "application/json"
       OData-Version: "4.0"
-    uri_body_format: "json"
-    uri_status_code:
+    idrac_gather_facts_uri_body_format: "json"
+    idrac_gather_facts_uri_status_code:
       - 200
       - 400
       - 401
       - 404
       - -1
-    uri_return_content: true
+    idrac_gather_facts_uri_return_content: true
     diff_data: {}
     exclude_keys: []
 
@@ -37,7 +37,7 @@
           - "{{ enclosure | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: enclosure_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/enclosure_assert.yml
       with_items: "{{ enclosure }}"
       loop_control:
         loop_var: enclosure_data

@@ -91,7 +91,6 @@ EXAMPLES = r'''
     ca_path: "/path/to/ca_cert.pem"
     job_id: 12345
     fetch_execution_history: true
-
 '''
 
 RETURN = r'''

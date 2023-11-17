@@ -1,6 +1,6 @@
 ---
-- hosts: redfish
-  name: Configure Server Power Setting
+- name: Configure Server Power Setting
+  hosts: redfish
   gather_facts: false
 
   tasks:

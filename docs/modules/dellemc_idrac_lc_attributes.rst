@@ -112,11 +112,11 @@ Examples
     ---
     - name: Set up iDRAC LC Attributes
       dellemc.openmanage.dellemc_idrac_lc_attributes:
-           idrac_ip:   "192.168.0.1"
-           idrac_user: "user_name"
-           idrac_password:  "user_password"
-           ca_path: "/path/to/ca_cert.pem"
-           csior: "Enabled"
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        csior: "Enabled"
 
 
 

@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible Alert policies.
+- name: Dell OpenManage Ansible Alert policies.
+  hosts: ome
   gather_facts: false
 
   tasks:
@@ -52,6 +52,7 @@
         username: "{{ username }}"
         password: "{{ password }}"
         ca_path: "/path/to/ca_cert.pem"
+        name: "Existing Policy Name"
         new_name: "Update Policy Name"
         device_group: "Group Name"
         message_ids:

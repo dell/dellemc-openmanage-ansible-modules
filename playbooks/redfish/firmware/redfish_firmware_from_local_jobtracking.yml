@@ -1,7 +1,7 @@
 ---
-- hosts: redfish_hosts
+- name: "Ansible Module for Simple Firmware Update"
+  hosts: redfish_hosts
   gather_facts: false
-  name: "Ansible Module for Simple Firmware Update"
   vars:
     retries_count: 100
     polling_interval: 5

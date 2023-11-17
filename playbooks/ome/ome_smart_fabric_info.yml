@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible smart fabric details.
+- name: Dell OpenManage Ansible smart fabric details.
+  hosts: ome
   gather_facts: false
 
   tasks:
