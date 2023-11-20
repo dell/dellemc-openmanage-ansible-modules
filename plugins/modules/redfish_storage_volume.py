@@ -675,6 +675,7 @@ def perform_volume_create_modify(module, session_obj):
     specified_controller_id = module.params.get("controller_id")
     volume_id = module.params.get("volume_id")
     check_raid_type_supported(module, session_obj)
+    action, uri, method = None, None, None
     if specified_controller_id is not None:
         check_controller_id_exists(module, session_obj)
         uri = CONTROLLER_VOLUME_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
