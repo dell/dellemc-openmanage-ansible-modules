@@ -995,10 +995,9 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         job_id = "JID_123456789"
         job_url = "/redfish/v1/Managers/iDRAC.Embedded.1/JID_123456789"
         f_module = self.get_module_mock()
-        redfish_response_mock.json_data={"Oem": { "Dell": {"JobState": "Scheduled"}}}
+        redfish_response_mock.json_data = {"Oem": {"Dell": {"JobState": "Scheduled"}}}
         mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
                      return_value=(redfish_response_mock, "The job is scheduled."))
         with pytest.raises(Exception) as exc:
             self.module.track_job(f_module, redfish_connection_mock_for_storage_volume, job_id, job_url)
-        # assert result.msg == 
         assert exc.value.args[0] == "The job is successfully submitted."

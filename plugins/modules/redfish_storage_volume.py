@@ -232,8 +232,8 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     raid_type: "RAID0"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
     apply_time: OnReset
 
 - name: Create a RAID0 on BOSS controller with restart
@@ -245,8 +245,8 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     raid_type: "RAID0"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
     apply_time: OnReset
     restart_server: true
 
@@ -259,8 +259,8 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     raid_type: "RAID0"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
     restart_server: true
     force_restart: true
 
