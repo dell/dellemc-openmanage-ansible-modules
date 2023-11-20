@@ -399,6 +399,7 @@ JOB_SUBMISSION = "The job is successfully submitted."
 JOB_FAILURE_PROGRESS_MSG = "Unable to complete the task initiated for creating the storage volume."
 REBOOT_FAIL = "Failed to reboot the server."
 CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
+SYSTEM_ID = "System.Embedded.1"
 volume_type_map = {"NonRedundant": "RAID0",
                    "Mirrored": "RAID1",
                    "StripedWithParity": "RAID5",
@@ -413,7 +414,6 @@ def fetch_storage_resource(module, session_obj):
         system_members = system_resp.json_data.get("Members")
         if system_members:
             system_id_res = system_members[0]["@odata.id"]
-            global SYSTEM_ID
             SYSTEM_ID = system_id_res.split('/')[-1]
             system_id_res_resp = session_obj.invoke_request("GET", system_id_res)
             system_id_res_data = system_id_res_resp.json_data.get("Storage")

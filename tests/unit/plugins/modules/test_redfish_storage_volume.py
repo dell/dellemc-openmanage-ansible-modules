@@ -937,8 +937,6 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
                                          redfish_default_args):
         param = {"force_reboot": False}
         f_module = self.get_module_mock(params=param)
-        mocker.patch(MODULE_PATH + "redfish_storage_volume.SYSTEM_ID",
-                     return_value="system_id")
         mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
                      return_value=({"JobState": "Completed", "Id": "JID_123456789"}, True, ""))
         mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
