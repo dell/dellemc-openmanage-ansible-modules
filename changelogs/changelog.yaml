@@ -2,7 +2,8 @@ ancestor: null
 releases:
   2.1.0:
     changes:
-      release_summary: The `Dell OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_
+      release_summary:
+        The `Dell OpenManage Ansible Modules <https://github.com/dell/dellemc-openmanage-ansible-modules>`_
         are available on Ansible Galaxy as a collection.
     release_date: '2020-07-29'
   2.1.1:
@@ -79,7 +80,8 @@ releases:
       minor_changes:
         - The idrac_server_config_profile module supports a user provided file name
           for an export operation.
-      release_summary: The dellemc_change_power_state and dellemc_configure_idrac_users
+      release_summary:
+        The dellemc_change_power_state and dellemc_configure_idrac_users
         modules are standardized as per ansible guidelines. 8 GitHub issues are fixed.
     modules:
       - description: Configure settings for user accounts
@@ -91,18 +93,20 @@ releases:
     release_date: '2020-09-23'
   2.1.3:
     changes:
-      release_summary: Network configuration service related modules ome_network_vlan,
+      release_summary:
+        Network configuration service related modules ome_network_vlan,
         ome_network_port_breakout and ome_network_vlan_info are added.
     modules:
-      - description: This module allows to automate the port portioning or port breakout
+      - description:
+          This module allows to automate the port portioning or port breakout
           to logical sub ports
         name: ome_network_port_breakout
         namespace: ''
       - description: Create, modify & delete a VLAN
         name: ome_network_vlan
         namespace: ''
-      - description: Retrieves the information about networks VLAN(s) present in OpenManage
-          Enterprise
+      - description:
+          Retrieves the information about networks VLAN(s) present in OpenManage Enterprise
         name: ome_network_vlan_info
         namespace: ''
     release_date: '2020-10-29'
@@ -113,14 +117,14 @@ releases:
           of multiple uplinks of the same name even though this is supported by OpenManage
           Enterprise Modular. If an uplink is created using the same name as an existing
           uplink, the existing uplink is modified.'
-      release_summary: Fabric management related modules ome_smart_fabric and ome_smart_fabric_uplink
-        are added.
+      release_summary:
+        Fabric management related modules ome_smart_fabric and ome_smart_fabric_uplink are added.
     modules:
       - description: Create, modify or delete a fabric on OpenManage Enterprise Modular
         name: ome_smart_fabric
         namespace: ''
-      - description: Create, modify or delete a uplink for a fabric on OpenManage Enterprise
-          Modular
+      - description:
+          Create, modify or delete a uplink for a fabric on OpenManage Enterprise Modular
         name: ome_smart_fabric_uplink
         namespace: ''
     release_date: '2020-11-25'
@@ -140,14 +144,15 @@ releases:
         - 'Issue 2(187956): If an invalid job_id is provided, idrac_lifecycle_controller_job_status_info
           returns an error message. This error message does not contain information
           about the exact issue with the invalid job_id.'
-        - 'Issue 3(188267): While updating the iDRAC firmware, the idrac_firmware module
+        - "Issue 3(188267): While updating the iDRAC firmware, the idrac_firmware module
           completes execution before the firmware update job is completed. An incorrect
-          message is displayed in the task output as ''DRAC WSMAN endpoint returned
-          HTTP code ''400'' Reason ''Bad Request''''. This issue may occur if the target
-          iDRAC firmware version is less than 3.30.30.30'
+          message is displayed in the task output as 'DRAC WSMAN endpoint returned
+          HTTP code '400' Reason 'Bad Request''. This issue may occur if the target
+          iDRAC firmware version is less than 3.30.30.30"
       minor_changes:
         - The idrac_server_config_profile module supports IPv6 address format.
-      release_summary: The idrac_firmware module is enhanced to include checkmode
+      release_summary:
+        The idrac_firmware module is enhanced to include checkmode
         support and job tracking.
     release_date: '2020-12-30'
   3.0.0:
@@ -179,8 +184,8 @@ releases:
         - New deprecation changes for ``dellemc_get_system_inventory`` and ``dellemc_get_firmware_inventory``
           ignored for ansible 2.9 sanity test.
         - The modules are standardized as per ansible guidelines.
-      release_summary: Deprecations, issue fixes, and standardization of modules as
-        per ansible guidelines.
+      release_summary:
+        Deprecations, issue fixes, and standardization of modules as per ansible guidelines.
     release_date: '2021-01-25'
   3.1.0:
     changes:
@@ -198,8 +203,8 @@ releases:
           the same name as an existing uplink, the existing uplink is modified.
       release_summary: OpenManage Enterprise profiles management support added.
     modules:
-      - description: Create, modify, delete, assign, unassign and migrate a profile
-          on OpenManage Enterprise
+      - description:
+          Create, modify, delete, assign, unassign and migrate a profile on OpenManage Enterprise
         name: ome_profile
         namespace: ''
     release_date: '2021-02-24'
@@ -224,7 +229,8 @@ releases:
         - ome_template - Allows to deploy a template on device groups.
       release_summary: Configuration compliance related modules added
     modules:
-      - description: Create, modify, and delete a configuration compliance baseline
+      - description:
+          Create, modify, and delete a configuration compliance baseline
           and remediate non-compliant devices on OpenManage Enterprise
         name: ome_configuration_compliance_baseline
         namespace: ''
@@ -252,7 +258,8 @@ releases:
       minor_changes:
         - ome_firmware_baseline - Allows to retrieve the device even if it not in the
           first 50 device IDs
-      release_summary: OpenManage Enterprise device group and device discovery support
+      release_summary:
+        OpenManage Enterprise device group and device discovery support
         added
     modules:
       - description: Add devices to a static device group on OpenManage Enterprise
@@ -283,7 +290,8 @@ releases:
           support site.
         - ome_template_network_vlan - Added the input option which allows to apply the
           modified VLAN settings immediately on the associated modular-system servers.
-      release_summary: OpenManage Enterprise firmware baseline and firmware catalog
+      release_summary:
+        OpenManage Enterprise firmware baseline and firmware catalog
         modules updated to support checkmode.
     release_date: '2021-05-26'
   3.5.0:
@@ -324,7 +332,8 @@ releases:
           not allow the creation of multiple uplinks of the same name even though this
           is supported by OpenManage Enterprise Modular. If an uplink is created using
           the same name as an existing uplink, the existing uplink is modified.
-      release_summary: Support for configuring device slot name and export SupportAssist
+      release_summary:
+        Support for configuring device slot name and export SupportAssist
         device collections from OpenManage Enterprise and OpenManage Enterprise Modular.
     modules:
       - description: Rename sled slots on OpenManage Enterprise Modular
@@ -345,14 +354,17 @@ releases:
           not allow the creation of multiple uplinks of the same name even though this
           is supported by OpenManage Enterprise Modular. If an uplink is created using
           the same name as an existing uplink, the existing uplink is modified.
-      release_summary: Support for configuring active directory user group on OpenManage
+      release_summary:
+        Support for configuring active directory user group on OpenManage
         Enterprise and OpenManage Enterprise Modular.
     modules:
-      - description: Configure Active Directory groups to be used with Directory Services
+      - description:
+          Configure Active Directory groups to be used with Directory Services
           on OpenManage Enterprise and OpenManage Enterprise Modular
         name: ome_active_directory
         namespace: ''
-      - description: Create, modify, or delete an Active Directory user group on OpenManage
+      - description:
+          Create, modify, or delete an Active Directory user group on OpenManage
           Enterprise and OpenManage Enterprise Modular
         name: ome_domain_user_groups
         namespace: ''
@@ -373,7 +385,8 @@ releases:
           components and devices for baseline-based firmware update.
       minor_changes:
         - ome_template_network_vlan - Enabled check_mode support.
-      release_summary: Support for Redfish event subscriptions and enhancements to
+      release_summary:
+        Support for Redfish event subscriptions and enhancements to
         ome_firmware module.
     modules:
       - description: Manage Redfish Subscriptions
@@ -396,14 +409,15 @@ releases:
           not allow the creation of multiple uplinks of the same name even though it
           is supported by OpenManage Enterprise Modular. If an uplink is created using
           the same name as an existing uplink, the existing uplink is modified.
-      release_summary: Support to configure OME Modular devices network, power, and
+      release_summary:
+        Support to configure OME Modular devices network, power, and
         location settings.
     modules:
       - description: Configure device location settings on OpenManage Enterprise Modular
         name: ome_device_location
         namespace: ''
-      - description: Configure network settings of devices on OpenManage Enterprise
-          Modular
+      - description:
+          Configure network settings of devices on OpenManage Enterprise Modular
         name: ome_device_mgmt_network
         namespace: ''
       - description: Configure chassis power settings on OpenManage Enterprise Modular
@@ -432,18 +446,19 @@ releases:
           of multiple uplinks of the same name even though it is supported by OpenManage
           Enterprise Modular. If an uplink is created using the same name as an existing
           uplink, the existing uplink is modified.
-      release_summary: Support to configure network services, syslog forwarding, and
-        SMTP settings.
+      release_summary:
+        Support to configure network services, syslog forwarding, and SMTP settings.
     modules:
       - description: This module allows to configure SMTP or email configurations
         name: ome_application_alerts_smtp
         namespace: ''
-      - description: Configure syslog forwarding settings on OpenManage Enterprise and
+      - description:
+          Configure syslog forwarding settings on OpenManage Enterprise and
           OpenManage Enterprise Modular
         name: ome_application_alerts_syslog
         namespace: ''
-      - description: Configure chassis network services settings on OpenManage Enterprise
-          Modular
+      - description:
+          Configure chassis network services settings on OpenManage Enterprise Modular
         name: ome_device_network_services
         namespace: ''
     release_date: '2021-11-26'
@@ -484,11 +499,12 @@ releases:
           (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/274)
         - ome_template - An example task is added to create a compliance template from
           reference device (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/339)
-      release_summary: Support to configure login security, session inactivity timeout,
+      release_summary:
+        Support to configure login security, session inactivity timeout,
         and local access settings.
     modules:
-      - description: This module allows you to configure the session inactivity timeout
-          settings
+      - description:
+          This module allows you to configure the session inactivity timeout settings
         name: ome_application_network_settings
         namespace: ''
       - description: Configure the login security properties
@@ -585,12 +601,13 @@ releases:
           uplink, the existing uplink is modified.
       major_changes:
         - All modules can read custom or organizational CA signed certificate from the
-          environment variables. Please refer to `SSL Certificate Validation <https://github.com/dell/dellemc-openmanage-ansible-modules#ssl-certificate-
-          validation>`
+          environment variables. Please refer to `SSL Certificate Validation
+          <https://github.com/dell/dellemc-openmanage-ansible-modules#ssl-certificate-validation>`
           _ section in the `README.md <https://github.com/dell/dellemc-openmanage-ansible-modules
           /blob/collections/README.md#SSL-Certificate-Validation>` _ for modification
           to existing playbooks or setting environment variable.
-      release_summary: Support to provide custom or organizational CA signed certificate
+      release_summary:
+        Support to provide custom or organizational CA signed certificate
         for SSL validation from the environment variable.
     release_date: '2022-02-11'
   5.1.0:
@@ -642,10 +659,12 @@ releases:
           and idempotency.
         - redfish_event_subscription - The module is enhanced to support check mode
           and idempotency.
-      release_summary: Support for OpenManage Enterprise Modular server interface
+      release_summary:
+        Support for OpenManage Enterprise Modular server interface
         management.
     modules:
-      - description: Retrieves the information of server interface profile on OpenManage
+      - description:
+          Retrieves the information of server interface profile on OpenManage
           Enterprise Modular.
         name: ome_server_interface_profile_info
         namespace: ''
@@ -754,7 +773,8 @@ releases:
         - ome_smart_fabric_uplink - The module is enhanced to support idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/253)
         - redfish_storage_volume - The module is enhanced to support check mode and
           idempotency. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/245)
-      release_summary: Added check mode and idempotency support for redfish_storage_volume
+      release_summary:
+        Added check mode and idempotency support for redfish_storage_volume
         and idempotency support for ome_smart_fabric_uplink. For ome_diagnostics,
         added support for debug logs and added supportassist_collection as a choice
         for the log_type argument to export SupportAssist logs.
@@ -799,7 +819,8 @@ releases:
         - idrac_server_config_profile - The module is enhanced to support export, import,
           and preview the SCP configuration using Redfish and added support for check
           mode.
-      release_summary: Support for export, import, and preview the Server Configuration
+      release_summary:
+        Support for export, import, and preview the Server Configuration
         Profile (SCP) configuration using Redfish and added support for check mode.
     release_date: '2022-05-26'
   5.5.0:
@@ -848,7 +869,8 @@ releases:
           URL instead of Task Service URL for job tracking.
         - redfish_firmware - This module is updated to use the Job Service URL instead
           of Task Service URL for job tracking.
-      release_summary: Support to generate certificate signing request, import, and
+      release_summary:
+        Support to generate certificate signing request, import, and
         export certificates on iDRAC.
     modules:
       - description: Configure certificates for iDRAC.
@@ -893,7 +915,8 @@ releases:
         - The share parameters are deprecated from the following modules - idrac_network,
           idrac_timezone_ntp, dellemc_configure_idrac_eventing, dellemc_configure_idrac_services,
           dellemc_idrac_lc_attributes, dellemc_system_lockdown_mode.
-      release_summary: Added collection metadata for creating execution environments,
+      release_summary:
+        Added collection metadata for creating execution environments,
         deprecation of share parameters, and support for configuring iDRAC attributes
         using idrac_attributes module.
     modules:
@@ -942,7 +965,8 @@ releases:
       minor_changes:
         - ome_configuration_compliance_info - The module is enhanced to report single
           device compliance information.
-      release_summary: Support for device-specific operations on OpenManage Enterprise
+      release_summary:
+        Support for device-specific operations on OpenManage Enterprise
         and configuring boot settings on iDRAC.
     modules:
       - description: Configure the boot order settings.
@@ -975,7 +999,8 @@ releases:
       major_changes:
         - idrac_bios - The module is enhanced to support clear pending BIOS attributes,
           reset BIOS to default settings, and configure BIOS attribute using Redfish.
-      release_summary: Added clear pending BIOS attributes, reset BIOS to default
+      release_summary:
+        Added clear pending BIOS attributes, reset BIOS to default
         settings, and configure BIOS attribute using Redfish enhancements for idrac_bios.
     release_date: '2022-09-28'
   6.3.0:
@@ -1002,7 +1027,8 @@ releases:
         - idrac_redfish_storage_controller - This module is enhanced to support LockVirtualDisk
           operation.
         - idrac_virtual_media - This module allows to configure Remote File Share settings.
-      release_summary: Support for LockVirtualDisk operation and to configure Remote
+      release_summary:
+        Support for LockVirtualDisk operation and to configure Remote
         File Share settings using idrac_virtual_media module.
     modules:
       - description: Configure the virtual media settings.
@@ -1036,7 +1062,8 @@ releases:
         - idrac_firmware - This module is enhanced to support proxy.
         - idrac_user_info - This module allows to retrieve iDRAC Local user information
           details.
-      release_summary: Rebranded from Dell EMC to Dell, enhanced idrac_firmware module
+      release_summary:
+        Rebranded from Dell EMC to Dell, enhanced idrac_firmware module
         to support proxy, and added support to retrieve iDRAC local user details.
     modules:
       - description: Retrieve iDRAC Local user details.
@@ -1075,10 +1102,12 @@ releases:
           on OpenManage Enterprise Modular.
       minor_changes:
         - redfish_firmware - This module supports timeout option.
-      release_summary: Support for retrieving smart fabric and smart fabric uplink
+      release_summary:
+        Support for retrieving smart fabric and smart fabric uplink
         information and support for IPv6 address for OMSDK dependent iDRAC modules.
     modules:
-      - description: Retrieves the information of smart fabrics inventoried by OpenManage
+      - description:
+          Retrieves the information of smart fabrics inventoried by OpenManage
           Enterprise Modular
         name: ome_smart_fabric_info
         namespace: ''
@@ -1131,7 +1160,8 @@ releases:
         - ome_template_network_vlan_info - This module allows to retrieve the network
           configuration of a template on OpenManage Enterprise or OpenManage Enterprise
           Modular.
-      release_summary: Support for retrieving the inventory and host details of all
+      release_summary:
+        Support for retrieving the inventory and host details of all
         child groups using parent groups, retrieving inventory of System and Plugin
         Groups, retrieving profiles with attributes, retrieving network configuration
         of a template, configuring controller attributes, configuring online capacity
@@ -1176,7 +1206,8 @@ releases:
       major_changes:
         - idrac_server_config_profile - This module is enhanced to support proxy settings,
           import buffer, include in export, and ignore certificate warning.
-      release_summary: Support for iDRAC export Server Configuration Profile role
+      release_summary:
+        Support for iDRAC export Server Configuration Profile role
         and proxy settings, import buffer, include in export, and ignore certificate
         warning.
     objects:
@@ -1212,13 +1243,15 @@ releases:
           OpenManage Enterprise Modular, it does not allow the creation of multiple
           uplinks of the same name. If an uplink is created using the same name as an
           existing uplink, the existing uplink is modified.
-      release_summary: "- Role to support the Import server configuration profile,
+      release_summary:
+        "- Role to support the Import server configuration profile,
         Manage iDRAC power states, Manage iDRAC certificate,\n  Gather facts from
         iDRAC and Deploy operating system is added.\n- Plugin OME inventory is enhanced
         to support the environment variables for the input parameters.\n"
     objects:
       role:
-        - description: Role to manage the iDRAC certificates - generate CSR, import/export
+        - description:
+            Role to manage the iDRAC certificates - generate CSR, import/export
             certificates, and reset configuration - for PowerEdge servers.
           name: idrac_certificate
           namespace: null
@@ -1228,7 +1261,8 @@ releases:
         - description: Role to import iDRAC Server Configuration Profile (SCP).
           name: idrac_import_server_config_profile
           namespace: null
-        - description: Role to deploy specified operating system and version on the
+        - description:
+            Role to deploy specified operating system and version on the
             servers.
           name: idrac_os_deployment
           namespace: null
@@ -1263,7 +1297,8 @@ releases:
           OpenManage Enterprise Modular, it does not allow the creation of multiple
           uplinks of the same name. If an uplink is created using the same name as an
           existing uplink, the existing uplink is modified.
-      release_summary: '- redfish_firmware - This module is enhanced to include job
+      release_summary:
+        '- redfish_firmware - This module is enhanced to include job
         tracking.
 
         - ome_template - This module is enhanced to include job tracking.
@@ -1275,11 +1310,13 @@ releases:
         8.X and HTTP or HTTPS for the destination.'
     objects:
       role:
-        - description: Firmware update from a repository on a network share (CIFS, NFS,
+        - description:
+            Firmware update from a repository on a network share (CIFS, NFS,
             HTTP, HTTPS, FTP).
           name: idrac_firmware
           namespace: null
-        - description: To perform a component firmware update using the image file available
+        - description:
+            To perform a component firmware update using the image file available
             on the local or remote system.
           name: redfish_firmware
           namespace: null
@@ -1305,7 +1342,8 @@ releases:
           OpenManage Enterprise Modular, it does not allow the creation of multiple
           uplinks of the same name. If an uplink is created using the same name as an
           existing uplink, the existing uplink is modified.
-      release_summary: '- Role to configure the iDRAC system, manager, and lifecycle
+      release_summary:
+        '- Role to configure the iDRAC system, manager, and lifecycle
         attributes for Dell PowerEdge servers.
 
         - Role to modify BIOS attributes, clear pending BIOS attributes, and reset
@@ -1321,15 +1359,18 @@ releases:
         - description: Role to configure iDRAC attributes.
           name: idrac_attributes
           namespace: null
-        - description: Role to modify BIOS attributes, clear pending BIOS attributes,
+        - description:
+            Role to modify BIOS attributes, clear pending BIOS attributes,
             and reset the BIOS to default settings.
           name: idrac_bios
           namespace: null
-        - description: Role to reset and restart iDRAC (iDRAC8 and iDRAC9 only) for
+        - description:
+            Role to reset and restart iDRAC (iDRAC8 and iDRAC9 only) for
             Dell PowerEdge servers.
           name: idrac_reset
           namespace: null
-        - description: Role to configure the physical disk, virtual disk, and storage
+        - description:
+            Role to configure the physical disk, virtual disk, and storage
             controller settings on iDRAC9 based PowerEdge servers.
           name: idrac_storage_controller
           namespace: null
@@ -1383,7 +1424,8 @@ releases:
           for Boolean values.
         - Role ``idrac_os_deployment`` is enhanced to remove the auto installation of
           required libraries and to support custom ISO and kickstart file as input.
-      release_summary: Role ``idrac_boot`` and ``idrac_job_queue`` is added to manage
+      release_summary:
+        Role ``idrac_boot`` and ``idrac_job_queue`` is added to manage
         the boot order settings and iDRAC lifecycle controller job queue respectively.
         ``Role idrac_os_deployment`` is enhanced to remove the auto installations
         of required libraries and to support custom ISO and kickstart file as input.
@@ -1433,15 +1475,12 @@ releases:
           only components with no reboot required.
         - Module ``ome_job_info`` is enhanced to return last execution details and execution
           histories.
-      release_summary: '- Support for subject alternative names while generating certificate
-        signing requests on OME.
-
+      release_summary:
+        '- Support for subject alternative names while generating certificate
+          signing requests on OME.
         - Create a user on iDRAC using custom privileges.
-
         - Create a firmware baseline on OME with the filter option of no reboot required.
-
         - Retrieve all server items in the output for ome_device_info.
-
         - Enhancement to add detailed job information for ome_discovery and ome_job_info.'
     release_date: '2023-07-30'
   8.2.0:
@@ -1465,7 +1504,8 @@ releases:
         - Module ``ome_diagnostics`` is enhanced to update changed flag status in response.
         - Module ``ome_firmware_catalog`` is enhanced to support IPv6 address.
         - Module ``redfish_firmware`` is enhanced to support IPv6 address.
-      release_summary: '- redfish_firmware and ome_firmware_catalog module is enhanced
+      release_summary:
+        '- redfish_firmware and ome_firmware_catalog module is enhanced
         to support IPv6 address.
 
         - Module to support firmware rollback of server components.
@@ -1497,6 +1537,10 @@ releases:
         - ome_device_quick_deploy - If the blade is not present, then the module can
           assign a static IP to the slot (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/532).
       known_issues:
+        - idrac_firmware - Issue(276335) - This module fails on the Python 3.11.x
+          version with NFS shares. Use a different Python version or Share type.
+        - ome_device_quick_deploy - Issue(275231) - This module does not deploy a
+          new configuration to a slot that has disabled IPv6.
         - ca_path missing - Issue(275740) - The roles idrac_attributes, redfish_storage_volume,
           and idrac_server_powerstate have a missing parameter ca_path.
         - idrac_firmware - Issue(276335) - This module fails on the Python 3.11.x version
@@ -1561,7 +1605,8 @@ releases:
           existing uplink, the existing uplink is modified.
       release_summary: Module to manage iDRAC network attributes.
     modules:
-      - description: This module allows you to configure the port and partition network
+      - description:
+          This module allows you to configure the port and partition network
           attributes on the network interface cards.
         name: idrac_network_attributes
         namespace: ''

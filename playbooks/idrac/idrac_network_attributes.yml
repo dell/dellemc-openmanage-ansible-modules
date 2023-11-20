@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Dell OpenManage Ansible iDRAC Network Attributes.
+- name: Dell OpenManage Ansible iDRAC Network Attributes.
+  hosts: idrac
   gather_facts: false
 
   tasks:
@@ -9,8 +9,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: "NIC.Integrated.1"
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: "NIC.Integrated.1"
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
           BannerMessageTimeout: "4"
@@ -21,8 +21,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
           BannerMessageTimeout: "4"
         apply_time: OnReset
@@ -36,8 +36,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         oem_network_attributes:
           BannerMessageTimeout: "4"
         apply_time: AtMaintenanceWindowStart
@@ -51,8 +51,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         clear_pending: true
       delegate_to: localhost
@@ -62,8 +62,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: "Immediate"
         oem_network_attributes:
           LnkSpeed: "10MbpsHalf"
@@ -78,8 +78,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         apply_time: OnReset
         network_attributes:
           Ethernet:
@@ -92,8 +92,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
             VLAN:
@@ -109,8 +109,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           iSCSIBoot:
             InitiatorIPAddress: 1.0.0.1
@@ -125,8 +125,8 @@
         idrac_ip: "192.168.0.1"
         idrac_user: "user_name"
         idrac_password: "user_password"
-        network_id: NIC.Integrated.1
-        network_port_id: "NIC.Integrated.1-1-1"
+        network_adapter_id: NIC.Integrated.1
+        network_device_function_id: "NIC.Integrated.1-1-1"
         network_attributes:
           Ethernet:
             VLAN:

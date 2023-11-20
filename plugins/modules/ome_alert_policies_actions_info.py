@@ -41,7 +41,6 @@ EXAMPLES = r'''
     username: "username"
     password: "password"
     ca_path: "/path/to/ca_cert.pem"
-
 '''
 
 RETURN = r'''

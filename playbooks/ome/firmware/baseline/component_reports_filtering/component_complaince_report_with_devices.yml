@@ -1,7 +1,7 @@
 ---
-- hosts: ome
+- name: "OME - Ansible Modules"
+  hosts: ome
   gather_facts: false
-  name: "OME - Ansible Modules"
 
   tasks:
     - name: Retrieve baseline information for specified devices.

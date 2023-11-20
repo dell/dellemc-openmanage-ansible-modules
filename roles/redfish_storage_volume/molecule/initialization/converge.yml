@@ -16,7 +16,7 @@
         volume_id: "{{ lookup('env', 'INVALID_VOLUME_ID') }}"
         initialize_type: "Fast"
       ignore_errors: true
-      register: result
+      register: redfish_storage_volume_result
 
     - name: Asserting operation for initialization of type Fast.
       ansible.builtin.assert:

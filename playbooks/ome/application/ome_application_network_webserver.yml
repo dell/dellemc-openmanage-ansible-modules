@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OME Application network webserver settings.
+- name: Dell OME Application network webserver settings.
+  hosts: ome
   gather_facts: false
 
   tasks:

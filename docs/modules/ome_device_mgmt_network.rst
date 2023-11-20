@@ -392,7 +392,7 @@ Examples
         username: "username"
         password: "password"
         ca_path: "/path/to/ca_cert.pem"
-        device_id : 12345
+        device_id: 12345
         management_vlan:
           enable_vlan: true
           vlan_id: 2345
