@@ -19,7 +19,6 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
-from mock import MagicMock
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
@@ -856,8 +855,8 @@ class TestStorageVolume(FakeAnsibleModule):
                                    controller_id="controller_id")
 
     def test_get_apply_time_success_case_02(self, redfish_response_mock,
-                                         redfish_connection_mock_for_storage_volume,
-                                         storage_volume_base_uri):
+                                            redfish_connection_mock_for_storage_volume,
+                                            storage_volume_base_uri):
         param = {"controller_id": "controller_id"}
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
@@ -938,6 +937,8 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
                                          redfish_default_args):
         param = {"force_reboot": False}
         f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.SYSTEM_ID",
+                     return_value="system_id")
         mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_redfish_reboot_job",
                      return_value=({"JobState": "Completed", "Id": "JID_123456789"}, True, ""))
         mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
