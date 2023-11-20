@@ -19,6 +19,7 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from io import StringIO
+from mock import MagicMock
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
@@ -904,6 +905,20 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
                                                                          controller_id="controller_id")
         assert val
 
+    def test_check_apply_time_supported_and_reboot_required_success_case02(self, mocker,
+                                                                           redfish_response_mock,
+                                                                           redfish_connection_mock_for_storage_volume,
+                                                                           storage_volume_base_uri):
+        param = {"reboot_server": False}
+        f_module = self.get_module_mock(params=param)
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
+                     return_value="Immediate")
+        apply_time = self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume)
+        val = self.module.check_apply_time_supported_and_reboot_required(f_module,
+                                                                         redfish_connection_mock_for_storage_volume,
+                                                                         controller_id="controller_id")
+        assert not val
+
     def test_check_job_tracking_required_success_case01(self, mocker, redfish_response_mock,
                                                         redfish_connection_mock_for_storage_volume,
                                                         storage_volume_base_uri):
@@ -930,6 +945,19 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
                                                       reboot_required=True,
                                                       controller_id="controller_id")
         assert val
+
+    def test_check_job_tracking_required_success_case03(self, mocker, redfish_response_mock,
+                                                        redfish_connection_mock_for_storage_volume,
+                                                        storage_volume_base_uri):
+        param = {"job_wait": False}
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
+                     return_value="Immediate")
+        f_module = self.get_module_mock(params=param)
+        val = self.module.check_job_tracking_required(f_module,
+                                                      redfish_connection_mock_for_storage_volume,
+                                                      reboot_required=True,
+                                                      controller_id=None)
+        assert not val
 
     def test_perform_reboot_timeout_case(self, mocker, redfish_response_mock,
                                          redfish_connection_mock_for_storage_volume,
@@ -1053,3 +1081,45 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         with pytest.raises(Exception) as exc:
             self.module.track_job(f_module, redfish_connection_mock_for_storage_volume, job_id, job_url)
         assert exc.value.args[0] == "The job is successfully submitted."
+
+    def test_track_job_success_case02(self, mocker, redfish_response_mock,
+                                      redfish_connection_mock_for_storage_volume,
+                                      storage_volume_base_uri,
+                                      redfish_default_args):
+        job_id = "JID_123456789"
+        job_url = "/redfish/v1/Managers/iDRAC.Embedded.1/JID_123456789"
+        f_module = self.get_module_mock()
+        redfish_response_mock = {}
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=(redfish_response_mock, "The job has no response."))
+        with pytest.raises(Exception) as exc:
+            self.module.track_job(f_module, redfish_connection_mock_for_storage_volume, job_id, job_url)
+        assert exc.value.args[0] == "The job has no response."
+
+    def test_track_job_success_case03(self, mocker, redfish_response_mock,
+                                      redfish_connection_mock_for_storage_volume,
+                                      storage_volume_base_uri,
+                                      redfish_default_args):
+        job_id = "JID_123456789"
+        job_url = "/redfish/v1/Managers/iDRAC.Embedded.1/JID_123456789"
+        f_module = self.get_module_mock()
+        redfish_response_mock.json_data = {"Oem": {"Dell": {"JobState": "Failed"}}}
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=(redfish_response_mock, "The job is failed."))
+        with pytest.raises(Exception) as exc:
+            self.module.track_job(f_module, redfish_connection_mock_for_storage_volume, job_id, job_url)
+        assert exc.value.args[0] == "Unable to complete the task initiated for creating the storage volume."
+
+    def test_track_job_success_case04(self, mocker, redfish_response_mock,
+                                      redfish_connection_mock_for_storage_volume,
+                                      storage_volume_base_uri,
+                                      redfish_default_args):
+        job_id = "JID_123456789"
+        job_url = "/redfish/v1/Managers/iDRAC.Embedded.1/JID_123456789"
+        f_module = self.get_module_mock()
+        redfish_response_mock.json_data = {"Oem": {"Dell": {"JobState": "Success"}}}
+        mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
+                     return_value=(redfish_response_mock, "The job is failed."))
+        with pytest.raises(Exception) as exc:
+            self.module.track_job(f_module, redfish_connection_mock_for_storage_volume, job_id, job_url)
+        assert exc.value.args[0] == "The job is successfully completed."
