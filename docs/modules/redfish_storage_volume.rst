@@ -382,7 +382,7 @@ msg (always, str, Successfully submitted create volume task.)
   Overall status of the storage configuration operation.
 
 
-task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/TaskService/Tasks/JID_XXXXXXXXXXXXX'})
+task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX'})
   Returns ID and URI of the created task.
 
 

@@ -340,7 +340,7 @@ task:
   returned: success
   sample: {
     "id": "JID_XXXXXXXXXXXXX",
-    "uri": "/redfish/v1/TaskService/Tasks/JID_XXXXXXXXXXXXX"
+    "uri": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"
   }
 error_info:
   type: dict
@@ -879,8 +879,8 @@ def main():
         "oem": {"required": False, "type": "dict"},
         "initialize_type": {"type": "str", "required": False, "choices": ['Fast', 'Slow'], "default": "Fast"},
         "apply_time": {"required": False, "type": "str", "choices": ['Immediate', 'OnReset']},
-        "reboot_server": {"required": False, "type": "bool", "default": 'False'},
-        "force_reboot": {"required": False, "type": "bool", "default": 'False'},
+        "reboot_server": {"required": False, "type": "bool", "default": False},
+        "force_reboot": {"required": False, "type": "bool", "default": False},
         "job_wait": {"required": False, "type": "bool", "default": False},
         "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
