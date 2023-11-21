@@ -399,7 +399,7 @@ JOB_SUBMISSION = "The job is successfully submitted."
 JOB_FAILURE_PROGRESS_MSG = "Unable to complete the task initiated for creating the storage volume."
 REBOOT_FAIL = "Failed to reboot the server."
 CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
-NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
+TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The parameter job_wait_timeout value cannot be negative or zero."
 SYSTEM_ID = "System.Embedded.1"
 volume_type_map = {"NonRedundant": "RAID0",
                    "Mirrored": "RAID1",
@@ -851,8 +851,8 @@ def track_job(module, session_obj, job_id, job_url):
 
 
 def validate_negative_job_time_out(module):
-    if module.params.get("job_wait_timeout") <= 0:
-        module.exit_json(msg=NEGATIVE_TIMEOUT_MESSAGE, failed=True)
+    if module.params.get("job_wait") and module.params.get("job_wait_timeout") <= 0:
+        module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
 
 
 def main():
