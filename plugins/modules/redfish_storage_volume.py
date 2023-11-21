@@ -248,7 +248,7 @@ EXAMPLES = r'''
       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
     apply_time: OnReset
-    restart_server: true
+    reboot_server: true
 
 - name: Create a RAID0 on BOSS controller with force restart
   dellemc.openmanage.redfish_storage_volume:
@@ -261,8 +261,8 @@ EXAMPLES = r'''
     drives:
       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
-    restart_server: true
-    force_restart: true
+    reboot_server: true
+    force_reboot: true
 
 - name: Modify a volume's encryption type settings
   dellemc.openmanage.redfish_storage_volume:
@@ -795,7 +795,9 @@ def perform_force_reboot(module, session_obj):
             if job_data["JobState"] == "Failed":
                 module.exit_json(msg=REBOOT_FAIL, job_status=job_data, failed=True)
         else:
-            module.exit_json(msg=msg)
+            resp = session_obj.invoke_request("GET", job_uri)
+            job_data = strip_substr_dict(resp.json_data)
+            module.exit_json(msg=msg, job_status=job_data)
 
 
 def perform_reboot(module, session_obj):
@@ -810,7 +812,9 @@ def perform_reboot(module, session_obj):
             if force_reboot and job_data["JobState"] == "Failed":
                 perform_force_reboot(module, session_obj)
         else:
-            module.exit_json(msg=msg)
+            resp = session_obj.invoke_request("GET", job_uri)
+            job_data = strip_substr_dict(resp.json_data)
+            module.exit_json(msg=msg, job_status=job_data)
 
 
 def check_job_tracking_required(module, session_obj, reboot_required, controller_id):
@@ -830,11 +834,11 @@ def track_job(module, session_obj, job_id, job_url):
                                         wait_timeout=module.params.get("job_wait_timeout"))
     if resp:
         job_data = strip_substr_dict(resp.json_data)
-        if job_data["Oem"]["Dell"]["JobState"] == "Failed":
+        if job_data["JobState"] == "Failed":
             changed, failed = False, True
             module.exit_json(msg=JOB_FAILURE_PROGRESS_MSG, task={"id": job_id, "uri": job_url},
                              changed=changed, job_status=job_data, failed=failed)
-        elif job_data["Oem"]["Dell"]["JobState"] == "Scheduled":
+        elif job_data["JobState"] == "Scheduled":
             task_status = {"uri": job_url, "id": job_id}
             module.exit_json(msg=JOB_SUBMISSION, task=task_status, job_status=job_data, changed=True)
         else:
@@ -907,7 +911,7 @@ def main():
                 perform_reboot(module, session_obj)
             job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id)
             job_id = status_message.get("task_id")
-            job_url = status_message.get("task_uri")
+            job_url = MANAGER_JOB_ID_URI.format(job_id)
             if job_tracking_required:
                 track_job(module, session_obj, job_id, job_url)
             else:

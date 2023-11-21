@@ -75,7 +75,6 @@ class TestStorageVolume(FakeAnsibleModule):
         assert result["changed"] is True
         assert result['msg'] == "Successfully submitted volume task."
         assert result["task"]["id"] == 1234
-        assert result["task"]["uri"] == "task_uri"
 
     arg_list2 = [
         {"state": "absent"},
@@ -1074,7 +1073,7 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         job_id = "JID_123456789"
         job_url = "/redfish/v1/Managers/iDRAC.Embedded.1/JID_123456789"
         f_module = self.get_module_mock()
-        redfish_response_mock.json_data = {"Oem": {"Dell": {"JobState": "Scheduled"}}}
+        redfish_response_mock.json_data = {"JobState": "Scheduled"}
         mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
                      return_value=(redfish_response_mock, "The job is scheduled."))
         with pytest.raises(Exception) as exc:
@@ -1102,7 +1101,7 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         job_id = "JID_123456789"
         job_url = "/redfish/v1/Managers/iDRAC.Embedded.1/JID_123456789"
         f_module = self.get_module_mock()
-        redfish_response_mock.json_data = {"Oem": {"Dell": {"JobState": "Failed"}}}
+        redfish_response_mock.json_data = {"JobState": "Failed"}
         mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
                      return_value=(redfish_response_mock, "The job is failed."))
         with pytest.raises(Exception) as exc:
@@ -1116,7 +1115,7 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         job_id = "JID_123456789"
         job_url = "/redfish/v1/Managers/iDRAC.Embedded.1/JID_123456789"
         f_module = self.get_module_mock()
-        redfish_response_mock.json_data = {"Oem": {"Dell": {"JobState": "Success"}}}
+        redfish_response_mock.json_data = {"JobState": "Success"}
         mocker.patch(MODULE_PATH + "redfish_storage_volume.wait_for_job_completion",
                      return_value=(redfish_response_mock, "The job is failed."))
         with pytest.raises(Exception) as exc:
