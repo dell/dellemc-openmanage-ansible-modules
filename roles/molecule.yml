@@ -1,7 +1,7 @@
 ---
 dependency:
-  name: shell
-  command: ansible-galaxy collection install --ignore-certs https://amaas-eos-drm1.cec.lab.emc.com/artifactory/IMSSE-OMAM-Gen-Dev/8.5.0/156/dellemc-openmanage-8.5.0.tar.gz --force 
+  name: galaxy
+  enabled: false
 driver:
   name: podman
 platforms:
@@ -13,9 +13,7 @@ platforms:
 provisioner:
   name: ansible
   env:
-    MOLECULE_REPORT: 'molecule_report'
-    # ANSIBLE_COLLECTIONS_PATH: /root/collections/
-    # RUNON: ""
+    RUNON: ""
     idrac_server_powerstate_wait_seconds: "180"
     redfish_firmware_local_manual_reboot: "/tmp/SAS-RAID_Firmware.exe"
     redfish_firmware_http_auto_reboot: "http://dl.dell.com/FOLDER06878175M/2/Diagnostics_Application_0G1JH_WN64_6.0_A00_01.EXE"

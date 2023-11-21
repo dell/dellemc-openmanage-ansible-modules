@@ -24,9 +24,5 @@
     validate_certs: false
     state: absent
     volume_id: "{{ redfish_storage_volume_volume_id_list[0] }}"
-    job_wait: false
+    job_wait: true
   when: redfish_storage_volume_volume_id_list is defined and redfish_storage_volume_volume_id_list != []
-
-- name: Waiting for Job completion
-  ansible.builtin.include_tasks:
-    file: ../__job_tracking.yml

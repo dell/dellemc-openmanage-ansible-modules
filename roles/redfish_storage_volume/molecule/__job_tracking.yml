@@ -6,7 +6,7 @@
 
 - name: Job tracking
   ansible.builtin.uri:
-    url: "https://{{ lookup('env', 'IDRAC_IP') }}{{ redfish_storage_volume_out.task.uri }}"
+    url: "https://{{ lookup('env', 'IDRAC_IP') }}/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{{ redfish_storage_volume_out.task.id }}"
     user: "{{ lookup('env', 'IDRAC_USER') }}"
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     timeout: "{{ https_timeout }}"
@@ -19,8 +19,8 @@
       Content-Type: "application/json"
       Accept: "application/json"
   register: job_result
-  failed_when: "'json' not in job_result"
-  until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
-  retries: "{{ 1200 // 10 }}"
-  delay: "{{ 10 }}"
+  failed_when: "'json' not in job_result or job_result.json.JobState in ['Failed']"
+  until: job_result.json.JobState == 'Completed' or job_result.json.JobState == 'Pending'
+  retries: 120
+  delay: 10
   check_mode: true

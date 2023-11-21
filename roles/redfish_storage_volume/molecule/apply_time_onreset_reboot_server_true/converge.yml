@@ -139,8 +139,6 @@
         - name: Deleting VD
           ansible.builtin.include_tasks:
             file: ../__delete_virtual_drive.yml
-          vars:
-            redfish_storage_volume_reset: true
           when:
             - not ansible_check_mode
             - redfish_storage_volume_out is defined
