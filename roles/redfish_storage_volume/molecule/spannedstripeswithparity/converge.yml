@@ -37,9 +37,8 @@
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             validate_certs: false
             state: present
-            # volume_type: "SpannedStripesWithParity"
             raid_type: "{{ redfish_storage_volume_raid }}"
-            name: "VD" # noqa: var-naming[no-reserved]
+            name: "VD"
             controller_id: "{{ redfish_storage_volume_perc_raid_controller_id }}"
             drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_drives] }}"
             capacity_bytes: 214748364800
