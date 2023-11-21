@@ -113,11 +113,9 @@
             that: redfish_storage_volume_out.msg == "Changes found to be applied."
           when: ansible_check_mode
 
-        - name: Waiting for Job completion for normal mode.
+        - name: Waiting for idrac reset and LC tracking.
           ansible.builtin.include_tasks:
-            file: ../__job_tracking.yml
-          vars:
-            redfish_storage_volume_reset: true
+            file: ../__idrac_reset.yml
           when: not ansible_check_mode and redfish_storage_volume_out.changed
 
         - name: Asserting operation with normal mode.

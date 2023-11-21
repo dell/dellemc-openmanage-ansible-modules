@@ -9,6 +9,7 @@
     user: "{{ lookup('env', 'IDRAC_USER') }}"
     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     method: GET
+    timeout: 30
     body: {}
     validate_certs: false
     force_basic_auth: true
