@@ -1121,3 +1121,10 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         with pytest.raises(Exception) as exc:
             self.module.track_job(f_module, redfish_connection_mock_for_storage_volume, job_id, job_url)
         assert exc.value.args[0] == "The job is successfully completed."
+
+    def test_validate_negative_job_time_out(self, redfish_default_args):
+        redfish_default_args.update({"job_wait": True, "job_wait_timeout": -5})
+        f_module = self.get_module_mock(params=redfish_default_args)
+        with pytest.raises(Exception) as ex:
+            self.module.validate_negative_job_time_out(f_module)
+        assert ex.value.args[0] == "The parameter job_wait_timeout value cannot be negative or zero."

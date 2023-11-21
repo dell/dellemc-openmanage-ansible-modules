@@ -399,6 +399,7 @@ JOB_SUBMISSION = "The job is successfully submitted."
 JOB_FAILURE_PROGRESS_MSG = "Unable to complete the task initiated for creating the storage volume."
 REBOOT_FAIL = "Failed to reboot the server."
 CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
+NEGATIVE_TIMEOUT_MESSAGE = "The parameter job_wait_timeout value cannot be negative or zero."
 SYSTEM_ID = "System.Embedded.1"
 volume_type_map = {"NonRedundant": "RAID0",
                    "Mirrored": "RAID1",
@@ -849,6 +850,11 @@ def track_job(module, session_obj, job_id, job_url):
         module.exit_json(msg=msg)
 
 
+def validate_negative_job_time_out(module):
+    if module.params.get("job_wait_timeout") <= 0:
+        module.exit_json(msg=NEGATIVE_TIMEOUT_MESSAGE, failed=True)
+
+
 def main():
     specs = {
         "state": {"type": "str", "required": False, "choices": ['present', 'absent']},
@@ -891,6 +897,7 @@ def main():
 
     try:
         validate_inputs(module)
+        validate_negative_job_time_out(module)
         with Redfish(module.params, req_session=True) as session_obj:
             fetch_storage_resource(module, session_obj)
             controller_id = module.params.get("controller_id")
