@@ -1640,7 +1640,7 @@ releases:
           OpenManage Enterprise Modular, however it does not allow the creation of multiple
           uplinks of the same name. If an uplink is created using the same name as an
           existing uplink, then the existing uplink is modified.
-      release_summary: '- Ansible lint issues are fixed for roles.
+      release_summary: '- Ansible lint issues are fixed for the collections.
 
         - redfish_storage_volume module is enhanced to support reboot options and job tracking operation.'
     release_date: '2023-11-30'
