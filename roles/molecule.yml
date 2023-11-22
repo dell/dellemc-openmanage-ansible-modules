@@ -1,8 +1,9 @@
 ---
 dependency:
   name: galaxy
+  enabled: false
 driver:
-  name: docker
+  name: podman
 platforms:
   - name: centos
     image: quay.io/centos/centos:stream8
