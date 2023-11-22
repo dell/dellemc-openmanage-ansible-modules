@@ -1583,9 +1583,8 @@ releases:
       known_issues:
         - ca_path missing - Issue(275740) - The roles idrac_attributes, redfish_storage_volume,
           and idrac_server_powerstate have a missing parameter ca_path.
-        - idrac_firmware - Issue(279282) - idrac_firmware - Issue(279282) - This module
-          does not support firmware update using HTTP, HTTPS, and FTP shares with authentication
-          on iDRAC8.
+        - idrac_firmware - Issue(279282) - This module does not support firmware update
+          using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
         - idrac_network_attributes - Issue(279049) -  If unsupported values are provided
           for the parameter ``ome_network_attributes``, then this module does not provide
           a correct error message.
@@ -1620,9 +1619,10 @@ releases:
         - Module ``redfish_storage_volume`` is enhanced to support job tracking till completion and enable apply time on the controllers that is supported.
         - Ansible list issues are fixed for roles.
       known_issues:
-        - idrac_firmware - Issue(279282) - idrac_firmware - Issue(279282) - This module
-          does not support firmware update using HTTP, HTTPS, and FTP shares with authentication
-          on iDRAC8.
+        - ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to
+          the share location fails on OME version 4.0.0.
+        - idrac_firmware - Issue(279282) - This module does not support firmware update
+          using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
         - idrac_network_attributes - Issue(279049) -  If unsupported values are provided
           for the parameter ``ome_network_attributes``, then this module does not provide
           a correct error message.
