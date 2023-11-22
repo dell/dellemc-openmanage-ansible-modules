@@ -11,8 +11,8 @@ v8.5.0
 Release Summary
 ---------------
 
-- Ansible lint issue fix for roles.
-- redfish_storage_volume module is enhanced to support reboot option, and job tracking.
+- Ansible lint issues are fixed for Redfish roles.
+- redfish_storage_volume module is enhanced to support reboot options and job tracking operation.
 
 Bugfixes
 --------
