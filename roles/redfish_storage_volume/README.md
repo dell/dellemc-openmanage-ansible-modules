@@ -156,6 +156,16 @@ dellemc.openmanage
     <td></td>
     <td>str</td>
     <td>- Name of the volume to be created.</br>
+- Only applicable when I(state) is C(present).</br>
+- This will be deprecated. Please use I(volume_name) for specifying the volume name.</td>
+  </tr>
+  <tr>
+    <td>volume_name</td>
+    <td>false</td>
+    <td></td>
+    <td></td>
+    <td>str</td>
+    <td>- Name of the volume to be created.</br>
 - Only applicable when I(state) is C(present).</td>
   </tr>
   <tr>
@@ -227,7 +237,7 @@ Only applicable when I(state) is C(present).</td>
     <td>str</td>
     <td>- Initialization type of existing volume.</br> Only applicable when I(command) is C(initialize).</td>
   </tr>
-    <tr>
+  <tr>
     <td>job_wait</td>
     <td>false</td>
     <td>true</td>
@@ -242,6 +252,37 @@ Only applicable when I(state) is C(present).</td>
     <td>300</td>
     <td>int</td>
     <td>- The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.</br>- This option is applicable when I(job_wait) is C(True).</td>
+  </tr>
+  <tr>
+    <td>apply_time</td>
+    <td>false</td>
+    <td></td>
+    <td>[Immediate, OnReset]</td>
+    <td>str</td>
+    <td>- Apply time of the Volume configuration.</br>
+- C(Immediate) allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for I(job_wait).</br>
+- C(OnReset) allows you to apply the changes on the next reboot of the host server.</br>
+- I(apply_time) has a default value based on the different types of the controller.</br>
+- For example, BOSS-S1 and BOSS-N1 controllers have a default value of I(apply_time) as C(OnReset).</br>
+- PERC controllers have a default value of I(apply_time) as C(Immediate).</td>
+  </tr>
+  <tr>
+    <td>reboot_server</td>
+    <td></td>
+    <td>false</td>
+    <td></td>
+    <td>bool</td>
+    <td>- Reboot the server to apply the changes.</br>
+- I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).</td>
+  </tr>
+  <tr>
+    <td>force_reboot</td>
+    <td></td>
+    <td>false</td>
+    <td></td>
+    <td>bool</td>
+    <td>- Reboot the server forcefully to apply the changes when the normal reboot fails.</br>
+- I(force_reboot) is applicable only when I(reboot_server) is C(true).</td>
   </tr>
 </tbody>
 </table>
@@ -281,7 +322,7 @@ Only applicable when I(state) is C(present).</td>
     password: "password"
     state: "present"
     raid_type: "RAID1"
-    name: "VD0"
+    volume_name: "VD0"
     controller_id: "RAID.Slot.1-1"
     drives:
       - Disk.Bay.5:Enclosure.Internal.0-1:RAID.Slot.1-1
@@ -291,6 +332,28 @@ Only applicable when I(state) is C(present).</td>
     optimum_io_size_bytes: 65536
     encryption_types: NativeDriveEncryption
     encrypted: true
+```
+
+```yml
+- name: Create a volume with apply time
+  ansible.builtin.include_role:
+    name: redfish_storage_volume
+  vars:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    raid_type: "RAID6"
+    volume_name: "Raid6_VD"
+    controller_id: "RAID.Slot.1-1"
+    drives:
+      - Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.2:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.5:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.6:Enclosure.Internal.0-1:RAID.Slot.1-1
+    apply_time: OnReset
+    reboot_server: true
+    force_reboot: true
 ```
 
 ```yml
