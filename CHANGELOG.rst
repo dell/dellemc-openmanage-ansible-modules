@@ -11,7 +11,7 @@ v8.5.0
 Release Summary
 ---------------
 
-- Ansible lint issues are fixed for Redfish roles.
+- Ansible lint issues are fixed for roles.
 - redfish_storage_volume module is enhanced to support reboot options and job tracking operation.
 
 Bugfixes
@@ -85,10 +85,8 @@ Known Issues
 
 - ca_path missing - Issue(275740) - The roles idrac_attributes, redfish_storage_volume, and idrac_server_powerstate have a missing parameter ca_path.
 - idrac_firmware - Issue(276335) - This module fails on the Python 3.11.x version with NFS shares. Use a different Python version or Share type.
-- idrac_firmware - Issue(276335) - This module fails on the Python 3.11.x version with NFS shares. Use a different Python version or Share type.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
 - ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
-- ome_device_quick_deploy - Issue(275231) - This module does not deploy a new configuration to a slot that has disabled IPv6.
 - ome_device_quick_deploy - Issue(275231) - This module does not deploy a new configuration to a slot that has disabled IPv6.
 - ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by OpenManage Enterprise Modular, it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, the existing uplink is modified.
 
@@ -142,7 +140,11 @@ v8.1.0
 Release Summary
 ---------------
 
-- Support for subject alternative names while generating certificate signing requests on OME. - Create a user on iDRAC using custom privileges. - Create a firmware baseline on OME with the filter option of no reboot required. - Retrieve all server items in the output for ome_device_info. - Enhancement to add detailed job information for ome_discovery and ome_job_info.
+- Support for subject alternative names while generating certificate signing requests on OME.
+- Create a user on iDRAC using custom privileges.
+- Create a firmware baseline on OME with the filter option of no reboot required.
+- Retrieve all server items in the output for ome_device_info.
+- Enhancement to add detailed job information for ome_discovery and ome_job_info.
 
 Minor Changes
 -------------
