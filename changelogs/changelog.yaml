@@ -1616,8 +1616,8 @@ releases:
         - ome_inventory - The plugin returns 50 results when a group is specified.
           No results are shown when a group is not specified. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/575).
       minor changes:
-        - Module ``redfish_storage_volume`` is enhanced to support job tracking till completion and enable apply time on the controllers that is supported.
-        - Ansible list issues are fixed for roles.
+        - Module ``redfish_storage_volume`` is enhanced to support reboot options and job tracking operation.
+        - Ansible list issues are fixed for the collections.
       known_issues:
         - ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to
           the share location fails on OME version 4.0.0.
