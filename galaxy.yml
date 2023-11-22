@@ -55,4 +55,3 @@ documentation: https://github.com/dell/dellemc-openmanage-ansible-modules/tree/c
 build_ignore:
   - BuildNumber.txt
   - codecov.yml
-  - playbook/demo
