@@ -322,7 +322,7 @@ Only applicable when I(state) is C(present).</td>
     password: "password"
     state: "present"
     raid_type: "RAID1"
-    name: "VD0"
+    volume_name: "VD0"
     controller_id: "RAID.Slot.1-1"
     drives:
       - Disk.Bay.5:Enclosure.Internal.0-1:RAID.Slot.1-1
@@ -332,6 +332,28 @@ Only applicable when I(state) is C(present).</td>
     optimum_io_size_bytes: 65536
     encryption_types: NativeDriveEncryption
     encrypted: true
+```
+
+```yml
+- name: Create a volume with apply time
+  ansible.builtin.include_role:
+    name: redfish_storage_volume
+  vars:
+    hostname: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    raid_type: "RAID6"
+    volume_name: "Raid6_VD"
+    controller_id: "RAID.Slot.1-1"
+    drives:
+      - Disk.Bay.0:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.2:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.5:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.6:Enclosure.Internal.0-1:RAID.Slot.1-1
+    apply_time: OnReset
+    reboot_server: true
+    force_reboot: true
 ```
 
 ```yml
