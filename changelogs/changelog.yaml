@@ -1614,8 +1614,8 @@ releases:
   8.5.0:
     changes:
       bugfixes:
-        - ome_inventory - The plugin is only returning 50 results only when a group is specified.
-          No results are shown when a group is not created. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/575).
+        - ome_inventory - The plugin returns 50 results when a group is specified.
+          No results are shown when a group is not specified. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/575).
       minor changes:
         - Module ``redfish_storage_volume`` is enhanced to support job tracking till completion and enable apply time on the controllers that is supported.
         - Ansible list issues are fixed for roles.
@@ -1636,11 +1636,11 @@ releases:
           PowerCap does not exist or is not applicable for the resource URI.``
         - ome_device_quick_deploy - Issue(275231) - This module does not deploy a new
           configuration to a slot that has disabled IPv6.
-        - ome_smart_fabric_uplink - Issue(186024) - Despite the module supported by
-          OpenManage Enterprise Modular, it does not allow the creation of multiple
+        - ome_smart_fabric_uplink - Issue(186024) - The module supported by
+          OpenManage Enterprise Modular, however it does not allow the creation of multiple
           uplinks of the same name. If an uplink is created using the same name as an
-          existing uplink, the existing uplink is modified.
-      release_summary: '- Ansible lint issues fix for roles.
+          existing uplink, then the existing uplink is modified.
+      release_summary: '- Ansible lint issue fix for roles.
 
-        - Enhancement to add job tracking till completion and enable apply time on the controller that is supported for redfish_storage_volume.'
+        - redfish_storage_volume module is enhanced to support reboot option, and job tracking.'
     release_date: '2023-11-30'
