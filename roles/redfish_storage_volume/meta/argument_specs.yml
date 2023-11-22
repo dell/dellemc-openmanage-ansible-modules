@@ -149,7 +149,7 @@ argument_specs:
           - The maximum wait time of I(job_wait) in seconds. The job is tracked only for this duration.
           - This option is applicable when I(job_wait) is C(True).
         type: int
-        default: 300
+        default: 1200
       apply_time:
         description:
           - Apply time of the Volume configuration.

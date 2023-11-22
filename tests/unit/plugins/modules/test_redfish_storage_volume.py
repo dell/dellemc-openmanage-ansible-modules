@@ -1080,7 +1080,7 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
             self.module.track_job(f_module, redfish_connection_mock_for_storage_volume, job_id, job_url)
         assert exc.value.args[0] == "The job is successfully submitted."
 
-    def test_track_job_success_case02(self, mocker, redfish_response_mock,
+    def test_track_job_success_case02(self, mocker,
                                       redfish_connection_mock_for_storage_volume,
                                       storage_volume_base_uri,
                                       redfish_default_args):
