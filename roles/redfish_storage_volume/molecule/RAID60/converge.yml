@@ -50,7 +50,7 @@
 
         - name: Asserting operation with normal mode.
           ansible.builtin.assert:
-            that: redfish_storage_volume_out.msg == "Successfully submitted create volume task."
+            that: redfish_storage_volume_out.msg == "The job is successfully completed."
           when: not ansible_check_mode and redfish_storage_volume_out.changed
 
         - name: Asserting operation with idempotence.
