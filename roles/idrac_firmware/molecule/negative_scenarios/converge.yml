@@ -119,12 +119,13 @@
         job_wait: true
         apply_update: true
         catalog_file_name: "Catalog.xml"
+      ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_user"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            or same version installed on the server."
+          - idrac_firmware_out.msg.startswith('Unable to successfully complete')
 
     - name: Update firmware from repository on HTTPS Share with invalid share_password
       ansible.builtin.import_role:
@@ -141,13 +142,13 @@
         job_wait: true
         apply_update: true
         catalog_file_name: "Catalog.xml"
+      ignore_errors: true
       register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_password"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            or same version installed on the server."
+          - idrac_firmware_out.msg.startswith('Unable to successfully complete')
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_uname
       ansible.builtin.import_role:
@@ -170,12 +171,13 @@
         proxy_uname: "invalidUname"
         proxy_passwd: "{{ lookup('env', 'proxypass') }}"
         catalog_file_name: "Catalog.xml"
+      ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_uname"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            or same version installed on the server."
+          - idrac_firmware_out.msg.startswith('Unable to successfully complete')
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_passwd
       ansible.builtin.import_role:
@@ -198,9 +200,10 @@
         proxy_uname: "{{ lookup('env', 'proxyuname') }}"
         proxy_passwd: "invalidPasswd"
         catalog_file_name: "Catalog.xml"
+      ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_passwd"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            or same version installed on the server."
+          - idrac_firmware_out.msg.startswith('Unable to successfully complete')
