@@ -4,7 +4,7 @@
   vars:
     redfish_storage_volume_failure: {}
     redfish_storage_volume_raid: "RAID0"
-    redfish_storage_volume_minimum_drives: 2
+    redfish_storage_volume_minimum_drives: 1
   gather_facts: false
 
   tasks:
