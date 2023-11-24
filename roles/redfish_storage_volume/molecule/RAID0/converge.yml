@@ -1,10 +1,10 @@
 ---
-- name: TC-124007 - Ansible - Role- redfish_storage_volume - [Check Mode] [Idempotency] Validate creating RAID6 VD
+- name: Converge
   hosts: all
   vars:
     redfish_storage_volume_failure: {}
-    redfish_storage_volume_raid: "RAID6"
-    redfish_storage_volume_minimum_drives: 4
+    redfish_storage_volume_raid: "RAID0"
+    redfish_storage_volume_minimum_drives: 1
   gather_facts: false
 
   tasks:
@@ -28,7 +28,7 @@
           when: redfish_storage_volume_drive_list | length < redfish_storage_volume_minimum_drives
           failed_when: true
 
-        - name: "Create a volume for PERC, raid_type {{ redfish_storage_volume_raid }}"
+        - name: To check the behaviour of RAID0.
           ansible.builtin.import_role:
             name: dellemc.openmanage.redfish_storage_volume
           vars:
@@ -38,9 +38,12 @@
             validate_certs: false
             state: present
             raid_type: "{{ redfish_storage_volume_raid }}"
-            volume_name: "VD_PERC"
+            volume_name: "VD"
             controller_id: "{{ redfish_storage_volume_perc_raid_controller_id }}"
             drives: "{{ redfish_storage_volume_drive_list[:redfish_storage_volume_minimum_drives] }}"
+            capacity_bytes: 214748364800
+            optimum_io_size_bytes: 65536
+            encrypted: false
             job_wait: true
 
         - name: Asserting operation with check mode.
