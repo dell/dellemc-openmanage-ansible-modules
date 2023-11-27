@@ -20,7 +20,8 @@
     - name: TC - 003 - Asserting wrong hostname
       ansible.builtin.assert:
         that:
-          - redfish_firmware_out.msg == "<urlopen error [Errno -2] Name or service not known>"
+          - redfish_firmware_out.msg == "<urlopen error [Errno -2] Name or service not known>" or
+            redfish_firmware_out.msg == "<urlopen error Unable to resolve hostname or IP randomHostname:443.>"
 
     - name: TC - 004 - Provide wrong username
       ansible.builtin.import_role:

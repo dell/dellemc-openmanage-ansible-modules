@@ -23,6 +23,10 @@
     api_response: "{{ virtualdisk_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'Actions',
       'EncryptionTypes@odata.count', 'Identifiers@odata.count', 'Links', 'Operations@odata.count', 'DellVirtualDisk', 'DellVirtualDisk@Redfish.Deprecated']) }}"
 
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ virtualdisk_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+
 - name: Set a Diff of dict
   ansible.builtin.set_fact:
     diff_data: "{{ diff_data | combine({item: virtualdisk_data[item]}) }}"
