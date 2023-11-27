@@ -112,7 +112,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         https_port: 443
-        ca_path: "/root/filedonotexits.pem"
+        ca_path: ""
         validate_certs: true
         idrac_attributes:
           SSH.1.Timeout: 1800
