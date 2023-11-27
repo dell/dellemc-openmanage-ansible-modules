@@ -54,7 +54,8 @@
     - name: Asserting after performing opeartion with invalid hostname
       ansible.builtin.assert:
         that:
-          - idrac_server_powerstate_out.msg == "<urlopen error [Errno -2] Name or service not known>"
+          - idrac_server_powerstate_out.msg == "<urlopen error [Errno -2] Name or service not known>" or
+            idrac_server_powerstate_out.msg == "<urlopen error Unable to resolve hostname or IP randomHostname:443.>"
 
     - name: Performing operation 'On' with invalid username
       ansible.builtin.import_role:
