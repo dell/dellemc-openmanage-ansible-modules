@@ -2,8 +2,8 @@
 - name: Get the manager firmware version
   ansible.builtin.uri:
     url: "https://{{ hostname }}/redfish/v1/Managers/iDRAC.Embedded.1"
-    user: "{{ username }}"
-    password: "{{ password }}"
+    user: "{{ username | default(lookup('env', 'iDRAC_USERNAME')) }}"
+    password: "{{ password | default(lookup('env', 'iDRAC_PASSWORD')) }}"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     headers: "{{ idrac_job_queue_uri_headers }}"

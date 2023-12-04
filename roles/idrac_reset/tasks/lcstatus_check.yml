@@ -21,8 +21,8 @@
         - name: Get lifecycle controller status for iDRAC9
           ansible.builtin.uri:
             url: "https://{{ hostname }}:{{ https_port }}{{ idrac_reset_lifecycle_status_api }}"
-            user: "{{ username }}"
-            password: "{{ password }}"
+            user: "{{ username | default(lookup('env', 'iDRAC_USERNAME')) }}"
+            password: "{{ password | default(lookup('env', 'iDRAC_PASSWORD')) }}"
             validate_certs: "{{ validate_certs }}"
             ca_path: "{{ ca_path | default(omit) }}"
             headers: "{{ idrac_reset_uri_headers }}"
@@ -55,8 +55,8 @@
             validate_certs: "{{ validate_certs }}"
             ca_path: "{{ ca_path | default(omit) }}"
             method: POST
-            user: "{{ username }}"
-            password: "{{ password }}"
+            user: "{{ username | default(lookup('env', 'iDRAC_USERNAME')) }}"
+            password: "{{ password | default(lookup('env', 'iDRAC_PASSWORD')) }}"
             headers: "{{ idrac_reset_uri_headers_xml }}"
             body: "{{ lookup('ansible.builtin.template', 'idrac_lifecycle_controller_status.j2') }}"
             status_code: 200
