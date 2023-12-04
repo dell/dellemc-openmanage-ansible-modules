@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.6.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -338,7 +338,7 @@ payload_map = {"Server": get_ssl_payload,
 def get_res_id(idrac, certype):
     cert_map = {"Server": MANAGER_ID}
     try:
-        resp = idrac.invoke_request("GET", cert_map.get(certype, MANAGERS_URI))
+        resp = idrac.invoke_request(cert_map.get(certype, MANAGERS_URI), "GET")
         membs = resp.json_data.get("Members")
         res_uri = membs[0].get('@odata.id')  # Getting the first item
         res_id = res_uri.split("/")[-1]
@@ -350,7 +350,7 @@ def get_res_id(idrac, certype):
 def get_idrac_service(idrac, res_id):
     srvc = IDRAC_SERVICE.format(res_id=res_id)
     try:
-        resp = idrac.invoke_request('GET', "{0}/{1}".format(MANAGERS_URI, res_id))
+        resp = idrac.invoke_request("{0}/{1}".format(MANAGERS_URI, res_id), 'GET')
         srvc_data = resp.json_data
         dell_srvc = srvc_data['Links']['Oem']['Dell']['DelliDRACCardService']
         srvc = dell_srvc.get("@odata.id", IDRAC_SERVICE.format(res_id=res_id))
