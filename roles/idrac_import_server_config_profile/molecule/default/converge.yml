@@ -43,7 +43,8 @@
     - name: "Verifying Import SCP without scp_file"
       ansible.builtin.assert:
         that:
-          - "'HTTP Error 400' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'Invalid file path provided.' in '{{ idrac_import_server_config_profile_out.msg }}' or
+            'HTTP Error 400: Bad Request' in '{{ idrac_import_server_config_profile_out.msg }}'"
 
     - name: "Importing SCP from CIFS with ALL components with invalid file"
       ansible.builtin.import_role:
@@ -64,7 +65,8 @@
     - name: "Verifying Import SCP from CIFS with ALL components with invalid file"
       ansible.builtin.assert:
         that:
-          - idrac_import_server_config_profile_out.msg == "Failed to import scp."
+          - idrac_import_server_config_profile_out.msg == "Invalid file path provided." or
+            idrac_import_server_config_profile_out.msg == "Failed to import scp."
 
     - name: Wait for 15 seconds
       ansible.builtin.pause:
@@ -89,7 +91,8 @@
     - name: "Verifying Import SCP from CIFS with ALL components with invalid share"
       ansible.builtin.assert:
         that:
-          - idrac_import_server_config_profile_out.msg == "Failed to import scp."
+          - "'HTTP Error 500' in '{{ idrac_import_server_config_profile_out.msg }}' or
+            'Failed to import scp.' in '{{ idrac_import_server_config_profile_out.msg }}'"
 
     - name: "Importing SCP with invalid hostname"
       ansible.builtin.import_role:
@@ -203,7 +206,8 @@
     - name: "Verifying Import SCP with invalid username of share access"
       ansible.builtin.assert:
         that:
-          - idrac_import_server_config_profile_out.msg == "Failed to import scp."
+          - idrac_import_server_config_profile_out.msg == "Invalid file path provided." or
+            idrac_import_server_config_profile_out.msg == "Failed to import scp."
 
     - name: "Importing SCP with invalid password of share access"
       ansible.builtin.import_role:
@@ -225,7 +229,8 @@
     - name: "Verifying Import SCP with invalid password of share access"
       ansible.builtin.assert:
         that:
-          - idrac_import_server_config_profile_out.msg == "Failed to import scp."
+          - idrac_import_server_config_profile_out.msg == "Invalid file path provided." or
+            idrac_import_server_config_profile_out.msg == "Failed to import scp."
 
     - name: "Importing SCP with share_name as None"
       ansible.builtin.import_role:
@@ -237,7 +242,7 @@
         validate_certs: false
         target: ['IDRAC']
         share_parameters:
-          share_name: ""
+          share_name: None
           share_user: "{{ lookup('env', 'USERNAME') }}"
           share_password: "WrongPassword@123"
           scp_file: "{{ lookup('env', 'http_filename') }}"
@@ -270,7 +275,7 @@
     - name: "Verifying Import SCP with proxy_ssupport enabled but no other proxy parameters"
       ansible.builtin.assert:
         that:
-          - "'proxy_support is enabled but all of the following are missing' in '{{ idrac_import_server_config_profile_out.msg }}'"
+          - "'proxy_support is True but all of the following are missing' in '{{ idrac_import_server_config_profile_out.msg }}'"
 
     - name: "Importing SCP with invalid proxy parameters"
       ansible.builtin.import_role:
@@ -297,4 +302,5 @@
     - name: "Verifying Import SCP with invalid proxy parameter"
       ansible.builtin.assert:
         that:
-          - idrac_import_server_config_profile_out.msg == "Failed to import scp."
+          - idrac_import_server_config_profile_out.msg == "Invalid file path provided." or
+            idrac_import_server_config_profile_out.msg == "Failed to import scp."

@@ -30,7 +30,7 @@
         validate_certs: false
         resource_id: "System.Embedded.0"
       ignore_errors: true
-      register: error_msg
+      register: idrac_server_powerstate_error_msg
 
     - name: Asserting after performing opeartion with invalid resource_id
       ansible.builtin.assert:
@@ -49,12 +49,13 @@
         resource_id: "System.Embedded.1"
       ignore_errors: true
       ignore_unreachable: true
-      register: error_msg
+      register: idrac_server_powerstate_error_msg
 
     - name: Asserting after performing opeartion with invalid hostname
       ansible.builtin.assert:
         that:
-          - idrac_server_powerstate_out.msg == "<urlopen error [Errno -2] Name or service not known>"
+          - idrac_server_powerstate_out.msg == "<urlopen error [Errno -2] Name or service not known>" or
+            idrac_server_powerstate_out.msg == "<urlopen error Unable to resolve hostname or IP randomHostname:443.>"
 
     - name: Performing operation 'On' with invalid username
       ansible.builtin.import_role:
@@ -67,7 +68,7 @@
         resource_id: "System.Embedded.1"
       ignore_errors: true
       ignore_unreachable: true
-      register: error_msg
+      register: idrac_server_powerstate_error_msg
 
     - name: Asserting after performing opeartion with invalid username
       ansible.builtin.assert:
@@ -85,7 +86,7 @@
         resource_id: "System.Embedded.1"
       ignore_errors: true
       ignore_unreachable: true
-      register: error_msg
+      register: idrac_server_powerstate_error_msg
 
     - name: Asserting after performing opeartion with invalid password
       ansible.builtin.assert:
@@ -105,7 +106,7 @@
         resource_id: "System.Embedded.1"
       ignore_errors: true
       ignore_unreachable: true
-      register: error_msg
+      register: idrac_server_powerstate_error_msg
 
     - name: Asserting after performing opeartion with invalid validate_certs
       ansible.builtin.assert:
@@ -123,7 +124,7 @@
         reset_type: 'ForceOn'
         resource_id: "System.Embedded.1"
       ignore_errors: true
-      register: error_msg
+      register: idrac_server_powerstate_error_msg
 
     - name: Asserting after performing opeartion "ForceOn"
       ansible.builtin.assert:

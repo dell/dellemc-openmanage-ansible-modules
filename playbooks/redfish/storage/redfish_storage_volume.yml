@@ -1,7 +1,7 @@
 ---
-- hosts: redfish_hosts
+- name: "Redfish Storage Volume - Ansible Module"
+  hosts: redfish_hosts
   gather_facts: false
-  name: "Redfish Storage Volume - Ansible Module"
   vars:
     retries_count: 15
     polling_interval: 5
@@ -83,6 +83,56 @@
           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
       tags:
         - create_raid60
+      delegate_to: localhost
+
+    - name: Create a RAID0 on PERC controller on reset
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        apply_time: OnReset
+      tags:
+        - create_raid0_with_onreset
+      delegate_to: localhost
+
+    - name: Create a RAID0 on BOSS controller with restart
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        apply_time: OnReset
+        reboot_server: true
+      tags:
+        - create_raid0_boss_with_onreset
+      delegate_to: localhost
+
+    - name: Create a RAID0 on BOSS controller with force restart
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        reboot_server: true
+        force_reboot: true
+      tags:
+        - create_raid0_boss_with_onreset_force
       delegate_to: localhost
 
     - name: Modify a volume's encryption type settings.

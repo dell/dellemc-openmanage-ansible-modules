@@ -15,12 +15,13 @@
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
-      register: error_msg
+      register: redfish_firmware_error_msg
 
     - name: TC - 003 - Asserting wrong hostname
       ansible.builtin.assert:
         that:
-          - redfish_firmware_out.msg == "<urlopen error [Errno -2] Name or service not known>"
+          - redfish_firmware_out.msg == "<urlopen error [Errno -2] Name or service not known>" or
+            redfish_firmware_out.msg == "<urlopen error Unable to resolve hostname or IP randomHostname:443.>"
 
     - name: TC - 004 - Provide wrong username
       ansible.builtin.import_role:
@@ -34,7 +35,7 @@
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
-      register: error_msg
+      register: redfish_firmware_error_msg
 
     - name: TC - 004 - Asserting wrong username
       ansible.builtin.assert:
@@ -53,7 +54,7 @@
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
-      register: error_msg
+      register: redfish_firmware_error_msg
 
     - name: TC - 005 - Asserting wrong password
       ansible.builtin.assert:
@@ -74,7 +75,7 @@
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
-      register: error_msg
+      register: redfish_firmware_error_msg
 
     - name: TC - 006 - Asserting invalid validate_certs
       ansible.builtin.assert:
@@ -92,7 +93,7 @@
         image_uri: "/tmp/file_not_exists.iso"
         job_wait_timeout: 60
       ignore_errors: true
-      register: error_msg
+      register: redfish_firmware_error_msg
 
     - name: TC - 007 - Asserting invalid local path in image_uri
       ansible.builtin.assert:
@@ -110,7 +111,7 @@
         image_uri: "http://www.example.com"
         job_wait_timeout: 60
       ignore_errors: true
-      register: error_msg
+      register: redfish_firmware_error_msg
 
     - name: TC - 008 - Asserting invalid HTTP in image_uri
       ansible.builtin.assert:

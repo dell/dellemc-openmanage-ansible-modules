@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible firmware baseline details.
+- name: Dell OpenManage Ansible firmware baseline details.
+  hosts: ome
   gather_facts: false
 
   tasks:

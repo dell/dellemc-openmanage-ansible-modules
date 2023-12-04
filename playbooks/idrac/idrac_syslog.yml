@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Configure iDRAC syslog attributes
+- name: Configure iDRAC syslog attributes
+  hosts: idrac
   gather_facts: false
 
   tasks:

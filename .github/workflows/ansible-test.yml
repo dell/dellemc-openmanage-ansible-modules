@@ -15,15 +15,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.13, stable-2.14, stable-2.15]
+        ansible-version: [stable-2.14, stable-2.15, stable-2.16, devel]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.9
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: 3.11
 
       - name: Install ansible (${{ matrix.ansible-version }})
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
@@ -47,21 +47,15 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        python: ['3.8', '3.9', '3.10', '3.11']
+        python: ['3.9', '3.10', '3.11']
         ansible:
-          - stable-2.13
           - stable-2.14
           - stable-2.15
+          - stable-2.16
           - devel
         exclude:
-          - ansible: stable-2.13
-            python: '3.11'
-          - ansible: stable-2.14
-            python: '3.8'
-          - ansible: stable-2.15
-            python: '3.8'
-          - ansible: devel
-            python: '3.8'
+          - ansible: stable-2.16
+            python: '3.9'
           - ansible: devel
             python: '3.9'
     runs-on: ubuntu-latest
@@ -85,21 +79,15 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        python: ['3.8', '3.9', '3.10', '3.11']
+        python: ['3.9', '3.10', '3.11']
         ansible:
-          - stable-2.13
           - stable-2.14
           - stable-2.15
+          - stable-2.16
           - devel
         exclude:
-          - ansible: stable-2.13
-            python: '3.11'
-          - ansible: stable-2.14
-            python: '3.8'
-          - ansible: stable-2.15
-            python: '3.8'
-          - ansible: devel
-            python: '3.8'
+          - ansible: stable-2.16
+            python: '3.9'
           - ansible: devel
             python: '3.9'
     runs-on: ubuntu-latest
@@ -121,16 +109,10 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.9', '3.10', '3.11']
-        ansible-version: [stable-2.13, stable-2.14, stable-2.15, devel]
+        ansible-version: [stable-2.14, stable-2.15, stable-2.16, devel]
         exclude:
-          - ansible-version: stable-2.13
-            python-version: '3.11'
-          - ansible-version: stable-2.14
-            python-version: '3.8'
-          - ansible-version: stable-2.15
-            python-version: '3.8'
-          - ansible-version: devel
-            python-version: '3.8'
+          - ansible-version: stable-2.16
+            python-version: '3.9'
           - ansible-version: devel
             python-version: '3.9'
     steps:
@@ -149,7 +131,7 @@ jobs:
         run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
 
       - name: Install ansible lint
-        run: pip install ansible-lint==6.16.2 pytest --disable-pip-version-check
+        run: pip install ansible-lint pytest --disable-pip-version-check
 
       - name: Install ansible posix
         run: ansible-galaxy collection install ansible.posix

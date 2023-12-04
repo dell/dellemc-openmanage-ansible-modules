@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible - OME Power state operations.
+- name: Dell OpenManage Ansible - OME Power state operations.
+  hosts: ome
   gather_facts: false
 
   tasks:

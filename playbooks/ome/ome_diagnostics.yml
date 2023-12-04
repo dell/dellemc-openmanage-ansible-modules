@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible diagnostics operation.
+- name: Dell OpenManage Ansible diagnostics operation.
+  hosts: ome
   gather_facts: false
 
   tasks:

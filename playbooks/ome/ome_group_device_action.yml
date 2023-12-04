@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible group device operations.
+- name: Dell OpenManage Ansible group device operations.
+  hosts: ome
   gather_facts: false
   vars:
     group_name: Dell iDRAC Servers

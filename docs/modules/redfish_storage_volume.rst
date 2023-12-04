@@ -153,6 +153,42 @@ Parameters
     \ :emphasis:`raid\_type`\  is mutually exclusive with \ :emphasis:`volume\_type`\ .
 
 
+  apply_time (optional, str, None)
+    Apply time of the Volume configuration.
+
+    \ :literal:`Immediate`\  allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for \ :emphasis:`job\_wait`\ .
+
+    \ :literal:`OnReset`\  allows you to apply the changes on the next reboot of the host server.
+
+    \ :emphasis:`apply\_time`\  has a default value based on the different types of the controller. For example, BOSS-S1 and BOSS-N1 controllers have a default value of \ :emphasis:`apply\_time`\  as \ :literal:`OnReset`\ , and PERC controllers have a default value of \ :emphasis:`apply\_time`\  as \ :literal:`Immediate`\ .
+
+
+  reboot_server (optional, bool, False)
+    Reboot the server to apply the changes.
+
+    \ :emphasis:`reboot\_server`\  is applicable only when \ :emphasis:`apply\_timeout`\  is \ :literal:`OnReset`\  or when the default value for the apply time of the controller is \ :literal:`OnReset`\ .
+
+
+  force_reboot (optional, bool, False)
+    Reboot the server forcefully to apply the changes when the normal reboot fails.
+
+    \ :emphasis:`force\_reboot`\  is applicable only when \ :emphasis:`reboot\_server`\  is \ :literal:`true`\ .
+
+
+  job_wait (optional, bool, False)
+    This parameter provides the option to wait for the job completion.
+
+    This is applicable when \ :emphasis:`apply\_time`\  is \ :literal:`Immediate`\ .
+
+    This is applicable when \ :emphasis:`apply\_time`\  is \ :literal:`OnReset`\  and \ :emphasis:`reboot\_server`\  is \ :literal:`true`\ .
+
+
+  job_wait_timeout (optional, int, 1200)
+    This parameter is the maximum wait time of \ :emphasis:`job\_wait`\  in seconds.
+
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
+
+
   baseuri (True, str, None)
     IP address of the target out-of-band controller. For example- \<ipaddress\>:\<port\>.
 
@@ -232,7 +268,48 @@ Examples
         controller_id: "RAID.Slot.1-1"
         volume_type: "NonRedundant"
         drives:
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+
+    - name: Create a RAID0 on PERC controller on reset
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        apply_time: OnReset
+
+    - name: Create a RAID0 on BOSS controller with restart
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        apply_time: OnReset
+        reboot_server: true
+
+    - name: Create a RAID0 on BOSS controller with force restart
+      dellemc.openmanage.redfish_storage_volume:
+        baseuri: "192.168.0.1"
+        username: "username"
+        password: "password"
+        state: "present"
+        controller_id: "RAID.Slot.1-1"
+        raid_type: "RAID0"
+        drives:
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+        reboot_server: true
+        force_reboot: true
 
     - name: Modify a volume's encryption type settings
       dellemc.openmanage.redfish_storage_volume:
@@ -273,10 +350,10 @@ Examples
         controller_id: "RAID.Slot.1-1"
         raid_type: "RAID6"
         drives:
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
 
     - name: Create a RAID60 volume
       dellemc.openmanage.redfish_storage_volume:
@@ -287,14 +364,14 @@ Examples
         controller_id: "RAID.Slot.1-1"
         raid_type: "RAID60"
         drives:
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
-           - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
+          - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
 
 
 
@@ -305,7 +382,7 @@ msg (always, str, Successfully submitted create volume task.)
   Overall status of the storage configuration operation.
 
 
-task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/TaskService/Tasks/JID_XXXXXXXXXXXXX'})
+task (success, dict, {'id': 'JID_XXXXXXXXXXXXX', 'uri': '/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX'})
   Returns ID and URI of the created task.
 
 

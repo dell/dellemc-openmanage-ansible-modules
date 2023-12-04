@@ -3,7 +3,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.3.0
+# Version 8.5.0
 # Copyright (C) 2019-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -72,6 +72,7 @@ options:
       - Name of the volume to be created.
       - Only applicable when I(state) is C(present).
     type: str
+    aliases: ['volume_name']
   drives:
     description:
       - FQDD of the Physical disks.
@@ -134,6 +135,47 @@ options:
     type: str
     choices: [RAID0, RAID1, RAID5, RAID6, RAID10, RAID50, RAID60]
     version_added: 8.3.0
+  apply_time:
+    description:
+      - Apply time of the Volume configuration.
+      - C(Immediate) allows you to apply the volume configuration on the host server immediately and apply the changes. This is applicable for I(job_wait).
+      - C(OnReset) allows you to apply the changes on the next reboot of the host server.
+      - I(apply_time) has a default value based on the different types of the controller.
+        For example, BOSS-S1 and BOSS-N1 controllers have a default value of I(apply_time) as C(OnReset),
+        and PERC controllers have a default value of I(apply_time) as C(Immediate).
+    type: str
+    choices: [Immediate, OnReset]
+    version_added: 8.5.0
+  reboot_server:
+    description:
+      - Reboot the server to apply the changes.
+      - I(reboot_server) is applicable only when I(apply_timeout) is C(OnReset) or when the default value for the apply time of the controller is C(OnReset).
+    type: bool
+    default: false
+    version_added: 8.5.0
+  force_reboot:
+    description:
+      - Reboot the server forcefully to apply the changes when the normal reboot fails.
+      - I(force_reboot) is applicable only when I(reboot_server) is C(true).
+    type: bool
+    default: false
+    version_added: 8.5.0
+  job_wait:
+    description:
+      - This parameter provides the option to wait for the job completion.
+      - This is applicable when I(apply_time) is C(Immediate).
+      - This is applicable when I(apply_time) is C(OnReset) and I(reboot_server) is C(true).
+    type: bool
+    default: false
+    version_added: 8.5.0
+  job_wait_timeout:
+    description:
+      - This parameter is the maximum wait time of I(job_wait) in seconds.
+      - This option is applicable when I(job_wait) is C(true).
+    type: int
+    default: 1200
+    version_added: 8.5.0
+
 
 requirements:
   - "python >= 3.9.6"
@@ -179,7 +221,48 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     volume_type: "NonRedundant"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+
+- name: Create a RAID0 on PERC controller on reset
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID0"
+    drives:
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+    apply_time: OnReset
+
+- name: Create a RAID0 on BOSS controller with restart
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID0"
+    drives:
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+    apply_time: OnReset
+    reboot_server: true
+
+- name: Create a RAID0 on BOSS controller with force restart
+  dellemc.openmanage.redfish_storage_volume:
+    baseuri: "192.168.0.1"
+    username: "username"
+    password: "password"
+    state: "present"
+    controller_id: "RAID.Slot.1-1"
+    raid_type: "RAID0"
+    drives:
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+    reboot_server: true
+    force_reboot: true
 
 - name: Modify a volume's encryption type settings
   dellemc.openmanage.redfish_storage_volume:
@@ -220,10 +303,10 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     raid_type: "RAID6"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
 
 - name: Create a RAID60 volume
   dellemc.openmanage.redfish_storage_volume:
@@ -234,14 +317,14 @@ EXAMPLES = r'''
     controller_id: "RAID.Slot.1-1"
     raid_type: "RAID60"
     drives:
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
-       - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-2
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-3
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-4
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-5
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-6
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-7
+      - Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-8
 '''
 
 RETURN = r'''
@@ -257,7 +340,7 @@ task:
   returned: success
   sample: {
     "id": "JID_XXXXXXXXXXXXX",
-    "uri": "/redfish/v1/TaskService/Tasks/JID_XXXXXXXXXXXXX"
+    "uri": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/JID_XXXXXXXXXXXXX"
   }
 error_info:
   type: dict
@@ -293,6 +376,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.redfish import 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import MANAGER_JOB_ID_URI, wait_for_redfish_reboot_job, \
+    strip_substr_dict, wait_for_job_completion
 
 
 VOLUME_INITIALIZE_URI = "{storage_base_uri}/Volumes/{volume_id}/Actions/Volume.Initialize"
@@ -301,10 +386,21 @@ CONTROLLER_URI = "{storage_base_uri}/{controller_id}"
 SETTING_VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}/Settings"
 CONTROLLER_VOLUME_URI = "{storage_base_uri}/{controller_id}/Volumes"
 VOLUME_ID_URI = "{storage_base_uri}/Volumes/{volume_id}"
+APPLY_TIME_INFO_API = CONTROLLER_URI + "/Volumes"
+REBOOT_API = "Actions/ComputerSystem.Reset"
 storage_collection_map = {}
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 RAID_TYPE_NOT_SUPPORTED_MSG = "RAID Type {raid_type} is not supported."
+APPLY_TIME_NOT_SUPPORTED_MSG = "Apply time {apply_time} is not supported. The supported values \
+are {supported_apply_time_values}. Enter the valid values and retry the operation."
+JOB_COMPLETION = "The job is successfully completed."
+JOB_SUBMISSION = "The job is successfully submitted."
+JOB_FAILURE_PROGRESS_MSG = "Unable to complete the task initiated for creating the storage volume."
+REBOOT_FAIL = "Failed to reboot the server."
+CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
+TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The parameter job_wait_timeout value cannot be negative or zero."
+SYSTEM_ID = "System.Embedded.1"
 volume_type_map = {"NonRedundant": "RAID0",
                    "Mirrored": "RAID1",
                    "StripedWithParity": "RAID5",
@@ -319,6 +415,7 @@ def fetch_storage_resource(module, session_obj):
         system_members = system_resp.json_data.get("Members")
         if system_members:
             system_id_res = system_members[0]["@odata.id"]
+            SYSTEM_ID = system_id_res.split('/')[-1]
             system_id_res_resp = session_obj.invoke_request("GET", system_id_res)
             system_id_res_data = system_id_res_resp.json_data.get("Storage")
             if system_id_res_data:
@@ -346,6 +443,7 @@ def volume_payload(module):
     encryption_types = params.get("encryption_types")
     volume_type = params.get("volume_type")
     raid_type = params.get("raid_type")
+    apply_time = params.get("apply_time")
     if capacity_bytes:
         capacity_bytes = int(capacity_bytes)
     if drives:
@@ -370,6 +468,8 @@ def volume_payload(module):
         raid_payload.update({"RAIDType": volume_type_map.get(volume_type)})
     if raid_type:
         raid_payload.update({"RAIDType": raid_type})
+    if apply_time is not None:
+        raid_payload.update({"@Redfish.OperationApplyTime": apply_time})
     return raid_payload
 
 
@@ -406,8 +506,6 @@ def check_specified_identifier_exists_in_the_system(module, session_obj, uri, er
         return resp
     except HTTPError as err:
         if err.code == 404:
-            if module.check_mode:
-                return err
             module.exit_json(msg=err_message, failed=True)
         raise err
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
@@ -420,8 +518,7 @@ def check_controller_id_exists(module, session_obj):
     """
     specified_controller_id = module.params.get("controller_id")
     uri = CONTROLLER_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=specified_controller_id)
-    err_message = "Specified Controller {0} does " \
-                  "not exist in the System.".format(specified_controller_id)
+    err_message = CONTROLLER_NOT_EXIST_ERROR.format(controller_id=specified_controller_id)
     resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, err_message)
     if resp.success:
         return check_physical_disk_exists(module, resp.json_data["Drives"])
@@ -541,6 +638,37 @@ def check_raid_type_supported(module, session_obj):
             raise err
 
 
+def get_apply_time(module, session_obj, controller_id):
+    """
+    gets the apply time from user if given otherwise fetches from server
+    """
+    apply_time = module.params.get("apply_time")
+    try:
+        uri = APPLY_TIME_INFO_API.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
+        resp = session_obj.invoke_request("GET", uri)
+        supported_apply_time_values = resp.json_data['@Redfish.OperationApplyTimeSupport']['SupportedValues']
+        if apply_time:
+            if apply_time not in supported_apply_time_values:
+                module.exit_json(msg=APPLY_TIME_NOT_SUPPORTED_MSG.format(apply_time=apply_time, supported_apply_time_values=supported_apply_time_values),
+                                 failed=True)
+        else:
+            apply_time = supported_apply_time_values[0]
+        return apply_time
+    except (HTTPError, URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
+        raise err
+
+
+def check_apply_time_supported_and_reboot_required(module, session_obj, controller_id):
+    """
+    checks whether the apply time is supported and reboot operation is required or not.
+    """
+    apply_time = get_apply_time(module, session_obj, controller_id)
+    reboot_server = module.params.get("reboot_server")
+    if reboot_server and apply_time == "OnReset":
+        return True
+    return False
+
+
 def perform_volume_create_modify(module, session_obj):
     """
     perform volume creation and modification for state present
@@ -548,6 +676,7 @@ def perform_volume_create_modify(module, session_obj):
     specified_controller_id = module.params.get("controller_id")
     volume_id = module.params.get("volume_id")
     check_raid_type_supported(module, session_obj)
+    action, uri, method = None, None, None
     if specified_controller_id is not None:
         check_controller_id_exists(module, session_obj)
         uri = CONTROLLER_VOLUME_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"],
@@ -656,6 +785,76 @@ def validate_inputs(module):
                          " volume_id must be specified to perform further actions.")
 
 
+def perform_force_reboot(module, session_obj):
+    payload = {"ResetType": "ForceRestart"}
+    job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
+    if reset_status and job_resp_status:
+        job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+        resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
+        if resp:
+            job_data = strip_substr_dict(resp.json_data)
+            if job_data["JobState"] == "Failed":
+                module.exit_json(msg=REBOOT_FAIL, job_status=job_data, failed=True)
+        else:
+            resp = session_obj.invoke_request("GET", job_uri)
+            job_data = strip_substr_dict(resp.json_data)
+            module.exit_json(msg=msg, job_status=job_data)
+
+
+def perform_reboot(module, session_obj):
+    payload = {"ResetType": "GracefulRestart"}
+    force_reboot = module.params.get("force_reboot")
+    job_resp_status, reset_status, reset_fail = wait_for_redfish_reboot_job(session_obj, SYSTEM_ID, payload=payload)
+    if reset_status and job_resp_status:
+        job_uri = MANAGER_JOB_ID_URI.format(job_resp_status["Id"])
+        resp, msg = wait_for_job_completion(session_obj, job_uri, wait_timeout=module.params.get("job_wait_timeout"))
+        if resp:
+            job_data = strip_substr_dict(resp.json_data)
+            if force_reboot and job_data["JobState"] == "Failed":
+                perform_force_reboot(module, session_obj)
+        else:
+            resp = session_obj.invoke_request("GET", job_uri)
+            job_data = strip_substr_dict(resp.json_data)
+            module.exit_json(msg=msg, job_status=job_data)
+
+
+def check_job_tracking_required(module, session_obj, reboot_required, controller_id):
+    job_wait = module.params.get("job_wait")
+    apply_time = None
+    if controller_id:
+        apply_time = get_apply_time(module, session_obj, controller_id)
+    if job_wait:
+        if apply_time == "OnReset" and not reboot_required:
+            return False
+        return True
+    return False
+
+
+def track_job(module, session_obj, job_id, job_url):
+    resp, msg = wait_for_job_completion(session_obj, job_url,
+                                        wait_timeout=module.params.get("job_wait_timeout"))
+    if resp:
+        job_data = strip_substr_dict(resp.json_data)
+        if job_data["JobState"] == "Failed":
+            changed, failed = False, True
+            module.exit_json(msg=JOB_FAILURE_PROGRESS_MSG, task={"id": job_id, "uri": job_url},
+                             changed=changed, job_status=job_data, failed=failed)
+        elif job_data["JobState"] == "Scheduled":
+            task_status = {"uri": job_url, "id": job_id}
+            module.exit_json(msg=JOB_SUBMISSION, task=task_status, job_status=job_data, changed=True)
+        else:
+            changed, failed = True, False
+            module.exit_json(msg=JOB_COMPLETION, task={"id": job_id, "uri": job_url},
+                             changed=changed, job_status=job_data, failed=failed)
+    else:
+        module.exit_json(msg=msg)
+
+
+def validate_negative_job_time_out(module):
+    if module.params.get("job_wait") and module.params.get("job_wait_timeout") <= 0:
+        module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+
+
 def main():
     specs = {
         "state": {"type": "str", "required": False, "choices": ['present', 'absent']},
@@ -667,7 +866,7 @@ def main():
         "raid_type": {"type": "str", "required": False,
                       "choices": ['RAID0', 'RAID1', 'RAID5',
                                   'RAID6', 'RAID10', 'RAID50', 'RAID60']},
-        "name": {"required": False, "type": "str"},
+        "name": {"required": False, "type": "str", "aliases": ['volume_name']},
         "controller_id": {"required": False, "type": "str"},
         "drives": {"elements": "str", "required": False, "type": "list"},
         "block_size_bytes": {"required": False, "type": "int"},
@@ -679,6 +878,11 @@ def main():
         "volume_id": {"required": False, "type": "str"},
         "oem": {"required": False, "type": "dict"},
         "initialize_type": {"type": "str", "required": False, "choices": ['Fast', 'Slow'], "default": "Fast"},
+        "apply_time": {"required": False, "type": "str", "choices": ['Immediate', 'OnReset']},
+        "reboot_server": {"required": False, "type": "bool", "default": False},
+        "force_reboot": {"required": False, "type": "bool", "default": False},
+        "job_wait": {"required": False, "type": "bool", "default": False},
+        "job_wait_timeout": {"required": False, "type": "int", "default": 1200}
     }
 
     specs.update(redfish_auth_params)
@@ -693,11 +897,35 @@ def main():
 
     try:
         validate_inputs(module)
+        validate_negative_job_time_out(module)
         with Redfish(module.params, req_session=True) as session_obj:
             fetch_storage_resource(module, session_obj)
+            controller_id = module.params.get("controller_id")
+            volume_id = module.params.get("volume_id")
+            reboot_server = module.params.get("reboot_server")
+            reboot_required = module.params.get("reboot_required")
+            if controller_id:
+                uri = CONTROLLER_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
+                resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, CONTROLLER_NOT_EXIST_ERROR.format(controller_id=controller_id))
+                reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj, controller_id)
             status_message = configure_raid_operation(module, session_obj)
-            task_status = {"uri": status_message.get("task_uri"), "id": status_message.get("task_id")}
-            module.exit_json(msg=status_message["msg"], task=task_status, changed=True)
+            if volume_id and reboot_server:
+                controller_id = volume_id.split(":")[-1]
+                uri = CONTROLLER_URI.format(storage_base_uri=storage_collection_map["storage_base_uri"], controller_id=controller_id)
+                resp = check_specified_identifier_exists_in_the_system(module, session_obj, uri, CONTROLLER_NOT_EXIST_ERROR.format(controller_id=controller_id))
+                reboot_required = check_apply_time_supported_and_reboot_required(module, session_obj, controller_id)
+            if reboot_required:
+                perform_reboot(module, session_obj)
+            job_tracking_required = check_job_tracking_required(module, session_obj, reboot_required, controller_id)
+            job_id = status_message.get("task_id")
+            job_url = MANAGER_JOB_ID_URI.format(job_id)
+            if job_tracking_required:
+                track_job(module, session_obj, job_id, job_url)
+            else:
+                task_status = {"uri": job_url, "id": job_id}
+                resp = session_obj.invoke_request("GET", job_url)
+                job_data = strip_substr_dict(resp.json_data)
+                module.exit_json(msg=status_message["msg"], task=task_status, job_status=job_data, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:

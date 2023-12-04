@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: "OME - Create Catalog using Repository."
+- name: "OME - Create Catalog using Repository."
+  hosts: ome
   gather_facts: false
 
   tasks:

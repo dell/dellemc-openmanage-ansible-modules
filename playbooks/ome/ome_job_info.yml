@@ -1,6 +1,6 @@
 ---
-- hosts: ome
-  name: Dell OpenManage Ansible job details.
+- name: Dell OpenManage Ansible job details.
+  hosts: ome
   gather_facts: false
 
   tasks:

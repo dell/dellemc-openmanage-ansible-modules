@@ -4,11 +4,6 @@
   ansible.builtin.set_fact:
     redfish_storage_volume_baseuri: "{{ hostname }}:{{ https_port }}"
 
-- name: Get the volume type from the mapping
-  ansible.builtin.set_fact:
-    redfish_storage_volume_volume_type: "{{ volume_type_map[raid_type] }}"
-  when: raid_type is defined
-
 - name: Performing the operation on redfish storage volume
   dellemc.openmanage.redfish_storage_volume:
     baseuri: "{{ redfish_storage_volume_baseuri }}"
@@ -16,40 +11,24 @@
     password: "{{ password }}"
     timeout: "{{ https_timeout }}"
     validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
     state: "{{ state | default(omit) }}"
     controller_id: "{{ controller_id | default(omit) }}"
-    volume_type: "{{ redfish_storage_volume_volume_type | default(omit) }}"
+    raid_type: "{{ raid_type | default(omit) }}"
     drives: "{{ drives | default([]) }}"
-    name: "{{ name | default(omit) }}"
+    volume_name: "{{ volume_name | default(name) | default(omit) }}"
     volume_id: "{{ volume_id | default(omit) }}"
     initialize_type: "{{ initialization_type | default(omit) }}"
     command: "{{ command | default(omit) }}"
     encryption_types: "{{ encryption_types | default(omit) }}"
     encrypted: "{{ encrypted | default(omit) }}"
-    block_size_bytes: "{{ block_size_bytes | default(omit) | int }}"
+    block_size_bytes: "{{ block_size_bytes | default(omit) }}"
     capacity_bytes: "{{ capacity_bytes | default(omit) }}"
-    optimum_io_size_bytes: "{{ optimum_to_size_bytes | default(omit) | int }}"
+    optimum_io_size_bytes: "{{ optimum_io_size_bytes | default(omit) }}"
+    apply_time: "{{ apply_time | default(omit) }}"
+    reboot_server: "{{ reboot_server | default(omit) }}"
+    force_reboot: "{{ force_reboot | default(omit) }}"
+    job_wait: "{{ job_wait | default(omit) }}"
+    job_wait_timeout: "{{ job_wait_timeout | default(omit) }}"
   register: redfish_storage_volume_out
   delegate_to: "{{ redfish_storage_volume_delegate }}"
-
-- name: Checking job status
-  ansible.builtin.uri:
-    url: "https://{{ redfish_storage_volume_baseuri }}{{ redfish_storage_volume_out.task.uri }}"
-    user: "{{ username }}"
-    password: "{{ password }}"
-    timeout: "{{ https_timeout }}"
-    validate_certs: "{{ validate_certs }}"
-    method: "GET"
-    status_code: 200, 202
-    return_content: true
-    force_basic_auth: true
-    headers:
-      Content-Type: "application/json"
-      Accept: "application/json"
-  register: job_result
-  delegate_to: "{{ redfish_storage_volume_delegate }}"
-  failed_when: "'json' not in job_result"
-  until: job_result.json.TaskState == 'Completed' or job_result.json.TaskState == 'Pending'
-  retries: "{{ job_wait_timeout // polling_interval }}"
-  delay: "{{ polling_interval }}"
-  when: job_wait is true and not ansible_check_mode

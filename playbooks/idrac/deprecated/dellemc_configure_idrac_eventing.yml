@@ -1,6 +1,6 @@
 ---
-- hosts: idrac
-  name: Configure the iDRAC eventing attributes
+- name: Configure the iDRAC eventing attributes
+  hosts: idrac
   gather_facts: false
 
   tasks:

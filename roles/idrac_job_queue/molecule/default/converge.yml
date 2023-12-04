@@ -66,7 +66,7 @@
         - name: "Verifying job queue clear with an invalid username"
           ansible.builtin.assert:
             that:
-              - "'<urlopen error [Errno -2] Name or service not known>' in idrac_job_queue_out.msg"
+              - "'The authentication credentials included with this request are missing or invalid.' in idrac_job_queue_out.msg"
 
     - name: Clear job queue
       block:
@@ -83,4 +83,4 @@
         - name: "Verifying job queue clear with an invalid password"
           ansible.builtin.assert:
             that:
-              - "'<urlopen error [Errno -2] Name or service not known>' in idrac_job_queue_out.msg"
+              - "'The authentication credentials included with this request are missing or invalid.' in idrac_job_queue_out.msg"
