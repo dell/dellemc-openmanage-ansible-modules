@@ -43,8 +43,8 @@ except ImportError:
 
 idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
-    "idrac_user": {"required": True, "type": 'str', "fallback": (env_fallback, ['iDRAC_USERNAME'])},
-    "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True, "fallback": (env_fallback, ['iDRAC_PASSWORD'])},
+    "idrac_user": {"required": True, "type": 'str', "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+    "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
     "idrac_port": {"required": False, "default": 443, "type": 'int'},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},

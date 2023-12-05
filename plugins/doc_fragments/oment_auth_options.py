@@ -22,11 +22,17 @@ options:
     type: str
     required: true
   username:
-    description: OpenManage Enterprise username.
+    description: 
+      - OpenManage Enterprise username.
+      - If the username is not set, then the environment variable C(OME_USERNAME) is used.
+      - Example: export OME_USERNAME=username
     type: str
     required: true
   password:
-    description: OpenManage Enterprise password.
+    description: 
+      - OpenManage Enterprise password.
+      - If the password is not set, then the environment variable C(OME_PASSWORD) is used.
+      - Example: export OME_PASSWORD=password
     type: str
     required: true
   port:
