@@ -32,7 +32,7 @@ options:
       - C(export), export the certificate. This requires I(certificate_path).
       - C(reset), reset the certificate to default settings. This is applicable only for C(HTTPS).
     type: str
-    choices: ['import', 'export', 'generate_csr', 'reset']
+    choices: [import, export, generate_csr, reset]
     default: 'generate_csr'
   certificate_type:
     description:
@@ -44,7 +44,7 @@ options:
       - C(CSC) The custom signing SSL certificate.
       - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
     type: str
-    choices: ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE']
+    choices: [HTTPS, CA, CUSTOMCERTIFICATE, CSC, CLIENT_TRUST_CERTIFICATE]
     default: 'HTTPS'
   certificate_path:
     description:
