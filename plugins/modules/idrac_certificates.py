@@ -14,7 +14,7 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
 module: idrac_certificates
 short_description: Configure certificates for iDRAC
@@ -116,9 +116,9 @@ notes:
     - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
-'''
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 ---
 - name: Generate HTTPS certificate signing request
   dellemc.openmanage.idrac_certificates:
@@ -189,7 +189,7 @@ EXAMPLES = r'''
     command: "export"
     certificate_type: "CLIENT_TRUST_CERTIFICATE"
     certificate_path: "/home/omam/mycert_dir"
-'''
+"""
 
 RETURN = r'''
 ---
