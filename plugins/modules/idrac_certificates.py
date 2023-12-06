@@ -39,8 +39,8 @@ options:
       - Type of the iDRAC certificate.
       - C(HTTPS) The Dell self-signed SSL certificate.
       - C(CA) Certificate Authority(CA) signed SSL certificate.
-      - C(CUSTOMCERTIFICATE) The custom PKCS12 certificate and private key. Export of custom certificate
-      is supported only on iDRAC firmware version 7.00.00.00 and above.
+      - C(CUSTOMCERTIFICATE) The custom PKCS12 certificate and private key. Export of custom certificate is supported only on iDRAC firmware version 7.00.00.00
+        and above.
       - C(CSC) The custom signing SSL certificate.
       - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
     type: str

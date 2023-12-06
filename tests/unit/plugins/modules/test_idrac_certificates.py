@@ -248,7 +248,7 @@ class TestIdracCertificates(FakeAnsibleModule):
                                          "dynurl": "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"},
                                         {"actions": {}, "op": "import",
                                          "certype": 'Server', "res_id": "iDRAC.1",
-                                         "dynurl": "/redfish/v1/Managers/iDRAC.1/Oem/Dell/DelliDRACCardService/Actions/" \
+                                         "dynurl": "/redfish/v1/Managers/iDRAC.1/Oem/Dell/DelliDRACCardService/Actions/"
                                          "DelliDRACCardService.ImportSSLCertificate"}
                                         ])
     def test_get_cert_url(self, params):
