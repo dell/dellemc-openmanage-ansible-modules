@@ -39,10 +39,12 @@ options:
       - Type of the iDRAC certificate.
       - C(HTTPS) The Dell self-signed SSL certificate.
       - C(CA) Certificate Authority(CA) signed SSL certificate.
-      - C(CSC) The custom signed SSL certificate.
+      - C(CUSTOMCERTIFICATE) The custom PKCS12 certificate and private key. Export of custom certificate
+      is supported only on iDRAC firmware version 7.00.00.00 and above.
+      - C(CSC) The custom signing SSL certificate.
       - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
     type: str
-    choices: ['HTTPS', 'CA', 'CSC', 'CLIENT_TRUST_CERTIFICATE']
+    choices: ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE']
     default: 'HTTPS'
   certificate_path:
     description:
@@ -108,8 +110,10 @@ requirements:
   - "python >= 3.8.6"
 author:
   - "Jagadeesh N V(@jagadeeshnv)"
+  - "Rajshekar P(@rajshekarp87)"
+  - "Kristian Lamb V(@kristian_lamb)"
 notes:
-    - The certificate operations are supported on iDRAC firmware 5.10.10.00 and above.
+    - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
 '''
@@ -165,6 +169,16 @@ EXAMPLES = r'''
     command: "import"
     certificate_type: "CSC"
     certificate_path: "/path/to/cert.pem"
+
+- name: Import a custom certificate with a passphrase.
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    command: "import"
+    certificate_type: "CUSTOMCERTIFICATE"
+    certificate_path: "/path/to/idrac_cert.p12"
+    passphrase: "cert_passphrase"
 
 - name: Export a Client trust certificate.
   dellemc.openmanage.idrac_certificates:
@@ -222,7 +236,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
 
 NOT_SUPPORTED_ACTION = "Certificate {op} not supported for the specified certificate type {certype}."
-SUCCESS_MSG = "Successfully performed the '{command}' operation."
+SUCCESS_MSG = "Successfully performed the '{command}' operation. "
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 SYSTEM_ID = "System.Embedded.1"
@@ -230,11 +244,11 @@ MANAGER_ID = "iDRAC.Embedded.1"
 ACTIONS_PFIX = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService."
 SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
-IDRAC_SERVICE = "/redfish/v1/Dell/Managers/{res_id}/DelliDRACCardService"
+IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
-IMPORT_SSL = "/redfish/v1/Dell/Managers/{res_id}/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
-EXPORT_SSL = "/redfish/v1/Dell/Managers/{res_id}/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
-RESET_SSL = "/redfish/v1/Dell/Managers/{res_id}/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
+IMPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
+EXPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
+RESET_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 
 idrac_service_actions = {
@@ -273,10 +287,12 @@ csr_transform = {"common_name": "CommonName",
 action_url_map = {"generate_csr": {},
                   "import": {'Server': "#DelliDRACCardService.ImportSSLCertificate",
                              'CA': "#DelliDRACCardService.ImportSSLCertificate",
+                             'CustomCertificate': "#DelliDRACCardService.ImportSSLCertificate",
                              'CSC': "#DelliDRACCardService.ImportSSLCertificate",
                              'ClientTrustCertificate': "#DelliDRACCardService.ImportSSLCertificate"},
                   "export": {'Server': "#DelliDRACCardService.ExportSSLCertificate",
                              'CA': "#DelliDRACCardService.ExportSSLCertificate",
+                             'CustomCertificate': "#DelliDRACCardService.ExportSSLCertificate",
                              'CSC': "#DelliDRACCardService.ExportSSLCertificate",
                              'ClientTrustCertificate': "#DelliDRACCardService.ExportSSLCertificate"},
                   "reset": {'Server': "#DelliDRACCardService.SSLResetCfg"}}
@@ -284,14 +300,16 @@ action_url_map = {"generate_csr": {},
 dflt_url_map = {"generate_csr": {'Server': CSR_SSL},
                 "import": {'Server': IMPORT_SSL,
                            'CA': IMPORT_SSL,
+                           'CUSTOMCERTIFICATE': IMPORT_SSL,
                            'CSC': IMPORT_SSL,
                            'ClientTrustCertificate': IMPORT_SSL},
                 "export": {'Server': EXPORT_SSL,
                            'CA': EXPORT_SSL,
+                           'CUSTOMCERTIFICATE': EXPORT_SSL,
                            'CSC': EXPORT_SSL,
                            'ClientTrustCertificate': EXPORT_SSL},
                 "reset": {'Server': RESET_SSL}}
-certype_map = {'HTTPS': "Server", 'CA': "CA", 'CSC': "CSC",
+certype_map = {'HTTPS': "Server", 'CA': "CA", 'CUSTOMCERTIFICATE': "CustomCertificate", 'CSC': "CSC",
                'CLIENT_TRUST_CERTIFICATE': "ClientTrustCertificate"}
 
 
@@ -331,6 +349,7 @@ def get_ssl_payload(module, op, certype):
 
 payload_map = {"Server": get_ssl_payload,
                "CA": get_ssl_payload,
+               "CustomCertificate": get_ssl_payload,
                "CSC": get_ssl_payload,
                "ClientTrustCertificate": get_ssl_payload}
 
@@ -389,7 +408,7 @@ def certificate_action(module, idrac, actions, op, certype, res_id):
 
 
 def write_to_file(module, cert_data, dkey):
-    f_ext = {'HTTPS': ".pem", 'CA': ".pem", 'CSC': ".crt", 'CLIENT_TRUST_CERTIFICATE': ".crt"}
+    f_ext = {'HTTPS': ".pem", 'CA': ".pem", "CUSTOMCERTIFICATE": ".crt", 'CSC': ".crt", 'CLIENT_TRUST_CERTIFICATE': ".crt"}
     path = module.params.get('certificate_path')
     if not (os.path.exists(path) or os.path.isdir(path)):
         module.exit_json(msg="Provided directory path '{0}' is not valid.".format(path), failed=True)
@@ -445,8 +464,8 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, certype, re
     result = {"changed": changed}
     reset_msg = ""
     if changed:
-        reset_msg = " Reset iDRAC to apply new certificate." \
-                    " Until iDRAC is reset, the old certificate will be active."
+        reset_msg = "Reset iDRAC to apply the new certificate." \
+                    " Until the iDRAC is reset, the old certificate will remain active."
     if module.params.get('command') == 'import':
         export_cert = get_export_data(idrac, certype, res_id)
         if cert_payload.get('SSLCertificateFile') in export_cert:
@@ -471,7 +490,7 @@ def main():
         "command": {"type": 'str', "default": 'generate_csr',
                     "choices": ['generate_csr', 'export', 'import', 'reset']},
         "certificate_type": {"type": 'str', "default": 'HTTPS',
-                             "choices": ['HTTPS', 'CA', 'CSC', 'CLIENT_TRUST_CERTIFICATE']},
+                             "choices": ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE']},
         "certificate_path": {"type": 'path'},
         "passphrase": {"type": 'str', "no_log": True},
         "cert_params": {"type": 'dict', "options": {
@@ -509,12 +528,12 @@ def main():
             actions_map = get_actions_map(idrac, idrac_service_uri)
             certificate_action(module, idrac, actions_map, op, certype, res_id)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
             ConnectionError, KeyError, TypeError, IndexError) as e:
-        module.fail_json(msg=str(e))
+        module.exit_json(msg=str(e), failed=True)
 
 
 if __name__ == '__main__':

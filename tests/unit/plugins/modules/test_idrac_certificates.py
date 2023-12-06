@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.6.0
+# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -37,11 +37,11 @@ SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
-IDRAC_SERVICE = "/redfish/v1/Dell/Managers/{res_id}/DelliDRACCardService"
+IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
-IMPORT_SSL = "/redfish/v1/Dell/Managers/{res_id}/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
-EXPORT_SSL = "/redfish/v1/Dell/Managers/{res_id}/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
-RESET_SSL = "/redfish/v1/Dell/Managers/{res_id}/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
+IMPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
+EXPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
+RESET_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 idrac_service_actions = {
     "#DelliDRACCardService.DeleteCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.DeleteCertificate",
@@ -198,7 +198,7 @@ class TestIdracCertificates(FakeAnsibleModule):
     },
         "idrac_srv": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService', "res_id": "iDRAC.1"},
         {"json_data": {"Members": []},
-         "idrac_srv": '/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DelliDRACCardService', "res_id": MANAGER_ID}
+         "idrac_srv": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService', "res_id": MANAGER_ID}
     ])
     def test_get_idrac_service(
             self, params, idrac_redfish_mock_for_certs, ome_response_mock):
@@ -210,12 +210,12 @@ class TestIdracCertificates(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [{"json_data": {
         "Actions": {
             "#DelliDRACCardService.ExportSSLCertificate": {
-                "SSLCertType@Redfish.AllowableValues": ["CA", "CSC", "ClientTrustCertificate", "Server"],
+                "SSLCertType@Redfish.AllowableValues": ["CA", "CSC", "CustomCertificate", "ClientTrustCertificate", "Server"],
                 "target":
                     "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
             },
             "#DelliDRACCardService.ImportSSLCertificate": {
-                "CertificateType@Redfish.AllowableValues": ["CA", "CSC", "ClientTrustCertificate", "Server"],
+                "CertificateType@Redfish.AllowableValues": ["CA", "CSC", "CustomCertificate", "ClientTrustCertificate", "Server"],
                 "target":
                     "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
             },
@@ -233,7 +233,7 @@ class TestIdracCertificates(FakeAnsibleModule):
             '#DelliDRACCardService.SSLResetCfg':
                 '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg'}},
         {"json_data": {"Members": []},
-         "idrac_service_uri": '/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DelliDRACCardService',
+         "idrac_service_uri": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService',
          "actions": idrac_service_actions}
     ])
     def test_get_actions_map(
@@ -248,7 +248,7 @@ class TestIdracCertificates(FakeAnsibleModule):
                                          "dynurl": "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"},
                                         {"actions": {}, "op": "import",
                                          "certype": 'Server', "res_id": "iDRAC.1",
-                                         "dynurl": "/redfish/v1/Dell/Managers/iDRAC.1/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"}
+                                         "dynurl": "/redfish/v1/Managers/iDRAC.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"}
                                         ])
     def test_get_cert_url(self, params):
         dynurl = self.module.get_cert_url(params.get('actions'), params.get('op'), params.get('certype'),
