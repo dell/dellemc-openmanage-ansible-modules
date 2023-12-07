@@ -35,11 +35,12 @@ import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+from ansible.module_utils.common.parameters import env_fallback
 
 redfish_auth_params = {
     "baseuri": {"required": True, "type": "str"},
-    "username": {"required": True, "type": "str"},
-    "password": {"required": True, "type": "str", "no_log": True},
+    "username": {"required": True, "type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+    "password": {"required": True, "type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
