@@ -22,14 +22,14 @@ options:
     type: str
     required: true
   username:
-    description: 
+    description:
       - Username of the target out-of-band controller.
       - If the username is not provided, then the environment variable C(IDRAC_USERNAME) is used.
       - "Example: export IDRAC_USERNAME=username"
     type: str
     required: true
   password:
-    description: 
+    description:
       - Password of the target out-of-band controller.
       - If the password is not provided, then the environment variable C(IDRAC_PASSWORD) is used.
       - "Example: export IDRAC_PASSWORD=password"
