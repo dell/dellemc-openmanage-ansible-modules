@@ -2,8 +2,8 @@
 - name: Setting uri options
   ansible.builtin.set_fact:
     idrac_opts: &idrac_opts
-      user: "{{ username | default(lookup('env', 'iDRAC_USERNAME')) }}"
-      password: "{{ password | default(lookup('env', 'iDRAC_PASSWORD')) }}"
+      user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+      password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
       validate_certs: "{{ validate_certs }}"
       ca_path: "{{ ca_path | default(omit) }}"
       headers: "{{ idrac_reset_uri_headers }}"
