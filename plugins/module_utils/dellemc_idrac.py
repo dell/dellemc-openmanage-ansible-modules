@@ -29,8 +29,8 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 import os
-import socket
 from ansible.module_utils.common.parameters import env_fallback
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
@@ -82,14 +82,8 @@ class iDRACConnection:
             raise RuntimeError(msg)
 
     def __enter__(self):
-        try:
-            data = socket.getaddrinfo(self.idrac_ip, self.idrac_port)
-            if "AF_INET6" == data[0][0]._name_:
-                ip_byte = socket.inet_pton(socket.AF_INET6, self.idrac_ip)
-                ip_addr = socket.inet_ntop(socket.AF_INET6, ip_byte)
-                self.idrac_ip = "{0}".format(ip_addr)
-        except socket.gaierror:
-            pass
+        self.idrac_ip = config_ipv6(self.idrac_ip, omsdk_used=True)
+        self.idrac_ip = self.idrac_ip.strip('[]')
         self.sdk.importPath()
         protopref = ProtoPreference(ProtocolEnum.WSMAN)
         protopref.include_only(ProtocolEnum.WSMAN)

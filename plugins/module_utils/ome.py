@@ -33,11 +33,11 @@ __metaclass__ = type
 import json
 import os
 import time
-import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.common.parameters import env_fallback
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 
 ome_auth_params = {
     "hostname": {"required": True, "type": "str"},
@@ -104,15 +104,7 @@ class RestOME(object):
         self.session_id = None
         self.protocol = 'https'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-        try:
-            data = socket.getaddrinfo(self.hostname, self.port)
-            lastuple = data[-1]
-            self.hostname = lastuple[-1][0]
-            if "AF_INET6" == data[0][0]._name_:
-                self.hostname = "[{0}]".format(self.hostname)
-        except Exception:
-            msg = HOST_UNRESOLVED_MSG.format(self.hostname)
-            raise URLError(msg)
+        self.hostname = config_ipv6(self.hostname)
 
     def _get_base_url(self):
         """builds base url"""
