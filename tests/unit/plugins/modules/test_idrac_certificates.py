@@ -27,6 +27,7 @@ from mock import MagicMock
 
 NOT_SUPPORTED_ACTION = "Certificate {op} not supported for the specified certificate type {certype}."
 SUCCESS_MSG = "Successfully performed the '{command}' operation. "
+SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' operation. "
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 NO_RESET = "Reset iDRAC to apply the new certificate. Until the iDRAC is reset, the old certificate will remain active."
@@ -40,6 +41,7 @@ MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
 IMPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
+UPLOAD_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.UploadSSLKey"
 EXPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
 RESET_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
@@ -56,6 +58,7 @@ idrac_service_actions = {
     "#DelliDRACCardService.GenerateSEKMCSR": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.GenerateSEKMCSR",
     "#DelliDRACCardService.ImportCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportCertificate",
     "#DelliDRACCardService.ImportSSLCertificate": IMPORT_SSL,
+    "#DelliDRACCardService.UploadSSLKey": UPLOAD_SSL,
     "#DelliDRACCardService.SSLResetCfg": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg",
     "#DelliDRACCardService.iDRACReset": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.iDRACReset"
 }

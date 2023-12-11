@@ -54,6 +54,13 @@ options:
   passphrase:
     description: The passphrase string if the certificate to be imported is passphrase protected.
     type: str
+  ssl_key:
+    description:
+    - Absolute path of the private or SSL key file.
+    - This is applicable only when I(command) is C(import) and I(certificate_type) is C(HTTPS).
+    - Uploading the SSL key to iDRAC is supported on firmware version 6.00.02.00 and above.
+    type: path
+    version_added: 8.6.0
   cert_params:
     description: Certificate parameters to generate signing request.
     type: dict
@@ -150,6 +157,17 @@ EXAMPLES = r"""
     certificate_type: "HTTPS"
     certificate_path: "/path/to/cert.pem"
 
+- name: Import an HTTPS certificate along with its private key.
+  dellemc.openmanage.idrac_certificates:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "user_name"
+    idrac_password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "import"
+    certificate_type: "HTTPS"
+    certificate_path: "/path/to/cert.pem"
+    ssl_key: "/path/to/private_key.pem"
+
 - name: Export a HTTPS certificate.
   dellemc.openmanage.idrac_certificates:
     idrac_ip: "192.168.0.1"
@@ -179,6 +197,7 @@ EXAMPLES = r"""
     certificate_type: "CUSTOMCERTIFICATE"
     certificate_path: "/path/to/idrac_cert.p12"
     passphrase: "cert_passphrase"
+    reset: false
 
 - name: Export a Client trust certificate.
   dellemc.openmanage.idrac_certificates:
@@ -237,6 +256,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import re
 
 NOT_SUPPORTED_ACTION = "Certificate {op} not supported for the specified certificate type {certype}."
 SUCCESS_MSG = "Successfully performed the '{command}' operation. "
+SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' operation. "
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 SYSTEM_ID = "System.Embedded.1"
@@ -247,6 +267,7 @@ MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
 IMPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
+UPLOAD_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.UploadSSLKey"
 EXPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
 RESET_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
@@ -264,6 +285,7 @@ idrac_service_actions = {
     "#DelliDRACCardService.GenerateSEKMCSR": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.GenerateSEKMCSR",
     "#DelliDRACCardService.ImportCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportCertificate",
     "#DelliDRACCardService.ImportSSLCertificate": IMPORT_SSL,
+    "#DelliDRACCardService.UploadSSLKey": UPLOAD_SSL,
     "#DelliDRACCardService.SSLResetCfg": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg",
     "#DelliDRACCardService.iDRACReset": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.iDRACReset"
 }
@@ -399,6 +421,26 @@ def get_cert_url(actions, op, certype, res_id):
     return dynurl
 
 
+def upload_ssl_key(module, idrac, actions, ssl_key, res_id):
+    if not (os.path.exists(ssl_key) or os.path.isdir(ssl_key)):
+        module.exit_json(msg="Unable to locate the SSL key file at {0}.".format(ssl_key), failed=True)
+    try:
+        with open(ssl_key, "r") as scert:
+            scert_file = scert.read()
+    except OSError as file_err:
+        module.exit_json(msg=str(file_err), failed=True)
+    if not module.check_mode:
+        upload_url = actions.get("#DelliDRACCardService.UploadSSLKey")
+        payload = {}
+        payload['SSLKeyString'] = scert_file
+        try:
+            idrac.invoke_request(upload_url.format(res_id=res_id), "POST", data=payload)
+        except HTTPError as err:
+            module.exit_json(msg="SSL key is invalid.", error_info=json.load(err), failed=True)
+        except Exception as err:
+            module.exit_json(msg="Upload of the SSl key failed.", error_info=str(err))
+
+
 def certificate_action(module, idrac, actions, op, certype, res_id):
     cert_url = get_cert_url(actions, op, certype, res_id)
     if not cert_url:
@@ -481,6 +523,9 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, certype, re
     result.update(cert_output)
     if reset:
         reset, track_failed, reset_msg = reset_idrac(idrac, module.params.get('wait'), res_id)
+    if module.params.get('ssl_key'):
+        result['msg'] = "{0}{1}".format(SUCCESS_MSG_SSL.format(command=cmd), reset_msg)
+        module.exit_json(**result)
     result['msg'] = "{0}{1}".format(SUCCESS_MSG.format(command=cmd), reset_msg)
     module.exit_json(**result)
 
@@ -492,6 +537,7 @@ def main():
         "certificate_type": {"type": 'str', "default": 'HTTPS',
                              "choices": ['HTTPS', 'CA', 'CUSTOMCERTIFICATE', 'CSC', 'CLIENT_TRUST_CERTIFICATE']},
         "certificate_path": {"type": 'path'},
+        "ssl_key": {"type": 'path'},
         "passphrase": {"type": 'str', "no_log": True},
         "cert_params": {"type": 'dict', "options": {
             "common_name": {"type": 'str', "required": True},
@@ -526,6 +572,9 @@ def main():
                 res_id = get_res_id(idrac, certype)
             idrac_service_uri = get_idrac_service(idrac, res_id)
             actions_map = get_actions_map(idrac, idrac_service_uri)
+            ssl_key = module.params.get('ssl_key')
+            if op == "import" and ssl_key is not None and certype == "Server":
+                upload_ssl_key(module, idrac, actions_map, ssl_key, res_id)
             certificate_action(module, idrac, actions_map, op, certype, res_id)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
