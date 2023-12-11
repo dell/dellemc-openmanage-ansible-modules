@@ -432,6 +432,8 @@ def upload_ssl_key(module, idrac, actions, ssl_key, res_id):
         module.exit_json(msg=str(file_err), failed=True)
     if not module.check_mode:
         upload_url = actions.get("#DelliDRACCardService.UploadSSLKey")
+        if not upload_url:
+            module.exit_json("Upload of SSL key not supported", failed=True)
         payload = {}
         payload['SSLKeyString'] = scert_file
         try:
@@ -439,7 +441,7 @@ def upload_ssl_key(module, idrac, actions, ssl_key, res_id):
         except HTTPError as err:
             module.exit_json(msg="SSL key is invalid.", error_info=json.load(err), failed=True)
         except Exception as err:
-            module.exit_json(msg="Upload of the SSl key failed.", error_info=str(err))
+            module.exit_json(msg="Upload of the SSl key failed.", error_info=str(err), failed=True)
 
 
 def certificate_action(module, idrac, actions, op, certype, res_id):
@@ -526,8 +528,8 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, certype, re
         reset, track_failed, reset_msg = reset_idrac(idrac, module.params.get('wait'), res_id)
     if module.params.get('ssl_key'):
         result['msg'] = "{0}{1}".format(SUCCESS_MSG_SSL.format(command=cmd), reset_msg)
-        module.exit_json(**result)
-    result['msg'] = "{0}{1}".format(SUCCESS_MSG.format(command=cmd), reset_msg)
+    else:
+        result['msg'] = "{0}{1}".format(SUCCESS_MSG.format(command=cmd), reset_msg)
     module.exit_json(**result)
 
 
