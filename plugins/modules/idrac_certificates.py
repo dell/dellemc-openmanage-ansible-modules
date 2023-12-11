@@ -88,7 +88,7 @@ options:
       email_address:
         description: The email associated with the CSR.
         type: str
-        required: true
+        # required: true
       organization_name:
         description: The name associated with an organization.
         type: str
@@ -361,7 +361,8 @@ def get_ssl_payload(module, op, certype):
         payload = {}
         cert_params = module.params.get("cert_params")
         for k, v in csr_transform.items():
-            payload[v] = cert_params.get(k)
+            if cert_params.get(k) is not None:
+                payload[v] = cert_params.get(k)
         if rfish_cert_coll.get(certype):
             payload["CertificateCollection"] = rfish_cert_coll.get(certype)
     elif op == 'reset':
@@ -422,7 +423,7 @@ def get_cert_url(actions, op, certype, res_id):
 
 
 def upload_ssl_key(module, idrac, actions, ssl_key, res_id):
-    if not (os.path.exists(ssl_key) or os.path.isdir(ssl_key)):
+    if not os.path.exists(ssl_key) or os.path.isdir(ssl_key):
         module.exit_json(msg="Unable to locate the SSL key file at {0}.".format(ssl_key), failed=True)
     try:
         with open(ssl_key, "r") as scert:
@@ -545,7 +546,7 @@ def main():
             "locality_name": {"type": 'str', "required": True},
             "state_name": {"type": 'str', "required": True},
             "country_code": {"type": 'str', "required": True},
-            "email_address": {"type": 'str', "required": True},
+            "email_address": {"type": 'str'},
             "organization_name": {"type": 'str', "required": True},
             "subject_alt_name": {"type": 'list', "elements": 'str', "default": []}
         }},
