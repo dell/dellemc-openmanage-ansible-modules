@@ -122,13 +122,14 @@ dellemc.openmanage
     <td>certificate_type</td>
     <td>false</td>
     <td>HTTPS</td>
-    <td>'HTTPS', 'CA', 'CSC', 'CLIENT_TRUST_CERTIFICATE'</td>
+    <td>'HTTPS', 'CA', 'CSC', 'CLIENT_TRUST_CERTIFICATE', 'CUSTOMCERTIFICATE'</td>
     <td>str</td>
     <td>-Type of the iDRAC certificate:
       <br>- C(HTTPS) The Dell self-signed SSL certificate.
       <br>- C(CA) Certificate Authority(CA) signed SSL certificate.
       <br>- C(CSC) The custom signed SSL certificate.
-      <br>- C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.</td>
+      <br>- C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
+      <br>- C(CUSTOMCERTIFICATE) The custom PKCS12 certificate and private key. Export of custom certificate is supported only on iDRAC firmware version 7.00.00.00 and above.</td>
   </tr>
   <tr>
     <td>certificate_path</td>
