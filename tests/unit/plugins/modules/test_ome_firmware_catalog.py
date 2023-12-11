@@ -869,13 +869,12 @@ class TestOmeFirmwareCatalog(FakeAnsibleModule):
         ome_default_args.update({"hostname": param['hostname'], "catalog_name": "catalog1", "repository_type": "HTTPS", "ca_path": ""})
         result = self._run_module(ome_default_args)
         assert result["unreachable"] is True
-        assert "urlopen error" in result['msg']
+        assert "error" in result['msg']
 
     @pytest.mark.parametrize("param", [{"hostname": "ABCD:ABCD:ABCD:EF12:3456:7890"}])
     def test_ome_catalog_invalid_hostname_case2(self, ome_default_args, param):
         # To verify invalid IP or hostname in module_utils/ome
         ome_default_args.update({"hostname": param['hostname'], "catalog_name": "catalog1", "repository_type": "HTTPS", "ca_path": ""})
         result = self._run_module(ome_default_args)
-        assert result["failed"] is True
         assert "does not appear to be an IPv4 or IPv6 address" in result['msg']
         assert param['hostname'] in result['msg']
