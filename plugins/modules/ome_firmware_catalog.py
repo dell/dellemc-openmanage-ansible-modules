@@ -650,7 +650,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, TypeError, SSLError, ConnectionError, SSLValidationError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
