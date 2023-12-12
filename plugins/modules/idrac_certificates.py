@@ -88,7 +88,6 @@ options:
       email_address:
         description: The email associated with the CSR.
         type: str
-        # required: true
       organization_name:
         description: The name associated with an organization.
         type: str
@@ -123,6 +122,7 @@ notes:
     - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports C(check_mode).
+    - This module supports IPv4 and IPv6 addresses.
 """
 
 EXAMPLES = r"""
@@ -216,7 +216,7 @@ msg:
   type: str
   description: Status of the certificate configuration operation.
   returned: always
-  sample: "Successfully performed the operation generate_csr."
+  sample: "Successfully performed the 'generate_csr' certificate operation."
 certificate_path:
   type: str
   description: The csr or exported certificate file path
@@ -255,10 +255,11 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
 
 NOT_SUPPORTED_ACTION = "Certificate {op} not supported for the specified certificate type {certype}."
-SUCCESS_MSG = "Successfully performed the '{command}' operation. "
-SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' operation. "
+SUCCESS_MSG = "Successfully performed the '{command}' certificate operation."
+SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' certificate operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
+WAIT_NEGATIVE_OR_ZERO_MSG = "The value for the `wait` parameter cannot be negative or zero."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
 ACTIONS_PFIX = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService."
@@ -439,9 +440,7 @@ def upload_ssl_key(module, idrac, actions, ssl_key, res_id):
         try:
             idrac.invoke_request(upload_url.format(res_id=res_id), "POST", data=payload)
         except HTTPError as err:
-            module.exit_json(msg="SSL key is invalid.", error_info=json.load(err), failed=True)
-        except Exception as err:
-            module.exit_json(msg="Upload of the SSl key failed.", error_info=str(err), failed=True)
+            module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
 
 
 def certificate_action(module, idrac, actions, op, certype, res_id):
@@ -526,8 +525,8 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, certype, re
     result.update(cert_output)
     if reset:
         reset, track_failed, reset_msg = reset_idrac(idrac, module.params.get('wait'), res_id)
-    if module.params.get('ssl_key'):
-        result['msg'] = "{0}{1}".format(SUCCESS_MSG_SSL.format(command=cmd), reset_msg)
+    if cmd == "import" and certype == "Server" and module.params.get('ssl_key'):
+        result['msg'] = "{0} {1}".format(SUCCESS_MSG_SSL.format(command=cmd), reset_msg)
     else:
         result['msg'] = "{0}{1}".format(SUCCESS_MSG.format(command=cmd), reset_msg)
     module.exit_json(**result)
@@ -575,6 +574,8 @@ def main():
                 res_id = get_res_id(idrac, certype)
             idrac_service_uri = get_idrac_service(idrac, res_id)
             actions_map = get_actions_map(idrac, idrac_service_uri)
+            if op in ["import", "reset"] and module.params.get('reset') and module.params.get('wait') <= 0:
+                module.exit_json(msg=WAIT_NEGATIVE_OR_ZERO_MSG, failed=True)
             ssl_key = module.params.get('ssl_key')
             if op == "import" and ssl_key is not None and certype == "Server":
                 upload_ssl_key(module, idrac, actions_map, ssl_key, res_id)

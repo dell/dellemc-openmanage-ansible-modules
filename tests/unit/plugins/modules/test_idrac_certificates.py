@@ -26,8 +26,8 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 from mock import MagicMock
 
 NOT_SUPPORTED_ACTION = "Certificate {op} not supported for the specified certificate type {certype}."
-SUCCESS_MSG = "Successfully performed the '{command}' operation. "
-SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' operation. "
+SUCCESS_MSG = "Successfully performed the '{command}' certificate operation."
+SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' certificate operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 NO_RESET = "Reset iDRAC to apply the new certificate. Until the iDRAC is reset, the old certificate will remain active."
@@ -102,9 +102,15 @@ class TestIdracCertificates(FakeAnsibleModule):
         {"json_data": {"CertificateFile": b'Hello world!'}, 'message': CHANGES_MSG, "success": True,
          "reset_idrac": (True, False, RESET_SUCCESS), 'check_mode': True,
          'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'reset': False}},
+        {"json_data": {"CertificateFile": b'Hello world!', "ssl_key": b'Hello world!'}, 'message': CHANGES_MSG, "success": True,
+         "reset_idrac": (True, False, RESET_SUCCESS), 'check_mode': True,
+         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', "ssl_key": '.pem', 'reset': False}},
         {"json_data": {}, 'message': "{0}{1}".format(SUCCESS_MSG.format(command="import"), NO_RESET), "success": True,
          "reset_idrac": (True, False, RESET_SUCCESS),
          'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'reset': False}},
+        {"json_data": {}, 'message': "{0} {1}".format(SUCCESS_MSG_SSL.format(command="import"), NO_RESET), "success": True,
+         "reset_idrac": (True, False, RESET_SUCCESS),
+         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', "ssl_key": '.pem', 'reset': False}},
         {"json_data": {}, 'message': SUCCESS_MSG.format(command="generate_csr"),
          "success": True,
          "get_cert_url": "url", "reset_idrac": (True, False, RESET_SUCCESS),
@@ -144,10 +150,18 @@ class TestIdracCertificates(FakeAnsibleModule):
          "success": True,
          "get_cert_url": "url", "reset_idrac": (True, False, RESET_SUCCESS),
          'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem'}},
+        {"json_data": {}, 'message': "{0} {1}".format(SUCCESS_MSG_SSL.format(command="import"), RESET_SUCCESS),
+         "success": True,
+         "get_cert_url": "url", "reset_idrac": (True, False, RESET_SUCCESS),
+         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'ssl_key': 'pem'}},
         {"json_data": {}, 'message': "{0}{1}".format(SUCCESS_MSG.format(command="import"), RESET_SUCCESS),
          "success": True,
          "reset_idrac": (True, False, RESET_SUCCESS),
          'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem'}},
+        {"json_data": {}, 'message': "{0} {1}".format(SUCCESS_MSG_SSL.format(command="import"), RESET_SUCCESS),
+         "success": True,
+         "reset_idrac": (True, False, RESET_SUCCESS),
+         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', "ssl_key": 'pem'}},
         {"json_data": {}, 'message': SUCCESS_MSG.format(command="export"), "success": True, "get_cert_url": "url",
          'mparams': {'command': 'export', 'certificate_type': "HTTPS", 'certificate_path': tempfile.gettempdir()}},
         {"json_data": {}, 'message': "{0}{1}".format(SUCCESS_MSG.format(command="reset"), RESET_SUCCESS),
@@ -164,6 +178,11 @@ class TestIdracCertificates(FakeAnsibleModule):
             temp.write(b'Hello')
             temp.close()
             params.get('mparams')['certificate_path'] = temp.name
+            if params.get('mparams').get('ssl_key'):
+                temp = tempfile.NamedTemporaryFile(suffix=sfx, delete=False)
+                temp.write(b'Hello')
+                temp.close()
+                params.get('mparams')['ssl_key'] = temp.name
         mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
         mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
         mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
@@ -225,6 +244,8 @@ class TestIdracCertificates(FakeAnsibleModule):
             "#DelliDRACCardService.SSLResetCfg": {
                 "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
             },
+            "#DelliDRACCardService.UploadSSLKey": {
+                "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.UploadSSLKey"}
         },
     },
         "idrac_service_uri": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService',
@@ -234,7 +255,9 @@ class TestIdracCertificates(FakeAnsibleModule):
             '#DelliDRACCardService.ImportSSLCertificate':
                 '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate',
             '#DelliDRACCardService.SSLResetCfg':
-                '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg'}},
+                '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg',
+            '#DelliDRACCardService.UploadSSLKey':
+                '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.UploadSSLKey'}},
         {"json_data": {"Members": []},
          "idrac_service_uri": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService',
          "actions": idrac_service_actions}
