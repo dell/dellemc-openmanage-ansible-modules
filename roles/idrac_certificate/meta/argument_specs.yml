@@ -45,7 +45,7 @@ argument_specs:
       certificate_type:
         description: Type of the iDRAC certificate
           - C(HTTPS) The Dell self-signed SSL certificate.
-          - (CA) Certificate Authority(CA) signed SSL certificate.
+          - C(CA) Certificate Authority(CA) signed SSL certificate.
           - C(CSC) The custom signed SSL certificate.
           - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
           - C(CUSTOMCERTIFICATE) The custom PKCS12 certificate and private key.
@@ -61,6 +61,13 @@ argument_specs:
       passphrase:
         description: The passphrase string if the certificate to be imported is passphrase protected.
         type: str
+      ssl_key:
+        description:
+          - Absolute path of the private or SSL key file.
+          - This is applicable only when I(command) is C(import) and I(certificate_type) is C(HTTPS).
+          - Uploading the SSL key on iDRAC is supported on version 6.00.02.00 and newer versions.
+        type: path
+        version_added: 8.6.0
       cert_params:
         description: Certificate parameters to generate signing request.
         type: dict
