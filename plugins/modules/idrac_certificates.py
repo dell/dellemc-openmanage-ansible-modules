@@ -254,7 +254,10 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
 
-NOT_SUPPORTED_ACTION = "Certificate {op} not supported for the specified certificate type {certype}."
+IMPORT_SSL_CERTIFICATE = "DelliDRACCardService.ImportSSLCertificate"
+IDRAC_CARD_SERVICE_ACTION_URI = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions"
+
+NOT_SUPPORTED_ACTION = "Certificate {operation} not supported for the specified certificate type {cert_type}."
 SUCCESS_MSG = "Successfully performed the '{command}' certificate operation."
 SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' certificate operation."
 NO_CHANGES_MSG = "No changes found to be applied."
@@ -262,33 +265,33 @@ CHANGES_MSG = "Changes found to be applied."
 WAIT_NEGATIVE_OR_ZERO_MSG = "The value for the `wait` parameter cannot be negative or zero."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
-ACTIONS_PFIX = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService."
+ACTIONS_PFIX = "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService."
 SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
-IMPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
-UPLOAD_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.UploadSSLKey"
-EXPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
-RESET_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
+IMPORT_SSL = "IDRAC_CARD_SERVICE_ACTION_URI/IMPORT_SSL_CERTIFICATE"
+UPLOAD_SSL = "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.UploadSSLKey"
+EXPORT_SSL = "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.ExportSSLCertificate"
+RESET_SSL = "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 
 idrac_service_actions = {
-    "#DelliDRACCardService.DeleteCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.DeleteCertificate",
-    "#DelliDRACCardService.ExportCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportCertificate",
+    "#DelliDRACCardService.DeleteCertificate": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.DeleteCertificate",
+    "#DelliDRACCardService.ExportCertificate": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.ExportCertificate",
     "#DelliDRACCardService.ExportSSLCertificate": EXPORT_SSL,
     "#DelliDRACCardService.FactoryIdentityCertificateGenerateCSR":
-        "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.FactoryIdentityCertificateGenerateCSR",
+        "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.FactoryIdentityCertificateGenerateCSR",
     "#DelliDRACCardService.FactoryIdentityExportCertificate":
-        "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.FactoryIdentityExportCertificate",
+        "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.FactoryIdentityExportCertificate",
     "#DelliDRACCardService.FactoryIdentityImportCertificate":
-        "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.FactoryIdentityImportCertificate",
-    "#DelliDRACCardService.GenerateSEKMCSR": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.GenerateSEKMCSR",
-    "#DelliDRACCardService.ImportCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportCertificate",
-    "#DelliDRACCardService.ImportSSLCertificate": IMPORT_SSL,
+        "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.FactoryIdentityImportCertificate",
+    "#DelliDRACCardService.GenerateSEKMCSR": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.GenerateSEKMCSR",
+    "#DelliDRACCardService.ImportCertificate": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.ImportCertificate",
+    "#IMPORT_SSL_CERTIFICATE": IMPORT_SSL,
     "#DelliDRACCardService.UploadSSLKey": UPLOAD_SSL,
-    "#DelliDRACCardService.SSLResetCfg": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg",
-    "#DelliDRACCardService.iDRACReset": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.iDRACReset"
+    "#DelliDRACCardService.SSLResetCfg": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.SSLResetCfg",
+    "#DelliDRACCardService.iDRACReset": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.iDRACReset"
 }
 
 rfish_cert_coll = {'Server': {
@@ -308,11 +311,11 @@ csr_transform = {"common_name": "CommonName",
                  "organization_name": "Organization",
                  "subject_alt_name": 'AlternativeNames'}
 action_url_map = {"generate_csr": {},
-                  "import": {'Server': "#DelliDRACCardService.ImportSSLCertificate",
-                             'CA': "#DelliDRACCardService.ImportSSLCertificate",
-                             'CustomCertificate': "#DelliDRACCardService.ImportSSLCertificate",
-                             'CSC': "#DelliDRACCardService.ImportSSLCertificate",
-                             'ClientTrustCertificate': "#DelliDRACCardService.ImportSSLCertificate"},
+                  "import": {'Server': "#IMPORT_SSL_CERTIFICATE",
+                             'CA': "#IMPORT_SSL_CERTIFICATE",
+                             'CustomCertificate': "#IMPORT_SSL_CERTIFICATE",
+                             'CSC': "#IMPORT_SSL_CERTIFICATE",
+                             'ClientTrustCertificate': "#IMPORT_SSL_CERTIFICATE"},
                   "export": {'Server': "#DelliDRACCardService.ExportSSLCertificate",
                              'CA': "#DelliDRACCardService.ExportSSLCertificate",
                              'CustomCertificate': "#DelliDRACCardService.ExportSSLCertificate",
@@ -336,38 +339,39 @@ certype_map = {'HTTPS': "Server", 'CA': "CA", 'CUSTOMCERTIFICATE': "CustomCertif
                'CLIENT_TRUST_CERTIFICATE': "ClientTrustCertificate"}
 
 
-def get_ssl_payload(module, op, certype):
+def get_ssl_payload(module, operation, cert_type):
     payload = {}
     method = 'POST'
-    if op == 'import':
-        payload["CertificateType"] = certype
+
+    if operation == 'import':
+        payload["CertificateType"] = cert_type
         if module.params.get('passphrase'):
             payload['Passphrase'] = module.params.get('passphrase')
-        fpath = module.params.get('certificate_path')
+        cert_path = module.params.get('certificate_path')
         try:
-            if str(fpath).lower().endswith('.p12') or str(fpath).lower().endswith(
-                    '.pfx'):  # Linux generates .p12 Windows .pfx
-                with open(fpath, 'rb') as cert:
-                    cert_content = cert.read()
-                    cert_file = base64.encodebytes(cert_content).decode('ascii')
+            if str(cert_path).lower().endswith('.p12') or str(cert_path).lower().endswith('.pfx'):
+                with open(cert_path, 'rb') as cert_file:
+                    cert_content = cert_file.read()
+                    cert_file_content = base64.encodebytes(cert_content).decode('ascii')
             else:
-                with open(fpath, "r") as cert:
-                    cert_file = cert.read()
-        except OSError as file_err:
-            module.exit_json(msg=str(file_err), failed=True)
-        payload['SSLCertificateFile'] = cert_file
-    elif op == 'export':
-        payload['SSLCertType'] = certype
-    elif op == 'generate_csr':
+                with open(cert_path, "r") as cert_file:
+                    cert_file_content = cert_file.read()
+        except OSError as file_error:
+            module.exit_json(msg=str(file_error), failed=True)
+        payload['SSLCertificateFile'] = cert_file_content
+    elif operation == 'export':
+        payload['SSLCertType'] = cert_type
+    elif operation == 'generate_csr':
         payload = {}
         cert_params = module.params.get("cert_params")
-        for k, v in csr_transform.items():
-            if cert_params.get(k) is not None:
-                payload[v] = cert_params.get(k)
-        if rfish_cert_coll.get(certype):
-            payload["CertificateCollection"] = rfish_cert_coll.get(certype)
-    elif op == 'reset':
+        for key, value in csr_transform.items():
+            if cert_params.get(key) is not None:
+                payload[value] = cert_params.get(key)
+        if rfish_cert_coll.get(cert_type):
+            payload["CertificateCollection"] = rfish_cert_coll.get(cert_type)
+    elif operation == 'reset':
         payload = "{}"
+
     return payload, method
 
 
@@ -378,15 +382,15 @@ payload_map = {"Server": get_ssl_payload,
                "ClientTrustCertificate": get_ssl_payload}
 
 
-def get_res_id(idrac, certype):
+def get_res_id(idrac, cert_type):
     cert_map = {"Server": MANAGER_ID}
     try:
-        resp = idrac.invoke_request(cert_map.get(certype, MANAGERS_URI), "GET")
+        resp = idrac.invoke_request(cert_map.get(cert_type, MANAGERS_URI), "GET")
         membs = resp.json_data.get("Members")
         res_uri = membs[0].get('@odata.id')  # Getting the first item
         res_id = res_uri.split("/")[-1]
     except Exception:
-        res_id = cert_map.get(certype, MANAGER_ID)
+        res_id = cert_map.get(cert_type, MANAGER_ID)
     return res_id
 
 
@@ -413,11 +417,11 @@ def get_actions_map(idrac, idrac_service_uri):
     return actions
 
 
-def get_cert_url(actions, op, certype, res_id):
-    idrac_key = action_url_map.get(op).get(certype)
+def get_cert_url(actions, operation, cert_type, res_id):
+    idrac_key = action_url_map.get(operation).get(cert_type)
     dynurl = actions.get(idrac_key)
     if not dynurl:
-        dynurl = dflt_url_map.get(op).get(certype)
+        dynurl = dflt_url_map.get(operation).get(cert_type)
     if dynurl:
         dynurl = dynurl.format(res_id=res_id)
     return dynurl
@@ -443,12 +447,12 @@ def upload_ssl_key(module, idrac, actions, ssl_key, res_id):
             module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
 
 
-def certificate_action(module, idrac, actions, op, certype, res_id):
-    cert_url = get_cert_url(actions, op, certype, res_id)
+def certificate_action(module, idrac, actions, operation, cert_type, res_id):
+    cert_url = get_cert_url(actions, operation, cert_type, res_id)
     if not cert_url:
-        module.exit_json(msg=NOT_SUPPORTED_ACTION.format(op=op, certype=module.params.get('certificate_type')))
-    cert_payload, method = payload_map.get(certype)(module, op, certype)
-    exit_certificates(module, idrac, cert_url, cert_payload, method, certype, res_id)
+        module.exit_json(msg=NOT_SUPPORTED_ACTION.format(operation=operation, cert_type=module.params.get('certificate_type')))
+    cert_payload, method = payload_map.get(cert_type)(module, operation, cert_type)
+    exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, res_id)
 
 
 def write_to_file(module, cert_data, dkey):
@@ -492,16 +496,16 @@ def format_output(module, cert_data):
     return cert_data
 
 
-def get_export_data(idrac, certype, res_id):
+def get_export_data(idrac, cert_type, res_id):
     try:
-        resp = idrac.invoke_request(EXPORT_SSL.format(res_id=res_id), "POST", data={"SSLCertType": certype})
+        resp = idrac.invoke_request(EXPORT_SSL.format(res_id=res_id), "POST", data={"SSLCertType": cert_type})
         cert_data = resp.json_data
     except Exception:
         cert_data = {"CertificateFile": ""}
     return cert_data.get("CertificateFile")
 
 
-def exit_certificates(module, idrac, cert_url, cert_payload, method, certype, res_id):
+def exit_certificates(module, idrac, cert_url, cert_payload, method, cert_type, res_id):
     cmd = module.params.get('command')
     changed = changed_map.get(cmd)
     reset = changed_map.get(cmd) and module.params.get('reset')
@@ -511,12 +515,12 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, certype, re
         reset_msg = "Reset iDRAC to apply the new certificate." \
                     " Until the iDRAC is reset, the old certificate will remain active."
     if module.params.get('command') == 'import':
-        export_cert = get_export_data(idrac, certype, res_id)
+        export_cert = get_export_data(idrac, cert_type, res_id)
         if cert_payload.get('SSLCertificateFile') in export_cert:
             module.exit_json(msg=NO_CHANGES_MSG)
     if module.check_mode and changed:
         module.exit_json(msg=CHANGES_MSG, changed=changed)
-    if module.params.get('command') == 'reset' and certype == "Server":
+    if module.params.get('command') == 'reset' and cert_type == "Server":
         resp = idrac.invoke_request(cert_url, method, data=cert_payload, dump=False)
     else:
         resp = idrac.invoke_request(cert_url, method, data=cert_payload)
@@ -525,7 +529,7 @@ def exit_certificates(module, idrac, cert_url, cert_payload, method, certype, re
     result.update(cert_output)
     if reset:
         reset, track_failed, reset_msg = reset_idrac(idrac, module.params.get('wait'), res_id)
-    if cmd == "import" and certype == "Server" and module.params.get('ssl_key'):
+    if cmd == "import" and cert_type == "Server" and module.params.get('ssl_key'):
         result['msg'] = "{0} {1}".format(SUCCESS_MSG_SSL.format(command=cmd), reset_msg)
     else:
         result['msg'] = "{0}{1}".format(SUCCESS_MSG.format(command=cmd), reset_msg)
@@ -566,22 +570,22 @@ def main():
         supports_check_mode=True)
 
     try:
-        with iDRACRedfishAPI(module.params) as idrac:
-            certype = certype_map.get(module.params.get('certificate_type'))
-            op = module.params.get('command')
+        with iDRACRedfishAPI(module.params, req_session=True) as idrac:
+            cert_type = certype_map.get(module.params.get('certificate_type'))
+            operation = module.params.get('command')
             res_id = module.params.get('resource_id')
             if not res_id:
-                res_id = get_res_id(idrac, certype)
+                res_id = get_res_id(idrac, cert_type)
             idrac_service_uri = get_idrac_service(idrac, res_id)
             actions_map = get_actions_map(idrac, idrac_service_uri)
-            if op in ["import", "reset"] and module.params.get('reset') and module.params.get('wait') <= 0:
+            if operation in ["import", "reset"] and module.params.get('reset') and module.params.get('wait') <= 0:
                 module.exit_json(msg=WAIT_NEGATIVE_OR_ZERO_MSG, failed=True)
             ssl_key = module.params.get('ssl_key')
-            if op == "import" and ssl_key is not None and certype == "Server":
+            if operation == "import" and ssl_key is not None and cert_type == "Server":
                 upload_ssl_key(module, idrac, actions_map, ssl_key, res_id)
-            certificate_action(module, idrac, actions_map, op, certype, res_id)
+            certificate_action(module, idrac, actions_map, operation, cert_type, res_id)
     except HTTPError as err:
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.fail_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
