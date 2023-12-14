@@ -49,9 +49,11 @@ argument_specs:
           - C(CSC) The custom signed SSL certificate.
           - C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
           - C(CUSTOMCERTIFICATE) The custom PKCS12 certificate and private key.
-           Export of custom certificate is supported only on iDRAC firmware version 7.00.00.00 and above.
+           Export of custom certificate is supported only on iDRAC firmware version
+            7.00.00.00 and above.
         type: str
-        choices: ["HTTPS", "CA", "CSC", "CLIENT_TRUST_CERTIFICATE", "CUSTOMCERTIFICATE"]
+        choices: ["HTTPS", "CA", "CSC", "CLIENT_TRUST_CERTIFICATE",
+         "CUSTOMCERTIFICATE"]
         default: "HTTPS"
       certificate_path:
         description:
