@@ -1,12 +1,12 @@
 ---
 - name: Check whether atleast one of 'IDRAC_USERNAME' or username is provided
   ansible.builtin.fail:
-    msg: "Either set environment variable 'IDRAC_USERNAME' or provide 'username'"
+    msg: "Ensure the value for environment variable 'IDRAC_USERNAME' or the 'username' is set."
   when: username is not defined and not lookup('env', 'IDRAC_USERNAME')
 
 - name: Check whether atleast one of 'IDRAC_PASSWORD' or password is provided
   ansible.builtin.fail:
-    msg: "Either set environment variable 'IDRAC_PASSWORD' or provide 'password'"
+    msg: "Ensure the value for environment variable 'IDRAC_PASSWORD' or the 'password' is set."
   when: password is not defined and not lookup('env', 'IDRAC_PASSWORD')
 
 - name: Setting uri options
