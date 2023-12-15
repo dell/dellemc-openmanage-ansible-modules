@@ -30,7 +30,6 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 import os
 from ansible.module_utils.common.parameters import env_fallback
-from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
@@ -82,7 +81,6 @@ class iDRACConnection:
             raise RuntimeError(msg)
 
     def __enter__(self):
-        self.idrac_ip = config_ipv6(self.idrac_ip, omsdk_used=True)
         self.idrac_ip = self.idrac_ip.strip('[]')
         self.sdk.importPath()
         protopref = ProtoPreference(ProtocolEnum.WSMAN)

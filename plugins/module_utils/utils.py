@@ -46,7 +46,7 @@ SYSTEM_RESET_URI = "/redfish/v1/Systems/{res_id}/Actions/ComputerSystem.Reset"
 MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
-IPV6_REGEX = r"^[0-9a-fA-F:]+$"
+IPV6_REGEX = r"^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{0,4}$"
 
 import time
 from datetime import datetime
@@ -77,15 +77,13 @@ def strip_substr_dict(odata_dict, chkstr='@odata.', case_sensitive=False):
     return odata_dict
 
 
-def config_ipv6(hostname, omsdk_used=False):
-    if (not re.match(IPV6_REGEX, hostname)) or (omsdk_used):
+def config_ipv6(hostname):
+    if not re.match(IPV6_REGEX, hostname):
         return hostname
     ip_addr, port = hostname, None
     if ']:' in ip_addr:
         ip_addr, port = ip_addr.split(']:')
     ip_addr = ip_addr.strip('[]')
-    if ip_addr.count(':') == 1:
-        ip_addr, port = ip_addr.split(':')
     if port is None or port == "":
         hostname = "[{0}]".format(ip_addr)
     else:
