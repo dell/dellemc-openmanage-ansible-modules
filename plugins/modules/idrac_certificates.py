@@ -255,6 +255,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
 
 IMPORT_SSL_CERTIFICATE = "DelliDRACCardService.ImportSSLCertificate"
+EXPORT_SSL_CERTIFICATE = "DelliDRACCardService.ExportSSLCertificate"
 IDRAC_CARD_SERVICE_ACTION_URI = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions"
 
 NOT_SUPPORTED_ACTION = "Certificate {operation} not supported for the specified certificate type {cert_type}."
@@ -265,33 +266,33 @@ CHANGES_MSG = "Changes found to be applied."
 WAIT_NEGATIVE_OR_ZERO_MSG = "The value for the `wait` parameter cannot be negative or zero."
 SYSTEM_ID = "System.Embedded.1"
 MANAGER_ID = "iDRAC.Embedded.1"
-ACTIONS_PFIX = "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService."
+ACTIONS_PFIX = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService."
 SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
-IMPORT_SSL = "IDRAC_CARD_SERVICE_ACTION_URI/IMPORT_SSL_CERTIFICATE"
-UPLOAD_SSL = "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.UploadSSLKey"
-EXPORT_SSL = "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.ExportSSLCertificate"
-RESET_SSL = "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.SSLResetCfg"
+IMPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/{IMPORT_SSL_CERTIFICATE}"
+UPLOAD_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.UploadSSLKey"
+EXPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/{EXPORT_SSL_CERTIFICATE}"
+RESET_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 
 idrac_service_actions = {
-    "#DelliDRACCardService.DeleteCertificate": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.DeleteCertificate",
-    "#DelliDRACCardService.ExportCertificate": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.ExportCertificate",
-    "#DelliDRACCardService.ExportSSLCertificate": EXPORT_SSL,
+    "#DelliDRACCardService.DeleteCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.DeleteCertificate",
+    "#DelliDRACCardService.ExportCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ExportCertificate",
+    EXPORT_SSL_CERTIFICATE: EXPORT_SSL,
     "#DelliDRACCardService.FactoryIdentityCertificateGenerateCSR":
-        "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.FactoryIdentityCertificateGenerateCSR",
+        f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.FactoryIdentityCertificateGenerateCSR",
     "#DelliDRACCardService.FactoryIdentityExportCertificate":
-        "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.FactoryIdentityExportCertificate",
+        f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.FactoryIdentityExportCertificate",
     "#DelliDRACCardService.FactoryIdentityImportCertificate":
-        "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.FactoryIdentityImportCertificate",
-    "#DelliDRACCardService.GenerateSEKMCSR": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.GenerateSEKMCSR",
-    "#DelliDRACCardService.ImportCertificate": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.ImportCertificate",
-    "#IMPORT_SSL_CERTIFICATE": IMPORT_SSL,
+        f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.FactoryIdentityImportCertificate",
+    "#DelliDRACCardService.GenerateSEKMCSR": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.GenerateSEKMCSR",
+    "#DelliDRACCardService.ImportCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ImportCertificate",
+    IMPORT_SSL_CERTIFICATE: IMPORT_SSL,
     "#DelliDRACCardService.UploadSSLKey": UPLOAD_SSL,
-    "#DelliDRACCardService.SSLResetCfg": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.SSLResetCfg",
-    "#DelliDRACCardService.iDRACReset": "IDRAC_CARD_SERVICE_ACTION_URI/DelliDRACCardService.iDRACReset"
+    "#DelliDRACCardService.SSLResetCfg": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.SSLResetCfg",
+    "#DelliDRACCardService.iDRACReset": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.iDRACReset"
 }
 
 rfish_cert_coll = {'Server': {
@@ -311,16 +312,16 @@ csr_transform = {"common_name": "CommonName",
                  "organization_name": "Organization",
                  "subject_alt_name": 'AlternativeNames'}
 action_url_map = {"generate_csr": {},
-                  "import": {'Server': "#IMPORT_SSL_CERTIFICATE",
-                             'CA': "#IMPORT_SSL_CERTIFICATE",
-                             'CustomCertificate': "#IMPORT_SSL_CERTIFICATE",
-                             'CSC': "#IMPORT_SSL_CERTIFICATE",
-                             'ClientTrustCertificate': "#IMPORT_SSL_CERTIFICATE"},
-                  "export": {'Server': "#DelliDRACCardService.ExportSSLCertificate",
-                             'CA': "#DelliDRACCardService.ExportSSLCertificate",
-                             'CustomCertificate': "#DelliDRACCardService.ExportSSLCertificate",
-                             'CSC': "#DelliDRACCardService.ExportSSLCertificate",
-                             'ClientTrustCertificate': "#DelliDRACCardService.ExportSSLCertificate"},
+                  "import": {'Server': IMPORT_SSL_CERTIFICATE,
+                             'CA': IMPORT_SSL_CERTIFICATE,
+                             'CustomCertificate': IMPORT_SSL_CERTIFICATE,
+                             'CSC': IMPORT_SSL_CERTIFICATE,
+                             'ClientTrustCertificate': IMPORT_SSL_CERTIFICATE},
+                  "export": {'Server': EXPORT_SSL_CERTIFICATE,
+                             'CA': EXPORT_SSL_CERTIFICATE,
+                             'CustomCertificate': EXPORT_SSL_CERTIFICATE,
+                             'CSC': EXPORT_SSL_CERTIFICATE,
+                             'ClientTrustCertificate': EXPORT_SSL_CERTIFICATE},
                   "reset": {'Server': "#DelliDRACCardService.SSLResetCfg"}}
 
 dflt_url_map = {"generate_csr": {'Server': CSR_SSL},
@@ -396,13 +397,10 @@ def get_res_id(idrac, cert_type):
 
 def get_idrac_service(idrac, res_id):
     srvc = IDRAC_SERVICE.format(res_id=res_id)
-    try:
-        resp = idrac.invoke_request("{0}/{1}".format(MANAGERS_URI, res_id), 'GET')
-        srvc_data = resp.json_data
-        dell_srvc = srvc_data['Links']['Oem']['Dell']['DelliDRACCardService']
-        srvc = dell_srvc.get("@odata.id", IDRAC_SERVICE.format(res_id=res_id))
-    except Exception:
-        srvc = IDRAC_SERVICE.format(res_id=res_id)
+    resp = idrac.invoke_request("{0}/{1}".format(MANAGERS_URI, res_id), 'GET')
+    srvc_data = resp.json_data
+    dell_srvc = srvc_data['Links']['Oem']['Dell']['DelliDRACCardService']
+    srvc = dell_srvc.get("@odata.id", IDRAC_SERVICE.format(res_id=res_id))
     return srvc
 
 
@@ -570,7 +568,7 @@ def main():
         supports_check_mode=True)
 
     try:
-        with iDRACRedfishAPI(module.params, req_session=True) as idrac:
+        with iDRACRedfishAPI(module.params) as idrac:
             cert_type = certype_map.get(module.params.get('certificate_type'))
             operation = module.params.get('command')
             res_id = module.params.get('resource_id')
@@ -585,7 +583,7 @@ def main():
                 upload_ssl_key(module, idrac, actions_map, ssl_key, res_id)
             certificate_action(module, idrac, actions_map, operation, cert_type, res_id)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err), failed=True)
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,

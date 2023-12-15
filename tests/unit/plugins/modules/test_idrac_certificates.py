@@ -25,7 +25,12 @@ from ansible_collections.dellemc.openmanage.plugins.modules import idrac_certifi
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
 
-NOT_SUPPORTED_ACTION = "Certificate {op} not supported for the specified certificate type {certype}."
+IMPORT_SSL_CERTIFICATE = "DelliDRACCardService.ImportSSLCertificate"
+EXPORT_SSL_CERTIFICATE = "DelliDRACCardService.ExportSSLCertificate"
+IDRAC_CARD_SERVICE_ACTION_URI = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions"
+IDRAC_CARD_SERVICE_ACTION_URI_RES_ID = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions"
+
+NOT_SUPPORTED_ACTION = "Certificate {operation} not supported for the specified certificate type {cert_type}."
 SUCCESS_MSG = "Successfully performed the '{command}' certificate operation."
 SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' certificate operation."
 NO_CHANGES_MSG = "No changes found to be applied."
@@ -40,27 +45,27 @@ SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
-IMPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
-UPLOAD_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.UploadSSLKey"
-EXPORT_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
-RESET_SSL = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
+IMPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/{IMPORT_SSL_CERTIFICATE}"
+UPLOAD_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.UploadSSLKey"
+EXPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/{EXPORT_SSL_CERTIFICATE}"
+RESET_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 idrac_service_actions = {
-    "#DelliDRACCardService.DeleteCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.DeleteCertificate",
-    "#DelliDRACCardService.ExportCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportCertificate",
-    "#DelliDRACCardService.ExportSSLCertificate": EXPORT_SSL,
+    "#DelliDRACCardService.DeleteCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.DeleteCertificate",
+    "#DelliDRACCardService.ExportCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ExportCertificate",
+    EXPORT_SSL_CERTIFICATE: EXPORT_SSL,
     "#DelliDRACCardService.FactoryIdentityCertificateGenerateCSR":
-        "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.FactoryIdentityCertificateGenerateCSR",
+        f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.FactoryIdentityCertificateGenerateCSR",
     "#DelliDRACCardService.FactoryIdentityExportCertificate":
-        "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.FactoryIdentityExportCertificate",
+        f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.FactoryIdentityExportCertificate",
     "#DelliDRACCardService.FactoryIdentityImportCertificate":
-        "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.FactoryIdentityImportCertificate",
-    "#DelliDRACCardService.GenerateSEKMCSR": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.GenerateSEKMCSR",
-    "#DelliDRACCardService.ImportCertificate": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportCertificate",
-    "#DelliDRACCardService.ImportSSLCertificate": IMPORT_SSL,
+        f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.FactoryIdentityImportCertificate",
+    "#DelliDRACCardService.GenerateSEKMCSR": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.GenerateSEKMCSR",
+    "#DelliDRACCardService.ImportCertificate": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ImportCertificate",
+    IMPORT_SSL_CERTIFICATE: IMPORT_SSL,
     "#DelliDRACCardService.UploadSSLKey": UPLOAD_SSL,
-    "#DelliDRACCardService.SSLResetCfg": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg",
-    "#DelliDRACCardService.iDRACReset": "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.iDRACReset"
+    "#DelliDRACCardService.SSLResetCfg": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.SSLResetCfg",
+    "#DelliDRACCardService.iDRACReset": f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.iDRACReset"
 }
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_certificates.'
 
@@ -126,7 +131,7 @@ class TestIdracCertificates(FakeAnsibleModule):
                          "subject_alt_name": [
                              "emc"
                          ]}}},
-        {"json_data": {}, 'message': NOT_SUPPORTED_ACTION.format(op="generate_csr", certype="CA"),
+        {"json_data": {}, 'message': NOT_SUPPORTED_ACTION.format(operation="generate_csr", cert_type="CA"),
          "success": True,
          "get_cert_url": "url", "reset_idrac": (True, False, RESET_SUCCESS),
          'mparams': {'command': 'generate_csr', 'certificate_type': "CA", 'certificate_path': tempfile.gettempdir(),
@@ -197,15 +202,15 @@ class TestIdracCertificates(FakeAnsibleModule):
         assert result['msg'] == params['message']
 
     @pytest.mark.parametrize("params", [{"json_data": {"Members": [{"@odata.id": '/redfish/v1/Mangers/iDRAC.1'}]},
-                                         "certype": 'Server', "res_id": "iDRAC.1"},
+                                         "cert_type": 'Server', "res_id": "iDRAC.1"},
                                         {"json_data": {"Members": []},
-                                         "certype": 'Server', "res_id": MANAGER_ID}
+                                         "cert_type": 'Server', "res_id": MANAGER_ID}
                                         ])
     def test_res_id(
             self, params, idrac_redfish_mock_for_certs, ome_response_mock):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
-        res_id = self.module.get_res_id(idrac_redfish_mock_for_certs, params.get('certype'))
+        res_id = self.module.get_res_id(idrac_redfish_mock_for_certs, params.get('cert_type'))
         assert res_id == params['res_id']
 
     @pytest.mark.parametrize("params", [{"json_data": {
@@ -218,9 +223,7 @@ class TestIdracCertificates(FakeAnsibleModule):
         "VirtualMedia": {
             "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia"}
     },
-        "idrac_srv": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService', "res_id": "iDRAC.1"},
-        {"json_data": {"Members": []},
-         "idrac_srv": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService', "res_id": MANAGER_ID}
+        "idrac_srv": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService', "res_id": "iDRAC.1"}
     ])
     def test_get_idrac_service(
             self, params, idrac_redfish_mock_for_certs, ome_response_mock):
@@ -231,33 +234,33 @@ class TestIdracCertificates(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [{"json_data": {
         "Actions": {
-            "#DelliDRACCardService.ExportSSLCertificate": {
+            EXPORT_SSL_CERTIFICATE: {
                 "SSLCertType@Redfish.AllowableValues": ["CA", "CSC", "CustomCertificate", "ClientTrustCertificate", "Server"],
                 "target":
-                    "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate"
+                    f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/{EXPORT_SSL_CERTIFICATE}"
             },
-            "#DelliDRACCardService.ImportSSLCertificate": {
+            IMPORT_SSL_CERTIFICATE: {
                 "CertificateType@Redfish.AllowableValues": ["CA", "CSC", "CustomCertificate", "ClientTrustCertificate", "Server"],
                 "target":
-                    "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate"
+                    f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/{IMPORT_SSL_CERTIFICATE}"
             },
             "#DelliDRACCardService.SSLResetCfg": {
-                "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg"
+                "target": f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.SSLResetCfg"
             },
             "#DelliDRACCardService.UploadSSLKey": {
-                "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.UploadSSLKey"}
+                "target": f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.UploadSSLKey"}
         },
     },
         "idrac_service_uri": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService',
         "actions": {
-            '#DelliDRACCardService.ExportSSLCertificate':
-                '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ExportSSLCertificate',
-            '#DelliDRACCardService.ImportSSLCertificate':
-                '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.ImportSSLCertificate',
+            EXPORT_SSL_CERTIFICATE:
+                f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/{EXPORT_SSL_CERTIFICATE}",
+            IMPORT_SSL_CERTIFICATE:
+                f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/{IMPORT_SSL_CERTIFICATE}",
             '#DelliDRACCardService.SSLResetCfg':
-                '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.SSLResetCfg',
+                f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.SSLResetCfg",
             '#DelliDRACCardService.UploadSSLKey':
-                '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions/DelliDRACCardService.UploadSSLKey'}},
+                f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.UploadSSLKey"}},
         {"json_data": {"Members": []},
          "idrac_service_uri": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService',
          "actions": idrac_service_actions}
@@ -269,16 +272,16 @@ class TestIdracCertificates(FakeAnsibleModule):
         actions = self.module.get_actions_map(idrac_redfish_mock_for_certs, params.get('idrac_service_uri'))
         assert actions == params['actions']
 
-    @pytest.mark.parametrize("params", [{"actions": {}, "op": "generate_csr",
-                                         "certype": 'Server', "res_id": "iDRAC.1",
+    @pytest.mark.parametrize("params", [{"actions": {}, "operation": "generate_csr",
+                                         "cert_type": 'Server', "res_id": "iDRAC.1",
                                          "dynurl": "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"},
-                                        {"actions": {}, "op": "import",
-                                         "certype": 'Server', "res_id": "iDRAC.1",
+                                        {"actions": {}, "operation": "import",
+                                         "cert_type": 'Server', "res_id": "iDRAC.1",
                                          "dynurl": "/redfish/v1/Managers/iDRAC.1/Oem/Dell/DelliDRACCardService/Actions/"
                                          "DelliDRACCardService.ImportSSLCertificate"}
                                         ])
     def test_get_cert_url(self, params):
-        dynurl = self.module.get_cert_url(params.get('actions'), params.get('op'), params.get('certype'),
+        dynurl = self.module.get_cert_url(params.get('actions'), params.get('operation'), params.get('cert_type'),
                                           params.get('res_id'))
         assert dynurl == params['dynurl']
 
