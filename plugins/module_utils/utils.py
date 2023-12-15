@@ -46,7 +46,7 @@ SYSTEM_RESET_URI = "/redfish/v1/Systems/{res_id}/Actions/ComputerSystem.Reset"
 MANAGER_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 MANAGER_JOB_ID_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{0}"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
-IPV6_REGEX = r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
+IPV6_REGEX = r"^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$"
 
 import time
 from datetime import datetime
