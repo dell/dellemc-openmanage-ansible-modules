@@ -258,7 +258,7 @@ IMPORT_SSL_CERTIFICATE = "DelliDRACCardService.ImportSSLCertificate"
 EXPORT_SSL_CERTIFICATE = "DelliDRACCardService.ExportSSLCertificate"
 IDRAC_CARD_SERVICE_ACTION_URI = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions"
 
-NOT_SUPPORTED_ACTION = "Certificate {operation} not supported for the specified certificate type {cert_type}."
+NOT_SUPPORTED_ACTION = "Certificate '{operation}' not supported for the specified certificate type '{cert_type}'."
 SUCCESS_MSG = "Successfully performed the '{command}' certificate operation."
 SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' certificate operation."
 NO_CHANGES_MSG = "No changes found to be applied."
@@ -345,35 +345,51 @@ def get_ssl_payload(module, operation, cert_type):
     method = 'POST'
 
     if operation == 'import':
-        payload["CertificateType"] = cert_type
-        if module.params.get('passphrase'):
-            payload['Passphrase'] = module.params.get('passphrase')
-        cert_path = module.params.get('certificate_path')
-        try:
-            if str(cert_path).lower().endswith('.p12') or str(cert_path).lower().endswith('.pfx'):
-                with open(cert_path, 'rb') as cert_file:
-                    cert_content = cert_file.read()
-                    cert_file_content = base64.encodebytes(cert_content).decode('ascii')
-            else:
-                with open(cert_path, "r") as cert_file:
-                    cert_file_content = cert_file.read()
-        except OSError as file_error:
-            module.exit_json(msg=str(file_error), failed=True)
-        payload['SSLCertificateFile'] = cert_file_content
+        payload = _build_import_payload(module, cert_type)
     elif operation == 'export':
-        payload['SSLCertType'] = cert_type
+        payload = {"SSLCertType": cert_type}
     elif operation == 'generate_csr':
-        payload = {}
-        cert_params = module.params.get("cert_params")
-        for key, value in csr_transform.items():
-            if cert_params.get(key) is not None:
-                payload[value] = cert_params.get(key)
-        if rfish_cert_coll.get(cert_type):
-            payload["CertificateCollection"] = rfish_cert_coll.get(cert_type)
+        payload = _build_generate_csr_payload(module, cert_type)
     elif operation == 'reset':
-        payload = "{}"
+        payload = {}
 
     return payload, method
+
+
+def _build_import_payload(module, cert_type):
+    payload = {"CertificateType": cert_type}
+
+    if module.params.get('passphrase'):
+        payload['Passphrase'] = module.params.get('passphrase')
+
+    cert_path = module.params.get('certificate_path')
+    try:
+        if str(cert_path).lower().endswith('.p12') or str(cert_path).lower().endswith('.pfx'):
+            with open(cert_path, 'rb') as cert_file:
+                cert_content = cert_file.read()
+                cert_file_content = base64.encodebytes(cert_content).decode('ascii')
+        else:
+            with open(cert_path, "r") as cert_file:
+                cert_file_content = cert_file.read()
+    except OSError as file_error:
+        module.exit_json(msg=str(file_error), failed=True)
+
+    payload['SSLCertificateFile'] = cert_file_content
+    return payload
+
+
+def _build_generate_csr_payload(module, cert_type):
+    payload = {}
+    cert_params = module.params.get("cert_params")
+
+    for key, value in csr_transform.items():
+        if cert_params.get(key) is not None:
+            payload[value] = cert_params.get(key)
+
+    if rfish_cert_coll.get(cert_type):
+        payload["CertificateCollection"] = rfish_cert_coll.get(cert_type)
+
+    return payload
 
 
 payload_map = {"Server": get_ssl_payload,
@@ -397,7 +413,7 @@ def get_res_id(idrac, cert_type):
 
 def get_idrac_service(idrac, res_id):
     srvc = IDRAC_SERVICE.format(res_id=res_id)
-    resp = idrac.invoke_request("{0}/{1}".format(MANAGERS_URI, res_id), 'GET')
+    resp = idrac.invoke_request(f"{MANAGERS_URI}/{res_id}", 'GET')
     srvc_data = resp.json_data
     dell_srvc = srvc_data['Links']['Oem']['Dell']['DelliDRACCardService']
     srvc = dell_srvc.get("@odata.id", IDRAC_SERVICE.format(res_id=res_id))
@@ -427,18 +443,21 @@ def get_cert_url(actions, operation, cert_type, res_id):
 
 def upload_ssl_key(module, idrac, actions, ssl_key, res_id):
     if not os.path.exists(ssl_key) or os.path.isdir(ssl_key):
-        module.exit_json(msg="Unable to locate the SSL key file at {0}.".format(ssl_key), failed=True)
+        module.exit_json(msg=f"Unable to locate the SSL key file at {ssl_key}.", failed=True)
+
     try:
-        with open(ssl_key, "r") as scert:
-            scert_file = scert.read()
-    except OSError as file_err:
-        module.exit_json(msg=str(file_err), failed=True)
+        with open(ssl_key, "r") as file:
+            scert_file = file.read()
+    except OSError as err:
+        module.exit_json(msg=str(err), failed=True)
+
     if not module.check_mode:
         upload_url = actions.get("#DelliDRACCardService.UploadSSLKey")
         if not upload_url:
             module.exit_json("Upload of SSL key not supported", failed=True)
+
         payload = {}
-        payload['SSLKeyString'] = scert_file
+        payload = {'SSLKeyString': scert_file}
         try:
             idrac.invoke_request(upload_url.format(res_id=res_id), "POST", data=payload)
         except HTTPError as err:
@@ -457,18 +476,19 @@ def write_to_file(module, cert_data, dkey):
     f_ext = {'HTTPS': ".pem", 'CA': ".pem", "CUSTOMCERTIFICATE": ".crt", 'CSC': ".crt", 'CLIENT_TRUST_CERTIFICATE': ".crt"}
     path = module.params.get('certificate_path')
     if not (os.path.exists(path) or os.path.isdir(path)):
-        module.exit_json(msg="Provided directory path '{0}' is not valid.".format(path), failed=True)
+        module.exit_json(msg=f"Provided directory path '{path}' is not valid.", failed=True)
     if not os.access(path, os.W_OK):
-        module.exit_json(msg="Provided directory path '{0}' is not writable. Please check if you "
-                             "have appropriate permissions.".format(path), failed=True)
+        module.exit_json(msg=f"Provided directory path '{path}' is not writable. Please check if you "
+                             "have appropriate permissions.", failed=True)
     d = datetime.now()
     if module.params.get('command') == 'generate_csr':
         ext = '.txt'
     else:
         ext = f_ext.get(module.params.get('certificate_type'))
-    cert_file_name = "{0}_{1}{2}{3}_{4}{5}{6}_{7}{8}".format(
-        module.params["idrac_ip"], d.date().year, d.date().month, d.date().day,
-        d.time().hour, d.time().minute, d.time().second, module.params.get('certificate_type'), ext)
+    cert_file_name = (
+        f"{module.params['idrac_ip']}_{d.date().year}{d.date().month:02d}{d.date().day:02d}_"
+        f"{d.time().hour:02d}{d.time().minute:02d}{d.time().second:02d}_{module.params.get('certificate_type')}{ext}"
+    )
     file_name = os.path.join(path, cert_file_name)
     write_data = cert_data.pop(dkey, None)
     with open(file_name, "w") as fp:

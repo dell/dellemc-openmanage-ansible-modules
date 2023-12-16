@@ -30,7 +30,7 @@ EXPORT_SSL_CERTIFICATE = "DelliDRACCardService.ExportSSLCertificate"
 IDRAC_CARD_SERVICE_ACTION_URI = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions"
 IDRAC_CARD_SERVICE_ACTION_URI_RES_ID = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions"
 
-NOT_SUPPORTED_ACTION = "Certificate {operation} not supported for the specified certificate type {cert_type}."
+NOT_SUPPORTED_ACTION = "Certificate '{operation}' not supported for the specified certificate type '{cert_type}'."
 SUCCESS_MSG = "Successfully performed the '{command}' certificate operation."
 SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' certificate operation."
 NO_CHANGES_MSG = "No changes found to be applied."
