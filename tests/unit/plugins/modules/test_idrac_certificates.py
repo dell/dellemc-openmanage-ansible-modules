@@ -36,6 +36,8 @@ SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' cer
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
 WAIT_NEGATIVE_OR_ZERO_MSG = "The value for the `wait` parameter cannot be negative or zero."
+SSL_KEY_MSG = "Unable to locate the SSL key file at {ssl_key}."
+SSK_KEY_NOT_SUPPORTED = "Upload of SSL key not supported"
 NO_RESET = "Reset iDRAC to apply the new certificate. Until the iDRAC is reset, the old certificate will remain active."
 RESET_UNTRACK = " iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
 RESET_SUCCESS = "iDRAC has been reset successfully."
@@ -159,7 +161,7 @@ class TestIdracCertificates(FakeAnsibleModule):
         {"json_data": {}, 'message': "{0} {1}".format(SUCCESS_MSG_SSL.format(command="import"), RESET_SUCCESS),
          "success": True,
          "get_cert_url": "url", "reset_idrac": (True, False, RESET_SUCCESS),
-         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'ssl_key': 'pem'}},
+         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'ssl_key': '.pem'}},
         {"json_data": {}, 'message': "{0}{1}".format(SUCCESS_MSG.format(command="import"), RESET_SUCCESS),
          "success": True,
          "reset_idrac": (True, False, RESET_SUCCESS),
@@ -167,7 +169,7 @@ class TestIdracCertificates(FakeAnsibleModule):
         {"json_data": {}, 'message': "{0} {1}".format(SUCCESS_MSG_SSL.format(command="import"), RESET_SUCCESS),
          "success": True,
          "reset_idrac": (True, False, RESET_SUCCESS),
-         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', "ssl_key": 'pem'}},
+         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', "ssl_key": '.pem'}},
         {"json_data": {}, 'message': SUCCESS_MSG.format(command="export"), "success": True, "get_cert_url": "url",
          'mparams': {'command': 'export', 'certificate_type': "HTTPS", 'certificate_path': tempfile.gettempdir()}},
         {"json_data": {}, 'message': "{0}{1}".format(SUCCESS_MSG.format(command="reset"), RESET_SUCCESS),
@@ -177,7 +179,9 @@ class TestIdracCertificates(FakeAnsibleModule):
         {"json_data": {}, 'message': WAIT_NEGATIVE_OR_ZERO_MSG, "success": True,
          'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'wait': -1}},
         {"json_data": {}, 'message': WAIT_NEGATIVE_OR_ZERO_MSG, "success": True,
-         'mparams': {'command': 'reset', 'certificate_type': "HTTPS", 'wait': 0}}
+         'mparams': {'command': 'reset', 'certificate_type': "HTTPS", 'wait': 0}},
+        {"json_data": {}, 'message': f"{SSL_KEY_MSG.format(ssl_key='/invalid/path')}", "success": True,
+         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'ssl_key': '/invalid/path'}}
     ])
     def test_idrac_certificates(self, params, idrac_connection_certificates_mock, idrac_default_args, mocker):
         idrac_connection_certificates_mock.success = params.get("success", True)
@@ -188,7 +192,7 @@ class TestIdracCertificates(FakeAnsibleModule):
             temp.write(b'Hello')
             temp.close()
             params.get('mparams')['certificate_path'] = temp.name
-            if params.get('mparams').get('ssl_key'):
+            if params.get('mparams').get('ssl_key') == '.pem':
                 temp = tempfile.NamedTemporaryFile(suffix=sfx, delete=False)
                 temp.write(b'Hello')
                 temp.close()
