@@ -35,6 +35,7 @@ SUCCESS_MSG = "Successfully performed the '{command}' certificate operation."
 SUCCESS_MSG_SSL = "Successfully performed the SSL key upload and '{command}' certificate operation."
 NO_CHANGES_MSG = "No changes found to be applied."
 CHANGES_MSG = "Changes found to be applied."
+WAIT_NEGATIVE_OR_ZERO_MSG = "The value for the `wait` parameter cannot be negative or zero."
 NO_RESET = "Reset iDRAC to apply the new certificate. Until the iDRAC is reset, the old certificate will remain active."
 RESET_UNTRACK = " iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
 RESET_SUCCESS = "iDRAC has been reset successfully."
@@ -172,7 +173,11 @@ class TestIdracCertificates(FakeAnsibleModule):
         {"json_data": {}, 'message': "{0}{1}".format(SUCCESS_MSG.format(command="reset"), RESET_SUCCESS),
          "success": True, "get_cert_url": "url", "reset_idrac": (True, False, RESET_SUCCESS),
          'mparams': {'command': 'reset', 'certificate_type': "HTTPS"}
-         }
+         },
+        {"json_data": {}, 'message': WAIT_NEGATIVE_OR_ZERO_MSG, "success": True,
+         'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'wait': -1}},
+        {"json_data": {}, 'message': WAIT_NEGATIVE_OR_ZERO_MSG, "success": True,
+         'mparams': {'command': 'reset', 'certificate_type': "HTTPS", 'wait': 0}}
     ])
     def test_idrac_certificates(self, params, idrac_connection_certificates_mock, idrac_default_args, mocker):
         idrac_connection_certificates_mock.success = params.get("success", True)
@@ -318,7 +323,7 @@ class TestIdracCertificates(FakeAnsibleModule):
                          side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + "get_res_id",
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
             result = self._run_module(idrac_default_args)
