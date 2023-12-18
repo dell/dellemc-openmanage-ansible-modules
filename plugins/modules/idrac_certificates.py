@@ -254,8 +254,8 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import reset_idrac
 
-IMPORT_SSL_CERTIFICATE = "DelliDRACCardService.ImportSSLCertificate"
-EXPORT_SSL_CERTIFICATE = "DelliDRACCardService.ExportSSLCertificate"
+IMPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ImportSSLCertificate"
+EXPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ExportSSLCertificate"
 IDRAC_CARD_SERVICE_ACTION_URI = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions"
 
 NOT_SUPPORTED_ACTION = "Certificate '{operation}' not supported for the specified certificate type '{cert_type}'."
@@ -271,9 +271,9 @@ SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
-IMPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/{IMPORT_SSL_CERTIFICATE}"
+IMPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ImportSSLCertificate"
 UPLOAD_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.UploadSSLKey"
-EXPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/{EXPORT_SSL_CERTIFICATE}"
+EXPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ExportSSLCertificate"
 RESET_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 

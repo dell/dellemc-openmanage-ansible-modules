@@ -25,8 +25,8 @@ from ansible_collections.dellemc.openmanage.plugins.modules import idrac_certifi
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
 
-IMPORT_SSL_CERTIFICATE = "DelliDRACCardService.ImportSSLCertificate"
-EXPORT_SSL_CERTIFICATE = "DelliDRACCardService.ExportSSLCertificate"
+IMPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ImportSSLCertificate"
+EXPORT_SSL_CERTIFICATE = "#DelliDRACCardService.ExportSSLCertificate"
 IDRAC_CARD_SERVICE_ACTION_URI = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService/Actions"
 IDRAC_CARD_SERVICE_ACTION_URI_RES_ID = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService/Actions"
 
@@ -46,9 +46,9 @@ SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
 IDRAC_SERVICE = "/redfish/v1/Managers/{res_id}/Oem/Dell/DelliDRACCardService"
 CSR_SSL = "/redfish/v1/CertificateService/Actions/CertificateService.GenerateCSR"
-IMPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/{IMPORT_SSL_CERTIFICATE}"
+IMPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ImportSSLCertificate"
 UPLOAD_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.UploadSSLKey"
-EXPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/{EXPORT_SSL_CERTIFICATE}"
+EXPORT_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.ExportSSLCertificate"
 RESET_SSL = f"{IDRAC_CARD_SERVICE_ACTION_URI}/DelliDRACCardService.SSLResetCfg"
 IDRAC_RESET = "/redfish/v1/Managers/{res_id}/Actions/Manager.Reset"
 idrac_service_actions = {
@@ -242,12 +242,12 @@ class TestIdracCertificates(FakeAnsibleModule):
             EXPORT_SSL_CERTIFICATE: {
                 "SSLCertType@Redfish.AllowableValues": ["CA", "CSC", "CustomCertificate", "ClientTrustCertificate", "Server"],
                 "target":
-                    f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/{EXPORT_SSL_CERTIFICATE}"
+                    f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.ExportSSLCertificate"
             },
             IMPORT_SSL_CERTIFICATE: {
                 "CertificateType@Redfish.AllowableValues": ["CA", "CSC", "CustomCertificate", "ClientTrustCertificate", "Server"],
                 "target":
-                    f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/{IMPORT_SSL_CERTIFICATE}"
+                    f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.ImportSSLCertificate"
             },
             "#DelliDRACCardService.SSLResetCfg": {
                 "target": f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.SSLResetCfg"
@@ -259,9 +259,9 @@ class TestIdracCertificates(FakeAnsibleModule):
         "idrac_service_uri": '/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DelliDRACCardService',
         "actions": {
             EXPORT_SSL_CERTIFICATE:
-                f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/{EXPORT_SSL_CERTIFICATE}",
+                f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.ExportSSLCertificate",
             IMPORT_SSL_CERTIFICATE:
-                f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/{IMPORT_SSL_CERTIFICATE}",
+                f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.ImportSSLCertificate",
             '#DelliDRACCardService.SSLResetCfg':
                 f"{IDRAC_CARD_SERVICE_ACTION_URI_RES_ID}/DelliDRACCardService.SSLResetCfg",
             '#DelliDRACCardService.UploadSSLKey':
