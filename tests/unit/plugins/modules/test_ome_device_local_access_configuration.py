@@ -236,11 +236,11 @@ class TestOMEMDevicePower(FakeAnsibleModule):
 
     def test_get_chassis_device(self, ome_conn_mock_lac, ome_default_args, mocker, ome_response_mock):
         mocker.patch(MODULE_PATH + "get_ip_from_host",
-                     return_value="XX.XX.XX.XX")
+                     return_value="X.X.X.X")
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
                                                   "PublicAddress": ["XX.XX.XX.XX"]},
                                                  {"DeviceId": 25012, "DomainRoleTypeValue": "STANDALONE",
-                                                  "PublicAddress": ["192.168.1.2"]}]}
+                                                  "PublicAddress": ["YY.YY.YY.YY"]}]}
         param = {"device_id": 25012, "hostname": "XX.XX.XX.XX",
                  "enable_kvm_access": True}
         f_module = self.get_module_mock(params=param)

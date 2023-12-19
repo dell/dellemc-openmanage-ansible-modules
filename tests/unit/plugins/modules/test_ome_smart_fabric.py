@@ -1644,7 +1644,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
                     "DeviceManagement": [
                         {
                             "ManagementId": 111111,
-                            "NetworkAddress": "XX.XX.XX.XX",
+                            "NetworkAddress": "192.168.1.1",
                             "MacAddress": "xx:yy:zz:x1x1",
                             "ManagementType": 2,
                             "InstrumentationName": "MX-Constants.service_tag1",
