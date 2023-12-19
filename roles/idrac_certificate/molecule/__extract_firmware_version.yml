@@ -9,11 +9,11 @@
     body_format: json
     return_content: true
     status_code: 200
-  register: uri_data
+  register: idrac_certificate_uri_data
   when: idrac_ip is defined and idrac_password is defined and idrac_user is defined
   check_mode: false
 
 - name: Set firmware version
   ansible.builtin.set_fact:
     firmware_version: "{{ uri_data.json.FirmwareVersion }}"
-  when: uri_data.json is defined
+  when: idrac_certificate_uri_data.json is defined
