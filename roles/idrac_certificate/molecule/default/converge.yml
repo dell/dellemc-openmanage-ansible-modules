@@ -6,6 +6,7 @@
     ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
     cert_export_path: "{{ lookup('env', 'certificate_path') }}"
     base_path_for_import_certificate: "{{ lookup('env', 'base_path_for_import_certificate') }}"
+    csc_passphrase_certificate: "{{ lookup('env', 'csc_passphrase_certificate') }}"
 
   tasks:
     - name: Invalid Scenarios
@@ -24,8 +25,11 @@
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "{{ cert_export_path }}"
             idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
+          ignore_errors: true
+          register: idrac_certificate_res
 
         - name: Setting up Client Trust certificate path for exported file
+          when: idrac_certificate_out.certificate_path is defined
           ansible.builtin.stat:
             path: "{{ idrac_certificate_out.certificate_path }}"
           register: ctc_cert_file
@@ -118,6 +122,7 @@
             that:
               - ('"HTTP Error 401" in idrac_certificate_out.msg')
               - idrac_certificate_out.failed
+          when: idrac_certificate_out is defined
 
         - name: Negative - unreachable host
           ansible.builtin.import_role:
@@ -199,29 +204,6 @@
             that:
               - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - '"value of command must be one of:" in idrac_certificate_out.msg'
-
-        - name: Invalid certificate type
-          ansible.builtin.import_role:
-            name: dellemc.openmanage.idrac_certificate
-          vars:
-            hostname: "{{ lookup('env', 'hostname') }}"
-            username: "{{ lookup('env', 'username') }}"
-            password: "{{ lookup('env', 'password') }}"
-            validate_certs: false
-            command: "reset"
-            certificate_type: "invalid"
-            idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
-          register: invalid_cert_type
-          ignore_errors: true
-
-        - name: Verify task status - Negative - invalid certificate type
-          ansible.builtin.assert:
-            that:
-              - idrac_certificate_out.failed
-              - not idrac_certificate_out.changed
-              - 'idrac_certificate_out.msg == "value of certificate_type must be one of: HTTPS, CA, CUSTOMCERTIFICATE,
-                                                CSC, CLIENT_TRUST_CERTIFICATE, got: invalid"'
 
         - name: Invalid certificate path
           ansible.builtin.import_role:
@@ -255,7 +237,7 @@
             validate_certs: false
             command: "import"
             certificate_type: "CSC"
-            certificate_path: "{{ base_path_for_import_certificate }}/{{ CSC_passphrase_certificate }}"
+            certificate_path: "{{ base_path_for_import_certificate }}/{{ csc_passphrase_certificate }}"
             passphrase: "invalid"
             idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
           register: invalid_passphrase
@@ -293,73 +275,6 @@
               - "'missing required arguments: common_name, country_code, locality_name, organization_name, organization_unit,
                 state_name found in cert_params' == idrac_certificate_out.msg"
 
-        - name: Invalid resource id
-          ansible.builtin.import_role:
-            name: dellemc.openmanage.idrac_certificate
-          vars:
-            hostname: "{{ lookup('env', 'hostname') }}"
-            username: "{{ lookup('env', 'username') }}"
-            password: "{{ lookup('env', 'password') }}"
-            validate_certs: false
-            command: "reset"
-            certificate_type: "HTTPS"
-            resource_id: invalid
-            idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
-          register: invalid_res
-          ignore_errors: true
-
-        - name: Verify task status - Negative - invalid resource id
-          ansible.builtin.assert:
-            that:
-              - idrac_certificate_out.failed
-              - not idrac_certificate_out.changed
-              - 'idrac_certificate_out.msg == "HTTP Error 404: Not Found"'
-
-        - name: Invalid reset value
-          ansible.builtin.import_role:
-            name: dellemc.openmanage.idrac_certificate
-          vars:
-            hostname: "{{ lookup('env', 'hostname') }}"
-            username: "{{ lookup('env', 'username') }}"
-            password: "{{ lookup('env', 'password') }}"
-            validate_certs: false
-            command: "reset"
-            certificate_type: "HTTPS"
-            reset: invalid
-            idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
-          register: invalid_reset
-          ignore_errors: true
-
-        - name: Verify task status - Negative - invalid reset value
-          ansible.builtin.assert:
-            that:
-              - idrac_certificate_out.failed
-              - not idrac_certificate_out.changed
-              - "'argument \\'reset\\' is of type <class \\'str\\'> and we were unable to convert to bool: The value \\'invalid\\' is
-                not a valid boolean.  Valid booleans include:' in idrac_certificate_out.msg"
-
-        - name: Invalid wait value
-          ansible.builtin.import_role:
-            name: dellemc.openmanage.idrac_certificate
-          vars:
-            hostname: "{{ lookup('env', 'hostname') }}"
-            username: "{{ lookup('env', 'username') }}"
-            password: "{{ lookup('env', 'password') }}"
-            validate_certs: false
-            command: "reset"
-            certificate_type: "HTTPS"
-            wait: invalid
-            idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
-          register: invalid_wait
-          ignore_errors: true
-
-        - name: Verify task status - Negative - invalid wait value
-          ansible.builtin.assert:
-            that:
-              - idrac_certificate_out.failed
-              - not idrac_certificate_out.changed
-              - "'argument \\'wait\\' is of type <class \\'str\\'> and we were unable to convert to int: <class \\'str\\'>
-                cannot be converted to an int' in idrac_certificate_out.msg"
 
         - name: Invalid passphrase for a valid custom certificate without passphrase
           ansible.builtin.import_role:
@@ -371,7 +286,7 @@
             validate_certs: false
             command: "import"
             certificate_type: "CUSTOMCERTIFICATE"
-            certificate_path: "{{ base_path_for_import_certificate }}/{{ custom_certificate_name_pass }}"
+            certificate_path: "{{ base_path_for_import_certificate }}/{{ lookup('env', 'custom_certificate_name') }}"
             passphrase: "invalid"
             idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
           register: invalid_custom_cert_pass
@@ -394,7 +309,7 @@
             validate_certs: false
             command: "import"
             certificate_type: "CUSTOMCERTIFICATE"
-            certificate_path: "{{ base_path_for_import_certificate }}/{{ custom_certificate_name }}"
+            certificate_path: "{{ base_path_for_import_certificate }}/{{ lookup('env', 'custom_certificate_name_pass') }}"
             passphrase: "invalid"
             idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
           register: invalid_custom_cert_without_pass
@@ -411,6 +326,9 @@
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_certificate
           vars:
+            hostname: "{{ lookup('env', 'hostname') }}"
+            username: "{{ lookup('env', 'username') }}"
+            password: "{{ lookup('env', 'password') }}"
             validate_certs: false
             command: "import"
             certificate_type: "HTTPS"

@@ -23,7 +23,7 @@
         firmware_version_expected: "6.00.02.00"
 
     - name: Import Https certificate using ssl_key
-      when: "firmware_version >= firmware_version_expected"
+      when: idrac_certificate_firmware_version is defined and "idrac_certificate_firmware_version >= firmware_version_expected"
       block:
         - name: Importing HTTPS certificate using ssl_key
           ansible.builtin.import_role:

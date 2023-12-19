@@ -15,5 +15,5 @@
 
 - name: Set firmware version
   ansible.builtin.set_fact:
-    firmware_version: "{{ uri_data.json.FirmwareVersion }}"
+    idrac_certificate_firmware_version: "{{ idrac_certificate_uri_data.json.FirmwareVersion }}"
   when: idrac_certificate_uri_data.json is defined
