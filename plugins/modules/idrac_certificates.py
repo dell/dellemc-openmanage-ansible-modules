@@ -351,7 +351,7 @@ def get_ssl_payload(module, operation, cert_type):
     elif operation == 'generate_csr':
         payload = _build_generate_csr_payload(module, cert_type)
     elif operation == 'reset':
-        payload = {}
+        payload = '{}'
 
     return payload, method
 
