@@ -38,17 +38,17 @@ class TestVirtualMedia(FakeAnsibleModule):
 
     def test_validate_params(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args):
         idrac_default_args.update(
-            {"virtual_media": [{"index": 1, "insert": True, "image": "//192.168.0.1/path/image.iso"}]})
+            {"virtual_media": [{"index": 1, "insert": True, "image": "//XX.XX.XX.XX/path/image.iso"}]})
         f_module = self.get_module_mock(params=idrac_default_args)
         with pytest.raises(Exception) as err:
             self.module._validate_params(f_module, {"index": 1, "insert": True,
-                                                    "image": "//192.168.0.1/path/image.iso"}, "140")
+                                                    "image": "//XX.XX.XX.XX/path/image.iso"}, "140")
         assert err.value.args[0] == "CIFS share required username and password."
         idrac_default_args.update({"virtual_media": [{"index": 1, "insert": True, "username": "user", "password": "pwd",
-                                                      "image": "\\\\192.168.0.1\\path\\image.iso"}]})
+                                                      "image": "\\\\XX.XX.XX.XX\\path\\image.iso"}]})
         f_module = self.get_module_mock(params=idrac_default_args)
         result = self.module._validate_params(f_module, {"password": "pwd", "insert": True, "username": "usr",
-                                                         "image": "\\\\192.168.0.1\\path\\image.iso", "index": 1},
+                                                         "image": "\\\\XX.XX.XX.XX\\path\\image.iso", "index": 1},
                                               "141")
         assert result is None
 
@@ -57,7 +57,7 @@ class TestVirtualMedia(FakeAnsibleModule):
             "RedfishVersion": "1.13.1",
             "VirtualMedia": {"@odata.id": "/redfish/v1/Systems/System.Embedded.1/VirtualMedia"},
             "Members": [{"Inserted": False, "Image": None},
-                        {"Inserted": True, "Image": "//192.168.0.1/file_path/file.iso"}]
+                        {"Inserted": True, "Image": "//XX.XX.XX.XX/file_path/file.iso"}]
         }
         resp, vr_id, rd_version = self.module.get_virtual_media_info(virtual_media_conn_mock)
         assert vr_id == "system"
@@ -66,17 +66,17 @@ class TestVirtualMedia(FakeAnsibleModule):
         assert vr_id == "manager"
 
     def test_get_payload_data(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args):
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//192.168.0.1/path/file.iso"}]})
-        each = {"insert": True, "image": "//192.168.0.1/path/file.iso", "index": 1, "media_type": "CD"}
-        vr_member = [{"Inserted": True, "Image": "//192.168.0.1/path/image_file.iso",
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//XX.XX.XX.XX/path/file.iso"}]})
+        each = {"insert": True, "image": "//XX.XX.XX.XX/path/file.iso", "index": 1, "media_type": "CD"}
+        vr_member = [{"Inserted": True, "Image": "//XX.XX.XX.XX/path/image_file.iso",
                       "UserName": "username", "Password": "password", "Id": "CD", "MediaTypes": ["CD", "DVD"]}]
         is_change, input_vr_mem, vr_mem, unsup_media = self.module.get_payload_data(each, vr_member, "manager")
         assert is_change is True
-        assert input_vr_mem == {'Inserted': True, 'Image': '//192.168.0.1/path/file.iso'}
-        assert vr_mem == {'Inserted': True, 'Image': '//192.168.0.1/path/image_file.iso', 'UserName': 'username',
+        assert input_vr_mem == {'Inserted': True, 'Image': '//XX.XX.XX.XX/path/file.iso'}
+        assert vr_mem == {'Inserted': True, 'Image': '//XX.XX.XX.XX/path/image_file.iso', 'UserName': 'username',
                           'Password': 'password', 'Id': 'CD', 'MediaTypes': ['CD', 'DVD']}
         each.update({"username": "user_name", "password": "password", "domain": "domain",
-                     "image": "192.168.0.3:/file_path/image.iso"})
+                     "image": "XX.XX.XX.XX:/file_path/image.iso"})
         is_change, input_vr_mem, vr_mem, unsup_media = self.module.get_payload_data(each, vr_member, "manager")
         assert is_change is True
         each.update({"media_type": "USBStick"})
@@ -88,25 +88,25 @@ class TestVirtualMedia(FakeAnsibleModule):
         is_change, input_vr_mem, vr_mem, unsup_media = self.module.get_payload_data(each, vr_member, "system")
         assert is_change is True
         each.update({"username": "user_name", "password": "password", "domain": "domain", "media_type": "CD",
-                     "image": "192.168.0.3:/file_path/image.img", "insert": True})
+                     "image": "XX.XX.XX.XX:/file_path/image.img", "insert": True})
         is_change, input_vr_mem, vr_mem, unsup_media = self.module.get_payload_data(each, vr_member, "manager")
         assert unsup_media == 1
         each.update({"username": "user_name", "password": "password", "domain": "domain", "media_type": "DVD",
-                     "image": "192.168.0.3:/file_path/image.img", "insert": True})
+                     "image": "XX.XX.XX.XX:/file_path/image.img", "insert": True})
         is_change, input_vr_mem, vr_mem, unsup_media = self.module.get_payload_data(each, vr_member, "manager")
         assert unsup_media == 1
 
     def test_domain_name(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args):
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//192.168.0.1/path/file.iso"}]})
-        each = {"insert": True, "image": "//192.168.0.1/path/file.iso", "index": 1, "media_type": "CD",
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//XX.XX.XX.XX/path/file.iso"}]})
+        each = {"insert": True, "image": "//XX.XX.XX.XX/path/file.iso", "index": 1, "media_type": "CD",
                 "domain": "domain", "username": "user", "password": "pwd"}
-        vr_member = [{"Inserted": True, "Image": "//192.168.0.1/path/image_file.iso", "domain": "domain",
+        vr_member = [{"Inserted": True, "Image": "//XX.XX.XX.XX/path/image_file.iso", "domain": "domain",
                       "UserName": "username", "Password": "password", "Id": "CD", "MediaTypes": ["CD", "DVD"]}]
         is_change, input_vr_mem, vr_mem, unsup_media = self.module.get_payload_data(each, vr_member, "manager")
         assert is_change is True
 
     def test_virtual_media_operation(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args, mocker):
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//192.168.0.1/path/file.iso"}],
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//XX.XX.XX.XX/path/file.iso"}],
                                    "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.time.sleep', return_value=None)
@@ -117,8 +117,8 @@ class TestVirtualMedia(FakeAnsibleModule):
                 "#VirtualMedia.InsertMedia": {
                     "target": "/redfish/v1/Systems/System.Embedded.1/VirtualMedia/1/Actions/VirtualMedia.InsertMedia"}
             }},
-            "payload": {"Inserted": True, "Image": "http://192.168.0.1/file_path/file.iso"},
-            "input": {"index": 1, "insert": True, "image": "//192.168.0.1/path/file.iso", "force": True}
+            "payload": {"Inserted": True, "Image": "http://XX.XX.XX.XX/file_path/file.iso"},
+            "input": {"index": 1, "insert": True, "image": "//XX.XX.XX.XX/path/file.iso", "force": True}
         }]
         result = self.module.virtual_media_operation(virtual_media_conn_mock, f_module, payload, "manager")
         assert result == []
@@ -136,7 +136,7 @@ class TestVirtualMedia(FakeAnsibleModule):
     @pytest.mark.parametrize("exc_type", [HTTPError])
     def test_virtual_media_operation_http(self, virtual_media_conn_mock, redfish_response_mock,
                                           idrac_default_args, mocker, exc_type):
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//192.168.0.1/path/file.iso"}],
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//XX.XX.XX.XX/path/file.iso"}],
                                    "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.time.sleep', return_value=None)
@@ -147,8 +147,8 @@ class TestVirtualMedia(FakeAnsibleModule):
                 "#VirtualMedia.InsertMedia": {
                     "target": "/redfish/v1/Systems/System.Embedded.1/VirtualMedia/CD/Actions/VirtualMedia.InsertMedia"}
             }},
-            "payload": {"Inserted": True, "Image": "http://192.168.0.1/file_path/file.iso"},
-            "input": {"index": 1, "insert": True, "image": "//192.168.0.1/path/file.iso", "force": True}
+            "payload": {"Inserted": True, "Image": "http://XX.XX.XX.XX/file_path/file.iso"},
+            "input": {"index": 1, "insert": True, "image": "//XX.XX.XX.XX/path/file.iso", "force": True}
         }]
         if exc_type == HTTPError:
             mocker.patch(MODULE_PATH + 'idrac_virtual_media.json.load', return_value={
@@ -157,25 +157,25 @@ class TestVirtualMedia(FakeAnsibleModule):
             json_str = to_text(json.dumps({"data": "out"}))
             mocker.patch(
                 MODULE_PATH + 'idrac_virtual_media.time.sleep',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
             result = self.module.virtual_media_operation(virtual_media_conn_mock, f_module, payload, "system")
             assert result == [{'@Message.ExtendedInfo': [{'MessageId': 'VRM0012'}]}]
 
     def test_virtual_media(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args, mocker):
-        vr_member = [{"Inserted": True, "Image": "//192.168.0.1/path/image_file.iso",
+        vr_member = [{"Inserted": True, "Image": "//XX.XX.XX.XX/path/image_file.iso",
                       "UserName": "username", "Password": "password", "Id": "CD", "MediaTypes": ["CD", "DVD"]}]
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.virtual_media_operation', return_value=[])
         mocker.patch(MODULE_PATH + 'idrac_virtual_media._validate_params', return_value=None)
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(True, {}, {}, 1))
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//192.168.0.1/path/file.iso"}],
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//XX.XX.XX.XX/path/file.iso"}],
                                    "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
         with pytest.raises(Exception) as ex:
             self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "manager", "141")
         assert ex.value.args[0] == "Unable to complete the virtual media operation because unsupported " \
                                    "media type provided for index 1"
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//192.168.0.1/path/file.img"}],
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//XX.XX.XX.XX/path/file.img"}],
                                    "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
         with pytest.raises(Exception) as ex:
@@ -186,7 +186,7 @@ class TestVirtualMedia(FakeAnsibleModule):
             self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "system", "141")
         assert ex.value.args[0] == "Unable to complete the virtual media operation because " \
                                    "unsupported media type provided for index 1"
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//192.168.0.1/path/file.iso",
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//XX.XX.XX.XX/path/file.iso",
                                                       "index": 1, "media_type": "CD"}], "force": True})
         f_module = self.get_module_mock(params=idrac_default_args)
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_payload_data', return_value=(True, {}, {}, None))
@@ -200,7 +200,7 @@ class TestVirtualMedia(FakeAnsibleModule):
         with pytest.raises(Exception) as ex:
             self.module.virtual_media(virtual_media_conn_mock, f_module, vr_member, "manager", "141")
         assert ex.value.args[0] == "Changes found to be applied."
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//192.168.0.1/path/file.iso",
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "//XX.XX.XX.XX/path/file.iso",
                                                       "index": 1, "media_type": "CD"}], "force": False})
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = True
@@ -211,8 +211,8 @@ class TestVirtualMedia(FakeAnsibleModule):
 
     def test_main_success(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args, mocker):
         idrac_default_args.update({"virtual_media": [
-            {"insert": True, "image": "http://192.168.0.1/path/file.iso"},
-            {"insert": True, "image": "192.168.0.2:/file/file.iso"}], "force": True})
+            {"insert": True, "image": "http://XX.XX.XX.XX/path/file.iso"},
+            {"insert": True, "image": "YY.YY.YY.YY:/file/file.iso"}], "force": True})
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_virtual_media_info',
                      return_value=([{"Insert": True}, {"Insert": True}], "manager", "141"))
         with pytest.raises(Exception) as ex:
@@ -220,7 +220,7 @@ class TestVirtualMedia(FakeAnsibleModule):
         assert ex.value.args[0]["msg"] == "Unable to complete the operation because the virtual media settings " \
                                           "provided exceeded the maximum limit."
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.virtual_media', return_value=[])
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "http://192.168.0.1/path/file.iso"}],
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "http://XX.XX.XX.XX/path/file.iso"}],
                                    "force": True})
         result = self._run_module(idrac_default_args)
         assert result == {'changed': True, 'msg': 'Successfully performed the virtual media operation.'}
@@ -239,7 +239,7 @@ class TestVirtualMedia(FakeAnsibleModule):
         else:
             mocker.patch(
                 MODULE_PATH + 'idrac_virtual_media.get_virtual_media_info',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
             result = self._run_module_with_fail_json(idrac_default_args)

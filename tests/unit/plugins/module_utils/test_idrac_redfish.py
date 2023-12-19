@@ -44,7 +44,7 @@ class TestIdracRedfishRest(object):
 
     @pytest.fixture
     def module_params(self):
-        module_parameters = {'idrac_ip': '192.168.0.1', 'idrac_user': 'username',
+        module_parameters = {'idrac_ip': 'XX.XX.XX.XX', 'idrac_user': 'username',
                              'idrac_password': 'password', 'idrac_port': '443'}
         return module_parameters
 
@@ -109,7 +109,7 @@ class TestIdracRedfishRest(object):
     def test_invoke_request_http_error_handling(self, mock_response, mocker, module_params):
         open_url_mock = mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                                      return_value=mock_response)
-        open_url_mock.side_effect = HTTPError('http://testhost.com/', 400,
+        open_url_mock.side_effect = HTTPError('https://testhost.com/', 400,
                                               'Bad Request Error', {}, None)
         req_session = False
         with pytest.raises(HTTPError):
@@ -125,7 +125,7 @@ class TestIdracRedfishRest(object):
     ])
     def test_build_url(self, query_params, mocker, idrac_redfish_object):
         """builds complete url"""
-        base_uri = 'https://192.168.0.1:443/api'
+        base_uri = 'https://XX.XX.XX.XX:443/api'
         path = "/AccountService/Accounts"
         mocker.patch(MODULE_UTIL_PATH + 'idrac_redfish.iDRACRedfishAPI._get_url',
                      return_value=base_uri + path)
@@ -137,7 +137,7 @@ class TestIdracRedfishRest(object):
 
     def test_build_url_none(self, mocker, idrac_redfish_object):
         """builds complete url"""
-        base_uri = 'https://192.168.0.1:443/api'
+        base_uri = 'https://XX.XX.XX.XX:443/api'
         mocker.patch(MODULE_UTIL_PATH + 'redfish.Redfish._get_base_url',
                      return_value=base_uri)
         url = idrac_redfish_object._build_url("", None)

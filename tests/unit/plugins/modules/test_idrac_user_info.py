@@ -76,7 +76,7 @@ class TestIDRACUserInfo(FakeAnsibleModule):
         assert resp.get("UserName") == "test"
 
         idrac_connection_user_info_mock.invoke_request.side_effect = HTTPError(
-            'http://testhost.com', 400,
+            'https://testhost.com', 400,
             'http error message',
             {"accept-type": "application/json"},
             StringIO(json_str))
@@ -164,7 +164,7 @@ class TestIDRACUserInfo(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         idrac_connection_user_info_mock.invoke_request.side_effect = HTTPError(
-            'http://testhost.com', 400,
+            'https://testhost.com', 400,
             'http error message',
             {"accept-type": "application/json"},
             StringIO(json_str))
@@ -218,7 +218,7 @@ class TestIDRACUserInfo(FakeAnsibleModule):
                          side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + "idrac_user_info.get_accounts_uri",
-                         side_effect=exc_type('http://testhost.com', 400,
+                         side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))

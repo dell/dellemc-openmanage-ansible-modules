@@ -391,7 +391,7 @@ class TestOmeSecuritySettings(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'login_security_setting',
-                         side_effect=exc_type('http://testhost.com',
+                         side_effect=exc_type('https://testhost.com',
                                               400,
                                               'http error message',
                                               {"accept-type": "application/json"},

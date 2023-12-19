@@ -65,7 +65,7 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
     def test_ome_device_group_get_group_id_case02(self, ome_connection_mock_for_device_group, ome_response_mock):
         f_module = self.get_module_mock(params={"group_id": 1234,
                                                 "device_ids": [25011], "device_service_tags": []})
-        ome_connection_mock_for_device_group.invoke_request.side_effect = HTTPError('http://testhost.com', 400,
+        ome_connection_mock_for_device_group.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
                                                                                     'http error message',
                                                                                     {"accept-type": "application/json"},
                                                                                     StringIO(to_text(json.dumps(
@@ -193,7 +193,7 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_group_id',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
@@ -224,16 +224,16 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
             self.module.validate_group(group_resp, f_module, "name", "group1")
         assert exc.value.args[0] == REMOVE_STATIC_GROUP_MESSAGE
 
-    @pytest.mark.parametrize("inp,out", [(['192.168.2.0'], [IPAddress('192.168.2.0')]),
+    @pytest.mark.parametrize("inp,out", [(['XX.XX.XX.XX'], [IPAddress('XX.XX.XX.XX')]),
                                          (['fe80::ffff:ffff:ffff:ffff'], [IPAddress('fe80::ffff:ffff:ffff:ffff')]),
-                                         (['192.168.2.0/24'], [IPNetwork('192.168.2.0/24')]),
+                                         (['XX.XX.XX.XX/24'], [IPNetwork('XX.XX.XX.XX/24')]),
                                          (['fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff'],
                                           [IPRange('fe80::ffff:ffff:ffff:1111', 'fe80::ffff:ffff:ffff:ffff')]),
-                                         (['192.168.2.0', 'fe80::ffff:ffff:ffff:ffff',
-                                           '192.168.2.0/24', 'fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff',
-                                           '2002:c000:02e6::1/48'], [IPAddress('192.168.2.0'),
+                                         (['XX.XX.XX.XX', 'fe80::ffff:ffff:ffff:ffff',
+                                           'XX.XX.XX.XX/24', 'fe80::ffff:ffff:ffff:1111-fe80::ffff:ffff:ffff:ffff',
+                                           '2002:c000:02e6::1/48'], [IPAddress('XX.XX.XX.XX'),
                                                                      IPAddress('fe80::ffff:ffff:ffff:ffff'),
-                                                                     IPNetwork('192.168.2.0/24'),
+                                                                     IPNetwork('XX.XX.XX.XX/24'),
                                                                      IPRange('fe80::ffff:ffff:ffff:1111',
                                                                              'fe80::ffff:ffff:ffff:ffff'),
                                                                      IPNetwork(
@@ -244,18 +244,18 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
         res = self.module.get_all_ips(inp, f_module)
         assert res == out
 
-    @pytest.mark.parametrize("inp", [["abc"], [""], ["266.128"], ["100:1bcd:xyz"], ["192.168.0.0--192.168.0.1"],
-                                     ["-192.168.0.0-192.168.0.1"], ["-192.168.0.0192.168.0.1"],
-                                     ["192.168.0.0-192.168.0.1-"], ["192.168.0.0192.168.0.1-"],
-                                     ["192.168.0.1//24"],
-                                     ["\192.168.0.1//24"],
-                                     ["192.168.0.1/\24"],
-                                     ["/192.168.0.1/24"],
+    @pytest.mark.parametrize("inp", [["abc"], [""], ["266.128"], ["100:1bcd:xyz"], ["YY.YY.YY.YY--XX.XX.XX.XX"],
+                                     ["-YY.YY.YY.YY-XX.XX.XX.XX"], ["-YY.YY.YY.YYXX.XX.XX.XX"],
+                                     ["YY.YY.YY.YY-XX.XX.XX.XX-"], ["YY.YY.YY.YYXX.XX.XX.XX-"],
+                                     ["XX.XX.XX.XX//24"],
+                                     ["\XX.XX.XX.XX//24"],
+                                     ["XX.XX.XX.XX/\24"],
+                                     ["/XX.XX.XX.XX/24"],
                                      ["1.12.1.36/255.255.255.88"]],
-                             ids=["abc", "", "266.128", "100:1bcd:xyz", "192.168.0.0--192.168.0.1",
-                                  "-192.168.0.0-192.168.0.1", "-192.168.0.0192.168.0.1", "192.168.0.0-192.168.0.1-",
-                                  "192.168.0.0192.168.0.1-", "192.168.0.1//24", "\192.168.0.1//24",
-                                  "192.168.0.1/\24", "/192.168.0.1/24", "1.12.1.36/255.255.255.88"])
+                             ids=["abc", "", "266.128", "100:1bcd:xyz", "YY.YY.YY.YY--XX.XX.XX.XX",
+                                  "-YY.YY.YY.YY-XX.XX.XX.XX", "-YY.YY.YY.YYXX.XX.XX.XX", "YY.YY.YY.YY-XX.XX.XX.XX-",
+                                  "YY.YY.YY.YYXX.XX.XX.XX-", "XX.XX.XX.XX//24", "\XX.XX.XX.XX//24",
+                                  "XX.XX.XX.XX/\24", "/XX.XX.XX.XX/24", "1.12.1.36/255.255.255.88"])
     def test_get_all_ips_failure_case(self, inp):
         f_module = self.get_module_mock(params={"name": "group1",
                                                 "ip_addresses": inp})
@@ -389,12 +389,12 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
                   5555: "192.168.4.3", 6666: "192.168.3.11", 7777: "192.168.3.0",
                   8888: "192.168.4.1", 9999: "192.168.4.5", 1010: "192.168.4.9",
                   1011: "fe80::de0:b6b3:a764:0"}
-        ip_addresses = [IPNetwork("::ffff:192.168.2.0/125"), IPAddress("192.168.2.10"),
+        ip_addresses = [IPNetwork("::ffff:XX.XX.XX.XX/125"), IPAddress("192.168.2.10"),
                         IPAddress('fe80::ffff:ffff:ffff:ffff'),
                         IPNetwork('fe80::ffff:ffff:ffff:ffff/24'),
                         IPNetwork('192.168.3.0/24'), IPRange('192.168.4.1', '192.168.4.9')]
         f_module = self.get_module_mock(params={"name": "group1",
-                                                "ip_addresses": ["::ffff:192.168.2.0/125",
+                                                "ip_addresses": ["::ffff:XX.XX.XX.XX/125",
                                                                  "192.168.2.10",
                                                                  'fe80::ffff:ffff:ffff:ffff',
                                                                  '192.168.3.0/24',
@@ -416,13 +416,13 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
                 ],
             },
         ]
-        ip_addresses = [IPNetwork("::ffff:192.168.2.0/125"), IPAddress("192.168.2.10"),
+        ip_addresses = [IPNetwork("::ffff:XX.XX.XX.XX/125"), IPAddress("192.168.2.10"),
                         IPAddress('fe80::ffff:ffff:ffff:ffff'),
                         IPNetwork('fe80::ffff:ffff:ffff:ffff/24'),
                         IPNetwork('192.168.3.0/24'), IPRange('192.168.4.1', '192.168.4.9')]
         with pytest.raises(Exception, match=IP_NOT_EXISTS):
             f_module = self.get_module_mock(params={"name": "group1",
-                                                    "ip_addresses": ["::ffff:192.168.2.0/125",
+                                                    "ip_addresses": ["::ffff:XX.XX.XX.XX/125",
                                                                      "192.168.2.10",
                                                                      'fe80::ffff:ffff:ffff:ffff',
                                                                      '192.168.3.0/24',
@@ -440,7 +440,7 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
     #                    ]
     #     ome_connection_mock_for_device_group.get_all_report_details.return_value = {"report_list": report_list}
     #     f_module = self.get_module_mock(params={"name": "group1",
-    #                                             "ip_addresses": ["::ffff:192.168.2.0/125",
+    #                                             "ip_addresses": ["::ffff:XX.XX.XX.XX/125",
     #                                                              "192.168.2.10",
     #                                                              'fe80::ffff:ffff:ffff:ffff',
     #                                                              '192.168.3.0/24',
@@ -466,7 +466,7 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
                        ]
         ome_connection_mock_for_device_group.get_all_report_details.return_value = {"report_list": report_list}
         f_module = self.get_module_mock(params={"name": "group1",
-                                                "ip_addresses": ["::ffff:192.168.2.0/125",
+                                                "ip_addresses": ["::ffff:XX.XX.XX.XX/125",
                                                                  "192.168.2.10",
                                                                  'fe80::ffff:ffff:ffff:ffff',
                                                                  '192.168.3.0/24',

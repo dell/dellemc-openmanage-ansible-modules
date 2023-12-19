@@ -48,7 +48,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type == HTTPError:
             redfish_connection_mock.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 401, 'http error message', {"accept-type": "application/json"},
+                'https://testhost.com', 401, 'http error message', {"accept-type": "application/json"},
                 StringIO(json_str)
             )
             result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
@@ -56,7 +56,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             assert result[1] is True
             assert result[2] == "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
             redfish_connection_mock.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
+                'https://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
                 StringIO(json_str)
             )
             result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
@@ -179,7 +179,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result["msg"] == "Successfully completed the job for firmware rollback."
 
     def test_get_rollback_preview_target(self, redfish_connection_mock, redfish_response_mock, redfish_default_args):
-        redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "192.168.0.1",
+        redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "XX.XX.XX.XX",
                                      "name": "BIOS", "reboot_timeout": 3600})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.json_data = {"Actions": {"#UpdateService.SimpleUpdate": {}}}
@@ -217,7 +217,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result[2] == "/redfish/v1/SimpleUpdate"
 
     def test_get_job_status(self, redfish_connection_mock, redfish_response_mock, redfish_default_args, mocker):
-        redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "192.168.0.1", "Name": "BIOS",
+        redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "XX.XX.XX.XX", "Name": "BIOS",
                                      "reboot_timeout": 900})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.json_data = {"JobState": "Completed", "JobType": "FirmwareUpdate",
@@ -258,7 +258,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         assert result == ["JID_123456789"]
 
     def test_require_session(self, redfish_connection_mock, redfish_response_mock, redfish_default_args):
-        redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "192.168.0.1", "Name": "BIOS"})
+        redfish_default_args.update({"username": "user", "password": "pwd", "baseuri": "XX.XX.XX.XX", "Name": "BIOS"})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"Id": 1}
@@ -280,7 +280,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
                          side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.get_rollback_preview_target',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type == HTTPError:
             result = self._run_module(redfish_default_args)

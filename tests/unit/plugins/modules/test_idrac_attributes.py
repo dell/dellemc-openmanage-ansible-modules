@@ -203,7 +203,7 @@ class TestIdracAttributes(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'update_idrac_attributes', side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + 'update_idrac_attributes',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
             result = self._run_module(idrac_default_args)
@@ -261,23 +261,23 @@ class TestIdracAttributes(FakeAnsibleModule):
         idrac_redfish_mock_for_attr.wait_for_job_completion.return_value = {"JobStatus": "Success"}
         result = self.module.scp_idrac_attributes(f_module, idrac_redfish_mock_for_attr, "iDRAC.Embedded.1")
         assert result["JobStatus"] == "Success"
-        idrac_default_args.update({'system_attributes': {"SNMP.1.IPAddress": "192.168.0.1"}})
+        idrac_default_args.update({'system_attributes': {"SNMP.1.IPAddress": "XX.XX.XX.XX"}})
         f_module = self.get_module_mock(params=idrac_default_args)
         mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value=("<components></components>",
-                                                                        {"SNMP.1.IPAddress": "192.168.0.1"}))
+                                                                        {"SNMP.1.IPAddress": "XX.XX.XX.XX"}))
         idrac_redfish_mock_for_attr.wait_for_job_completion.return_value = {"JobStatus": "Success"}
         result = self.module.scp_idrac_attributes(f_module, idrac_redfish_mock_for_attr, "System.Embedded.1")
         assert result["JobStatus"] == "Success"
 
     def test_get_check_mode(self, idrac_redfish_mock_for_attr, redfish_response_mock, idrac_default_args, mocker):
-        idrac_json = {"SNMP.1.IPAddress": "192.168.0.1"}
+        idrac_json = {"SNMP.1.IPAddress": "XX.XX.XX.XX"}
         idrac_default_args.update({'idrac_attributes': idrac_json})
         f_module = self.get_module_mock(params=idrac_default_args)
         response_obj = MagicMock()
         idrac_redfish_mock_for_attr.export_scp.return_value = response_obj
         response_obj.json_data = {
             "SystemConfiguration": {"Components": [
-                {"FQDD": "iDRAC.Embedded.1", "Attributes": {"Name": "SNMP.1.IPAddress", "Value": "192.168.0.1"}}
+                {"FQDD": "iDRAC.Embedded.1", "Attributes": {"Name": "SNMP.1.IPAddress", "Value": "XX.XX.XX.XX"}}
             ]}}
         mocker.patch(MODULE_PATH + 'validate_attr_name', return_value=(
             idrac_json, {"SNMP.10.IPAddress": "Attribute does not exists."}))
@@ -323,7 +323,7 @@ class TestIdracAttributes(FakeAnsibleModule):
         assert exc.value.args[0] == "Changes found to be applied."
 
     def test_fetch_idrac_uri_attr(self, idrac_redfish_mock_for_attr, redfish_response_mock, idrac_default_args, mocker):
-        idrac_json = {"SNMP.1.IPAddress": "192.168.0.1"}
+        idrac_json = {"SNMP.1.IPAddress": "XX.XX.XX.XX"}
         idrac_default_args.update({'idrac_attributes': idrac_json})
         f_module = self.get_module_mock(params=idrac_default_args)
         response_obj = MagicMock()

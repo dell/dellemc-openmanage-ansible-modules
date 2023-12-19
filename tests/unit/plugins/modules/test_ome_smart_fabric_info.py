@@ -311,7 +311,7 @@ class TestOMESmartFabricInfo(FakeAnsibleModule):
             ome_connection_smart_fabric_info_mock.invoke_request.side_effect = exc_type(
                 'test')
         else:
-            ome_connection_smart_fabric_info_mock.invoke_request.side_effect = exc_type('http://testhost.com', 400,
+            ome_connection_smart_fabric_info_mock.invoke_request.side_effect = exc_type('https://testhost.com', 400,
                                                                                         'http error message',
                                                                                         {"accept-type": "application/json"},
                                                                                         StringIO(json_str))
