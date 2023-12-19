@@ -88,7 +88,7 @@ class TestOmeTemplateInfo(FakeAnsibleModule):
         if exc_type not in [HTTPError, SSLValidationError]:
             ome_connection_template_info_mock.invoke_request.side_effect = exc_type('test')
         else:
-            ome_connection_template_info_mock.invoke_request.side_effect = exc_type('http://testhost.com', 400,
+            ome_connection_template_info_mock.invoke_request.side_effect = exc_type('https://testhost.com', 400,
                                                                                     'http error message',
                                                                                     {"accept-type": "application/json"},
                                                                                     StringIO(json_str))

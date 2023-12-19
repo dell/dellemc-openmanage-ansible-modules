@@ -369,7 +369,7 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_connection_firmware_redfish_mock.success = True
         idrac_connection_firmware_redfish_mock.json_data = {"FirmwareVersion": "2.70"}
         mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_omsdk',
-                     side_effect=HTTPError('http://testhost.com', 400, 'http error message',
+                     side_effect=HTTPError('https://testhost.com', 400, 'http error message',
                                            {"accept-type": "application/json"},
                                            StringIO(json_str)))
         result = self._run_module_with_fail_json(idrac_default_args)

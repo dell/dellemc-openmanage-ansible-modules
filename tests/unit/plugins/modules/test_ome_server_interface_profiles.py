@@ -689,7 +689,7 @@ class TestOmeSIPs(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_valid_service_tags',
-                         side_effect=exc_type('http://testhost.com',
+                         side_effect=exc_type('https://testhost.com',
                                               400,
                                               'http error message',
                                               {"accept-type": "application/json"},

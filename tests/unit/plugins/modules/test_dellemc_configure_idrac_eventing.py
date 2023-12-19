@@ -97,7 +97,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
-                                   "smtp_ip_address": "192.168.0.1", "smtp_port": 443, "username": "uname",
+                                   "smtp_ip_address": "XX.XX.XX.XX", "smtp_port": 443, "username": "uname",
                                    "password": "pwd"})
         message = {"changes_applicable": True, "message": "Changes found to commit!"}
         idrac_connection_configure_eventing_mock.config_mgr.is_change_applicable.return_value = message
@@ -113,7 +113,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
-                                   "smtp_ip_address": "192.168.0.1", "smtp_port": 443, "username": "uname",
+                                   "smtp_ip_address": "XX.XX.XX.XX", "smtp_port": 443, "username": "uname",
                                    "password": "pwd"})
         message = {"changes_applicable": True, "message": "changes found to commit!", "changed": True,
                    "Status": "Success"}
@@ -130,7 +130,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "destination": "1.1.1.1", "snmp_v3_username": "snmpuser",
                                    "snmp_trap_state": "Enabled", "alert_number": 4, "email_alert_state": "Enabled",
                                    "address": "abc@xyz", "custom_message": "test", "enable_alerts": "Enabled",
-                                   "authentication": "Enabled", "smtp_ip_address": "192.168.0.1", "smtp_port": 443,
+                                   "authentication": "Enabled", "smtp_ip_address": "XX.XX.XX.XX", "smtp_port": 443,
                                    "username": "uname", "password": "pwd"})
         message = {"changes_applicable": False, "Message": "No changes found to commit!", "changed": False,
                    "Status": "Success"}
@@ -147,7 +147,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
-                                   "smtp_ip_address": "192.168.0.1", "smtp_port": 443, "username": "uname",
+                                   "smtp_ip_address": "XX.XX.XX.XX", "smtp_port": 443, "username": "uname",
                                    "password": "pwd"})
         message = {"changes_applicable": False, "Message": "No changes were applied", "changed": False,
                    "Status": "Success"}
@@ -187,7 +187,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
-                                   "smtp_ip_address": "192.168.0.1", "smtp_port": 443, "username": "uname",
+                                   "smtp_ip_address": "XX.XX.XX.XX", "smtp_port": 443, "username": "uname",
                                    "password": "pwd"})
         message = {'Status': 'Failed', "Data": {'Message': 'status failed in checking Data'}}
         idrac_connection_configure_eventing_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
@@ -204,7 +204,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "snmp_v3_username": "snmpuser", "snmp_trap_state": "Enabled", "alert_number": 4,
                                    "email_alert_state": "Enabled", "address": "abc@xyz", "custom_message": "test",
                                    "enable_alerts": "Enabled", "authentication": "Enabled",
-                                   "smtp_ip_address": "192.168.0.1", "smtp_port": 443, "username": "uname",
+                                   "smtp_ip_address": "XX.XX.XX.XX", "smtp_port": 443, "username": "uname",
                                    "password": "pwd"})
         message = {"changes_applicable": False, "Message": "No changes were applied", "changed": False,
                    "Status": "failed"}
@@ -221,7 +221,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "destination": "1.1.1.1", "snmp_v3_username": "snmpuser",
                                    "snmp_trap_state": "Enabled", "alert_number": 4, "email_alert_state": "Enabled",
                                    "address": "abc@xyz", "custom_message": "test", "enable_alerts": "Enabled",
-                                   "authentication": "Enabled", "smtp_ip_address": "192.168.0.1",
+                                   "authentication": "Enabled", "smtp_ip_address": "XX.XX.XX.XX",
                                    "smtp_port": 443, "username": "uname", "password": "pwd"})
         message = {'Status': 'Failed', "Data": {'Message': "Failed to found changes"}}
         idrac_connection_configure_eventing_mock.file_share_manager.create_share_obj.return_value = "mnt/iso"
@@ -243,7 +243,7 @@ class TestConfigureEventing(FakeAnsibleModule):
         else:
             mocker.patch(MODULE_PATH +
                          'dellemc_configure_idrac_eventing.run_idrac_eventing_config',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
             result = self._run_module_with_fail_json(idrac_default_args)
@@ -308,7 +308,7 @@ class TestConfigureEventing(FakeAnsibleModule):
                                    "destination": None, "snmp_v3_username": None,
                                    "snmp_trap_state": None, "alert_number": 4, "email_alert_state": None,
                                    "address": None, "custom_message": None, "enable_alerts": "Enabled",
-                                   "authentication": "Enabled", "smtp_ip_address": "192.168.0.1",
+                                   "authentication": "Enabled", "smtp_ip_address": "XX.XX.XX.XX",
                                    "smtp_port": 443, "username": "uname", "password": "pwd"})
 
         f_module = self.get_module_mock(

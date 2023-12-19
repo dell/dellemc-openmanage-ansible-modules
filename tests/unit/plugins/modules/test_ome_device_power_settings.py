@@ -51,9 +51,9 @@ class TestOMEMDevicePower(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
              'DeviceServiceTag': 'ABCD123', "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}],
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}],
             "EnableHotSpare": True,
             "EnablePowerCapSettings": True,
             "MaxPowerCap": "3424",
@@ -63,15 +63,15 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             "RedundancyPolicy": "NO_REDUNDANCY",
             "SettingType": "Power"},
             'message': SUCCESS_MSG,
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "power_configuration": {"enable_power_cap": True, "power_cap": 3424},
                         "hot_spare_configuration": {"enable_hot_spare": False, "primary_grid": "GRID_1"},
                         "device_id": 1234,
                         }},
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
              'DeviceServiceTag': 'ABCD123', "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}],
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}],
             "EnableHotSpare": True,
             "EnablePowerCapSettings": True,
             "MaxPowerCap": "3424",
@@ -81,15 +81,15 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             "RedundancyPolicy": "NO_REDUNDANCY",
             "SettingType": "Power"},
             'message': SUCCESS_MSG,
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "power_configuration": {"enable_power_cap": False, "power_cap": 3424},
                         "hot_spare_configuration": {"enable_hot_spare": True, "primary_grid": "GRID_1"},
                         "device_service_tag": 'ABCD123',
                         }},
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}],
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}],
             "EnableHotSpare": True,
             "EnablePowerCapSettings": True,
             "MaxPowerCap": "3424",
@@ -99,14 +99,14 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             "RedundancyPolicy": "NO_REDUNDANCY",
             "SettingType": "Power"},
             'message': SUCCESS_MSG,
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "power_configuration": {"enable_power_cap": False, "power_cap": 3424},
                         "hot_spare_configuration": {"enable_hot_spare": True, "primary_grid": "GRID_1"}
                         }},
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "dummyhostname_shouldnotexist",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}],
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}],
             "EnableHotSpare": True,
             "EnablePowerCapSettings": True,
             "MaxPowerCap": "3424",
@@ -132,9 +132,9 @@ class TestOMEMDevicePower(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': DOMAIN_FAIL_MSG,
             'http_error_json': {
                 "error": {
@@ -151,14 +151,14 @@ class TestOMEMDevicePower(FakeAnsibleModule):
                         }
                     ]
                 }},
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "device_service_tag": 'ABCD123',
                         "power_configuration": {"enable_power_cap": True, "power_cap": 3424}
                         }},
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': POWER_FAIL_MSG,
             'check_domain_service': 'mocked_check_domain_service',
             'get_chassis_device': ('Id', 1234),
@@ -177,13 +177,13 @@ class TestOMEMDevicePower(FakeAnsibleModule):
                         }
                     ]
                 }},
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "power_configuration": {"enable_power_cap": True, "power_cap": 3424}
                         }},
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': POWER_FAIL_MSG,
             'check_domain_service': 'mocked_check_domain_service',
             'get_chassis_device': ('Id', 1234),
@@ -203,25 +203,25 @@ class TestOMEMDevicePower(FakeAnsibleModule):
                         }
                     ]
                 }},
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "power_configuration": {"enable_power_cap": True, "power_cap": 3424}
                         }},
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': DEVICE_FAIL_MSG.format('id', 123),
             'check_domain_service': 'mocked_check_domain_service',
             'get_chassis_device': ('Id', 1234),
-            'mparams': {"hostname": "1.2.3.4", 'device_id': 123,
+            'mparams': {"hostname": "XX.XX.XX.XX", 'device_id': 123,
                         "power_configuration": {"enable_power_cap": True, "power_cap": 3424}
                         }},
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': CONFIG_FAIL_MSG,
-            'mparams': {"hostname": "1.2.3.4", "device_id": 123}}
+            'mparams': {"hostname": "XX.XX.XX.XX", "device_id": 123}}
     ])
     def test_ome_devices_power_settings_failure(self, params, ome_conn_mock_power, ome_response_mock,
                                                 ome_default_args, module_mock, mocker):
@@ -234,7 +234,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         if 'http_error_json' in params:
             json_str = to_text(json.dumps(params.get('http_error_json', {})))
             ome_conn_mock_power.invoke_request.side_effect = HTTPError(
-                'http://testhost.com', params.get('http_err_code', 401), 'http error message', {
+                'https://testhost.com', params.get('http_err_code', 401), 'http error message', {
                     "accept-type": "application/json"},
                 StringIO(json_str))
         ome_default_args.update(params['mparams'])
@@ -249,12 +249,12 @@ class TestOMEMDevicePower(FakeAnsibleModule):
 
     def test_get_chassis_device(self, ome_conn_mock_power, ome_default_args, mocker, ome_response_mock):
         mocker.patch(MODULE_PATH + "get_ip_from_host",
-                     return_value="192.18.1.1")
+                     return_value="XX.XX.XX.XX")
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
-                                                  "PublicAddress": ["192.168.1.1"]},
+                                                  "PublicAddress": ["XX.XX.XX.XX"]},
                                                  {"DeviceId": 25012, "DomainRoleTypeValue": "STANDALONE",
                                                   "PublicAddress": ["192.168.1.2"]}]}
-        param = {"device_id": 25012, "hostname": "192.168.1.6",
+        param = {"device_id": 25012, "hostname": "XX.XX.XX.XX",
                  "power_configuration": {"enable_power_cap": True, "power_cap": 3424}}
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as err:
@@ -285,7 +285,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         assert err.value.args[0] == "No changes found to be applied."
 
     def test_fetch_device_details(self, ome_conn_mock_power, ome_default_args, ome_response_mock):
-        param = {"device_id": 25012, "hostname": "192.168.1.6",
+        param = {"device_id": 25012, "hostname": "XX.XX.XX.XX",
                  "power_configuration": {"enable_power_cap": True, "power_cap": 3424}}
         f_module = self.get_module_mock(params=param)
         ome_response_mock.status_code = 200
@@ -300,8 +300,8 @@ class TestOMEMDevicePower(FakeAnsibleModule):
                                     "device id '25012' is invalid."
 
     def test_get_ip_from_host(self, ome_conn_mock_power, ome_default_args, ome_response_mock):
-        result = self.module.get_ip_from_host("192.168.0.1")
-        assert result == "192.168.0.1"
+        result = self.module.get_ip_from_host("XX.XX.XX.XX")
+        assert result == "XX.XX.XX.XX"
 
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
@@ -324,7 +324,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

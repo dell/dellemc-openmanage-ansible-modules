@@ -45,13 +45,13 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
 
     def test_standalone_chassis(self, ome_conn_mock_location, ome_default_args, mocker, ome_response_mock):
         mocker.patch(MODULE_PATH + "get_ip_from_host",
-                     return_value="192.18.1.1")
+                     return_value="XX.XX.XX.XX")
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
-                                                  "PublicAddress": ["192.168.1.1"]},
+                                                  "PublicAddress": ["XX.XX.XX.XX"]},
                                                  {"DeviceId": 25012, "DomainRoleTypeValue": "STANDALONE",
                                                   "PublicAddress": ["192.168.1.2"]}]}
 
-        param = {"data_center": "data center 1", "rack_slot": 2, "device_id": 25012, "hostname": "192.168.1.6",
+        param = {"data_center": "data center 1", "rack_slot": 2, "device_id": 25012, "hostname": "XX.XX.XX.XX",
                  "room": "room 1", "aisle": "aisle 1", "rack": "rack 1", "location": "location 1"}
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as err:
@@ -107,36 +107,36 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "device_id": 1234, "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
         {"json_data": {"value": [
             {'Id': 1234, 'DeviceServiceTag': 'ABCD123',
-                'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+                'PublicAddress': "XX.XX.XX.XX", 'DeviceId': 1234, "Type": 1000},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "device_service_tag": "ABCD123", "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "dummyhost_shouldnotexist",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
             'mparams': {"hostname": "dummyhost_shouldnotexist",
                         "data_center": "data center",
@@ -154,9 +154,9 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': "The device location settings operation is supported only on OpenManage Enterprise Modular systems.",
             'http_error_json': {
                 "error": {
@@ -174,14 +174,14 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
                     ]
                 }
         },
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
         },
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Unable to complete the operation because the location settings are not supported on the specified device.",
             'http_error_json': {
                 "error": {
@@ -201,16 +201,16 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         },
             'check_domain_service': 'mocked_check_domain_service',
             'standalone_chassis': ('Id', 1234),
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "XX.XX.XX.XX",
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
         },
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "YY.YY.YY.YY", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Unable to complete the operation because the entered target device id '123' is invalid.",
-            'mparams': {"hostname": "1.2.3.4", "device_id": 123,
+            'mparams': {"hostname": "XX.XX.XX.XX", "device_id": 123,
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
@@ -226,7 +226,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         if 'http_error_json' in params:
             json_str = to_text(json.dumps(params.get('http_error_json', {})))
             ome_conn_mock_location.invoke_request.side_effect = HTTPError(
-                'http://testhost.com', 401, 'http error message', {
+                'https://testhost.com', 401, 'http error message', {
                     "accept-type": "application/json"},
                 StringIO(json_str))
         ome_default_args.update(params['mparams'])
@@ -255,7 +255,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

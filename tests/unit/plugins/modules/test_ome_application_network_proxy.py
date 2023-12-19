@@ -128,7 +128,7 @@ class TestOmeTemplate(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_application_network_proxy.get_payload',
-                         side_effect=exc_type('http://testhost.com', 400,
+                         side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
@@ -160,7 +160,7 @@ class TestOmeTemplate(FakeAnsibleModule):
 
     def test_get_payload(self, ome_default_args):
         new_param = {
-            "ip_address": "192.168.0.2",
+            "ip_address": "YY.YY.YY.YY",
             "proxy_port": 443,
             "enable_proxy": True,
             "proxy_username": "username",
@@ -171,18 +171,18 @@ class TestOmeTemplate(FakeAnsibleModule):
         ome_default_args.update(new_param)
         f_module = self.get_module_mock(params=ome_default_args)
         payload = self.module.get_payload(f_module)
-        assert ome_default_args == {"ip_address": "192.168.0.2",
+        assert ome_default_args == {"ip_address": "YY.YY.YY.YY",
                                     "proxy_port": 443,
                                     "enable_proxy": True,
                                     "proxy_username": "username",
                                     "proxy_password": "password",
                                     "enable_authentication": False,
-                                    "hostname": "192.168.0.1",
+                                    "hostname": "XX.XX.XX.XX",
                                     "username": "username",
                                     "password": "password",
                                     "port": 443,
                                     "ca_path": "/path/ca_bundle"}
-        assert payload == {"EnableProxy": True, "IpAddress": "192.168.0.2", "PortNumber": 443, "Username": "username",
+        assert payload == {"EnableProxy": True, "IpAddress": "YY.YY.YY.YY", "PortNumber": 443, "Username": "username",
                            "Password": "password", "EnableAuthentication": False}
 
     def test_get_updated_payload_success_case(self, mocker, ome_default_args, ome_connection_mock_for_application_network_proxy,
@@ -192,7 +192,7 @@ class TestOmeTemplate(FakeAnsibleModule):
                            "@odata.id": "/api/ApplicationService/Network/ProxyConfiguration", "IpAddress": "255.0.0.0",
                            "PortNumber": 443, "EnableAuthentication": False, "EnableProxy": True,
                            "Username": "username1", "Password": "password1"}
-        payload = {"EnableAuthentication": True, "IpAddress": "192.168.0.1", "PortNumber": 443, 'EnableProxy': True,
+        payload = {"EnableAuthentication": True, "IpAddress": "XX.XX.XX.XX", "PortNumber": 443, 'EnableProxy': True,
                    'Username': 'username2', "Password": "password2"}
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
@@ -212,14 +212,14 @@ class TestOmeTemplate(FakeAnsibleModule):
                            "@odata.id": "/api/ApplicationService/Network/ProxyConfiguration", "IpAddress": "255.0.0.0",
                            "PortNumber": 443, "EnableAuthentication": True, "EnableProxy": True,
                            "Username": "username1", "Password": "password1"}
-        payload = {"EnableAuthentication": False, "IpAddress": "192.168.0.1", "PortNumber": 443, 'EnableProxy': True,
+        payload = {"EnableAuthentication": False, "IpAddress": "XX.XX.XX.XX", "PortNumber": 443, 'EnableProxy': True,
                    'Username': 'username2', "Password": "password2"}
         f_module = self.get_module_mock(params=ome_default_args)
         ome_response_mock.json_data = current_setting
         mocker.patch(MODULE_PATH + "ome_application_network_proxy.validate_check_mode_for_network_proxy",
                      return_value=None)
         setting = self.module.get_updated_payload(ome_connection_mock_for_application_network_proxy, f_module, payload)
-        assert setting == {"EnableAuthentication": False, "IpAddress": "192.168.0.1", "PortNumber": 443,
+        assert setting == {"EnableAuthentication": False, "IpAddress": "XX.XX.XX.XX", "PortNumber": 443,
                            'EnableProxy': True}
 
     def test_get_updated_payload_when_same_setting_failure_case1(self, mocker, ome_default_args,

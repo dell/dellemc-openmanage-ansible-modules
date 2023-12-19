@@ -168,7 +168,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type == HTTPError:
             ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 400, '<400 bad request>', {"accept-type": "application/json"},
+                'https://testhost.com', 400, '<400 bad request>', {"accept-type": "application/json"},
                 StringIO(json_str))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
@@ -176,7 +176,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
             assert 'error_info' in result
 
             ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 404, '<404 not found>', {"accept-type": "application/json"}, StringIO(json_str))
+                'https://testhost.com', 404, '<404 not found>', {"accept-type": "application/json"}, StringIO(json_str))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
             assert 'msg' in result
@@ -188,7 +188,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
             assert 'msg' in result
         else:
             mocker.patch(MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
-                         side_effect=exc_type('http://testhost.com', 404, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 404, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

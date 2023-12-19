@@ -276,7 +276,7 @@ class TestConfigNetwork(FakeAnsibleModule):
         else:
             mocker.patch(
                 MODULE_PATH + 'idrac_network.run_idrac_network_config',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
             result = self._run_module_with_fail_json(idrac_default_args)

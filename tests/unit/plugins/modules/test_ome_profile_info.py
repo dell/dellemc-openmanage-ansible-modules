@@ -111,7 +111,7 @@ class TestOmeProfileInfo(FakeAnsibleModule):
                                                "AttributeEditInfoId": 2400,
                                                "DisplayName": "IPv4Static 1 Gateway",
                                                "Description": None,
-                                               "Value": "192.168.0.1",
+                                               "Value": "XX.XX.XX.XX",
                                                "IsReadOnly": False,
                                                "IsIgnored": True,
                                                "IsSecure": False,
@@ -124,7 +124,7 @@ class TestOmeProfileInfo(FakeAnsibleModule):
                                                "AttributeEditInfoId": 2399,
                                                "DisplayName": "IPv4Static 1 IPv4 Address",
                                                "Description": None,
-                                               "Value": "192.168.0.120",
+                                               "Value": "XX.XX.XX.XX20",
                                                "IsReadOnly": False,
                                                "IsIgnored": True,
                                                "IsSecure": False,
@@ -137,7 +137,7 @@ class TestOmeProfileInfo(FakeAnsibleModule):
                                                "AttributeEditInfoId": 2403,
                                                "DisplayName": "IPv4Static 1 Net Mask",
                                                "Description": None,
-                                               "Value": "255.255.255.0",
+                                               "Value": "XXX.XXX.XXX.XXX",
                                                "IsReadOnly": False,
                                                "IsIgnored": True,
                                                "IsSecure": False,
@@ -1272,7 +1272,7 @@ class TestOmeProfileInfo(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_template_details',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

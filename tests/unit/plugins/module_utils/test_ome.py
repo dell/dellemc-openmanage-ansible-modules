@@ -27,7 +27,7 @@ TEST_PATH = "/testpath"
 INVOKE_REQUEST = 'ome.RestOME.invoke_request'
 JOB_SUBMISSION = 'ome.RestOME.job_submission'
 DEVICE_API = "DeviceService/Devices"
-TEST_HOST = 'http://testhost.com/'
+TEST_HOST = 'https://testhost.com/'
 BAD_REQUEST = 'Bad Request Error'
 ODATA_COUNT = "@odata.count"
 ODATA_TYPE = "@odata.type"
@@ -47,7 +47,7 @@ class TestOMERest(object):
 
     @pytest.fixture
     def module_params(self):
-        module_parameters = {'hostname': '192.168.0.1', 'username': 'username',
+        module_parameters = {'hostname': 'XX.XX.XX.XX', 'username': 'username',
                              'password': 'password', "port": 443}
         return module_parameters
 
@@ -150,7 +150,7 @@ class TestOMERest(object):
     ])
     def test_build_url(self, query_param, mocker, module_params):
         """builds complete url"""
-        base_uri = 'https://192.168.0.1:443/api'
+        base_uri = 'https://XX.XX.XX.XX:443/api'
         path = "AccountService/Accounts"
         mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME._get_base_url',
                      return_value=base_uri)

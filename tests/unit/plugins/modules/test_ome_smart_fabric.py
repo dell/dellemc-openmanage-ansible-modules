@@ -164,7 +164,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
         else:
             for status_code, msg in {501: SYSTEM_NOT_SUPPORTED_ERROR_MSG, 400: 'http error message'}.items():
                 mocker.patch(MODULE_PATH + 'ome_smart_fabric.fabric_actions',
-                             side_effect=exc_type('http://testhost.com', status_code, msg,
+                             side_effect=exc_type('https://testhost.com', status_code, msg,
                                                   {"accept-type": "application/json"}, StringIO(json_str)))
                 result = self._run_module_with_fail_json(ome_default_args)
                 assert result['failed'] is True
@@ -1644,7 +1644,7 @@ class TestOmeSmartFabric(FakeAnsibleModule):
                     "DeviceManagement": [
                         {
                             "ManagementId": 111111,
-                            "NetworkAddress": "192.168.1.1",
+                            "NetworkAddress": "XX.XX.XX.XX",
                             "MacAddress": "xx:yy:zz:x1x1",
                             "ManagementType": 2,
                             "InstrumentationName": "MX-Constants.service_tag1",

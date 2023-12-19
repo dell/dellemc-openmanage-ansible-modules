@@ -76,10 +76,10 @@ class TestDeleteLcJob(FakeAnsibleModule):
             idrac_connection_delete_lc_job_queue_mock.job_mgr.delete_job.side_effect = exc_type('test')
         else:
             idrac_connection_delete_lc_job_queue_mock.job_mgr.delete_all_jobs.side_effect = \
-                exc_type('http://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
+                exc_type('https://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
                          StringIO(json_str))
             idrac_connection_delete_lc_job_queue_mock.job_mgr.delete_job.side_effect = \
-                exc_type('http://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
+                exc_type('https://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
                          StringIO(json_str))
         if not exc_type == URLError:
             result = self._run_module_with_fail_json(idrac_default_args)

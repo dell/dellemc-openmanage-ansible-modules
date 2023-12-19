@@ -228,10 +228,10 @@ class TestOmeFirmware(FakeAnsibleModule):
                             "PrerequisiteInfo": ""
                         }
                     ],
-                    "DeviceIPAddress": "192.168.0.3",
+                    "DeviceIPAddress": "XX.XX.XX.XX",
                     "DeviceId": "28628",
                     "DeviceModel": "PowerEdge R940",
-                    "DeviceName": "192.168.0.3",
+                    "DeviceName": "XX.XX.XX.XX",
                     "DeviceServiceTag": "HC2XFL2",
                     "DeviceTypeId": "1000",
                     "DeviceTypeName": "SERVER"
@@ -315,12 +315,12 @@ class TestOmeFirmware(FakeAnsibleModule):
         else:
             builtin_module_name = '__builtin__'
         f_module = self.get_module_mock(
-            params={'dup_file': "/root1/Ansible_EXE/BIOS_87V69_WN64_2.4.7.EXE", 'hostname': '192.168.0.1'})
+            params={'dup_file': "/root1/Ansible_EXE/BIOS_87V69_WN64_2.4.7.EXE", 'hostname': 'XX.XX.XX.XX'})
         with patch("{0}.open".format(builtin_module_name), mock_open(read_data="data")) as mock_file:
             with pytest.raises(Exception) as exc:
                 self.module.upload_dup_file(ome_connection_firmware_mock, f_module)
         assert exc.value.args[0] == "Unable to upload {0} to {1}".format('/root1/Ansible_EXE/BIOS_87V69_WN64_2.4.7.EXE',
-                                                                         '192.168.0.1')
+                                                                         'XX.XX.XX.XX')
 
     def test_get_device_ids_success_case(self, ome_connection_firmware_mock, ome_response_mock, ome_default_args):
         ome_default_args.update()
@@ -549,7 +549,7 @@ class TestOmeFirmware(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_firmware._validate_device_attributes',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

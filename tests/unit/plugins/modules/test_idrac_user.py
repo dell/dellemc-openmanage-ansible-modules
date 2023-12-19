@@ -407,7 +407,7 @@ class TestIDRACUser(FakeAnsibleModule):
                          side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + "idrac_user.create_or_modify_account",
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
             result = self._run_module_with_fail_json(idrac_default_args)

@@ -38,8 +38,8 @@ def redfish_connection_mock(mocker, redfish_response_mock):
 class TestRedfishSubscription(FakeAnsibleModule):
     module = redfish_event_subscription
 
-    @pytest.mark.parametrize("val", [{"destination": "https://192.168.1.100:8188"},
-                                     {"destination": "https://192.168.1.100:8189"}])
+    @pytest.mark.parametrize("val", [{"destination": "https://XX.XX.XX.XX00:8188"},
+                                     {"destination": "https://XX.XX.XX.XX00:8189"}])
     def test_function_get_subscription_success(self, mocker, redfish_connection_mock, redfish_response_mock,
                                                redfish_default_args, val):
         redfish_default_args.update({"state": "absent"})
@@ -53,7 +53,7 @@ class TestRedfishSubscription(FakeAnsibleModule):
             "Context": "RedfishEvent",
             "DeliveryRetryPolicy": "RetryForever",
             "Description": "Event Subscription Details",
-            "Destination": "https://192.168.1.100:8189",
+            "Destination": "https://XX.XX.XX.XX00:8189",
             "EventFormatType": "Event",
             "EventTypes": [
                 "Alert"
@@ -82,7 +82,7 @@ class TestRedfishSubscription(FakeAnsibleModule):
             "Context": "RedfishEvent",
             "DeliveryRetryPolicy": "RetryForever",
             "Description": "Event Subscription Details",
-            "Destination": "https://192.168.1.100:8188",
+            "Destination": "https://XX.XX.XX.XX00:8188",
             "EventFormatType": "MetricReport",
             "EventTypes": [
                 "MetricReport"
@@ -130,9 +130,9 @@ class TestRedfishSubscription(FakeAnsibleModule):
         assert result["Destination"] == val["destination"]
 
     @pytest.mark.parametrize("val", [
-        {"destination": "https://192.168.1.100:8188", "event_type": "MetricReport",
+        {"destination": "https://XX.XX.XX.XX00:8188", "event_type": "MetricReport",
          "event_format_type": "MetricReport"},
-        {"destination": "https://192.168.1.100:8188", "event_type": "Alert", "event_format_type": "Event"}])
+        {"destination": "https://XX.XX.XX.XX00:8188", "event_type": "Alert", "event_format_type": "Event"}])
     def test_function_create_subscription(self, mocker, redfish_connection_mock, redfish_response_mock,
                                           redfish_default_args, val):
         redfish_default_args.update({"state": "absent"})
@@ -284,7 +284,7 @@ class TestRedfishSubscription(FakeAnsibleModule):
     def test_module_validation_input_params(self, mocker, redfish_connection_mock, redfish_response_mock,
                                             redfish_default_args):
         redfish_default_args.update({"state": "absent"})
-        redfish_default_args.update({"destination": "http://192.168.1.100:8188"})
+        redfish_default_args.update({"destination": "http://XX.XX.XX.XX00:8188"})
         redfish_default_args.update({"event_type": "MetricReport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
         with pytest.raises(Exception) as err:
@@ -294,7 +294,7 @@ class TestRedfishSubscription(FakeAnsibleModule):
     def test_module_absent_does_not_exist(self, mocker, redfish_connection_mock, redfish_response_mock,
                                           redfish_default_args):
         redfish_default_args.update({"state": "absent"})
-        redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
+        redfish_default_args.update({"destination": "https://XX.XX.XX.XX00:8188"})
         redfish_default_args.update({"event_type": "MetricReport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
 
@@ -307,13 +307,13 @@ class TestRedfishSubscription(FakeAnsibleModule):
     def test_module_absent_does_exist(self, mocker, redfish_connection_mock, redfish_response_mock,
                                       redfish_default_args):
         redfish_default_args.update({"state": "absent"})
-        redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
+        redfish_default_args.update({"destination": "https://XX.XX.XX.XX00:8188"})
         redfish_default_args.update({"event_type": "MetricReport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
 
         json_data = {
             "Id": "c6ff37fc-8204-11eb-b08f-2cea7ff7fe80",
-            "Destination": "https://192.168.1.100:8188",
+            "Destination": "https://XX.XX.XX.XX00:8188",
             "EventFormatType": "MetricReport",
             "Context": "RedfishEvent",
             "Protocol": "Redfish",
@@ -331,13 +331,13 @@ class TestRedfishSubscription(FakeAnsibleModule):
     def test_module_absent_does_exist_error(self, mocker, redfish_connection_mock, redfish_response_mock,
                                             redfish_default_args):
         redfish_default_args.update({"state": "absent"})
-        redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
+        redfish_default_args.update({"destination": "https://XX.XX.XX.XX00:8188"})
         redfish_default_args.update({"event_type": "MetricReport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
 
         json_data = {
             "Id": "c6ff37fc-8204-11eb-b08f-2cea7ff7fe80",
-            "Destination": "https://192.168.1.100:8188",
+            "Destination": "https://XX.XX.XX.XX00:8188",
             "EventFormatType": "MetricReport",
             "Context": "RedfishEvent",
             "Protocol": "Redfish",
@@ -354,12 +354,12 @@ class TestRedfishSubscription(FakeAnsibleModule):
     def test_module_present_does_not_exist(self, mocker, redfish_connection_mock, redfish_response_mock,
                                            redfish_default_args):
         redfish_default_args.update({"state": "present"})
-        redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
+        redfish_default_args.update({"destination": "https://XX.XX.XX.XX00:8188"})
         redfish_default_args.update({"event_type": "MetricReport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
 
         json_data = {
-            "Destination": "https://192.168.1.100:8188",
+            "Destination": "https://XX.XX.XX.XX00:8188",
             "EventFormatType": "MetricReport",
             "Context": "RedfishEvent",
             "Protocol": "Redfish",
@@ -380,12 +380,12 @@ class TestRedfishSubscription(FakeAnsibleModule):
     def test_module_present_does_not_exist_error(self, mocker, redfish_connection_mock, redfish_response_mock,
                                                  redfish_default_args):
         redfish_default_args.update({"state": "present"})
-        redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
+        redfish_default_args.update({"destination": "https://XX.XX.XX.XX00:8188"})
         redfish_default_args.update({"event_type": "MetricReport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
 
         json_data = {
-            "Destination": "https://192.168.1.100:8188",
+            "Destination": "https://XX.XX.XX.XX00:8188",
             "EventFormatType": "MetricReport",
             "Context": "RedfishEvent",
             "Protocol": "Redfish",
@@ -406,12 +406,12 @@ class TestRedfishSubscription(FakeAnsibleModule):
                                                              redfish_response_mock,
                                                              redfish_default_args):
         redfish_default_args.update({"state": "present"})
-        redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
+        redfish_default_args.update({"destination": "https://XX.XX.XX.XX00:8188"})
         redfish_default_args.update({"event_type": "Metricreport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
 
         json_data = {
-            "Destination": "https://192.168.1.100:8188",
+            "Destination": "https://XX.XX.XX.XX00:8188",
             "EventFormatType": "MetricReport",
             "Context": "RedfishEvent",
             "Protocol": "Redfish",
@@ -433,13 +433,13 @@ class TestRedfishSubscription(FakeAnsibleModule):
     def test_module_present_does_exist(self, mocker, redfish_connection_mock, redfish_response_mock,
                                        redfish_default_args):
         redfish_default_args.update({"state": "present"})
-        redfish_default_args.update({"destination": "https://192.168.1.100:8188"})
+        redfish_default_args.update({"destination": "https://XX.XX.XX.XX00:8188"})
         redfish_default_args.update({"event_type": "MetricReport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
 
         json_data = {
             "Id": "c6ff37fc-8204-11eb-b08f-2cea7ff7fe80",
-            "Destination": "https://192.168.1.100:8188",
+            "Destination": "https://XX.XX.XX.XX00:8188",
             "EventFormatType": "MetricReport",
             "Context": "RedfishEvent",
             "Protocol": "Redfish",
