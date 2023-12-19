@@ -46,9 +46,9 @@ class TestOmeAppNetwork(FakeAnsibleModule):
                               "register_with_dns": False,
                               "use_dhcp_for_dns_domain_name": False},
         "ipv4_configuration": {"enable": True, "enable_dhcp": True, "use_dhcp_for_dns_server_names": True,
-                               "static_ip_address": "XX.XX.XX.XX", "static_subnet_mask": "XXX.XXX.XXX.XXX",
-                               "static_gateway": "YY.YY.YY.YY", "static_preferred_dns_server": "ZZ.ZZ.ZZ.ZZ",
-                               "static_alternate_dns_server": "ZY.ZY.ZY.ZY"},
+                               "static_ip_address": "192.168.11.20", "static_subnet_mask": "255.255.255.0",
+                               "static_gateway": "192.168.11.1", "static_preferred_dns_server": "192.168.11.2",
+                               "static_alternate_dns_server": "192.168.11.3"},
         "ipv6_configuration": {"enable": True, "enable_auto_configuration": True,
                                "static_alternate_dns_server": "2607:f2b1:f081:9:1c8c:f1c7:47e:f121",
                                "static_gateway": "0000::ffff",
@@ -67,10 +67,10 @@ class TestOmeAppNetwork(FakeAnsibleModule):
     out_param = {"EnableNIC": False,
                  "InterfaceName": "eth0",
                  "PrimaryInterface": True,
-                 "Ipv4Configuration": {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "XX.XX.XX.XX",
-                                       "StaticSubnetMask": "XXX.XXX.XXX.XXX", "StaticGateway": "YY.YY.YY.YY",
-                                       "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "ZZ.ZZ.ZZ.ZZ",
-                                       "StaticAlternateDNSServer": "ZY.ZY.ZY.ZY"},
+                 "Ipv4Configuration": {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "192.168.11.20",
+                                       "StaticSubnetMask": "255.255.255.0", "StaticGateway": "192.168.11.1",
+                                       "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "192.168.11.2",
+                                       "StaticAlternateDNSServer": "192.168.11.3"},
                  "Ipv6Configuration": {"Enable": True, "EnableAutoConfiguration": True,
                                        "StaticIPAddress": "2607:f2b1:f081:9:1c8c:f1c7:47e:f120",
                                        "StaticPrefixLength": 0, "StaticGateway": "0000::ffff",
@@ -92,9 +92,9 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         JOB_IP_CONFIG = "ApplicationService/Network/AdapterConfigurations"
         POST_IP_CONFIG = "ApplicationService/Actions/Network.ConfigureNetworkAdapter"
         ome_default_args.update(addr_param["in"])
-        ipv4 = {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "XX.XX.XX.XX",
-                "StaticSubnetMask": "XXX.XXX.XXX.XXX", "StaticGateway": "YY.YY.YY.YY",
-                "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "YY.YY.YY.YY",
+        ipv4 = {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "192.168.11.20",
+                "StaticSubnetMask": "255.255.255.0", "StaticGateway": "192.168.11.1",
+                "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "192.168.11.1",
                 "StaticAlternateDNSServer": ""}
         ipv6 = {"Enable": False, "EnableAutoConfiguration": True, "StaticIPAddress": "",
                 "StaticPrefixLength": 0, "StaticGateway": "", "UseDHCPForDNSServerNames": True,
@@ -121,9 +121,9 @@ class TestOmeAppNetwork(FakeAnsibleModule):
                                                                   ome_response_mock):
         POST_IP_CONFIG = "ApplicationService/Actions/Network.ConfigureNetworkAdapter"
         ome_default_args.update(addr_param["in"])
-        ipv4 = {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "XX.XX.XX.XX",
-                "StaticSubnetMask": "XXX.XXX.XXX.XXX", "StaticGateway": "YY.YY.YY.YY",
-                "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "YY.YY.YY.YY",
+        ipv4 = {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "192.168.11.20",
+                "StaticSubnetMask": "255.255.255.0", "StaticGateway": "192.168.11.1",
+                "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "192.168.11.1",
                 "StaticAlternateDNSServer": ""}
         ipv6 = {"Enable": False, "EnableAutoConfiguration": True, "StaticIPAddress": "",
                 "StaticPrefixLength": 0, "StaticGateway": "", "UseDHCPForDNSServerNames": True,
@@ -161,10 +161,10 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         ome_default_args.update(addr_param["in"])
         f_module = self.get_module_mock(params=addr_param["in"])
         ome_response_mock.json_data = {"value": [addr_param["out"]]}
-        ipv4 = {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "XX.XX.XX.XX",
-                "StaticSubnetMask": "XXX.XXX.XXX.XXX", "StaticGateway": "YY.YY.YY.YY",
-                "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "ZZ.ZZ.ZZ.ZZ",
-                "StaticAlternateDNSServer": "ZY.ZY.ZY.ZY"}
+        ipv4 = {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "192.168.11.20",
+                "StaticSubnetMask": "255.255.255.0", "StaticGateway": "192.168.11.1",
+                "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "192.168.11.2",
+                "StaticAlternateDNSServer": "192.168.11.3"}
         ipv6 = {"Enable": True, "EnableAutoConfiguration": False,
                 "StaticIPAddress": "2607:f2b1:f081:9:1c8c:f1c7:47e:f12",
                 "StaticPrefixLength": 0, "StaticGateway": "0000::ffff", "UseDHCPForDNSServerNames": True,
@@ -180,10 +180,10 @@ class TestOmeAppNetwork(FakeAnsibleModule):
     def test_get_updated_payload_when_same_setting_failure_case(self, ome_default_args,
                                                                 ome_connection_mock_for_application_network_address,
                                                                 ome_response_mock):
-        ipv4 = {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "XX.XX.XX.XX",
-                "StaticSubnetMask": "XXX.XXX.XXX.XXX", "StaticGateway": "YY.YY.YY.YY",
-                "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "ZZ.ZZ.ZZ.ZZ",
-                "StaticAlternateDNSServer": "ZY.ZY.ZY.ZY"}
+        ipv4 = {"Enable": True, "EnableDHCP": True, "StaticIPAddress": "192.168.11.20",
+                "StaticSubnetMask": "255.255.255.0", "StaticGateway": "192.168.11.1",
+                "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "192.168.11.2",
+                "StaticAlternateDNSServer": "192.168.11.3"}
         ipv6 = {"Enable": True, "EnableAutoConfiguration": True,
                 "StaticIPAddress": "2607:f2b1:f081:9:1c8c:f1c7:47e:f120",
                 "StaticPrefixLength": 0, "StaticGateway": "0000::ffff", "UseDHCPForDNSServerNames": True,
@@ -257,28 +257,28 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         with pytest.raises(Exception, match=error_message) as err:
             self.module.validate_input(f_module)
 
-    @pytest.mark.parametrize("addr_param", [{"in": "XX.XX.XX.XX", "out": True},
+    @pytest.mark.parametrize("addr_param", [{"in": "192.168.0.5", "out": True},
                                             {"in": "2607:f2b1:f081:9:1c8c:f1c7:47e:f121", "out": False}])
     def test_validate_ip_address(self, addr_param):
         ret_val = self.module.validate_ip_address(addr_param["in"])
         assert ret_val == addr_param["out"]
 
-    @pytest.mark.parametrize("addr_param", [{"in": "XX.XX.XX.XX", "out": False},
+    @pytest.mark.parametrize("addr_param", [{"in": "192.168.0.5", "out": False},
                                             {"in": "2607:f2b1:f081:9:1c8c:f1c7:47e:f121", "out": True}])
     def test_validate_ip_v6_address(self, addr_param):
         ret_val = self.module.validate_ip_v6_address(addr_param["in"])
         assert ret_val == addr_param["out"]
 
     src_dict1 = {"Enable": False, "EnableDHCP": True, "UseDHCPForDNSServerNames": False,
-                 "StaticGateway": "ZZ.ZZ.ZZ.ZZ",
-                 "StaticIPAddress": "XX.XX.XX.XX", "StaticSubnetMask": "XXX.XXX.XXX.XXX",
-                 "StaticPreferredDNSServer": "ZY.ZY.ZY.ZY", "EnableAutoConfiguration": True}
-    new_dict1 = {"Enable": True, "EnableDHCP": False, "StaticGateway": "YY.YY.YY.YY",
-                 "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "ZZ.ZZ.ZZ.ZZ",
-                 "StaticAlternateDNSServer": "ZY.ZY.ZY.ZY"}
-    src_dict2 = {"StaticIPAddress": "XX.XX.XX.XX", "StaticSubnetMask": "XXX.XXX.XXX.XXX",
+                 "StaticGateway": "192.168.11.2",
+                 "StaticIPAddress": "192.168.11.20", "StaticSubnetMask": "255.255.255.0",
+                 "StaticPreferredDNSServer": "192.168.11.3", "EnableAutoConfiguration": True}
+    new_dict1 = {"Enable": True, "EnableDHCP": False, "StaticGateway": "192.168.11.1",
+                 "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "192.168.11.2",
+                 "StaticAlternateDNSServer": "192.168.11.3"}
+    src_dict2 = {"StaticIPAddress": "192.168.11.20", "StaticSubnetMask": "255.255.255.0",
                  "EnableAutoConfiguration": False}
-    new_dict2 = {"StaticIPAddress": "XX.XX.XX.XX", "StaticSubnetMask": "XXX.XXX.XXX.XXX"}
+    new_dict2 = {"StaticIPAddress": "192.168.11.20", "StaticSubnetMask": "255.255.255.0"}
 
     @pytest.mark.parametrize("addr_param", [{"src_dict": src_dict1, "new_dict": new_dict1, 'diff': 4},
                                             {"src_dict": src_dict2, "new_dict": new_dict2, 'diff': False},
@@ -290,10 +290,10 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         assert ret_val == addr_param['diff']
 
     v6src_dict1 = {"Enable": False, "UseDHCPForDNSServerNames": False,
-                   "StaticGateway": "ZZ.ZZ.ZZ.ZZ",
-                   "StaticIPAddress": "XX.XX.XX.XX", "StaticSubnetMask": "XXX.XXX.XXX.XXX",
-                   "StaticPreferredDNSServer": "ZY.ZY.ZY.ZY", "EnableAutoConfiguration": False}
-    v6new_dict1 = {"Enable": True, "EnableAutoConfiguration": True, "StaticGateway": "YY.YY.YY.YY",
+                   "StaticGateway": "192.168.11.2",
+                   "StaticIPAddress": "192.168.11.20", "StaticSubnetMask": "255.255.255.0",
+                   "StaticPreferredDNSServer": "192.168.11.3", "EnableAutoConfiguration": False}
+    v6new_dict1 = {"Enable": True, "EnableAutoConfiguration": True, "StaticGateway": "192.168.11.1",
                    "UseDHCPForDNSServerNames": True, "StaticPreferredDNSServer": "2607:f2b1:f081:9:1c8c:f1c7:47e:f122",
                    "StaticAlternateDNSServer": "2607:f2b1:f081:9:1c8c:f1c7:47e:f121"}
 

@@ -56,19 +56,19 @@ class TestOMEMDeviceNetworkService(FakeAnsibleModule):
                                     "OpenManage Enterprise Modular."
 
     def test_get_chassis_device(self, ome_conn_mock_network, ome_default_args, mocker, ome_response_mock):
-        mocker.patch(MODULE_PATH + "get_ip_from_host", return_value="XX.XX.XX.XX")
+        mocker.patch(MODULE_PATH + "get_ip_from_host", return_value="X.X.X.X")
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
                                                   "PublicAddress": ["XX.XX.XX.XX"]},
                                                  {"DeviceId": 25012, "DomainRoleTypeValue": "STANDALONE",
-                                                  "PublicAddress": ["192.168.1.2"]}]}
-        param = {"device_id": 25012, "hostname": "XX.XX.XX.XX", "remote_racadm_settings": {"enabled": True}}
+                                                  "PublicAddress": ["YY.YY.YY.YY"]}]}
+        param = {"device_id": 25012, "hostname": "Y.Y.Y.Y", "remote_racadm_settings": {"enabled": True}}
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as err:
             self.module.get_chassis_device(f_module, ome_conn_mock_network)
         assert err.value.args[0] == "Failed to retrieve the device information."
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
-                                                  "PublicAddress": ["XX.XX.XX.XX"]}]}
-        param = {"hostname": "XX.XX.XX.XX", "remote_racadm_settings": {"enabled": True}}
+                                                  "PublicAddress": ["X.X.X.X"]}]}
+        param = {"hostname": "X.X.X.X", "remote_racadm_settings": {"enabled": True}}
         f_module = self.get_module_mock(params=param)
         key, value = self.module.get_chassis_device(f_module, ome_conn_mock_network)
         assert key == "Id"
@@ -86,7 +86,7 @@ class TestOMEMDeviceNetworkService(FakeAnsibleModule):
                                                              "SnmpV1V2Credential": {"CommunityName": "public"}},
                                        "SshConfiguration": {"IdleTimeout": 60, "MaxAuthRetries": 3, "MaxSessions": 1,
                                                             "PortNumber": 22, "SshEnabled": False}}
-        ome_default_args.update({"device_id": 25012, "hostname": "XX.XX.XX.XX", "remote_racadm_settings": {"enabled": True},
+        ome_default_args.update({"device_id": 25012, "hostname": "Y.Y.Y.Y", "remote_racadm_settings": {"enabled": True},
                                  "snmp_settings": {"enabled": True, "port_number": 161, "community_name": "public"},
                                  "ssh_settings": {"enabled": True, "port_number": 22, "max_sessions": 1,
                                                   "max_auth_retries": 3, "idle_timeout": 60}})
@@ -94,7 +94,7 @@ class TestOMEMDeviceNetworkService(FakeAnsibleModule):
         assert resp['msg'] == "Successfully updated the network services settings."
 
     def test_fetch_device_details(self, ome_conn_mock_network, ome_default_args, ome_response_mock, mocker):
-        param = {"device_id": 25012, "hostname": "XX.XX.XX.XX", "remote_racadm_settings": {"enabled": True}}
+        param = {"device_id": 25012, "hostname": "Y.Y.Y.Y", "remote_racadm_settings": {"enabled": True}}
         f_module = self.get_module_mock(params=param)
         ome_response_mock.status_code = 200
         ome_response_mock.success = True
@@ -113,18 +113,18 @@ class TestOMEMDeviceNetworkService(FakeAnsibleModule):
                                        "EnableRemoteRacadm": True, "SnmpConfiguration": {}, "SshConfiguration": {}}
         resp = self.module.fetch_device_details(f_module, ome_conn_mock_network)
         assert resp.json_data["SnmpConfiguration"] == {}
-        param = {"hostname": "XX.XX.XX.XX", "remote_racadm_settings": {"enabled": True}}
+        param = {"hostname": "Y.Y.Y.Y", "remote_racadm_settings": {"enabled": True}}
         f_module = self.get_module_mock(params=param)
         mocker.patch(MODULE_PATH + "get_chassis_device", return_value=("Id", "25012"))
         resp = self.module.fetch_device_details(f_module, ome_conn_mock_network)
         assert resp.json_data["SnmpConfiguration"] == {}
 
     def test_get_ip_from_host(self, ome_conn_mock_network, ome_default_args, ome_response_mock):
-        result = self.module.get_ip_from_host("XX.XX.XX.XX")
-        assert result == "XX.XX.XX.XX"
+        result = self.module.get_ip_from_host("ZZ.ZZ.ZZ.ZZ")
+        assert result == "ZZ.ZZ.ZZ.ZZ"
 
     def test_check_mode_validation(self, ome_conn_mock_network, ome_default_args, ome_response_mock):
-        param = {"device_id": 25012, "hostname": "XX.XX.XX.XX", "remote_racadm_settings": {"enabled": True},
+        param = {"device_id": 25012, "hostname": "Y.Y.Y.Y", "remote_racadm_settings": {"enabled": True},
                  "snmp_settings": {"enabled": True, "port_number": 161, "community_name": "public"},
                  "ssh_settings": {"enabled": True, "port_number": 22, "max_sessions": 1,
                                   "max_auth_retries": 3, "idle_timeout": 120}}
@@ -150,7 +150,7 @@ class TestOMEMDeviceNetworkService(FakeAnsibleModule):
         with pytest.raises(Exception) as err:
             self.module.check_mode_validation(f_module, loc_data, ome_conn_mock_network)
         assert err.value.args[0] == "Changes found to be applied."
-        param = {"device_id": 25012, "hostname": "XX.XX.XX.XX", "remote_racadm_settings": {"enabled": False},
+        param = {"device_id": 25012, "hostname": "Y.Y.Y.Y", "remote_racadm_settings": {"enabled": False},
                  "snmp_settings": {"enabled": False, "port_number": 161, "community_name": "public"},
                  "ssh_settings": {"enabled": False, "port_number": 22, "max_sessions": 1,
                                   "max_auth_retries": 3, "idle_timeout": 60}}
