@@ -5,6 +5,44 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v8.6.0
+======
+
+Release Summary
+---------------
+
+Support for environment variables as fallback for credentials for all modules. Enhanced idrac_certificates to support `CUSTOMCERTIFICATE` and upload of SSL key.
+
+Major Changes
+-------------
+
+- All OME modules are enhanced to support environment variables `OME_USERNAME` and `OME_PASSWORD` as fallback for credentials.
+- All iDRAC and redfish modules are enhanced to support environment variables `IDRAC_USERNAME` and `IDRAC_PASSWORD` as fallback for credentials.
+- idrac_certificates - The module is enhanced to support import and export of `CUSTOMCERTIFICATE`.
+
+Minor Changes
+-------------
+
+- idrac_certificates - The `email_address` is no longer a required parameter.
+- idrac_certificates - The module and role are enhanced to support upload of SSL key along with `HTTPS` certificate.
+
+Bugfixes
+--------
+
+- Fixed an issue where the `NO_PROXY` environment variable was being ignored. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/554)
+- idrac_certificates - The `email_address` is no longer a required parameter. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/582).
+
+Known Issues
+------------
+
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- idrac_network_attributes - Issue(279049) -  If unsupported values are provided for the parameter ``ome_network_attributes``, then this module does not provide a correct error message.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_device_quick_deploy - Issue(275231) - This module does not deploy a new configuration to a slot that has disabled IPv6.
+- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v8.5.0
 ======
 
@@ -13,6 +51,12 @@ Release Summary
 
 - Ansible lint issues are fixed for the collections.
 - redfish_storage_volume module is enhanced to support reboot options and job tracking operation.
+
+Minor Changes
+-------------
+
+- Ansible lint issues are fixed for the collections.
+- Module ``redfish_storage_volume`` is enhanced to support reboot options and job tracking operation.
 
 Bugfixes
 --------
