@@ -215,7 +215,7 @@ class TestOmeAD(FakeAnsibleModule):
         ome_connection_mock_obj = rest_obj_class_mock.return_value.__enter__.return_value
         if params.get("is_http"):
             json_str = to_text(json.dumps(params['error_info']))
-            ome_connection_mock_obj.invoke_request.side_effect = HTTPError('http://testdellemcomead.com', 404,
+            ome_connection_mock_obj.invoke_request.side_effect = HTTPError('https://testdellemcomead.com', 404,
                                                                            'http error message',
                                                                            {"accept-type": "application/json"},
                                                                            StringIO(json_str))
