@@ -11,7 +11,8 @@ v8.6.0
 Release Summary
 ---------------
 
-Support for environment variables as fallback for credentials for all modules. Enhanced idrac_certificates to support `CUSTOMCERTIFICATE` and upload of SSL key.
+- Support for environment variables as fallback for credentials for all modules.
+- Enhanced idrac_certificates to support `CUSTOMCERTIFICATE` and upload of SSL key.
 
 Major Changes
 -------------

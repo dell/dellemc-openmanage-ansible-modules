@@ -1646,8 +1646,9 @@ releases:
     release_date: '2023-11-30'
   8.6.0:
     changes:
-      release_summary: 'Support for environment variables as fallback for credentials for all modules.
-        Enhanced idrac_certificates to support `CUSTOMCERTIFICATE` and upload of SSL key.'
+      release_summary: '- Support for environment variables as fallback for credentials for all modules.
+
+        - Enhanced idrac_certificates to support `CUSTOMCERTIFICATE` and upload of SSL key.'
       bugfixes:
         - idrac_certificates - The `email_address` is no longer a required
            parameter. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/582).
