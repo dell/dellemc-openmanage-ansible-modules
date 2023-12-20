@@ -22,6 +22,7 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+HTTPS_ADDRESS = 'https://testhost.com'
 
 
 @pytest.fixture
@@ -105,7 +106,7 @@ class TestStorageVolume(FakeAnsibleModule):
                          side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + 'redfish_storage_volume.configure_raid_operation',
-                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
+                         side_effect=exc_type(HTTPS_ADDRESS, 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module(redfish_default_args)
         assert 'task' not in result
@@ -324,7 +325,7 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_perform_storage_volume_action_exception_case(self, redfish_response_mock,
                                                           redfish_connection_mock_for_storage_volume):
         redfish_response_mock.headers.update({"Location": "JobService/Jobs/JID_123"})
-        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400,
                                                                                           '', {}, None)
         with pytest.raises(HTTPError) as ex:
             self.module.perform_storage_volume_action("POST", "uri", redfish_connection_mock_for_storage_volume,
@@ -401,7 +402,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                                                redfish_connection_mock_for_storage_volume,
                                                                                redfish_response_mock):
         f_module = self.get_module_mock(params={"controller_id": "1234"})
-        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com',
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS,
                                                                                           404,
                                                                                           "Specified Controller 123 does"
                                                                                           " not exist in the System.",
@@ -419,7 +420,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                                                redfish_response_mock):
         f_module = self.get_module_mock(params={"controller_id": "1234"})
         msg = "http error"
-        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400,
                                                                                           msg, {}, None)
         with pytest.raises(Exception, match=msg) as exc:
             self.module.check_specified_identifier_exists_in_the_system(f_module,
@@ -716,7 +717,7 @@ class TestStorageVolume(FakeAnsibleModule):
         f_module = self.get_module_mock()
         msg = "Target out-of-band controller does not support storage feature using Redfish API."
         redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
-        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com', 404,
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 404,
                                                                                           json.dumps(msg), {}, None)
         with pytest.raises(Exception) as exc:
             self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
@@ -726,7 +727,7 @@ class TestStorageVolume(FakeAnsibleModule):
         f_module = self.get_module_mock()
         msg = "http error"
         redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
-        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400,
                                                                                           msg, {}, None)
         with pytest.raises(Exception, match=msg) as exc:
             self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
@@ -837,7 +838,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                       storage_volume_base_uri):
         param = {"volume_type": "NonRedundant", "controller_id": "controller_id"}
         f_module = self.get_module_mock(params=param)
-        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400,
                                                                                           '', {}, None)
         with pytest.raises(HTTPError) as ex:
             self.module.check_raid_type_supported(f_module, redfish_connection_mock_for_storage_volume)
@@ -883,7 +884,7 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
                                                      storage_volume_base_uri):
         param = {"controller_id": "controller_id", "apply_time": "Immediate"}
         f_module = self.get_module_mock(params=param)
-        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
+        redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400,
                                                                                           '', {}, None)
         with pytest.raises(HTTPError) as ex:
             self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume,

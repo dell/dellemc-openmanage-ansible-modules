@@ -36,6 +36,8 @@ LAC_FAIL_MSG = "Unable to complete the operation because the local access config
 CHANGES_FOUND = "Changes found to be applied."
 NO_CHANGES_FOUND = "No changes found to be applied."
 SUCCESS_MSG = "Successfully updated the local access settings."
+HTTPS_ADDRESS = 'https://testhost.com'
+HTTP_ERROR_MSG = 'http error message'
 
 
 @pytest.fixture
@@ -222,7 +224,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         if 'http_error_json' in params:
             json_str = to_text(json.dumps(params.get('http_error_json', {})))
             ome_conn_mock_lac.invoke_request.side_effect = HTTPError(
-                'https://testhost.com', 401, 'http error message', {
+                HTTPS_ADDRESS, 401, HTTP_ERROR_MSG, {
                     "accept-type": "application/json"},
                 StringIO(json_str))
         ome_default_args.update(params['mparams'])
@@ -331,13 +333,13 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             assert result['failed'] is True
         elif exc_type in [HTTPError]:
             mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
+                         side_effect=exc_type(HTTPS_ADDRESS, 400, HTTP_ERROR_MSG,
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
+                         side_effect=exc_type(HTTPS_ADDRESS, 400, HTTP_ERROR_MSG,
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

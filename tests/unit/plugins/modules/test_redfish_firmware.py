@@ -27,6 +27,9 @@ from mock import patch, mock_open
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 JOB_URI = "JobService/Jobs/{job_id}"
+FIRMWARE_DATA = "multipart/form-data"
+HTTPS_IMAGE_URI = "https://home/firmware_repo/component.exe"
+HTTPS_ADDRESS_DELL = "https://dell.com"
 
 
 @pytest.fixture
@@ -111,10 +114,10 @@ class TestRedfishFirmware(FakeAnsibleModule):
                                                 redfish_response_mock):
         redfish_default_args.update({"image_uri": "/home/firmware_repo/component.exe", "job_wait": False})
         redfish_firmware_connection_mock.headers.get("Location").return_value = "https://multipart/form-data"
-        redfish_firmware_connection_mock.headers.get("Location").split().return_value = "multipart/form-data"
+        redfish_firmware_connection_mock.headers.get("Location").split().return_value = FIRMWARE_DATA
         mocker.patch(MODULE_PATH + 'redfish_firmware.firmware_update',
                      return_value=redfish_response_mock)
-        redfish_response_mock.json_data = {"image_uri": "https://home/firmware_repo/component.exe"}
+        redfish_response_mock.json_data = {"image_uri": HTTPS_IMAGE_URI}
         redfish_response_mock.status_code = 201
         redfish_response_mock.success = True
         result = self._run_module(redfish_default_args)
@@ -164,7 +167,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
                 }
             },
             "transfer_protocol": "HTTP",
-            "HttpPushUri": "https://dell.com",
+            "HttpPushUri": HTTPS_ADDRESS_DELL,
             "FirmwareInventory": {
                 "@odata.id": "2134"
             }
@@ -208,7 +211,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
                 }
             },
             "transfer_protocol": "HTTP",
-            "HttpPushUri": "https://dell.com",
+            "HttpPushUri": HTTPS_ADDRESS_DELL,
             "FirmwareInventory": {
                 "@odata.id": "2134"
             }
@@ -221,12 +224,12 @@ class TestRedfishFirmware(FakeAnsibleModule):
                                             redfish_response_mock, mocker):
         mocker.patch(MODULE_PATH + 'redfish_firmware._get_update_service_target',
                      return_value=('2134', 'https://dell.com', 'redfish'))
-        redfish_default_args.update({"image_uri": "https://home/firmware_repo/component.exe",
+        redfish_default_args.update({"image_uri": HTTPS_IMAGE_URI,
                                      "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
-        redfish_response_mock.json_data = {"image_uri": "https://home/firmware_repo/component.exe",
+        redfish_response_mock.json_data = {"image_uri": HTTPS_IMAGE_URI,
                                            "transfer_protocol": "HTTP"}
         result = self.module.firmware_update(redfish_firmware_connection_mock, f_module)
         assert result == redfish_response_mock
@@ -236,13 +239,13 @@ class TestRedfishFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
                      return_value=('2134', 'https://dell.com', 'multipart/form-data'))
         mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._encode_form_data",
-                     return_value=({"file": (3, "https://dell.com", "multipart/form-data")}, "multipart/form-data"))
-        redfish_default_args.update({"image_uri": "https://home/firmware_repo/component.exe",
+                     return_value=({"file": (3, HTTPS_ADDRESS_DELL, FIRMWARE_DATA)}, FIRMWARE_DATA))
+        redfish_default_args.update({"image_uri": HTTPS_IMAGE_URI,
                                      "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 200
         redfish_response_mock.success = True
-        redfish_response_mock.json_data = {"image_uri": "https://home/firmware_repo/component.exe",
+        redfish_response_mock.json_data = {"image_uri": HTTPS_IMAGE_URI,
                                            "transfer_protocol": "HTTP"}
         if sys.version_info.major == 3:
             builtin_module_name = 'builtins'
@@ -261,13 +264,13 @@ class TestRedfishFirmware(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
                      return_value=('2134', 'https://dell.com', 'multipart/form-data'))
         mocker.patch(MODULE_PATH + "redfish_firmware._encode_form_data",
-                     return_value=({"file": (3, "https://dell.com", "multipart/form-data")}, "multipart/form-data"))
-        redfish_default_args.update({"baseuri": params["ip"], "image_uri": "https://home/firmware_repo/component.exe",
+                     return_value=({"file": (3, HTTPS_ADDRESS_DELL, FIRMWARE_DATA)}, FIRMWARE_DATA))
+        redfish_default_args.update({"baseuri": params["ip"], "image_uri": HTTPS_IMAGE_URI,
                                      "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
         redfish_response_mock.status_code = 201
         redfish_response_mock.success = True
-        redfish_response_mock.json_data = {"image_uri": "https://home/firmware_repo/component.exe",
+        redfish_response_mock.json_data = {"image_uri": HTTPS_IMAGE_URI,
                                            "transfer_protocol": "HTTP"}
         if sys.version_info.major == 3:
             builtin_module_name = 'builtins'
