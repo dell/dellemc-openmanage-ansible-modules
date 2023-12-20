@@ -10,7 +10,8 @@
     return_content: true
     status_code: 200
   register: idrac_certificate_uri_data
-  when: idrac_ip is defined and idrac_password is defined and idrac_user is defined
+  when: idrac_ip is defined and idrac_password is defined
+         and idrac_user is defined
   check_mode: false
 
 - name: Set firmware version

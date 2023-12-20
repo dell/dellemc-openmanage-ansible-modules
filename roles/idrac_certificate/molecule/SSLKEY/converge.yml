@@ -5,9 +5,7 @@
   vars:
     https_cert_ssl_failure: {}
     ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
-    custom_certificate_name: "lookup('env', 'custom_certificate_name')"
-    custom_certificate_name_pass: "{{ lookup('env', 'custom_certificate_name_pass') }}"
-    base_path_for_import_certificate: "{{ lookup('env', 'base_path_for_import_certificate') }}"
+    path_for_import_cert: "{{ lookup('env', 'path_for_import_cert') }}"
 
   tasks:
     - name: Fetching firmware version for IDRAC
@@ -25,6 +23,15 @@
     - name: Import Https certificate using ssl_key
       when: idrac_certificate_firmware_version is defined and "idrac_certificate_firmware_version >= firmware_version_expected"
       block:
+        - name: Create directory
+          ansible.builtin.include_tasks:
+            file: ../__get_helper.yml
+
+        - name: Create SSL Key ans self-signed certificate
+          when: idrac_certificate_check_file_created.stat.exists
+          ansible.builtin.include_tasks:
+            file: ../__get_ssl_key.yml
+
         - name: Importing HTTPS certificate using ssl_key
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_certificate
@@ -36,9 +43,9 @@
             ca_path: "{{ ca_cert_path }}"
             command: "import"
             certificate_type: "HTTPS"
-            certificate_path: "../files/cert.pem"
-            ssl_key: "../files/cert.key"
-            idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate') }}"
+            certificate_path: "{{ path_for_import_cert }}cert.pem"
+            ssl_key: "{{ path_for_import_cert }}cert.key"
+            idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
         - name: Waiting for idrac readiness
           ansible.builtin.wait_for:
@@ -65,10 +72,15 @@
           when: not ansible_check_mode and not idrac_certificate_out.changed
 
       rescue:
-        - name: Set the failure messages for CUSTOMECERT
+        - name: Set the failure messages for SSLKEY
           ansible.builtin.set_fact:
             https_cert_ssl_failure: "{{  https_cert_ssl_failure | combine({'HTTPS_SSL_KEY_CERT_IMPORT': {'msg': ansible_failed_result.msg,
                       'failed_task_name': ansible_failed_task.name}}) }}"
+
+      always:
+        - name: Deleting the directory
+          ansible.builtin.include_tasks:
+            file: ../__delete_directory.yml
 
     - name: Collecting failure
       ansible.builtin.debug:
