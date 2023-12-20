@@ -4,13 +4,14 @@ __metaclass__ = type
 import json
 
 import unittest
+import tempfile
 from unittest.mock import patch
 from ansible.module_utils import basic
 from ansible.module_utils.common.text.converters import to_bytes
 
 
 def set_module_args(args):
-    args['_ansible_remote_tmp'] = '/tmp'
+    args['_ansible_remote_tmp'] = tempfile.gettempdir()
     args['_ansible_keep_remote_files'] = False
 
     args = json.dumps({'ANSIBLE_MODULE_ARGS': args})
