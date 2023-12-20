@@ -90,7 +90,8 @@ class TestIdracCertificates(FakeAnsibleModule):
         return idrac_obj
 
     @pytest.fixture
-    def idrac_connection_certificates_mock(self, mocker, idrac_certificates_mock):
+    def idrac_connection_certificates_mock(
+            self, mocker, idrac_certificates_mock):
         idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
                                        return_value=idrac_certificates_mock)
         idrac_conn_mock.return_value.__enter__.return_value = idrac_certificates_mock
@@ -183,10 +184,13 @@ class TestIdracCertificates(FakeAnsibleModule):
         {"json_data": {}, 'message': f"{SSL_KEY_MSG.format(ssl_key='/invalid/path')}", "success": True,
          'mparams': {'command': 'import', 'certificate_type': "HTTPS", 'certificate_path': '.pem', 'ssl_key': '/invalid/path'}}
     ])
-    def test_idrac_certificates(self, params, idrac_connection_certificates_mock, idrac_default_args, mocker):
-        idrac_connection_certificates_mock.success = params.get("success", True)
+    def test_idrac_certificates(
+            self, params, idrac_connection_certificates_mock, idrac_default_args, mocker):
+        idrac_connection_certificates_mock.success = params.get(
+            "success", True)
         idrac_connection_certificates_mock.json_data = params.get('json_data')
-        if params.get('mparams').get('certificate_path') and params.get('mparams').get('command') == 'import':
+        if params.get('mparams').get('certificate_path') and params.get(
+                'mparams').get('command') == 'import':
             sfx = params.get('mparams').get('certificate_path')
             temp = tempfile.NamedTemporaryFile(suffix=sfx, delete=False)
             temp.write(b'Hello')
@@ -198,13 +202,24 @@ class TestIdracCertificates(FakeAnsibleModule):
                 temp.close()
                 params.get('mparams')['ssl_key'] = temp.name
         mocker.patch(MODULE_PATH + 'get_res_id', return_value=MANAGER_ID)
-        mocker.patch(MODULE_PATH + 'get_idrac_service', return_value=IDRAC_SERVICE.format(res_id=MANAGER_ID))
-        mocker.patch(MODULE_PATH + 'get_actions_map', return_value=idrac_service_actions)
+        mocker.patch(
+            MODULE_PATH + 'get_idrac_service',
+            return_value=IDRAC_SERVICE.format(
+                res_id=MANAGER_ID))
+        mocker.patch(
+            MODULE_PATH + 'get_actions_map',
+            return_value=idrac_service_actions)
         # mocker.patch(MODULE_PATH + 'get_cert_url', return_value=params.get('get_cert_url'))
         # mocker.patch(MODULE_PATH + 'write_to_file', return_value=params.get('write_to_file'))
-        mocker.patch(MODULE_PATH + 'reset_idrac', return_value=params.get('reset_idrac'))
+        mocker.patch(
+            MODULE_PATH + 'reset_idrac',
+            return_value=params.get('reset_idrac'))
         idrac_default_args.update(params.get('mparams'))
-        result = self._run_module(idrac_default_args, check_mode=params.get('check_mode', False))
+        result = self._run_module(
+            idrac_default_args,
+            check_mode=params.get(
+                'check_mode',
+                False))
         if params.get('mparams').get('command') == 'import' and params.get('mparams').get(
                 'certificate_path') and os.path.exists(temp.name):
             os.remove(temp.name)
@@ -219,7 +234,9 @@ class TestIdracCertificates(FakeAnsibleModule):
             self, params, idrac_redfish_mock_for_certs, ome_response_mock):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
-        res_id = self.module.get_res_id(idrac_redfish_mock_for_certs, params.get('cert_type'))
+        res_id = self.module.get_res_id(
+            idrac_redfish_mock_for_certs,
+            params.get('cert_type'))
         assert res_id == params['res_id']
 
     @pytest.mark.parametrize("params", [{"json_data": {
@@ -238,7 +255,8 @@ class TestIdracCertificates(FakeAnsibleModule):
             self, params, idrac_redfish_mock_for_certs, ome_response_mock):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
-        idrac_srv = self.module.get_idrac_service(idrac_redfish_mock_for_certs, params.get('res_id'))
+        idrac_srv = self.module.get_idrac_service(
+            idrac_redfish_mock_for_certs, params.get('res_id'))
         assert idrac_srv == params['idrac_srv']
 
     @pytest.mark.parametrize("params", [{"json_data": {
@@ -278,7 +296,9 @@ class TestIdracCertificates(FakeAnsibleModule):
             self, params, idrac_redfish_mock_for_certs, ome_response_mock):
         ome_response_mock.success = params.get("success", True)
         ome_response_mock.json_data = params["json_data"]
-        actions = self.module.get_actions_map(idrac_redfish_mock_for_certs, params.get('idrac_service_uri'))
+        actions = self.module.get_actions_map(
+            idrac_redfish_mock_for_certs,
+            params.get('idrac_service_uri'))
         assert actions == params['actions']
 
     @pytest.mark.parametrize("params", [{"actions": {}, "operation": "generate_csr",
@@ -308,6 +328,21 @@ class TestIdracCertificates(FakeAnsibleModule):
               'Resolution': 'No response action is required.',
               'Severity': 'Informational'}]},
          "mparams": {'command': 'export', 'certificate_type': "HTTPS",
+                     'certificate_path': tempfile.gettempdir(), 'reset': False}
+         },
+        {"cert_data": {"CertificateFile": 'Hello world!',
+                       "@Message.ExtendedInfo": [{
+                           "Message": "Successfully exported SSL Certificate.",
+                           "MessageId": "IDRAC.2.5.LC067",
+                                        "Resolution": "No response action is required.",
+                                        "Severity": "Informational"}
+                       ]},
+         "result": {'@Message.ExtendedInfo': [
+             {'Message': 'Successfully exported SSL Certificate.',
+              'MessageId': 'IDRAC.2.5.LC067',
+                           'Resolution': 'No response action is required.',
+                           'Severity': 'Informational'}]},
+         "mparams": {'command': 'generate_csr', 'certificate_type': "HTTPS",
                      'certificate_path': tempfile.gettempdir(), 'reset': False}}])
     def test_format_output(self, params, idrac_default_args):
         idrac_default_args.update(params.get('mparams'))
@@ -319,8 +354,10 @@ class TestIdracCertificates(FakeAnsibleModule):
 
     @pytest.mark.parametrize("exc_type", [SSLValidationError, URLError, ValueError, TypeError,
                                           ConnectionError, HTTPError, ImportError, RuntimeError])
-    def test_main_exceptions(self, exc_type, idrac_connection_certificates_mock, idrac_default_args, mocker):
-        idrac_default_args.update({"command": "export", "certificate_path": "mypath"})
+    def test_main_exceptions(
+            self, exc_type, idrac_connection_certificates_mock, idrac_default_args, mocker):
+        idrac_default_args.update(
+            {"command": "export", "certificate_path": "mypath"})
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + "get_res_id",

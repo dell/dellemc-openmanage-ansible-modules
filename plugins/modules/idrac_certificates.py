@@ -298,7 +298,6 @@ idrac_service_actions = {
 rfish_cert_coll = {'Server': {
     "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/NetworkProtocol/HTTPS/Certificates"
 }}
-out_mapper = {}
 out_file_path = {"CSRString": 'certificate_path',
                  "CertificateFile": 'certificate_path'}
 changed_map = {"generate_csr": False, "import": True, "export": False, "reset": True}
@@ -485,10 +484,7 @@ def write_to_file(module, cert_data, dkey):
         ext = '.txt'
     else:
         ext = f_ext.get(module.params.get('certificate_type'))
-    cert_file_name = (
-        f"{module.params['idrac_ip']}_{d.date().year}{d.date().month:02d}{d.date().day:02d}_"
-        f"{d.time().hour:02d}{d.time().minute:02d}{d.time().second:02d}_{module.params.get('certificate_type')}{ext}"
-    )
+    cert_file_name = f"{module.params['idrac_ip']}_{d.strftime('%Y%m%d_%H%M%S')}_{module.params.get('certificate_type')}{ext}"
     file_name = os.path.join(path, cert_file_name)
     write_data = cert_data.pop(dkey, None)
     with open(file_name, "w") as fp:
@@ -497,19 +493,13 @@ def write_to_file(module, cert_data, dkey):
 
 
 def format_output(module, cert_data):
-    # cert_data = strip_substr_dict(cert_data, chkstr='@odata')
-    result = {}
     cp = cert_data.copy()
     klist = cp.keys()
     for k in klist:
         if "message" in k.lower():
             cert_data.pop(k, None)
-        if k in out_mapper:
-            cert_data[out_mapper.get(k)] = cert_data.pop(k, None)
         if k in out_file_path:
             write_to_file(module, cert_data, k)
-    if result:
-        cert_data.update({'result': result})
     cert_data.pop("CertificateCollection", None)
     return cert_data
 
