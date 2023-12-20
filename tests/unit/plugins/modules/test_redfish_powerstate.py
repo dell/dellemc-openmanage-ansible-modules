@@ -24,6 +24,7 @@ from ansible.module_utils._text import to_text
 tarrget_error_msg = "The target device does not support the system reset" \
                     " feature using Redfish API."
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+HTTPS_ADDRESS = 'https://testhost.com'
 
 
 @pytest.fixture
@@ -247,7 +248,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         """failuere case when system does not supports and throws http error not found"""
         f_module = self.get_module_mock()
         redfish_connection_mock_for_powerstate.root_uri = "/redfish/v1/"
-        redfish_connection_mock_for_powerstate.invoke_request.side_effect = HTTPError('https://testhost.com', 404,
+        redfish_connection_mock_for_powerstate.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 404,
                                                                                       json.dumps(tarrget_error_msg), {},
                                                                                       None)
         with pytest.raises(Exception) as exc:
@@ -258,7 +259,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
         """failure case when system does not supports and throws http error 400 bad request"""
         f_module = self.get_module_mock()
         redfish_connection_mock_for_powerstate.root_uri = "/redfish/v1/"
-        redfish_connection_mock_for_powerstate.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
+        redfish_connection_mock_for_powerstate.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400,
                                                                                       tarrget_error_msg,
                                                                                       {}, None)
         with pytest.raises(Exception, match=tarrget_error_msg) as exc:
@@ -468,7 +469,7 @@ class TestRedfishPowerstate(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'redfish_powerstate.run_change_power_state',
-                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
+                         side_effect=exc_type(HTTPS_ADDRESS, 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(redfish_default_args)
             assert result['failed'] is True

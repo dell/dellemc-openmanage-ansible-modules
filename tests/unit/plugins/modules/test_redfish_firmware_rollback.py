@@ -23,6 +23,9 @@ from mock import MagicMock
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+ACCESS_TYPE = "application/json"
+HTTP_ERROR_MSG = 'http error message'
+HTTPS_ADDRESS = 'https://testhost.com'
 
 
 @pytest.fixture
@@ -48,7 +51,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type == HTTPError:
             redfish_connection_mock.invoke_request.side_effect = exc_type(
-                'https://testhost.com', 401, 'http error message', {"accept-type": "application/json"},
+                HTTPS_ADDRESS, 401, HTTP_ERROR_MSG, {"accept-type": ACCESS_TYPE},
                 StringIO(json_str)
             )
             result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
@@ -56,7 +59,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             assert result[1] is True
             assert result[2] == "iDRAC reset is in progress. Until the iDRAC is reset, the changes would not apply."
             redfish_connection_mock.invoke_request.side_effect = exc_type(
-                'https://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
+                HTTPS_ADDRESS, 400, HTTP_ERROR_MSG, {"accept-type": ACCESS_TYPE},
                 StringIO(json_str)
             )
             result = self.module.wait_for_redfish_idrac_reset(f_module, redfish_connection_mock, 5)
@@ -280,8 +283,8 @@ class TestRedfishFirmware(FakeAnsibleModule):
                          side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + 'redfish_firmware_rollback.get_rollback_preview_target',
-                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
-                                              {"accept-type": "application/json"}, StringIO(json_str)))
+                         side_effect=exc_type(HTTPS_ADDRESS, 400, HTTP_ERROR_MSG,
+                                              {"accept-type": ACCESS_TYPE}, StringIO(json_str)))
         if exc_type == HTTPError:
             result = self._run_module(redfish_default_args)
             assert result['failed'] is True

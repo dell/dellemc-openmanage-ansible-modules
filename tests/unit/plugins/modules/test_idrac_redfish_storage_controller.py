@@ -22,6 +22,8 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+HTTPS_ADDRESS = 'https://testhost.com'
+HTTP_ERROR_MSG = 'http error message'
 
 
 @pytest.fixture
@@ -55,8 +57,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         with pytest.raises(Exception) as ex:
@@ -205,8 +207,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         with pytest.raises(Exception) as ex:
@@ -318,8 +320,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         with pytest.raises(Exception) as ex:
@@ -350,8 +352,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         with pytest.raises(Exception) as ex:
@@ -397,8 +399,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         with pytest.raises(Exception) as ex:
@@ -424,8 +426,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         with pytest.raises(Exception) as ex:
@@ -512,8 +514,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         resp = self.module.get_current_time(redfish_str_controller_conn)
@@ -652,8 +654,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         resp = self.module.get_attributes(f_module, redfish_str_controller_conn)
@@ -736,8 +738,8 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
 
         json_str = to_text(json.dumps({"data": "out"}))
         redfish_str_controller_conn.invoke_request.side_effect = HTTPError(
-            'https://testhost.com', 400,
-            'http error message',
+            HTTPS_ADDRESS, 400,
+            HTTP_ERROR_MSG,
             {"accept-type": "application/json"},
             StringIO(json_str))
         with pytest.raises(Exception) as ex:
@@ -950,7 +952,7 @@ class TestIdracRedfishStorageController(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'idrac_redfish_storage_controller.ctrl_reset_config',
-                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
+                         side_effect=exc_type(HTTPS_ADDRESS, 400, HTTP_ERROR_MSG,
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(redfish_default_args)
             assert result['failed'] is True
