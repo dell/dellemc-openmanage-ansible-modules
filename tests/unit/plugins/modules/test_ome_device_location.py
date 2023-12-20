@@ -25,6 +25,10 @@ from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common im
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_device_location.'
 PARAM_DATA_CENTER = "data center 1"
+PARAM_ROOM = "room 1"
+PARAM_AISLE = "aisle 1"
+PARAM_RACK = "rack 1"
+PARAM_LOCATION = "location 1"
 
 
 @pytest.fixture
@@ -53,7 +57,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
                                                   "PublicAddress": ["YY.YY.YY.YY"]}]}
 
         param = {"data_center": PARAM_DATA_CENTER, "rack_slot": 2, "device_id": 25012, "hostname": "XY.XY.XY.XY",
-                 "room": "room 1", "aisle": "aisle 1", "rack": "rack 1", "location": "location 1"}
+                 "room": PARAM_ROOM, "aisle": PARAM_AISLE, "rack": PARAM_RACK, "location": PARAM_LOCATION}
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as err:
             self.module.standalone_chassis(f_module, ome_conn_mock_location)
@@ -61,46 +65,46 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
 
     def test_validate_dictionary(self, ome_conn_mock_location, ome_default_args, mocker):
         param = {"data_center": PARAM_DATA_CENTER, "rack_slot": 2,
-                 "room": "room 1", "aisle": "aisle 1", "rack": "rack 1", "location": "location 1"}
+                 "room": PARAM_ROOM, "aisle": PARAM_AISLE, "rack": PARAM_RACK, "location": PARAM_LOCATION}
         f_module = self.get_module_mock(params=param)
         f_module.check_mode = True
-        loc_resp = {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 2, "Room": "room 1",
-                    "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
+        loc_resp = {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 2, "Room": PARAM_ROOM,
+                    "Aisle": PARAM_AISLE, "RackName": PARAM_RACK, "Location": PARAM_LOCATION}
         with pytest.raises(Exception) as err:
             self.module.validate_dictionary(f_module, loc_resp)
-        loc_resp = {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 3, "Room": "room 1",
-                    "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
+        loc_resp = {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 3, "Room": PARAM_ROOM,
+                    "Aisle": PARAM_AISLE, "RackName": PARAM_RACK, "Location": PARAM_LOCATION}
         with pytest.raises(Exception) as err:
             self.module.validate_dictionary(f_module, loc_resp)
         assert err.value.args[0] == "Changes found to be applied."
-        loc_resp = {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 2, "Room": "room 1",
-                    "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
+        loc_resp = {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 2, "Room": PARAM_ROOM,
+                    "Aisle": PARAM_AISLE, "RackName": PARAM_RACK, "Location": PARAM_LOCATION}
         f_module.check_mode = False
         with pytest.raises(Exception) as err:
             self.module.validate_dictionary(f_module, loc_resp)
         assert err.value.args[0] == "No changes found to be applied."
-        loc_resp = {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 3, "Room": "room 1",
-                    "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1"}
+        loc_resp = {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 3, "Room": PARAM_ROOM,
+                    "Aisle": PARAM_AISLE, "RackName": PARAM_RACK, "Location": PARAM_LOCATION}
         result = self.module.validate_dictionary(f_module, loc_resp)
         assert result == {"DataCenter": PARAM_DATA_CENTER, "RackSlot": 2,
-                          "Room": "room 1", "Aisle": "aisle 1", "RackName": "rack 1",
-                          "Location": "location 1", "SettingType": "Location"}
+                          "Room": PARAM_ROOM, "Aisle": PARAM_AISLE, "RackName": PARAM_RACK,
+                          "Location": PARAM_LOCATION, "SettingType": "Location"}
 
     def test_device_validation(self, ome_conn_mock_location, ome_default_args, mocker, ome_response_mock):
         mocker.patch(MODULE_PATH + "validate_dictionary",
-                     return_value={"DataCenter": PARAM_DATA_CENTER, "RackSlot": 2, "Room": "room 1",
-                                   "Aisle": "aisle 1", "RackName": "rack 1", "Location": "location 1",
+                     return_value={"DataCenter": PARAM_DATA_CENTER, "RackSlot": 2, "Room": PARAM_ROOM,
+                                   "Aisle": PARAM_AISLE, "RackName": PARAM_RACK, "Location": PARAM_LOCATION,
                                    "SettingType": "Location"})
         param = {"data_center": PARAM_DATA_CENTER, "rack_slot": 2, "device_id": 25012,
-                 "room": "room 1", "aisle": "aisle 1", "rack": "rack 1", "location": "location 1"}
+                 "room": PARAM_ROOM, "aisle": PARAM_AISLE, "rack": PARAM_RACK, "location": PARAM_LOCATION}
         ome_default_args.update(param)
         f_module = self.get_module_mock(params=param)
         ome_response_mock.status_code = 200
         ome_response_mock.success = True
         ome_response_mock.json_data = {
             "value": [], "DataCenter": PARAM_DATA_CENTER,
-            "RackSlot": 3, "Room": "room 1", "Aisle": "aisle 1", "RackName": "rack 1",
-            "Location": "location 1", "SettingType": "Location", "result": {"RackSlot": 4}}
+            "RackSlot": 3, "Room": PARAM_ROOM, "Aisle": PARAM_AISLE, "RackName": PARAM_RACK,
+            "Location": PARAM_LOCATION, "SettingType": "Location", "result": {"RackSlot": 4}}
         with pytest.raises(Exception) as err:
             self.module.device_validation(f_module, ome_conn_mock_location)
         assert err.value.args[0] == "Unable to complete the operation because the entered target " \
@@ -239,8 +243,8 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
     def test_ome_device_location_main_exception_case(self, exc_type, mocker, ome_default_args,
                                                      ome_conn_mock_location, ome_response_mock):
         ome_default_args.update({"device_id": 25011, "data_center": PARAM_DATA_CENTER,
-                                 "room": "room 1", "aisle": "aisle 1", "rack": "rack 1",
-                                 "rack_slot": "2", "location": "location 1"})
+                                 "room": PARAM_ROOM, "aisle": PARAM_AISLE, "rack": PARAM_RACK,
+                                 "rack_slot": "2", "location": PARAM_LOCATION})
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
         json_str = to_text(json.dumps({"info": "error_details"}))
