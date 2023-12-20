@@ -166,7 +166,7 @@ class TestOMESmartFabricInfo(FakeAnsibleModule):
     def test_fetch_smart_fabric_link_details_HTTPError_error_case(self, params, ome_default_args, mocker, ome_connection_mock):
         json_str = to_text(json.dumps({"info": "error_details"}))
         error_msg = "Unable to retrieve smart fabric information."
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
+        ome_connection_mock.invoke_request.side_effect = HTTPError('https://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))
@@ -287,7 +287,7 @@ class TestOMESmartFabricInfo(FakeAnsibleModule):
         json_str = to_text(json.dumps({"info": "error_details"}))
         error_msg = "Unable to retrieve smart fabric information with fabric ID {0}.".format(
             params.get('fabric_id'))
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testdell.com', 404,
+        ome_connection_mock.invoke_request.side_effect = HTTPError('https://testdell.com', 404,
                                                                    error_msg,
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str))

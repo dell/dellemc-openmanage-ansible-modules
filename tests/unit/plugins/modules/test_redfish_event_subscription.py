@@ -157,9 +157,9 @@ class TestRedfishSubscription(FakeAnsibleModule):
         assert result.json_data["EventTypes"] == [val["event_type"]]
 
     @pytest.mark.parametrize("val", [
-        {"destination": "https://100.96.80.1:161", "event_type": "MetricReport",
+        {"destination": "https://XX.XX.XX.XX:161", "event_type": "MetricReport",
          "event_format_type": "MetricReport"},
-        {"destination": "https://100.96.80.1:161", "event_type": "Alert", "event_format_type": "Event"}])
+        {"destination": "https://XX.XX.XX.XX:161", "event_type": "Alert", "event_format_type": "Event"}])
     def test_function_get_subscription_details(self, mocker, redfish_connection_mock, redfish_response_mock,
                                                redfish_default_args, val):
         redfish_default_args.update({"state": "absent"})
@@ -202,9 +202,9 @@ class TestRedfishSubscription(FakeAnsibleModule):
         assert result["EventTypes"] == [val["event_type"]]
 
     @pytest.mark.parametrize("val", [
-        {"destination": "https://100.96.80.1:161", "event_type": "MetricReport",
+        {"destination": "https://XX.XX.XX.XX:161", "event_type": "MetricReport",
          "event_format_type": "MetricReport"},
-        {"destination": "https://100.96.80.1:161", "event_type": "Alert", "event_format_type": "Event"}])
+        {"destination": "https://XX.XX.XX.XX:161", "event_type": "Alert", "event_format_type": "Event"}])
     def test_function_get_subscription_details_None(self, mocker, redfish_connection_mock, redfish_response_mock,
                                                     redfish_default_args, val):
         redfish_default_args.update({"state": "absent"})
@@ -245,8 +245,8 @@ class TestRedfishSubscription(FakeAnsibleModule):
         assert result is None
 
     @pytest.mark.parametrize("val", [
-        {"destination": "https://100.96.80.1:161"},
-        {"destination": "https://100.96.80.1:161"}])
+        {"destination": "https://XX.XX.XX.XX:161"},
+        {"destination": "https://XX.XX.XX.XX:161"}])
     def test_function_delete_subscription(self, mocker, redfish_connection_mock, redfish_response_mock,
                                           redfish_default_args, val):
         redfish_default_args.update({"state": "absent"})
