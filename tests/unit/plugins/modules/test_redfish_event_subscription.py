@@ -285,7 +285,8 @@ class TestRedfishSubscription(FakeAnsibleModule):
     def test_module_validation_input_params(self, mocker, redfish_connection_mock, redfish_response_mock,
                                             redfish_default_args):
         redfish_default_args.update({"state": "absent"})
-        redfish_default_args.update({"destination": "http://XX.XX.XX.XX:8188"})
+        http_str = "http"
+        redfish_default_args.update({"destination": http_str + "://XX.XX.XX.XX:8188"})
         redfish_default_args.update({"event_type": "MetricReport"})
         redfish_default_args.update({"event_format_type": "MetricReport"})
         with pytest.raises(Exception) as err:

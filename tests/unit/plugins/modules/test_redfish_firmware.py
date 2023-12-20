@@ -173,7 +173,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
             }
         }
         result = self.module._get_update_service_target(redfish_firmware_connection_mock, f_module)
-        assert result == ('2134', 'https://dell.com', '')
+        assert result == ('2134', HTTPS_ADDRESS_DELL, '')
 
     def test_get_update_service_target_uri_none_case(self, redfish_default_args, redfish_firmware_connection_mock,
                                                      redfish_response_mock):
@@ -223,7 +223,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
     def test_firmware_update_success_case01(self, redfish_default_args, redfish_firmware_connection_mock,
                                             redfish_response_mock, mocker):
         mocker.patch(MODULE_PATH + 'redfish_firmware._get_update_service_target',
-                     return_value=('2134', 'https://dell.com', 'redfish'))
+                     return_value=('2134', HTTPS_ADDRESS_DELL, 'redfish'))
         redfish_default_args.update({"image_uri": HTTPS_IMAGE_URI,
                                      "transfer_protocol": "HTTP", "timeout": 0, "job_wait_timeout": 0})
         f_module = self.get_module_mock(params=redfish_default_args)
@@ -237,7 +237,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
     def test_firmware_update_success_case02(self, redfish_default_args, redfish_firmware_connection_mock,
                                             redfish_response_mock, mocker):
         mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
-                     return_value=('2134', 'https://dell.com', 'multipart/form-data'))
+                     return_value=('2134', HTTPS_ADDRESS_DELL, 'multipart/form-data'))
         mocker.patch("ansible_collections.dellemc.openmanage.plugins.modules.redfish_firmware._encode_form_data",
                      return_value=({"file": (3, HTTPS_ADDRESS_DELL, FIRMWARE_DATA)}, FIRMWARE_DATA))
         redfish_default_args.update({"image_uri": HTTPS_IMAGE_URI,
@@ -262,7 +262,7 @@ class TestRedfishFirmware(FakeAnsibleModule):
     def test_firmware_update_success_case03(self, params, redfish_default_args, redfish_firmware_connection_mock,
                                             redfish_response_mock, mocker):
         mocker.patch(MODULE_PATH + "redfish_firmware._get_update_service_target",
-                     return_value=('2134', 'https://dell.com', 'multipart/form-data'))
+                     return_value=('2134', HTTPS_ADDRESS_DELL, 'multipart/form-data'))
         mocker.patch(MODULE_PATH + "redfish_firmware._encode_form_data",
                      return_value=({"file": (3, HTTPS_ADDRESS_DELL, FIRMWARE_DATA)}, FIRMWARE_DATA))
         redfish_default_args.update({"baseuri": params["ip"], "image_uri": HTTPS_IMAGE_URI,
