@@ -117,7 +117,7 @@ class TestVirtualMedia(FakeAnsibleModule):
                 "#VirtualMedia.InsertMedia": {
                     "target": "/redfish/v1/Systems/System.Embedded.1/VirtualMedia/1/Actions/VirtualMedia.InsertMedia"}
             }},
-            "payload": {"Inserted": True, "Image": "http://XX.XX.XX.XX/file_path/file.iso"},
+            "payload": {"Inserted": True, "Image": "https://XX.XX.XX.XX/file_path/file.iso"},
             "input": {"index": 1, "insert": True, "image": "//XX.XX.XX.XX/path/file.iso", "force": True}
         }]
         result = self.module.virtual_media_operation(virtual_media_conn_mock, f_module, payload, "manager")
@@ -147,7 +147,7 @@ class TestVirtualMedia(FakeAnsibleModule):
                 "#VirtualMedia.InsertMedia": {
                     "target": "/redfish/v1/Systems/System.Embedded.1/VirtualMedia/CD/Actions/VirtualMedia.InsertMedia"}
             }},
-            "payload": {"Inserted": True, "Image": "http://XX.XX.XX.XX/file_path/file.iso"},
+            "payload": {"Inserted": True, "Image": "https://XX.XX.XX.XX/file_path/file.iso"},
             "input": {"index": 1, "insert": True, "image": "//XX.XX.XX.XX/path/file.iso", "force": True}
         }]
         if exc_type == HTTPError:
@@ -211,7 +211,7 @@ class TestVirtualMedia(FakeAnsibleModule):
 
     def test_main_success(self, virtual_media_conn_mock, redfish_response_mock, idrac_default_args, mocker):
         idrac_default_args.update({"virtual_media": [
-            {"insert": True, "image": "http://XX.XX.XX.XX/path/file.iso"},
+            {"insert": True, "image": "https://XX.XX.XX.XX/path/file.iso"},
             {"insert": True, "image": "YY.YY.YY.YY:/file/file.iso"}], "force": True})
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.get_virtual_media_info',
                      return_value=([{"Insert": True}, {"Insert": True}], "manager", "141"))
@@ -220,7 +220,7 @@ class TestVirtualMedia(FakeAnsibleModule):
         assert ex.value.args[0]["msg"] == "Unable to complete the operation because the virtual media settings " \
                                           "provided exceeded the maximum limit."
         mocker.patch(MODULE_PATH + 'idrac_virtual_media.virtual_media', return_value=[])
-        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "http://XX.XX.XX.XX/path/file.iso"}],
+        idrac_default_args.update({"virtual_media": [{"insert": True, "image": "https://XX.XX.XX.XX/path/file.iso"}],
                                    "force": True})
         result = self._run_module(idrac_default_args)
         assert result == {'changed': True, 'msg': 'Successfully performed the virtual media operation.'}
