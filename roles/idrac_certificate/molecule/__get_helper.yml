@@ -1,3 +1,4 @@
+---
 - name: Create Directory
   ansible.builtin.file:
     path: "{{ lookup('env', 'path_for_import_cert') }}"

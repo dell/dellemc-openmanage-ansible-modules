@@ -5,11 +5,11 @@
   vars:
     ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
     cert_export_path: "{{ lookup('env', 'certificate_path') }}"
-    path_for_import_cert: "{{ lookup('env', 'path_for_import_cert') }}"
+    import_cert_path: "{{ lookup('env', 'path_for_import_cert') }}"
     custom_cert_name: "{{ lookup('env', 'custom_cert_name') }}"
     custom_cert_name_pass: "{{ lookup('env', 'custom_cert_name_pass') }}"
-    csc_passphrase_certificate: "{{ lookup('env', 'csc_passphrase_certificate') }}"
-    idrac_certificate_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
+    csc_pass_cert: "{{ lookup('env', 'csc_passphrase_certificate') }}"
+    cert_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
   tasks:
     - name: Invalid Scenarios
@@ -22,7 +22,7 @@
             idrac_cert_name:
               - "{{ custom_cert_name }}"
               - "{{ custom_cert_name_pass }}"
-              - "{{ csc_passphrase_certificate }}"
+              - "{{ csc_pass_cert }}"
 
         - name: Create SSL Key ans self-signed certificate
           when: idrac_certificate_check_file_created is defined and
@@ -42,7 +42,7 @@
             command: "export"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "{{ cert_export_path }}"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           ignore_errors: true
           register: idrac_certificate_res
 
@@ -65,7 +65,7 @@
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "/path/invalid-path/to/certificate.pem"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           ignore_errors: true
           register: idrrac_certificate_res_err
 
@@ -87,7 +87,7 @@
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "{{ lookup('env', 'invalid_certificate') }}"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           ignore_errors: true
           register: idrac_certificate_res_err1
 
@@ -109,7 +109,7 @@
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "{{ lookup('env', 'invalid_certificate') }}"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           ignore_errors: true
           register: idrac_certificate_res_err2
 
@@ -131,11 +131,12 @@
             command: "import"
             certificate_type: "CLIENT_TRUST_CERTIFICATE"
             certificate_path: "{{ ctc_cert_file.stat.path }}"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           ignore_errors: true
           register: res_err3
 
-        - name: Verifying Import a Client Trust Certificate with invalid credentials
+        - name: Verifying Import a Client Trust Certificate
+                 with invalid credentials
           ansible.builtin.assert:
             that:
               - ('"HTTP Error 401" in idrac_certificate_out.msg')
@@ -152,7 +153,7 @@
             validate_certs: false
             command: "reset"
             certificate_type: "HTTPS"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_unreachable
           ignore_errors: true
           ignore_unreachable: true
@@ -173,7 +174,7 @@
             validate_certs: false
             command: "reset"
             certificate_type: "HTTPS"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_idrac_user
           ignore_errors: true
 
@@ -193,7 +194,7 @@
             validate_certs: false
             command: "reset"
             certificate_type: "HTTPS"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_idrac_pass
           ignore_errors: true
 
@@ -213,7 +214,7 @@
             validate_certs: false
             command: "invalid"
             certificate_type: "HTTPS"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_command
           ignore_errors: true
 
@@ -234,7 +235,7 @@
             command: "export"
             certificate_type: "HTTPS"
             certificate_path: "invalid_dir"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_cert_path
           ignore_errors: true
 
@@ -243,7 +244,8 @@
             that:
               - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - "'Provided directory path \\'invalid_dir\\' is not valid.' == idrac_certificate_out.msg"
+              - "'Provided directory path \\'invalid_dir\\' is
+                 not valid.' == idrac_certificate_out.msg"
 
         - name: Invalid passphrase
           ansible.builtin.import_role:
@@ -255,9 +257,9 @@
             validate_certs: false
             command: "import"
             certificate_type: "CSC"
-            certificate_path: "{{ path_for_import_cert }}{{ csc_passphrase_certificate }}"
+            certificate_path: "{{ import_cert_path }}{{ csc_pass_cert }}"
             passphrase: "invalid"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_passphrase
           ignore_errors: true
 
@@ -281,19 +283,22 @@
             certificate_path: "/root/"
             cert_params:
               invalid_args: "invalid"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_cert_params
           ignore_errors: true
 
-        - name: Verify task status - Negative - invalid certificate parameters to generate signing request
+        - name: Verify task status - Negative -
+                 Invalid certificate parameters to generate signing request
           ansible.builtin.assert:
             that:
               - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - "'missing required arguments: common_name, country_code, locality_name, organization_name, organization_unit,
-                state_name found in cert_params' == idrac_certificate_out.msg"
+              - "'missing required arguments: common_name, country_code,
+                 locality_name, organization_name, organization_unit,
+                 state_name found in cert_params' == idrac_certificate_out.msg"
 
-        - name: Invalid passphrase for a valid custom certificate without passphrase
+        - name: Invalid passphrase for a valid custom
+                 certificate without passphrase
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_certificate
           vars:
@@ -303,20 +308,22 @@
             validate_certs: false
             command: "import"
             certificate_type: "CUSTOMCERTIFICATE"
-            certificate_path: "{{ path_for_import_cert }}{{ lookup('env', 'custom_cert_name') }}"
+            certificate_path: "{{ import_cert_path }}{{ custom_cert_name }}"
             passphrase: "invalid"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_custom_cert_pass
           ignore_errors: true
 
-        - name: Verify task status - Negative - invalid custom certificate passphrase
+        - name: Verify task status
+                 - Negative - invalid custom certificate passphrase
           ansible.builtin.assert:
             that:
               - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
               - "'HTTP Error 400: Bad Request' == idrac_certificate_out.msg"
 
-        - name: Invalid custom certificate passphrase for a valid custom certificate
+        - name: Invalid custom certificate
+               passphrase for a valid custom certificate
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_certificate
           vars:
@@ -326,13 +333,14 @@
             validate_certs: false
             command: "import"
             certificate_type: "CUSTOMCERTIFICATE"
-            certificate_path: "{{ path_for_import_cert }}/{{ lookup('env', 'custom_cert_name_pass') }}"
+            certificate_path: "{{ import_cert_path }}/{{ custom_cert_name_pass }}"
             passphrase: "invalid"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_custom_cert_without_pass
           ignore_errors: true
 
-        - name: Verify task status - Negative - invalid custom certificate passphrase for a valid custom certificate
+        - name: Verify task status - Negative - invalid custom certificate
+                 passphrase for a valid custom certificate
           ansible.builtin.assert:
             that:
               - idrac_certificate_out.failed
@@ -349,9 +357,9 @@
             validate_certs: false
             command: "import"
             certificate_type: "HTTPS"
-            certificate_path: "{{ path_for_import_cert }}cert.pem"
+            certificate_path: "{{ import_cert_path }}cert.pem"
             ssl_key: "invalid"
-            idrac_certificate_delegate: "{{ idrac_certificate_delegate_to }}"
+            idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_ssl_key
           ignore_errors: true
 

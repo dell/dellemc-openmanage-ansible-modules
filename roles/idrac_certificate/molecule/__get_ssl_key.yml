@@ -1,3 +1,4 @@
+---
 - name: Create private key is present
   community.crypto.openssl_privatekey:
     path: "{{ lookup('env', 'path_for_import_cert') }}cert.key"

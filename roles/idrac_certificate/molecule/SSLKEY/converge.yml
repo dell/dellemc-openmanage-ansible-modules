@@ -6,6 +6,7 @@
     https_cert_ssl_failure: {}
     ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
     path_for_import_cert: "{{ lookup('env', 'path_for_import_cert') }}"
+    idrac_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
   tasks:
     - name: Fetching firmware version for IDRAC
@@ -21,7 +22,8 @@
         firmware_version_expected: "6.00.02.00"
 
     - name: Import Https certificate using ssl_key
-      when: idrac_certificate_firmware_version is defined and "idrac_certificate_firmware_version >= firmware_version_expected"
+      when: idrac_certificate_firmware_version is defined and
+             "idrac_certificate_firmware_version >= firmware_version_expected"
       block:
         - name: Create directory
           ansible.builtin.include_tasks:
@@ -45,7 +47,7 @@
             certificate_type: "HTTPS"
             certificate_path: "{{ path_for_import_cert }}cert.pem"
             ssl_key: "{{ path_for_import_cert }}cert.key"
-            idrac_certificate_delegate: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
+            idrac_certificate_delegate: "{{ idrac_delegate_to }}"
 
         - name: Waiting for idrac readiness
           ansible.builtin.wait_for:
@@ -62,8 +64,9 @@
 
         - name: Asserting operation with normal mode.
           ansible.builtin.assert:
-            that: idrac_certificate_out.msg == "Successfully performed the SSL key upload and 'import' certificate operation.
-                                                 iDRAC has been reset successfully."
+            that: idrac_certificate_out.msg == "Successfully performed the SSL
+                  key upload and 'import' certificate operation.
+                  iDRAC has been reset successfully."
           when: not ansible_check_mode and idrac_certificate_out.changed
 
         - name: Asserting operation with idempotence.
@@ -74,8 +77,10 @@
       rescue:
         - name: Set the failure messages for SSLKEY
           ansible.builtin.set_fact:
-            https_cert_ssl_failure: "{{  https_cert_ssl_failure | combine({'HTTPS_SSL_KEY_CERT_IMPORT': {'msg': ansible_failed_result.msg,
-                      'failed_task_name': ansible_failed_task.name}}) }}"
+            https_cert_ssl_failure: "{{  https_cert_ssl_failure |
+                     combine({'HTTPS_SSL_KEY_CERT_IMPORT':
+                     {'msg': ansible_failed_result.msg,
+                     'failed_task_name': ansible_failed_task.name}}) }}"
 
       always:
         - name: Deleting the directory

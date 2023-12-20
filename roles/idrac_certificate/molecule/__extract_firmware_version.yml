@@ -1,3 +1,4 @@
+---
 - name: Fetch firmware version
   ansible.builtin.uri:
     url: "https://{{ idrac_ip }}/redfish/v1/Managers/iDRAC.Embedded.1"
