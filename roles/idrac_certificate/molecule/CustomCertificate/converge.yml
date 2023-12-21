@@ -6,7 +6,7 @@
     custom_certificate_failure: {}
     ca_cert_path: "{{ lookup('env', 'ca_cert_path') }}"
     custom_cert_name: "{{ lookup('env', 'custom_cert_name') }}"
-    custom_cert_name_pass: "{{ lookup('env', 'custom_cert_name_pass') }}"
+    cust_crt_name_pass: "{{ lookup('env', 'custom_cert_name_pass') }}"
     import_cert_path: "{{ lookup('env', 'path_for_import_cert') }}"
     idrac_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
@@ -84,8 +84,10 @@
             file: ../__delete_directory.yml
 
     - name: Export CUSTOMCERTIFICATE
-      when: idrac_certificate_firmware_version is defined
-             and "idrac_certificate_firmware_version >= firmware_version_expected_export"
+      when:
+        - idrac_certificate_firmware_version is defined
+        - "idrac_certificate_firmware_version >=
+           firmware_version_expected_export"
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
@@ -141,14 +143,14 @@
     - name: Import CUSTOMCERTIFICATE with passphrase
       when: idrac_certificate_firmware_version is defined and
              "idrac_certificate_firmware_version >= firmware_version_expected"
-             and custom_cert_name_pass
+             and cust_crt_name_pass
       block:
         - name: Fetching Custom certificate from share
           ansible.builtin.include_tasks:
             file: ../__get_helper.yml
           vars:
             idrac_cert_name:
-              - "{{ custom_cert_name_pass }}"
+              - "{{ cust_crt_name_pass }}"
 
         - name: Import a custom certificate with passphrase
           ansible.builtin.import_role:
@@ -161,7 +163,7 @@
             ca_path: "{{ ca_cert_path }}"
             command: "import"
             certificate_type: "CUSTOMCERTIFICATE"
-            certificate_path: "{{ import_cert_path }}{{ custom_cert_name_pass }}"
+            certificate_path: "{{ import_cert_path }}{{ cust_crt_name_pass }}"
             passphrase: "{{ lookup('env', 'passphrase') }}"
             idrac_certificate_delegate: "{{ idrac_delegate_to }}"
 

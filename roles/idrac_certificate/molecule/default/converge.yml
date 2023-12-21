@@ -7,7 +7,7 @@
     cert_export_path: "{{ lookup('env', 'certificate_path') }}"
     import_cert_path: "{{ lookup('env', 'path_for_import_cert') }}"
     custom_cert_name: "{{ lookup('env', 'custom_cert_name') }}"
-    custom_cert_name_pass: "{{ lookup('env', 'custom_cert_name_pass') }}"
+    cust_crt_name_pass: "{{ lookup('env', 'custom_cert_name_pass') }}"
     csc_pass_cert: "{{ lookup('env', 'csc_passphrase_certificate') }}"
     cert_delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
 
@@ -15,13 +15,18 @@
     - name: Invalid Scenarios
       when: not ansible_check_mode
       block:
+        - name: Set the failure messages
+          ansible.builtin.set_fact:
+            ssl_key_fail_msg: "Unable to locate the SSL key file at invalid."
+            ctc_invalid_path: "[Errno 2] No such file or directory"
+
         - name: Create directory and fetch certificates
           ansible.builtin.include_tasks:
             file: ../__get_helper.yml
           vars:
             idrac_cert_name:
               - "{{ custom_cert_name }}"
-              - "{{ custom_cert_name_pass }}"
+              - "{{ cust_crt_name_pass }}"
               - "{{ csc_pass_cert }}"
 
         - name: Create SSL Key ans self-signed certificate
@@ -73,7 +78,7 @@
           ansible.builtin.assert:
             that:
               - idrac_certificate_out.failed
-              - '"[Errno 2] No such file or directory" in idrac_certificate_out.msg'
+              - "ctc_invalid_path in idrac_certificate_out.msg"
 
         - name: Import a Client Trust Certificate invalid certificate
           ansible.builtin.import_role:
@@ -333,7 +338,7 @@
             validate_certs: false
             command: "import"
             certificate_type: "CUSTOMCERTIFICATE"
-            certificate_path: "{{ import_cert_path }}/{{ custom_cert_name_pass }}"
+            certificate_path: "{{ import_cert_path }}/{{ cust_crt_name_pass }}"
             passphrase: "invalid"
             idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_custom_cert_without_pass
@@ -368,7 +373,7 @@
             that:
               - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - "'Unable to locate the SSL key file at invalid.' == idrac_certificate_out.msg"
+              - idrac_certificate_out.msg == ssl_key_fail_msg
 
       always:
         - name: Deleting the directory
