@@ -11,11 +11,9 @@ argument_specs:
         type: str
         description: iDRAC IP Address.
       username:
-        required: true
         type: str
         description: iDRAC username.
       password:
-        required: true
         type: str
         description: iDRAC user password.
       https_port:

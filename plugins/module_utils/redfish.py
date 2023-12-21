@@ -31,15 +31,16 @@ __metaclass__ = type
 
 import json
 import os
-import socket
 from ansible.module_utils.urls import open_url, ConnectionError, SSLValidationError
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
+from ansible.module_utils.common.parameters import env_fallback
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 
 redfish_auth_params = {
     "baseuri": {"required": True, "type": "str"},
-    "username": {"required": True, "type": "str"},
-    "password": {"required": True, "type": "str", "no_log": True},
+    "username": {"required": True, "type": "str", "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+    "password": {"required": True, "type": "str", "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
     "timeout": {"type": "int", "default": 30},
@@ -104,22 +105,7 @@ class Redfish(object):
         self.protocol = 'https'
         self.root_uri = '/redfish/v1/'
         self._headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-
-        try:
-            ip_addr, port = self.hostname, self.protocol
-            if ']:' in ip_addr:
-                ip_addr, port = ip_addr.split(']:')
-            ip_addr = ip_addr.strip('[]')
-            if ip_addr.count(':') == 1:
-                ip_addr, port = ip_addr.split(':')
-
-            data = socket.getaddrinfo(ip_addr, port)
-            if "AF_INET6" == data[0][0]._name_:
-                ip_addr, port = data[0][4][0], data[0][4][1]
-                self.hostname = "[{0}]:{1}".format(ip_addr, port)
-        except (socket.gaierror, IndexError):
-            msg = HOST_UNRESOLVED_MSG.format(self.hostname)
-            raise URLError(msg)
+        self.hostname = config_ipv6(self.hostname)
 
     def _get_base_url(self):
         """builds base url"""
