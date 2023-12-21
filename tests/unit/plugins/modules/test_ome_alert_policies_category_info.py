@@ -2652,7 +2652,7 @@ class TestOmeAlertCategoryInfo(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type == HTTPError:
             mocker.patch(MODULE_PATH + 'get_all_data_with_pagination', side_effect=exc_type(
-                'http://testhost.com', 401, 'http error message', {
+                'https://testhost.com', 401, 'http error message', {
                     "accept-type": "application/json"},
                 StringIO(json_str)))
             result = self._run_module(ome_default_args)

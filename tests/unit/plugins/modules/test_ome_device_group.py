@@ -65,7 +65,7 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
     def test_ome_device_group_get_group_id_case02(self, ome_connection_mock_for_device_group, ome_response_mock):
         f_module = self.get_module_mock(params={"group_id": 1234,
                                                 "device_ids": [25011], "device_service_tags": []})
-        ome_connection_mock_for_device_group.invoke_request.side_effect = HTTPError('http://testhost.com', 400,
+        ome_connection_mock_for_device_group.invoke_request.side_effect = HTTPError('https://testhost.com', 400,
                                                                                     'http error message',
                                                                                     {"accept-type": "application/json"},
                                                                                     StringIO(to_text(json.dumps(
@@ -193,7 +193,7 @@ class TestOMEDeviceGroup(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_group_id',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

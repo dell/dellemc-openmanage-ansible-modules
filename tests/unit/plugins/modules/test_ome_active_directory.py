@@ -97,14 +97,14 @@ class TestOmeAD(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [{
         "module_args": {"domain_controller_lookup": "MANUAL", "domain_server": ["192.96.20.181"],
                         "group_domain": "domain.com", "name": "domdev"},
-        "get_ad": ({"Name": "ad_test", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["192.168.20.181"],
+        "get_ad": ({"Name": "ad_test", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["XX.XX.XX.XX"],
                     "DnsServer": [], "GroupDomain": "dellemcdomain.com", "NetworkTimeOut": 120, "SearchTimeOut": 120,
                     "ServerPort": 3269, "CertificateValidation": False}, 1),
         "msg": MODIFY_SUCCESS}, {
         "module_args": {"domain_controller_lookup": "MANUAL", "domain_server": ["192.96.20.181"],
                         "group_domain": "domain.com", "name": "domdev", "test_connection": True,
                         "domain_username": "user", "domain_password": "passwd"}, "get_ad":
-            ({"Name": "ad_test", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["192.168.20.181"], "DnsServer": [],
+            ({"Name": "ad_test", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["XX.XX.XX.XX"], "DnsServer": [],
               "GroupDomain": "dellemcdomain.com", "NetworkTimeOut": 120, "SearchTimeOut": 120, "ServerPort": 3269,
               "CertificateValidation": False}, 1),
         "msg": "{0}{1}".format(TEST_CONNECTION_SUCCESS, MODIFY_SUCCESS)},
@@ -116,7 +116,7 @@ class TestOmeAD(FakeAnsibleModule):
          "msg": NO_CHANGES_MSG}, {
             "module_args": {"domain_controller_lookup": "MANUAL", "domain_server": ["192.96.20.181"],
                             "group_domain": "dellemcdomain.com", "name": "domdev"},
-            "get_ad": ({"Name": "domdev", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["192.168.20.181"],
+            "get_ad": ({"Name": "domdev", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["XX.XX.XX.XX"],
                         "DnsServer": [], "GroupDomain": "dellemcdomain.com", "NetworkTimeOut": 120,
                         "SearchTimeOut": 120, "ServerPort": 3269, "CertificateValidation": False}, 1),
             "msg": CHANGES_FOUND, "check_mode": True}
@@ -134,7 +134,7 @@ class TestOmeAD(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [{
         "module_args": {"domain_controller_lookup": "MANUAL", "domain_server": ["192.96.20.181"],
                         "group_domain": "domain.com", "name": "domdev", "state": "absent"},
-        "get_ad": ({"Name": "domdev", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["192.168.20.181"],
+        "get_ad": ({"Name": "domdev", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["XX.XX.XX.XX"],
                     "DnsServer": [], "GroupDomain": "dellemcdomain.com", "NetworkTimeOut": 120, "SearchTimeOut": 120,
                     "ServerPort": 3269, "CertificateValidation": False}, 1),
         "msg": DELETE_SUCCESS},
@@ -143,7 +143,7 @@ class TestOmeAD(FakeAnsibleModule):
          "msg": NO_CHANGES_MSG}, {
             "module_args": {"domain_controller_lookup": "MANUAL", "domain_server": ["192.96.20.181"],
                             "group_domain": "dellemcdomain.com", "name": "domdev", "state": "absent"},
-            "get_ad": ({"Name": "domdev", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["192.168.20.181"],
+            "get_ad": ({"Name": "domdev", "Id": 21789, "ServerType": "MANUAL", "ServerName": ["XX.XX.XX.XX"],
                         "DnsServer": [], "GroupDomain": "dellemcdomain.com", "NetworkTimeOut": 120,
                         "SearchTimeOut": 120, "ServerPort": 3269, "CertificateValidation": False}, 1),
             "msg": CHANGES_FOUND, "check_mode": True}
@@ -215,7 +215,7 @@ class TestOmeAD(FakeAnsibleModule):
         ome_connection_mock_obj = rest_obj_class_mock.return_value.__enter__.return_value
         if params.get("is_http"):
             json_str = to_text(json.dumps(params['error_info']))
-            ome_connection_mock_obj.invoke_request.side_effect = HTTPError('http://testdellemcomead.com', 404,
+            ome_connection_mock_obj.invoke_request.side_effect = HTTPError('https://testdellemcomead.com', 404,
                                                                            'http error message',
                                                                            {"accept-type": "application/json"},
                                                                            StringIO(json_str))
@@ -242,7 +242,7 @@ class TestOmeAD(FakeAnsibleModule):
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            mocker.patch(MODULE_PATH + 'get_ad', side_effect=exc_type('http://testhost.com', 400, 'http error message',
+            mocker.patch(MODULE_PATH + 'get_ad', side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                                                       {"accept-type": "application/json"},
                                                                       StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)

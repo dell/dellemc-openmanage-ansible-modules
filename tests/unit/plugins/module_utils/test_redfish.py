@@ -104,7 +104,7 @@ class TestRedfishRest(object):
     def test_invoke_request_http_error_handling(self, mock_response, mocker, module_params):
         open_url_mock = mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                                      return_value=mock_response)
-        open_url_mock.side_effect = HTTPError('http://testhost.com/', 400,
+        open_url_mock.side_effect = HTTPError('https://testhost.com/', 400,
                                               'Bad Request Error', {}, None)
         req_session = False
         with pytest.raises(HTTPError):
