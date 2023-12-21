@@ -2,8 +2,8 @@
 - name: Set uri options
   ansible.builtin.set_fact:
     idrac_job_queue_idrac_opts: &idrac_job_queue_idrac_opts
-      user: "{{ username }}"
-      password: "{{ password }}"
+      user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+      password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
       validate_certs: "{{ validate_certs }}"
       ca_path: "{{ ca_path | default(omit) }}"
       body_format: "{{ idrac_job_queue_uri_body_format }}"

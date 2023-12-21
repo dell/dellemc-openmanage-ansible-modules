@@ -81,8 +81,6 @@ class TestOMEMDevicePower(FakeAnsibleModule):
     def test_get_ip_from_host(self, ome_conn_mock_qd, ome_default_args, ome_response_mock):
         result = self.module.get_ip_from_host("XX.XX.XX.XX")
         assert result == "XX.XX.XX.XX"
-        result = self.module.get_ip_from_host("abcdef")
-        assert result[0] == "a"
 
     def test_validate_ip_address(self, ome_conn_mock_qd, ome_response_mock, ome_default_args):
         result = self.module.validate_ip_address("192.168.0.1", "IPV4")

@@ -29,7 +29,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 import os
-import socket
+from ansible.module_utils.common.parameters import env_fallback
 try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
@@ -42,8 +42,8 @@ except ImportError:
 
 idrac_auth_params = {
     "idrac_ip": {"required": True, "type": 'str'},
-    "idrac_user": {"required": True, "type": 'str'},
-    "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True},
+    "idrac_user": {"required": True, "type": 'str', "fallback": (env_fallback, ['IDRAC_USERNAME'])},
+    "idrac_password": {"required": True, "type": 'str', "aliases": ['idrac_pwd'], "no_log": True, "fallback": (env_fallback, ['IDRAC_PASSWORD'])},
     "idrac_port": {"required": False, "default": 443, "type": 'int'},
     "validate_certs": {"type": "bool", "default": True},
     "ca_path": {"type": "path"},
@@ -81,14 +81,7 @@ class iDRACConnection:
             raise RuntimeError(msg)
 
     def __enter__(self):
-        try:
-            data = socket.getaddrinfo(self.idrac_ip, self.idrac_port)
-            if "AF_INET6" == data[0][0]._name_:
-                ip_byte = socket.inet_pton(socket.AF_INET6, self.idrac_ip)
-                ip_addr = socket.inet_ntop(socket.AF_INET6, ip_byte)
-                self.idrac_ip = "{0}".format(ip_addr)
-        except socket.gaierror:
-            pass
+        self.idrac_ip = self.idrac_ip.strip('[]')
         self.sdk.importPath()
         protopref = ProtoPreference(ProtocolEnum.WSMAN)
         protopref.include_only(ProtocolEnum.WSMAN)
