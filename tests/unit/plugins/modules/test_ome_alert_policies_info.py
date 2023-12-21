@@ -113,7 +113,7 @@ class TestOmeAlertPolicyInfo(FakeAnsibleModule):
         else:
             mocker.patch(
                 MODULE_PATH + 'ome_alert_policies_info.OMEAlertPolicyInfo.get_alert_policy_info',
-                side_effect=exc_type('nhttp://testhost.com', 400, 'http error message',
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module(ome_default_args)
         if exc_type != URLError:

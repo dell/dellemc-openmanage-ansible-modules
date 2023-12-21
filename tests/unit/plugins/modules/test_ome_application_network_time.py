@@ -72,13 +72,13 @@ class TestOmeTemplate(FakeAnsibleModule):
         assert result["msg"] == "Successfully configured network time."
 
     @pytest.mark.parametrize("param1", [{"enable_ntp": True, "time_zone": "TZ_ID_66"}])
-    @pytest.mark.parametrize("param2", [{"primary_ntp_address": "192.168.0.2"},
-                                        {"secondary_ntp_address1": "192.168.0.3"},
-                                        {"secondary_ntp_address2": "192.168.0.4"},
-                                        {"primary_ntp_address": "192.168.0.2", "secondary_ntp_address1": "192.168.0.3"},
-                                        {"primary_ntp_address": "192.168.0.2", "secondary_ntp_address2": "192.168.0.4"},
-                                        {"primary_ntp_address": "192.168.0.2", "secondary_ntp_address1": "192.168.0.3",
-                                         "secondary_ntp_address2": "192.168.0.4"}
+    @pytest.mark.parametrize("param2", [{"primary_ntp_address": "YY.YY.YY.YY"},
+                                        {"secondary_ntp_address1": "XX.XX.XX.XX"},
+                                        {"secondary_ntp_address2": "XY.XY.XY.XY"},
+                                        {"primary_ntp_address": "YY.YY.YY.YY", "secondary_ntp_address1": "XX.XX.XX.XX"},
+                                        {"primary_ntp_address": "YY.YY.YY.YY", "secondary_ntp_address2": "XY.XY.XY.XY"},
+                                        {"primary_ntp_address": "YY.YY.YY.YY", "secondary_ntp_address1": "XX.XX.XX.XX",
+                                         "secondary_ntp_address2": "XY.XY.XY.XY"}
                                         ])
     def test_ome_application_network_time_main_enable_ntp_true_success_case_01(self, mocker, ome_default_args, param1,
                                                                                param2,
@@ -93,9 +93,9 @@ class TestOmeTemplate(FakeAnsibleModule):
         time_data = {
             "EnableNTP": True,
             "JobId": None,
-            "PrimaryNTPAddress": "192.168.0.2",
-            "SecondaryNTPAddress1": "192.168.0.3",
-            "SecondaryNTPAddress2": "192.168.0.4",
+            "PrimaryNTPAddress": "YY.YY.YY.YY",
+            "SecondaryNTPAddress1": "XX.XX.XX.XX",
+            "SecondaryNTPAddress2": "XY.XY.XY.XY",
             "SystemTime": None,
             "TimeSource": "10.136.112.222",
             "TimeZone": "TZ_ID_66",
@@ -196,7 +196,7 @@ class TestOmeTemplate(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_application_network_time.get_payload',
-                         side_effect=exc_type('http://testhost.com', 400,
+                         side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
@@ -210,9 +210,9 @@ class TestOmeTemplate(FakeAnsibleModule):
         new_param = {
             "enable_ntp": True,
             "time_zone": "TimeZone",
-            "primary_ntp_address": "192.168.0.2",
-            "secondary_ntp_address1": "192.168.0.3",
-            "secondary_ntp_address2": "192.168.0.4"
+            "primary_ntp_address": "YY.YY.YY.YY",
+            "secondary_ntp_address1": "XX.XX.XX.XX",
+            "secondary_ntp_address2": "XY.XY.XY.XY"
         }
         ome_default_args.update(new_param)
         self.module.remove_unwanted_keys(removable_keys, ome_default_args)
@@ -268,7 +268,7 @@ class TestOmeTemplate(FakeAnsibleModule):
             "secondary_ntp_address2": "10.136.112.222",
             "system_time": None,
             "time_zone": "TZ_ID_66",
-            "hostname": "192.168.0.1",
+            "hostname": "XX.XX.XX.XX",
             "username": "username",
             "password": "password",
             "ca_path": "/path/ca_bundle"}
@@ -464,13 +464,13 @@ class TestOmeTemplate(FakeAnsibleModule):
         assert exc.value.args[0] == msg
 
     @pytest.mark.parametrize("sub_param", [
-        {"primary_ntp_address": "192.168.02.1", "secondary_ntp_address1": "192.168.02.3",
-         "secondary_ntp_address2": "192.168.02.2"},
-        {"secondary_ntp_address1": "192.168.02.1"},
-        {"secondary_ntp_address2": "192.168.02.1"},
-        {"primary_ntp_address": "192.168.02.1", "time_zone": "TZ_01"},
-        {"primary_ntp_address": "192.168.02.1"},
-        {"secondary_ntp_address1": "192.168.02.1", "time_zone": "TZ_01"},
+        {"primary_ntp_address": "XX.XX.XX.XX", "secondary_ntp_address1": "ZZ.ZZ.ZZ.ZZ",
+         "secondary_ntp_address2": "YY.YY.YY.YY"},
+        {"secondary_ntp_address1": "XX.XX.XX.XX"},
+        {"secondary_ntp_address2": "XX.XX.XX.XX"},
+        {"primary_ntp_address": "XX.XX.XX.XX", "time_zone": "TZ_01"},
+        {"primary_ntp_address": "XX.XX.XX.XX"},
+        {"secondary_ntp_address1": "XX.XX.XX.XX", "time_zone": "TZ_01"},
     ])
     def test_validate_input_time_enable_false_case_01(self, ome_default_args, sub_param):
         params = {"enable_ntp": False}
@@ -482,10 +482,10 @@ class TestOmeTemplate(FakeAnsibleModule):
             self.module.validate_input(f_module)
         assert exc.value.args[0] == msg
 
-    @pytest.mark.parametrize("sub_param", [{"time_zone": "TZ_01"}, {"primary_ntp_address": "192.168.02.1"},
-                                           {"secondary_ntp_address1": "192.168.02.1"},
-                                           {"secondary_ntp_address2": "192.168.02.1"},
-                                           {"primary_ntp_address": "192.168.02.1", "time_zone": "TZ_01"}, {}
+    @pytest.mark.parametrize("sub_param", [{"time_zone": "TZ_01"}, {"primary_ntp_address": "XX.XX.XX.XX"},
+                                           {"secondary_ntp_address1": "XX.XX.XX.XX"},
+                                           {"secondary_ntp_address2": "XX.XX.XX.XX"},
+                                           {"primary_ntp_address": "XX.XX.XX.XX", "time_zone": "TZ_01"}, {}
                                            ])
     def test_validate_input_time_enable_true_case_04(self, ome_default_args, sub_param):
         """

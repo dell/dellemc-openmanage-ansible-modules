@@ -45,25 +45,25 @@ class TestOmeAlertSyslog(FakeAnsibleModule):
         {"module_args": {
             "syslog_servers": [
                 {
-                    "destination_address": "192.168.10.41",
+                    "destination_address": "XX.XX.XX.XX",
                     "enabled": True,
                     "id": 1,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.46",
+                    "destination_address": "XY.XY.XY.XY",
                     "enabled": False,
                     "id": 2,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.43",
+                    "destination_address": "YY.YY.YY.YY",
                     "enabled": False,
                     "id": 3,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.44",
+                    "destination_address": "ZZ.ZZ.ZZ.ZZ",
                     "enabled": True,
                     "id": 4,
                     "port_number": 514
@@ -77,28 +77,28 @@ class TestOmeAlertSyslog(FakeAnsibleModule):
                     "@odata.type": "#AlertDestinations.SyslogConfiguration",
                     "Id": 1,
                     "Enabled": True,
-                    "DestinationAddress": "192.168.10.41",
+                    "DestinationAddress": "XX.XX.XX.XX",
                     "PortNumber": 514
                 },
                 {
                     "@odata.type": "#AlertDestinations.SyslogConfiguration",
                     "Id": 2,
                     "Enabled": False,
-                    "DestinationAddress": "192.168.10.46",
+                    "DestinationAddress": "XY.XY.XY.XY",
                     "PortNumber": 0
                 },
                 {
                     "@odata.type": "#AlertDestinations.SyslogConfiguration",
                     "Id": 3,
                     "Enabled": False,
-                    "DestinationAddress": "192.168.10.43",
+                    "DestinationAddress": "YY.YY.YY.YY",
                     "PortNumber": 514
                 },
                 {
                     "@odata.type": "#AlertDestinations.SyslogConfiguration",
                     "Id": 4,
                     "Enabled": True,
-                    "DestinationAddress": "192.168.10.44",
+                    "DestinationAddress": "ZZ.ZZ.ZZ.ZZ",
                     "PortNumber": 514
                 }
             ]
@@ -106,13 +106,13 @@ class TestOmeAlertSyslog(FakeAnsibleModule):
         {"module_args": {
             "syslog_servers": [
                 {
-                    "destination_address": "192.168.10.41",
+                    "destination_address": "XX.XX.XX.XX",
                     "enabled": True,
                     "id": 1,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.46",
+                    "destination_address": "XY.XY.XY.XY",
                     "enabled": False,
                     "id": 2,
                     "port_number": 514
@@ -126,14 +126,14 @@ class TestOmeAlertSyslog(FakeAnsibleModule):
                     "@odata.type": "#AlertDestinations.SyslogConfiguration",
                     "Id": 1,
                     "Enabled": True,
-                    "DestinationAddress": "192.168.10.41",
+                    "DestinationAddress": "XX.XX.XX.XX",
                     "PortNumber": 511
                 },
                 {
                     "@odata.type": "#AlertDestinations.SyslogConfiguration",
                     "Id": 2,
                     "Enabled": True,
-                    "DestinationAddress": "192.168.10.46",
+                    "DestinationAddress": "XY.XY.XY.XY",
                     "PortNumber": 514
                 }
             ]
@@ -141,13 +141,13 @@ class TestOmeAlertSyslog(FakeAnsibleModule):
         {"check_mode": True, "module_args": {
             "syslog_servers": [
                 {
-                    "destination_address": "192.168.10.41",
+                    "destination_address": "XX.XX.XX.XX",
                     "enabled": True,
                     "id": 1,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.46",
+                    "destination_address": "XY.XY.XY.XY",
                     "enabled": False,
                     "id": 2,
                     "port_number": 514
@@ -161,14 +161,14 @@ class TestOmeAlertSyslog(FakeAnsibleModule):
                     "@odata.type": "#AlertDestinations.SyslogConfiguration",
                     "Id": 1,
                     "Enabled": True,
-                    "DestinationAddress": "192.168.10.41",
+                    "DestinationAddress": "XX.XX.XX.XX",
                     "PortNumber": 511
                 },
                 {
                     "@odata.type": "#AlertDestinations.SyslogConfiguration",
                     "Id": 2,
                     "Enabled": True,
-                    "DestinationAddress": "192.168.10.46",
+                    "DestinationAddress": "XY.XY.XY.XY",
                     "PortNumber": 514
                 }
             ]
@@ -179,31 +179,31 @@ class TestOmeAlertSyslog(FakeAnsibleModule):
         {"module_args": {
             "syslog_servers": [
                 {
-                    "destination_address": "192.168.10.41",
+                    "destination_address": "XX.XX.XX.XX",
                     "enabled": True,
                     "id": 1,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.46",
+                    "destination_address": "XY.XY.XY.XY",
                     "enabled": False,
                     "id": 2,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.43",
+                    "destination_address": "YY.YY.YY.YY",
                     "enabled": False,
                     "id": 3,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.44",
+                    "destination_address": "ZZ.ZZ.ZZ.ZZ",
                     "enabled": True,
                     "id": 4,
                     "port_number": 514
                 },
                 {
-                    "destination_address": "192.168.10.44",
+                    "destination_address": "ZZ.ZZ.ZZ.ZZ",
                     "enabled": True,
                     "id": 4,
                     "port_number": 514
@@ -241,7 +241,7 @@ class TestOmeAlertSyslog(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'validate_input',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

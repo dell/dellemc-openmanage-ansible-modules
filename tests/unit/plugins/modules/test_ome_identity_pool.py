@@ -58,7 +58,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                              "ip_range": "10.33.0.1-10.33.0.255",
                              "primary_dns_server": "10.8.8.8",
                              "secondary_dns_server": "8.8.8.8",
-                             "subnet_mask": "255.255.255.0"
+                             "subnet_mask": "XXX.XXX.XXX.XXX"
                          },
                          "starting_mac_address": "60:60:60:60:60:00"
                      },
@@ -100,7 +100,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_identity_pool.pool_create_modify',
-                         side_effect=exc_type('http://testhost.com', 400,
+                         side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
@@ -267,7 +267,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                 "identity_count": 75,
                 "starting_mac_address": "aabb.ccdd.7070"
             },
-            "hostname": "192.168.0.1",
+            "hostname": "XX.XX.XX.XX",
             "iscsi_settings": {
                 "identity_count": 30,
                 "initiator_config": {
@@ -278,7 +278,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                     "ip_range": "10.33.0.1-10.33.0.255",
                     "primary_dns_server": "10.8.8.8",
                     "secondary_dns_server": "8.8.8.8",
-                    "subnet_mask": "255.255.255.0"
+                    "subnet_mask": "XXX.XXX.XXX.XXX"
                 },
                 "starting_mac_address": "60:60:60:60:60:00"
             },
@@ -311,7 +311,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                 },
                 "InitiatorIpPoolSettings": {
                     "IpRange": "10.33.0.1-10.33.0.255",
-                    "SubnetMask": "255.255.255.0",
+                    "SubnetMask": "XXX.XXX.XXX.XXX",
                     "Gateway": "192.168.4.1",
                     "PrimaryDnsServer": "10.8.8.8",
                     "SecondaryDnsServer": "8.8.8.8"
@@ -339,7 +339,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         assert payload["IscsiSettings"]["Mac"] == {"IdentityCount": 30, "StartingMacAddress": "YGBgYGAA"}
         assert payload["IscsiSettings"]["InitiatorIpPoolSettings"] == {
             "IpRange": "10.33.0.1-10.33.0.255",
-            "SubnetMask": "255.255.255.0",
+            "SubnetMask": "XXX.XXX.XXX.XXX",
             "Gateway": "192.168.4.1",
             "PrimaryDnsServer": "10.8.8.8",
             "SecondaryDnsServer": "8.8.8.8"
@@ -364,7 +364,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                           "ip_range": "20.33.0.1-20.33.0.255",
                           "primary_dns_server": "10.8.8.8",
                           "secondary_dns_server": "8.8.8.8",
-                          "subnet_mask": "255.255.255.0"
+                          "subnet_mask": "XXX.XXX.XXX.XXX"
                       },
                       "starting_mac_address": "10:10:10:10:10:00"
                   }
@@ -379,7 +379,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
         assert payload["IscsiSettings"]["Mac"] == {"IdentityCount": 30, "StartingMacAddress": "EBAQEBAA"}
         assert payload["IscsiSettings"]["InitiatorIpPoolSettings"] == {
             "IpRange": "20.33.0.1-20.33.0.255",
-            "SubnetMask": "255.255.255.0",
+            "SubnetMask": "XXX.XXX.XXX.XXX",
             "Gateway": "192.168.4.1",
             "PrimaryDnsServer": "10.8.8.8",
             "SecondaryDnsServer": "8.8.8.8"
@@ -1040,7 +1040,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                 },
                 "InitiatorIpPoolSettings": {
                     "IpRange": "10.33.0.1-10.33.0.255",
-                    "SubnetMask": "255.255.255.0",
+                    "SubnetMask": "XXX.XXX.XXX.XXX",
                     "Gateway": "192.168.4.1",
                     "PrimaryDnsServer": "10.8.8.8",
                     "SecondaryDnsServer": "8.8.8.8"
@@ -1185,7 +1185,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
             self.module.validate_modify_create_payload(modify_payload, f_module, action)
 
     payload_iscsi3 = {
-        "SubnetMask": "255.255.255.0",
+        "SubnetMask": "XXX.XXX.XXX.XXX",
         "Gateway": "192.168.4.1",
         "PrimaryDnsServer": "10.8.8.8",
         "SecondaryDnsServer": "8.8.8.8"
@@ -1300,7 +1300,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                 "ip_range": "10.33.0.1-10.33.0.255",
                 "primary_dns_server": "10.8.8.8",
                 "secondary_dns_server": "8.8.8.8",
-                "subnet_mask": "255.255.255.0"
+                "subnet_mask": "XXX.XXX.XXX.XXX"
             },
             "starting_mac_address": "60:60:60:60:60:00"
         }
@@ -1317,7 +1317,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
                 },
                 "InitiatorIpPoolSettings": {
                     "IpRange": "10.33.0.1-10.33.0.255",
-                    "SubnetMask": "255.255.255.0",
+                    "SubnetMask": "XXX.XXX.XXX.XXX",
                     "Gateway": "192.168.4.1",
                     "PrimaryDnsServer": "10.8.8.8",
                     "SecondaryDnsServer": "8.8.8.8"
@@ -1331,7 +1331,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
             "initiator_ip_pool_settings": {
                 "gateway": "192.168.4.1",
                 "ip_range": "10.33.0.1-10.33.0.255",
-                "subnet_mask": "255.255.255.0"
+                "subnet_mask": "XXX.XXX.XXX.XXX"
             }
         }
         self.module.update_iscsi_specific_settings(payload, settings_params, setting_type)
@@ -1340,7 +1340,7 @@ class TestOMeIdentityPool(FakeAnsibleModule):
             "IscsiSettings": {
                 "InitiatorIpPoolSettings": {
                     "IpRange": "10.33.0.1-10.33.0.255",
-                    "SubnetMask": "255.255.255.0",
+                    "SubnetMask": "XXX.XXX.XXX.XXX",
                     "Gateway": "192.168.4.1"
                 }
             }}
