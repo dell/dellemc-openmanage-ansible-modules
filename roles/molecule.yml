@@ -14,6 +14,7 @@ provisioner:
   name: ansible
   env:
     RUNON: ""
+    idrac_certificate_delegate_to: localhost
     idrac_server_powerstate_wait_seconds: "180"
     redfish_firmware_local_manual_reboot: "/tmp/SAS-RAID_Firmware.exe"
     redfish_firmware_http_auto_reboot: "http://dl.dell.com/FOLDER06878175M/2/Diagnostics_Application_0G1JH_WN64_6.0_A00_01.EXE"
