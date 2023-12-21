@@ -19,7 +19,7 @@ Major Changes
 
 - All OME modules are enhanced to support environment variables `OME_USERNAME` and `OME_PASSWORD` as fallback for credentials.
 - All iDRAC and redfish modules are enhanced to support environment variables `IDRAC_USERNAME` and `IDRAC_PASSWORD` as fallback for credentials.
-- idrac_certificates - The module is enhanced to support import and export of `CUSTOMCERTIFICATE`.
+- idrac_certificates module and idrac_certificate role - This is enhanced to support import and export of `CUSTOMCERTIFICATE`.
 
 Minor Changes
 -------------
