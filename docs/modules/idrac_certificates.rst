@@ -139,11 +139,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If \ :literal:`False`\ , the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure \ :literal:`False`\  only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`False`\  by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -164,6 +164,7 @@ Notes
    - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
    - Run this module from a system that has direct access to Dell iDRAC.
    - This module supports \ :literal:`check\_mode`\ .
+   - This module supports IPv4 and IPv6 addresses.
 
 
 
@@ -262,7 +263,7 @@ Examples
 Return Values
 -------------
 
-msg (always, str, Successfully performed the operation generate_csr.)
+msg (always, str, Successfully performed the 'generate_csr' certificate operation.)
   Status of the certificate configuration operation.
 
 

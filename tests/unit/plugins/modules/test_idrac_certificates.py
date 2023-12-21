@@ -260,7 +260,7 @@ class TestIdracCertificates(FakeAnsibleModule):
         assert idrac_srv == params['idrac_srv']
 
     def test_write_to_file(self, idrac_default_args):
-        inv_dir = "/tmp/invalid/does/not/exist"
+        inv_dir = "invalid_temp_dir"
         idrac_default_args.update({"certificate_path": inv_dir})
         f_module = self.get_module_mock(params=idrac_default_args)
         with pytest.raises(Exception) as ex:
