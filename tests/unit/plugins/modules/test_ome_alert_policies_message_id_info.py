@@ -73,7 +73,7 @@ class TestOmeAlertPoliciesMessageIDInfo(FakeAnsibleModule):
         if exc_type not in [HTTPError, SSLValidationError]:
             ome_alert_policies_message_id_info_mock.invoke_request.side_effect = exc_type('test')
         else:
-            ome_alert_policies_message_id_info_mock.invoke_request.side_effect = exc_type('http://testhost.com',
+            ome_alert_policies_message_id_info_mock.invoke_request.side_effect = exc_type('https://testhost.com',
                                                                                           400,
                                                                                           'http error message',
                                                                                           {"accept-type": "application/json"},

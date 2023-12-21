@@ -97,7 +97,7 @@ class TestSysytemLockdownMode(FakeAnsibleModule):
         else:
             mocker.patch(MODULE_PATH +
                          'dellemc_system_lockdown_mode.run_system_lockdown_mode',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
             result = self._run_module_with_fail_json(idrac_default_args)

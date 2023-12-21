@@ -109,7 +109,7 @@ class TestOmeJobInfo(FakeAnsibleModule):
         else:
             mocker.patch(
                 MODULE_PATH + 'ome_job_info._get_query_parameters',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
             result = self._run_module_with_fail_json(ome_default_args)

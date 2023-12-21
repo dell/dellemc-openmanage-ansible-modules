@@ -65,7 +65,7 @@ class TestSystemInventory(FakeAnsibleModule):
         if exc_type not in [HTTPError, SSLValidationError]:
             idrac_system_info_connection_mock.get_json_device.side_effect = exc_type('test')
         else:
-            idrac_system_info_connection_mock.get_json_device.side_effect = exc_type('http://testhost.com', 400,
+            idrac_system_info_connection_mock.get_json_device.side_effect = exc_type('https://testhost.com', 400,
                                                                                      'http error message',
                                                                                      {
                                                                                          "accept-type": "application/json"},

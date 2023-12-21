@@ -77,7 +77,7 @@ class TestOMEMSIP(FakeAnsibleModule):
     @pytest.mark.parametrize("params", [
         {"json_data": {"report_list": [{"Id": 25012, "DeviceServiceTag": "HKRF20"}],
                        "value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
                 'DeviceId': 1234, "Type": 1000}]},
             'message': "Unable to complete the operation because the server profile(s) for HKRF20 do not exist in the Fabric Manager.",
             "check_domain_service": True,
@@ -101,7 +101,7 @@ class TestOMEMSIP(FakeAnsibleModule):
         },
         {"json_data": {"report_list": [{"Id": 25012, "DeviceServiceTag": "HKRF20"}],
                        "value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX",
                 'DeviceId': 1234, "Type": 1000}]},
             'message': "Unable to complete the operation because the server profile(s) for 25012 do not exist in the Fabric Manager.",
             "check_domain_service": True,
@@ -124,7 +124,7 @@ class TestOMEMSIP(FakeAnsibleModule):
         },
         {"json_data": {"report_list": [{"Id": 25012, "DeviceServiceTag": "HKRF20"}],
                        "value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000}]},
+            {'Id': 1234, 'PublicAddress': "XX.XX.XX.XX", 'DeviceId': 1234, "Type": 1000}]},
             'message': "The information retrieval operation of server interface profile is supported only on OpenManage Enterprise Modular.",
             'http_error_json': {
                 "error": {
@@ -158,7 +158,7 @@ class TestOMEMSIP(FakeAnsibleModule):
         if 'http_error_json' in params:
             json_str = to_text(json.dumps(params.get('http_error_json', {})))
             ome_conn_mock_sip.invoke_request.side_effect = HTTPError(
-                'http://testhost.com', 401, 'http error message', {
+                'https://testhost.com', 401, 'http error message', {
                     "accept-type": "application/json"},
                 StringIO(json_str))
         ome_default_args.update(params['mparams'])
@@ -186,7 +186,7 @@ class TestOMEMSIP(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

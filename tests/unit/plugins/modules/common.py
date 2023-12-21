@@ -26,8 +26,8 @@ class Constants:
     device_id2 = 4321
     service_tag1 = "MXL1234"
     service_tag2 = "MXL5467"
-    hostname1 = "192.168.0.1"
-    hostname2 = "192.168.0.2"
+    hostname1 = "XX.XX.XX.XX"
+    hostname2 = "YY.YY.YY.YY"
 
 
 class AnsibleFailJSonException(Exception):

@@ -111,7 +111,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         else:
-            ome_connection_ome_firmware_baseline_info_mock.invoke_request.side_effect = exc_type('http://testhost.com',
+            ome_connection_ome_firmware_baseline_info_mock.invoke_request.side_effect = exc_type('https://testhost.com',
                                                                                                  400,
                                                                                                  'http error message',
                                                                                                  {
@@ -122,7 +122,7 @@ class TestOmeFirmwareBaselineInfo(FakeAnsibleModule):
             assert "error_info" in result
             assert result['msg'] == 'HTTP Error 400: http error message'
 
-            ome_connection_ome_firmware_baseline_info_mock.invoke_request.side_effect = exc_type('http://testhost.com',
+            ome_connection_ome_firmware_baseline_info_mock.invoke_request.side_effect = exc_type('https://testhost.com',
                                                                                                  404,
                                                                                                  '<404 not found>',
                                                                                                  {

@@ -993,7 +993,7 @@ class TestIDRACNetworkAttributes(FakeAnsibleModule):
         if exc_type in [HTTPError, SSLValidationError]:
             tmp = {'network_attributes': {'VlanId': 10}}
             mocker.patch(MODULE_PATH + "idrac_network_attributes.IDRACNetworkAttributes.set_dynamic_base_uri_and_validate_ids",
-                         side_effect=exc_type('nhttp://testhost.com', 400,
+                         side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))

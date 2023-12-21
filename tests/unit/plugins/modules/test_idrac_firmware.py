@@ -315,7 +315,7 @@ class TestidracFirmware(FakeAnsibleModule):
             self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
         assert exc.value.args[0] == 'Changes found to commit!'
         f_module.check_mode = False
-        idrac_default_args.update({"apply_update": True, "reboot": True, "job_wait": True, "share_name": "http://127.0.0.2/httpshare"})
+        idrac_default_args.update({"apply_update": True, "reboot": True, "job_wait": True, "share_name": "https://127.0.0.2/httpshare"})
         mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=({"PackageList": []}, True, False))
         mocker.patch(MODULE_PATH + UPDATE_URL, return_value=(
             {"JobStatus": "Ok"}, {"Status": "Success", "JobStatus": "Ok", "PackageList": [],
@@ -332,11 +332,11 @@ class TestidracFirmware(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
         assert exc.value.args[0] == 'Unable to complete the repository update.'
-        idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": True, "share_name": "http://127.0.0.3/httpshare"})
+        idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": True, "share_name": "https://127.0.0.3/httpshare"})
         with pytest.raises(Exception) as exc:
             self.module.update_firmware_redfish(idrac_connection_firmware_mock, f_module, {})
         assert exc.value.args[0] == 'Firmware update failed.'
-        idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": False, "share_name": "http://127.0.0.4/httpshare"})
+        idrac_default_args.update({"apply_update": True, "reboot": False, "job_wait": False, "share_name": "https://127.0.0.4/httpshare"})
         f_module = self.get_module_mock(params=idrac_default_args)
         f_module.check_mode = True
         mocker.patch(MODULE_PATH + CONVERT_XML_JSON, return_value=({"PackageList": []}, True, False))
@@ -369,7 +369,7 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_connection_firmware_redfish_mock.success = True
         idrac_connection_firmware_redfish_mock.json_data = {"FirmwareVersion": "2.70"}
         mocker.patch(MODULE_PATH + 'idrac_firmware.update_firmware_omsdk',
-                     side_effect=HTTPError('http://testhost.com', 400, 'http error message',
+                     side_effect=HTTPError('https://testhost.com', 400, 'http error message',
                                            {"accept-type": "application/json"},
                                            StringIO(json_str)))
         result = self._run_module_with_fail_json(idrac_default_args)
@@ -481,12 +481,12 @@ class TestidracFirmware(FakeAnsibleModule):
         idrac_connection_firmware_redfish_mock.json_data = {"Entries": {"@odata.id": "/api/log"}, "DateTime": "2023-10-05"}
         with pytest.raises(Exception) as ex:
             self.module.update_firmware_url_redfish(f_module, idrac_connection_firmware_redfish_mock,
-                                                    "http://127.0.0.1/httpshare", True, True, True, {}, actions)
+                                                    "https://127.0.0.1/httpshare", True, True, True, {}, actions)
         assert ex.value.args[0] == "Failed to update firmware."
         mocker.patch(MODULE_PATH + 'idrac_firmware.get_error_syslog', return_value=(False, ""))
         mocker.patch(MODULE_PATH + WAIT_FOR_JOB, return_value=(None, "Successfully updated."))
         result, msg = self.module.update_firmware_url_redfish(f_module, idrac_connection_firmware_redfish_mock,
-                                                              "http://127.0.0.1/httpshare", True, True, True, {}, actions)
+                                                              "https://127.0.0.1/httpshare", True, True, True, {}, actions)
         assert result["update_msg"] == "Successfully updated."
 
     def test_get_error_syslog(self, idrac_default_args, idrac_connection_firm_mock, redfish_response_mock, mocker):

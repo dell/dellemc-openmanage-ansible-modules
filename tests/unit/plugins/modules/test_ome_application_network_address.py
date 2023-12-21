@@ -351,7 +351,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_application_network_address.validate_input',
-                         side_effect=exc_type('http://testhost.com', 400,
+                         side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))

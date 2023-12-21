@@ -338,7 +338,7 @@ class TestConfigBios(FakeAnsibleModule):
             mocker.patch(MODULE_PATH + 'idrac_boot.get_system_res_id', side_effect=exc_type('test'))
         else:
             mocker.patch(MODULE_PATH + 'idrac_boot.get_system_res_id',
-                         side_effect=exc_type('http://testhost.com', 401, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 401, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
         if exc_type != URLError:
             result = self._run_module_with_fail_json(idrac_default_args)

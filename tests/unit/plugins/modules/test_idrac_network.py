@@ -90,7 +90,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
                                    "failover_network": "ALL", "auto_detect": "Enabled", "auto_negotiation": "Enabled",
                                    "network_speed": "T_10", "duplex_mode": "Full", "nic_mtu": "nicmtu",
-                                   "enable_dhcp": "Enabled", "ip_address": "100.100.102.114", "enable_ipv4": "Enabled",
+                                   "enable_dhcp": "Enabled", "ip_address": "XX.XX.XX.XX", "enable_ipv4": "Enabled",
                                    "dns_from_dhcp": "Enabled", "static_dns_1": "staticdns1",
                                    "static_dns_2": "staticdns2", "static_gateway": "staticgateway",
                                    "static_net_mask": "staticnetmask"})
@@ -109,7 +109,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
                                    "failover_network": "ALL", "auto_detect": "Enabled", "auto_negotiation": "Enabled",
                                    "network_speed": "T_10", "duplex_mode": "Full", "nic_mtu": "nicmtu",
-                                   "enable_dhcp": "Enabled", "ip_address": "100.100.102.114", "enable_ipv4": "Enabled",
+                                   "enable_dhcp": "Enabled", "ip_address": "XX.XX.XX.XX", "enable_ipv4": "Enabled",
                                    "dns_from_dhcp": "Enabled", "static_dns_1": "staticdns1",
                                    "static_dns_2": "staticdns2", "static_gateway": "staticgateway",
                                    "static_net_mask": "staticnetmask"})
@@ -133,7 +133,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
                                    "failover_network": "ALL", "auto_detect": "Enabled", "auto_negotiation": "Enabled",
                                    "network_speed": "T_10", "duplex_mode": "Full", "nic_mtu": "nicmtu",
-                                   "enable_dhcp": "Enabled", "ip_address": "100.100.102.114", "enable_ipv4": "Enabled",
+                                   "enable_dhcp": "Enabled", "ip_address": "XX.XX.XX.XX", "enable_ipv4": "Enabled",
                                    "dns_from_dhcp": "Enabled", "static_dns_1": "staticdns1",
                                    "static_dns_2": "staticdns2", "static_gateway": "staticgateway",
                                    "static_net_mask": "staticnetmask"})
@@ -157,7 +157,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
                                    "failover_network": "ALL", "auto_detect": "Enabled", "auto_negotiation": "Enabled",
                                    "network_speed": "T_10", "duplex_mode": "Full", "nic_mtu": "nicmtu",
-                                   "enable_dhcp": "Enabled", "ip_address": "100.100.102.114", "enable_ipv4": "Enabled",
+                                   "enable_dhcp": "Enabled", "ip_address": "XX.XX.XX.XX", "enable_ipv4": "Enabled",
                                    "dns_from_dhcp": "Enabled", "static_dns_1": "staticdns1",
                                    "static_dns_2": "staticdns2", "static_gateway": "staticgateway",
                                    "static_net_mask": "staticnetmask"})
@@ -209,7 +209,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
                                    "failover_network": "ALL", "auto_detect": "Enabled", "auto_negotiation": "Enabled",
                                    "network_speed": "T_10", "duplex_mode": "Full", "nic_mtu": "nicmtu",
-                                   "enable_dhcp": "Enabled", "ip_address": "100.100.102.114", "enable_ipv4": "Enabled",
+                                   "enable_dhcp": "Enabled", "ip_address": "XX.XX.XX.XX", "enable_ipv4": "Enabled",
                                    "dns_from_dhcp": "Enabled", "static_dns_1": "staticdns1",
                                    "static_dns_2": "staticdns2", "static_gateway": "staticgateway",
                                    "static_net_mask": "staticnetmask"})
@@ -229,7 +229,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
                                    "failover_network": "ALL", "auto_detect": "Enabled", "auto_negotiation": "Enabled",
                                    "network_speed": "T_10", "duplex_mode": "Full", "nic_mtu": "nicmtu",
-                                   "enable_dhcp": "Enabled", "ip_address": "100.100.102.114", "enable_ipv4": "Enabled",
+                                   "enable_dhcp": "Enabled", "ip_address": "XX.XX.XX.XX", "enable_ipv4": "Enabled",
                                    "dns_from_dhcp": "Enabled", "static_dns_1": "staticdns1",
                                    "static_dns_2": "staticdns2", "static_gateway": "staticgateway",
                                    "static_net_mask": "staticnetmask"})
@@ -251,7 +251,7 @@ class TestConfigNetwork(FakeAnsibleModule):
                                    "enable_nic": "Enabled", "nic_selection": "Dedicated",
                                    "failover_network": "ALL", "auto_detect": "Enabled", "auto_negotiation": "Enabled",
                                    "network_speed": "T_10", "duplex_mode": "Full", "nic_mtu": "nicmtu",
-                                   "enable_dhcp": "Enabled", "ip_address": "100.100.102.114", "enable_ipv4": "Enabled",
+                                   "enable_dhcp": "Enabled", "ip_address": "XX.XX.XX.XX", "enable_ipv4": "Enabled",
                                    "dns_from_dhcp": "Enabled", "static_dns_1": "staticdns1",
                                    "static_dns_2": "staticdns2", "static_gateway": "staticgateway",
                                    "static_net_mask": "staticnetmask"})
@@ -276,7 +276,7 @@ class TestConfigNetwork(FakeAnsibleModule):
         else:
             mocker.patch(
                 MODULE_PATH + 'idrac_network.run_idrac_network_config',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         if not exc_type == URLError:
             result = self._run_module_with_fail_json(idrac_default_args)

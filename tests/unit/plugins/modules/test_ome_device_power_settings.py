@@ -234,7 +234,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         if 'http_error_json' in params:
             json_str = to_text(json.dumps(params.get('http_error_json', {})))
             ome_conn_mock_power.invoke_request.side_effect = HTTPError(
-                'http://testhost.com', params.get('http_err_code', 401), 'http error message', {
+                'https://testhost.com', params.get('http_err_code', 401), 'http error message', {
                     "accept-type": "application/json"},
                 StringIO(json_str))
         ome_default_args.update(params['mparams'])
@@ -249,12 +249,12 @@ class TestOMEMDevicePower(FakeAnsibleModule):
 
     def test_get_chassis_device(self, ome_conn_mock_power, ome_default_args, mocker, ome_response_mock):
         mocker.patch(MODULE_PATH + "get_ip_from_host",
-                     return_value="192.18.1.1")
+                     return_value="X.X.X.X")
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
-                                                  "PublicAddress": ["192.168.1.1"]},
+                                                  "PublicAddress": ["XX.XX.XX.XX"]},
                                                  {"DeviceId": 25012, "DomainRoleTypeValue": "STANDALONE",
-                                                  "PublicAddress": ["192.168.1.2"]}]}
-        param = {"device_id": 25012, "hostname": "192.168.1.6",
+                                                  "PublicAddress": ["YY.YY.YY.YY"]}]}
+        param = {"device_id": 25012, "hostname": "Y.Y.Y.Y",
                  "power_configuration": {"enable_power_cap": True, "power_cap": 3424}}
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as err:
@@ -285,7 +285,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         assert err.value.args[0] == "No changes found to be applied."
 
     def test_fetch_device_details(self, ome_conn_mock_power, ome_default_args, ome_response_mock):
-        param = {"device_id": 25012, "hostname": "192.168.1.6",
+        param = {"device_id": 25012, "hostname": "Y.Y.Y.Y",
                  "power_configuration": {"enable_power_cap": True, "power_cap": 3424}}
         f_module = self.get_module_mock(params=param)
         ome_response_mock.status_code = 200
@@ -300,8 +300,8 @@ class TestOMEMDevicePower(FakeAnsibleModule):
                                     "device id '25012' is invalid."
 
     def test_get_ip_from_host(self, ome_conn_mock_power, ome_default_args, ome_response_mock):
-        result = self.module.get_ip_from_host("192.168.0.1")
-        assert result == "192.168.0.1"
+        result = self.module.get_ip_from_host("ZZ.ZZ.ZZ.ZZ")
+        assert result == "ZZ.ZZ.ZZ.ZZ"
 
     @pytest.mark.parametrize("exc_type",
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
@@ -324,7 +324,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

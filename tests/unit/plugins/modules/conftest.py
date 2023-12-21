@@ -57,7 +57,7 @@ def redfish_response_mock(mocker):
 
 @pytest.fixture
 def ome_default_args():
-    default_args = {'hostname': '192.168.0.1', 'username': 'username', 'password': 'password', "ca_path": "/path/ca_bundle"}
+    default_args = {'hostname': 'XX.XX.XX.XX', 'username': 'username', 'password': 'password', "ca_path": "/path/ca_bundle"}
     return default_args
 
 
@@ -70,7 +70,7 @@ def idrac_default_args():
 
 @pytest.fixture
 def redfish_default_args():
-    default_args = {'baseuri': '192.168.0.1', 'username': 'username', 'password': 'password',
+    default_args = {'baseuri': 'XX.XX.XX.XX', 'username': 'username', 'password': 'password',
                     "ca_path": "/path/to/ca_cert.pem"}
     return default_args
 

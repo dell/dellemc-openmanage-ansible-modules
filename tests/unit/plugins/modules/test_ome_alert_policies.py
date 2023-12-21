@@ -308,7 +308,7 @@ class TestOmeAlertPolicies(FakeAnsibleModule):
             "Type": {
                 "remotecommandaction": [
                     "test",
-                    "cmd2 : 100.96.32.135"
+                    "cmd2 : XX.XX.XX.XX"
                 ]
             }
         },

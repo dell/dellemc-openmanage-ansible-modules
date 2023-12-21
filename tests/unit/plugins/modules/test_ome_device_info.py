@@ -23,6 +23,7 @@ resource_detailed_inventory = {"detailed_inventory:": {"device_id": {Constants.d
                                                            Constants.device_id2: Constants.service_tag1}}}
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+HTTPS_ADDRESS = 'https://testhost.com'
 
 
 class TestOmeDeviceInfo(FakeAnsibleModule):
@@ -112,14 +113,14 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
             "device_id": {Constants.device_id1: "DeviceService/Devices(Constants.device_id1)/InventoryDetails"},
             "device_service_tag": {Constants.service_tag1: "DeviceService/Devices(4321)/InventoryDetails"}}}
         get_device_resource_parameters_mock.return_value = detailed_inventory
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
+        ome_connection_mock.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400, '', {}, None)
         result = self._run_module(ome_default_args)
         assert 'device_info' in result
 
     def test_main_HTTPError_error_case(self, ome_default_args, module_mock, validate_device_inputs_mock,
                                        ome_connection_mock,
                                        get_device_resource_parameters_mock, ome_response_mock):
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
+        ome_connection_mock.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400, '', {}, None)
         ome_response_mock.json_data = {"value": [{"device_id1": "details", "device_id2": "details"}]}
         ome_response_mock.status_code = 400
         result = self._run_module(ome_default_args)
@@ -201,7 +202,7 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         self.module._get_device_id_from_service_tags([Constants.service_tag1, "INVALID"], ome_connection_mock)
 
     def test_get_device_id_from_service_tags_error_case(self, ome_connection_mock, ome_response_mock):
-        ome_connection_mock.get_all_report_details.side_effect = HTTPError('http://testhost.com', 400, '', {}, None)
+        ome_connection_mock.get_all_report_details.side_effect = HTTPError(HTTPS_ADDRESS, 400, '', {}, None)
         with pytest.raises(HTTPError) as ex:
             self.module._get_device_id_from_service_tags(["INVALID"], ome_connection_mock)
 
@@ -228,7 +229,7 @@ class TestOmeDeviceInfo(FakeAnsibleModule):
         error_msg = '400: Bad Request'
         service_tag_dict = {}
         non_available_tags = [Constants.service_tag2]
-        ome_connection_mock.invoke_request.side_effect = HTTPError('http://testhost.com', 400, error_msg, {}, None)
+        ome_connection_mock.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400, error_msg, {}, None)
         with pytest.raises(HTTPError, match=error_msg) as ex:
             self.module.update_device_details_with_filtering(non_available_tags, service_tag_dict, ome_connection_mock)
 
