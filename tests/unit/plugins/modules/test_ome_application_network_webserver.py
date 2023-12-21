@@ -133,7 +133,7 @@ class TestOmeAppNetwork(FakeAnsibleModule):
         else:
             mocker.patch(
                 MODULE_PATH + 'ome_application_network_webserver.get_updated_payload',
-                side_effect=exc_type('http://testhost.com', 400,
+                side_effect=exc_type('https://testhost.com', 400,
                                      'http error message',
                                      {"accept-type": "application/json"},
                                      StringIO(json_str)))

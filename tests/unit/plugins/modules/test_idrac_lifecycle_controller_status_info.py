@@ -74,7 +74,7 @@ class TestLcStatus(FakeAnsibleModule):
             assert result['failed'] is True
             assert 'msg' in result
         else:
-            type(obj2).LCReady = PropertyMock(side_effect=exc_type('http://testhost.com', 400, 'http error message',
+            type(obj2).LCReady = PropertyMock(side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                                                    {"accept-type": "application/json"},
                                                                    StringIO(json_str)))
             result = self._run_module_with_fail_json(idrac_default_args)

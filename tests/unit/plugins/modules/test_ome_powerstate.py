@@ -422,11 +422,11 @@ class TestOmePowerstate(FakeAnsibleModule):
         else:
             mocker.patch(
                 MODULE_PATH + 'ome_powerstate.spawn_update_job',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
             mocker.patch(
                 MODULE_PATH + 'ome_powerstate.get_device_resource',
-                side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                      {"accept-type": "application/json"}, StringIO(json_str)))
         result = self._run_module_with_fail_json(ome_default_args)
         assert 'power_state' not in result

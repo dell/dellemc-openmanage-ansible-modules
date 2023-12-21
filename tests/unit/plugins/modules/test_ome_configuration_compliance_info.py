@@ -126,7 +126,7 @@ class TestBaselineComplianceInfo(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type == HTTPError:
             mocker.patch(MODULE_PATH + 'compliance_report', side_effect=exc_type(
-                'http://testhost.com', 401, 'http error message', {
+                'https://testhost.com', 401, 'http error message', {
                     "accept-type": "application/json"},
                 StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)

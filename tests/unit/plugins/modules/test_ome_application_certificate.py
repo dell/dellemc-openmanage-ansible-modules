@@ -24,6 +24,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import ome_applicati
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+EMAIL_ADDRESS = "support@dell.com"
 
 
 @pytest.fixture
@@ -47,7 +48,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
         args = {"command": "generate_csr", "distinguished_name": "hostname.com",
                 "department_name": "Remote Access Group", "business_name": "Dell Inc.",
                 "locality": "Round Rock", "country_state": "Texas", "country": "US",
-                "email": "support@dell.com", "subject_alternative_names": "192.168.0.1"}
+                "email": EMAIL_ADDRESS, "subject_alternative_names": "XX.XX.XX.XX"}
         ome_default_args.update(args)
         if exc_type == URLError:
             mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
@@ -61,7 +62,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
-                         side_effect=exc_type('http://testhost.com', 400,
+                         side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
@@ -76,7 +77,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
         args = {"command": "generate_csr", "distinguished_name": "hostname.com",
                 "department_name": "Remote Access Group", "business_name": "Dell Inc.",
                 "locality": "Round Rock", "country_state": "Texas", "country": "US",
-                "email": "support@dell.com", "subject_alternative_names": "192.168.0.1"}
+                "email": EMAIL_ADDRESS, "subject_alternative_names": "XX.XX.XX.XX"}
         f_module = self.get_module_mock(params=args)
         result = self.module.get_resource_parameters(f_module)
         assert result[0] == "POST"
@@ -84,7 +85,7 @@ class TestOmeAppCSR(FakeAnsibleModule):
         assert result[2] == {'DistinguishedName': 'hostname.com', 'Locality': 'Round Rock',
                              'DepartmentName': 'Remote Access Group', 'BusinessName': 'Dell Inc.',
                              'State': 'Texas', 'Country': 'US', 'Email': 'support@dell.com',
-                             'San': '192.168.0.1'}
+                             'San': 'XX.XX.XX.XX'}
 
     def test_upload_csr_fail01(self, mocker, ome_default_args, ome_connection_mock_for_application_certificate,
                                ome_response_mock):
@@ -109,13 +110,13 @@ class TestOmeAppCSR(FakeAnsibleModule):
         csr_json = {"CertificateData": "--BEGIN-REQUEST--"}
         payload = {"DistinguishedName": "hostname.com", "DepartmentName": "Remote Access Group",
                    "BusinessName": "Dell Inc.", "Locality": "Round Rock", "State": "Texas",
-                   "Country": "US", "Email": "support@dell.com", "subject_alternative_names": "192.168.0.1"}
+                   "Country": "US", "Email": EMAIL_ADDRESS, "subject_alternative_names": "XX.XX.XX.XX"}
         mocker.patch(MODULE_PATH + 'ome_application_certificate.get_resource_parameters',
                      return_value=("POST", "ApplicationService/Actions/ApplicationService.GenerateCSR", payload))
         ome_default_args.update({"command": "generate_csr", "distinguished_name": "hostname.com",
                                  "department_name": "Remote Access Group", "business_name": "Dell Inc.",
                                  "locality": "Round Rock", "country_state": "Texas", "country": "US",
-                                 "email": "support@dell.com", "subject_alternative_names": "192.168.0.1, 192.168.0.2"})
+                                 "email": EMAIL_ADDRESS, "subject_alternative_names": "XX.XX.XX.XX, YY.YY.YY.YY"})
         ome_response_mock.success = True
         ome_response_mock.json_data = csr_json
         result = self.execute_module(ome_default_args)

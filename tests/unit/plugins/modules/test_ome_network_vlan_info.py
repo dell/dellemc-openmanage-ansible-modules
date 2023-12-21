@@ -22,6 +22,8 @@ from io import StringIO
 from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
+ACCESS_TYPE = "application/json"
+HTTP_ADDRESS = 'https://testhost.com'
 
 response = {
     '@odata.context': '/api/$metadata#Collection(NetworkConfigurationService.Network)',
@@ -168,7 +170,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type == HTTPError:
             ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 400, '<400 bad request>', {"accept-type": "application/json"},
+                HTTP_ADDRESS, 400, '<400 bad request>', {"accept-type": ACCESS_TYPE},
                 StringIO(json_str))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
@@ -176,7 +178,7 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
             assert 'error_info' in result
 
             ome_connection_network_vlan_info_mock.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 404, '<404 not found>', {"accept-type": "application/json"}, StringIO(json_str))
+                HTTP_ADDRESS, 404, '<404 not found>', {"accept-type": ACCESS_TYPE}, StringIO(json_str))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
             assert 'msg' in result
@@ -188,8 +190,8 @@ class TestOmeNetworkVlanInfo(FakeAnsibleModule):
             assert 'msg' in result
         else:
             mocker.patch(MODULE_PATH + 'ome_network_vlan_info.get_network_type_and_qos_type_information',
-                         side_effect=exc_type('http://testhost.com', 404, 'http error message',
-                                              {"accept-type": "application/json"}, StringIO(json_str)))
+                         side_effect=exc_type(HTTP_ADDRESS, 404, 'http error message',
+                                              {"accept-type": ACCESS_TYPE}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
             assert 'msg' in result
