@@ -23,6 +23,9 @@ from ansible_collections.dellemc.openmanage.plugins.modules import ome_device_qu
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.ome_device_quick_deploy.'
+ACCESS_TYPE = "application/json"
+HTTP_ADDRESS = 'https://testhost.com'
+HTTP_ERROR_MSG = 'http error message'
 
 
 @pytest.fixture
@@ -48,7 +51,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         json_str = to_text(json.dumps({"error": {"@Message.ExtendedInfo": [{"MessageId": "CGEN1006"}]}}))
         if exc_type == HTTPError:
             ome_conn_mock_qd.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
+                HTTP_ADDRESS, 400, HTTP_ERROR_MSG, {"accept-type": ACCESS_TYPE},
                 StringIO(json_str)
             )
         with pytest.raises(Exception) as err:
@@ -57,20 +60,20 @@ class TestOMEMDevicePower(FakeAnsibleModule):
                                     "on OpenManage Enterprise Modular."
 
     def test_get_chassis_device(self, ome_conn_mock_qd, ome_default_args, mocker, ome_response_mock):
-        mocker.patch(MODULE_PATH + "get_ip_from_host", return_value="192.18.1.1")
+        mocker.patch(MODULE_PATH + "get_ip_from_host", return_value="X.X.X.X")
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
-                                                  "PublicAddress": ["192.168.1.1"]},
+                                                  "PublicAddress": ["ZZ.ZZ.ZZ.ZZ"]},
                                                  {"DeviceId": 25012, "DomainRoleTypeValue": "STANDALONE",
-                                                  "PublicAddress": ["192.168.1.2"]}]}
-        param = {"device_id": 25012, "hostname": "192.168.1.6"}
+                                                  "PublicAddress": ["ZX.ZX.ZX.ZX"]}]}
+        param = {"device_id": 25012, "hostname": "XY.XY.XY.XY"}
         f_module = self.get_module_mock(params=param)
         with pytest.raises(Exception) as err:
             self.module.get_chassis_device(f_module, ome_conn_mock_qd)
         assert err.value.args[0] == "Unable to retrieve the device information."
         ome_response_mock.json_data = {"value": [{"DeviceId": 25011, "DomainRoleTypeValue": "LEAD",
-                                                  "PublicAddress": ["192.168.1.1"]},
+                                                  "PublicAddress": ["ZZ.ZZ.ZZ.ZZ"]},
                                                  {"DeviceId": 25012, "DomainRoleTypeValue": "STANDALONE",
-                                                  "PublicAddress": ["192.18.1.1"]}]}
+                                                  "PublicAddress": ["X.X.X.X"]}]}
         result = self.module.get_chassis_device(f_module, ome_conn_mock_qd)
         assert result[0] == "Id"
         assert result[1] == 25012
@@ -82,32 +85,32 @@ class TestOMEMDevicePower(FakeAnsibleModule):
     def test_validate_ip_address(self, ome_conn_mock_qd, ome_response_mock, ome_default_args):
         result = self.module.validate_ip_address("192.168.0.1", "IPV4")
         assert result is True
-        result = self.module.validate_ip_address("192.168.0.1.1", "IPV4")
+        result = self.module.validate_ip_address("XX.XX.XX.XX.1", "IPV4")
         assert result is False
         result = self.module.validate_ip_address("::", "IPV6")
         assert result is True
 
     def test_ip_address_field(self, ome_conn_mock_qd, ome_response_mock, ome_default_args, mocker):
         param = {"device_id": 25011, "setting_type": "ServerQuickDeploy",
-                 "quick_deploy_options": {"ipv4_enabled": False, "ipv4_subnet_mask": "192.168.0.1",
+                 "quick_deploy_options": {"ipv4_enabled": False, "ipv4_subnet_mask": "XX.XX.XX.XX",
                                           "ipv4_gateway": "0.0.0.0.0"}, "slots": [{"vlan_id": 1}]}
         fields = [("ipv4_subnet_mask", "IPV4"), ("ipv4_gateway", "IPV4"), ("ipv6_gateway", "IPV6")]
         f_module = self.get_module_mock(params=param)
         mocker.patch(MODULE_PATH + "validate_ip_address", return_value=False)
         with pytest.raises(Exception) as err:
             self.module.ip_address_field(f_module, fields, param["quick_deploy_options"], slot=False)
-        assert err.value.args[0] == "Invalid '192.168.0.1' address provided for the ipv4_subnet_mask."
+        assert err.value.args[0] == "Invalid 'XX.XX.XX.XX' address provided for the ipv4_subnet_mask."
 
     def test_get_device_details(self, ome_conn_mock_qd, ome_response_mock, ome_default_args, mocker):
-        param = {"device_id": 25012, "hostname": "192.168.1.6", "setting_type": "ServerQuickDeploy",
-                 "quick_deploy_options": {"ipv4_enabled": False, "ipv4_subnet_mask": "192.168.0.1",
+        param = {"device_id": 25012, "hostname": "XY.XY.XY.XY", "setting_type": "ServerQuickDeploy",
+                 "quick_deploy_options": {"ipv4_enabled": False, "ipv4_subnet_mask": "XX.XX.XX.XX",
                                           "ipv4_gateway": "0.0.0.0"}, "slots": [{"vlan_id": 1}]}
         f_module = self.get_module_mock(params=param)
         ome_response_mock.status_code = 200
         ome_response_mock.success = True
         ome_response_mock.json_data = {"value": [], "SettingType": "ServerQuickDeploy",
                                        "ProtocolTypeV4": "true", "NetworkTypeV4": "Static",
-                                       "IpV4Gateway": "192.168.0.1", "IpV4SubnetMask": "255.255.255.0"}
+                                       "IpV4Gateway": "XX.XX.XX.XX", "IpV4SubnetMask": "XXX.XXX.XXX.XXX"}
         mocker.patch(MODULE_PATH + 'get_chassis_device', return_value=("Id", 25011))
         mocker.patch(MODULE_PATH + "check_mode_validation", return_value=({}, {}))
         mocker.patch(MODULE_PATH + "job_payload_submission", return_value=12345)
@@ -131,14 +134,14 @@ class TestOMEMDevicePower(FakeAnsibleModule):
 
     @pytest.mark.parametrize("exc_type", [HTTPError])
     def test_get_device_details_http(self, exc_type, ome_conn_mock_qd, ome_response_mock, ome_default_args, mocker):
-        param = {"hostname": "192.168.1.6", "setting_type": "ServerQuickDeploy",
-                 "quick_deploy_options": {"ipv4_enabled": False, "ipv4_subnet_mask": "192.168.0.1",
+        param = {"hostname": "XY.XY.XY.XY", "setting_type": "ServerQuickDeploy",
+                 "quick_deploy_options": {"ipv4_enabled": False, "ipv4_subnet_mask": "XX.XX.XX.XX",
                                           "ipv4_gateway": "0.0.0.0"}, "slots": [{"vlan_id": 1}]}
         mocker.patch(MODULE_PATH + 'get_chassis_device', return_value=("Id", 25011))
         json_str = to_text(json.dumps({"error": {"@Message.ExtendedInfo": [{"MessageId": "CGEN1004"}]}}))
         if exc_type == HTTPError:
             ome_conn_mock_qd.invoke_request.side_effect = exc_type(
-                'http://testhost.com', 400, 'http error message', {"accept-type": "application/json"},
+                HTTP_ADDRESS, 400, HTTP_ERROR_MSG, {"accept-type": ACCESS_TYPE},
                 StringIO(json_str)
             )
         f_module = self.get_module_mock(params=param)
@@ -152,45 +155,45 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         ome_response_mock.success = True
         ome_response_mock.json_data = {"Id": 12345}
         ome_conn_mock_qd.job_submission.return_value = ome_response_mock
-        payload = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "255.255.255.0",
+        payload = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "XXX.XXX.XXX.XXX",
                    "IpV4Gateway": "0.0.0.0", "ProtocolTypeV6": True, "NetworkTypeV6": "Static",
                    "PrefixLength": "1", "IpV6Gateway": "0.0.0.0"}
-        slot_payload = [{"SlotId": 1, "IPV4Address": "192.168.0.2", "IPV6Address": "::", "VlanId": 1}]
+        slot_payload = [{"SlotId": 1, "IPV4Address": "YY.YY.YY.YY", "IPV6Address": "::", "VlanId": 1}]
         resp_data = {"Slots": [
-            {"SlotId": 1, "IPV4Address": "192.168.0.2", "IPV6Address": "::", "VlanId": 1, "SlotSelected": False},
-            {"SlotId": 2, "IPV4Address": "192.168.0.2", "IPV6Address": "::", "VlanId": 1, "SlotSelected": False},
+            {"SlotId": 1, "IPV4Address": "YY.YY.YY.YY", "IPV6Address": "::", "VlanId": 1, "SlotSelected": False},
+            {"SlotId": 2, "IPV4Address": "YY.YY.YY.YY", "IPV6Address": "::", "VlanId": 1, "SlotSelected": False},
         ]}
         result = self.module.job_payload_submission(ome_conn_mock_qd, payload, slot_payload,
                                                     "ServerQuickDeploy", 25012, resp_data)
         assert result == 12345
 
-        payload = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "255.255.255.0",
+        payload = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "XXX.XXX.XXX.XXX",
                    "IpV4Gateway": "0.0.0.0", "ProtocolTypeV6": True, "NetworkTypeV6": "Static",
                    "PrefixLength": "1", "IpV6Gateway": "0.0.0.0", "rootCredential": "secret"}
-        slot_payload = [{"SlotId": 1, "IPV4Address": "192.168.0.2", "IPV6Address": "::", "VlanId": 1}]
+        slot_payload = [{"SlotId": 1, "IPV4Address": "YY.YY.YY.YY", "IPV6Address": "::", "VlanId": 1}]
         resp_data = {"Slots": [
-            {"SlotId": 1, "SlotIPV4Address": "192.168.0.2", "IPV4Address": "192.168.0.2", "IPV6Address": "::",
+            {"SlotId": 1, "SlotIPV4Address": "YY.YY.YY.YY", "IPV4Address": "YY.YY.YY.YY", "IPV6Address": "::",
              "VlanId": 1, "SlotSelected": False, "SlotIPV6Address": "::"},
-            {"SlotId": 2, "IPV4Address": "192.168.0.2", "IPV6Address": "::", "VlanId": 1, "SlotSelected": False,
-             "SlotIPV4Address": "192.168.0.2", "SlotIPV6Address": "::"},
+            {"SlotId": 2, "IPV4Address": "YY.YY.YY.YY", "IPV6Address": "::", "VlanId": 1, "SlotSelected": False,
+             "SlotIPV4Address": "YY.YY.YY.YY", "SlotIPV6Address": "::"},
         ]}
         result = self.module.job_payload_submission(ome_conn_mock_qd, payload, slot_payload,
                                                     "ServerQuickDeploy", 25012, resp_data)
         assert result == 12345
 
     def test_check_mode_validation(self, ome_conn_mock_qd, ome_response_mock, ome_default_args):
-        param = {"device_id": 25012, "hostname": "192.168.1.6", "setting_type": "ServerQuickDeploy",
+        param = {"device_id": 25012, "hostname": "XY.XY.XY.XY", "setting_type": "ServerQuickDeploy",
                  "quick_deploy_options": {
-                     "ipv4_enabled": True, "ipv4_network_type": "Static", "ipv4_subnet_mask": "255.255.255.0",
+                     "ipv4_enabled": True, "ipv4_network_type": "Static", "ipv4_subnet_mask": "XXX.XXX.XXX.XXX",
                      "ipv4_gateway": "0.0.0.0", "ipv6_enabled": True, "ipv6_network_type": "Static",
                      "ipv6_prefix_length": "1", "ipv6_gateway": "0.0.0.0",
-                     "slots": [{"slot_id": 1, "slot_ipv4_address": "192.168.0.1",
+                     "slots": [{"slot_id": 1, "slot_ipv4_address": "XX.XX.XX.XX",
                                 "slot_ipv6_address": "::", "vlan_id": "1"}]}}
         f_module = self.get_module_mock(params=param)
-        deploy_data = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "255.255.255.0",
+        deploy_data = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "XXX.XXX.XXX.XXX",
                        "IpV4Gateway": "0.0.0.0", "ProtocolTypeV6": True, "NetworkTypeV6": "Static",
                        "PrefixLength": "1", "IpV6Gateway": "0.0.0.0",
-                       "Slots": [{"SlotId": 1, "SlotIPV4Address": "192.168.0.1", "SlotIPV6Address": "::", "VlanId": "1"}]}
+                       "Slots": [{"SlotId": 1, "SlotIPV4Address": "XX.XX.XX.XX", "SlotIPV6Address": "::", "VlanId": "1"}]}
         with pytest.raises(Exception) as err:
             self.module.check_mode_validation(f_module, deploy_data)
         assert err.value.args[0] == "No changes found to be applied."
@@ -207,42 +210,42 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         assert result[0]["NetworkTypeV4"] == "Static"
         param["quick_deploy_options"].update({"password": "secret", "ipv4_enabled": False, "ipv6_enabled": False,
                                               "ProtocolTypeV4": False, "ProtocolTypeV6": False})
-        deploy_data = {"ProtocolTypeV4": False, "NetworkTypeV4": "Static", "IpV4SubnetMask": "255.255.255.0",
+        deploy_data = {"ProtocolTypeV4": False, "NetworkTypeV4": "Static", "IpV4SubnetMask": "XXX.XXX.XXX.XXX",
                        "IpV4Gateway": "0.0.0.0", "ProtocolTypeV6": False, "NetworkTypeV6": "Static",
                        "PrefixLength": "1", "IpV6Gateway": "0.0.0.0",
-                       "Slots": [{"SlotId": 1, "SlotIPV4Address": "192.168.0.1", "SlotIPV6Address": "::",
+                       "Slots": [{"SlotId": 1, "SlotIPV4Address": "XX.XX.XX.XX", "SlotIPV6Address": "::",
                                   "VlanId": "1"}]}
         f_module = self.get_module_mock(params=param)
         result = self.module.check_mode_validation(f_module, deploy_data)
         assert result[0]["NetworkTypeV4"] == "Static"
-        param = {"device_id": 25012, "hostname": "192.168.1.6", "setting_type": "ServerQuickDeploy",
+        param = {"device_id": 25012, "hostname": "XY.XY.XY.XY", "setting_type": "ServerQuickDeploy",
                  "quick_deploy_options": {
-                     "ipv4_enabled": True, "ipv4_network_type": "Static", "ipv4_subnet_mask": "255.255.255.0",
+                     "ipv4_enabled": True, "ipv4_network_type": "Static", "ipv4_subnet_mask": "XXX.XXX.XXX.XXX",
                      "ipv4_gateway": "0.0.0.0", "ipv6_enabled": True, "ipv6_network_type": "Static",
                      "ipv6_prefix_length": "1", "ipv6_gateway": "0.0.0.0",
-                     "slots": [{"slot_id": 1, "slot_ipv4_address": "192.168.0.1",
+                     "slots": [{"slot_id": 1, "slot_ipv4_address": "XX.XX.XX.XX",
                                 "slot_ipv6_address": "::", "vlan_id": "1"}]}}
         f_module = self.get_module_mock(params=param)
-        deploy_data = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "255.255.255.0",
+        deploy_data = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "XXX.XXX.XXX.XXX",
                        "IpV4Gateway": "0.0.0.0", "ProtocolTypeV6": True, "NetworkTypeV6": "Static",
                        "PrefixLength": "1", "IpV6Gateway": "0.0.0.0",
-                       "Slots": [{"SlotId": 2, "SlotIPV4Address": "192.168.0.1", "SlotIPV6Address": "::",
+                       "Slots": [{"SlotId": 2, "SlotIPV4Address": "XX.XX.XX.XX", "SlotIPV6Address": "::",
                                   "VlanId": "1"}]}
         with pytest.raises(Exception) as err:
             self.module.check_mode_validation(f_module, deploy_data)
         assert err.value.args[0] == "Unable to complete the operation because the entered slot(s) '1' does not exist."
-        param = {"device_id": 25012, "hostname": "192.168.1.6", "setting_type": "ServerQuickDeploy",
+        param = {"device_id": 25012, "hostname": "XY.XY.XY.XY", "setting_type": "ServerQuickDeploy",
                  "quick_deploy_options": {
-                     "ipv4_enabled": True, "ipv4_network_type": "Static", "ipv4_subnet_mask": "255.255.255.0",
+                     "ipv4_enabled": True, "ipv4_network_type": "Static", "ipv4_subnet_mask": "XXX.XXX.XXX.XXX",
                      "ipv4_gateway": "0.0.0.0", "ipv6_enabled": True, "ipv6_network_type": "Static",
                      "ipv6_prefix_length": "1", "ipv6_gateway": "0.0.0.0",
-                     "slots": [{"slot_id": 5, "slot_ipv4_address": "192.168.0.1",
+                     "slots": [{"slot_id": 5, "slot_ipv4_address": "XX.XX.XX.XX",
                                 "slot_ipv6_address": "::", "vlan_id": ""}]}}
         f_module = self.get_module_mock(params=param)
-        deploy_data = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "255.255.255.0",
+        deploy_data = {"ProtocolTypeV4": True, "NetworkTypeV4": "Static", "IpV4SubnetMask": "XXX.XXX.XXX.XXX",
                        "IpV4Gateway": "0.0.0.0", "ProtocolTypeV6": True, "NetworkTypeV6": "Static",
                        "PrefixLength": "1", "IpV6Gateway": "0.0.0.0",
-                       "Slots": [{"SlotId": 5, "SlotIPV4Address": "192.168.0.1",
+                       "Slots": [{"SlotId": 5, "SlotIPV4Address": "XX.XX.XX.XX",
                                   "SlotIPV6Address": "::", "VlanId": ""}]}
         with pytest.raises(Exception) as err:
             self.module.check_mode_validation(f_module, deploy_data)
@@ -268,8 +271,8 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
-                                              {"accept-type": "application/json"}, StringIO(json_str)))
+                         side_effect=exc_type(HTTP_ADDRESS, 400, HTTP_ERROR_MSG,
+                                              {"accept-type": ACCESS_TYPE}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result

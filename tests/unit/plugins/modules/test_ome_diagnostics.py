@@ -83,7 +83,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
                                     "are not applicable for export log."
 
     def test_extract_log_operation(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        f_module = self.get_module_mock(params={"log_type": "application", "share_address": "192.168.0.1",
+        f_module = self.get_module_mock(params={"log_type": "application", "share_address": "XX.XX.XX.XX",
                                                 "share_type": "NFS", "share_name": "iso", "share_user": "username",
                                                 "share_password": "password", "share_domain": "domain",
                                                 "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
@@ -100,7 +100,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         result = self.module.extract_log_operation(f_module, ome_conn_mock_diagnostics)
         assert result["Id"] == 16011
 
-        f_module = self.get_module_mock(params={"log_type": "support_assist_collection", "share_address": "192.168.0.1",
+        f_module = self.get_module_mock(params={"log_type": "support_assist_collection", "share_address": "XX.XX.XX.XX",
                                                 "share_type": "NFS", "share_name": "iso", "share_user": "username",
                                                 "share_password": "password", "share_domain": "domain",
                                                 "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"]})
@@ -108,7 +108,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         assert result["Id"] == 16011
 
     def test_extract_log_operation_member(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        f_module = self.get_module_mock(params={"log_type": "application", "share_address": "192.168.0.1",
+        f_module = self.get_module_mock(params={"log_type": "application", "share_address": "XX.XX.XX.XX",
                                                 "share_type": "NFS", "share_name": "iso", "share_user": "username",
                                                 "share_password": "password", "share_domain": "domain",
                                                 "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
@@ -123,7 +123,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
 
     def test_extract_log_operation_no_lead_chassis(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
         f_module = self.get_module_mock(params={"lead_chassis_only": False, "log_type": "application",
-                                                "share_address": "192.168.0.1",
+                                                "share_address": "XX.XX.XX.XX",
                                                 "share_type": "NFS", "share_name": "iso", "share_user": "username",
                                                 "share_password": "password", "share_domain": "domain",
                                                 "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"], })
@@ -134,7 +134,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
 
     def test_extract_log_operation_s1(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
         f_module = self.get_module_mock(params={"lead_chassis_only": False, "log_type": "application",
-                                                "share_address": "192.168.0.1",
+                                                "share_address": "XX.XX.XX.XX",
                                                 "share_type": "NFS",
                                                 "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"], })
         ome_response_mock.json_data = {"value": [{"Id": 16011, "Type": 2000}]}
@@ -143,7 +143,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
         assert result["Id"] == 16011
 
     def test_main_succes_case(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        ome_default_args.update({"log_type": "support_assist_collection", "share_address": "192.168.0.1",
+        ome_default_args.update({"log_type": "support_assist_collection", "share_address": "XX.XX.XX.XX",
                                  "share_type": "NFS", "share_name": "iso", "share_user": "username",
                                  "share_password": "password", "share_domain": "domain",
                                  "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
@@ -170,7 +170,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
                                 "share domain, and share credentials provided are correct."
 
     def test_main_succes_case02(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        ome_default_args.update({"log_type": "supportassist_collection", "share_address": "192.168.0.1",
+        ome_default_args.update({"log_type": "supportassist_collection", "share_address": "XX.XX.XX.XX",
                                  "share_type": "CIFS", "share_name": "iso", "share_user": "username",
                                  "share_password": "password", "share_domain": "domain",
                                  "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
@@ -197,7 +197,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
                                 "share domain, and share credentials provided are correct."
 
     def test_main_succes_case03(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        ome_default_args.update({"log_type": "application", "share_address": "192.168.0.1",
+        ome_default_args.update({"log_type": "application", "share_address": "XX.XX.XX.XX",
                                  "share_type": "NFS", "share_name": "iso", "mask_sensitive_info": "true",
                                  "test_connection": True, "job_wait": True, "device_ids": [25011]})
         mocker.patch(MODULE_PATH + "check_domain_service", return_value=None)
@@ -222,7 +222,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
                                 "share domain, and share credentials provided are correct."
 
     def test_main_succes_case04(self, ome_conn_mock_diagnostics, ome_response_mock, ome_default_args, mocker):
-        ome_default_args.update({"log_type": "supportassist_collection", "share_address": "192.168.0.1",
+        ome_default_args.update({"log_type": "supportassist_collection", "share_address": "XX.XX.XX.XX",
                                  "share_type": "CIFS", "share_name": "iso", "share_user": "username",
                                  "share_password": "password", "share_domain": "domain",
                                  "mask_sensitive_info": "true", "log_selectors": ["OS_LOGS"],
@@ -252,7 +252,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
                              [IOError, ValueError, SSLError, TypeError, ConnectionError, HTTPError, URLError])
     def test_ome_diagnostics_main_exception_case(self, exc_type, mocker, ome_default_args,
                                                  ome_conn_mock_diagnostics, ome_response_mock):
-        ome_default_args.update({"log_type": "application", "share_address": "192.168.0.1",
+        ome_default_args.update({"log_type": "application", "share_address": "XX.XX.XX.XX",
                                  "share_type": "NFS", "mask_sensitive_info": False})
         ome_response_mock.status_code = 400
         ome_response_mock.success = False
@@ -267,7 +267,7 @@ class TestOMEDiagnostics(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True

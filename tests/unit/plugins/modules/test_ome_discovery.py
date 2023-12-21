@@ -251,7 +251,7 @@ class TestOmeDiscovery(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_schedule', return_value={})
         mocker.patch(MODULE_PATH + 'get_other_discovery_payload', return_value={})
         mocker.patch(MODULE_PATH + 'get_job_data', return_value=12)
-        mocker.patch(MODULE_PATH + 'get_execution_details', return_value=({"Completed": ["192.168.0.1"], "Failed": []},
+        mocker.patch(MODULE_PATH + 'get_execution_details', return_value=({"Completed": ["XX.XX.XX.XX"], "Failed": []},
                                                                           {"JobStatusId": 2050}))
         mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2050})
         mocker.patch(MODULE_PATH + 'discovery_job_tracking', return_value=(params['job_message']))
@@ -282,7 +282,7 @@ class TestOmeDiscovery(FakeAnsibleModule):
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_existing_discovery',
-                         side_effect=exc_type('http://testhost.com', 400, 'http error message',
+                         side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module_with_fail_json(ome_default_args)
             assert result['failed'] is True
@@ -304,7 +304,7 @@ class TestOmeDiscovery(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'get_other_discovery_payload', return_value={"DiscoveryConfigGroupId": 10})
         mocker.patch(MODULE_PATH + 'update_modify_payload', return_value=None)
         mocker.patch(MODULE_PATH + 'get_job_data', return_value=12)
-        mocker.patch(MODULE_PATH + 'get_execution_details', return_value=({"Completed": ["192.168.0.1"], "Failed": []},
+        mocker.patch(MODULE_PATH + 'get_execution_details', return_value=({"Completed": ["XX.XX.XX.XX"], "Failed": []},
                                                                           {"JobStatusId": 2050}))
         mocker.patch(MODULE_PATH + 'get_discovery_job', return_value={"JobStatusId": 2050})
         mocker.patch(MODULE_PATH + 'get_discovery_config', return_value={})
