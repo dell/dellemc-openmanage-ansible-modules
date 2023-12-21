@@ -122,13 +122,14 @@ dellemc.openmanage
     <td>certificate_type</td>
     <td>false</td>
     <td>HTTPS</td>
-    <td>'HTTPS', 'CA', 'CSC', 'CLIENT_TRUST_CERTIFICATE'</td>
+    <td>'HTTPS', 'CA', 'CSC', 'CLIENT_TRUST_CERTIFICATE', 'CUSTOMCERTIFICATE'</td>
     <td>str</td>
     <td>-Type of the iDRAC certificate:
       <br>- C(HTTPS) The Dell self-signed SSL certificate.
       <br>- C(CA) Certificate Authority(CA) signed SSL certificate.
       <br>- C(CSC) The custom signed SSL certificate.
-      <br>- C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.</td>
+      <br>- C(CLIENT_TRUST_CERTIFICATE) Client trust certificate.
+      <br>- C(CUSTOMCERTIFICATE) The custom PKCS12 certificate and private key. Export of custom certificate is supported only on iDRAC firmware version 7.00.00.00 and above.</td>
   </tr>
   <tr>
     <td>certificate_path</td>
@@ -146,6 +147,16 @@ dellemc.openmanage
     <td></td>
     <td>str</td>
     <td>- The passphrase string if the certificate to be imported is passphrase protected.</td>
+  </tr>
+  <tr>
+    <td>ssl_key</td>
+    <td>false</td>
+    <td></td>
+    <td></td>
+    <td>path</td>
+    <td>- Absolute path of the private or SSL key file.
+    <br>- This is applicable only when I(command) is C(import) and I(certificate_type) is C(HTTPS).
+    <br>- Uploading the SSL key on iDRAC is supported on version 6.00.02.00 and newer versions.<br></td>
   </tr>
   <tr>
     <td>cert_params</td>
@@ -326,7 +337,7 @@ dellemc.openmanage
 ```
 
 ```
-- name: Importing certificate.
+- name: Importing Custom Signing Certificate.
   ansible.builtin.import_role:
     name: idrac_certificate
   vars:
@@ -337,6 +348,21 @@ dellemc.openmanage
     command: "import"
     certificate_type: "CSC"
     certificate_path: "/path/to/cert.pem"
+```
+
+```
+- name: Import an HTTPS certificate with private key.
+  ansible.builtin.import_role:
+    name: idrac_certificate
+  vars:
+    hostname: "192.168.0.1"
+    username: "user_name"
+    password: "user_password"
+    ca_path: "/path/to/ca_cert.pem"
+    command: "import"
+    certificate_type: "HTTPS"
+    certificate_path: "/path/to/cert.pem"
+    ssl_key: "/path/to/ssl_key"
 ```
 
 ```
@@ -354,8 +380,7 @@ dellemc.openmanage
 ```
 
 ## Author Information
-
 ---
-
 Dell Technologies <br>
-Shivam Sharma (Shivam.Sharma3@Dell.com) 2023
+Shivam Sharma (Shivam.Sharma3@Dell.com) 2023<br>
+Jagadeesh N V (Jagadeesh.N.V@Dell.com) 2023
