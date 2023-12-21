@@ -457,10 +457,7 @@ def upload_ssl_key(module, idrac, actions, ssl_key, res_id):
 
         payload = {}
         payload = {'SSLKeyString': scert_file}
-        try:
-            idrac.invoke_request(upload_url.format(res_id=res_id), "POST", data=payload)
-        except HTTPError as err:
-            module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        idrac.invoke_request(upload_url.format(res_id=res_id), "POST", data=payload)
 
 
 def certificate_action(module, idrac, actions, operation, cert_type, res_id):
