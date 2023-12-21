@@ -5,8 +5,8 @@
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
-    user: "{{ username }}"
-    password: "{{ password }}"
+    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+    password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
     headers: "{{ idrac_gather_facts_uri_headers }}"
@@ -26,8 +26,8 @@
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
-    user: "{{ username }}"
-    password: "{{ password }}"
+    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
+    password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
     timeout: "{{ https_timeout }}"
     force_basic_auth: true
     headers: "{{ idrac_gather_facts_uri_headers }}"
