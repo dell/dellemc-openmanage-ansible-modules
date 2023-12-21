@@ -31,7 +31,7 @@ Bugfixes
 --------
 
 - Fixed an issue where the `NO_PROXY` environment variable was being ignored. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/554)
-- idrac_certificates - The `email_address` is no longer a required parameter. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/582).
+- idrac_certificates - The `email_address` has been made an optional parameter. (https://github.com/dell/dellemc-openmanage-ansible-modules/issues/582).
 
 Known Issues
 ------------
