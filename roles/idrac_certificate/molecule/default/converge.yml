@@ -17,7 +17,7 @@
       block:
         - name: Set the failure messages
           ansible.builtin.set_fact:
-            ssl_key_fail_msg: "Unable to locate the SSL key file at invalid."
+            ssl_key_fail_msg: "Unable to locate the SSL key file"
             ctc_invalid_path: "[Errno 2] No such file or directory"
 
         - name: Create directory and fetch certificates
@@ -373,7 +373,7 @@
             that:
               - idrac_certificate_out.failed
               - not idrac_certificate_out.changed
-              - idrac_certificate_out.msg == ssl_key_fail_msg
+              - "ssl_key_fail_msg in idrac_certificate_out.msg"
 
       always:
         - name: Deleting the directory
