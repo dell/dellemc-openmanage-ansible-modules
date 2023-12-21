@@ -12,7 +12,7 @@ Release Summary
 ---------------
 
 - Support for environment variables as fallback for credentials for all modules.
-- Enhanced idrac_certificates to support `CUSTOMCERTIFICATE` and upload of SSL key.
+- Enhanced idrac_certificates module and idrac_certificate role to support `CUSTOMCERTIFICATE` and `HTTPS` certificate import with SSL key.
 
 Major Changes
 -------------
