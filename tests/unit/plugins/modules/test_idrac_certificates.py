@@ -259,6 +259,35 @@ class TestIdracCertificates(FakeAnsibleModule):
             idrac_redfish_mock_for_certs, params.get('res_id'))
         assert idrac_srv == params['idrac_srv']
 
+    def test_write_to_file(self, idrac_default_args):
+        inv_dir = "/tmp/invalid/does/not/exist"
+        idrac_default_args.update({"certificate_path": inv_dir})
+        f_module = self.get_module_mock(params=idrac_default_args)
+        with pytest.raises(Exception) as ex:
+            self.module.write_to_file(f_module, {}, "dkey")
+        assert ex.value.args[0] == f"Provided directory path '{inv_dir}' is not valid."
+        temp_dir = tempfile.mkdtemp()
+        os.chmod(temp_dir, 0o000)
+        idrac_default_args.update({"certificate_path": temp_dir})
+        with pytest.raises(Exception) as ex:
+            self.module.write_to_file(f_module, {}, "dkey")
+        assert ex.value.args[0] == f"Provided directory path '{temp_dir}' is not writable. Please check if you have appropriate permissions."
+        os.removedirs(temp_dir)
+
+    def test_upload_ssl_key(self, idrac_default_args):
+        temp_ssl = tempfile.NamedTemporaryFile(delete=False)
+        temp_ssl.write(b'ssl_key')
+        temp_ssl.close()
+        f_module = self.get_module_mock(params=idrac_default_args)
+        with pytest.raises(Exception) as ex:
+            self.module.upload_ssl_key(f_module, {}, {}, temp_ssl.name, "res_id")
+        assert ex.value.args[0] == "Upload of SSL key not supported"
+        os.chmod(temp_ssl.name, 0o000)
+        with pytest.raises(Exception) as ex:
+            self.module.upload_ssl_key(f_module, {}, {}, temp_ssl.name, "res_id")
+        assert "Permission denied" in ex.value.args[0]
+        os.remove(temp_ssl.name)
+
     @pytest.mark.parametrize("params", [{"json_data": {
         "Actions": {
             EXPORT_SSL_CERTIFICATE: {
