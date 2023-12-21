@@ -1,0 +1,18 @@
+---
+- name: Create private key is present
+  community.crypto.openssl_privatekey:
+    path: "{{ lookup('env', 'path_for_import_cert') }}cert.key"
+    size: 2048
+    type: RSA
+  check_mode: false
+  no_log: true
+  delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
+
+- name: Ensure self-signed cert is present
+  community.crypto.x509_certificate:
+    path: "{{ lookup('env', 'path_for_import_cert') }}cert.pem"
+    privatekey_path: "{{ lookup('env', 'path_for_import_cert') }}cert.key"
+    provider: selfsigned
+  check_mode: false
+  no_log: true
+  delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"

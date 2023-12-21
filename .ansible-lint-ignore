@@ -82,6 +82,8 @@ roles/idrac_certificate/molecule/default/converge.yml var-naming[no-role-prefix]
 roles/idrac_certificate/molecule/generateCSR/converge.yml var-naming[no-role-prefix]
 roles/idrac_certificate/molecule/HTTPS/converge.yml var-naming[no-role-prefix]
 roles/idrac_certificate/molecule/reset/converge.yml var-naming[no-role-prefix]
+roles/idrac_certificate/molecule/CustomCertificate/converge.yml var-naming[no-role-prefix]
+roles/idrac_certificate/molecule/SSLKEY/converge.yml var-naming[no-role-prefix]
 
 roles/idrac_boot/defaults/main.yml var-naming[no-role-prefix]
 roles/idrac_boot/molecule/boot_options_using_boot_option_reference_enabled_true/converge.yml var-naming[no-role-prefix]

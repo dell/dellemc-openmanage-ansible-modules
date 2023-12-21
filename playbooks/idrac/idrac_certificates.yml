@@ -36,6 +36,18 @@
         certificate_path: "/path/to/cert.pem"
       delegate_to: localhost
 
+    - name: Import an HTTPS certificate along with its private key.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "HTTPS"
+        certificate_path: "/path/to/cert.pem"
+        ssl_key: "/path/to/private_key.pem"
+      delegate_to: localhost
+
     - name: Export a SSL certificate.
       dellemc.openmanage.idrac_certificates:
         idrac_ip: "{{ idrac_ip }}"
@@ -56,6 +68,18 @@
         command: "import"
         certificate_type: "CSC"
         certificate_path: "/path/to/cert.pem"
+      delegate_to: localhost
+
+    - name: Import a custom certificate with a passphrase.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        command: "import"
+        certificate_type: "CUSTOMCERTIFICATE"
+        certificate_path: "/path/to/idrac_cert.p12"
+        passphrase: "cert_passphrase"
+        reset: false
       delegate_to: localhost
 
     - name: Export a Client trust certificate.

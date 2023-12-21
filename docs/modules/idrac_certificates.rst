@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.8.6
 
 
 
@@ -28,35 +28,45 @@ Parameters
 ----------
 
   command (optional, str, generate_csr)
-    ``generate_csr``, generate CSR. This requires *cert_params* and *certificate_path*. This is applicable only for ``HTTPS``
+    \ :literal:`generate\_csr`\ , generate CSR. This requires \ :emphasis:`cert\_params`\  and \ :emphasis:`certificate\_path`\ . This is applicable only for \ :literal:`HTTPS`\ 
 
-    ``import``, import the certificate file. This requires *certificate_path*.
+    \ :literal:`import`\ , import the certificate file. This requires \ :emphasis:`certificate\_path`\ .
 
-    ``export``, export the certificate. This requires *certificate_path*.
+    \ :literal:`export`\ , export the certificate. This requires \ :emphasis:`certificate\_path`\ .
 
-    ``reset``, reset the certificate to default settings. This is applicable only for ``HTTPS``.
+    \ :literal:`reset`\ , reset the certificate to default settings. This is applicable only for \ :literal:`HTTPS`\ .
 
 
   certificate_type (optional, str, HTTPS)
     Type of the iDRAC certificate.
 
-    ``HTTPS`` The Dell self-signed SSL certificate.
+    \ :literal:`HTTPS`\  The Dell self-signed SSL certificate.
 
-    ``CA`` Certificate Authority(CA) signed SSL certificate.
+    \ :literal:`CA`\  Certificate Authority(CA) signed SSL certificate.
 
-    ``CSC`` The custom signed SSL certificate.
+    \ :literal:`CUSTOMCERTIFICATE`\  The custom PKCS12 certificate and private key. Export of custom certificate is supported only on iDRAC firmware version 7.00.00.00 and above.
 
-    ``CLIENT_TRUST_CERTIFICATE`` Client trust certificate.
+    \ :literal:`CSC`\  The custom signing SSL certificate.
+
+    \ :literal:`CLIENT\_TRUST\_CERTIFICATE`\  Client trust certificate.
 
 
   certificate_path (optional, path, None)
-    Absolute path of the certificate file if *command* is ``import``.
+    Absolute path of the certificate file if \ :emphasis:`command`\  is \ :literal:`import`\ .
 
-    Directory path with write permissions if *command* is ``generate_csr`` or ``export``.
+    Directory path with write permissions if \ :emphasis:`command`\  is \ :literal:`generate\_csr`\  or \ :literal:`export`\ .
 
 
   passphrase (optional, str, None)
     The passphrase string if the certificate to be imported is passphrase protected.
+
+
+  ssl_key (optional, path, None)
+    Absolute path of the private or SSL key file.
+
+    This is applicable only when \ :emphasis:`command`\  is \ :literal:`import`\  and \ :emphasis:`certificate\_type`\  is \ :literal:`HTTPS`\ .
+
+    Uploading the SSL key to iDRAC is supported on firmware version 6.00.02.00 and above.
 
 
   cert_params (optional, dict, None)
@@ -83,7 +93,7 @@ Parameters
       The country code of the country where the entity applying for certification is located.
 
 
-    email_address (True, str, None)
+    email_address (optional, str, None)
       The email associated with the CSR.
 
 
@@ -103,13 +113,13 @@ Parameters
   reset (optional, bool, True)
     To reset the iDRAC after the certificate operation.
 
-    This is applicable when *command* is ``import`` or ``reset``.
+    This is applicable when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`reset`\ .
 
 
   wait (optional, int, 300)
     Maximum wait time for iDRAC to start after the reset, in seconds.
 
-    This is applicable when *command* is ``import`` or ``reset`` and *reset* is ``true``.
+    This is applicable when \ :emphasis:`command`\  is \ :literal:`import`\  or \ :literal:`reset`\  and \ :emphasis:`reset`\  is \ :literal:`true`\ .
 
 
   idrac_ip (True, str, None)
@@ -129,11 +139,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -151,9 +161,10 @@ Notes
 -----
 
 .. note::
-   - The certificate operations are supported on iDRAC firmware 5.10.10.00 and above.
+   - The certificate operations are supported on iDRAC firmware version 6.10.80.00 and above.
    - Run this module from a system that has direct access to Dell iDRAC.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
+   - This module supports IPv4 and IPv6 addresses.
 
 
 
@@ -195,6 +206,17 @@ Examples
         certificate_type: "HTTPS"
         certificate_path: "/path/to/cert.pem"
 
+    - name: Import an HTTPS certificate along with its private key.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        ca_path: "/path/to/ca_cert.pem"
+        command: "import"
+        certificate_type: "HTTPS"
+        certificate_path: "/path/to/cert.pem"
+        ssl_key: "/path/to/private_key.pem"
+
     - name: Export a HTTPS certificate.
       dellemc.openmanage.idrac_certificates:
         idrac_ip: "192.168.0.1"
@@ -215,6 +237,17 @@ Examples
         certificate_type: "CSC"
         certificate_path: "/path/to/cert.pem"
 
+    - name: Import a custom certificate with a passphrase.
+      dellemc.openmanage.idrac_certificates:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "user_name"
+        idrac_password: "user_password"
+        command: "import"
+        certificate_type: "CUSTOMCERTIFICATE"
+        certificate_path: "/path/to/idrac_cert.p12"
+        passphrase: "cert_passphrase"
+        reset: false
+
     - name: Export a Client trust certificate.
       dellemc.openmanage.idrac_certificates:
         idrac_ip: "192.168.0.1"
@@ -230,7 +263,7 @@ Examples
 Return Values
 -------------
 
-msg (always, str, Successfully performed the operation generate_csr.)
+msg (always, str, Successfully performed the 'generate_csr' certificate operation.)
   Status of the certificate configuration operation.
 
 
@@ -256,4 +289,6 @@ Authors
 ~~~~~~~
 
 - Jagadeesh N V(@jagadeeshnv)
+- Rajshekar P(@rajshekarp87)
+- Kristian Lamb V(@kristian_lamb)
 

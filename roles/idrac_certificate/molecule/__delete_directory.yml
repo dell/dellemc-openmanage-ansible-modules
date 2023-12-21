@@ -1,0 +1,6 @@
+---
+- name: Delete the directory
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'path_for_import_cert') }}"
+    state: absent
+  delegate_to: "{{ lookup('env', 'idrac_certificate_delegate_to') }}"
