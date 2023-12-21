@@ -24,7 +24,7 @@ Major Changes
 Minor Changes
 -------------
 
-- idrac_certificates - The `email_address` is no longer a required parameter.
+- idrac_certificates module and idrac_certificate role - The `email_address` has been made an optional parameter.
 - idrac_certificates - The module and role are enhanced to support upload of SSL key along with `HTTPS` certificate.
 
 Bugfixes
