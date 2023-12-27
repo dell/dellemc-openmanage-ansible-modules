@@ -12,6 +12,10 @@ platforms:
       - /tmp:/tmp
 provisioner:
   name: ansible
+  inventory:
+    group_vars:
+      all:
+        idrac_delegate_to: localhost
   env:
     RUNON: ""
     idrac_certificate_delegate_to: localhost
