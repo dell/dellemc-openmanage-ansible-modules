@@ -28,7 +28,6 @@
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
             job_id: JID_12345678
-            idrac_job_queue_delegate: "{{ idrac_delegate_to }}"
       rescue:
         - name: "Verifying invalid job deletion from the job queue"
           ansible.builtin.assert:
@@ -45,7 +44,6 @@
             username: "{{ lookup('env', 'IDRAC_USERNAME') }}"
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             clear_job_queue: true
-            idrac_job_queue_delegate: "{{ idrac_delegate_to }}"
             validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
 
       rescue:
@@ -65,7 +63,6 @@
             username: "invalidUsername"
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             clear_job_queue: true
-            idrac_job_queue_delegate: "{{ idrac_delegate_to }}"
             validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
 
       rescue:
@@ -84,7 +81,6 @@
             username: "{{ lookup('env', 'IDRAC_USERNAME') }}"
             password: "invalidPassword"
             clear_job_queue: true
-            idrac_job_queue_delegate: "{{ idrac_delegate_to }}"
             validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
 
       rescue:

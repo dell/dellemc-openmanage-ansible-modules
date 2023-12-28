@@ -10,8 +10,6 @@
           username: "{{ lookup('env', 'IDRAC_USERNAME') }}"
           password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
           validate_certs: false
-          idrac_import_server_config_profile_delagate: "{{ idrac_delegate_to }}"
-          idrac_job_queue_delegate: "{{ idrac_delegate_to }}"
       no_log: true
 
     - name: Creating a job to which configures iDRAC attributes
