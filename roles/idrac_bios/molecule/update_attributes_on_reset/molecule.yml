@@ -2,6 +2,8 @@
 scenario:
   test_sequence:
     - create
+    - prepare
     - check
     - converge
+    - cleanup
     - destroy
