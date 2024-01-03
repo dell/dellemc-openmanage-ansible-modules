@@ -26,5 +26,4 @@
   ansible.builtin.set_fact:
     controller:
       "{{ result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Members', 'defined') |
-      map(attribute='Members') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.id',
-      '@odata.type']) }}"
+      map(attribute='Members') | flatten | ansible.utils.remove_keys(target=['^.*@odata.*$'], matching_parameter= 'regex') }}"
