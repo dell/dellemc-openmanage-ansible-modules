@@ -1,21 +1,30 @@
 ---
-- name: Get Controller information.
+- name: Get Storage information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Storage/Oem/Dell/DellControllers"
-    validate_certs: "{{ validate_certs }}"
-    ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ idrac_gather_facts_uri_method }}"
-    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
-    password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
-    timeout: "{{ https_timeout }}"
-    force_basic_auth: true
-    headers: "{{ idrac_gather_facts_uri_headers }}"
-    body_format: "{{ idrac_gather_facts_uri_body_format }}"
-    status_code: "{{ idrac_gather_facts_uri_status_code }}"
-    return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: controller_result
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Storage/?$expand=*($levels=1)"
+  register: disk_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+  no_log: true
+
+- name: Get all storage controllers.
+  ansible.builtin.set_fact:
+    controllers_list: "{{ disk_result.json.Members | selectattr('Controllers', 'defined') | map(attribute='Controllers') }}"
+
+- name: Select list of values from dictionary
+  ansible.builtin.set_fact:
+    collected_values: "{{ (collected_values | default([])) + [item['@odata.id']] }}"
+  loop: "{{ controllers_list }}"
+
+- name: Get Controllers information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}:{{ https_port }}{{ item }}?$expand=*($levels=1)"
+  loop: "{{ collected_values }}"
+  register: result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
-- name: Set Controller facts
+- name: Set All Controllers facts
   ansible.builtin.set_fact:
-    controller: "{{ controller_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+    controller:
+      "{{ result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Members', 'defined') |
+      map(attribute='Members') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.id',
+      '@odata.type']) }}"

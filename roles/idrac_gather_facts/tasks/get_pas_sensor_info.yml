@@ -2,17 +2,6 @@
 - name: Get PresenceAndStatusSensor information.
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ api_system }}/Oem/Dell/DellPresenceAndStatusSensors"
-    validate_certs: "{{ validate_certs }}"
-    ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ idrac_gather_facts_uri_method }}"
-    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
-    password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
-    timeout: "{{ https_timeout }}"
-    force_basic_auth: true
-    headers: "{{ idrac_gather_facts_uri_headers }}"
-    body_format: "{{ idrac_gather_facts_uri_body_format }}"
-    status_code: "{{ idrac_gather_facts_uri_status_code }}"
-    return_content: "{{ idrac_gather_facts_uri_return_content }}"
   register: pas_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
