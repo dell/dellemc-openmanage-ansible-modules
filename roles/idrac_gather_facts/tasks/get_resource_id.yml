@@ -8,6 +8,7 @@
 - name: Get first System Id from the system response
   ansible.builtin.set_fact:
     api_system: "{{ system_api_result.json.Members[0]['@odata.id'] | default('') }}"
+    computer_system_id: "{{ system_api_result.json.Members[0]['@odata.id'] | split('/') | last | default('System.Embedded.1') }}"
   when: computer_system_id == ''
 
 - name: Get all system Ids

@@ -1,7 +1,7 @@
 ---
 - name: Get System information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/System.Embedded.1"
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
   register: sys_attr
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
