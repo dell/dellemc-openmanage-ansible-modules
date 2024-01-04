@@ -354,6 +354,271 @@ ansible.utils
 "TW-0919J9-PIHIT-8AB-02K7-A00", "PowerStatus": "On", "PredictiveFailureState": "SmartAlertAbsent", "ProductID": null, "RAIDType": "Unknown", "RaidStatus": "NonRAID", "SASAddress": "Not Applicable", "Slot": 1, "SystemEraseCapability": "CryptographicErasePD", "T10PICapability": "NotSupported", "UsedSizeInBytes": 0, "WWN": "Not Applicable"}}}, "Operations": [], "PartNumber": "TW-0919J9-PIHIT-8AB-02K7-A00", "PhysicalLocation": {"PartLocation": {"LocationOrdinalValue": 1, "LocationType": "Slot"}}, "PredictedMediaLifeLeftPercent": 100, "Protocol": "SATA", "Revision": "N201DL43", "RotationSpeedRPM": null, "SerialNumber": "PHDW8396015V240E", "Status": {"Health": "OK", "HealthRollup": "OK", "State": "Enabled"}, "WriteCacheEnabled": false}]</td>
     <td>Response facts details for physical_disk.</td>
     </tr>
+    <tr>
+    <td>secure_boot</td>
+    <td>{
+            "Actions": {
+                "#SecureBoot.ResetKeys": {
+                    "ResetKeysType@Redfish.AllowableValues": [
+                        "ResetAllKeysToDefault",
+                        "DeleteAllKeys",
+                        "DeletePK",
+                        "ResetPK",
+                        "ResetKEK",
+                        "ResetDB",
+                        "ResetDBX"
+                    ],
+                    "target": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/Actions/SecureBoot.ResetKeys"
+                },
+                "Oem": {}
+            },
+            "Description": "UEFI Secure Boot",
+            "Id": "SecureBoot",
+            "Name": "UEFI Secure Boot",
+            "Oem": {
+                "Dell": {
+                    "Certificates": {},
+                    "FirmwareImageHashes": {}
+                }
+            },
+            "SecureBootCurrentBoot": "Disabled",
+            "SecureBootDatabases": [
+                {
+                    "Actions": {
+                        "#SecureBootDatabase.ResetKeys": {
+                            "ResetKeysType@Redfish.AllowableValues": [
+                                "ResetAllKeysToDefault",
+                                "DeleteAllKeys"
+                            ],
+                            "target": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/db/Actions/SecureBootDatabase.ResetKeys"
+                        }
+                    },
+                    "Certificates": [
+                        {
+                            "CertificateString": null,
+                            "CertificateType": "PEM",
+                            "CertificateUsageTypes": [
+                                "BIOS"
+                            ],
+                            "Description": "SecureBoot Certificate",
+                            "Id": "StdSecbootpolicy.3",
+                            "Issuer": {
+                                "City": "Redmond",
+                                "CommonName": "Microsoft Corporation Third Party Marketplace Root",
+                                "Country": "US",
+                                "Organization": "Microsoft Corporation",
+                                "State": "Washington"
+                            },
+                            "Name": "SecureBoot Certificate",
+                            "SerialNumber": "6108D3C4000000000004",
+                            "Subject": {
+                                "City": "Redmond",
+                                "CommonName": "Microsoft Corporation UEFI CA 2011",
+                                "Country": "US",
+                                "Organization": "Microsoft Corporation",
+                                "State": "Washington"
+                            },
+                            "ValidNotAfter": "2026-6-27T21:32:45+00:00",
+                            "ValidNotBefore": "2011-6-27T21:22:45+00:00"
+                        },
+                        {
+                            "CertificateString": null,
+                            "CertificateType": "PEM",
+                            "CertificateUsageTypes": [
+                                "BIOS"
+                            ],
+                            "Description": "SecureBoot Certificate",
+                            "Id": "StdSecbootpolicy.4",
+                            "Issuer": {
+                                "City": "Redmond",
+                                "CommonName": "Microsoft Root Certificate Authority 2010",
+                                "Country": "US",
+                                "Organization": "Microsoft Corporation",
+                                "State": "Washington"
+                            },
+                            "Name": "SecureBoot Certificate",
+                            "SerialNumber": "61077656000000000008",
+                            "Subject": {
+                                "City": "Redmond",
+                                "CommonName": "Microsoft Windows Production PCA 2011",
+                                "Country": "US",
+                                "Organization": "Microsoft Corporation",
+                                "State": "Washington"
+                            },
+                            "ValidNotAfter": "2026-10-19T18:51:42+00:00",
+                            "ValidNotBefore": "2011-10-19T18:41:42+00:00"
+                        },
+                        {
+                            "CertificateString": null,
+                            "CertificateType": "PEM",
+                            "CertificateUsageTypes": [
+                                "BIOS"
+                            ],
+                            "Description": "SecureBoot Certificate",
+                            "Id": "StdSecbootpolicy.5",
+                            "Issuer": {
+                                "City": "Palo Alto",
+                                "Country": "US",
+                                "Organization": "VMware, Inc.",
+                                "State": "California"
+                            },
+                            "Name": "SecureBoot Certificate",
+                            "SerialNumber": "E9D9FF69E6F3E7E4",
+                            "Subject": {
+                                "City": "Palo Alto",
+                                "Country": "US",
+                                "Organization": "VMware, Inc.",
+                                "State": "California"
+                            },
+                            "ValidNotAfter": "2019-12-31T17:16:05+00:00",
+                            "ValidNotBefore": "2008-10-16T17:16:05+00:00"
+                        },
+                        {
+                            "CertificateString": null,
+                            "CertificateType": "PEM",
+                            "CertificateUsageTypes": [
+                                "BIOS"
+                            ],
+                            "Description": "SecureBoot Certificate",
+                            "Id": "StdSecbootpolicy.6",
+                            "Issuer": {
+                                "City": "Palo Alto",
+                                "CommonName": "VMware Secure Boot Signing",
+                                "Country": "US",
+                                "Organization": "VMware, Inc.",
+                                "State": "California"
+                            },
+                            "Name": "SecureBoot Certificate",
+                            "SerialNumber": "E34CA75A0A615853",
+                            "Subject": {
+                                "City": "Palo Alto",
+                                "CommonName": "VMware Secure Boot Signing",
+                                "Country": "US",
+                                "Organization": "VMware, Inc.",
+                                "State": "California"
+                            },
+                            "ValidNotAfter": "2037-10-19T06:47:59+00:00",
+                            "ValidNotBefore": "2017-10-24T06:47:59+00:00"
+                        }
+                    ],
+                    "DatabaseId": "db",
+                    "Description": "SecureBootDatabase",
+                    "Id": "db",
+                    "Name": "SecureBootDatabase",
+                    "Signatures": {}
+                },
+                {
+                    "Actions": {
+                        "#SecureBootDatabase.ResetKeys": {
+                            "ResetKeysType@Redfish.AllowableValues": [
+                                "ResetAllKeysToDefault",
+                                "DeleteAllKeys"
+                            ],
+                            "target": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/dbx/Actions/SecureBootDatabase.ResetKeys"
+                        }
+                    },
+                    "Certificates": [],
+                    "DatabaseId": "dbx",
+                    "Description": "SecureBootDatabase",
+                    "Id": "dbx",
+                    "Name": "SecureBootDatabase",
+                    "Signatures": {}
+                },
+                {
+                    "Actions": {
+                        "#SecureBootDatabase.ResetKeys": {
+                            "ResetKeysType@Redfish.AllowableValues": [
+                                "ResetAllKeysToDefault",
+                                "DeleteAllKeys"
+                            ],
+                            "target": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/KEK/Actions/SecureBootDatabase.ResetKeys"
+                        }
+                    },
+                    "Certificates": [
+                        {
+                            "CertificateString": null,
+                            "CertificateType": "PEM",
+                            "CertificateUsageTypes": [
+                                "BIOS"
+                            ],
+                            "Description": "SecureBoot Certificate",
+                            "Id": "StdSecbootpolicy.2",
+                            "Issuer": {
+                                "City": "Redmond",
+                                "CommonName": "Microsoft Corporation Third Party Marketplace Root",
+                                "Country": "US",
+                                "Organization": "Microsoft Corporation",
+                                "State": "Washington"
+                            },
+                            "Name": "SecureBoot Certificate",
+                            "SerialNumber": "610AD188000000000003",
+                            "Subject": {
+                                "City": "Redmond",
+                                "CommonName": "Microsoft Corporation KEK CA 2011",
+                                "Country": "US",
+                                "Organization": "Microsoft Corporation",
+                                "State": "Washington"
+                            },
+                            "ValidNotAfter": "2026-6-24T20:51:29+00:00",
+                            "ValidNotBefore": "2011-6-24T20:41:29+00:00"
+                        }
+                    ],
+                    "DatabaseId": "KEK",
+                    "Description": "SecureBootDatabase",
+                    "Id": "KEK",
+                    "Name": "SecureBootDatabase",
+                    "Signatures": {}
+                },
+                {
+                    "Actions": {
+                        "#SecureBootDatabase.ResetKeys": {
+                            "ResetKeysType@Redfish.AllowableValues": [
+                                "ResetAllKeysToDefault",
+                                "DeleteAllKeys"
+                            ],
+                            "target": "/redfish/v1/Systems/System.Embedded.1/SecureBoot/SecureBootDatabases/PK/Actions/SecureBootDatabase.ResetKeys"
+                        }
+                    },
+                    "Certificates": [
+                        {
+                            "CertificateString": null,
+                            "CertificateType": "PEM",
+                            "CertificateUsageTypes": [
+                                "BIOS"
+                            ],
+                            "Description": "SecureBoot Certificate",
+                            "Id": "StdSecbootpolicy.1",
+                            "Issuer": {
+                                "City": "Round Rock",
+                                "CommonName": "Dell Inc. Platform Key",
+                                "Country": "US",
+                                "Organization": "Dell Inc.",
+                                "State": "Texas"
+                            },
+                            "Name": "SecureBoot Certificate",
+                            "SerialNumber": "18E0E033DB57CD984ABB23689D61BE4D",
+                            "Subject": {
+                                "City": "Round Rock",
+                                "CommonName": "Dell Inc. Platform Key",
+                                "Country": "US",
+                                "Organization": "Dell Inc.",
+                                "State": "Texas"
+                            },
+                            "ValidNotAfter": "2031-2-2T17:27:36+00:00",
+                            "ValidNotBefore": "2016-2-2T17:17:37+00:00"
+                        }
+                    ],
+                    "DatabaseId": "PK",
+                    "Description": "SecureBootDatabase",
+                    "Id": "PK",
+                    "Name": "SecureBootDatabase",
+                    "Signatures": {}
+                }
+            ],
+            "SecureBootEnable": false,
+            "SecureBootMode": "DeployedMode"
+        }</td>
+    </tr>
 </tbody>
 </table>
 

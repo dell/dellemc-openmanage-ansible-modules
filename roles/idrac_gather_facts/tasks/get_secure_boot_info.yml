@@ -20,10 +20,6 @@
   register: secure_boot_results
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
-- name: Get Secureboot all results information.
-  ansible.builtin.debug:
-    var: secure_boot_results
-
 - name: Combine certificates with corresponding db information.
   ansible.builtin.set_fact:
     secure_boot_interim: "{{ secure_boot_interim | default([]) + [sec_boot_cert['sec_boot_db_item'] |
@@ -32,11 +28,7 @@
   loop_control:
     loop_var: sec_boot_cert
 
-- name: Get Secureboot FINAL results information.
-  ansible.builtin.debug:
-    var: secure_boot_interim
-
-- name: FInally stitch the DB and certificates together.
+- name: Combine the DB and certificates into secure boot.
   ansible.builtin.set_fact:
     secure_boot: "{{ secure_boot_result.json | combine({'SecureBootDatabases': secure_boot_interim}) |
      ansible.utils.remove_keys(target=['^.*@odata.*$'], matching_parameter='regex') }}"
