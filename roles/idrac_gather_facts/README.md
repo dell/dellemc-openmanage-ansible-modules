@@ -119,7 +119,7 @@ ansible.utils
     <td>- System <br> - BIOS <br> - Controller <br> - CPU <br> - Enclosure <br> - EnclosureEMM <br> - Fan <br>
         - Firmware <br> - HostNIC <br> - License <br> - Memory <br> - NIC <br> - PCIeSSDBackPlane <br>
         - PowerSupply <br> - PresenceAndStatusSensor <br> - Sensors_Battery <br> - Sensors_Intrusion <br>
-        - Sensors_Voltage <br> - VirtualDisk <br> - PCIeDevice <br> - PhysicalDisk <br> - SystemMetrics</td>
+        - Sensors_Voltage <br> - VirtualDisk <br> - PCIeDevice <br> - PhysicalDisk <br> - SystemMetrics<br> - SecureBoot</td>
     <td>list</td>
     <td>- I(target) component for which information needs to be gathered.</td>
   </tr>
@@ -151,7 +151,117 @@ ansible.utils
     </tr>
     <tr>
     <td>controller</td>
-    <td>[{"AlarmState": "AlarmNotPresent", "AutoConfigBehavior": "Off", "BootVirtualDiskFQDD": null, "CacheSizeInMB": 8192, "CachecadeCapability": "NotSupported", "ConnectorCount": 4, "ControllerFirmwareVersion": "51.16.0-4076", "CurrentControllerMode": "RAID", "Description": "An instance of DellController will have RAID Controller specific data.", "Device": "0", "DeviceCardDataBusWidth": "8x or x8", "DeviceCardSlotLength": "Other", "DeviceCardSlotType": "PCI Express Gen3 x16", "DriverVersion": null, "EncryptionCapability": "LocalKeyManagementCapable", "EncryptionMode": "LocalKeyManagement", "Id": "RAID.Mezzanine.1C-1", "KeyID": "Root@123", "LastSystemInventoryTime": "2019-08-09T13:23:32+00:00", "LastUpdateTime": "2022-09-23T23:44:26+00:00", "MaxAvailablePCILinkSpeed": null, "MaxPossiblePCILinkSpeed": null, "Name": "DellController", "PCISlot": 6, "PatrolReadState": "Unknown", "PersistentHotspare": "Disabled", "RealtimeCapability": "Incapable", "RollupStatus": "Unknown", "SASAddress": "54CD98F03C1A9400", "SecurityStatus": "SecurityKeyAssigned", "SharedSlotAssignmentAllowed": "NotAllowed", "SlicedVDCapability": "Supported", "SupportControllerBootMode": "NotSupported", "SupportEnhancedAutoForeignImport": "Supported", "SupportRAID10UnevenSpans": "Supported", "SupportsLKMtoSEKMTransition": "No", "T10PICapability": "NotSupported"}]</td>
+    <td>[{
+                "@Redfish.Settings": {
+                    "SettingsObject": {},
+                    "SupportedApplyTimes": [
+                        "Immediate",
+                        "OnReset",
+                        "AtMaintenanceWindowStart",
+                        "InMaintenanceWindowOnReset"
+                    ]
+                },
+                "Assembly": {},
+                "CacheSummary": {
+                    "TotalCacheSizeMiB": 0
+                },
+                "ControllerRates": {
+                    "ConsistencyCheckRatePercent": null,
+                    "RebuildRatePercent": null
+                },
+                "Description": "Integrated AHCI controller 1",
+                "FirmwareVersion": "2.6.13.3025",
+                "Id": "AHCI.Integrated.1-1",
+                "Identifiers": [
+                    {
+                        "DurableName": null,
+                        "DurableNameFormat": null
+                    }
+                ],
+                "Links": {
+                    "PCIeFunctions": []
+                },
+                "Manufacturer": "DELL",
+                "Model": "BOSS-S1",
+                "Name": "BOSS-S1",
+                "Oem": {
+                    "Dell": {
+                        "DellStorageController": {
+                            "AlarmState": "AlarmNotSupported",
+                            "AutoConfigBehavior": "NotApplicable",
+                            "BackgroundInitializationRatePercent": null,
+                            "BatteryLearnMode": null,
+                            "BootVirtualDiskFQDD": null,
+                            "CacheSizeInMB": 0,
+                            "CachecadeCapability": "NotSupported",
+                            "CheckConsistencyMode": null,
+                            "ConnectorCount": 0,
+                            "ControllerBootMode": null,
+                            "ControllerFirmwareVersion": "2.6.13.3025",
+                            "ControllerMode": null,
+                            "CopybackMode": null,
+                            "CurrentControllerMode": "NotSupported",
+                            "Device": "0",
+                            "DeviceCardDataBusWidth": "4x or x4",
+                            "DeviceCardSlotLength": "Other",
+                            "DeviceCardSlotType": "M.2 Socket 3 (Mechanical Key M)",
+                            "DriverVersion": null,
+                            "EncryptionCapability": "None",
+                            "EncryptionMode": "None",
+                            "EnhancedAutoImportForeignConfigurationMode": null,
+                            "KeyID": null,
+                            "LastSystemInventoryTime": "2023-12-31T12:25:07+00:00",
+                            "LastUpdateTime": "2023-12-31T18:50:12+00:00",
+                            "LoadBalanceMode": null,
+                            "MaxAvailablePCILinkSpeed": null,
+                            "MaxDrivesInSpanCount": 2,
+                            "MaxPossiblePCILinkSpeed": null,
+                            "MaxSpansInVolumeCount": 1,
+                            "MaxSupportedVolumesCount": 1,
+                            "PCISlot": null,
+                            "PatrolReadIterationsCount": 0,
+                            "PatrolReadMode": null,
+                            "PatrolReadRatePercent": null,
+                            "PatrolReadState": "Unknown",
+                            "PatrolReadUnconfiguredAreaMode": null,
+                            "PersistentHotspare": "NotApplicable",
+                            "RAIDMode": "None",
+                            "RealtimeCapability": "Incapable",
+                            "ReconstructRatePercent": null,
+                            "RollupStatus": "OK",
+                            "SASAddress": "0",
+                            "SecurityStatus": "EncryptionNotCapable",
+                            "SharedSlotAssignmentAllowed": "NotApplicable",
+                            "SlicedVDCapability": "NotSupported",
+                            "SpindownIdleTimeSeconds": 0,
+                            "SupportControllerBootMode": "NotSupported",
+                            "SupportEnhancedAutoForeignImport": "NotSupported",
+                            "SupportRAID10UnevenSpans": "NotSupported",
+                            "SupportedInitializationTypes": [
+                                "Fast"
+                            ],
+                            "SupportsLKMtoSEKMTransition": "No",
+                            "T10PICapability": "NotSupported"
+                        }
+                    }
+                },
+                "SpeedGbps": 6.0,
+                "Status": {
+                    "Health": "OK",
+                    "HealthRollup": "OK",
+                    "State": "Enabled"
+                },
+                "SupportedControllerProtocols": [
+                    "PCIe"
+                ],
+                "SupportedDeviceProtocols": [
+                    "SATA"
+                ],
+                "SupportedRAIDTypes": [
+                    "RAID1"
+                ]
+            }
+        ]</td>
     <td>Response facts details for controller.</td>
     </tr>
     <tr>
@@ -284,7 +394,7 @@ ansible.utils
 ```
 
 ```
-- name: iDRAC gather facts for Memory, NIC, PCIeSSDBackPlane, PowerSupply, PresenceAndStatusSensor.
+- name: iDRAC gather facts for Memory, NIC, PCIeSSDBackPlane, PowerSupply, PresenceAndStatusSensor, SecureBoot.
   ansible.builtin.import_role:
     name: idrac_gather_facts
   vars:
@@ -298,6 +408,7 @@ ansible.utils
       - PCIeSSDBackPlane
       - PowerSupply
       - PresenceAndStatusSensor
+      - SecureBoot
 ```
 
 ```
@@ -323,4 +434,5 @@ ansible.utils
 ------------------
 
 Dell Technologies <br>
-Felix Stephen A (felix_s@dell.com) 2023
+Felix Stephen A (felix_s@dell.com) 2023 <br>
+Jagadeesh N V (jagadeesh_n_v@dell.com)

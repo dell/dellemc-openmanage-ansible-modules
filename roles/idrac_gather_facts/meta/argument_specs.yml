@@ -70,5 +70,6 @@ argument_specs:
             "PCIeDevice",
             "PhysicalDisk",
             "SystemMetrics",
+            "SecureBoot"
           ]
         default: System

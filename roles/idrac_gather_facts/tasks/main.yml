@@ -38,6 +38,7 @@
       PCIeDevice: get_pcie_device_info.yml
       PhysicalDisk: get_physical_info.yml
       SystemMetrics: get_metrics_info.yml
+      SecureBoot: get_secure_boot_info.yml
   block:
     - name: Check whether atleast one of 'IDRAC_USERNAME' or username is provided
       ansible.builtin.fail:
@@ -78,6 +79,7 @@
         power_metrics: []
         thermal_metrics: []
         memory_metrics: []
+        secure_boot: {}
 
     - name: Get connection
       ansible.builtin.uri:
