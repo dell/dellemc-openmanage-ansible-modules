@@ -32,3 +32,4 @@
   ansible.builtin.set_fact:
     secure_boot: "{{ secure_boot_result.json | combine({'SecureBootDatabases': secure_boot_interim}) |
      ansible.utils.remove_keys(target=['^.*@odata.*$'], matching_parameter='regex') }}"
+# TODO: unset secure_boot_interim
