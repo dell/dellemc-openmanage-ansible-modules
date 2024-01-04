@@ -33,7 +33,7 @@
           email_address: "admin@domain.com"
           organization_name: "OrgName"
           subject_alt_name:
-            - 192.198.2.1
+            - "hostname1.chassis.com"
         idrac_certificate_delegate: "{{ idrac_delegate_to }}"
 
     - name: Setting up HTTPS CSR certificate path for exported file
