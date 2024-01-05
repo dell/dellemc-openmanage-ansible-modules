@@ -1,5 +1,7 @@
 galaxy_info:
-  author: "Felix Stephen"
+  author: |
+    "Felix Stephen
+     Jagadeesh N V"
   description: Role to gather facts
   company: Dell Technologies
   license: GPL-3.0-only
