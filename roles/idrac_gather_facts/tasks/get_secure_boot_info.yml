@@ -22,14 +22,15 @@
 
 - name: Combine certificates with corresponding db information.
   ansible.builtin.set_fact:
-    secure_boot_interim: "{{ secure_boot_interim | default([]) + [sec_boot_cert['sec_boot_db_item'] |
+    interim_secure_boot: "{{ interim_secure_boot | default([]) + [sec_boot_cert['sec_boot_db_item'] |
      combine({'Certificates': sec_boot_cert['json']['Members']})] }}"
   loop: "{{ secure_boot_results.results }}"
   loop_control:
     loop_var: sec_boot_cert
+  no_log: true
 
 - name: Combine the secure boot database and certificates into secure boot.
   ansible.builtin.set_fact:
-    secure_boot: '{{ secure_boot_result.json | combine({"SecureBootDatabases": secure_boot_interim}) |
+    secure_boot: '{{ secure_boot_result.json | combine({"SecureBootDatabases": interim_secure_boot}) |
      ansible.utils.remove_keys(target=["^.*@odata\..*$"], matching_parameter="regex") }}'
-    secure_boot_interim: null
+    # interim_secure_boot: null # resetting temporary variable
