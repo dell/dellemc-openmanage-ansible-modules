@@ -16,7 +16,7 @@
 
 - name: Get storage entities
   ansible.builtin.set_fact:
-    collected_storage_entity : "{{ (collected_storage_entity | default([])) + [item['@odata.id']] }}"
+    collected_storage_entity: "{{ (collected_storage_entity | default([])) + [item['@odata.id']] }}"
   loop: "{{ storage_entity.json.Members }}"
 
 - name: Get Controllers URL information.
@@ -63,15 +63,15 @@
   ansible.builtin.set_fact:
     api_response:
       "{{ result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Members', 'defined') |
-      map(attribute='Members') | flatten | ansible.utils.remove_keys(target=['^.*@odata.*$'], matching_parameter= 'regex') }}"
+      map(attribute='Members') | flatten | ansible.utils.remove_keys(target=['^.*@odata.*$'], matching_parameter='regex') }}"
 
 - name: Check whether output differs
   ansible.builtin.set_fact:
-    diff: "{{ controller | symmetric_difference(api_response) }}"
+    result_diff: "{{ controller | symmetric_difference(api_response) }}"
 
 - name: Assert the differences in List
   ansible.builtin.assert:
     that:
-      - "{{ (diff | length) == 0 }}"
+      - "{{ (result_diff | length) == 0 }}"
     fail_msg: "The response from the role does not match"
     success_msg: "The response from the role matches"
