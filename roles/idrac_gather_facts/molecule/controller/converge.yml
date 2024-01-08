@@ -38,7 +38,3 @@
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/controller_assert.yml
-      with_items: "{{ controller }}"
-      loop_control:
-        loop_var: controller_data
-      when: controller | length > 0
