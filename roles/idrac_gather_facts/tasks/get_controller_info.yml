@@ -11,7 +11,7 @@
 
 - name: Select list of values from dictionary
   ansible.builtin.set_fact:
-    collected_values: "{{ (collected_values | default([])) + [controller_item['@odata.id']] }}"
+    controller_list_temp: "{{ (controller_list_temp | default([])) + [controller_item['@odata.id']] }}"
   loop: "{{ controllers_list }}"
   loop_control:
     loop_var: controller_item
@@ -19,7 +19,7 @@
 - name: Get Controllers information.
   ansible.builtin.uri:
     url: "https://{{ hostname }}:{{ https_port }}{{ each_controller }}?$expand=*($levels=1)"
-  loop: "{{ collected_values }}"
+  loop: "{{ controller_list_temp }}"
   loop_control:
     loop_var: each_controller
   register: result

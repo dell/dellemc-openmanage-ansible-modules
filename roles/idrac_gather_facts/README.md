@@ -120,7 +120,41 @@ ansible.utils
         - PowerSupply <br> - PresenceAndStatusSensor <br> - Sensors_Battery <br> - Sensors_Intrusion <br>
         - Sensors_Voltage <br> - VirtualDisk <br> - PCIeDevice <br> - PhysicalDisk <br> - SystemMetrics<br> - SecureBoot</td>
     <td>list</td>
-    <td>- I(target) component for which information needs to be gathered.</td>
+    <td>Target component for which information needs to be gathered.
+    <ul>
+        <li>C(BIOS) lists the BIOS information.</li>
+        <li>C(Chassis) lists the chassis.</li>
+        <li>C(Controller) lists the available controllers for iDRAC.</li>
+        <li>C(CPU) lists the system processors.</li>
+        <li>C(Enclosure) lists the enclosures.</li> 
+        <li>C(EnclosureEMM) lists the enclosure management module specific data.</li>
+        <li>C(Fan) lists the fans.</li>
+        <li>C(Firmware) lists the firmware inventories.</li>
+        <li>C(HostNIC) lists the host NIC.</li>
+        <li>C(IDRAC) lists the attributes for iDRAC.</li> 
+        <li>C(License) lists the license information.</li>
+        <li>C(Manager) lists the manager resources.</li>
+        <li>C(Memory) lists the memory device specific data.</li>
+        <li>C(NetworkAdapter) lists the network adapters.</li>
+        <li>C(NetworkPort) lists the network ports.</li>
+        <li>C(NetworkDeviceFunction) lists the network device functions.</li>
+        <li>C(NIC) lists NIC device specific data.</li>
+        <li>C(PCIeSSDBackPlane) lists PCIeSSD back plane specific data.</li>
+        <li>C(PowerSupply) lists data specific to the Power Supply devices in the managed system.</li>
+        <li>C(PresenceAndStatusSensor) lists the presence and status sensor specific data.</li>
+        <li>C(PCIeDevice) lists the PCIeDevices.</li>
+        <li>C(PhysicalDisk) lists the physical disks.</li>
+        <li>C(Sensors_Battery) lists the sensors battery information.</li>
+        <li>C(Sensors_Intrusion) lists the sensors intrusion information.</li>
+        <li>C(Sensors_Voltage) lists the sensors voltage information.</li>
+        <li>C(System) lists the ComputerSystem resources for iDRAC.</li>
+        <li>C(SystemMetrics) lists the system metrics.</li>
+        <li>C(ThermalSubSystem) lists the thermal sub system.</li>
+        <li>C(VirtualDisk) lists the virtual disks.</li>
+        <li>C(VirtualMedia) lists the virtual media.</li>
+        <li>C(SecureBoot) lists the secure boot specific data.</li>
+    </ul>
+    </td>
   </tr>
 </tbody>
 </table>
@@ -618,7 +652,6 @@ ansible.utils
 
 ## Examples
 -----
-
 ```
 - name: iDRAC gather facts for System, BIOS, Controller, CPU, Enclosure.
   ansible.builtin.import_role:
@@ -634,6 +667,11 @@ ansible.utils
       - Controller
       - CPU
       - Enclosure
+
+- name: Print the System details
+  ansible.builtin.debug:
+    var: system
+
 ```
 ```
 - name: iDRAC gather facts for EnclosureEMM, Fan, Firmware, HostNIC, License.
@@ -650,8 +688,12 @@ ansible.utils
       - Firmware
       - HostNIC
       - License
-```
 
+- name: Print the firmware details
+  ansible.builtin.debug:
+    var: firmware
+
+```
 ```
 - name: iDRAC gather facts for Memory, NIC, PCIeSSDBackPlane, PowerSupply, PresenceAndStatusSensor, SecureBoot.
   ansible.builtin.import_role:
@@ -668,8 +710,11 @@ ansible.utils
       - PowerSupply
       - PresenceAndStatusSensor
       - SecureBoot
-```
 
+- name: Print the secure boot details
+  ansible.builtin.debug:
+    var: secure_boot
+```
 ```
 - name: iDRAC gather facts for Sensors_Battery, Sensors_Intrusion, Sensors_Voltage, VirtualDisk, PCIeDevice, PhysicalDisk, SystemMetrics.
   ansible.builtin.import_role:
@@ -687,11 +732,14 @@ ansible.utils
       - PCIeDevice
       - PhysicalDisk
       - SystemMetrics
-```
 
+- name: Print the system metrics
+  ansible.builtin.debug:
+    var: system_metrics
+```
 ## Author Information
 ------------------
 
 Dell Technologies <br>
-Felix Stephen A (felix.s@dell.com) 2023 <br>
+Felix Stephen A (felix.s@dell.com) <br>
 Jagadeesh N V (jagadeesh.n.v@dell.com)
