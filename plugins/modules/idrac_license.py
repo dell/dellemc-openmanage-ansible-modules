@@ -309,7 +309,9 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 SYSTEMS_URI = "/redfish/v1/Managers"
 IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
 EXPORT_LICENCE_NETWORK_SHARE_URI = "Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
+LICENSE_URI = "/redfish/v1/LicenseService/Licenses/{license_id}"
 
+INVALID_LICENSE_MSG = "License id {license_id} is invalid."
 SUCCESS_EXPORT_MSG = "Successfully exported the license."
 SUCCESS_DELETE_MSG = "Successfully deleted the license."
 SUCCESS_IMPORT_MSG = "Successfully imported the license."
@@ -327,6 +329,7 @@ class DeleteLicense():
 
     def execute(self, module):
         license_id = module.params.get('license_id')
+        check_license_id(self, module, license_id)
         delete_license_url = f"/redfish/v1/LicenseService/Licenses/{license_id}"
         delete_license_status = self.idrac.invoke_request(delete_license_url, 'DELETE')
         status = delete_license_status.status_code
@@ -346,6 +349,7 @@ class ExportLicense():
     def execute(self, module):
         share_type = module.params.get('share_parameters').get('share_type')
         license_id = module.params.get('license_id')
+        check_license_id(self, module, license_id)
         if share_type == "local":
             export_license_status = export_license_local(self, module)
         elif share_type in ["http", "https"]:
@@ -369,6 +373,14 @@ class ExportLicense():
             else:
                 module.fail_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False)
         return export_license_status
+
+
+def check_license_id(self, module, license_id):
+    try:
+        response = self.idrac.invoke_request(LICENSE_URI.format(license_id=license_id), 'GET')
+        return response
+    except Exception:
+        module.fail_json(msg=INVALID_LICENSE_MSG.format(license_id=license_id), changed=False)
 
 
 def get_job_status(self, export_license_status):
