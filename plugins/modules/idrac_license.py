@@ -152,8 +152,9 @@ author:
   - "Rajshekar P(@rajshekarp87)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
-    - This module supports C(check_mode).
+    - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
+    - This module supports C(check_mode).
 """
 
 EXAMPLES = r"""
@@ -161,8 +162,8 @@ EXAMPLES = r"""
 - name: Export a license from iDRAC to local
   dellemc.openmanage.idrac_license:
     idrac_ip: "192.168.0.1"
-    idrac_user: "user_name"
-    idrac_password: "user_password"
+    idrac_user: "username"
+    idrac_password: "password"
     ca_path: "/path/to/ca_cert.pem"
     license_id: "LICENSE_123"
     export: true
@@ -170,7 +171,129 @@ EXAMPLES = r"""
       share_type: "local"
       share_name: "/path/to/share"
       file_name: "license_file"
+
+- name: Export a license from iDRAC to NFS share
+  dellemc.openmanage.idrac_license:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    license_id: "LICENSE_123"
+    export: true
+    share_parameter:
+      share_type: "nfs"
+      share_name: "/path/to/share"
+      file_name: "license_file"
+
+- name: Export a license from iDRAC to CIFS share
+  dellemc.openmanage.idrac_license:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    license_id: "LICENSE_123"
+    export: true
+    share_parameter:
+      share_type: "cifs"
+      share_name: "/path/to/share"
+      file_name: "license_file"
+      ip_address: "192.168.0.1"
+      username: "username"
+      passowrd: "password"
+      workgroup: "workgroup"
+
+- name: Export a license from iDRAC to HTTP share
+  dellemc.openmanage.idrac_license:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    license_id: "LICENSE_123"
+    export: true
+    share_parameter:
+      share_type: "http"
+      share_name: "/path/to/share"
+      file_name: "license_file"
+      ip_address: "192.168.0.1"
+      username: "username"
+      passowrd: "password"
+
+- name: Export a license from iDRAC to HTTPS share
+  dellemc.openmanage.idrac_license:
+    idrac_ip: "192.168.0.1"
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    license_id: "LICENSE_123"
+    export: true
+    share_parameter:
+      share_type: "https"
+      share_name: "/path/to/share"
+      file_name: "license_file"
+      ip_address: "192.168.0.1"
+      username: "username"
+      passowrd: "password"
+      ignore_certificate_warning: "on"
+
+- name: Delete a License from iDRAC
+  dellemc.openmanage.idrac_license:
+    idrac_ip: 198.162.0.1
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    license_id: "LICENCE_123"
+    delete: true
 """
+
+RETURN = r'''
+---
+msg:
+  type: str
+  description: Status of the license oprtaion.
+  returned: always
+  sample: "Successfully exported the license."
+job_details:
+    description: Returns the output for status of the job.
+    returned: For import and export operations
+    type: dict
+    sample: {
+        "ActualRunningStartTime": "2024-01-09T05:16:19",
+        "ActualRunningStopTime": "2024-01-09T05:16:19",
+        "CompletionTime": "2024-01-09T05:16:19",
+        "Description": "Job Instance",
+        "EndTime": null,
+        "Id": "JID_XXXXXXXXX",
+        "JobState": "Completed",
+        "JobType": "LicenseExport",
+        "Message": "The command was successful.",
+        "MessageArgs": [],
+        "MessageId": "LIC900",
+        "Name": "Export: License",
+        "PercentComplete": 100,
+        "StartTime": "2024-01-09T05:16:19",
+        "TargetSettingsURI": null
+    }
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.8.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "Base.1.8.AccessDenied",
+          "Message": "The authentication credentials included with this request are missing or invalid.",
+          "MessageArgs": [],
+          "RelatedProperties": [],
+          "Severity": "Critical",
+          "Resolution": "Attempt to ensure that the URI is correct and that the service has the appropriate credentials."
+        }
+      ]
+    }
+  }
+'''
 
 import json
 import os
@@ -222,6 +345,7 @@ class ExportLicense():
 
     def execute(self, module):
         share_type = module.params.get('share_parameters').get('share_type')
+        license_id = module.params.get('license_id')
         if share_type == "local":
             export_license_status = export_license_local(self, module)
         elif share_type in ["http", "https"]:
@@ -238,12 +362,12 @@ class ExportLicense():
             if status in [200, 202]:
                 module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
             else:
-                module.fail_json(msg=FAILURE_MSG.format(operation=share_type, license_id=module.params.get('license_id')), changed=False, job_details=job_status)
+                module.fail_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False, job_details=job_status)
         else:
             if status in [200, 202]:
                 module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True)
             else:
-                module.fail_json(msg=FAILURE_MSG.format(operation=share_type, license_id=module.params.get('license_id')), changed=False)
+                module.fail_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False)
         return export_license_status
 
 
