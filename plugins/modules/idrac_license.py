@@ -134,8 +134,8 @@ options:
         description:
           - The port of the proxy server.
           - I(proxy_port) is only applicable when I(share_type) is C(https) or C(https) and when I(proxy_support) is C(parameters_proxy).
-        type: int
-        default: 80
+        type: str
+        default: '80'
       proxy_username:
         description:
           - The username of the proxy server.
@@ -304,7 +304,7 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_idrac_firmware_version, validate_and_get_first_resource_id_uri,
-    remove_key)
+    remove_key, idrac_redfish_job_tracking)
 
 SYSTEMS_URI = "/redfish/v1/Managers"
 IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
@@ -337,7 +337,7 @@ class DeleteLicense():
         if status == 204:
             module.exit_json(msg=SUCCESS_DELETE_MSG, changed=True)
         else:
-            module.fail_json(FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False)
+            module.exit_json(FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False)
         return delete_license_status
 
 
@@ -354,24 +354,24 @@ class ExportLicense():
             export_license_status = export_license_local(self, module)
         elif share_type in ["http", "https"]:
             export_license_status = export_license_http(self, module)
-            job_status = get_job_status(self, export_license_status)
+            job_status = get_job_status(self, module, export_license_status)
         elif share_type == "cifs":
             export_license_status = export_license_cifs(self, module)
-            job_status = get_job_status(self, export_license_status)
+            job_status = get_job_status(self, module, export_license_status)
         elif share_type == "nfs":
             export_license_status = export_license_nfs(self, module)
-            job_status = get_job_status(self, export_license_status)
+            job_status = get_job_status(self, module, export_license_status)
         status = export_license_status.status_code
         if share_type in ["http", "https", "cifs", "nfs"]:
             if status in [200, 202]:
                 module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
             else:
-                module.fail_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False, job_details=job_status)
+                module.exit_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False, job_details=job_status)
         else:
             if status in [200, 202]:
                 module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True)
             else:
-                module.fail_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False)
+                module.exit_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False)
         return export_license_status
 
 
@@ -380,19 +380,21 @@ def check_license_id(self, module, license_id):
         response = self.idrac.invoke_request(LICENSE_URI.format(license_id=license_id), 'GET')
         return response
     except Exception:
-        module.fail_json(msg=INVALID_LICENSE_MSG.format(license_id=license_id), changed=False)
+        module.exit_json(msg=INVALID_LICENSE_MSG.format(license_id=license_id), changed=False)
 
 
-def get_job_status(self, export_license_status):
-    res_uri = validate_and_get_first_resource_id_uri(
-        self.module, self.idrac, SYSTEMS_URI)
-    job_dict = {}
+def get_job_status(self, module, export_license_status):
+    res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, SYSTEMS_URI)
     job_tracking_uri = export_license_status.headers.get("Location")
     job_id = job_tracking_uri.split("/")[-1]
     job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
-    job_resp = self.idrac.invoke_request(job_uri, 'GET')
-    job_dict = job_resp.json_data
+    job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
     job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
+    if job_failed:
+        module.exit_json(
+            msg=job_dict.get('Message'),
+            changed=False,
+            job_details=job_dict)
     return job_dict
 
 
@@ -568,7 +570,7 @@ def get_argument_spec():
                     "choices": ['http', 'socks']
                 },
                 "proxy_server": {"type": 'str'},
-                "proxy_port": {"type": 'int', "default": 80},
+                "proxy_port": {"type": 'str', "default": '80'},
                 "proxy_username": {"type": 'str'},
                 "proxy_password": {"type": 'str', "no_log": True}
             },
