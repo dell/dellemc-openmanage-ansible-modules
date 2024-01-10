@@ -1,19 +1,22 @@
 ---
 - name: Get System information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
   register: sys_attr
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Manager information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
   register: mgr_attr
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Lifecycle controller information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/LifecycleController.Embedded.1"
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/LifecycleController.Embedded.1"
   register: lc_attr
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
