@@ -7,7 +7,8 @@
 
 - name: Get operating system information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers/{{ computer_system_id }}/Attributes?$select=ServerOS.*"
+    url: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers/{{
+      computer_system_id }}/Attributes?$select=ServerOS.*"
   register: os_result
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 

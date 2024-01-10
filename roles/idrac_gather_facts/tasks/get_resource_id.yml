@@ -23,8 +23,8 @@
   when: computer_system_id != ''
 - name: Fail when system id is incorrect
   ansible.builtin.fail:
-    msg: "{{ idrac_gather_facts_invalid_sys_id_message | format(computer_system_id,
-      (system_ids | join(','))) }}"
+    msg: "{{ idrac_gather_facts_invalid_sys_id_message |
+      format(computer_system_id, (system_ids | join(','))) }}"
   when: computer_system_id != "" and not computer_system_id in system_ids
 - name: Get manager resource api id
   ansible.builtin.uri:
