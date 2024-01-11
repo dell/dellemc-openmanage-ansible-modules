@@ -44,6 +44,37 @@ argument_specs:
       target:
         description:
           - I(target) component for which information needs to be gathered.
+          - C(BIOS) lists the BIOS information.
+          - C(Chassis) lists the chassis.
+          - C(Controller) lists the available controllers for iDRAC.
+          - C(CPU) lists the system processors.
+          - C(Enclosure) lists the enclosures.
+          - C(EnclosureEMM) lists the enclosure management module specific data.
+          - C(Fan) lists the fans.
+          - C(Firmware) lists the firmware inventories.
+          - C(HostNIC) lists the host NIC.
+          - C(IDRAC) lists the attributes for iDRAC.
+          - C(License) lists the license information.
+          - C(Manager) lists the manager resources.
+          - C(Memory) lists the memory device specific data.
+          - C(NetworkAdapter) lists the network adapters.
+          - C(NetworkPort) lists the network ports.
+          - C(NetworkDeviceFunction) lists the network device functions.
+          - C(NIC) lists NIC device specific data.
+          - C(PCIeSSDBackPlane) lists PCIeSSD back plane specific data.
+          - C(PowerSupply) lists data specific to the Power Supply devices in the managed system.
+          - C(PresenceAndStatusSensor) lists the presence and status sensor specific data.
+          - C(PCIeDevice) lists the PCIeDevices.
+          - C(PhysicalDisk) lists the physical disks.
+          - C(Sensors_Battery) lists the sensors battery information.
+          - C(Sensors_Intrusion) lists the sensors intrusion information.
+          - C(Sensors_Voltage) lists the sensors voltage information.
+          - C(System) lists the ComputerSystem resources for iDRAC.
+          - C(SystemMetrics) lists the system metrics.
+          - C(ThermalSubSystem) lists the thermal sub system.
+          - C(VirtualDisk) lists the virtual disks.
+          - C(VirtualMedia) lists the virtual media.
+          - C(SecureBoot) lists the secure boot specific data.
         type: list
         choices:
           [
