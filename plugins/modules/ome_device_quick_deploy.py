@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.3.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.7.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -519,6 +519,9 @@ def check_mode_validation(module, deploy_data):
         module.exit_json(msg=NO_CHANGES_FOUND, quick_deploy_settings=deploy_data)
     req_payload.update(resp_filter_data)
     req_payload.update(req_data_filter)
+    prefix_length = req_payload.get("PrefixLength")
+    if prefix_length == '0':
+        req_payload["PrefixLength"] = ""
     return req_payload, req_slot_payload
 
 
