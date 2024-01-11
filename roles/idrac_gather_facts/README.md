@@ -646,6 +646,7 @@ ansible.utils
             "SecureBootEnable": false,
             "SecureBootMode": "DeployedMode"
         }</td>
+    <td>Response facts details for Secure Boot.</td>
     </tr>
 </tbody>
 </table>
