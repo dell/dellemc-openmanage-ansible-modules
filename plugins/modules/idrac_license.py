@@ -154,7 +154,7 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
-    - This module supports C(check_mode).
+    - This module does not support C(check_mode).
 """
 
 EXAMPLES = r"""
@@ -167,7 +167,7 @@ EXAMPLES = r"""
     ca_path: "/path/to/ca_cert.pem"
     license_id: "LICENSE_123"
     export: true
-    share_parameter:
+    share_parameters:
       share_type: "local"
       share_name: "/path/to/share"
       file_name: "license_file"
@@ -180,7 +180,7 @@ EXAMPLES = r"""
     ca_path: "/path/to/ca_cert.pem"
     license_id: "LICENSE_123"
     export: true
-    share_parameter:
+    share_parameters:
       share_type: "nfs"
       share_name: "/path/to/share"
       file_name: "license_file"
@@ -193,13 +193,13 @@ EXAMPLES = r"""
     ca_path: "/path/to/ca_cert.pem"
     license_id: "LICENSE_123"
     export: true
-    share_parameter:
+    share_parameters:
       share_type: "cifs"
       share_name: "/path/to/share"
       file_name: "license_file"
       ip_address: "192.168.0.1"
       username: "username"
-      passowrd: "password"
+      password: "password"
       workgroup: "workgroup"
 
 - name: Export a license from iDRAC to HTTP share
@@ -210,13 +210,13 @@ EXAMPLES = r"""
     ca_path: "/path/to/ca_cert.pem"
     license_id: "LICENSE_123"
     export: true
-    share_parameter:
+    share_parameters:
       share_type: "http"
       share_name: "/path/to/share"
       file_name: "license_file"
       ip_address: "192.168.0.1"
       username: "username"
-      passowrd: "password"
+      password: "password"
 
 - name: Export a license from iDRAC to HTTPS share
   dellemc.openmanage.idrac_license:
@@ -226,13 +226,13 @@ EXAMPLES = r"""
     ca_path: "/path/to/ca_cert.pem"
     license_id: "LICENSE_123"
     export: true
-    share_parameter:
+    share_parameters:
       share_type: "https"
       share_name: "/path/to/share"
       file_name: "license_file"
       ip_address: "192.168.0.1"
       username: "username"
-      passowrd: "password"
+      password: "password"
       ignore_certificate_warning: "on"
 
 - name: Delete a License from iDRAC
@@ -249,7 +249,7 @@ RETURN = r'''
 ---
 msg:
   type: str
-  description: Status of the license oprtaion.
+  description: Status of the license operation.
   returned: always
   sample: "Successfully exported the license."
 job_details:
@@ -311,37 +311,36 @@ IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
 EXPORT_LICENCE_NETWORK_SHARE_URI = "Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
 LICENSE_URI = "/redfish/v1/LicenseService/Licenses/{license_id}"
 
-INVALID_LICENSE_MSG = "License id {license_id} is invalid."
+INVALID_LICENSE_MSG = "License id '{license_id}' is invalid."
 SUCCESS_EXPORT_MSG = "Successfully exported the license."
 SUCCESS_DELETE_MSG = "Successfully deleted the license."
 SUCCESS_IMPORT_MSG = "Successfully imported the license."
-FAILURE_MSG = "Unable to {operation} the licens with id {license_id}."
+FAILURE_MSG = "Unable to '{operation}' the license with id '{license_id}'."
 
 IGNORE_CERTIFICATE_WARNING = {"off": "Off", "on": "On"}
 PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_proxy": "ParametersProxy"}
 PROXY_TYPE = {"http": "HTTP", "socks": "SOCKS"}
 
 
-class DeleteLicense():
+class DeleteLicense:
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
 
     def execute(self, module):
         license_id = module.params.get('license_id')
-        check_license_id(self, module, license_id)
+        check_license_id(self, module, license_id, "delete")
         delete_license_url = f"/redfish/v1/LicenseService/Licenses/{license_id}"
-        delete_license_status = self.idrac.invoke_request(delete_license_url, 'DELETE')
-        status = delete_license_status.status_code
-        share_type = module.params.get('share_parameters').get('share_type')
+        delete_license_response = self.idrac.invoke_request(delete_license_url, 'DELETE')
+        status = delete_license_response.status_code
         if status == 204:
             module.exit_json(msg=SUCCESS_DELETE_MSG, changed=True)
         else:
-            module.exit_json(FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False)
-        return delete_license_status
+            module.exit_json(FAILURE_MSG.format(operation="delete", license_id=license_id), changed=False)
+        return delete_license_response
 
 
-class ExportLicense():
+class ExportLicense:
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
@@ -349,7 +348,7 @@ class ExportLicense():
     def execute(self, module):
         share_type = module.params.get('share_parameters').get('share_type')
         license_id = module.params.get('license_id')
-        check_license_id(self, module, license_id)
+        check_license_id(self, module, license_id, "export")
         if share_type == "local":
             export_license_status = export_license_local(self, module)
         elif share_type in ["http", "https"]:
@@ -366,21 +365,21 @@ class ExportLicense():
             if status in [200, 202]:
                 module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
             else:
-                module.exit_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False, job_details=job_status)
+                module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), changed=False, job_details=job_status)
         else:
             if status in [200, 202]:
-                module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True)
+                module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details={})
             else:
-                module.exit_json(msg=FAILURE_MSG.format(operation=share_type, license_id=license_id), changed=False)
+                module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), changed=False, job_details={})
         return export_license_status
 
 
-def check_license_id(self, module, license_id):
+def check_license_id(self, module, license_id, operation):
     try:
         response = self.idrac.invoke_request(LICENSE_URI.format(license_id=license_id), 'GET')
         return response
     except Exception:
-        module.exit_json(msg=INVALID_LICENSE_MSG.format(license_id=license_id), changed=False)
+        module.exit_json(msg=FAILURE_MSG.format(operation=operation, license_id=license_id), changed=False)
 
 
 def get_job_status(self, module, export_license_status):
@@ -511,7 +510,7 @@ def main():
             ["export", True, ("license_id", "share_parameters",)],
             ["delete", True, ("license_id",)]
         ],
-        supports_check_mode=True)
+        supports_check_mode=False)
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
