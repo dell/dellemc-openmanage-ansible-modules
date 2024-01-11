@@ -141,16 +141,10 @@
       register: uri_out
       no_log: true
 
-    - name: Processing resource_id
-      ansible.builtin.set_fact:
-        resource_id_list: "{{ uri_out.json | json_query(query) }}"
-      vars:
-        query: Members[*]."@odata.id"
-
     - name: Splitting the resource_id and picking last
       ansible.builtin.set_fact:
-        resource_id_list_split: "{{ [item | split('/') | last] + resource_id_list_split | default([]) }}"
-      loop: "{{ resource_id_list }}"
+        resource_id_list_split: "{{ [item['@odata.id'] | split('/') | last] + resource_id_list_split | default([]) }}"
+      loop: "{{ uri_out.json.Members }}"
 
     - name: Count resource_id
       ansible.builtin.set_fact:

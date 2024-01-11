@@ -2,6 +2,8 @@
 - name: Converge
   hosts: all
   gather_facts: false
+  vars:
+    wait_seconds: 180
   tasks:
     - name: Pre-requisite - Server is Power Off
       ansible.builtin.import_role:
@@ -14,6 +16,12 @@
         reset_type: "ForceOff"
         resource_id: "System.Embedded.1"
       check_mode: false
+      tags: molecule-idempotence-notest
+
+    - name: "Waiting after performing ForceOff operation"
+      ansible.builtin.pause:
+        seconds: "{{ wait_seconds }}"
+      when: not ansible_check_mode and idrac_server_powerstate_out.changed
       tags: molecule-idempotence-notest
 
     - name: Performing Power On operation the iDRAC device
@@ -33,14 +41,9 @@
       when: ansible_check_mode
       tags: molecule-idempotence-notest
 
-    - name: Fetching idrac_server_powerstate_wait_seconds from molecule env variable
-      ansible.builtin.set_fact:
-        wait_time: "{{ lookup('env', 'idrac_server_powerstate_wait_seconds', default=300) }}"
-      when: not ansible_check_mode and idrac_server_powerstate_out.changed
-
     - name: "Waiting after performing On operation"
       ansible.builtin.pause:
-        seconds: "{{ wait_time }}"
+        seconds: "{{ wait_seconds }}"
       when: not ansible_check_mode and idrac_server_powerstate_out.changed
 
     - name: Fetching iDRAC server powerstate after performing On operation
