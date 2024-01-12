@@ -26,34 +26,34 @@ extends_documentation_fragment:
 options:
   license_id:
     description:
-      - Entitlement ID of the license to be imported, exported or deleted.
+      - Entitlement ID of the license that is to be imported, exported or deleted.
       - I(license_id) is required when I(delete) is C(true) or I(export) is C(true).
     type: str
     aliases: ['entitlement_id']
   delete:
     description:
-      - Delete an license from the iDRAC.
-      - When I(delete) is C(true), I(license_id) is required.
+      - Delete the license from the iDRAC.
+      - When I(delete) is C(true), then I(license_id) is required.
       - I(delete) is mutually exclusive with I(export) and I(import).
     type: bool
     default: false
   export:
     description:
-      - Export a license from the iDRAC.
+      - Export the license from the iDRAC.
       - When I(export) is C(true), I(license_id) and I(share_parameters) is required.
       - I(export) is mutually exclusive with I(delete) and I(import).
     type: bool
     default: false
   import:
     description:
-      - Import a license from the iDRAC.
+      - Import the license from the iDRAC.
       - When I(import) is C(true), I(share_parameters) is required.
       - I(import) is mutually exclusive with I(delete) and I(export).
     type: bool
     default: false
   share_parameters:
     description:
-      - Parameters required for the import and export operation of a license.
+      - Parameters that are required for the import and export operation of a license.
       - I(share_parameters) is required when I(export) or I(import) is C(true).
     type: dict
     suboptions:
@@ -99,7 +99,7 @@ options:
         type: str
       ignore_certificate_warning:
         description:
-          - Ignores the certificate warning to connect to share, only applicable when I(share_type) is C(https).
+          - Ignores the certificate warning while connecting to Share and is only applicable when I(share_type) is C(https).
           - C(off) ignores the certificate warning.
           - C(on) does not ignore the certificate warning.
         type: str
@@ -108,9 +108,9 @@ options:
       proxy_support:
         description:
           - Specifies if proxy is to be used or not.
-          - C(off) does not consiser proxy settings.
+          - C(off) does not use proxy settings.
           - C(default_proxy) uses the default proxy settings.
-          - C(parameters_proxy) uses the proxy settings specified. I(proxy_server) is required when I(proxy_support) is C(parameters_proxy).
+          - C(parameters_proxy) uses the specified proxy settings. I(proxy_server) is required when I(proxy_support) is C(parameters_proxy).
           - I(proxy_support) is only applicable when I(share_type) is C(https) or C(https).
         type: str
         choices: ["off", "default_proxy", "parameters_proxy"]
@@ -202,7 +202,7 @@ EXAMPLES = r"""
       password: "password"
       workgroup: "workgroup"
 
-- name: Export a license from iDRAC to HTTP share
+- name: Export a license from iDRAC to HTTP share via proxy
   dellemc.openmanage.idrac_license:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
@@ -217,6 +217,12 @@ EXAMPLES = r"""
       ip_address: "192.168.0.1"
       username: "username"
       password: "password"
+      proxy_support: "parameters_proxy"
+      proxy_type: socks
+      proxy_server: "192.168.0.2"
+      proxy_port: "1080"
+      proxy_username: "proxy_username"
+      proxy_password: "proxy_password"
 
 - name: Export a license from iDRAC to HTTPS share
   dellemc.openmanage.idrac_license:
@@ -234,6 +240,81 @@ EXAMPLES = r"""
       username: "username"
       password: "password"
       ignore_certificate_warning: "on"
+
+- name: Import a license to iDRAC from local
+  dellemc.openmanage.idrac_license:
+    idrac_ip: 198.162.0.1
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    import: true
+    share_parmaters:
+      file_name: "license_file_name.xml"
+      share_type: local
+      share_name: "/path/to/share"
+
+- name: Import a license to iDRAC from NFS share
+  dellemc.openmanage.idrac_license:
+    idrac_ip: 198.162.0.1
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    import: true
+    share_parmaters:
+      file_name: "license_file_name.xml"
+      share_type: nfs
+      ip_address: "192.168.0.1"
+      share_name: "/path/to/share"
+
+- name: Import a license to iDRAC from CIFS share
+  dellemc.openmanage.idrac_license:
+    idrac_ip: 198.162.0.1
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    import: true
+    share_parmaters:
+      file_name: "license_file_name.xml"
+      share_type: cifs
+      ip_address: "192.168.0.1"
+      share_name: "/path/to/share"
+      username: "username"
+      password: "password"
+
+- name: Import a license to iDRAC from HTTP share
+  dellemc.openmanage.idrac_license:
+    idrac_ip: 198.162.0.1
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    import: true
+    share_parmaters:
+      file_name: "license_file_name.xml"
+      share_type: http
+      ip_address: "192.168.0.1"
+      share_name: "/path/to/share"
+      username: "username"
+      password: "password"
+
+- name: Import a license to iDRAC from HTTPS share via proxy
+  dellemc.openmanage.idrac_license:
+    idrac_ip: 198.162.0.1
+    idrac_user: "username"
+    idrac_password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    import: true
+    share_parmaters:
+      file_name: "license_file_name.xml"
+      share_type: https
+      ip_address: "192.168.0.1"
+      share_name: "/path/to/share"
+      username: "username"
+      password: "password"
+      proxy_support: "parameters_proxy"
+      proxy_server: "192.168.0.2"
+      proxy_port: "808"
+      proxy_username: "proxy_username"
+      proxy_password: "proxy_password"
 
 - name: Delete a License from iDRAC
   dellemc.openmanage.idrac_license:
@@ -297,6 +378,7 @@ error_info:
 
 import json
 import os
+import base64
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
@@ -308,7 +390,10 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 SYSTEMS_URI = "/redfish/v1/Managers"
 IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
+EXPORT_LICENSE_LOCAL = "Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicense"
 EXPORT_LICENCE_NETWORK_SHARE_URI = "Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicenseToNetworkShare"
+IMPORT_LICENSE_LOCAL = "Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ImportLicense"
+IMPORT_LICENCE_NETWORK_SHARE_URI = "Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ImportLicenseFromNetworkShare"
 LICENSE_URI = "/redfish/v1/LicenseService/Licenses/{license_id}"
 
 INVALID_LICENSE_MSG = "License id '{license_id}' is invalid."
@@ -316,6 +401,8 @@ SUCCESS_EXPORT_MSG = "Successfully exported the license."
 SUCCESS_DELETE_MSG = "Successfully deleted the license."
 SUCCESS_IMPORT_MSG = "Successfully imported the license."
 FAILURE_MSG = "Unable to '{operation}' the license with id '{license_id}'."
+FAILURE_IMPORT_MSG = "Unable to import the license."
+NO_FILE_MSG = "License file not found."
 
 IGNORE_CERTIFICATE_WARNING = {"off": "Off", "on": "On"}
 PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_proxy": "ParametersProxy"}
@@ -336,7 +423,7 @@ class DeleteLicense:
         if status == 204:
             module.exit_json(msg=SUCCESS_DELETE_MSG, changed=True)
         else:
-            module.exit_json(FAILURE_MSG.format(operation="delete", license_id=license_id), changed=False)
+            module.exit_json(FAILURE_MSG.format(operation="delete", license_id=license_id), failed=True)
         return delete_license_response
 
 
@@ -365,13 +452,118 @@ class ExportLicense:
             if status in [200, 202]:
                 module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
             else:
-                module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), changed=False, job_details=job_status)
+                module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details=job_status)
         else:
             if status in [200, 202]:
                 module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details={})
             else:
-                module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), changed=False, job_details={})
+                module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details={})
         return export_license_status
+
+
+class ImportLicense:
+    def __init__(self, idrac, module):
+        self.idrac = idrac
+        self.module = module
+
+    def execute(self, module):
+        share_type = module.params.get('share_parameters').get('share_type')
+        if share_type == "local":
+            import_license_status = import_license_local(self, module)
+        elif share_type in ["http", "https"]:
+            import_license_status = import_license_http(self, module)
+            job_status = get_job_status(self, module, import_license_status)
+        elif share_type == "cifs":
+            import_license_status = import_license_cifs(self, module)
+            job_status = get_job_status(self, module, import_license_status)
+        elif share_type == "nfs":
+            import_license_status = import_license_nfs(self, module)
+            job_status = get_job_status(self, module, import_license_status)
+        status = import_license_status.status_code
+        if share_type in ["http", "https", "cifs", "nfs"]:
+            if status in [200, 202]:
+                module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details=job_status)
+            else:
+                module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details=job_status)
+        else:
+            if status in [200, 202]:
+                module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details={})
+            else:
+                module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details={})
+        return import_license_status
+
+
+def import_license_local(self, module):
+    uri = validate_and_get_first_resource_id_uri(
+        self.module, self.idrac, SYSTEMS_URI)
+    import_license_url = f"{uri[0]}/{IMPORT_LICENSE_LOCAL}"
+    resource_id = uri[0].split("/")[-1]
+    payload = {}
+    path = module.params.get('share_parameters').get('share_name')
+    if not (os.path.exists(path) or os.path.isdir(path)):
+        module.exit_json(msg=f"Provided directory path '{path}' is not valid.", failed=True)
+    file_path = module.params.get('share_parameters').get('share_name') + "/" + module.params.get('share_parameters').get('file_name')
+    file_exits = os.path.exists(file_path)
+    if file_exits:
+        with open(file_path, "rb") as cert:
+            cert_content = cert.read()
+            read_file = base64.encodebytes(cert_content).decode('ascii')
+    else:
+        module.exit_json(msg=NO_FILE_MSG, failed=True)
+    payload["LicenseFile"] = read_file
+    payload["FQDD"] = resource_id
+    payload["ImportOptions"] = "Force"
+    import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
+    return import_status
+
+
+def import_license_http(self, module):
+    uri = validate_and_get_first_resource_id_uri(
+        self.module, self.idrac, SYSTEMS_URI)
+    import_license_url = f"{uri[0]}/{IMPORT_LICENCE_NETWORK_SHARE_URI}"
+    resource_id = uri[0].split("/")[-1]
+    payload = {}
+    payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
+    payload["FQDD"] = resource_id
+    payload["ImportOptions"] = "Force"
+    proxy_details = get_proxy_details(module)
+    payload.update(proxy_details)
+    import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
+    return import_status
+
+
+def import_license_cifs(self, module):
+    uri = validate_and_get_first_resource_id_uri(
+        self.module, self.idrac, SYSTEMS_URI)
+    import_license_url = f"{uri[0]}/{IMPORT_LICENCE_NETWORK_SHARE_URI}"
+    resource_id = uri[0].split("/")[-1]
+    payload = {}
+    payload["ShareType"] = "CIFS"
+    payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
+    payload["FQDD"] = resource_id
+    payload["ImportOptions"] = "Force"
+    if module.params.get('share_parameters').get('workgroup'):
+        payload["Workgroup"] = module.params.get('share_parameters').get('workgroup')
+    share_details = get_share_details(module)
+    payload.update(share_details)
+    import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
+    return import_status
+
+
+def import_license_nfs(self, module):
+    uri = validate_and_get_first_resource_id_uri(
+        self.module, self.idrac, SYSTEMS_URI)
+    import_license_url = f"{uri[0]}/{IMPORT_LICENCE_NETWORK_SHARE_URI}"
+    resource_id = uri[0].split("/")[-1]
+    payload = {}
+    payload["ShareType"] = "NFS"
+    payload["IPAddress"] = module.params.get('share_parameters').get('ip_address')
+    payload["ShareName"] = module.params.get('share_parameters').get('share_name')
+    payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
+    payload["FQDD"] = resource_id
+    payload["ImportOptions"] = "Force"
+    import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
+    return import_status
 
 
 def check_license_id(self, module, license_id, operation):
@@ -379,7 +571,7 @@ def check_license_id(self, module, license_id, operation):
         response = self.idrac.invoke_request(LICENSE_URI.format(license_id=license_id), 'GET')
         return response
     except Exception:
-        module.exit_json(msg=FAILURE_MSG.format(operation=operation, license_id=license_id), changed=False)
+        module.exit_json(msg=FAILURE_MSG.format(operation=operation, license_id=license_id), failed=True)
 
 
 def get_job_status(self, module, export_license_status):
@@ -392,7 +584,7 @@ def get_job_status(self, module, export_license_status):
     if job_failed:
         module.exit_json(
             msg=job_dict.get('Message'),
-            changed=False,
+            failed=True,
             job_details=job_dict)
     return job_dict
 
@@ -400,7 +592,7 @@ def get_job_status(self, module, export_license_status):
 def export_license_local(self, module):
     uri = validate_and_get_first_resource_id_uri(
         self.module, self.idrac, SYSTEMS_URI)
-    export_license_url = f"{uri[0]}/Oem/Dell/DellLicenseManagementService/Actions/DellLicenseManagementService.ExportLicense"
+    export_license_url = f"{uri[0]}/{EXPORT_LICENSE_LOCAL}"
     payload = {}
     payload["EntitlementID"] = module.params.get('license_id')
     path = module.params.get('share_parameters').get('share_name')
@@ -429,23 +621,8 @@ def export_license_http(self, module):
     export_license_url = f"{uri[0]}/{EXPORT_LICENCE_NETWORK_SHARE_URI}"
     payload = {}
     payload["EntitlementID"] = module.params.get('license_id')
-    if module.params.get('share_parameters').get('share_type') == "http":
-        payload["ShareType"] = "HTTP"
-    else:
-        payload["ShareType"] = "HTTPS"
-    payload["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-    payload["ShareName"] = module.params.get('share_parameters').get('share_name')
-    payload["UserName"] = module.params.get('share_parameters').get('username')
-    payload["Password"] = module.params.get('share_parameters').get('password')
-    payload["IgnoreCertWarning"] = IGNORE_CERTIFICATE_WARNING[module.params.get('share_parameters').get('ignore_certificate_warning')]
-    if module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
-        payload["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
-        payload["ProxyType"] = PROXY_TYPE[module.params.get('share_parameters').get('proxy_type')]
-        payload["ProxyServer"] = module.params.get('share_parameters').get('proxy_server')
-        payload["ProxyPort"] = module.params.get('share_parameters').get('proxy_port')
-        if module.params.get('share_parameters').get('proxy_username') and module.params.get('share_parameters').get('proxy_password'):
-            payload["ProxyUname"] = module.params.get('share_parameters').get('proxy_username')
-            payload["ProxyPasswd"] = module.params.get('share_parameters').get('proxy_password')
+    proxy_details = get_proxy_details(module)
+    payload.update(proxy_details)
     export_status = export_license(self, module, payload, export_license_url)
     return export_status
 
@@ -498,6 +675,28 @@ def get_share_details(module):
     return share_details
 
 
+def get_proxy_details(module):
+    proxy_details = {}
+    if module.params.get('share_parameters').get('share_type') == "http":
+        proxy_details["ShareType"] = "HTTP"
+    else:
+        proxy_details["ShareType"] = "HTTPS"
+    proxy_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
+    proxy_details["ShareName"] = module.params.get('share_parameters').get('share_name')
+    proxy_details["UserName"] = module.params.get('share_parameters').get('username')
+    proxy_details["Password"] = module.params.get('share_parameters').get('password')
+    proxy_details["IgnoreCertWarning"] = IGNORE_CERTIFICATE_WARNING[module.params.get('share_parameters').get('ignore_certificate_warning')]
+    if module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
+        proxy_details["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
+        proxy_details["ProxyType"] = PROXY_TYPE[module.params.get('share_parameters').get('proxy_type')]
+        proxy_details["ProxyServer"] = module.params.get('share_parameters').get('proxy_server')
+        proxy_details["ProxyPort"] = module.params.get('share_parameters').get('proxy_port')
+        if module.params.get('share_parameters').get('proxy_username') and module.params.get('share_parameters').get('proxy_password'):
+            proxy_details["ProxyUname"] = module.params.get('share_parameters').get('proxy_username')
+            proxy_details["ProxyPasswd"] = module.params.get('share_parameters').get('proxy_password')
+    return proxy_details
+
+
 def main():
     specs = get_argument_spec()
     specs.update(idrac_auth_params)
@@ -517,8 +716,8 @@ def main():
             idrac_firmware_version = get_idrac_firmware_version(idrac)
             if LooseVersion(idrac_firmware_version) <= '3.0':
                 module.exit_json(msg="iDRAC firmware version is not supported.", failed=True)
-            # if module.params["import"]:
-            #     license_obj = ImportLicense(idrac, module)
+            if module.params["import"]:
+                license_obj = ImportLicense(idrac, module)
             if module.params["export"]:
                 license_obj = ExportLicense(idrac, module)
             elif module.params["delete"]:
