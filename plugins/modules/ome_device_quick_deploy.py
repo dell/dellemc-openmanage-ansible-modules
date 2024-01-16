@@ -495,6 +495,9 @@ def check_mode_validation(module, deploy_data):
         module.exit_json(msg=NO_CHANGES_FOUND, quick_deploy_settings=deploy_data)
     req_payload.update(resp_filter_data)
     req_payload.update(req_data_filter)
+    prefix_length = req_payload.get("PrefixLength")
+    if prefix_length == '0':
+        req_payload["PrefixLength"] = ""
     return req_payload, req_slot_payload
 
 
@@ -522,8 +525,8 @@ def update_ipv6_data(req_data, ipv6_enabled, ipv6_enabled_deploy, ipv6_nt_deploy
         ipv6_network_type = deploy_options.get("ipv6_network_type")
         req_data["NetworkTypeV6"] = ipv6_network_type
         if ipv6_network_type == "Static" or ipv6_nt_deploy is not None and ipv6_nt_deploy == "Static":
-            req_data["PrefixLength"] = ""
-            if deploy_options.get("ipv6_prefix_length") is not None and deploy_options.get("ipv6_prefix_length") != 0:
+            req_data["PrefixLength"] = deploy_options.get("ipv6_prefix_length")
+            if deploy_options.get("ipv6_prefix_length") is not None:
                 req_data["PrefixLength"] = str(deploy_options.get("ipv6_prefix_length"))
             req_data["IpV6Gateway"] = deploy_options.get("ipv6_gateway")
     elif ipv6_enabled is not None and ipv6_enabled is False:
