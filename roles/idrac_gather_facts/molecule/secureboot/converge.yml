@@ -38,7 +38,3 @@
 
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/secureboot_assert.yml
-      # with_items: "{{ secure_boot }}"
-      # loop_control:
-      #   loop_var: secure_boot_data
-      # when: secure_boot | length > 0
