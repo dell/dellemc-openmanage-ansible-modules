@@ -1,3 +1,4 @@
+---
 - name: Fetching Secureboot info
   ansible.builtin.uri: &uri_params
     url: "https://{{ hostname }}{{ api_system
