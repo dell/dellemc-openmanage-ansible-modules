@@ -501,7 +501,6 @@ class ExportLicense:
         return export_status
 
     def __export_license_cifs(self, module):
-        # url = get_url(self, module)
         uri = validate_and_get_first_resource_id_uri(
             self.module, self.idrac, SYSTEMS_URI)
         export_license_url = f"{uri[0]}/{EXPORT_LICENCE_NETWORK_SHARE_URI}"
