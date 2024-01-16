@@ -12,25 +12,25 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: secureboot_details
+  register: idrac_gather_facts_secureboot_details
 
 - name: Fetching Secureboot database info
   ansible.builtin.uri:
     url: "https://{{ hostname }}{{ api_system
       }}/SecureBoot/SecureBootDatabases?$expand=*($levels=1)"
     <<: *uri_params
-  register: secureboot_database_details
+  register: idrac_gather_facts_secureboot_database_details
 
 - name: Fetching Secureboot database certificates info
   ansible.builtin.uri:
     url: "https://{{ hostname }}{{
-      sec_boot_db_item['Certificates']
-      ['@odata.id'] }}?$expand=*($levels=1)"
+      sec_boot_db_item['Certificates']['@odata.id'] }}
+      ?$expand=*($levels=1)"
     <<: *uri_params
-  loop: "{{ secureboot_database_details.json.Members }}"
+  loop: "{{ idrac_gather_facts_secureboot_database_details.json.Members }}"
   loop_control:
     loop_var: sec_boot_db_item
-  register: secure_boot_results
+  register: idrac_gather_facts_secure_boot_results
 
 - name: Combine certificates with corresponding database information.
   ansible.builtin.set_fact:
@@ -44,7 +44,7 @@
 
 - name: Combine the secure boot database and certificates into secure boot.
   ansible.builtin.set_fact:
-    api_response: '{{ secureboot_details.json |
+    api_response: '{{ idrac_gather_facts_secureboot_details.json |
       combine({"SecureBootDatabases":
       interim_secure_boot}) |
       ansible.utils.remove_keys(target=["^.*@odata\..*$"],
@@ -56,7 +56,7 @@
 
 - name: Assert the differences in List
   ansible.builtin.assert:
-    that:
-      - "{{ (result_diff | length) == 0 }}"
     fail_msg: "The response from the role does not match"
     success_msg: "The response from the role matches"
+    that:
+      - "{{ (result_diff | length) == 0 }}"

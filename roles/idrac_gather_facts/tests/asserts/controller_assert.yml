@@ -11,28 +11,28 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: storage_entity
+  register: idrac_gather_facts_storage_entity
   no_log: true
 
 - name: Get storage entities
   ansible.builtin.set_fact:
     collected_storage_entity:
       "{{ (collected_storage_entity | default([])) + [item['@odata.id']] }}"
-  loop: "{{ storage_entity.json.Members }}"
+  loop: "{{ idrac_gather_facts_storage_entity.json.Members }}"
 
 - name: Get Controllers URL information.
   ansible.builtin.uri:
     url: "https://{{ hostname }}{{ item }}"
     <<: *uri_params
   loop: "{{ collected_storage_entity }}"
-  register: controllers_url
+  register: idrac_gather_facts_controllers_url
 
 - name: Pick Controllers key value in one list
   ansible.builtin.set_fact:
     controllers_list:
       "{{ controllers_list | default([]) +
        [item.json.Controllers | default(omit)] }}"
-  loop: "{{ controllers_url.results }}"
+  loop: "{{ idrac_gather_facts_controllers_url.results }}"
 
 - name: Select list of controller values from dictionary
   ansible.builtin.set_fact:
@@ -46,12 +46,12 @@
     url: "https://{{ hostname }}{{ item }}?$expand=*($levels=1)"
     <<: *uri_params
   loop: "{{ collected_values | reject('match', '__omit_place_holder__.*') }}"
-  register: result
+  register: idrac_gather_facts_result
 
 - name: Set All Controllers facts
   ansible.builtin.set_fact:
     api_response:
-      "{{ result.results | selectattr('json', 'defined') |
+      "{{ idrac_gather_facts_result.results | selectattr('json', 'defined') |
         map(attribute='json') |
         selectattr('Members', 'defined') |
         map(attribute='Members') | flatten |
