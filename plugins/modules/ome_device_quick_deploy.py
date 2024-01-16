@@ -495,9 +495,7 @@ def check_mode_validation(module, deploy_data):
         module.exit_json(msg=NO_CHANGES_FOUND, quick_deploy_settings=deploy_data)
     req_payload.update(resp_filter_data)
     req_payload.update(req_data_filter)
-    prefix_length = req_payload.get("PrefixLength")
-    if prefix_length == '0':
-        req_payload["PrefixLength"] = ""
+    update_prefix_length(req_payload)
     return req_payload, req_slot_payload
 
 
@@ -531,6 +529,12 @@ def update_ipv6_data(req_data, ipv6_enabled, ipv6_enabled_deploy, ipv6_nt_deploy
             req_data["IpV6Gateway"] = deploy_options.get("ipv6_gateway")
     elif ipv6_enabled is not None and ipv6_enabled is False:
         req_data["ProtocolTypeV6"] = str(ipv6_enabled).lower()
+
+
+def update_prefix_length(req_payload):
+    prefix_length = req_payload.get("PrefixLength")
+    if prefix_length == '0':
+        req_payload["PrefixLength"] = ""
 
 
 def job_payload_submission(rest_obj, payload, slot_payload, settings_type, device_id, resp_data):
