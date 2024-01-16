@@ -30,13 +30,15 @@
 - name: Pick Controllers key value in one list
   ansible.builtin.set_fact:
     controllers_list:
-      "{{ controllers_list | default([]) + [item.json.Controllers | default(omit)] }}"
+      "{{ controllers_list | default([]) +
+       [item.json.Controllers | default(omit)] }}"
   loop: "{{ controllers_url.results }}"
 
 - name: Select list of controller values from dictionary
   ansible.builtin.set_fact:
     collected_values:
-      "{{ (collected_values | default([])) + [item['@odata.id'] | default(omit)] }}"
+      "{{ (collected_values | default([])) +
+       [item['@odata.id'] | default(omit)] }}"
   loop: "{{ controllers_list }}"
 
 - name: Get Controllers information.
@@ -49,9 +51,12 @@
 - name: Set All Controllers facts
   ansible.builtin.set_fact:
     api_response:
-      "{{ result.results | selectattr('json', 'defined') | map(attribute='json') |
-        selectattr('Members', 'defined') | map(attribute='Members') | flatten |
-        ansible.utils.remove_keys(target=['^.*@odata.*$'], matching_parameter='regex') }}"
+      "{{ result.results | selectattr('json', 'defined') |
+        map(attribute='json') |
+        selectattr('Members', 'defined') |
+        map(attribute='Members') | flatten |
+        ansible.utils.remove_keys(target=['^.*@odata.*$'],
+        matching_parameter='regex') }}"
 
 - name: Check whether output differs
   ansible.builtin.set_fact:
