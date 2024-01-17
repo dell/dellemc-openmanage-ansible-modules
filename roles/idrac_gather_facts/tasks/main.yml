@@ -19,11 +19,13 @@
         msg: Ensure the value for environment variable 'IDRAC_USERNAME'
           or the argument 'username' is set.
       when: username is not defined and not lookup('env', 'IDRAC_USERNAME')
+
     - name: Check whether atleast one of 'IDRAC_PASSWORD' or password is provided
       ansible.builtin.fail:
         msg: Ensure the value for environment variable 'IDRAC_PASSWORD'
           or the argument 'password' is set.
       when: password is not defined and not lookup('env', 'IDRAC_PASSWORD')
+
     - name: Set default facts
       ansible.builtin.set_fact:
         idrac: {}
@@ -52,22 +54,27 @@
         thermal_metrics: []
         memory_metrics: []
         secure_boot: {}
+
     - name: Get connection
       ansible.builtin.uri:
         url: https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems
       register: idrac_gather_facts_connection
       delegate_to: "{{ idrac_gather_facts_delegate }}"
+
     - name: Fail when hostname or certificate is incorrect or invalid.
       ansible.builtin.fail:
         msg: "{{ idrac_gather_facts_connection.msg }}"
       when: idrac_gather_facts_connection.status == -1
+
     - name: Fail when credentials are incorrect or invalid.
       ansible.builtin.fail:
         msg: The authentication credentials included with this request
           are missing or invalid.
       when: idrac_gather_facts_connection.status == 401
+
     - name: Get System, Manager and Chassis resource id.
       ansible.builtin.include_tasks: get_resource_id.yml
+
     - name: Get target facts in loop
       ansible.builtin.include_tasks: "{{
         idrac_gather_facts_target_yml_map[item] }}"
