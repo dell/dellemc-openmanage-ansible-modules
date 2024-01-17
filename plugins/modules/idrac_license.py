@@ -152,7 +152,7 @@ options:
       - Id of the resource.
       - If the value for resource ID is not provided, the module picks the first resource ID available from the list of system resources returned by the iDRAC.
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Rajshekar P(@rajshekarp87)"
 notes:
@@ -433,7 +433,7 @@ class DeleteLicense:
     def execute(self, module):
         license_id = module.params.get('license_id')
         check_license_id(self, module, license_id, "delete")
-        license_url = __get_license_url(self)
+        license_url = get_license_url(self)
         delete_license_url = license_url + f"/{license_id}"
         delete_license_response = self.idrac.invoke_request(delete_license_url, 'DELETE')
         status = delete_license_response.status_code
@@ -445,6 +445,8 @@ class DeleteLicense:
 
 
 class ExportLicense:
+    STATUS_SUCCESS = [200, 202]
+
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
@@ -453,33 +455,27 @@ class ExportLicense:
         share_type = module.params.get('share_parameters').get('share_type')
         license_id = module.params.get('license_id')
         check_license_id(self, module, license_id, "export")
-        export_url = self.__get_export_license_url(module)
+        export_license_url = self.__get_export_license_url(module)
+        job_status = {}
         if share_type == "local":
-            export_license_status = self.__export_license_local(module, export_url)
+            export_license_status = self.__export_license_local(module, export_license_url)
         elif share_type in ["http", "https"]:
-            export_license_status = self.__export_license_http(module, export_url)
+            export_license_status = self.__export_license_http(module, export_license_url)
             job_status = get_job_status(self, module, export_license_status)
         elif share_type == "cifs":
-            export_license_status = self.__export_license_cifs(module, export_url)
+            export_license_status = self.__export_license_cifs(module, export_license_url)
             job_status = get_job_status(self, module, export_license_status)
         elif share_type == "nfs":
-            export_license_status = self.__export_license_nfs(module, export_url)
+            export_license_status = self.__export_license_nfs(module, export_license_url)
             job_status = get_job_status(self, module, export_license_status)
         status = export_license_status.status_code
-        if share_type in ["http", "https", "cifs", "nfs"]:
-            if status in [200, 202]:
-                module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
-            else:
-                module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details=job_status)
+        if status in self.STATUS_SUCCESS:
+            module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
         else:
-            if status in [200, 202]:
-                module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details={})
-            else:
-                module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details={})
+            module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details=job_status)
         return export_license_status
 
-    def __export_license_local(self, module, export_url):
-        export_license_url = export_url
+    def __export_license_local(self, module, export_license_url):
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
         path = module.params.get('share_parameters').get('share_name')
@@ -500,8 +496,7 @@ class ExportLicense:
             fp.writelines(license_file)
         return license_status
 
-    def __export_license_http(self, module, export_url):
-        export_license_url = export_url
+    def __export_license_http(self, module, export_license_url):
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
         proxy_details = get_proxy_details(module)
@@ -509,8 +504,7 @@ class ExportLicense:
         export_status = self.__export_license(module, payload, export_license_url)
         return export_status
 
-    def __export_license_cifs(self, module, export_url):
-        export_license_url = export_url
+    def __export_license_cifs(self, module, export_license_url):
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
         payload["ShareType"] = "CIFS"
@@ -521,8 +515,7 @@ class ExportLicense:
         export_status = self.__export_license(module, payload, export_license_url)
         return export_status
 
-    def __export_license_nfs(self, module, export_url):
-        export_license_url = export_url
+    def __export_license_nfs(self, module, export_license_url):
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
         payload["ShareType"] = "NFS"
@@ -558,6 +551,8 @@ class ExportLicense:
 
 
 class ImportLicense:
+    STATUS_SUCCESS = [200, 202]
+
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
@@ -569,6 +564,7 @@ class ImportLicense:
         self.__check_file_extension(module)
         import_license_url = self.__get_import_license_url(module)
         resource_id = get_manager_res_id(self.idrac)
+        job_status = {}
         if share_type == "local":
             import_license_status = self.__import_license_local(module, import_license_url, resource_id)
         elif share_type in ["http", "https"]:
@@ -581,23 +577,17 @@ class ImportLicense:
             import_license_status = self.__import_license_nfs(module, import_license_url, resource_id)
             job_status = get_job_status(self, module, import_license_status)
         status = import_license_status.status_code
-        if share_type in ["http", "https", "cifs", "nfs"]:
-            if status in [200, 202]:
-                module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details=job_status)
-            else:
-                module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details=job_status)
+        if status in self.STATUS_SUCCESS:
+            module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details=job_status)
         else:
-            if status in [200, 202]:
-                module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details={})
-            else:
-                module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details={})
+            module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details=job_status)
         return import_license_status
 
     def __import_license_local(self, module, import_license_url, resource_id):
         payload = {}
         path = module.params.get('share_parameters').get('share_name')
         if not (os.path.exists(path) or os.path.isdir(path)):
-            module.exit_json(msg=f"Provided directory path '{path}' is not valid.", failed=True)
+            module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
         file_path = module.params.get('share_parameters').get('share_name') + "/" + module.params.get('share_parameters').get('file_name')
         file_exits = os.path.exists(file_path)
         if file_exits:
@@ -671,7 +661,7 @@ class ImportLicense:
 
 
 def check_license_id(self, module, license_id, operation):
-    license_uri = __get_license_url(self)
+    license_uri = get_license_url(self)
     license_url = license_uri + f"/{license_id}"
     try:
         response = self.idrac.invoke_request(license_url, 'GET')
@@ -680,7 +670,7 @@ def check_license_id(self, module, license_id, operation):
         module.exit_json(msg=FAILURE_MSG.format(operation=operation, license_id=license_id), failed=True)
 
 
-def __get_license_url(self):
+def get_license_url(self):
     v1_resp = get_dynamic_uri(self.idrac, REDFISH)
     license_service_url = v1_resp.get('LicenseService', {}).get('@odata.id', {})
     license_service_resp = get_dynamic_uri(self.idrac, license_service_url)
