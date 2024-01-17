@@ -156,4 +156,3 @@
       retries: 30
       delay: 10
       when: redfish_firmware_out.changed # noqa: no-handler
-      no_log: true
