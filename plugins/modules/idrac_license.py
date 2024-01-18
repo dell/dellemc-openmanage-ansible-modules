@@ -253,7 +253,7 @@ EXAMPLES = r"""
     idrac_password: "password"
     ca_path: "/path/to/ca_cert.pem"
     import: true
-    share_parmaters:
+    share_parameters:
       file_name: "license_file_name.xml"
       share_type: local
       share_name: "/path/to/share"
@@ -265,7 +265,7 @@ EXAMPLES = r"""
     idrac_password: "password"
     ca_path: "/path/to/ca_cert.pem"
     import: true
-    share_parmaters:
+    share_parameters:
       file_name: "license_file_name.xml"
       share_type: nfs
       ip_address: "192.168.0.1"
@@ -278,7 +278,7 @@ EXAMPLES = r"""
     idrac_password: "password"
     ca_path: "/path/to/ca_cert.pem"
     import: true
-    share_parmaters:
+    share_parameters:
       file_name: "license_file_name.xml"
       share_type: cifs
       ip_address: "192.168.0.1"
@@ -293,7 +293,7 @@ EXAMPLES = r"""
     idrac_password: "password"
     ca_path: "/path/to/ca_cert.pem"
     import: true
-    share_parmaters:
+    share_parameters:
       file_name: "license_file_name.xml"
       share_type: http
       ip_address: "192.168.0.1"
@@ -308,7 +308,7 @@ EXAMPLES = r"""
     idrac_password: "password"
     ca_path: "/path/to/ca_cert.pem"
     import: true
-    share_parmaters:
+    share_parameters:
       file_name: "license_file_name.xml"
       share_type: https
       ip_address: "192.168.0.1"
@@ -425,15 +425,80 @@ PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_prox
 PROXY_TYPE = {"http": "HTTP", "socks": "SOCKS"}
 
 
-class DeleteLicense:
+class License():
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
 
     def execute(self, module):
+        pass
+
+    def check_license_id(self, module, license_id, operation):
+        license_uri = self.get_license_url()
+        license_url = license_uri + f"/{license_id}"
+        try:
+            response = self.idrac.invoke_request(license_url, 'GET')
+            return response
+        except Exception:
+            module.exit_json(msg=FAILURE_MSG.format(operation=operation, license_id=license_id), failed=True)
+
+    def get_license_url(self):
+        v1_resp = get_dynamic_uri(self.idrac, REDFISH)
+        license_service_url = v1_resp.get('LicenseService', {}).get('@odata.id', {})
+        license_service_resp = get_dynamic_uri(self.idrac, license_service_url)
+        license_url = license_service_resp.get('Licenses', {}).get('@odata.id', {})
+        return license_url
+
+    def get_job_status(self, module, export_license_status):
+        res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
+        job_tracking_uri = export_license_status.headers.get("Location")
+        job_id = job_tracking_uri.split("/")[-1]
+        job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
+        job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
+        job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
+        if job_failed:
+            module.exit_json(
+                msg=job_dict.get('Message'),
+                failed=True,
+                job_details=job_dict)
+        return job_dict
+
+    def get_share_details(self, module):
+        share_details = {}
+        share_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
+        share_details["ShareName"] = module.params.get('share_parameters').get('share_name')
+        share_details["UserName"] = module.params.get('share_parameters').get('username')
+        share_details["Password"] = module.params.get('share_parameters').get('password')
+        return share_details
+
+    def get_proxy_details(self, module):
+        proxy_details = {}
+        if module.params.get('share_parameters').get('share_type') == "http":
+            proxy_details["ShareType"] = "HTTP"
+        else:
+            proxy_details["ShareType"] = "HTTPS"
+        proxy_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
+        proxy_details["ShareName"] = module.params.get('share_parameters').get('share_name')
+        proxy_details["UserName"] = module.params.get('share_parameters').get('username')
+        proxy_details["Password"] = module.params.get('share_parameters').get('password')
+        proxy_details["IgnoreCertWarning"] = IGNORE_CERTIFICATE_WARNING[module.params.get('share_parameters').get('ignore_certificate_warning')]
+        if module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
+            proxy_details["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
+            proxy_details["ProxyType"] = PROXY_TYPE[module.params.get('share_parameters').get('proxy_type')]
+            proxy_details["ProxyServer"] = module.params.get('share_parameters').get('proxy_server')
+            proxy_details["ProxyPort"] = module.params.get('share_parameters').get('proxy_port')
+            if module.params.get('share_parameters').get('proxy_username') and module.params.get('share_parameters').get('proxy_password'):
+                proxy_details["ProxyUname"] = module.params.get('share_parameters').get('proxy_username')
+                proxy_details["ProxyPasswd"] = module.params.get('share_parameters').get('proxy_password')
+        return proxy_details
+
+
+class DeleteLicense(License):
+
+    def execute(self, module):
         license_id = module.params.get('license_id')
-        check_license_id(self, module, license_id, "delete")
-        license_url = get_license_url(self)
+        License.check_license_id(self, module, license_id, "delete")
+        license_url = License.get_license_url(self)
         delete_license_url = license_url + f"/{license_id}"
         delete_license_response = self.idrac.invoke_request(delete_license_url, 'DELETE')
         status = delete_license_response.status_code
@@ -444,30 +509,26 @@ class DeleteLicense:
         return delete_license_response
 
 
-class ExportLicense:
+class ExportLicense(License):
     STATUS_SUCCESS = [200, 202]
-
-    def __init__(self, idrac, module):
-        self.idrac = idrac
-        self.module = module
 
     def execute(self, module):
         share_type = module.params.get('share_parameters').get('share_type')
         license_id = module.params.get('license_id')
-        check_license_id(self, module, license_id, "export")
+        License.check_license_id(self, module, license_id, "export")
         export_license_url = self.__get_export_license_url(module)
         job_status = {}
         if share_type == "local":
             export_license_status = self.__export_license_local(module, export_license_url)
         elif share_type in ["http", "https"]:
             export_license_status = self.__export_license_http(module, export_license_url)
-            job_status = get_job_status(self, module, export_license_status)
+            job_status = License.get_job_status(self, module, export_license_status)
         elif share_type == "cifs":
             export_license_status = self.__export_license_cifs(module, export_license_url)
-            job_status = get_job_status(self, module, export_license_status)
+            job_status = License.get_job_status(self, module, export_license_status)
         elif share_type == "nfs":
             export_license_status = self.__export_license_nfs(module, export_license_url)
-            job_status = get_job_status(self, module, export_license_status)
+            job_status = License.get_job_status(self, module, export_license_status)
         status = export_license_status.status_code
         if status in self.STATUS_SUCCESS:
             module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
@@ -499,7 +560,7 @@ class ExportLicense:
     def __export_license_http(self, module, export_license_url):
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
-        proxy_details = get_proxy_details(module)
+        proxy_details = License.get_proxy_details(self, module)
         payload.update(proxy_details)
         export_status = self.__export_license(module, payload, export_license_url)
         return export_status
@@ -510,7 +571,7 @@ class ExportLicense:
         payload["ShareType"] = "CIFS"
         if module.params.get('share_parameters').get('workgroup'):
             payload["Workgroup"] = module.params.get('share_parameters').get('workgroup')
-        share_details = get_share_details(module)
+        share_details = License.get_share_details(self, module)
         payload.update(share_details)
         export_status = self.__export_license(module, payload, export_license_url)
         return export_status
@@ -550,12 +611,8 @@ class ExportLicense:
         return license_status
 
 
-class ImportLicense:
+class ImportLicense(License):
     STATUS_SUCCESS = [200, 202]
-
-    def __init__(self, idrac, module):
-        self.idrac = idrac
-        self.module = module
 
     def execute(self, module):
         if not module.params.get('share_parameters').get('file_name'):
@@ -569,13 +626,13 @@ class ImportLicense:
             import_license_status = self.__import_license_local(module, import_license_url, resource_id)
         elif share_type in ["http", "https"]:
             import_license_status = self.__import_license_http(module, import_license_url, resource_id)
-            job_status = get_job_status(self, module, import_license_status)
+            job_status = License.get_job_status(self, module, import_license_status)
         elif share_type == "cifs":
             import_license_status = self.__import_license_cifs(module, import_license_url, resource_id)
-            job_status = get_job_status(self, module, import_license_status)
+            job_status = License.get_job_status(self, module, import_license_status)
         elif share_type == "nfs":
             import_license_status = self.__import_license_nfs(module, import_license_url, resource_id)
-            job_status = get_job_status(self, module, import_license_status)
+            job_status = License.get_job_status(self, module, import_license_status)
         status = import_license_status.status_code
         if status in self.STATUS_SUCCESS:
             module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details=job_status)
@@ -607,7 +664,7 @@ class ImportLicense:
         payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
         payload["FQDD"] = resource_id
         payload["ImportOptions"] = "Force"
-        proxy_details = get_proxy_details(module)
+        proxy_details = License.get_proxy_details(self, module)
         payload.update(proxy_details)
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
@@ -620,7 +677,7 @@ class ImportLicense:
         payload["ImportOptions"] = "Force"
         if module.params.get('share_parameters').get('workgroup'):
             payload["Workgroup"] = module.params.get('share_parameters').get('workgroup')
-        share_details = get_share_details(module)
+        share_details = License.get_share_details(self, module)
         payload.update(share_details)
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
@@ -660,68 +717,20 @@ class ImportLicense:
         return import_url
 
 
-def check_license_id(self, module, license_id, operation):
-    license_uri = get_license_url(self)
-    license_url = license_uri + f"/{license_id}"
-    try:
-        response = self.idrac.invoke_request(license_url, 'GET')
-        return response
-    except Exception:
-        module.exit_json(msg=FAILURE_MSG.format(operation=operation, license_id=license_id), failed=True)
+class LicenseType:
+    _license_classes = {
+        "import": ImportLicense,
+        "export": ExportLicense,
+        "delete": DeleteLicense,
+    }
 
-
-def get_license_url(self):
-    v1_resp = get_dynamic_uri(self.idrac, REDFISH)
-    license_service_url = v1_resp.get('LicenseService', {}).get('@odata.id', {})
-    license_service_resp = get_dynamic_uri(self.idrac, license_service_url)
-    license_url = license_service_resp.get('Licenses', {}).get('@odata.id', {})
-    return license_url
-
-
-def get_job_status(self, module, export_license_status):
-    res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
-    job_tracking_uri = export_license_status.headers.get("Location")
-    job_id = job_tracking_uri.split("/")[-1]
-    job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
-    job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
-    job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
-    if job_failed:
-        module.exit_json(
-            msg=job_dict.get('Message'),
-            failed=True,
-            job_details=job_dict)
-    return job_dict
-
-
-def get_share_details(module):
-    share_details = {}
-    share_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-    share_details["ShareName"] = module.params.get('share_parameters').get('share_name')
-    share_details["UserName"] = module.params.get('share_parameters').get('username')
-    share_details["Password"] = module.params.get('share_parameters').get('password')
-    return share_details
-
-
-def get_proxy_details(module):
-    proxy_details = {}
-    if module.params.get('share_parameters').get('share_type') == "http":
-        proxy_details["ShareType"] = "HTTP"
-    else:
-        proxy_details["ShareType"] = "HTTPS"
-    proxy_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-    proxy_details["ShareName"] = module.params.get('share_parameters').get('share_name')
-    proxy_details["UserName"] = module.params.get('share_parameters').get('username')
-    proxy_details["Password"] = module.params.get('share_parameters').get('password')
-    proxy_details["IgnoreCertWarning"] = IGNORE_CERTIFICATE_WARNING[module.params.get('share_parameters').get('ignore_certificate_warning')]
-    if module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
-        proxy_details["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
-        proxy_details["ProxyType"] = PROXY_TYPE[module.params.get('share_parameters').get('proxy_type')]
-        proxy_details["ProxyServer"] = module.params.get('share_parameters').get('proxy_server')
-        proxy_details["ProxyPort"] = module.params.get('share_parameters').get('proxy_port')
-        if module.params.get('share_parameters').get('proxy_username') and module.params.get('share_parameters').get('proxy_password'):
-            proxy_details["ProxyUname"] = module.params.get('share_parameters').get('proxy_username')
-            proxy_details["ProxyPasswd"] = module.params.get('share_parameters').get('proxy_password')
-    return proxy_details
+    @staticmethod
+    def create_license(idrac, module):
+        license_type = next((param for param in ["import", "export", "delete"] if module.params[param]), None)
+        if not license_type:
+            module.exit_json(msg="Task is skipped as none of import, export or delete is specified.", skipped=True)
+        license_class = LicenseType._license_classes.get(license_type)
+        return license_class(idrac, module)
 
 
 def main():
@@ -743,24 +752,16 @@ def main():
             idrac_firmware_version = get_idrac_firmware_version(idrac)
             if LooseVersion(idrac_firmware_version) <= '3.0':
                 module.exit_json(msg="iDRAC firmware version is not supported.", failed=True)
-            license_obj = None
-            if module.params["import"]:
-                license_obj = ImportLicense(idrac, module)
-            elif module.params["export"]:
-                license_obj = ExportLicense(idrac, module)
-            elif module.params["delete"]:
-                license_obj = DeleteLicense(idrac, module)
+            license_obj = LicenseType.create_license(idrac, module)
             if license_obj:
-                license_status = license_obj.execute(module)
-            else:
-                module.exit_json(msg="Task is skipped as none of import, export or delete is specified.", skipped=True)
+                license_obj.execute(module)
     except HTTPError as err:
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
+        module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (ImportError, ValueError, RuntimeError, SSLValidationError,
-            ConnectionError, KeyError, TypeError, IndexError) as e:
-        module.exit_json(msg=str(e), failed=True)
+    except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 def get_argument_spec():
