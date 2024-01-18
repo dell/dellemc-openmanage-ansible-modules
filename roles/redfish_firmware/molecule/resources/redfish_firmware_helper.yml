@@ -1,0 +1,25 @@
+---
+- name: Loading vars from resources.yml
+  ansible.builtin.include_vars:
+    file: "./vars.yml"
+
+  # Downloading firmware image locally as it can have large size of file.
+- name: Downloading firmware image for local manual reboot
+  ansible.builtin.get_url:
+    url: "{{ redfish_firmware_local_manual_reboot }}"
+    dest: "{{ local_path }}"
+  register: download_local_manual_reboot_firmware
+  delegate_to: localhost
+
+- name: Downloading firmware image for http auto reboot
+  ansible.builtin.get_url:
+    url: "{{ redfish_firmware_http_auto_reboot }}"
+    dest: "{{ local_path }}"
+  register: download_http_auto_reboot_firmware
+  delegate_to: localhost
+
+- name: Uploading firmware image to http share
+  ansible.builtin.copy:
+    dest: "{{ lookup('env', 'HTTP_URL') + http_share_path }}"
+    src: "{{ download_http_auto_reboot_firmware.dest }}"
+  register: upload_http_auto_reboot_firmware
