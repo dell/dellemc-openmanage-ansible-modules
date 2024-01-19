@@ -12,12 +12,16 @@
           validate_certs: false
       no_log: true
 
+    - name: Using helper file to download the firmware
+      ansible.builtin.include_tasks:
+        file: "../resources/redfish_firmware_helper.yml"
+
     - name: TC - 001 - Provide valid HTTP image_uri with default transfer_protocol with auto reboot
       ansible.builtin.import_role:
         name: redfish_firmware
       vars:
         <<: *idrac_input
-        image_uri: "{{ lookup('env', 'redfish_firmware_http_auto_reboot') }}"
+        image_uri: "{{ redfish_firmware_http_need_no_reboot }}"
         job_wait_timeout: 3600
 
     - name: TC - 001 - Asserting after performing update with valid image_uri and default transfter_protocol with auto reboot
@@ -31,7 +35,7 @@
         name: redfish_firmware
       vars:
         <<: *idrac_input
-        image_uri: "{{ lookup('env', 'redfish_firmware_local_manual_reboot') }}"
+        image_uri: "{{ redfish_firmware_local_need_manual_reboot }}"
         job_wait_timeout: 60
 
     - name: TC - 002 - Asserting after performing update with local image_uri firmware to schedule job

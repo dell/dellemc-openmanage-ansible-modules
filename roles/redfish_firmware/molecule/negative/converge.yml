@@ -3,7 +3,7 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: Using helper file to download and upload the firmware
+    - name: Using helper file to download the firmware
       ansible.builtin.include_tasks:
         file: "../resources/redfish_firmware_helper.yml"
 
@@ -15,7 +15,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        image_uri: "{{ redfish_firmware_local_manual_reboot }}"
+        image_uri: "{{ redfish_firmware_local_need_manual_reboot }}"
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
@@ -35,7 +35,7 @@
         username: "WrongUsername123"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        image_uri: "{{ redfish_firmware_local_manual_reboot }}"
+        image_uri: "{{ redfish_firmware_local_need_manual_reboot }}"
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
@@ -54,7 +54,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "WrongPassword@123"
         validate_certs: false
-        image_uri: "{{ redfish_firmware_local_manual_reboot }}"
+        image_uri: "{{ redfish_firmware_local_need_manual_reboot }}"
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
@@ -75,7 +75,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: 'someStringValue'
-        image_uri: "{{ redfish_firmware_local_manual_reboot }}"
+        image_uri: "{{ redfish_firmware_local_need_manual_reboot }}"
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
@@ -131,7 +131,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        image_uri: "{{ lookup('env', 'redfish_firmware_http_auto_reboot') }}"
+        image_uri: "{{ redfish_firmware_http_need_no_reboot }}"
         job_wait_timeout: -100
 
     - name: TC - 009 - Asserting job_wait_timeout as -100 with auto reboot firmware component
