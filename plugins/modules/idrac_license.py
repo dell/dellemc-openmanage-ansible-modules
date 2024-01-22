@@ -72,8 +72,8 @@ options:
         description:
           - License file name for I(import) and I(export) operation.
           - I(file_name) is required when I(import) is C(true).
-          - For the I(import) operation, the supported extensions for I(file_name) are '.txt' or '.xml' when I(share_type) is C(local),
-            and '.xml' for other share types.
+          - For the I(import) operation, when I(share_type) is C(local), the supported extensions for I(file_name) are '.txt' and '.xml'.
+            For other share types, the supported extension is '.xml'
         type: str
       ip_address:
         description:
