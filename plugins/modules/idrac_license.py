@@ -136,8 +136,8 @@ options:
         description:
           - The port of the proxy server.
           - I(proxy_port) is only applicable when I(share_type) is C(https) or C(https) and when I(proxy_support) is C(parameters_proxy).
-        type: str
-        default: '80'
+        type: int
+        default: 80
       proxy_username:
         description:
           - The username of the proxy server.
@@ -228,7 +228,7 @@ EXAMPLES = r"""
       proxy_support: "parameters_proxy"
       proxy_type: socks
       proxy_server: "192.168.0.2"
-      proxy_port: "1080"
+      proxy_port: 1080
       proxy_username: "proxy_username"
       proxy_password: "proxy_password"
 
@@ -320,7 +320,7 @@ EXAMPLES = r"""
       password: "password"
       proxy_support: "parameters_proxy"
       proxy_server: "192.168.0.2"
-      proxy_port: "808"
+      proxy_port: 808
       proxy_username: "proxy_username"
       proxy_password: "proxy_password"
 
@@ -409,6 +409,7 @@ EXPORT_LOCAL = "#DellLicenseManagementService.ExportLicense"
 EXPORT_NETWORK_SHARE = "#DellLicenseManagementService.ExportLicenseToNetworkShare"
 IMPORT_LOCAL = "#DellLicenseManagementService.ImportLicense"
 IMPORT_NETWORK_SHARE = "#DellLicenseManagementService.ImportLicenseFromNetworkShare"
+ODATA = "@odata.id"
 
 INVALID_LICENSE_MSG = "License id '{license_id}' is invalid."
 SUCCESS_EXPORT_MSG = "Successfully exported the license."
@@ -476,9 +477,9 @@ class License():
         :return: The license URL as a string.
         """
         v1_resp = get_dynamic_uri(self.idrac, REDFISH)
-        license_service_url = v1_resp.get('LicenseService', {}).get('@odata.id', {})
+        license_service_url = v1_resp.get('LicenseService', {}).get(ODATA, {})
         license_service_resp = get_dynamic_uri(self.idrac, license_service_url)
-        license_url = license_service_resp.get('Licenses', {}).get('@odata.id', {})
+        license_url = license_service_resp.get('Licenses', {}).get(ODATA, {})
         return license_url
 
     def get_job_status(self, module, license_job_response):
@@ -548,7 +549,7 @@ class License():
             proxy_details["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
             proxy_details["ProxyType"] = PROXY_TYPE[module.params.get('share_parameters').get('proxy_type')]
             proxy_details["ProxyServer"] = module.params.get('share_parameters').get('proxy_server')
-            proxy_details["ProxyPort"] = module.params.get('share_parameters').get('proxy_port')
+            proxy_details["ProxyPort"] = str(module.params.get('share_parameters').get('proxy_port'))
             if module.params.get('share_parameters').get('proxy_username') and module.params.get('share_parameters').get('proxy_password'):
                 proxy_details["ProxyUname"] = module.params.get('share_parameters').get('proxy_username')
                 proxy_details["ProxyPasswd"] = module.params.get('share_parameters').get('proxy_password')
@@ -576,7 +577,6 @@ class DeleteLicense(License):
             module.exit_json(msg=SUCCESS_DELETE_MSG, changed=True)
         else:
             module.exit_json(FAILURE_MSG.format(operation="delete", license_id=license_id), failed=True)
-        # return delete_license_response
 
 
 class ExportLicense(License):
@@ -613,7 +613,6 @@ class ExportLicense(License):
             module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
         else:
             module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details=job_status)
-        # return export_license_response
 
     def __export_license_local(self, module, export_license_url):
         """
@@ -718,7 +717,7 @@ class ExportLicense(License):
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
         resp = get_dynamic_uri(self.idrac, uri)
-        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get('@odata.id', {})
+        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
         action_resp = get_dynamic_uri(self.idrac, url)
         if module.params.get('share_parameters').get('share_type') == "local":
             license_service = EXPORT_LOCAL
@@ -785,7 +784,6 @@ class ImportLicense(License):
             module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details=job_status)
         else:
             module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details=job_status)
-        # return import_license_response
 
     def __import_license_local(self, module, import_license_url, resource_id):
         """
@@ -915,7 +913,7 @@ class ImportLicense(License):
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
         resp = get_dynamic_uri(self.idrac, uri)
-        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get('@odata.id', {})
+        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
         action_resp = get_dynamic_uri(self.idrac, url)
         if module.params.get('share_parameters').get('share_type') == "local":
             license_service = IMPORT_LOCAL
@@ -1033,7 +1031,7 @@ def get_argument_spec():
                 - "proxy_support": A string representing the proxy support.
                 - "proxy_type": A string representing the proxy type.
                 - "proxy_server": A string representing the proxy server.
-                - "proxy_port": A string representing the proxy port.
+                - "proxy_port": A integer representing the proxy port.
                 - "proxy_username": A string representing the proxy username.
                 - "proxy_password": A string representing the proxy password.
             - "required_if": A list of lists representing the required conditions for the share parameters.
@@ -1075,7 +1073,7 @@ def get_argument_spec():
                     "choices": ['http', 'socks']
                 },
                 "proxy_server": {"type": 'str'},
-                "proxy_port": {"type": 'str', "default": '80'},
+                "proxy_port": {"type": 'int', "default": 80},
                 "proxy_username": {"type": 'str'},
                 "proxy_password": {"type": 'str', "no_log": True}
             },
