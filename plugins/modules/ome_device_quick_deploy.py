@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.3.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 8.7.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -445,33 +445,9 @@ def check_mode_validation(module, deploy_data):
     ipv6_enabled_deploy = deploy_data["ProtocolTypeV6"]
     ipv4_nt_deploy = deploy_data.get("NetworkTypeV4")
     ipv6_nt_deploy = deploy_data.get("NetworkTypeV6")
-    if ipv4_enabled is not None and ipv4_enabled is True or \
-            ipv4_enabled_deploy is not None and ipv4_enabled_deploy is True:
-        req_data["ProtocolTypeV4"] = None
-        if ipv4_enabled is not None:
-            req_data["ProtocolTypeV4"] = str(ipv4_enabled).lower()
-        ipv4_network_type = deploy_options.get("ipv4_network_type")
-        req_data["NetworkTypeV4"] = ipv4_network_type
-        if ipv4_network_type == "Static" or ipv4_nt_deploy is not None and ipv4_nt_deploy == "Static":
-            req_data["IpV4SubnetMask"] = deploy_options.get("ipv4_subnet_mask")
-            req_data["IpV4Gateway"] = deploy_options.get("ipv4_gateway")
-    elif ipv4_enabled is not None and ipv4_enabled is False:
-        req_data["ProtocolTypeV4"] = str(ipv4_enabled).lower()
     ipv6_enabled = deploy_options.get("ipv6_enabled")
-    if ipv6_enabled is not None and ipv6_enabled is True or \
-            ipv6_enabled_deploy is not None and ipv6_enabled_deploy is True:
-        req_data["ProtocolTypeV6"] = None
-        if ipv6_enabled is not None:
-            req_data["ProtocolTypeV6"] = str(ipv6_enabled).lower()
-        ipv6_network_type = deploy_options.get("ipv6_network_type")
-        req_data["NetworkTypeV6"] = ipv6_network_type
-        if ipv6_network_type == "Static" or ipv6_nt_deploy is not None and ipv6_nt_deploy == "Static":
-            req_data["PrefixLength"] = deploy_options.get("ipv6_prefix_length")
-            if deploy_options.get("ipv6_prefix_length") is not None:
-                req_data["PrefixLength"] = str(deploy_options.get("ipv6_prefix_length"))
-            req_data["IpV6Gateway"] = deploy_options.get("ipv6_gateway")
-    elif ipv6_enabled is not None and ipv6_enabled is False:
-        req_data["ProtocolTypeV6"] = str(ipv6_enabled).lower()
+    update_ipv4_data(req_data, ipv4_enabled, ipv4_enabled_deploy, ipv4_nt_deploy, deploy_options)
+    update_ipv6_data(req_data, ipv6_enabled, ipv6_enabled_deploy, ipv6_nt_deploy, deploy_options)
     resp_data = {
         "ProtocolTypeV4": str(ipv4_enabled_deploy).lower(), "NetworkTypeV4": deploy_data.get("NetworkTypeV4"),
         "IpV4SubnetMask": deploy_data.get("IpV4SubnetMask"), "IpV4Gateway": deploy_data.get("IpV4Gateway"),
@@ -519,7 +495,46 @@ def check_mode_validation(module, deploy_data):
         module.exit_json(msg=NO_CHANGES_FOUND, quick_deploy_settings=deploy_data)
     req_payload.update(resp_filter_data)
     req_payload.update(req_data_filter)
+    update_prefix_length(req_payload)
     return req_payload, req_slot_payload
+
+
+def update_ipv4_data(req_data, ipv4_enabled, ipv4_enabled_deploy, ipv4_nt_deploy, deploy_options):
+    if ipv4_enabled is not None and ipv4_enabled is True or \
+            ipv4_enabled_deploy is not None and ipv4_enabled_deploy is True:
+        req_data["ProtocolTypeV4"] = None
+        if ipv4_enabled is not None:
+            req_data["ProtocolTypeV4"] = str(ipv4_enabled).lower()
+        ipv4_network_type = deploy_options.get("ipv4_network_type")
+        req_data["NetworkTypeV4"] = ipv4_network_type
+        if ipv4_network_type == "Static" or ipv4_nt_deploy is not None and ipv4_nt_deploy == "Static":
+            req_data["IpV4SubnetMask"] = deploy_options.get("ipv4_subnet_mask")
+            req_data["IpV4Gateway"] = deploy_options.get("ipv4_gateway")
+    elif ipv4_enabled is not None and ipv4_enabled is False:
+        req_data["ProtocolTypeV4"] = str(ipv4_enabled).lower()
+
+
+def update_ipv6_data(req_data, ipv6_enabled, ipv6_enabled_deploy, ipv6_nt_deploy, deploy_options):
+    if ipv6_enabled is not None and ipv6_enabled is True or \
+            ipv6_enabled_deploy is not None and ipv6_enabled_deploy is True:
+        req_data["ProtocolTypeV6"] = None
+        if ipv6_enabled is not None:
+            req_data["ProtocolTypeV6"] = str(ipv6_enabled).lower()
+        ipv6_network_type = deploy_options.get("ipv6_network_type")
+        req_data["NetworkTypeV6"] = ipv6_network_type
+        if ipv6_network_type == "Static" or ipv6_nt_deploy is not None and ipv6_nt_deploy == "Static":
+            req_data["PrefixLength"] = deploy_options.get("ipv6_prefix_length")
+            if deploy_options.get("ipv6_prefix_length") is not None:
+                req_data["PrefixLength"] = str(deploy_options.get("ipv6_prefix_length"))
+            req_data["IpV6Gateway"] = deploy_options.get("ipv6_gateway")
+    elif ipv6_enabled is not None and ipv6_enabled is False:
+        req_data["ProtocolTypeV6"] = str(ipv6_enabled).lower()
+
+
+def update_prefix_length(req_payload):
+    prefix_length = req_payload.get("PrefixLength")
+    if prefix_length == '0':
+        req_payload["PrefixLength"] = ""
 
 
 def job_payload_submission(rest_obj, payload, slot_payload, settings_type, device_id, resp_data):
