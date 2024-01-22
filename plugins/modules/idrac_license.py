@@ -162,7 +162,7 @@ notes:
     - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
     - This module does not support C(check_mode).
-    - When I(share_type) is C(local) for both I(import) and I(export) operations, job_details will not be displayed.
+    - When I(share_type) is C(local) for I(import) and I(export) operations, job_details are not displayed.
 """
 
 EXAMPLES = r"""

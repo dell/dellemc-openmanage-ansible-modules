@@ -219,7 +219,7 @@ Notes
    - This module supports only iDRAC9 and above.
    - This module supports IPv4 and IPv6 addresses.
    - This module does not support \ :literal:`check\_mode`\ .
-   - When \ :emphasis:`share\_type`\  is \ :literal:`local`\  for both \ :emphasis:`import`\  and \ :emphasis:`export`\  operations, job\_details will not be displayed.
+   - When \ :emphasis:`share\_type`\  is \ :literal:`local`\  for \ :emphasis:`import`\  and \ :emphasis:`export`\  operations, job\_details are not displayed.
 
 
 
