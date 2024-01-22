@@ -10,7 +10,7 @@
     - name: Checking if HTTP url is empty
       ansible.builtin.fail:
         msg: Please provide HTTP url for redfish_firmware in molecule.yml
-      when: redfish_firmware_image_url_without_reboot == ""  and redfish_firmware_image_url_need_reboot == ""
+      when: redfish_firmware_image_url_without_reboot == "" and redfish_firmware_image_url_need_reboot == ""
 
     - name: Downloading firmware image for local manual reboot
       ansible.builtin.get_url:
@@ -18,7 +18,7 @@
         dest: "{{ redfish_firmware_image_local_path }}"
       register: download_local_manual_reboot_firmware
       delegate_to: localhost
-  
+
     - name: Initializing idrac common inputs to use as aliases
       ansible.builtin.set_fact:
         common_input: &idrac_input

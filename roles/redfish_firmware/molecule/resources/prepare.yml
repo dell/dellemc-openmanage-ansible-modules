@@ -1,4 +1,4 @@
-- name: prepare
+- name: Prepare
   hosts: all
   gather_facts: false
   tasks:
@@ -12,5 +12,6 @@
       ansible.builtin.file:
         path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"
         state: directory
+        mode: "0755"
       when: directory_check.stat.exists
       delegate_to: localhost

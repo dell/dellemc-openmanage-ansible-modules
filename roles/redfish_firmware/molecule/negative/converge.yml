@@ -10,7 +10,7 @@
     - name: Checking if HTTP url is empty
       ansible.builtin.fail:
         msg: Please provide HTTP url for redfish_firmware in molecule.yml
-      when: redfish_firmware_image_url_without_reboot == ""  and redfish_firmware_image_url_need_reboot == ""
+      when: redfish_firmware_image_url_without_reboot == "" and redfish_firmware_image_url_need_reboot == ""
 
     - name: Downloading firmware image for local manual reboot
       ansible.builtin.get_url:
