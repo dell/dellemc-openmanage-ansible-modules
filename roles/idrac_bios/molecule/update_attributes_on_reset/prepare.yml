@@ -1,5 +1,5 @@
 ---
-- name: Converge file to update attributes with apply time as Immediate
+- name: Prepare file for update attributes with apply time as reset
   hosts: all
   gather_facts: false
   vars:

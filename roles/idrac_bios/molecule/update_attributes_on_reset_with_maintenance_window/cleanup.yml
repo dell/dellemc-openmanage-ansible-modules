@@ -1,10 +1,8 @@
 ---
-- name: Converge file to update attributes with apply time as Immediate
+- name: Cleanup file for update attributes with apply
+        time at reset of maintenance window
   hosts: all
   gather_facts: false
-  vars:
-    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
   tasks:
     - name: Checking file exists- boot_mode.txt
       ansible.builtin.stat:
