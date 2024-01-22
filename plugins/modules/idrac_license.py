@@ -72,6 +72,8 @@ options:
         description:
           - License file name for I(import) and I(export) operation.
           - I(file_name) is required when I(import) is C(true).
+          - For the I(import) operation, the supported extensions for I(file_name) are '.txt' or '.xml' when I(share_type) is C(local),
+            and '.xml' for other share types.
         type: str
       ip_address:
         description:
@@ -160,6 +162,7 @@ notes:
     - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
     - This module does not support C(check_mode).
+    - When I(share_type) is C(local) for both I(import) and I(export) operations, job_details will not be displayed.
 """
 
 EXAMPLES = r"""
@@ -381,14 +384,15 @@ error_info:
   }
 '''
 
+
 import json
 import os
 import base64
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.compat.version import LooseVersion
+from urllib.error import HTTPError, URLError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_idrac_firmware_version, get_dynamic_uri, get_manager_res_id,
     validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
@@ -427,13 +431,36 @@ PROXY_TYPE = {"http": "HTTP", "socks": "SOCKS"}
 
 class License():
     def __init__(self, idrac, module):
+        """
+        Initializes the class instance with the provided idrac and module parameters.
+
+        :param idrac: The idrac parameter.
+        :type idrac: Any
+        :param module: The module parameter.
+        :type module: Any
+        """
         self.idrac = idrac
         self.module = module
 
     def execute(self, module):
-        pass
+        """
+        Executes the function with the given module.
+
+        :param module: The module to execute.
+        :type module: Any
+        :return: None
+        """
 
     def check_license_id(self, module, license_id, operation):
+        """
+        Check the license ID for a given operation.
+
+        :param self: The object instance.
+        :param module: The Ansible module.
+        :param license_id: The ID of the license to check.
+        :param operation: The operation to perform.
+        :return: The response from the license URL.
+        """
         license_uri = self.get_license_url()
         license_url = license_uri + f"/{license_id}"
         try:
@@ -443,15 +470,30 @@ class License():
             module.exit_json(msg=FAILURE_MSG.format(operation=operation, license_id=license_id), failed=True)
 
     def get_license_url(self):
+        """
+        Retrieves the license URL for the current user.
+
+        :return: The license URL as a string.
+        """
         v1_resp = get_dynamic_uri(self.idrac, REDFISH)
         license_service_url = v1_resp.get('LicenseService', {}).get('@odata.id', {})
         license_service_resp = get_dynamic_uri(self.idrac, license_service_url)
         license_url = license_service_resp.get('Licenses', {}).get('@odata.id', {})
         return license_url
 
-    def get_job_status(self, module, export_license_status):
+    def get_job_status(self, module, license_job_response):
+        """
+        Get the status of a job.
+
+        Args:
+            module (object): The module object.
+            license_job_response (object): The response object for the license job.
+
+        Returns:
+            dict: The job details.
+        """
         res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
-        job_tracking_uri = export_license_status.headers.get("Location")
+        job_tracking_uri = license_job_response.headers.get("Location")
         job_id = job_tracking_uri.split("/")[-1]
         job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
         job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
@@ -464,6 +506,19 @@ class License():
         return job_dict
 
     def get_share_details(self, module):
+        """
+        Retrieves the share details from the given module.
+
+        Args:
+            module (object): The module object containing the share parameters.
+
+        Returns:
+            dict: A dictionary containing the share details with the following keys:
+                - IPAddress (str): The IP address of the share.
+                - ShareName (str): The name of the share.
+                - UserName (str): The username for accessing the share.
+                - Password (str): The password for accessing the share.
+        """
         share_details = {}
         share_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
         share_details["ShareName"] = module.params.get('share_parameters').get('share_name')
@@ -472,11 +527,18 @@ class License():
         return share_details
 
     def get_proxy_details(self, module):
+        """
+        Retrieves the proxy details based on the provided module parameters.
+
+        Args:
+            self: The instance of the class.
+            module: The module object containing the parameters.
+
+        Returns:
+            dict: A dictionary containing the proxy details.
+        """
         proxy_details = {}
-        if module.params.get('share_parameters').get('share_type') == "http":
-            proxy_details["ShareType"] = "HTTP"
-        else:
-            proxy_details["ShareType"] = "HTTPS"
+        proxy_details["ShareType"] = module.params.get('share_parameters').get('share_type').upper()
         proxy_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
         proxy_details["ShareName"] = module.params.get('share_parameters').get('share_name')
         proxy_details["UserName"] = module.params.get('share_parameters').get('username')
@@ -494,8 +556,16 @@ class License():
 
 
 class DeleteLicense(License):
-
     def execute(self, module):
+        """
+        Executes the delete operation for a given license ID.
+
+        Args:
+            module (object): The Ansible module object.
+
+        Returns:
+            object: The response object from the delete operation.
+        """
         license_id = module.params.get('license_id')
         License.check_license_id(self, module, license_id, "delete")
         license_url = License.get_license_url(self)
@@ -506,37 +576,56 @@ class DeleteLicense(License):
             module.exit_json(msg=SUCCESS_DELETE_MSG, changed=True)
         else:
             module.exit_json(FAILURE_MSG.format(operation="delete", license_id=license_id), failed=True)
-        return delete_license_response
+        # return delete_license_response
 
 
 class ExportLicense(License):
     STATUS_SUCCESS = [200, 202]
 
     def execute(self, module):
+        """
+        Executes the export operation for a given license ID.
+
+        :param module: The Ansible module object.
+        :type module: AnsibleModule
+
+        :return: The response from the export operation.
+        :rtype: Response
+        """
         share_type = module.params.get('share_parameters').get('share_type')
         license_id = module.params.get('license_id')
         License.check_license_id(self, module, license_id, "export")
         export_license_url = self.__get_export_license_url(module)
         job_status = {}
         if share_type == "local":
-            export_license_status = self.__export_license_local(module, export_license_url)
+            export_license_response = self.__export_license_local(module, export_license_url)
         elif share_type in ["http", "https"]:
-            export_license_status = self.__export_license_http(module, export_license_url)
-            job_status = License.get_job_status(self, module, export_license_status)
+            export_license_response = self.__export_license_http(module, export_license_url)
+            job_status = License.get_job_status(self, module, export_license_response)
         elif share_type == "cifs":
-            export_license_status = self.__export_license_cifs(module, export_license_url)
-            job_status = License.get_job_status(self, module, export_license_status)
+            export_license_response = self.__export_license_cifs(module, export_license_url)
+            job_status = License.get_job_status(self, module, export_license_response)
         elif share_type == "nfs":
-            export_license_status = self.__export_license_nfs(module, export_license_url)
-            job_status = License.get_job_status(self, module, export_license_status)
-        status = export_license_status.status_code
+            export_license_response = self.__export_license_nfs(module, export_license_url)
+            job_status = License.get_job_status(self, module, export_license_response)
+        status = export_license_response.status_code
         if status in self.STATUS_SUCCESS:
             module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
         else:
             module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details=job_status)
-        return export_license_status
+        # return export_license_response
 
     def __export_license_local(self, module, export_license_url):
+        """
+        Export the license to a local directory.
+
+        Args:
+            module (object): The Ansible module object.
+            export_license_url (str): The URL for exporting the license.
+
+        Returns:
+            object: The license status after exporting.
+        """
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
         path = module.params.get('share_parameters').get('share_name')
@@ -558,6 +647,16 @@ class ExportLicense(License):
         return license_status
 
     def __export_license_http(self, module, export_license_url):
+        """
+        Export the license using the HTTP protocol.
+
+        Args:
+            module (object): The module object.
+            export_license_url (str): The URL for exporting the license.
+
+        Returns:
+            str: The export status.
+        """
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
         proxy_details = License.get_proxy_details(self, module)
@@ -566,6 +665,16 @@ class ExportLicense(License):
         return export_status
 
     def __export_license_cifs(self, module, export_license_url):
+        """
+        Export the license using CIFS share type.
+
+        Args:
+            module (object): The Ansible module object.
+            export_license_url (str): The URL for exporting the license.
+
+        Returns:
+            str: The export status.
+        """
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
         payload["ShareType"] = "CIFS"
@@ -577,6 +686,16 @@ class ExportLicense(License):
         return export_status
 
     def __export_license_nfs(self, module, export_license_url):
+        """
+        Export the license using NFS share type.
+
+        Args:
+            module (object): The Ansible module object.
+            export_license_url (str): The URL for exporting the license.
+
+        Returns:
+            dict: The export status of the license.
+        """
         payload = {}
         payload["EntitlementID"] = module.params.get('license_id')
         payload["ShareType"] = "NFS"
@@ -586,6 +705,14 @@ class ExportLicense(License):
         return export_status
 
     def __get_export_license_url(self, module):
+        """
+        Get the export license URL.
+
+        :param module: The module object.
+        :type module: object
+        :return: The export license URL.
+        :rtype: str
+        """
         uri, error_msg = validate_and_get_first_resource_id_uri(
             self.module, self.idrac, MANAGERS_URI)
         if error_msg:
@@ -601,6 +728,17 @@ class ExportLicense(License):
         return export_url
 
     def __export_license(self, module, payload, export_license_url):
+        """
+        Export the license to a file.
+
+        Args:
+            module (object): The Ansible module object.
+            payload (dict): The payload containing the license information.
+            export_license_url (str): The URL for exporting the license.
+
+        Returns:
+            dict: The license status after exporting.
+        """
         license_name = module.params.get('share_parameters').get('file_name')
         if license_name:
             license_file_name = f"{license_name}_iDRAC_license.xml"
@@ -615,6 +753,15 @@ class ImportLicense(License):
     STATUS_SUCCESS = [200, 202]
 
     def execute(self, module):
+        """
+        Executes the import license process based on the given module parameters.
+
+        Args:
+            module (object): The Ansible module object.
+
+        Returns:
+            object: The response object from the import license API call.
+        """
         if not module.params.get('share_parameters').get('file_name'):
             module.exit_json(msg=MISSING_PARAMETER_MSG, failed=True)
         share_type = module.params.get('share_parameters').get('share_type')
@@ -623,24 +770,35 @@ class ImportLicense(License):
         resource_id = get_manager_res_id(self.idrac)
         job_status = {}
         if share_type == "local":
-            import_license_status = self.__import_license_local(module, import_license_url, resource_id)
+            import_license_response = self.__import_license_local(module, import_license_url, resource_id)
         elif share_type in ["http", "https"]:
-            import_license_status = self.__import_license_http(module, import_license_url, resource_id)
-            job_status = License.get_job_status(self, module, import_license_status)
+            import_license_response = self.__import_license_http(module, import_license_url, resource_id)
+            job_status = License.get_job_status(self, module, import_license_response)
         elif share_type == "cifs":
-            import_license_status = self.__import_license_cifs(module, import_license_url, resource_id)
-            job_status = License.get_job_status(self, module, import_license_status)
+            import_license_response = self.__import_license_cifs(module, import_license_url, resource_id)
+            job_status = License.get_job_status(self, module, import_license_response)
         elif share_type == "nfs":
-            import_license_status = self.__import_license_nfs(module, import_license_url, resource_id)
-            job_status = License.get_job_status(self, module, import_license_status)
-        status = import_license_status.status_code
+            import_license_response = self.__import_license_nfs(module, import_license_url, resource_id)
+            job_status = License.get_job_status(self, module, import_license_response)
+        status = import_license_response.status_code
         if status in self.STATUS_SUCCESS:
             module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details=job_status)
         else:
             module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details=job_status)
-        return import_license_status
+        # return import_license_response
 
     def __import_license_local(self, module, import_license_url, resource_id):
+        """
+        Import a license locally.
+
+        Args:
+            module (object): The Ansible module object.
+            import_license_url (str): The URL for importing the license.
+            resource_id (str): The ID of the resource.
+
+        Returns:
+            dict: The import status of the license.
+        """
         payload = {}
         path = module.params.get('share_parameters').get('share_name')
         if not (os.path.exists(path) or os.path.isdir(path)):
@@ -660,6 +818,17 @@ class ImportLicense(License):
         return import_status
 
     def __import_license_http(self, module, import_license_url, resource_id):
+        """
+        Imports a license using HTTP.
+
+        Args:
+            module (object): The Ansible module object.
+            import_license_url (str): The URL for importing the license.
+            resource_id (str): The ID of the resource.
+
+        Returns:
+            object: The import status.
+        """
         payload = {}
         payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
         payload["FQDD"] = resource_id
@@ -670,6 +839,18 @@ class ImportLicense(License):
         return import_status
 
     def __import_license_cifs(self, module, import_license_url, resource_id):
+        """
+        Imports a license using CIFS share type.
+
+        Args:
+            self (object): The instance of the class.
+            module (object): The Ansible module object.
+            import_license_url (str): The URL for importing the license.
+            resource_id (str): The ID of the resource.
+
+        Returns:
+            object: The import status of the license.
+        """
         payload = {}
         payload["ShareType"] = "CIFS"
         payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
@@ -683,6 +864,17 @@ class ImportLicense(License):
         return import_status
 
     def __import_license_nfs(self, module, import_license_url, resource_id):
+        """
+        Import a license from an NFS share.
+
+        Args:
+            module (object): The Ansible module object.
+            import_license_url (str): The URL for importing the license.
+            resource_id (str): The ID of the resource.
+
+        Returns:
+            dict: The import status of the license.
+        """
         payload = {}
         payload["ShareType"] = "NFS"
         payload["IPAddress"] = module.params.get('share_parameters').get('ip_address')
@@ -694,6 +886,14 @@ class ImportLicense(License):
         return import_status
 
     def __check_file_extension(self, module):
+        """
+        Check if the file extension of the given file name is valid.
+
+        :param module: The Ansible module object.
+        :type module: AnsibleModule
+
+        :return: None
+        """
         share_type = module.params.get('share_parameters').get('share_type')
         file_name = module.params.get('share_parameters').get('file_name')
         valid_extensions = {".txt", ".xml"} if share_type == "local" else {".xml"}
@@ -702,6 +902,14 @@ class ImportLicense(License):
             module.exit_json(msg=INVALID_FILE_MSG, failed=True)
 
     def __get_import_license_url(self, module):
+        """
+        Get the import license URL.
+
+        :param module: The module object.
+        :type module: object
+        :return: The import license URL.
+        :rtype: str
+        """
         uri, error_msg = validate_and_get_first_resource_id_uri(
             self.module, self.idrac, MANAGERS_URI)
         if error_msg:
@@ -725,7 +933,17 @@ class LicenseType:
     }
 
     @staticmethod
-    def create_license(idrac, module):
+    def license_operation(idrac, module):
+        """
+        Perform a license operation based on the given parameters.
+
+        :param idrac: The IDRAC object.
+        :type idrac: IDRAC
+        :param module: The Ansible module object.
+        :type module: AnsibleModule
+        :return: The license class object based on the license type.
+        :rtype: LicenseType
+        """
         license_type = next((param for param in ["import", "export", "delete"] if module.params[param]), None)
         if not license_type:
             module.exit_json(msg="Task is skipped as none of import, export or delete is specified.", skipped=True)
@@ -734,6 +952,34 @@ class LicenseType:
 
 
 def main():
+    """
+    Main function that serves as the entry point for the program.
+
+    This function retrieves the argument specification using the `get_argument_spec` function and updates it with the `idrac_auth_params`.
+    It then creates an `AnsibleModule` object with the updated argument specification, specifying the mutually exclusive arguments,
+    required arguments if conditions are met, and setting `supports_check_mode` to `False`.
+
+    The function then attempts to establish a connection with the iDRAC Redfish API using the `iDRACRedfishAPI` class.
+    It retrieves the iDRAC firmware version using the `get_idrac_firmware_version` function and checks if it is less than or equal to '3.0'.
+    If it is, the function exits with a message indicating that the iDRAC firmware version is not supported and sets `failed` to `True`.
+
+    If the iDRAC firmware version is supported, the function creates a `LicenseType` object using the `license_operation` method of the
+    `LicenseType` class and calls the `execute` method on the `license_obj` object, passing in the `module` object.
+
+    If an `HTTPError` occurs, the function loads the error response as JSON, removes a specific key using a regular expression pattern,
+    and exits with the error message, the filtered error information, and sets `failed` to `True`.
+
+    If a `URLError` occurs, the function exits with the error message and sets `unreachable` to `True`.
+
+    If any of the following errors occur: `SSLValidationError`, `ConnectionError`, `TypeError`, `ValueError`, or `OSError`, the function
+    exits with the error message and sets `failed` to `True`.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     specs = get_argument_spec()
     specs.update(idrac_auth_params)
     module = AnsibleModule(
@@ -752,7 +998,7 @@ def main():
             idrac_firmware_version = get_idrac_firmware_version(idrac)
             if LooseVersion(idrac_firmware_version) <= '3.0':
                 module.exit_json(msg="iDRAC firmware version is not supported.", failed=True)
-            license_obj = LicenseType.create_license(idrac, module)
+            license_obj = LicenseType.license_operation(idrac, module)
             if license_obj:
                 license_obj.execute(module)
     except HTTPError as err:
@@ -765,6 +1011,35 @@ def main():
 
 
 def get_argument_spec():
+    """
+    Returns a dictionary containing the argument spec for the get_argument_spec function.
+    The argument spec is a dictionary that defines the parameters and their types and options for the function.
+    The dictionary has the following keys:
+        - "license_id": A string representing the license ID.
+        - "delete": A boolean representing whether to delete the license.
+        - "export": A boolean representing whether to export the license.
+        - "import": A boolean representing whether to import the license.
+        - "share_parameters": A dictionary representing the share parameters.
+            - "type": A string representing the share type.
+            - "options": A dictionary representing the options for the share parameters.
+                - "share_type": A string representing the share type.
+                - "file_name": A string representing the file name.
+                - "ip_address": A string representing the IP address.
+                - "share_name": A string representing the share name.
+                - "workgroup": A string representing the workgroup.
+                - "username": A string representing the username.
+                - "password": A string representing the password.
+                - "ignore_certificate_warning": A string representing whether to ignore certificate warnings.
+                - "proxy_support": A string representing the proxy support.
+                - "proxy_type": A string representing the proxy type.
+                - "proxy_server": A string representing the proxy server.
+                - "proxy_port": A string representing the proxy port.
+                - "proxy_username": A string representing the proxy username.
+                - "proxy_password": A string representing the proxy password.
+            - "required_if": A list of lists representing the required conditions for the share parameters.
+            - "required_together": A list of lists representing the required conditions for the share parameters.
+        - "resource_id": A string representing the resource ID.
+    """
     return {
         "license_id": {"type": 'str', "aliases": ['entitlement_id']},
         "delete": {"type": 'bool', "default": False},
