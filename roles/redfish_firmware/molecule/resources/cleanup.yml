@@ -14,5 +14,3 @@
         state: absent
       when: directory_check.stat.exists
       delegate_to: localhost
-
-    # - name: Rollback of firmware
