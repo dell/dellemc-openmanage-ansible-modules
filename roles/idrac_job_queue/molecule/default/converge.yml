@@ -26,7 +26,7 @@
             hostname: "{{ lookup('env', 'IDRAC_IP') }}"
             username: "{{ lookup('env', 'IDRAC_USERNAME') }}"
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-            validate_certs: false
+            validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
             job_id: JID_12345678
       rescue:
         - name: "Verifying invalid job deletion from the job queue"
@@ -44,12 +44,14 @@
             username: "{{ lookup('env', 'IDRAC_USERNAME') }}"
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             clear_job_queue: true
+            validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
 
       rescue:
         - name: "Verifying job queue clear with an invalid hostname"
           ansible.builtin.assert:
             that:
-              - "'<urlopen error [Errno -2] Name or service not known>' in idrac_job_queue_out.msg"
+              - "'<urlopen error [Errno -2] Name or service not known>' in idrac_job_queue_out.msg or
+                '<urlopen error [Errno -3] Temporary failure in name resolution>' in idrac_job_queue_out.msg"
 
     - name: Clear job queue
       block:
@@ -61,6 +63,7 @@
             username: "invalidUsername"
             password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             clear_job_queue: true
+            validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
 
       rescue:
         - name: "Verifying job queue clear with an invalid username"
@@ -78,6 +81,7 @@
             username: "{{ lookup('env', 'IDRAC_USERNAME') }}"
             password: "invalidPassword"
             clear_job_queue: true
+            validate_certs: "{{ lookup('env', 'VALIDATE_CERT') }}"
 
       rescue:
         - name: "Verifying job queue clear with an invalid password"
