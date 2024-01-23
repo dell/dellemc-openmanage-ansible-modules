@@ -415,19 +415,17 @@ INVALID_LICENSE_MSG = "License id '{license_id}' is invalid."
 SUCCESS_EXPORT_MSG = "Successfully exported the license."
 SUCCESS_DELETE_MSG = "Successfully deleted the license."
 SUCCESS_IMPORT_MSG = "Successfully imported the license."
-FAILURE_MSG = "Unable to '{operation}' the license with id '{license_id}'."
+FAILURE_MSG = "Unable to '{operation}' the license with id '{license_id}' as it does not exist."
 FAILURE_IMPORT_MSG = "Unable to import the license."
 NO_FILE_MSG = "License file not found."
 INVALID_FILE_MSG = "File extension is invalid. Supported extensions for local 'share_type' " \
-                   "is: .txt and .xml, and for network 'share_type' is: .xml."
+                   "are: .txt and .xml, and for network 'share_type' is: .xml."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
                                         "Please check if the directory has appropriate permissions"
 MISSING_PARAMETER_MSG = "Missing required parameter 'file_name'."
 
-IGNORE_CERTIFICATE_WARNING = {"off": "Off", "on": "On"}
 PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_proxy": "ParametersProxy"}
-PROXY_TYPE = {"http": "HTTP", "socks": "SOCKS"}
 
 
 class License():
@@ -544,10 +542,10 @@ class License():
         proxy_details["ShareName"] = module.params.get('share_parameters').get('share_name')
         proxy_details["UserName"] = module.params.get('share_parameters').get('username')
         proxy_details["Password"] = module.params.get('share_parameters').get('password')
-        proxy_details["IgnoreCertWarning"] = IGNORE_CERTIFICATE_WARNING[module.params.get('share_parameters').get('ignore_certificate_warning')]
+        proxy_details["IgnoreCertWarning"] = module.params.get('share_parameters').get('ignore_certificate_warning').capitalize()
         if module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
             proxy_details["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
-            proxy_details["ProxyType"] = PROXY_TYPE[module.params.get('share_parameters').get('proxy_type')]
+            proxy_details["ProxyType"] = module.params.get('share_parameters').get('proxy_type').upper()
             proxy_details["ProxyServer"] = module.params.get('share_parameters').get('proxy_server')
             proxy_details["ProxyPort"] = str(module.params.get('share_parameters').get('proxy_port'))
             if module.params.get('share_parameters').get('proxy_username') and module.params.get('share_parameters').get('proxy_password'):
@@ -719,10 +717,7 @@ class ExportLicense(License):
         resp = get_dynamic_uri(self.idrac, uri)
         url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
         action_resp = get_dynamic_uri(self.idrac, url)
-        if module.params.get('share_parameters').get('share_type') == "local":
-            license_service = EXPORT_LOCAL
-        else:
-            license_service = EXPORT_NETWORK_SHARE
+        license_service = EXPORT_LOCAL if module.params.get('share_parameters').get('share_type') == "local" else EXPORT_NETWORK_SHARE
         export_url = action_resp.get(ACTIONS, {}).get(license_service, {}).get('target', {})
         return export_url
 
@@ -895,7 +890,7 @@ class ImportLicense(License):
         share_type = module.params.get('share_parameters').get('share_type')
         file_name = module.params.get('share_parameters').get('file_name')
         valid_extensions = {".txt", ".xml"} if share_type == "local" else {".xml"}
-        file_extension = file_name.lower().endswith(tuple(valid_extensions))
+        file_extension = any(file_name.lower().endswith(ext) for ext in valid_extensions)
         if not file_extension:
             module.exit_json(msg=INVALID_FILE_MSG, failed=True)
 
@@ -915,10 +910,7 @@ class ImportLicense(License):
         resp = get_dynamic_uri(self.idrac, uri)
         url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
         action_resp = get_dynamic_uri(self.idrac, url)
-        if module.params.get('share_parameters').get('share_type') == "local":
-            license_service = IMPORT_LOCAL
-        else:
-            license_service = IMPORT_NETWORK_SHARE
+        license_service = IMPORT_LOCAL if module.params.get('share_parameters').get('share_type') == "local" else IMPORT_NETWORK_SHARE
         import_url = action_resp.get(ACTIONS, {}).get(license_service, {}).get('target', {})
         return import_url
 
