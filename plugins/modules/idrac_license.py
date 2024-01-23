@@ -538,10 +538,8 @@ class License():
         """
         proxy_details = {}
         proxy_details["ShareType"] = module.params.get('share_parameters').get('share_type').upper()
-        proxy_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-        proxy_details["ShareName"] = module.params.get('share_parameters').get('share_name')
-        proxy_details["UserName"] = module.params.get('share_parameters').get('username')
-        proxy_details["Password"] = module.params.get('share_parameters').get('password')
+        share_details = License.get_share_details(self, module)
+        proxy_details.update(share_details)
         proxy_details["IgnoreCertWarning"] = module.params.get('share_parameters').get('ignore_certificate_warning').capitalize()
         if module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
             proxy_details["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
