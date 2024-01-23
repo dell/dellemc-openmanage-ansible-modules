@@ -18,7 +18,6 @@ from ansible_collections.dellemc.openmanage.plugins.modules import idrac_license
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
 
-
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.'
 
 INVALID_LICENSE_MSG = "License id '{license_id}' is invalid."
@@ -64,11 +63,11 @@ class TestLicense(FakeAnsibleModule):
             idrac_connection_license_mock, f_module)
 
         idr_obj = MagicMock()
-        idr_obj.json_data = {"license_id" : "1234"}
+        idr_obj.json_data = {"license_id": "1234"}
         mocker.patch(MODULE_PATH + "iDRACRedfishAPI.invoke_request",
                      return_value=idr_obj)
         data = lic_obj.check_license_id(module=f_module, license_id="1234", operation="delete")
-        assert data.json_data == {"license_id" : "1234"}
+        assert data.json_data == {"license_id": "1234"}
 
         mocker.patch(MODULE_PATH + "iDRACRedfishAPI.invoke_request",
                      side_effect=HTTPError('https://testhost.com', 400,
@@ -207,3 +206,78 @@ class TestLicense(FakeAnsibleModule):
 
         # Assert the result
         assert result == expected_result
+
+
+class TestDeleteLicense:
+    @pytest.fixture
+    def delete_license_mock(self):
+        delete_license_obj = MagicMock()
+        return delete_license_obj
+
+    @pytest.fixture
+    def idrac_connection_license_mock(self, mocker, delete_license_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
+                                       return_value=delete_license_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = delete_license_mock
+        return idrac_conn_mock
+
+    def test_execute_delete_license_success(self, mocker, idrac_connection_license_mock):
+        mocker.patch(MODULE_PATH + "License.get_license_url",
+                     return_value="/redfish/v1/license")
+        f_module = MagicMock()
+        f_module.params = {'license_id': '1234'}
+        delete_license_obj = idrac_license.DeleteLicense(idrac_connection_license_mock, f_module)
+        delete_license_obj.idrac.invoke_request.return_value.status_code = 204
+        delete_license_obj.execute(f_module)
+        f_module.exit_json.assert_called_once_with(msg=SUCCESS_DELETE_MSG, changed=True)
+
+    def test_execute_delete_license_failure(self, mocker, idrac_connection_license_mock):
+        mocker.patch(MODULE_PATH + "License.get_license_url",
+                     return_value="/redfish/v1/license")
+        f_module = MagicMock()
+        f_module.params = {'license_id': '5678'}
+        delete_license_obj = idrac_license.DeleteLicense(idrac_connection_license_mock, f_module)
+        delete_license_obj.idrac.invoke_request.return_value.status_code = 404
+        delete_license_obj.execute(f_module)
+        f_module.exit_json.assert_called_once_with(FAILURE_MSG.format(operation="delete", license_id="5678"), failed=True)
+
+
+class TestExportLicense(FakeAnsibleModule):
+    module = idrac_license
+    uri = '/redfish/v1/api'
+
+    @pytest.fixture
+    def idrac_license_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_license_mock(self, mocker, idrac_license_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
+                                       return_value=idrac_license_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_license_mock
+        return idrac_conn_mock
+
+    def test_export_license_local(self, idrac_default_args, idrac_connection_license_mock,
+                                  idrac_license_mock, mocker, tmp_path):
+        mocker.patch(MODULE_PATH + "License.get_license_url",
+                     return_value="/redfish/v1/license")
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        export_license_obj = idrac_license.ExportLicense(idrac_license_mock, f_module)
+
+        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_local",
+                     return_value=MagicMock(json_data={"LicenseFile": "Mock License Content"}))
+
+        # Set the necessary parameters in for f_module
+        f_module.params = {
+            'license_id': 'test_license_id',
+            'share_parameters': {
+                'share_name': str(tmp_path),
+                'file_name': 'test_license'
+            }
+        }
+
+        result = export_license_obj._ExportLicense__export_license_local(
+            f_module, '/redfish/v1/export_license')
+
+        assert result.json_data == {"LicenseFile": "Mock License Content"}
