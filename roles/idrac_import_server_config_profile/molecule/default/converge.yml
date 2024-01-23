@@ -17,7 +17,7 @@
           share_password: "{{ lookup('env', 'PASSWORD') }}"
           scp_file: "{{ lookup('env', 'http_filename') }}"
       ignore_errors: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP without share_name"
       ansible.builtin.assert:
@@ -38,7 +38,7 @@
           share_user: "{{ lookup('env', 'USERNAME') }}"
           share_password: "{{ lookup('env', 'PASSWORD') }}"
       ignore_errors: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP without scp_file"
       ansible.builtin.assert:
@@ -60,7 +60,7 @@
           share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
           scp_file: "invalid_file.xml"
       ignore_errors: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP from CIFS with ALL components with invalid file"
       ansible.builtin.assert:
@@ -86,7 +86,7 @@
           share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
           scp_file: "{{ lookup('env', 'cifs_filename') }}"
       ignore_errors: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP from CIFS with ALL components with invalid share"
       ansible.builtin.assert:
@@ -109,7 +109,7 @@
           scp_file: "{{ lookup('env', 'cifs_filename') }}"
       ignore_errors: true
       ignore_unreachable: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP with invalid hostname"
       ansible.builtin.assert:
@@ -132,7 +132,7 @@
           scp_file: "{{ lookup('env', 'cifs_filename') }}"
       ignore_errors: true
       ignore_unreachable: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP with invalid username"
       ansible.builtin.assert:
@@ -154,7 +154,7 @@
           scp_file: "{{ lookup('env', 'cifs_filename') }}"
       ignore_errors: true
       ignore_unreachable: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP with invalid password"
       ansible.builtin.assert:
@@ -176,7 +176,7 @@
           share_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
           scp_file: "{{ lookup('env', 'http_filename') }}"
       ignore_errors: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP with invalid target"
       ansible.builtin.assert:
@@ -199,7 +199,7 @@
     #       share_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
     #       scp_file: "{{ lookup('env', 'http_filename') }}"
     #   ignore_errors: true
-    #   register: import_status
+    #   register: idrac_import_server_config_profile_status
 
     # - name: Wait for 15 seconds
     #   ansible.builtin.pause:
@@ -228,7 +228,7 @@
     #       share_password: "WrongPassword@123"
     #       scp_file: "{{ lookup('env', 'http_filename') }}"
     #   ignore_errors: true
-    #   register: import_status
+    #   register: idrac_import_server_config_profile_status
 
     # - name: "Verifying Import SCP with invalid password of share access"
     #   ansible.builtin.assert:
@@ -252,7 +252,7 @@
           share_password: "WrongPassword@123"
           scp_file: "{{ lookup('env', 'http_filename') }}"
       ignore_errors: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP with share_name as None"
       ansible.builtin.assert:
@@ -275,7 +275,7 @@
           scp_file: "{{ lookup('env', 'http_filename') }}"
           proxy_support: true
       ignore_errors: true
-      register: import_status
+      register: idrac_import_server_config_profile_status
 
     - name: "Verifying Import SCP with proxy_ssupport enabled but no other proxy parameters"
       ansible.builtin.assert:
@@ -303,7 +303,7 @@
     #       proxy_port: "{{ lookup('env', 'PROXY_PORT') }}"
     #       proxy_password: "{{ lookup('env', 'PROXY_PASSWORD') }}"
     #   ignore_errors: true
-    #   register: import_status
+    #   register: idrac_import_server_config_profile_status
 
     # - name: "Verifying Import SCP with invalid proxy parameter"
     #   ansible.builtin.assert:
