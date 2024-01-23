@@ -141,20 +141,14 @@
       register: uri_out
       no_log: true
 
-    - name: Processing resource_id
-      ansible.builtin.set_fact:
-        resource_id_list: "{{ uri_out.json | json_query(query) }}"
-      vars:
-        query: Members[*]."@odata.id"
-
     - name: Splitting the resource_id and picking last
       ansible.builtin.set_fact:
-        resource_id_list_split: "{{ [item | split('/') | last] + resource_id_list_split | default([]) }}"
-      loop: "{{ resource_id_list }}"
+        idrac_server_powerstate_resource_id_list: "{{ [item['@odata.id'] | split('/') | last] + idrac_server_powerstate_resource_id_list | default([]) }}"
+      loop: "{{ uri_out.json.Members }}"
 
     - name: Count resource_id
       ansible.builtin.set_fact:
-        number_of_resource_id: "{{ resource_id_list_split | length }}"
+        number_of_resource_id: "{{ idrac_server_powerstate_resource_id_list | length }}"
 
     - name: Performing Operation 'On' without resource_id when iDRAC has secondary resource_id
       ansible.builtin.import_role:
