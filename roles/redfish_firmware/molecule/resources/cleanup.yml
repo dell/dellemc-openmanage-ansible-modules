@@ -1,0 +1,16 @@
+- name: Cleanup
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if directory exists
+      ansible.builtin.stat:
+        path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"
+      register: directory_check
+      delegate_to: localhost
+
+    - name: Delete directory if it exists
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"
+        state: absent
+      when: directory_check.stat.exists
+      delegate_to: localhost

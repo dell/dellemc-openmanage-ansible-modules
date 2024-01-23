@@ -2,7 +2,23 @@
 - name: Converge
   hosts: all
   gather_facts: false
+  vars:
+    redfish_firmware_image_url_without_reboot: "{{ lookup('env', 'redfish_firmware_image_url_without_reboot') }}"
+    redfish_firmware_image_url_need_reboot: "{{ lookup('env', 'redfish_firmware_image_url_need_reboot') }}"
+    redfish_firmware_image_local_path: "{{ lookup('env', 'redfish_firmware_image_local_path') }}"
   tasks:
+    - name: Checking if HTTP url is empty
+      ansible.builtin.fail:
+        msg: Please provide HTTP url for redfish_firmware in molecule.yml
+      when: redfish_firmware_image_url_without_reboot == "" and redfish_firmware_image_url_need_reboot == ""
+
+    - name: Downloading firmware image for local manual reboot
+      ansible.builtin.get_url:
+        url: "{{ redfish_firmware_image_url_need_reboot }}"
+        dest: "{{ redfish_firmware_image_local_path }}"
+        mode: "0755"
+      delegate_to: localhost
+
     - name: TC - 003 - Provide wrong hostname
       ansible.builtin.import_role:
         name: redfish_firmware
@@ -11,7 +27,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        image_uri: "{{ lookup('env', 'redfish_firmware_local_manual_reboot') }}"
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
@@ -31,7 +47,7 @@
         username: "WrongUsername123"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        image_uri: "{{ lookup('env', 'redfish_firmware_local_manual_reboot') }}"
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
@@ -50,7 +66,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "WrongPassword@123"
         validate_certs: false
-        image_uri: "{{ lookup('env', 'redfish_firmware_local_manual_reboot') }}"
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
@@ -71,7 +87,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: 'someStringValue'
-        image_uri: "{{ lookup('env', 'redfish_firmware_local_manual_reboot') }}"
+        image_uri: "{{ redfish_firmware_image_url_need_reboot }}"
         job_wait_timeout: 60
       ignore_errors: true
       ignore_unreachable: true
@@ -127,7 +143,7 @@
         username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
-        image_uri: "{{ lookup('env', 'redfish_firmware_http_auto_reboot') }}"
+        image_uri: "{{ redfish_firmware_image_url_without_reboot }}"
         job_wait_timeout: -100
 
     - name: TC - 009 - Asserting job_wait_timeout as -100 with auto reboot firmware component
@@ -156,4 +172,3 @@
       retries: 30
       delay: 10
       when: redfish_firmware_out.changed # noqa: no-handler
-      no_log: true

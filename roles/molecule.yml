@@ -13,11 +13,11 @@ platforms:
 provisioner:
   name: ansible
   env:
-    RUNON: ""
+    idrac_powercycle_wait_seconds: 180
     idrac_certificate_delegate_to: localhost
-    idrac_server_powerstate_wait_seconds: "180"
-    redfish_firmware_local_manual_reboot: "/tmp/SAS-RAID_Firmware.exe"
-    redfish_firmware_http_auto_reboot: "http://dl.dell.com/FOLDER06878175M/2/Diagnostics_Application_0G1JH_WN64_6.0_A00_01.EXE"
+    redfish_firmware_image_url_need_reboot: "https://dl.dell.com/FOLDER07217671M/1/SAS-RAID_Firmware_700GG_WN64_25.5.9.0001_A17.EXE"
+    redfish_firmware_image_url_without_reboot: "https://dl.dell.com/FOLDER10335817M/1/Diagnostics_Application_31T12_WN64_4303A02_4303.2.EXE"
+    redfish_firmware_image_local_path: "/tmp/redfish_firmware"
 verifier:
   name: ansible
 scenario:
