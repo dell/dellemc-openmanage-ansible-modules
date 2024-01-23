@@ -17,7 +17,6 @@
         url: "{{ redfish_firmware_image_url_need_reboot }}"
         dest: "{{ redfish_firmware_image_local_path }}"
         mode: "0755"
-      register: download_local_manual_reboot_firmware
       delegate_to: localhost
 
     - name: Initializing idrac common inputs to use as aliases

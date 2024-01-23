@@ -3,7 +3,7 @@
   hosts: all
   gather_facts: false
   vars:
-    wait_seconds: 180
+    idrac_server_powerstate_wait_seconds: 180
   tasks:
     - name: Pre-requisite - Server is Power On
       ansible.builtin.import_role:
@@ -20,7 +20,7 @@
 
     - name: "Waiting after performing Power On operation"
       ansible.builtin.pause:
-        seconds: "{{ wait_seconds }}"
+        seconds: "{{ idrac_server_powerstate_wait_seconds }}"
       when: idrac_server_powerstate_out.changed # noqa: no-handler
       check_mode: false
       tags: molecule-idempotence-notest
@@ -45,7 +45,7 @@
 
     - name: "Waiting after performing Nmi operation"
       ansible.builtin.pause:
-        seconds: "{{ wait_seconds }}"
+        seconds: "{{ idrac_server_powerstate_wait_seconds }}"
       when: not ansible_check_mode and idrac_server_powerstate_out.changed
       tags: molecule-idempotence-notest
 
