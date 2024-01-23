@@ -679,9 +679,9 @@ ansible.utils
   ansible.builtin.import_role:
     name: idrac_gather_facts
   vars:
-    idrac_ip: "192.1.2.1"
-    idrac_user: "username"
-    idrac_password: "password"
+    hostname: "192.1.2.1"
+    username: "username"
+    password: "password"
     ca_path: "/path/to/ca_cert.pem"
     target:
       - EnclosureEMM
@@ -700,9 +700,9 @@ ansible.utils
   ansible.builtin.import_role:
     name: idrac_gather_facts
   vars:
-    idrac_ip: "192.1.2.1"
-    idrac_user: "username"
-    idrac_password: "password"
+    hostname: "192.1.2.1"
+    username: "username"
+    password: "password"
     ca_path: "/path/to/ca_cert.pem"
     target:
       - Memory
@@ -717,13 +717,12 @@ ansible.utils
     var: secure_boot
 ```
 ```
-- name: iDRAC gather facts for Sensors_Battery, Sensors_Intrusion, Sensors_Voltage, VirtualDisk, PCIeDevice, PhysicalDisk, SystemMetrics.
+- name: iDRAC gather facts for Sensors_Battery, Sensors_Intrusion, Sensors_Voltage, VirtualDisk, PCIeDevice, PhysicalDisk, SystemMetrics using environment variables IDRAC_USERNAME and IDRAC_PASSWORD.
   ansible.builtin.import_role:
     name: idrac_gather_facts
   vars:
-    idrac_ip: "192.1.2.1"
-    idrac_user: "username"
-    idrac_password: "password"
+    hostname: "192.1.2.1"
+    # IDRAC_USERNAME and IDRAC_PASSWORD set in env
     ca_path: "/path/to/ca_cert.pem"
     target:
       - Sensors_Battery
