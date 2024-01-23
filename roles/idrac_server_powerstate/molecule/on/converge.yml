@@ -3,7 +3,7 @@
   hosts: all
   gather_facts: false
   vars:
-    idrac_server_powerstate_wait_seconds: 180
+    idrac_server_powerstate_wait_seconds: "{{ lookup('env', 'idrac_powercycle_wait_seconds') }}"
   tasks:
     - name: Pre-requisite - Server is Power Off
       ansible.builtin.import_role:
