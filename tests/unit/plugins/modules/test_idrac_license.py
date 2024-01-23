@@ -18,6 +18,7 @@ from ansible_collections.dellemc.openmanage.plugins.modules import idrac_license
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
 
+
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.'
 
 INVALID_LICENSE_MSG = "License id '{license_id}' is invalid."
@@ -34,9 +35,12 @@ INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not
                                         "Please check if the directory has appropriate permissions"
 MISSING_PARAMETER_MSG = "Missing required parameter 'file_name'."
 
+REDFISH = "/redfish/v1"
+
 
 class TestLicense(FakeAnsibleModule):
     module = idrac_license
+    uri = '/redfish/v1/api'
 
     @pytest.fixture
     def idrac_license_mock(self):
@@ -74,3 +78,132 @@ class TestLicense(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             lic_obj.check_license_id(module=f_module, license_id="1234", operation="delete")
         assert exc.value.args[0] == FAILURE_MSG.format(operation="delete", license_id="1234")
+
+    def test_get_license_url(self, idrac_default_args, idrac_connection_license_mock, mocker):
+        v1_resp = {"LicenseService": {"@odata.id": "/redfish/v1/LicenseService"},
+                   "Licenses": {"@odata.id": "/redfish/v1/LicenseService/Licenses"}}
+        mocker.patch(MODULE_PATH + "get_dynamic_uri",
+                     return_value=v1_resp)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        lic_obj = self.module.License(
+            idrac_connection_license_mock, f_module)
+        data = lic_obj.get_license_url()
+        assert data == "/redfish/v1/LicenseService/Licenses"
+
+    @pytest.fixture
+    def idrac_mock(self, mocker):
+        return mocker.MagicMock()
+
+    def test_get_job_status_success(self, mocker):
+        # Mocking necessary objects and functions
+        module_mock = self.get_module_mock()
+        license_job_response_mock = mocker.MagicMock()
+        license_job_response_mock.headers.get.return_value = "https://testhost.com/job_tracking/12345"
+
+        mocker.patch(MODULE_PATH + "remove_key", return_value={"job_details": "mocked_job_details"})
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=["/redfish/v1/managers/1"])
+
+        # Creating an instance of the class
+        obj_under_test = self.module.License(self.idrac_mock, module_mock)
+
+        # Mocking the idrac_redfish_job_tracking function to simulate a successful job tracking
+        mocker.patch(MODULE_PATH + "idrac_redfish_job_tracking", return_value=(False, "mocked_message", {"job_details": "mocked_job_details"}, 0))
+
+        # Calling the method under test
+        result = obj_under_test.get_job_status(module_mock, license_job_response_mock)
+
+        # Assertions
+        assert result == {"job_details": "mocked_job_details"}
+
+    def test_get_job_status_failure(self, mocker):
+        # Mocking necessary objects and functions
+        module_mock = self.get_module_mock()
+        license_job_response_mock = mocker.MagicMock()
+        license_job_response_mock.headers.get.return_value = "https://testhost.com/job_tracking/12345"
+
+        mocker.patch(MODULE_PATH + "remove_key", return_value={"Message": "None"})
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=["/redfish/v1/managers/1"])
+
+        # Creating an instance of the class
+        obj_under_test = self.module.License(self.idrac_mock, module_mock)
+
+        # Mocking the idrac_redfish_job_tracking function to simulate a failed job tracking
+        mocker.patch(MODULE_PATH + "idrac_redfish_job_tracking", return_value=(True, "None", {"Message": "None"}, 0))
+
+        # Mocking module.exit_json
+        exit_json_mock = mocker.patch.object(module_mock, "exit_json")
+
+        # Calling the method under test
+        result = obj_under_test.get_job_status(module_mock, license_job_response_mock)
+
+        # Assertions
+        exit_json_mock.assert_called_once_with(msg="None", failed=True, job_details={"Message": "None"})
+        assert result == {"Message": "None"}
+
+    def test_get_share_details(self, idrac_connection_license_mock):
+        # Create a mock module object
+        module_mock = MagicMock()
+        module_mock.params.get.return_value = {
+            'ip_address': 'XX.XX.XX.XX',
+            'share_name': 'my_share',
+            'username': 'my_user',
+            'password': 'my_password'
+        }
+
+        # Create an instance of the License class
+        lic_obj = self.module.License(idrac_connection_license_mock, module_mock)
+
+        # Call the get_share_details method
+        result = lic_obj.get_share_details(module=module_mock)
+
+        # Assert the result
+        assert result == {
+            'IPAddress': 'XX.XX.XX.XX',
+            'ShareName': 'my_share',
+            'UserName': 'my_user',
+            'Password': 'my_password'
+        }
+
+    def test_get_proxy_details(self, idrac_connection_license_mock):
+        # Create a mock module object
+        module_mock = MagicMock()
+        module_mock.params.get.return_value = {
+            'ip_address': 'XX.XX.XX.XX',
+            'share_name': 'my_share',
+            'username': 'my_user',
+            'password': 'my_password',
+            'share_type': 'http',
+            'ignore_certificate_warning': 'off',
+            'proxy_support': 'parameters_proxy',
+            'proxy_type': 'http',
+            'proxy_server': 'proxy.example.com',
+            'proxy_port': 8080,
+            'proxy_username': 'my_username',
+            'proxy_password': 'my_password'
+        }
+
+        # Create an instance of the License class
+        lic_obj = self.module.License(idrac_connection_license_mock, module_mock)
+
+        # Call the get_proxy_details method
+        result = lic_obj.get_proxy_details(module=module_mock)
+
+        # Define the expected result
+        expected_result = {
+            'IPAddress': 'XX.XX.XX.XX',
+            'ShareName': 'my_share',
+            'UserName': 'my_user',
+            'Password': 'my_password',
+            'ShareType': 'HTTP',
+            'IgnoreCertWarning': 'Off',
+            'ProxySupport': 'ParametersProxy',
+            'ProxyType': 'HTTP',
+            'ProxyServer': 'proxy.example.com',
+            'ProxyPort': '8080',
+            'ProxyUname': 'my_username',
+            'ProxyPasswd': 'my_password'
+        }
+
+        # Assert the result
+        assert result == expected_result
