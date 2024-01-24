@@ -270,15 +270,8 @@ class TestExportLicense(FakeAnsibleModule):
                 'file_name': 'test_license'
             }
         }
-        idr_obj = MagicMock()
-        idr_obj.json_data = {"license_id": "1234", "LicenseFile": "test_license_content"}
-        mocker.patch(MODULE_PATH + "iDRACRedfishAPI.invoke_request",
-                     return_value=idr_obj)
-        idrac_default_args.update(export_params)
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
+
         result = export_license_obj._ExportLicense__export_license_local(
             f_module, '/redfish/v1/export_license')
-        assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
-        #file content to be evaluated
-        # os.remove(tmp_path)
+
+        assert result.json_data == {"LicenseFile": "Mock License Content"}
