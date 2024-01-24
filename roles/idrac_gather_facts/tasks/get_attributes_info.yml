@@ -1,52 +1,22 @@
 ---
 - name: Get System information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/System.Embedded.1"
-    validate_certs: "{{ validate_certs }}"
-    ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ idrac_gather_facts_uri_method }}"
-    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
-    password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
-    timeout: "{{ https_timeout }}"
-    force_basic_auth: true
-    headers: "{{ idrac_gather_facts_uri_headers }}"
-    body_format: "{{ idrac_gather_facts_uri_body_format }}"
-    status_code: "{{ idrac_gather_facts_uri_status_code }}"
-    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/{{ computer_system_id }}"
   register: sys_attr
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Manager information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
-    validate_certs: "{{ validate_certs }}"
-    ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ idrac_gather_facts_uri_method }}"
-    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
-    password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
-    timeout: "{{ https_timeout }}"
-    force_basic_auth: true
-    headers: "{{ idrac_gather_facts_uri_headers }}"
-    body_format: "{{ idrac_gather_facts_uri_body_format }}"
-    status_code: "{{ idrac_gather_facts_uri_status_code }}"
-    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/iDRAC.Embedded.1"
   register: mgr_attr
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 
 - name: Get Lifecycle controller information.
   ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager }}/Oem/Dell/DellAttributes/LifecycleController.Embedded.1"
-    validate_certs: "{{ validate_certs }}"
-    ca_path: "{{ ca_path | default(omit) }}"
-    method: "{{ idrac_gather_facts_uri_method }}"
-    user: "{{ username | default(lookup('env', 'IDRAC_USERNAME')) }}"
-    password: "{{ password | default(lookup('env', 'IDRAC_PASSWORD')) }}"
-    timeout: "{{ https_timeout }}"
-    force_basic_auth: true
-    headers: "{{ idrac_gather_facts_uri_headers }}"
-    body_format: "{{ idrac_gather_facts_uri_body_format }}"
-    status_code: "{{ idrac_gather_facts_uri_status_code }}"
-    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+    url: "https://{{ hostname }}:{{ https_port }}{{ api_manager
+      }}/Oem/Dell/DellAttributes/LifecycleController.Embedded.1"
   register: lc_attr
   delegate_to: "{{ idrac_gather_facts_delegate }}"
 

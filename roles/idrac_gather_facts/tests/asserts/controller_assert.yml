@@ -1,6 +1,7 @@
+---
 - name: Fetching Controller info
-  ansible.builtin.uri:
-    url: "https://{{ hostname }}{{ api_system }}/Storage/Oem/Dell/DellControllers/{{ controller_data.Id }}"
+  ansible.builtin.uri: &uri_params
+    url: "https://{{ hostname }}{{ api_system }}/Storage"
     validate_certs: "{{ validate_certs }}"
     ca_path: "{{ ca_path | default(omit) }}"
     method: "{{ idrac_gather_facts_uri_method }}"
@@ -10,30 +11,60 @@
     body_format: "{{ idrac_gather_facts_uri_body_format }}"
     status_code: "{{ idrac_gather_facts_uri_status_code }}"
     return_content: "{{ idrac_gather_facts_uri_return_content }}"
-  register: controller_result
+  register: idrac_gather_facts_storage_entity
   no_log: true
 
-- name: Set controller facts
+- name: Get storage entities
   ansible.builtin.set_fact:
-    api_response: "{{ controller_result.json | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+    collected_storage_entity:
+      "{{ (collected_storage_entity | default([])) + [item['@odata.id']] }}"
+  loop: "{{ idrac_gather_facts_storage_entity.json.Members }}"
 
-- name: Set the keys diff
+- name: Get Controllers URL information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ item }}"
+    <<: *uri_params
+  loop: "{{ collected_storage_entity }}"
+  register: idrac_gather_facts_controllers_url
+
+- name: Pick Controllers key value in one list
   ansible.builtin.set_fact:
-    diff_keys: "{{ controller_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
+    controllers_list:
+      "{{ controllers_list | default([]) +
+       [item.json.Controllers | default(omit)] }}"
+  loop: "{{ idrac_gather_facts_controllers_url.results }}"
 
-- name: Set a diff of dict
+- name: Select list of controller values from dictionary
   ansible.builtin.set_fact:
-    diff_data: "{{ diff_data | combine({item: controller_data[item]}) }}"
-  loop: "{{ controller_data.keys() }}"
-  when:
-    - diff_keys | length == 0
-    - controller_data[item] != api_response[item]
-    - item not in exclude_keys
+    collected_values:
+      "{{ (collected_values | default([])) +
+       [item['@odata.id'] | default(omit)] }}"
+  loop: "{{ controllers_list }}"
 
-- name: Assert the difference in Keys
+- name: Get Controllers information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ item }}?$expand=*($levels=1)"
+    <<: *uri_params
+  loop: "{{ collected_values | reject('match', '__omit_place_holder__.*') }}"
+  register: idrac_gather_facts_result
+
+- name: Set All Controllers facts
+  ansible.builtin.set_fact:
+    api_response:
+      "{{ idrac_gather_facts_result.results | selectattr('json', 'defined') |
+        map(attribute='json') |
+        selectattr('Members', 'defined') |
+        map(attribute='Members') | flatten |
+        ansible.utils.remove_keys(target=['^.*@odata.*$'],
+        matching_parameter='regex') }}"
+
+- name: Check whether output differs
+  ansible.builtin.set_fact:
+    result_diff: "{{ controller | symmetric_difference(api_response) }}"
+
+- name: Assert the differences in List
   ansible.builtin.assert:
     that:
-      - "{{ (diff_keys | length) == 0 }}"
-      - "{{ (diff_data | length) == 0 }}"
-    fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
-    success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+      - "{{ (result_diff | length) == 0 }}"
+    fail_msg: "The response from the role does not match"
+    success_msg: "The response from the role matches"
