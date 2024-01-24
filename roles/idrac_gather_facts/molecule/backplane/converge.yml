@@ -31,14 +31,8 @@
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
-    - name: Assert backplane dict for length
-      ansible.builtin.assert:
-        that:
-          - "{{ backplane | length > 0 }}"
-
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/backplane_assert.yml
       with_items: "{{ backplane }}"
       loop_control:
         loop_var: backplane_data
-      when: backplane | length > 0
