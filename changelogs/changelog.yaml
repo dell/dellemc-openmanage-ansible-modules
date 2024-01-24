@@ -1693,10 +1693,11 @@ releases:
   8.7.0:
     changes:
       release_summary: '- Module to manage iDRAC licenses.
-      
+
         - idrac_gather_facts role is enhanced to add storage controller details in the role output and provide support for secure boot.'
       bugfixes:
-        - Issue is fixed for deploying a new configuration on quick deploy slot when IPv6 is disabled.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/533)
+        - Issue is fixed for deploying a new configuration on quick deploy slot when IPv6
+           is disabled.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/533)
       major_changes:
         - idrac_gather_facts - This role is enhanced to support secure boot.
         - idrac_license - The module is introduced to configure iDRAC licenses.
