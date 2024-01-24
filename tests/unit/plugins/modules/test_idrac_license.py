@@ -372,7 +372,7 @@ class TestExportLicense(FakeAnsibleModule):
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         mocker.patch(MODULE_PATH + "License.check_license_id")
-        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__get_export_license_url", 
+        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__get_export_license_url",
                      return_value="/License/url")
         idr_obj = MagicMock()
         idr_obj.status_code = 200
