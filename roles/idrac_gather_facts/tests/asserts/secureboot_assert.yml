@@ -1,0 +1,62 @@
+---
+- name: Fetching Secureboot info
+  ansible.builtin.uri: &uri_params
+    url: "https://{{ hostname }}{{ api_system
+      }}/SecureBoot/?$expand=*($levels=1)"
+    validate_certs: "{{ validate_certs }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  register: idrac_gather_facts_secureboot_details
+
+- name: Fetching Secureboot database info
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_system
+      }}/SecureBoot/SecureBootDatabases?$expand=*($levels=1)"
+    <<: *uri_params
+  register: idrac_gather_facts_secureboot_database_details
+
+- name: Fetching Secureboot database certificates info
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{
+      sec_boot_db_item['Certificates']['@odata.id'] }}
+      ?$expand=*($levels=1)"
+    <<: *uri_params
+  loop: "{{ idrac_gather_facts_secureboot_database_details.json.Members }}"
+  loop_control:
+    loop_var: sec_boot_db_item
+  register: idrac_gather_facts_secure_boot_results
+
+- name: Combine certificates with corresponding database information.
+  ansible.builtin.set_fact:
+    interim_secure_boot: "{{ interim_secure_boot | default([]) +
+      [sec_boot_cert['sec_boot_db_item'] | combine({'Certificates':
+      sec_boot_cert['json']['Members']})] }}"
+  loop: "{{ secure_boot_results.results }}"
+  loop_control:
+    loop_var: sec_boot_cert
+  no_log: true
+
+- name: Combine the secure boot database and certificates into secure boot.
+  ansible.builtin.set_fact:
+    api_response: '{{ idrac_gather_facts_secureboot_details.json |
+      combine({"SecureBootDatabases":
+      interim_secure_boot}) |
+      ansible.utils.remove_keys(target=["^.*@odata\..*$"],
+      matching_parameter="regex") }}'
+
+- name: Check whether output differs
+  ansible.builtin.set_fact:
+    result_diff: "{{ secure_boot | symmetric_difference(api_response) }}"
+
+- name: Assert the differences in List
+  ansible.builtin.assert:
+    fail_msg: "The response from the role does not match"
+    success_msg: "The response from the role matches"
+    that:
+      - "{{ (result_diff | length) == 0 }}"
