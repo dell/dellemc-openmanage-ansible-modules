@@ -56,6 +56,10 @@
         that:
           - idrac_gather_facts_connection.status == -1
 
+    - name: Set computer system id
+      ansible.builtin.set_fact:
+        computer_system_id: "randomSystemID"
+
     - name: To check for wrong system id
       ansible.builtin.import_role:
         name: idrac_gather_facts
@@ -64,14 +68,15 @@
         username: "{{ lookup('env', 'username') }}"
         password: "{{ lookup('env', 'password') }}"
         validate_certs: false
-        computer_system_id: "randomSystemID"
+        computer_system_id: "{{ computer_system_id }}"
       ignore_errors: true
       register: idrac_gather_facts_error
 
     - name: Asserting after performing operation with invalid system id
       ansible.builtin.assert:
         that:
-          - "{{ computer_system_id not in system_ids }}"
+          - "{{ computer_system_id is not in system_ids}}"
+      when: system_ids is defined
 
     - name: To check for wrong manager id
       ansible.builtin.import_role:
