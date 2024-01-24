@@ -20,7 +20,9 @@
     - name: Asserting after performing operation with wrong hostname
       ansible.builtin.assert:
         that:
-          - '"Incorrect username or password, unreachable iDRAC IP" in idrac_attributes_out.msg'
+          - "'Incorrect username or password,
+             unreachable iDRAC IP' in '{{ idrac_attributes_out.msg }}' or
+            'Name or service not known' in '{{ idrac_attributes_out.msg }}'"
 
     - name: Perform update with wrong username
       ansible.builtin.import_role:
@@ -187,7 +189,8 @@
         that:
           - idrac_attributes_out.msg == "Attributes have invalid values."
 
-    - name: Perform idrac_attributes update with valid attributes and invalid values
+    - name: Perform idrac_attributes update with
+             valid attributes and invalid values
       ansible.builtin.import_role:
         name: idrac_attributes
       vars:
@@ -202,7 +205,8 @@
       ignore_errors: true
       register: idrac_attributes_error_msg
 
-    - name: Asserting after performing operation with valid attributes and invalid values
+    - name: Asserting after performing operation with
+             valid attributes and invalid values
       ansible.builtin.assert:
         that:
           - idrac_attributes_out.msg == "Attributes have invalid values."
@@ -223,12 +227,14 @@
       ignore_errors: true
       register: idrac_attributes_error_msg
 
-    - name: Asserting after performing operation for system_attributes with invalid attributes
+    - name: Asserting after performing operation for system_attributes
+             with invalid attributes
       ansible.builtin.assert:
         that:
           - idrac_attributes_out.msg == "Attributes have invalid values."
 
-    - name: Perform system_attributes update with valid attributes and invalid values
+    - name: Perform system_attributes update with
+             valid attributes and invalid values
       ansible.builtin.import_role:
         name: idrac_attributes
       vars:
@@ -244,12 +250,14 @@
       ignore_errors: true
       register: idrac_attributes_error_msg
 
-    - name: Asserting after performing operation for system_attributes with valid attributes and invalid values
+    - name: Asserting after performing operation for system_attributes
+             with valid attributes and invalid values
       ansible.builtin.assert:
         that:
           - idrac_attributes_out.msg == "Attributes have invalid values."
 
-    - name: Perform lifecycle_controller_attributes update with invalid attributes
+    - name: Perform lifecycle_controller_attributes update
+             with invalid attributes
       ansible.builtin.import_role:
         name: idrac_attributes
       vars:
@@ -266,12 +274,14 @@
       ignore_errors: true
       register: idrac_attributes_error_msg
 
-    - name: Asserting after performing operation for lifecycle_controller_attributes with invalid attributes
+    - name: Asserting after performing operation for
+             lifecycle_controller_attributes with invalid attributes
       ansible.builtin.assert:
         that:
           - idrac_attributes_out.msg == "Attributes have invalid values."
 
-    - name: Perform lifecycle_controller_attributes update with valid attributes and invalid values
+    - name: Perform lifecycle_controller_attributes update with
+             valid attributes and invalid values
       ansible.builtin.import_role:
         name: idrac_attributes
       vars:
@@ -288,7 +298,9 @@
       ignore_errors: true
       register: idrac_attributes_error_msg
 
-    - name: Asserting after performing operation for lifecycle_controller_attributes with valid attributes and invalid values
+    - name: Asserting after performing operation for
+           lifecycle_controller_attributes with
+           valid attributes and invalid values
       ansible.builtin.assert:
         that:
           - idrac_attributes_out.msg == "Attributes have invalid values."
