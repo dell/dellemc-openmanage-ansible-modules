@@ -675,6 +675,28 @@ ansible.utils
 
 ```
 ```
+# Get specific controllers
+- name: Get all controllers
+  ansible.builtin.import_role:
+    name: idrac_gather_facts
+  vars:
+    hostname: "192.1.2.1"
+    username: "username"
+    password: "password"
+    ca_path: "/path/to/ca_cert.pem"
+    target:
+      - Controller
+
+- name: Pull out BOSS controllers
+  ansible.builtin.debug:
+    msg: "{{ controller | selectattr('Model', 'contains', 'BOSS') | list }}"
+
+- name: Pull out controller with specific id
+  ansible.builtin.debug:
+    msg: "{{ controller | selectattr('Id', 'equalto', 'AHCI.Integrated.1-1') | list }}"
+
+```
+```
 - name: iDRAC gather facts for EnclosureEMM, Fan, Firmware, HostNIC, License.
   ansible.builtin.import_role:
     name: idrac_gather_facts
