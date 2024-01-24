@@ -444,7 +444,7 @@ class License():
         self.idrac = idrac
         self.module = module
 
-    def execute(self, module):
+    def execute(self):
         """
         Executes the function with the given module.
 
@@ -453,7 +453,7 @@ class License():
         :return: None
         """
 
-    def check_license_id(self, module, license_id, operation):
+    def check_license_id(self, license_id):
         """
         Check the license ID for a given operation.
 
@@ -469,7 +469,7 @@ class License():
             response = self.idrac.invoke_request(license_url, 'GET')
             return response
         except Exception:
-            module.exit_json(msg=INVALID_LICENSE_MSG.format(license_id=license_id), skipped=True)
+            self.module.exit_json(msg=INVALID_LICENSE_MSG.format(license_id=license_id), skipped=True)
 
     def get_license_url(self):
         """
@@ -483,7 +483,7 @@ class License():
         license_url = license_service_resp.get('Licenses', {}).get(ODATA, {})
         return license_url
 
-    def get_job_status(self, module, license_job_response):
+    def get_job_status(self, license_job_response):
         """
         Get the status of a job.
 
@@ -501,13 +501,13 @@ class License():
         job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
         job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
         if job_failed:
-            module.exit_json(
+            self.module.exit_json(
                 msg=job_dict.get('Message'),
                 failed=True,
                 job_details=job_dict)
         return job_dict
 
-    def get_share_details(self, module):
+    def get_share_details(self):
         """
         Retrieves the share details from the given module.
 
@@ -522,13 +522,13 @@ class License():
                 - Password (str): The password for accessing the share.
         """
         share_details = {}
-        share_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-        share_details["ShareName"] = module.params.get('share_parameters').get('share_name')
-        share_details["UserName"] = module.params.get('share_parameters').get('username')
-        share_details["Password"] = module.params.get('share_parameters').get('password')
+        share_details["IPAddress"] = self.module.params.get('share_parameters').get('ip_address')
+        share_details["ShareName"] = self.module.params.get('share_parameters').get('share_name')
+        share_details["UserName"] = self.module.params.get('share_parameters').get('username')
+        share_details["Password"] = self.module.params.get('share_parameters').get('password')
         return share_details
 
-    def get_proxy_details(self, module):
+    def get_proxy_details(self):
         """
         Retrieves the proxy details based on the provided module parameters.
 
@@ -540,23 +540,23 @@ class License():
             dict: A dictionary containing the proxy details.
         """
         proxy_details = {}
-        proxy_details["ShareType"] = module.params.get('share_parameters').get('share_type').upper()
-        share_details = self.get_share_details(module)
+        proxy_details["ShareType"] = self.module.params.get('share_parameters').get('share_type').upper()
+        share_details = self.get_share_details()
         proxy_details.update(share_details)
-        proxy_details["IgnoreCertWarning"] = module.params.get('share_parameters').get('ignore_certificate_warning').capitalize()
-        if module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
-            proxy_details["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
-            proxy_details["ProxyType"] = module.params.get('share_parameters').get('proxy_type').upper()
-            proxy_details["ProxyServer"] = module.params.get('share_parameters').get('proxy_server')
-            proxy_details["ProxyPort"] = str(module.params.get('share_parameters').get('proxy_port'))
-            if module.params.get('share_parameters').get('proxy_username') and module.params.get('share_parameters').get('proxy_password'):
-                proxy_details["ProxyUname"] = module.params.get('share_parameters').get('proxy_username')
-                proxy_details["ProxyPasswd"] = module.params.get('share_parameters').get('proxy_password')
+        proxy_details["IgnoreCertWarning"] = self.module.params.get('share_parameters').get('ignore_certificate_warning').capitalize()
+        if self.module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
+            proxy_details["ProxySupport"] = PROXY_SUPPORT[self.module.params.get('share_parameters').get('proxy_support')]
+            proxy_details["ProxyType"] = self.module.params.get('share_parameters').get('proxy_type').upper()
+            proxy_details["ProxyServer"] = self.module.params.get('share_parameters').get('proxy_server')
+            proxy_details["ProxyPort"] = str(self.module.params.get('share_parameters').get('proxy_port'))
+            if self.module.params.get('share_parameters').get('proxy_username') and self.module.params.get('share_parameters').get('proxy_password'):
+                proxy_details["ProxyUname"] = self.module.params.get('share_parameters').get('proxy_username')
+                proxy_details["ProxyPasswd"] = self.module.params.get('share_parameters').get('proxy_password')
         return proxy_details
 
 
 class DeleteLicense(License):
-    def execute(self, module):
+    def execute(self):
         """
         Executes the delete operation for a given license ID.
 
@@ -566,22 +566,22 @@ class DeleteLicense(License):
         Returns:
             object: The response object from the delete operation.
         """
-        license_id = module.params.get('license_id')
-        self.check_license_id(module, license_id, "delete")
+        license_id = self.module.params.get('license_id')
+        self.check_license_id(license_id)
         license_url = self.get_license_url()
         delete_license_url = license_url + f"/{license_id}"
         delete_license_response = self.idrac.invoke_request(delete_license_url, 'DELETE')
         status = delete_license_response.status_code
         if status == 204:
-            module.exit_json(msg=SUCCESS_DELETE_MSG, changed=True)
+            self.module.exit_json(msg=SUCCESS_DELETE_MSG, changed=True)
         else:
-            module.exit_json(msg=FAILURE_MSG.format(operation="delete", license_id=license_id), failed=True)
+            self.module.exit_json(msg=FAILURE_MSG.format(operation="delete", license_id=license_id), failed=True)
 
 
 class ExportLicense(License):
     STATUS_SUCCESS = [200, 202]
 
-    def execute(self, module):
+    def execute(self):
         """
         Executes the export operation for a given license ID.
 
@@ -591,29 +591,29 @@ class ExportLicense(License):
         :return: The response from the export operation.
         :rtype: Response
         """
-        share_type = module.params.get('share_parameters').get('share_type')
-        license_id = module.params.get('license_id')
-        self.check_license_id(module, license_id, "export")
-        export_license_url = self.__get_export_license_url(module)
+        share_type = self.module.params.get('share_parameters').get('share_type')
+        license_id = self.module.params.get('license_id')
+        self.check_license_id(license_id)
+        export_license_url = self.__get_export_license_url()
         job_status = {}
         if share_type == "local":
-            export_license_response = self.__export_license_local(module, export_license_url)
+            export_license_response = self.__export_license_local(export_license_url)
         elif share_type in ["http", "https"]:
-            export_license_response = self.__export_license_http(module, export_license_url)
-            job_status = self.get_job_status(module, export_license_response)
+            export_license_response = self.__export_license_http(export_license_url)
+            job_status = self.get_job_status(export_license_response)
         elif share_type == "cifs":
-            export_license_response = self.__export_license_cifs(module, export_license_url)
-            job_status = self.get_job_status(module, export_license_response)
+            export_license_response = self.__export_license_cifs(export_license_url)
+            job_status = self.get_job_status(export_license_response)
         elif share_type == "nfs":
-            export_license_response = self.__export_license_nfs(module, export_license_url)
-            job_status = self.get_job_status(module, export_license_response)
+            export_license_response = self.__export_license_nfs(export_license_url)
+            job_status = self.get_job_status(export_license_response)
         status = export_license_response.status_code
         if status in self.STATUS_SUCCESS:
-            module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
+            self.module.exit_json(msg=SUCCESS_EXPORT_MSG, changed=True, job_details=job_status)
         else:
-            module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details=job_status)
+            self.module.exit_json(msg=FAILURE_MSG.format(operation="export", license_id=license_id), failed=True, job_details=job_status)
 
-    def __export_license_local(self, module, export_license_url):
+    def __export_license_local(self, export_license_url):
         """
         Export the license to a local directory.
 
@@ -625,17 +625,17 @@ class ExportLicense(License):
             object: The license status after exporting.
         """
         payload = {}
-        payload["EntitlementID"] = module.params.get('license_id')
-        path = module.params.get('share_parameters').get('share_name')
+        payload["EntitlementID"] = self.module.params.get('license_id')
+        path = self.module.params.get('share_parameters').get('share_name')
         if not (os.path.exists(path) or os.path.isdir(path)):
-            module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
+            self.module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
         if not os.access(path, os.W_OK):
-            module.exit_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path), failed=True)
-        license_name = module.params.get('share_parameters').get('file_name')
+            self.module.exit_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path), failed=True)
+        license_name = self.module.params.get('share_parameters').get('file_name')
         if license_name:
             license_file_name = f"{license_name}_iDRAC_license.txt"
         else:
-            license_file_name = f"{module.params['license_id']}_iDRAC_license.txt"
+            license_file_name = f"{self.module.params['license_id']}_iDRAC_license.txt"
         license_status = self.idrac.invoke_request(export_license_url, "POST", data=payload)
         license_data = license_status.json_data
         license_file = license_data.get("LicenseFile")
@@ -644,7 +644,7 @@ class ExportLicense(License):
             fp.writelines(license_file)
         return license_status
 
-    def __export_license_http(self, module, export_license_url):
+    def __export_license_http(self, export_license_url):
         """
         Export the license using the HTTP protocol.
 
@@ -656,13 +656,13 @@ class ExportLicense(License):
             str: The export status.
         """
         payload = {}
-        payload["EntitlementID"] = module.params.get('license_id')
-        proxy_details = self.get_proxy_details(module)
+        payload["EntitlementID"] = self.module.params.get('license_id')
+        proxy_details = self.get_proxy_details()
         payload.update(proxy_details)
-        export_status = self.__export_license(module, payload, export_license_url)
+        export_status = self.__export_license(payload, export_license_url)
         return export_status
 
-    def __export_license_cifs(self, module, export_license_url):
+    def __export_license_cifs(self, export_license_url):
         """
         Export the license using CIFS share type.
 
@@ -674,16 +674,16 @@ class ExportLicense(License):
             str: The export status.
         """
         payload = {}
-        payload["EntitlementID"] = module.params.get('license_id')
+        payload["EntitlementID"] = self.module.params.get('license_id')
         payload["ShareType"] = "CIFS"
-        if module.params.get('share_parameters').get('workgroup'):
-            payload["Workgroup"] = module.params.get('share_parameters').get('workgroup')
-        share_details = self.get_share_details(module)
+        if self.module.params.get('share_parameters').get('workgroup'):
+            payload["Workgroup"] = self.module.params.get('share_parameters').get('workgroup')
+        share_details = self.get_share_details()
         payload.update(share_details)
-        export_status = self.__export_license(module, payload, export_license_url)
+        export_status = self.__export_license(payload, export_license_url)
         return export_status
 
-    def __export_license_nfs(self, module, export_license_url):
+    def __export_license_nfs(self, export_license_url):
         """
         Export the license using NFS share type.
 
@@ -695,14 +695,14 @@ class ExportLicense(License):
             dict: The export status of the license.
         """
         payload = {}
-        payload["EntitlementID"] = module.params.get('license_id')
+        payload["EntitlementID"] = self.module.params.get('license_id')
         payload["ShareType"] = "NFS"
-        payload["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-        payload["ShareName"] = module.params.get('share_parameters').get('share_name')
-        export_status = self.__export_license(module, payload, export_license_url)
+        payload["IPAddress"] = self.module.params.get('share_parameters').get('ip_address')
+        payload["ShareName"] = self.module.params.get('share_parameters').get('share_name')
+        export_status = self.__export_license(payload, export_license_url)
         return export_status
 
-    def __get_export_license_url(self, module):
+    def __get_export_license_url(self):
         """
         Get the export license URL.
 
@@ -718,11 +718,11 @@ class ExportLicense(License):
         resp = get_dynamic_uri(self.idrac, uri)
         url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
         action_resp = get_dynamic_uri(self.idrac, url)
-        license_service = EXPORT_LOCAL if module.params.get('share_parameters').get('share_type') == "local" else EXPORT_NETWORK_SHARE
+        license_service = EXPORT_LOCAL if self.module.params.get('share_parameters').get('share_type') == "local" else EXPORT_NETWORK_SHARE
         export_url = action_resp.get(ACTIONS, {}).get(license_service, {}).get('target', {})
         return export_url
 
-    def __export_license(self, module, payload, export_license_url):
+    def __export_license(self, payload, export_license_url):
         """
         Export the license to a file.
 
@@ -734,11 +734,11 @@ class ExportLicense(License):
         Returns:
             dict: The license status after exporting.
         """
-        license_name = module.params.get('share_parameters').get('file_name')
+        license_name = self.module.params.get('share_parameters').get('file_name')
         if license_name:
             license_file_name = f"{license_name}_iDRAC_license.xml"
         else:
-            license_file_name = f"{module.params['license_id']}_iDRAC_license.xml"
+            license_file_name = f"{self.module.params['license_id']}_iDRAC_license.xml"
         payload["FileName"] = license_file_name
         license_status = self.idrac.invoke_request(export_license_url, "POST", data=payload)
         return license_status
@@ -747,7 +747,7 @@ class ExportLicense(License):
 class ImportLicense(License):
     STATUS_SUCCESS = [200, 202]
 
-    def execute(self, module):
+    def execute(self):
         """
         Executes the import license process based on the given module parameters.
 
@@ -757,31 +757,31 @@ class ImportLicense(License):
         Returns:
             object: The response object from the import license API call.
         """
-        if not module.params.get('share_parameters').get('file_name'):
-            module.exit_json(msg=MISSING_FILE_NAME_PARAMETER_MSG, failed=True)
-        share_type = module.params.get('share_parameters').get('share_type')
-        self.__check_file_extension(module)
-        import_license_url = self.__get_import_license_url(module)
+        if not self.module.params.get('share_parameters').get('file_name'):
+            self.module.exit_json(msg=MISSING_FILE_NAME_PARAMETER_MSG, failed=True)
+        share_type = self.module.params.get('share_parameters').get('share_type')
+        self.__check_file_extension()
+        import_license_url = self.__get_import_license_url()
         resource_id = get_manager_res_id(self.idrac)
         job_status = {}
         if share_type == "local":
-            import_license_response = self.__import_license_local(module, import_license_url, resource_id)
+            import_license_response = self.__import_license_local(import_license_url, resource_id)
         elif share_type in ["http", "https"]:
-            import_license_response = self.__import_license_http(module, import_license_url, resource_id)
-            job_status = self.get_job_status(module, import_license_response)
+            import_license_response = self.__import_license_http(import_license_url, resource_id)
+            job_status = self.get_job_status(import_license_response)
         elif share_type == "cifs":
-            import_license_response = self.__import_license_cifs(module, import_license_url, resource_id)
-            job_status = self.get_job_status(module, import_license_response)
+            import_license_response = self.__import_license_cifs(import_license_url, resource_id)
+            job_status = self.get_job_status(import_license_response)
         elif share_type == "nfs":
-            import_license_response = self.__import_license_nfs(module, import_license_url, resource_id)
-            job_status = self.get_job_status(module, import_license_response)
+            import_license_response = self.__import_license_nfs(import_license_url, resource_id)
+            job_status = self.get_job_status(import_license_response)
         status = import_license_response.status_code
         if status in self.STATUS_SUCCESS:
-            module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details=job_status)
+            self.module.exit_json(msg=SUCCESS_IMPORT_MSG, changed=True, job_details=job_status)
         else:
-            module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details=job_status)
+            self.module.exit_json(msg=FAILURE_IMPORT_MSG, failed=True, job_details=job_status)
 
-    def __import_license_local(self, module, import_license_url, resource_id):
+    def __import_license_local(self, import_license_url, resource_id):
         """
         Import a license locally.
 
@@ -794,17 +794,17 @@ class ImportLicense(License):
             dict: The import status of the license.
         """
         payload = {}
-        path = module.params.get('share_parameters').get('share_name')
+        path = self.module.params.get('share_parameters').get('share_name')
         if not (os.path.exists(path) or os.path.isdir(path)):
-            module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
-        file_path = module.params.get('share_parameters').get('share_name') + "/" + module.params.get('share_parameters').get('file_name')
+            self.module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
+        file_path = self.module.params.get('share_parameters').get('share_name') + "/" + self.module.params.get('share_parameters').get('file_name')
         file_exits = os.path.exists(file_path)
         if file_exits:
             with open(file_path, "rb") as cert:
                 cert_content = cert.read()
                 read_file = base64.encodebytes(cert_content).decode('ascii')
         else:
-            module.exit_json(msg=NO_FILE_MSG, failed=True)
+            self.module.exit_json(msg=NO_FILE_MSG, failed=True)
         payload["LicenseFile"] = read_file
         payload["FQDD"] = resource_id
         payload["ImportOptions"] = "Force"
@@ -815,12 +815,12 @@ class ImportLicense(License):
             message_details = filter_err.get('error').get('@Message.ExtendedInfo')[0]
             message_id = message_details.get('MessageId')
             if 'LIC018' in message_id:
-                module.exit_json(msg=message_details.get('Message'), skipped=True)
+                self.module.exit_json(msg=message_details.get('Message'), skipped=True)
             else:
-                module.exit_json(msg=message_details.get('Message'), error_info=filter_err, failed=True)
+                self.module.exit_json(msg=message_details.get('Message'), error_info=filter_err, failed=True)
         return import_status
 
-    def __import_license_http(self, module, import_license_url, resource_id):
+    def __import_license_http(self, import_license_url, resource_id):
         """
         Imports a license using HTTP.
 
@@ -833,15 +833,15 @@ class ImportLicense(License):
             object: The import status.
         """
         payload = {}
-        payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
+        payload["LicenseName"] = self.module.params.get('share_parameters').get('file_name')
         payload["FQDD"] = resource_id
         payload["ImportOptions"] = "Force"
-        proxy_details = self.get_proxy_details(module)
+        proxy_details = self.get_proxy_details()
         payload.update(proxy_details)
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 
-    def __import_license_cifs(self, module, import_license_url, resource_id):
+    def __import_license_cifs(self, import_license_url, resource_id):
         """
         Imports a license using CIFS share type.
 
@@ -856,17 +856,17 @@ class ImportLicense(License):
         """
         payload = {}
         payload["ShareType"] = "CIFS"
-        payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
+        payload["LicenseName"] = self.module.params.get('share_parameters').get('file_name')
         payload["FQDD"] = resource_id
         payload["ImportOptions"] = "Force"
-        if module.params.get('share_parameters').get('workgroup'):
-            payload["Workgroup"] = module.params.get('share_parameters').get('workgroup')
-        share_details = self.get_share_details(module)
+        if self.module.params.get('share_parameters').get('workgroup'):
+            payload["Workgroup"] = self.module.params.get('share_parameters').get('workgroup')
+        share_details = self.get_share_details()
         payload.update(share_details)
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 
-    def __import_license_nfs(self, module, import_license_url, resource_id):
+    def __import_license_nfs(self, import_license_url, resource_id):
         """
         Import a license from an NFS share.
 
@@ -880,15 +880,15 @@ class ImportLicense(License):
         """
         payload = {}
         payload["ShareType"] = "NFS"
-        payload["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-        payload["ShareName"] = module.params.get('share_parameters').get('share_name')
-        payload["LicenseName"] = module.params.get('share_parameters').get('file_name')
+        payload["IPAddress"] = self.module.params.get('share_parameters').get('ip_address')
+        payload["ShareName"] = self.module.params.get('share_parameters').get('share_name')
+        payload["LicenseName"] = self.module.params.get('share_parameters').get('file_name')
         payload["FQDD"] = resource_id
         payload["ImportOptions"] = "Force"
         import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         return import_status
 
-    def __check_file_extension(self, module):
+    def __check_file_extension(self):
         """
         Check if the file extension of the given file name is valid.
 
@@ -897,14 +897,14 @@ class ImportLicense(License):
 
         :return: None
         """
-        share_type = module.params.get('share_parameters').get('share_type')
-        file_name = module.params.get('share_parameters').get('file_name')
+        share_type = self.module.params.get('share_parameters').get('share_type')
+        file_name = self.module.params.get('share_parameters').get('file_name')
         valid_extensions = {".txt", ".xml"} if share_type == "local" else {".xml"}
         file_extension = any(file_name.lower().endswith(ext) for ext in valid_extensions)
         if not file_extension:
-            module.exit_json(msg=INVALID_FILE_MSG, failed=True)
+            self.module.exit_json(msg=INVALID_FILE_MSG, failed=True)
 
-    def __get_import_license_url(self, module):
+    def __get_import_license_url(self):
         """
         Get the import license URL.
 
@@ -920,11 +920,11 @@ class ImportLicense(License):
         resp = get_dynamic_uri(self.idrac, uri)
         url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LICENSE_MANAGEMENT_SERVICE, {}).get(ODATA, {})
         action_resp = get_dynamic_uri(self.idrac, url)
-        license_service = IMPORT_LOCAL if module.params.get('share_parameters').get('share_type') == "local" else IMPORT_NETWORK_SHARE
+        license_service = IMPORT_LOCAL if self.module.params.get('share_parameters').get('share_type') == "local" else IMPORT_NETWORK_SHARE
         import_url = action_resp.get(ACTIONS, {}).get(license_service, {}).get('target', {})
         return import_url
 
-    def get_job_status(self, module, license_job_response):
+    def get_job_status(self, license_job_response):
         res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
         job_tracking_uri = license_job_response.headers.get("Location")
         job_id = job_tracking_uri.split("/")[-1]
@@ -933,9 +933,9 @@ class ImportLicense(License):
         job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
         if job_failed:
             if job_dict.get('MessageId') == 'LIC018':
-                module.exit_json(msg=job_dict.get('Message'), skipped=True, job_details=job_dict)
+                self.module.exit_json(msg=job_dict.get('Message'), skipped=True, job_details=job_dict)
             else:
-                module.exit_json(
+                self.module.exit_json(
                     msg=job_dict.get('Message'),
                     failed=True,
                     job_details=job_dict)
@@ -1017,7 +1017,7 @@ def main():
                 module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG, failed=True)
             license_obj = LicenseType.license_operation(idrac, module)
             if license_obj:
-                license_obj.execute(module)
+                license_obj.execute()
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)

@@ -67,7 +67,7 @@ class TestLicense(FakeAnsibleModule):
         idr_obj.json_data = {"license_id": "1234"}
         mocker.patch(MODULE_PATH + "iDRACRedfishAPI.invoke_request",
                      return_value=idr_obj)
-        data = lic_obj.check_license_id(module=f_module, license_id="1234", operation="delete")
+        data = lic_obj.check_license_id(license_id="1234")
         assert data.json_data == {"license_id": "1234"}
 
         mocker.patch(MODULE_PATH + "iDRACRedfishAPI.invoke_request",
@@ -76,7 +76,7 @@ class TestLicense(FakeAnsibleModule):
                                            {"accept-type": "application/json"},
                                            StringIO("json_str")))
         with pytest.raises(Exception) as exc:
-            lic_obj.check_license_id(module=f_module, license_id="1234", operation="delete")
+            lic_obj.check_license_id(license_id="1234")
         assert exc.value.args[0] == INVALID_LICENSE_MSG.format(license_id="1234")
 
     def test_get_license_url(self, idrac_default_args, idrac_connection_license_mock, mocker):
@@ -111,7 +111,7 @@ class TestLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "idrac_redfish_job_tracking", return_value=(False, "mocked_message", {"job_details": "mocked_job_details"}, 0))
 
         # Calling the method under test
-        result = obj_under_test.get_job_status(module_mock, license_job_response_mock)
+        result = obj_under_test.get_job_status(license_job_response_mock)
 
         # Assertions
         assert result == {"job_details": "mocked_job_details"}
@@ -135,7 +135,7 @@ class TestLicense(FakeAnsibleModule):
         exit_json_mock = mocker.patch.object(module_mock, "exit_json")
 
         # Calling the method under test
-        result = obj_under_test.get_job_status(module_mock, license_job_response_mock)
+        result = obj_under_test.get_job_status(license_job_response_mock)
 
         # Assertions
         exit_json_mock.assert_called_once_with(msg="None", failed=True, job_details={"Message": "None"})
@@ -155,7 +155,7 @@ class TestLicense(FakeAnsibleModule):
         lic_obj = self.module.License(idrac_connection_license_mock, module_mock)
 
         # Call the get_share_details method
-        result = lic_obj.get_share_details(module=module_mock)
+        result = lic_obj.get_share_details()
 
         # Assert the result
         assert result == {
@@ -187,7 +187,7 @@ class TestLicense(FakeAnsibleModule):
         lic_obj = self.module.License(idrac_connection_license_mock, module_mock)
 
         # Call the get_proxy_details method
-        result = lic_obj.get_proxy_details(module=module_mock)
+        result = lic_obj.get_proxy_details()
 
         # Define the expected result
         expected_result = {
@@ -229,7 +229,7 @@ class TestDeleteLicense:
         f_module.params = {'license_id': '1234'}
         delete_license_obj = idrac_license.DeleteLicense(idrac_connection_license_mock, f_module)
         delete_license_obj.idrac.invoke_request.return_value.status_code = 204
-        delete_license_obj.execute(f_module)
+        delete_license_obj.execute()
         f_module.exit_json.assert_called_once_with(msg=SUCCESS_DELETE_MSG, changed=True)
 
     def test_execute_delete_license_failure(self, mocker, idrac_connection_license_mock):
@@ -239,7 +239,7 @@ class TestDeleteLicense:
         f_module.params = {'license_id': '5678'}
         delete_license_obj = idrac_license.DeleteLicense(idrac_connection_license_mock, f_module)
         delete_license_obj.idrac.invoke_request.return_value.status_code = 404
-        delete_license_obj.execute(f_module)
+        delete_license_obj.execute()
         f_module.exit_json.assert_called_once_with(msg=FAILURE_MSG.format(operation="delete", license_id="5678"), failed=True)
 
 
