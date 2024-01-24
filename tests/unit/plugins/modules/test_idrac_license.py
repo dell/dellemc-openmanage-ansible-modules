@@ -11,8 +11,6 @@
 from __future__ import absolute_import, division, print_function
 
 from io import StringIO
-import tempfile
-import os
 
 import pytest
 from urllib.error import HTTPError
@@ -261,9 +259,18 @@ class TestExportLicense(FakeAnsibleModule):
         idrac_conn_mock.return_value.__enter__.return_value = idrac_license_mock
         return idrac_conn_mock
 
-    def test_export_license_local(self, idrac_default_args, idrac_connection_license_mock, mocker):
-        tmp_path = tempfile.gettempdir()
-        export_params = {
+    def test_export_license_local(self, idrac_default_args, idrac_connection_license_mock,
+                                  idrac_license_mock, mocker, tmp_path):
+        mocker.patch(MODULE_PATH + "License.get_license_url",
+                     return_value="/redfish/v1/license")
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        export_license_obj = idrac_license.ExportLicense(idrac_license_mock, f_module)
+
+        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_local",
+                     return_value=MagicMock(json_data={"LicenseFile": "Mock License Content"}))
+
+        # Set the necessary parameters in for f_module
+        f_module.params = {
             'license_id': 'test_license_id',
             'share_parameters': {
                 'share_name': str(tmp_path),
@@ -271,7 +278,6 @@ class TestExportLicense(FakeAnsibleModule):
             }
         }
 
-        result = export_license_obj._ExportLicense__export_license_local(
-            f_module, '/redfish/v1/export_license')
+        result = export_license_obj._ExportLicense__export_license_local(f_module, '/redfish/v1/export_license')
 
         assert result.json_data == {"LicenseFile": "Mock License Content"}
