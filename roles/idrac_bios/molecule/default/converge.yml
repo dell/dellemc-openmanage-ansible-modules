@@ -3,7 +3,7 @@
   hosts: all
   gather_facts: false
   tasks:
-    ############### Below snippet is commented because of traceback error  ###############
+    ########## Below snippet is commented because of traceback error  ########
     # - name: Perform reset bios with invalid hostname
     #   ansible.builtin.import_role:
     #     name: idrac_bios
@@ -20,7 +20,7 @@
     #     that:
     #       - "'Unable to communicate with iDRAC randomHostname' in
     #         idrac_bios_out.reset_bios.msg"
-    ###################################################################################################################
+    ###########################################################################
 
     - name: Block to reset bios with invalid username
       block:
