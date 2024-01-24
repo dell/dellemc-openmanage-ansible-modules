@@ -2,7 +2,22 @@
 - name: Converge file for update attributes with apply time as reset
   hosts: all
   gather_facts: false
+  vars:
+    idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+    idrac_port: "{{ lookup('env', 'IDRAC_PORT') }}"
   tasks:
+    - name: Read file content for set_boot_mode variable
+      ansible.builtin.command: cat /tmp/boot_mode.txt
+      register: file_content
+      check_mode: false
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Set set_boot_mode variable
+      ansible.builtin.set_fact:
+        set_boot_mode: "{{ file_content.stdout }}"
+      delegate_to: localhost
+
     - name: Update attributes with apply time as reset
       ansible.builtin.include_role:
         name: idrac_bios
@@ -13,7 +28,7 @@
         validate_certs: false
         apply_time: OnReset
         attributes:
-          BootMode: "Bios"
+          BootMode: "{{ set_boot_mode }}"
         job_wait: false
 
     - name: Assert update attributes with apply time as reset in normal mode
