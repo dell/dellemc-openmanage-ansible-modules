@@ -1,0 +1,41 @@
+---
+- name: Get Secure Boot information.
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ https_port }}{{ api_system
+      }}/SecureBoot/?$expand=*($levels=1)
+  register: secure_boot_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Get Secure Boot Databases.
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ https_port }}{{ api_system
+      }}/SecureBoot/SecureBootDatabases?$expand=*($levels=1)
+  register: secure_boot_db_result
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Get Secureboot db certificates information.
+  ansible.builtin.uri:
+    url: https://{{ hostname }}:{{ https_port }}{{
+      sec_boot_db_item['Certificates']['@odata.id'] }}?$expand=*($levels=1)
+  loop: "{{ secure_boot_db_result.json.Members }}"
+  loop_control:
+    loop_var: sec_boot_db_item
+  register: secure_boot_results
+  delegate_to: "{{ idrac_gather_facts_delegate }}"
+
+- name: Combine certificates with corresponding db information.
+  ansible.builtin.set_fact:
+    interim_secure_boot: "{{ interim_secure_boot | default([]) +
+      [sec_boot_cert['sec_boot_db_item'] | combine({'Certificates':
+      sec_boot_cert['json']['Members']})] }}"
+  loop: "{{ secure_boot_results.results }}"
+  loop_control:
+    loop_var: sec_boot_cert
+  no_log: true
+
+- name: Combine the secure boot database and certificates into secure boot.
+  ansible.builtin.set_fact:
+    secure_boot: '{{ secure_boot_result.json | combine({"SecureBootDatabases":
+      interim_secure_boot}) |
+      ansible.utils.remove_keys(target=["^.*@odata\..*$"],
+      matching_parameter="regex") }}'

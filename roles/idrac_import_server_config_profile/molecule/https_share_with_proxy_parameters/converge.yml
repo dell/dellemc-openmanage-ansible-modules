@@ -19,6 +19,7 @@
           proxy_support: true
           proxy_type: http
           proxy_server: "{{ lookup('env', 'PROXY_SERVER') }}"
+          proxy_username: "{{ lookup('env', 'PROXY_USER') }}"
           proxy_port: "{{ lookup('env', 'PROXY_PORT') }}"
           proxy_password: "{{ lookup('env', 'PROXY_PASSWORD') }}"
       when: not ansible_check_mode

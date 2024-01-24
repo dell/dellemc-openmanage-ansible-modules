@@ -19,6 +19,7 @@
           proxy_support: true
           proxy_server: "{{ lookup('env', 'PROXY_SERVER') }}"
           proxy_port: "{{ lookup('env', 'PROXY_PORT') }}"
+          proxy_username: "{{ lookup('env', 'PROXY_USER') }}"
           proxy_password: "{{ lookup('env', 'PROXY_PASSWORD') }}"
           ignore_certificate_warning: showerror
       when: not ansible_check_mode
