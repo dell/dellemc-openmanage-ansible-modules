@@ -32,7 +32,8 @@
       ansible.builtin.include_tasks:
         file: ../__get_data.yml
       vars:
-        url: https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1/Managers/iDRAC.Embedded.1
+        url: "https://{{ idrac_ip }}:{{ idrac_port }}/redfish/v1\
+        /Managers/iDRAC.Embedded.1"
 
     - name: Set the local offset
       when: idrac_bios_uri_data.json.DateTimeLocalOffset is defined

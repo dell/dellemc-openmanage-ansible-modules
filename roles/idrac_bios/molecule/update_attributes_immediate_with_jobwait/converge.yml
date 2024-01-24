@@ -32,7 +32,7 @@
           BootMode: "{{ set_boot_mode }}"
         job_wait: true
 
-    - name: Assert update attributes with apply time as Immediate in normal mode
+    - name: Assert update attributes with apply time as Immediate - normal mode
       ansible.builtin.assert:
         that:
           - idrac_bios_out.attributes.status_msg == "Successfully

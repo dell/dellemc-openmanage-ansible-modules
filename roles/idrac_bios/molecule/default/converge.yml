@@ -3,17 +3,17 @@
   hosts: all
   gather_facts: false
   tasks:
-    ########## Below snippet is commented because of traceback error  ########
-    # - name: Perform reset bios with invalid hostname
-    #   ansible.builtin.import_role:
-    #     name: idrac_bios
-    #   vars:
-    #     hostname: "randomHostname"
-    #     username: "{{ lookup('env', 'IDRAC_USER') }}"
-    #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
-    #     validate_certs: false
-    #     reset_bios: true
-    #   ignore_unreachable: true
+    ########## Below snippet is commented because of Issue: JIT-285533 ########
+      # - name: Perform reset bios with invalid hostname
+      #   ansible.builtin.import_role:
+      #     name: idrac_bios
+      #   vars:
+      #     hostname: "randomHostname"
+      #     username: "{{ lookup('env', 'IDRAC_USER') }}"
+      #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+      #     validate_certs: false
+      #     reset_bios: true
+      #   ignore_unreachable: true
 
     # - name: Assert reset bios with invalid hostname
     #   ansible.builtin.assert:

@@ -27,7 +27,7 @@
         attributes:
           BootMode: "{{ set_boot_mode }}"
 
-    - name: Assert update attributes with apply time as Immediate in normal mode
+    - name: Assert update attributes with apply time as Immediate - normal mode
       ansible.builtin.assert:
         that:
           - idrac_bios_out.attributes.status_msg == "Successfully applied the
@@ -37,7 +37,7 @@
       when: not ansible_check_mode
       tags: molecule-idempotence-notest
 
-    - name: Assert update attributes with apply time as Immediate in check mode
+    - name: Assert update attributes with apply time as Immediate - check mode
       ansible.builtin.assert:
         that:
           - idrac_bios_out.attributes.status_msg == "Changes found to
