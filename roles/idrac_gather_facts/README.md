@@ -687,11 +687,11 @@ ansible.utils
     target:
       - Controller
 
-- name: Pull out BOSS controllers
+- name: Fetch BOSS controllers
   ansible.builtin.debug:
     msg: "{{ controller | selectattr('Model', 'contains', 'BOSS') | list }}"
 
-- name: Pull out controller with specific id
+- name: Fetch controller with specific id
   ansible.builtin.debug:
     msg: "{{ controller | selectattr('Id', 'equalto', 'AHCI.Integrated.1-1') | list }}"
 
