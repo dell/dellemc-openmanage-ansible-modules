@@ -256,6 +256,7 @@ Examples
           share_type: "nfs"
           share_name: "/path/to/share"
           file_name: "license_file"
+          ip_address: "192.168.0.1"
 
     - name: Export a license from iDRAC to CIFS share
       dellemc.openmanage.idrac_license:

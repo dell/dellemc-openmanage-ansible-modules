@@ -20,20 +20,21 @@ from mock import MagicMock
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.'
 
-INVALID_LICENSE_MSG = "License id '{license_id}' is invalid."
+INVALID_LICENSE_MSG = "License with ID '{license_id}' does not exist on the iDRAC."
 SUCCESS_EXPORT_MSG = "Successfully exported the license."
 SUCCESS_DELETE_MSG = "Successfully deleted the license."
 SUCCESS_IMPORT_MSG = "Successfully imported the license."
 FAILURE_MSG = "Unable to '{operation}' the license with id '{license_id}' as it does not exist."
 FAILURE_IMPORT_MSG = "Unable to import the license."
 NO_FILE_MSG = "License file not found."
+UNSUPPORTED_FIRMWARE_MSG = "iDRAC firmware version is not supported."
+NO_OPERATION_SKIP_MSG = "Task is skipped as none of import, export or delete is specified."
 INVALID_FILE_MSG = "File extension is invalid. Supported extensions for local 'share_type' " \
-                   "is: .txt and .xml, and for network 'share_type' is: .xml."
+                   "are: .txt and .xml, and for network 'share_type' is: .xml."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
                                         "Please check if the directory has appropriate permissions"
-MISSING_PARAMETER_MSG = "Missing required parameter 'file_name'."
-
+MISSING_FILE_NAME_PARAMETER_MSG = "Missing required parameter 'file_name'."
 REDFISH = "/redfish/v1"
 
 
@@ -76,7 +77,7 @@ class TestLicense(FakeAnsibleModule):
                                            StringIO("json_str")))
         with pytest.raises(Exception) as exc:
             lic_obj.check_license_id(module=f_module, license_id="1234", operation="delete")
-        assert exc.value.args[0] == FAILURE_MSG.format(operation="delete", license_id="1234")
+        assert exc.value.args[0] == INVALID_LICENSE_MSG.format(license_id="1234")
 
     def test_get_license_url(self, idrac_default_args, idrac_connection_license_mock, mocker):
         v1_resp = {"LicenseService": {"@odata.id": "/redfish/v1/LicenseService"},
@@ -239,7 +240,7 @@ class TestDeleteLicense:
         delete_license_obj = idrac_license.DeleteLicense(idrac_connection_license_mock, f_module)
         delete_license_obj.idrac.invoke_request.return_value.status_code = 404
         delete_license_obj.execute(f_module)
-        f_module.exit_json.assert_called_once_with(FAILURE_MSG.format(operation="delete", license_id="5678"), failed=True)
+        f_module.exit_json.assert_called_once_with(msg=FAILURE_MSG.format(operation="delete", license_id="5678"), failed=True)
 
 
 class TestExportLicense(FakeAnsibleModule):
