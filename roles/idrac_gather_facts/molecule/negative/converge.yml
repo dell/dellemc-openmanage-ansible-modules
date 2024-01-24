@@ -58,7 +58,7 @@
 
     - name: Set computer system id
       ansible.builtin.set_fact:
-        computer_system_id: "randomSystemID"
+        system_id: "randomSystemID"
 
     - name: To check for wrong system id
       ansible.builtin.import_role:
@@ -68,7 +68,7 @@
         username: "{{ lookup('env', 'username') }}"
         password: "{{ lookup('env', 'password') }}"
         validate_certs: false
-        computer_system_id: "{{ computer_system_id }}"
+        computer_system_id: "{{ system_id }}"
       ignore_errors: true
       register: idrac_gather_facts_error
 

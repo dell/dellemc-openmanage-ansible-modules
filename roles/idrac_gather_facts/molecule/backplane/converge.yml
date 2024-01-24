@@ -23,16 +23,44 @@
       - 404
       - -1
     idrac_gather_facts_uri_return_content: true
-    diff_data: {}
-    exclude_keys: []
 
   tasks:
+    - name: Collecting PCIeSSDBackPlane information from API
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}/redfish/v1/Chassis/Oem/Dell/DellPCIeSSDBackPlanes"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      register: backplane_result_url
+      no_log: true
+
+    - name: Validate whether PCIeSSDBackPlane information exists
+      ansible.builtin.assert:
+        that:
+          - "{{ backplane_result_url.json.Members | length > 0 }}"
+        fail_msg: "PCIeSSDBackPlane information does not exist"
+
+    - name: Set PCIeSSDBackPlane facts
+      ansible.builtin.set_fact:
+        api_response: "{{ backplane_result_url.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
+
     - name: Gather Facts for the PCIeSSDBackPlane component
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
-    - name: Call assertion
-      ansible.builtin.include_tasks: ../../tests/asserts/backplane_assert.yml
-      with_items: "{{ backplane }}"
-      loop_control:
-        loop_var: backplane_data
+    - name: Check whether output differs
+      ansible.builtin.set_fact:
+        result_diff: "{{ backplane | symmetric_difference(api_response) }}"
+
+    - name: Assert the differences in List
+      ansible.builtin.assert:
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+        that:
+          - "{{ (result_diff | length) == 0 }}"
