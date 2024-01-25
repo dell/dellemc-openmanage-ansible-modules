@@ -365,11 +365,12 @@ class TestExportLicense(FakeAnsibleModule):
         assert result == "/local/action"
 
     def test_execute(self, idrac_default_args, idrac_connection_license_mock, mocker):
+        share_type = 'local'
         export_params = {
             'license_id': 'test_license_id',
             'share_parameters': {
                 'file_name': 'test_lic',
-                'share_type': 'local'
+                'share_type': share_type
             }
         }
         idrac_default_args.update(export_params)
@@ -377,11 +378,45 @@ class TestExportLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "License.check_license_id")
         mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__get_export_license_url",
                      return_value="/License/url")
+        mocker.patch(MODULE_PATH + "ExportLicense.get_job_status",
+                     return_value={"JobId": "JID1234"})
         idr_obj = MagicMock()
         idr_obj.status_code = 200
+
         mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_local",
                      return_value=idr_obj)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         with pytest.raises(Exception) as exc:
             export_license_obj.execute()
         assert exc.value.args[0] == SUCCESS_EXPORT_MSG
+
+        export_params.get('share_parameters')["share_type"] = "http"
+        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_http",
+                     return_value=idr_obj)
+        with pytest.raises(Exception) as exc:
+            export_license_obj.execute()
+        assert exc.value.args[0] == SUCCESS_EXPORT_MSG
+
+        export_params.get('share_parameters')["share_type"] = "cifs"
+        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_cifs",
+                     return_value=idr_obj)
+        with pytest.raises(Exception) as exc:
+            export_license_obj.execute()
+        assert exc.value.args[0] == SUCCESS_EXPORT_MSG
+
+        export_params.get('share_parameters')["share_type"] = "nfs"
+        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_nfs",
+                     return_value=idr_obj)
+        with pytest.raises(Exception) as exc:
+            export_license_obj.execute()
+        assert exc.value.args[0] == SUCCESS_EXPORT_MSG
+
+        export_params.get('share_parameters')["share_type"] = "https"
+        idr_obj.status_code = 400
+        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_local",
+                return_value=idr_obj)
+        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_http",
+                     return_value=idr_obj)
+        with pytest.raises(Exception) as exc:
+            export_license_obj.execute()
+        assert exc.value.args[0] == FAILURE_MSG.format(operation="export", license_id="test_license_id")
