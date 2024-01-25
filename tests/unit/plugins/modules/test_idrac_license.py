@@ -44,8 +44,11 @@ REDFISH = "/redfish/v1"
 
 LIC_GET_LICENSE_URL = "License.get_license_url"
 REDFISH_LICENSE_URL = "/redfish/v1/license"
-uri = '/redfish/v1/api'
+REDFISH_BASE_API = '/redfish/v1/api'
+MANAGER_URI_ONE = "/redfish/v1/managers/1"
+API_ONE = "/local/action"
 EXPORT_URL_MOCK = '/redfish/v1/export_license'
+IMPORT_URL_MOCK = '/redfish/v1/import_license'
 API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
 ODATA = "@odata.id"
 IDRAC_ID = "iDRAC.Embedded.1"
@@ -115,7 +118,7 @@ class TestLicense(FakeAnsibleModule):
         license_job_response_mock.headers.get.return_value = "https://testhost.com/job_tracking/12345"
 
         mocker.patch(MODULE_PATH + "remove_key", return_value={"job_details": "mocked_job_details"})
-        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=["/redfish/v1/managers/1"])
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
 
         # Creating an instance of the class
         obj_under_test = self.module.License(self.idrac_mock, module_mock)
@@ -136,7 +139,7 @@ class TestLicense(FakeAnsibleModule):
         license_job_response_mock.headers.get.return_value = "https://testhost.com/job_tracking/12345"
 
         mocker.patch(MODULE_PATH + "remove_key", return_value={"Message": "None"})
-        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=["/redfish/v1/managers/1"])
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
 
         # Creating an instance of the class
         obj_under_test = self.module.License(self.idrac_mock, module_mock)
@@ -360,15 +363,15 @@ class TestExportLicense(FakeAnsibleModule):
             }
         }
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
-                     return_value=("/redfish/v1", None))
+                     return_value=(REDFISH, None))
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
                      return_value={"Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
-                                   "Actions": {"#DellLicenseManagementService.ExportLicense": {"target": "/local/action"}}})
+                                   "Actions": {"#DellLicenseManagementService.ExportLicense": {"target": API_ONE}}})
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         result = export_license_obj._ExportLicense__get_export_license_url()
-        assert result == "/local/action"
+        assert result == API_ONE
 
     def test_execute(self, idrac_default_args, idrac_connection_license_mock, mocker):
         share_type = 'local'
@@ -552,7 +555,7 @@ class TestImportLicense(FakeAnsibleModule):
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_http('/redfish/v1/import_license', IDRAC_ID)
+        result = import_license_obj._ImportLicense__import_license_http(IMPORT_URL_MOCK, IDRAC_ID)
         assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
 
     def test_import_license_cifs(self, idrac_default_args, idrac_connection_license_mock, mocker):
@@ -572,7 +575,7 @@ class TestImportLicense(FakeAnsibleModule):
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_cifs('/redfish/v1/import_license', IDRAC_ID)
+        result = import_license_obj._ImportLicense__import_license_cifs(IMPORT_URL_MOCK, IDRAC_ID)
         assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
 
     def test_import_license_nfs(self, idrac_default_args, idrac_connection_license_mock, mocker):
@@ -592,7 +595,7 @@ class TestImportLicense(FakeAnsibleModule):
         idrac_default_args.update(import_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        result = import_license_obj._ImportLicense__import_license_nfs('/redfish/v1/import_license', IDRAC_ID)
+        result = import_license_obj._ImportLicense__import_license_nfs(IMPORT_URL_MOCK, IDRAC_ID)
         assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
 
     def test_get_import_license_url(self, idrac_default_args, idrac_connection_license_mock, mocker):
@@ -605,18 +608,18 @@ class TestImportLicense(FakeAnsibleModule):
             }
         }
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
-                     return_value=("/redfish/v1", None))
+                     return_value=(REDFISH, None))
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
                      return_value={"Links": {"Oem": {"Dell": {"DellLicenseManagementService": {ODATA: "/LicenseService"}}}},
-                                   "Actions": {"#DellLicenseManagementService.ImportLicense": {"target": "/local/action"}}})
+                                   "Actions": {"#DellLicenseManagementService.ImportLicense": {"target": API_ONE}}})
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
         result = import_license_obj._ImportLicense__get_import_license_url()
-        assert result == "/local/action"
+        assert result == API_ONE
 
     def test_get_job_status(self, idrac_default_args, idrac_connection_license_mock, mocker):
-        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=["/redfish/v1/managers/1"])
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
         lic_job_resp_obj = MagicMock()
         lic_job_resp_obj.headers = {"Location": "idrac_internal"}
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
@@ -637,3 +640,42 @@ class TestImportLicense(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             import_license_obj.get_job_status(lic_job_resp_obj)
         assert exc.value.args[0] == "Got LIC019"
+
+
+class TestLicenseType(FakeAnsibleModule):
+    module = idrac_license
+
+    @pytest.fixture
+    def idrac_license_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_license_mock(self, mocker, idrac_license_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
+                                       return_value=idrac_license_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_license_mock
+        return idrac_conn_mock
+
+    def test_license_operation(self, idrac_default_args, idrac_connection_license_mock, mocker):
+        idrac_default_args.update({"import": False, "export": False, "delete": True})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
+        assert isinstance(lic_class, self.module.DeleteLicense)
+
+        idrac_default_args.update({"import": False, "export": True, "delete": False})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
+        assert isinstance(lic_class, self.module.ExportLicense)
+
+        idrac_default_args.update({"import": True, "export": False, "delete": False})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
+        assert isinstance(lic_class, self.module.ImportLicense)
+
+        # idrac_default_args.update({"import": False, "export": False, "delete": False})
+        # f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        # lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
+        # with pytest.raises(Exception) as exc:
+        #     lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
+        # assert exc.value.args[0] == SUCCESS_IMPORT_MSG
