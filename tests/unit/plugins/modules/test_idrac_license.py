@@ -54,6 +54,7 @@ IMPORT_URL_MOCK = '/redfish/v1/import_license'
 API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
 ODATA = "@odata.id"
 IDRAC_ID = "iDRAC.Embedded.1"
+LIC_FILE_NAME = 'test_lic.txt'
 HTTPS_PATH = "https://testhost.com"
 HTTP_ERROR = "http error message"
 APPLICATION_JSON = "application/json"
@@ -526,7 +527,7 @@ class TestImportLicense(FakeAnsibleModule):
             'license_id': 'test_license_id',
             'share_parameters': {
                 'share_name': '/tmp/doesnotexistpath',
-                'file_name': 'test_lic.txt'
+                'file_name': LIC_FILE_NAME
             }
         }
         idrac_default_args.update(import_params)
@@ -540,10 +541,10 @@ class TestImportLicense(FakeAnsibleModule):
             'license_id': 'test_license_id',
             'share_parameters': {
                 'share_name': str(tmp_path),
-                'file_name': 'test_lic.txt'
+                'file_name': LIC_FILE_NAME
             }
         }
-        file_name = os.path.join(tmp_path, 'test_lic.txt')
+        file_name = os.path.join(tmp_path, LIC_FILE_NAME)
         with open(file_name, "w") as fp:
             fp.writelines("license_file")
         idr_obj = MagicMock()
