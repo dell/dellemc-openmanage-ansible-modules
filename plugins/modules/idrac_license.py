@@ -411,6 +411,7 @@ EXPORT_NETWORK_SHARE = "#DellLicenseManagementService.ExportLicenseToNetworkShar
 IMPORT_LOCAL = "#DellLicenseManagementService.ImportLicense"
 IMPORT_NETWORK_SHARE = "#DellLicenseManagementService.ImportLicenseFromNetworkShare"
 ODATA = "@odata.id"
+ODATA_REGEX = "(.*?)@odata"
 
 INVALID_LICENSE_MSG = "License with ID '{license_id}' does not exist on the iDRAC."
 SUCCESS_EXPORT_MSG = "Successfully exported the license."
@@ -499,7 +500,7 @@ class License():
         job_id = job_tracking_uri.split("/")[-1]
         job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
         job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
-        job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
+        job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
         if job_failed:
             self.module.exit_json(
                 msg=job_dict.get('Message'),
@@ -811,7 +812,7 @@ class ImportLicense(License):
         try:
             import_status = self.idrac.invoke_request(import_license_url, "POST", data=payload)
         except HTTPError as err:
-            filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
+            filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
             message_details = filter_err.get('error').get('@Message.ExtendedInfo')[0]
             message_id = message_details.get('MessageId')
             if 'LIC018' in message_id:
@@ -930,7 +931,7 @@ class ImportLicense(License):
         job_id = job_tracking_uri.split("/")[-1]
         job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
         job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
-        job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
+        job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
         if job_failed:
             if job_dict.get('MessageId') == 'LIC018':
                 self.module.exit_json(msg=job_dict.get('Message'), skipped=True, job_details=job_dict)
@@ -1019,7 +1020,7 @@ def main():
             if license_obj:
                 license_obj.execute()
     except HTTPError as err:
-        filter_err = remove_key(json.load(err), regex_pattern='(.*?)@odata')
+        filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)

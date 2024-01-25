@@ -40,6 +40,9 @@ INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not
 MISSING_FILE_NAME_PARAMETER_MSG = "Missing required parameter 'file_name'."
 REDFISH = "/redfish/v1"
 
+LIC_GET_LICENSE_URL = "License.get_license_url"
+REDFISH_LICENSE_URL = "/redfish/v1/license"
+
 
 class TestLicense(FakeAnsibleModule):
     module = idrac_license
@@ -59,8 +62,8 @@ class TestLicense(FakeAnsibleModule):
 
     def test_check_license_id(self, idrac_default_args, idrac_connection_license_mock,
                               idrac_license_mock, mocker):
-        mocker.patch(MODULE_PATH + "License.get_license_url",
-                     return_value="/redfish/v1/license")
+        mocker.patch(MODULE_PATH + LIC_GET_LICENSE_URL,
+                     return_value=REDFISH_LICENSE_URL)
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         lic_obj = self.module.License(
@@ -226,8 +229,8 @@ class TestDeleteLicense:
         return idrac_conn_mock
 
     def test_execute_delete_license_success(self, mocker, idrac_connection_license_mock):
-        mocker.patch(MODULE_PATH + "License.get_license_url",
-                     return_value="/redfish/v1/license")
+        mocker.patch(MODULE_PATH + LIC_GET_LICENSE_URL,
+                     return_value=REDFISH_LICENSE_URL)
         f_module = MagicMock()
         f_module.params = {'license_id': '1234'}
         delete_license_obj = idrac_license.DeleteLicense(idrac_connection_license_mock, f_module)
@@ -236,8 +239,8 @@ class TestDeleteLicense:
         f_module.exit_json.assert_called_once_with(msg=SUCCESS_DELETE_MSG, changed=True)
 
     def test_execute_delete_license_failure(self, mocker, idrac_connection_license_mock):
-        mocker.patch(MODULE_PATH + "License.get_license_url",
-                     return_value="/redfish/v1/license")
+        mocker.patch(MODULE_PATH + LIC_GET_LICENSE_URL,
+                     return_value=REDFISH_LICENSE_URL)
         f_module = MagicMock()
         f_module.params = {'license_id': '5678'}
         delete_license_obj = idrac_license.DeleteLicense(idrac_connection_license_mock, f_module)
