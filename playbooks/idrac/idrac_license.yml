@@ -1,0 +1,183 @@
+---
+- name: Dell OpenManage Ansible iDRAC License Management.
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Export a license from iDRAC to local
+      dellemc.openmanage.idrac_license:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        license_id: "LICENSE_123"
+        export: true
+        share_parameters:
+          share_type: "local"
+          share_name: "/path/to/share"
+          file_name: "license_file"
+      delegate_to: localhost
+
+    - name: Export a license from iDRAC to NFS share
+      dellemc.openmanage.idrac_license:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        license_id: "LICENSE_123"
+        export: true
+        share_parameters:
+          share_type: "nfs"
+          share_name: "/path/to/share"
+          file_name: "license_file"
+          ip_address: "192.168.0.1"
+      delegate_to: localhost
+
+    - name: Export a license from iDRAC to CIFS share
+      dellemc.openmanage.idrac_license:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        license_id: "LICENSE_123"
+        export: true
+        share_parameters:
+          share_type: "cifs"
+          share_name: "/path/to/share"
+          file_name: "license_file"
+          ip_address: "192.168.0.1"
+          username: "username"
+          password: "password"
+          workgroup: "workgroup"
+      delegate_to: localhost
+
+    - name: Export a license from iDRAC to HTTP share via proxy
+      dellemc.openmanage.idrac_license:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        license_id: "LICENSE_123"
+        export: true
+        share_parameters:
+          share_type: "http"
+          share_name: "/path/to/share"
+          file_name: "license_file"
+          ip_address: "192.168.0.1"
+          username: "username"
+          password: "password"
+          proxy_support: "parameters_proxy"
+          proxy_type: socks
+          proxy_server: "192.168.0.2"
+          proxy_port: 1080
+          proxy_username: "proxy_username"
+          proxy_password: "proxy_password"
+      delegate_to: localhost
+
+    - name: Export a license from iDRAC to HTTPS share
+      dellemc.openmanage.idrac_license:
+        idrac_ip: "192.168.0.1"
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        license_id: "LICENSE_123"
+        export: true
+        share_parameters:
+          share_type: "https"
+          share_name: "/path/to/share"
+          file_name: "license_file"
+          ip_address: "192.168.0.1"
+          username: "username"
+          password: "password"
+          ignore_certificate_warning: "on"
+      delegate_to: localhost
+
+    - name: Import a license to iDRAC from local
+      dellemc.openmanage.idrac_license:
+        idrac_ip: 198.162.0.1
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import: true
+        share_parameters:
+          file_name: "license_file_name.xml"
+          share_type: local
+          share_name: "/path/to/share"
+      delegate_to: localhost
+
+    - name: Import a license to iDRAC from NFS share
+      dellemc.openmanage.idrac_license:
+        idrac_ip: 198.162.0.1
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import: true
+        share_parameters:
+          file_name: "license_file_name.xml"
+          share_type: nfs
+          ip_address: "192.168.0.1"
+          share_name: "/path/to/share"
+      delegate_to: localhost
+
+    - name: Import a license to iDRAC from CIFS share
+      dellemc.openmanage.idrac_license:
+        idrac_ip: 198.162.0.1
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import: true
+        share_parameters:
+          file_name: "license_file_name.xml"
+          share_type: cifs
+          ip_address: "192.168.0.1"
+          share_name: "/path/to/share"
+          username: "username"
+          password: "password"
+      delegate_to: localhost
+
+    - name: Import a license to iDRAC from HTTP share
+      dellemc.openmanage.idrac_license:
+        idrac_ip: 198.162.0.1
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import: true
+        share_parameters:
+          file_name: "license_file_name.xml"
+          share_type: http
+          ip_address: "192.168.0.1"
+          share_name: "/path/to/share"
+          username: "username"
+          password: "password"
+      delegate_to: localhost
+
+    - name: Import a license to iDRAC from HTTPS share via proxy
+      dellemc.openmanage.idrac_license:
+        idrac_ip: 198.162.0.1
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        import: true
+        share_parameters:
+          file_name: "license_file_name.xml"
+          share_type: https
+          ip_address: "192.168.0.1"
+          share_name: "/path/to/share"
+          username: "username"
+          password: "password"
+          proxy_support: "parameters_proxy"
+          proxy_server: "192.168.0.2"
+          proxy_port: 808
+          proxy_username: "proxy_username"
+          proxy_password: "proxy_password"
+      delegate_to: localhost
+
+    - name: Delete a License from iDRAC
+      dellemc.openmanage.idrac_license:
+        idrac_ip: 198.162.0.1
+        idrac_user: "username"
+        idrac_password: "password"
+        ca_path: "/path/to/ca_cert.pem"
+        license_id: "LICENCE_123"
+        delete: true
+      delegate_to: localhost
