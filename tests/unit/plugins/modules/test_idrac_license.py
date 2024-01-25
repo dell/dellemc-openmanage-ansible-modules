@@ -418,3 +418,76 @@ class TestExportLicense(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             export_license_obj.execute()
         assert exc.value.args[0] == FAILURE_MSG.format(operation="export", license_id="test_license_id")
+
+class TestImportLicense(FakeAnsibleModule):
+    module = idrac_license
+    uri = '/redfish/v1/api'
+
+    @pytest.fixture
+    def idrac_license_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_license_mock(self, mocker, idrac_license_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
+                                       return_value=idrac_license_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_license_mock
+        return idrac_conn_mock
+    
+    def test_execute(self, idrac_default_args, idrac_connection_license_mock, mocker):
+        share_type = 'local'
+        import_params = {
+            'license_id': 'test_license_id',
+            'share_parameters': {
+                'file_name': 'test_lic.xml',
+                'share_type': share_type
+            }
+        }
+        idrac_default_args.update(import_params)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        mocker.patch(MODULE_PATH + "ImportLicense._ImportLicense__get_import_license_url",
+                     return_value="/License/url")
+        mocker.patch(MODULE_PATH + "get_manager_res_id",
+                     return_value="iDRAC.Embedded.1")
+        mocker.patch(MODULE_PATH + "ImportLicense.get_job_status",
+                     return_value={"JobId": "JID1234"})
+        idr_obj = MagicMock()
+        idr_obj.status_code = 200
+
+        mocker.patch(MODULE_PATH + "ImportLicense._ImportLicense__import_license_local",
+                     return_value=idr_obj)
+        import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            import_license_obj.execute()
+        assert exc.value.args[0] == SUCCESS_IMPORT_MSG
+
+        import_params.get('share_parameters')["share_type"] = "http"
+        mocker.patch(MODULE_PATH + "ImportLicense._ImportLicense__import_license_http",
+                     return_value=idr_obj)
+        with pytest.raises(Exception) as exc:
+            import_license_obj.execute()
+        assert exc.value.args[0] == SUCCESS_IMPORT_MSG
+
+        import_params.get('share_parameters')["share_type"] = "cifs"
+        mocker.patch(MODULE_PATH + "ImportLicense._ImportLicense__import_license_cifs",
+                     return_value=idr_obj)
+        with pytest.raises(Exception) as exc:
+            import_license_obj.execute()
+        assert exc.value.args[0] == SUCCESS_IMPORT_MSG
+
+        import_params.get('share_parameters')["share_type"] = "nfs"
+        mocker.patch(MODULE_PATH + "ImportLicense._ImportLicense__import_license_nfs",
+                     return_value=idr_obj)
+        with pytest.raises(Exception) as exc:
+            import_license_obj.execute()
+        assert exc.value.args[0] == SUCCESS_IMPORT_MSG
+
+        import_params.get('share_parameters')["share_type"] = "https"
+        idr_obj.status_code = 400
+        mocker.patch(MODULE_PATH + "ImportLicense._ImportLicense__import_license_http",
+                     return_value=idr_obj)
+        with pytest.raises(Exception) as exc:
+            import_license_obj.execute()
+        assert exc.value.args[0] == FAILURE_IMPORT_MSG
+  
