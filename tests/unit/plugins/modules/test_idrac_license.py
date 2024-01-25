@@ -111,12 +111,7 @@ class TestLicense(FakeAnsibleModule):
         data = lic_obj.get_license_url()
         assert data == "/redfish/v1/LicenseService/Licenses"
 
-    @pytest.fixture
-    def idrac_mock(self, mocker):
-        magic_mocker = MagicMock()
-        return magic_mocker
-
-    def test_get_job_status_success(self, mocker):
+    def test_get_job_status_success(self, mocker, idrac_license_mock):
         # Mocking necessary objects and functions
         module_mock = self.get_module_mock()
         license_job_response_mock = mocker.MagicMock()
@@ -126,7 +121,7 @@ class TestLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
 
         # Creating an instance of the class
-        obj_under_test = self.module.License(self.idrac_mock, module_mock)
+        obj_under_test = self.module.License(idrac_license_mock, module_mock)
 
         # Mocking the idrac_redfish_job_tracking function to simulate a successful job tracking
         mocker.patch(MODULE_PATH + "idrac_redfish_job_tracking", return_value=(False, "mocked_message", {"job_details": "mocked_job_details"}, 0))
@@ -137,7 +132,7 @@ class TestLicense(FakeAnsibleModule):
         # Assertions
         assert result == {"job_details": "mocked_job_details"}
 
-    def test_get_job_status_failure(self, mocker):
+    def test_get_job_status_failure(self, mocker, idrac_license_mock):
         # Mocking necessary objects and functions
         module_mock = self.get_module_mock()
         license_job_response_mock = mocker.MagicMock()
@@ -147,7 +142,7 @@ class TestLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
 
         # Creating an instance of the class
-        obj_under_test = self.module.License(self.idrac_mock, module_mock)
+        obj_under_test = self.module.License(idrac_license_mock, module_mock)
 
         # Mocking the idrac_redfish_job_tracking function to simulate a failed job tracking
         mocker.patch(MODULE_PATH + "idrac_redfish_job_tracking", return_value=(True, "None", {"Message": "None"}, 0))
