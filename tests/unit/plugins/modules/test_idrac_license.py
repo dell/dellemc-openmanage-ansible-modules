@@ -3,7 +3,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 8.7.0
-# Copyright (C) 2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -111,12 +111,7 @@ class TestLicense(FakeAnsibleModule):
         data = lic_obj.get_license_url()
         assert data == "/redfish/v1/LicenseService/Licenses"
 
-    @pytest.fixture
-    def idrac_mock(self, mocker):
-        magic_mocker = MagicMock()
-        return magic_mocker
-
-    def test_get_job_status_success(self, mocker):
+    def test_get_job_status_success(self, mocker, idrac_license_mock):
         # Mocking necessary objects and functions
         module_mock = self.get_module_mock()
         license_job_response_mock = mocker.MagicMock()
@@ -126,7 +121,7 @@ class TestLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
 
         # Creating an instance of the class
-        obj_under_test = self.module.License(self.idrac_mock, module_mock)
+        obj_under_test = self.module.License(idrac_license_mock, module_mock)
 
         # Mocking the idrac_redfish_job_tracking function to simulate a successful job tracking
         mocker.patch(MODULE_PATH + "idrac_redfish_job_tracking", return_value=(False, "mocked_message", {"job_details": "mocked_job_details"}, 0))
@@ -137,7 +132,7 @@ class TestLicense(FakeAnsibleModule):
         # Assertions
         assert result == {"job_details": "mocked_job_details"}
 
-    def test_get_job_status_failure(self, mocker):
+    def test_get_job_status_failure(self, mocker, idrac_license_mock):
         # Mocking necessary objects and functions
         module_mock = self.get_module_mock()
         license_job_response_mock = mocker.MagicMock()
@@ -147,7 +142,7 @@ class TestLicense(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
 
         # Creating an instance of the class
-        obj_under_test = self.module.License(self.idrac_mock, module_mock)
+        obj_under_test = self.module.License(idrac_license_mock, module_mock)
 
         # Mocking the idrac_redfish_job_tracking function to simulate a failed job tracking
         mocker.patch(MODULE_PATH + "idrac_redfish_job_tracking", return_value=(True, "None", {"Message": "None"}, 0))
@@ -308,7 +303,6 @@ class TestExportLicense(FakeAnsibleModule):
             }
         }
         idrac_default_args.update(export_params)
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
         assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
         assert os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.txt")
@@ -740,12 +734,12 @@ class TestLicenseType(FakeAnsibleModule):
         license_mock = mocker.MagicMock()
 
         # Mock the necessary functions and objects
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.get_argument_spec', return_value={})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.idrac_auth_params', {})
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.AnsibleModule', return_value=module_mock)
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.iDRACRedfishAPI', return_value=idrac_mock)
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.get_idrac_firmware_version', return_value='3.1')
-        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.LicenseType.license_operation', return_value=license_mock)
-
-        # Call the function
+        mocker.patch(MODULE_PATH + 'get_argument_spec', return_value={})
+        mocker.patch(MODULE_PATH + 'idrac_auth_params', {})
+        mocker.patch(MODULE_PATH + 'AnsibleModule', return_value=module_mock)
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI', return_value=idrac_mock)
+        mocker.patch(MODULE_PATH + 'get_idrac_firmware_version', return_value='3.1')
+        mocker.patch(MODULE_PATH + 'LicenseType.license_operation', return_value=license_mock)
+        main()
+        mocker.patch(MODULE_PATH + 'get_idrac_firmware_version', return_value='2.9')
         main()
