@@ -293,7 +293,22 @@ class TestExportLicense(FakeAnsibleModule):
         result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
         assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
         assert os.path.exists(f"{tmp_path}/test_lic_iDRAC_license.txt")
-        os.remove(f"{tmp_path}/test_lic_iDRAC_license.txt")
+        if os.path.exists(f"{tmp_path}/test_lic_iDRAC_license.txt"):
+            os.remove(f"{tmp_path}/test_lic_iDRAC_license.txt")
+
+        export_params = {
+            'license_id': 'test_license_id',
+            'share_parameters': {
+                'share_name': str(tmp_path),
+            }
+        }
+        idrac_default_args.update(export_params)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
+        assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
+        assert os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.txt")
+        if os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.txt"):
+            os.remove(f"{tmp_path}/test_license_id_iDRAC_license.txt")
 
     def test_export_license_http(self, idrac_default_args, idrac_connection_license_mock, mocker):
         export_params = {
@@ -372,6 +387,12 @@ class TestExportLicense(FakeAnsibleModule):
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         result = export_license_obj._ExportLicense__get_export_license_url()
         assert result == API_ONE
+
+        mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
+                     return_value=(REDFISH, "error"))
+        with pytest.raises(Exception) as exc:
+            export_license_obj._ExportLicense__get_export_license_url()
+        assert exc.value.args[0] == "error"
 
     def test_execute(self, idrac_default_args, idrac_connection_license_mock, mocker):
         share_type = 'local'
