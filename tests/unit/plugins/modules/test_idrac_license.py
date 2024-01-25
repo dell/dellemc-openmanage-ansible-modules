@@ -105,7 +105,8 @@ class TestLicense(FakeAnsibleModule):
 
     @pytest.fixture
     def idrac_mock(self, mocker):
-        return mocker.MagicMock()
+        magic_mocker = MagicMock()
+        return magic_mocker
 
     def test_get_job_status_success(self, mocker):
         # Mocking necessary objects and functions
@@ -525,10 +526,9 @@ class TestImportLicense(FakeAnsibleModule):
                 "Message": "Already imported"
             }
         ]}}))
-        mocker.patch(
-                MODULE_PATH + API_INVOKE_MOCKER,
-                side_effect=HTTPError('https://testhost.com', 400, 'http error message',
-                                      {"accept-type": "application/json"}, StringIO(json_str)))
+        mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
+                     side_effect=HTTPError('https://testhost.com', 400, 'http error message',
+                                           {"accept-type": "application/json"}, StringIO(json_str)))
         with pytest.raises(Exception) as exc:
             import_license_obj._ImportLicense__import_license_local(EXPORT_URL_MOCK, IDRAC_ID)
         assert exc.value.args[0] == "Already imported"
