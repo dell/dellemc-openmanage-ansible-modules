@@ -16,7 +16,8 @@ import tempfile
 import os
 
 import pytest
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_license
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
@@ -673,9 +674,23 @@ class TestLicenseType(FakeAnsibleModule):
         lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
         assert isinstance(lic_class, self.module.ImportLicense)
 
-        # idrac_default_args.update({"import": False, "export": False, "delete": False})
-        # f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        # lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
-        # with pytest.raises(Exception) as exc:
-        #     lic_class = self.module.LicenseType.license_operation(idrac_connection_license_mock, f_module)
-        # assert exc.value.args[0] == SUCCESS_IMPORT_MSG
+    @pytest.mark.parametrize("exc_type",
+                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
+    def test_idrac_license_main_exception_handling_case(self, exc_type, mocker, idrac_default_args, idrac_connection_license_mock):
+        idrac_default_args.update({"delete": True, "license_id": "1234"})
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
+                         side_effect=exc_type('https://testhost.com', 400,
+                                              'http error message',
+                                              {"accept-type": "application/json"},
+                                              StringIO(json_str)))
+        else:
+            mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
+                         side_effect=exc_type('test'))
+        result = self._run_module(idrac_default_args)
+        if exc_type == URLError:
+            assert result['unreachable'] is True
+        else:
+            assert result['failed'] is True
+        assert 'msg' in result
