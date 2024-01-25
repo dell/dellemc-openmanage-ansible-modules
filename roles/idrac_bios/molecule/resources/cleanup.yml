@@ -1,0 +1,17 @@
+---
+- name: CleanUp file for update attributes with apply time as Immediate
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Checking file exists- boot_mode.txt
+      ansible.builtin.stat:
+        path: "/tmp/boot_mode.txt"
+      delegate_to: localhost
+      register: boot_mode_file
+
+    - name: Deleting the file if exists
+      ansible.builtin.file:
+        path: "/tmp/boot_mode.txt"
+        state: absent
+      delegate_to: localhost
+      when: boot_mode_file.stat.exists

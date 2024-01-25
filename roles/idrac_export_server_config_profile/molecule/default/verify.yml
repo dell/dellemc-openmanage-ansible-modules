@@ -30,6 +30,7 @@
     - name: Checking exported file exists in Local path
       ansible.builtin.stat:
         path: "{{ local_path }}/{{ local_filename }}"
+      delegate_to: localhost
       register: local_file
 
     - name: Mounting NFS volume to localhost
@@ -65,12 +66,13 @@
       register: cifs_file
 
     - name: Downloading HTTP file to localhost
-      ansible.builtin.get_url:
+      ansible.builtin.uri:
         url: "{{ http_url }}/{{ http_filename }}"
         dest: .
+        force_basic_auth: true
         validate_certs: false
-        username: "{{ http_username }}"
-        password: "{{ http_password }}"
+        url_username: "{{ http_username }}"
+        url_password: "{{ http_password }}"
         mode: '0755'
       delegate_to: localhost
       register: http_file_download
@@ -84,12 +86,13 @@
       register: http_file
 
     - name: Downloading HTTPS file to localhost
-      ansible.builtin.get_url:
+      ansible.builtin.uri:
         url: "{{ https_url }}/{{ https_filename }}"
         dest: .
+        force_basic_auth: true
         validate_certs: false
-        username: "{{ https_username }}"
-        password: "{{ https_password }}"
+        url_username: "{{ https_username }}"
+        url_password: "{{ https_password }}"
         mode: '0755'
       delegate_to: localhost
       register: https_file_download

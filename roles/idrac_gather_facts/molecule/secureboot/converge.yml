@@ -1,5 +1,5 @@
 ---
-- name: Converge idrac_gather_facts for controller
+- name: Converge idrac_gather_facts for SecureBoot
   hosts: all
   gather_facts: false
   vars:
@@ -8,7 +8,7 @@
     password: "{{ lookup('env', 'password') }}"
     validate_certs: false
     target:
-      - Controller
+      - SecureBoot
     idrac_gather_facts_uri_method: "GET"
     idrac_gather_facts_uri_headers:
       Accept: "application/json"
@@ -23,18 +23,18 @@
       - -1
     idrac_gather_facts_uri_return_content: true
     diff_data: {}
-    exclude_keys: ["Description"]
+    exclude_keys: []
     api_system: "/redfish/v1/Systems/System.Embedded.1"
 
   tasks:
-    - name: Gather Facts for the Controller component
+    - name: Gather Facts for the Secureboot component
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
-    - name: Assert controller dict for length
+    - name: Assert secureboot supply dict for length
       ansible.builtin.assert:
         that:
-          - "{{ controller | length > 0 }}"
+          - "{{ secure_boot | length > 0 }}"
 
     - name: Call assertion
-      ansible.builtin.include_tasks: ../../tests/asserts/controller_assert.yml
+      ansible.builtin.include_tasks: ../../tests/asserts/secureboot_assert.yml

@@ -5,6 +5,46 @@ Dell OpenManage Ansible Modules Release Notes
 .. contents:: Topics
 
 
+v8.7.0
+======
+
+Release Summary
+---------------
+
+- Module to manage iDRAC licenses.
+- idrac_gather_facts role is enhanced to add storage controller details in the role output and provide support for secure boot.
+
+Major Changes
+-------------
+
+- idrac_gather_facts - This role is enhanced to support secure boot.
+- idrac_license - The module is introduced to configure iDRAC licenses.
+
+Minor Changes
+-------------
+
+- For idrac_gather_facts role, added storage controller details in the role output.
+
+Bugfixes
+--------
+
+- Issue is fixed for deploying a new configuration on quick deploy slot when IPv6 is disabled.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/533)
+
+Known Issues
+------------
+
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- idrac_network_attributes - Issue(279049) -  If unsupported values are provided for the parameter ``ome_network_attributes``, then this module does not provide a correct error message.
+- ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
+- ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
+- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_license - This module allows to import, export, and delete licenses on iDRAC.
+
 v8.6.0
 ======
 
