@@ -413,8 +413,6 @@ class TestExportLicense(FakeAnsibleModule):
 
         export_params.get('share_parameters')["share_type"] = "https"
         idr_obj.status_code = 400
-        mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_local",
-                return_value=idr_obj)
         mocker.patch(MODULE_PATH + "ExportLicense._ExportLicense__export_license_http",
                      return_value=idr_obj)
         with pytest.raises(Exception) as exc:
