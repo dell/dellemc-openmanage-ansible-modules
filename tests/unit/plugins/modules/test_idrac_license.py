@@ -22,6 +22,7 @@ from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_license
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
+from ansible_collections.dellemc.openmanage.plugins.modules.idrac_license import main
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.'
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
@@ -53,6 +54,9 @@ IMPORT_URL_MOCK = '/redfish/v1/import_license'
 API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
 ODATA = "@odata.id"
 IDRAC_ID = "iDRAC.Embedded.1"
+HTTPS_PATH = "https://testhost.com"
+HTTP_ERROR = "http error message"
+APPLICATION_JSON = "application/json"
 
 
 class TestLicense(FakeAnsibleModule):
@@ -87,9 +91,9 @@ class TestLicense(FakeAnsibleModule):
         assert data.json_data == {"license_id": "1234"}
 
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
-                     side_effect=HTTPError('https://testhost.com', 400,
-                                           'http error message',
-                                           {"accept-type": "application/json"},
+                     side_effect=HTTPError(HTTPS_PATH, 400,
+                                           HTTP_ERROR,
+                                           {"accept-type": APPLICATION_JSON},
                                            StringIO("json_str")))
         with pytest.raises(Exception) as exc:
             lic_obj.check_license_id(license_id="1234")
@@ -116,7 +120,7 @@ class TestLicense(FakeAnsibleModule):
         # Mocking necessary objects and functions
         module_mock = self.get_module_mock()
         license_job_response_mock = mocker.MagicMock()
-        license_job_response_mock.headers.get.return_value = "https://testhost.com/job_tracking/12345"
+        license_job_response_mock.headers.get.return_value = "HTTPS_PATH/job_tracking/12345"
 
         mocker.patch(MODULE_PATH + "remove_key", return_value={"job_details": "mocked_job_details"})
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
@@ -137,7 +141,7 @@ class TestLicense(FakeAnsibleModule):
         # Mocking necessary objects and functions
         module_mock = self.get_module_mock()
         license_job_response_mock = mocker.MagicMock()
-        license_job_response_mock.headers.get.return_value = "https://testhost.com/job_tracking/12345"
+        license_job_response_mock.headers.get.return_value = "HTTPS_PATH/job_tracking/12345"
 
         mocker.patch(MODULE_PATH + "remove_key", return_value={"Message": "None"})
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri", return_value=[MANAGER_URI_ONE])
@@ -531,8 +535,8 @@ class TestImportLicense(FakeAnsibleModule):
             }
         ]}}))
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
-                     side_effect=HTTPError('https://testhost.com', 400, 'http error message',
-                                           {"accept-type": "application/json"}, StringIO(json_str)))
+                     side_effect=HTTPError(HTTPS_PATH, 400, HTTP_ERROR,
+                                           {"accept-type": APPLICATION_JSON}, StringIO(json_str)))
         with pytest.raises(Exception) as exc:
             import_license_obj._ImportLicense__import_license_local(EXPORT_URL_MOCK, IDRAC_ID)
         assert exc.value.args[0] == "Already imported"
@@ -681,9 +685,9 @@ class TestLicenseType(FakeAnsibleModule):
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
-                         side_effect=exc_type('https://testhost.com', 400,
-                                              'http error message',
-                                              {"accept-type": "application/json"},
+                         side_effect=exc_type(HTTPS_PATH, 400,
+                                              HTTP_ERROR,
+                                              {"accept-type": APPLICATION_JSON},
                                               StringIO(json_str)))
         else:
             mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
@@ -694,3 +698,19 @@ class TestLicenseType(FakeAnsibleModule):
         else:
             assert result['failed'] is True
         assert 'msg' in result
+
+    def test_main(self, mocker):
+        module_mock = mocker.MagicMock()
+        idrac_mock = mocker.MagicMock()
+        license_mock = mocker.MagicMock()
+
+        # Mock the necessary functions and objects
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.get_argument_spec', return_value={})
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.idrac_auth_params', {})
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.AnsibleModule', return_value=module_mock)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.iDRACRedfishAPI', return_value=idrac_mock)
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.get_idrac_firmware_version', return_value='3.1')
+        mocker.patch('ansible_collections.dellemc.openmanage.plugins.modules.idrac_license.LicenseType.license_operation', return_value=license_mock)
+
+        # Call the function
+        main()
