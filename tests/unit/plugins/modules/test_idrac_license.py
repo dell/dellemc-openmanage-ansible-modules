@@ -50,6 +50,7 @@ API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
 ODATA = "@odata.id"
 IDRAC_ID = "iDRAC.Embedded.1"
 
+
 class TestLicense(FakeAnsibleModule):
     module = idrac_license
 
@@ -256,7 +257,6 @@ class TestDeleteLicense:
 
 class TestExportLicense(FakeAnsibleModule):
     module = idrac_license
-
 
     @pytest.fixture
     def idrac_license_mock(self):
@@ -621,7 +621,7 @@ class TestImportLicense(FakeAnsibleModule):
         lic_job_resp_obj.headers = {"Location": "idrac_internal"}
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
-        
+
         mocker.patch(MODULE_PATH + "idrac_redfish_job_tracking", return_value=(False, "None", {"JobId": "JID1234"}, 0))
         result = import_license_obj.get_job_status(lic_job_resp_obj)
         assert result == {"JobId": "JID1234"}
