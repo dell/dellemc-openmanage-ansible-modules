@@ -11,11 +11,13 @@
 from __future__ import absolute_import, division, print_function
 
 from io import StringIO
+import json
 import tempfile
 import os
 
 import pytest
 from urllib.error import HTTPError
+from ansible.module_utils._text import to_text
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_license
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
@@ -419,6 +421,7 @@ class TestExportLicense(FakeAnsibleModule):
             export_license_obj.execute()
         assert exc.value.args[0] == FAILURE_MSG.format(operation="export", license_id="test_license_id")
 
+
 class TestImportLicense(FakeAnsibleModule):
     module = idrac_license
     uri = '/redfish/v1/api'
@@ -434,7 +437,7 @@ class TestImportLicense(FakeAnsibleModule):
                                        return_value=idrac_license_mock)
         idrac_conn_mock.return_value.__enter__.return_value = idrac_license_mock
         return idrac_conn_mock
-    
+
     def test_execute(self, idrac_default_args, idrac_connection_license_mock, mocker):
         share_type = 'local'
         import_params = {
@@ -490,4 +493,43 @@ class TestImportLicense(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             import_license_obj.execute()
         assert exc.value.args[0] == FAILURE_IMPORT_MSG
-  
+
+    def test_import_license_local(self, idrac_default_args, idrac_connection_license_mock, mocker):
+        tmp_path = tempfile.gettempdir()
+        import_params = {
+            'license_id': 'test_license_id',
+            'share_parameters': {
+                'share_name': str(tmp_path),
+                'file_name': 'test_lic.txt'
+            }
+        }
+        file_name = os.path.join(tmp_path, 'test_lic.txt')
+        with open(file_name, "w") as fp:
+            fp.writelines("license_file")
+        idr_obj = MagicMock()
+        idr_obj.json_data = {"license_id": "1234", "LicenseFile": "test_license_content"}
+        mocker.patch(MODULE_PATH + "iDRACRedfishAPI.invoke_request",
+                     return_value=idr_obj)
+        idrac_default_args.update(import_params)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
+        result = import_license_obj._ImportLicense__import_license_local('/redfish/v1/import_license', "iDRAC.Embedded.1")
+        assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
+        assert os.path.exists(file_name)
+        
+        json_str = to_text(json.dumps({"error": {'@Message.ExtendedInfo': [
+            {
+                'MessageId': "LIC018",
+                "Message": "Already imported"
+            }
+        ]}}))
+        mocker.patch(
+                MODULE_PATH + "iDRACRedfishAPI.invoke_request",
+                side_effect=HTTPError('https://testhost.com', 400, 'http error message',
+                                     {"accept-type": "application/json"}, StringIO(json_str)))
+        with pytest.raises(Exception) as exc:
+            import_license_obj._ImportLicense__import_license_local('/redfish/v1/import_license', "iDRAC.Embedded.1")
+        assert exc.value.args[0] == "Already imported"
+
+        if os.path.exists(file_name):
+            os.remove(file_name)
