@@ -531,6 +531,20 @@ class TestImportLicense(FakeAnsibleModule):
         import_params = {
             'license_id': 'test_license_id',
             'share_parameters': {
+                'share_name': '/tmp/doesnotexistpath',
+                'file_name': 'test_lic.txt'
+            }
+        }
+        idrac_default_args.update(import_params)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        import_license_obj = self.module.ImportLicense(idrac_connection_license_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            import_license_obj._ImportLicense__import_license_local(EXPORT_URL_MOCK, IDRAC_ID)
+        assert exc.value.args[0] == INVALID_DIRECTORY_MSG.format(path='/tmp/doesnotexistpath')
+
+        import_params = {
+            'license_id': 'test_license_id',
+            'share_parameters': {
                 'share_name': str(tmp_path),
                 'file_name': 'test_lic.txt'
             }
