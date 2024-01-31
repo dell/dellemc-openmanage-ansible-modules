@@ -30,11 +30,13 @@ Here are the list of modules and module_utils supported by Dell.
     ├── idrac_certificates.py
     ├── idrac_firmware.py
     ├── idrac_firmware_info.py
+    ├── idrac_license.py
     ├── idrac_lifecycle_controller_job_status_info.py
     ├── idrac_lifecycle_controller_jobs.py
     ├── idrac_lifecycle_controller_logs.py
     ├── idrac_lifecycle_controller_status_info.py
     ├── idrac_network.py
+    ├── idrac_network_attributes.py
     ├── idrac_os_deployment.py
     ├── idrac_redfish_storage_controller.py
     ├── idrac_reset.py
