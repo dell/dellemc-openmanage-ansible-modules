@@ -15,7 +15,6 @@
         reboot: true
         job_wait: true
         apply_update: true
-      ignore_errors: true
 
     - name: "Verifying Updating firmware with an invalid hostname"
       ansible.builtin.assert:
@@ -78,9 +77,7 @@
     - name: "Verifying Updating firmware with an invalid ca_path"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to communicate with iDRAC 100.96.24.131.
-           This may be due to one of the following{{':'}} Incorrect username or password,
-            unreachable iDRAC IP or a failure in TLS/SSL handshake."
+          - "'Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake.' in idrac_firmware_out.msg"
 
     - name: Updating firmware with catalog file without extension
       ansible.builtin.import_role:
@@ -122,8 +119,8 @@
       ansible.builtin.assert:
         that:
           # - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            # or same version installed on the server."
-          - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg" 
+          # or same version installed on the server."
+          - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on HTTPS Share with invalid share_password
       ansible.builtin.import_role:
