@@ -34,6 +34,7 @@
         job_wait: true
         apply_update: true
       ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying Updating firmware with an invalid username"
       ansible.builtin.assert:
@@ -53,6 +54,7 @@
         job_wait: true
         apply_update: true
       ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying Updating firmware with an invalid password"
       ansible.builtin.assert:
@@ -73,6 +75,7 @@
         job_wait: true
         apply_update: true
       ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying Updating firmware with an invalid ca_path"
       ansible.builtin.assert:
@@ -92,6 +95,7 @@
         apply_update: true
         catalog_file_name: Catalog
       ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying Updating firmware with catalog file without extension"
       ansible.builtin.assert:
@@ -114,6 +118,7 @@
         apply_update: true
         catalog_file_name: "catalog.xml"
       ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_user"
       ansible.builtin.assert:
@@ -138,6 +143,7 @@
         apply_update: true
         catalog_file_name: "catalog.xml"
       ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_password"
       ansible.builtin.assert:
@@ -196,6 +202,7 @@
         proxy_passwd: "invalidPasswd"
         catalog_file_name: "catalog.xml"
       ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_passwd"
       ansible.builtin.assert:
