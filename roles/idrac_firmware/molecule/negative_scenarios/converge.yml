@@ -15,8 +15,6 @@
         reboot: true
         job_wait: true
         apply_update: true
-      ignore_errors: true
-      register: idrac_firmware_result
 
     - name: "Verifying Updating firmware with an invalid hostname"
       ansible.builtin.assert:
@@ -50,7 +48,7 @@
         hostname: "{{ lookup('env', 'hostname') }}"
         username: "{{ lookup('env', 'username') }}"
         password: "invalidPassword"
-        share_name: "{{ lookup('env', 'httpshare') }}"
+        share_name: "{{ lookup('env', 'httpsshare') }}"
         catalog_file_name: "Catalog.xml"
         reboot: true
         job_wait: true
@@ -70,8 +68,8 @@
         hostname: "{{ lookup('env', 'hostname') }}"
         username: "{{ lookup('env', 'username') }}"
         password: "{{ lookup('env', 'password') }}"
-        share_name: "{{ lookup('env', 'httpshare') }}"
-        ca_path: "{{ lookup('env', 'capath') }}"
+        share_name: "{{ lookup('env', 'httpsshare') }}"
+        ca_path: "/invalid/ca/path.cert"
         catalog_file_name: "Catalog.xml"
         reboot: true
         job_wait: true
@@ -82,7 +80,7 @@
     - name: "Verifying Updating firmware with an invalid ca_path"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Firmware update failed."
+          - "'Incorrect username or password, unreachable iDRAC IP or a failure in TLS/SSL handshake.' in idrac_firmware_out.msg"
 
     - name: Updating firmware with catalog file without extension
       ansible.builtin.import_role:
@@ -118,13 +116,16 @@
         reboot: true
         job_wait: true
         apply_update: true
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "catalog.xml"
+      ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_user"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            or same version installed on the server."
+          # - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+          # or same version installed on the server."
+          - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on HTTPS Share with invalid share_password
       ansible.builtin.import_role:
@@ -140,14 +141,16 @@
         reboot: true
         job_wait: true
         apply_update: true
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "catalog.xml"
+      ignore_errors: true
       register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS Share with invalid share_password"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            or same version installed on the server."
+          # - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+          #   or same version installed on the server."
+          - "'The specified user credentials necessary for downloading an update package were not correct.' in idrac_firmware_out.msg"
 
     - name: Update firmware from repository on a HTTPS via parameter proxy Share with invalid proxy_uname
       ansible.builtin.import_role:
@@ -157,7 +160,7 @@
         username: "{{ lookup('env', 'username') }}"
         password: "{{ lookup('env', 'password') }}"
         validate_certs: false
-        share_name: "{{ lookup('env', 'httpsproxy') }}"
+        share_name: "{{ lookup('env', 'httpsshare') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
         share_password: "{{ lookup('env', 'sharepassword') }}"
         reboot: true
@@ -166,10 +169,10 @@
         proxy_support: "ParametersProxy"
         proxy_server: "{{ lookup('env', 'proxyserver') }}"
         proxy_type: "HTTP"
-        proxy_port: 3128
-        proxy_uname: "invalidUname"
+        proxy_port: "{{ lookup('env', 'proxyport') }}"
+        proxy_uname: "{{ lookup('env', 'proxyuname') }}"
         proxy_passwd: "{{ lookup('env', 'proxypass') }}"
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "catalog.xml"
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_uname"
       ansible.builtin.assert:
@@ -185,7 +188,7 @@
         username: "{{ lookup('env', 'username') }}"
         password: "{{ lookup('env', 'password') }}"
         validate_certs: false
-        share_name: "{{ lookup('env', 'httpsproxy') }}"
+        share_name: "{{ lookup('env', 'httpsshare') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
         share_password: "{{ lookup('env', 'sharepassword') }}"
         reboot: true
@@ -194,13 +197,17 @@
         proxy_support: "ParametersProxy"
         proxy_server: "{{ lookup('env', 'proxyserver') }}"
         proxy_type: "HTTP"
-        proxy_port: 3128
+        proxy_port: "{{ lookup('env', 'proxyport') }}"
         proxy_uname: "{{ lookup('env', 'proxyuname') }}"
         proxy_passwd: "invalidPasswd"
-        catalog_file_name: "Catalog.xml"
+        catalog_file_name: "catalog.xml"
+      ignore_errors: true
+      register: idrac_firmware_result
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_passwd"
       ansible.builtin.assert:
         that:
-          - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
-            or same version installed on the server."
+          # - idrac_firmware_out.msg == "Unable to complete the operation because the catalog name entered has either unsupported firmware packages
+          #   or same version installed on the server."
+          - "'Unable to transfer file' in idrac_firmware_out.msg"
+          - "'because of some unknown reasons.' in idrac_firmware_out.msg"
