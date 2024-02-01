@@ -754,7 +754,13 @@ def wait_for_response(scp_resp, module, share, idrac):
             wait_resp_value = wait_resp.decode("utf-8")
             file_obj.write(wait_resp_value)
     if module.params["job_wait"]:
-        scp_resp = idrac.invoke_request(job_uri, "GET")
+        try:
+            # try the default job URI
+            scp_resp = idrac.invoke_request(job_uri, "GET")
+        except:
+            # if the default job URI raises an exception, try the legacy jobs URI
+            job_uri = iDRAC_JOB_URI.format(job_id=job_id)
+            scp_resp = idrac.invoke_request(job_uri, "GET")
     return scp_resp
 
 
