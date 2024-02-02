@@ -1,4 +1,8 @@
 ---
+- name: Setting controller ID
+  ansible.builtin.set_fact:
+    redfish_storage_volume_controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+
 - name: Pre-req Create a volume.
   ansible.builtin.import_role:
     name: redfish_storage_volume
@@ -10,7 +14,7 @@
     state: present
     raid_type: "RAID0"
     name: "VD" # noqa: var-naming[no-reserved]
-    controller_id: "{{ lookup('env', 'CONTROLLER_ID') }}"
+    controller_id: "{{ redfish_storage_volume_controller_id }}"
     drives: "{{ lookup('env', 'PHYSICAL_DISK') }}"
     job_wait: true
   check_mode: false
@@ -18,7 +22,7 @@
 - name: Fetching Volume_id from iDRAC
   ansible.builtin.include_tasks: ../__get_helper.yml
   vars:
-    url: "Systems/System.Embedded.1/Storage/{{ lookup('env', 'CONTROLLER_ID') }}/Volumes"
+    url: "Systems/System.Embedded.1/Storage/{{ redfish_storage_volume_controller_id }}/Volumes"
 
 - name: Extracting volume_id
   ansible.builtin.set_fact:
