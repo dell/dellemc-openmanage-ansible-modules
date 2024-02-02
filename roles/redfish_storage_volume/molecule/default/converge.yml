@@ -23,6 +23,7 @@
         job_wait: false
       ignore_errors: true
       register: redfish_storage_volume_result
+      ignore_unreachable: true
 
     - name: Asserting after performing operation.
       ansible.builtin.assert:
@@ -78,6 +79,7 @@
       ansible.builtin.assert:
         that: |-
           redfish_storage_volume_out.msg == "HTTP Error 400: Bad Request"
+      when: not ansible_check_mode
 
     - name: To check the behaviour of invalid certificate path.
       ansible.builtin.import_role:
@@ -99,6 +101,7 @@
         job_wait: false
       ignore_errors: true
       register: redfish_storage_volume_result
+      ignore_unreachable: true
 
     - name: Asserting after performing operation for invalid certificate path.
       ansible.builtin.assert:
@@ -127,6 +130,6 @@
 
     - name: Asserting after performing operation for invalid volume type.
       ansible.builtin.assert:
-        that: |-
+        that: >
           redfish_storage_volume_out.msg == "value of volume_type must be one of: NonRedundant, Mirrored,
           StripedWithParity, SpannedMirrors, SpannedStripesWithParity, got: InvalidMirrored"
