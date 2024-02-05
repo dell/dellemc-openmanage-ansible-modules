@@ -14,7 +14,6 @@
         /iDRAC.Embedded.1/Jobs?$expand=*($levels=1)"
 
     - name: Fetch Bios Jobs Data
-      when: idrac_bios_uri_data.json.Members | length > 0
       loop: "{{ idrac_bios_uri_data.json.Members }}"
       when: item.JobType == 'BIOSConfiguration' and item.JobState in ['Scheduled', 'Scheduling']
       ansible.builtin.set_fact:
