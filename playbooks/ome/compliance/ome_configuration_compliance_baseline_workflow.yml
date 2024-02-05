@@ -35,9 +35,7 @@
     # and next task device_ids attribute replaced with device_service_tag.
     - name: Filter the non compliant device based on the retrieved compliance report.
       ansible.builtin.set_fact:
-        non_compliance_devices: "{{ compliance_report.compliance_info | json_query(jquery | default('')) | map(attribute='Id') | list }}"
-      vars:
-        jquery: 'value[?ComplianceStatus==''NONCOMPLIANT'']'
+        non_compliance_devices: "{{ compliance_report.compliance_info | selectattr('ComplianceStatus', 'equalto', 'NONCOMPLIANT') | map(attribute='Id') | list }}"
 
     - name: Remediate a specified non-complaint devices to a configuration compliance baseline using device IDs # noqa: args[module]
       dellemc.openmanage.ome_configuration_compliance_baseline:
