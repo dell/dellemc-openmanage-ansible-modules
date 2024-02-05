@@ -9,6 +9,7 @@ roles/redfish_storage_volume/molecule/RAID5/converge.yml var-naming[no-role-pref
 roles/redfish_storage_volume/molecule/RAID10/converge.yml var-naming[no-role-prefix]
 roles/redfish_storage_volume/molecule/RAID50/converge.yml var-naming[no-role-prefix]
 roles/redfish_storage_volume/molecule/__delete_virtual_drive.yml var-naming[no-role-prefix]
+roles/redfish_storage_volume/molecule/__create_virtual_drive.yml var-naming[no-role-prefix]
 roles/redfish_storage_volume/molecule/__idrac_reset.yml var-naming[no-role-prefix]
 roles/redfish_storage_volume/molecule/apply_time_default/converge.yml var-naming[no-role-prefix]
 roles/redfish_storage_volume/molecule/apply_time_immediate/converge.yml var-naming[no-role-prefix]
