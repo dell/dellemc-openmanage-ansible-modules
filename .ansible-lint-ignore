@@ -121,3 +121,5 @@ roles/idrac_attributes/molecule/default/converge.yml var-naming[no-role-prefix]
 roles/idrac_attributes/molecule/idrac_attr/converge.yml var-naming[no-role-prefix]
 roles/idrac_attributes/molecule/lifecycle_controller_attr/converge.yml var-naming[no-role-prefix]
 roles/idrac_attributes/molecule/system_attr/converge.yml var-naming[no-role-prefix]
+
+roles/idrac_user/defaults/main.yml var-naming[no-role-prefix]
