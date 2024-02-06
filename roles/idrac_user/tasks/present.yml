@@ -23,10 +23,6 @@
   register: idrac_user_out
   delegate_to: "{{ idrac_user_delegate }}"
 
-- name: Set msg
-  ansible.builtin.set_fact:
-    msg: "{{ idrac_user_out.msg }}"
-
 - name: Fetch user account information
   ansible.builtin.include_tasks: get_user.yml
   when: idrac_user_out.changed and not ansible_check_mode

@@ -15,10 +15,16 @@
   register: user_accounts_out
   no_log: true
 
-- name: Set user name
+# - name: Set user name
+#   ansible.builtin.set_fact:
+#     user_name: "{{ new_user_name }}"
+#   when: new_user_name is defined
+
+- name: Set user_name based on new_user_name
   ansible.builtin.set_fact:
-    user_name: "{{ user_name }}"
+    user_name: "{{ new_user_name if new_user_name is defined else user_name }}"
 
 - name: Extracting volume_id
   ansible.builtin.set_fact:
-    idrac_user_account: "{{ user_accounts_out.json.Members | selectattr('UserName', 'equalto', user_name) | first }}"
+    idrac_user_account: "{{ user_accounts_out.json.Members | selectattr('UserName', 'equalto', user_name) | first |
+          ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', '@odata.etag', 'Keys', 'Links']) }}"
