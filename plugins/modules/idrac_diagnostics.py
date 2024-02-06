@@ -471,7 +471,7 @@ class ExportDiagnostics:
         if not diagnostics_file_name:
             now = datetime.now()
             hostname = module.params.get('idrac_ip')
-            diagnostics_file_name = "{}_{}.txt".format(hostname, now.strftime("%Y%m%d_%H%M%S"))
+            diagnostics_file_name = hostname + "_" + now.strftime("%Y%m%d_%H%M%S") + ".txt"
         payload["FileName"] = diagnostics_file_name
         diagnostics_status = self.idrac.invoke_request(export_diagnostics_url, "POST", data=payload)
         return diagnostics_status
