@@ -1,7 +1,8 @@
-- block:
+- name: Helper file for RAID
+  block:
     - name: Fetch storage controller id
       ansible.builtin.uri: &network_uri
-        url: "https://{{ idrac_ip|ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1/Storage"
+        url: "https://{{ idrac_ip | ansible.utils.ipwrap }}:{{ idrac_port }}/redfish/v1/Systems/System.Embedded.1/Storage"
         user: "{{ idrac_user }}"
         password: "{{ idrac_password }}"
         method: GET
@@ -20,4 +21,4 @@
 
     - name: Setting controller id
       ansible.builtin.set_fact:
-        inp_controller_id: "{{ '@odata.id'| extract(controller_id) | split('/') | last}}"
+        inp_controller_id: "{{ '@odata.id' | extract(controller_id) | split('/') | last }}"

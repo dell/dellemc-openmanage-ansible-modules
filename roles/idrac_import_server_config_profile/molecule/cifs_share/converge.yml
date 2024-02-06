@@ -51,8 +51,7 @@
           - idrac_import_server_config_profile_out.scp_status.Message == "No changes were applied since the
             current component configuration matched the requested configuration."
       when: not ansible_check_mode and not idrac_import_server_config_profile_out.changed
-    
+
     - name: Cleanup
       ansible.builtin.include_tasks:
         file: "../resources/tests/cleanup.yml"
-

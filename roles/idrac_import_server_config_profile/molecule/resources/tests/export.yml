@@ -50,6 +50,7 @@
     validate_certs: false
     network_adapter_id: "{{ inp_network_adapter_id }}"
     network_device_function_id: "{{ inp_network_device_function_id }}"
+    apply_time: Immediate
     oem_network_attributes:
       BannerMessageTimeout: "4" # "5"
   when: "'NIC' in idrac_import_server_config_profile_target"
