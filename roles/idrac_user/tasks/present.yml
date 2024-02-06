@@ -1,3 +1,4 @@
+---
 - name: Create or modify a iDRAC user
   dellemc.openmanage.idrac_user:
     idrac_ip: "{{ hostname }}"
