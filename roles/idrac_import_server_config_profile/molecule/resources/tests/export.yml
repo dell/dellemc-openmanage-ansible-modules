@@ -24,7 +24,7 @@
     password: "{{ lookup('env', 'PASSWORD') }}"
     validate_certs: false
     idrac_attributes:
-      Time.1.Timezone: "IST" # "UTC"
+      Time.1.Timezone: "CST6CDT"
   when: "'ALL' in idrac_import_server_config_profile_target or 'IDRAC' in idrac_import_server_config_profile_target"
 
 - name: Making changes when target is ['BIOS']
@@ -34,7 +34,7 @@
     idrac_password: "{{ lookup('env', 'PASSWORD') }}"
     validate_certs: false
     attributes:
-      NumLock: "Off" # "On"
+      NumLock: "Off"
   when: "'BIOS' in idrac_import_server_config_profile_target"
 
 - name: Calling nic_helper.yml
@@ -52,7 +52,7 @@
     network_device_function_id: "{{ inp_network_device_function_id }}"
     apply_time: Immediate
     oem_network_attributes:
-      BannerMessageTimeout: "4" # "5"
+      BannerMessageTimeout: "4"
   when: "'NIC' in idrac_import_server_config_profile_target"
 
 - name: Calling raid_helper.yml
@@ -68,5 +68,5 @@
     validate_certs: false
     controller_id: "{{ inp_controller_id }}"
     attributes:
-      SupportedInitializationTypes: "Slow" # "Fast"
+      SupportedInitializationTypes: "Slow"
   when: "'RAID' in idrac_import_server_config_profile_target"
