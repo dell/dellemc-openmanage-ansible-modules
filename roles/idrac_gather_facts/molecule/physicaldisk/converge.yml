@@ -27,18 +27,60 @@
     api_system: "/redfish/v1/Systems/System.Embedded.1"
 
   tasks:
+    - name: Get Storage information.
+      ansible.builtin.uri: &uri_params
+        url: "https://{{ hostname }}{{ api_system }}/Storage"
+        validate_certs: "{{ validate_certs }}"
+        ca_path: "{{ ca_path | default(omit) }}"
+        method: "{{ idrac_gather_facts_uri_method }}"
+        user: "{{ username }}"
+        password: "{{ password }}"
+        headers: "{{ idrac_gather_facts_uri_headers }}"
+        body_format: "{{ idrac_gather_facts_uri_body_format }}"
+        status_code: "{{ idrac_gather_facts_uri_status_code }}"
+        return_content: "{{ idrac_gather_facts_uri_return_content }}"
+      register: idrac_gather_facts_controllers_result
+
+    - name: Get all storage controller ids.
+      ansible.builtin.set_fact:
+        storage_ids_list: "{{ idrac_gather_facts_controllers_result.json.Members | map('dict2items') | flatten | map(attribute='value') }}"
+
+    - name: Get physical disk information using API.
+      ansible.builtin.uri:
+        url: "https://{{ hostname }}{{ item }}?$expand=*($levels=1)"
+        <<: *uri_params
+      loop: "{{ storage_ids_list }}"
+      no_log: true
+      register: idrac_gather_facts_disk_result
+
+    - name: Count the number of drives in drives_result.results
+      ansible.builtin.set_fact:
+        drives_count: "{{ idrac_gather_facts_disk_result.results | map(attribute='json.drives') | list | length }}"
+
+    - name: Validate whether physical disk information exists
+      ansible.builtin.assert:
+        that:
+          - "{{ drives_count | int > 0 }}"
+        fail_msg: "Physical Disk information does not exist"
+
+    - name: Set Physical Disk facts
+      ansible.builtin.set_fact:
+        api_response:
+          "{{ disk_result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Drives', 'defined') |
+          map(attribute='Drives') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
+          'Actions', 'Assembly', 'Links', 'DellDriveSMARTAttributes', 'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"
+
     - name: Gather Facts for the Physical Disk component
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
-    - name: Assert physical disk dict for length
-      ansible.builtin.assert:
-        that:
-          - "{{ physical_disk | length > 0 }}"
+    - name: Check whether output differs
+      ansible.builtin.set_fact:
+        result_diff: "{{ physical_disk | symmetric_difference(api_response) }}"
 
-    - name: Call assertion
-      ansible.builtin.include_tasks: ../../tests/asserts/physicaldisk_assert.yml
-      with_items: "{{ physical_disk }}"
-      loop_control:
-        loop_var: pd_data
-      when: physical_disk | length > 0
+    - name: Assert the differences in List
+      ansible.builtin.assert:
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+        that:
+          - "{{ (result_diff | length) == 0 }}"
