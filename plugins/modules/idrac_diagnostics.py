@@ -205,9 +205,9 @@ EXAMPLES = r"""
     run: true
     export: true
     share_parameters:
-        share_type: "local"
-        share_path: "/opt/local/diagnostics/"
-        file_name: "diagnostics.txt"
+      share_type: "local"
+      share_path: "/opt/local/diagnostics/"
+      file_name: "diagnostics.txt"
 
 - name: Run the diagnostics with force reboot on schedule
   dellemc.openmanage.idrac_diagnostics:
@@ -229,11 +229,11 @@ EXAMPLES = r"""
     run: true
     export: true
     share_parameters:
-        share_type: "HTTPS"
-        ignore_certificate_warning: "on"
-        share_name: "/share_path/diagnostics_collection_path"
-        ip_address: "192.168.0.2"
-        file_name: "diagnostics.txt"
+      share_type: "HTTPS"
+      ignore_certificate_warning: "on"
+      share_name: "/share_path/diagnostics_collection_path"
+      ip_address: "192.168.0.2"
+      file_name: "diagnostics.txt"
 
 - name: Run and export the diagnostics to NFS share
   dellemc.openmanage.idrac_diagnostics:
@@ -244,10 +244,10 @@ EXAMPLES = r"""
     run: true
     export: true
     share_parameters:
-        share_type: "NFS"
-        share_name: "nfsshare/diagnostics_collection_path/"
-        ip_address: "192.168.0.3"
-        file_name: "diagnostics.txt"
+      share_type: "NFS"
+      share_name: "nfsshare/diagnostics_collection_path/"
+      ip_address: "192.168.0.3"
+      file_name: "diagnostics.txt"
 
 - name: Export the diagnostics to CIFS share
   dellemc.openmanage.idrac_diagnostics:
@@ -257,10 +257,10 @@ EXAMPLES = r"""
     ca_path: "path/to/ca_file"
     export: true
     share_parameters:
-        share_type: "NFS"
-        share_name: "/cifsshare/diagnostics_collection_path/"
-        ip_address: "192.168.0.4"
-        file_name: "diagnostics.txt"
+      share_type: "NFS"
+      share_name: "/cifsshare/diagnostics_collection_path/"
+      ip_address: "192.168.0.4"
+      file_name: "diagnostics.txt"
 
 - name: Export the diagnostics to HTTPS share via proxy
   dellemc.openmanage.idrac_diagnostics:
@@ -270,17 +270,17 @@ EXAMPLES = r"""
     ca_path: "path/to/ca_file"
     export: true
     share_parameters:
-        share_type: "HTTPS"
-        share_name: "/share_path/diagnostics_collection_path"
-        ignore_certificate_warning: "on"
-        ip_address: "192.168.0.2"
-        file_name: "diagnostics.txt"
-        proxy_support: parameters_proxy
-        proxy_type: http
-        proxy_server: "192.168.0.5"
-        proxy_port: 1080
-        proxy_username: "proxy_user"
-        proxy_password: "proxy_password"
+      share_type: "HTTPS"
+      share_name: "/share_path/diagnostics_collection_path"
+      ignore_certificate_warning: "on"
+      ip_address: "192.168.0.2"
+      file_name: "diagnostics.txt"
+      proxy_support: parameters_proxy
+      proxy_type: http
+      proxy_server: "192.168.0.5"
+      proxy_port: 1080
+      proxy_username: "proxy_user"
+      proxy_password: "proxy_password"
 """
 
 RETURN = r'''
