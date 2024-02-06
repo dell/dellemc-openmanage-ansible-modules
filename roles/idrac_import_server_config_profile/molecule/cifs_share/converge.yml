@@ -1,8 +1,21 @@
 ---
 - name: Converge
   hosts: all
+  vars:
+    share_input: &share_input
+      share_name: "{{ lookup('env', 'CIFS_URL') }}"
+      share_user: "{{ lookup('env', 'CIFS_USERNAME') }}"
+      share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+      scp_file: "{{ lookup('env', 'cifs_filename') }}"
   gather_facts: false
   tasks:
+    - name: "Pre-requisites"
+      ansible.builtin.include_tasks:
+        file: "../resources/tests/export.yml"
+      vars:
+        _share_parameters:
+          <<: *share_input
+
     - name: "Importing SCP from CIFS with ALL components"
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
@@ -12,10 +25,7 @@
         password: "{{ lookup('env', 'PASSWORD') }}"
         validate_certs: false
         share_parameters:
-          share_name: "{{ lookup('env', 'CIFS_URL') }}"
-          share_user: "{{ lookup('env', 'CIFS_USERNAME') }}"
-          share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
-          scp_file: "{{ lookup('env', 'cifs_filename') }}"
+          <<: *share_input
 
     - name: Verifying Import SCP from CIFS with ALL components
       ansible.builtin.assert:
@@ -41,3 +51,8 @@
           - idrac_import_server_config_profile_out.scp_status.Message == "No changes were applied since the
             current component configuration matched the requested configuration."
       when: not ansible_check_mode and not idrac_import_server_config_profile_out.changed
+    
+    - name: Cleanup
+      ansible.builtin.include_tasks:
+        file: "../resources/tests/cleanup.yml"
+
