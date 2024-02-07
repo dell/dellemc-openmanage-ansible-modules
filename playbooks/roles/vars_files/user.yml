@@ -1,3 +1,5 @@
+---
+# Role idrac_user Vars
 user_name: test_user
 state: present
 new_user_name: test_user_updated
