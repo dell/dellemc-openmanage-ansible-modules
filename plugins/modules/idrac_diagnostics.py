@@ -20,54 +20,54 @@ module: idrac_diagnostics
 short_description: Run and Export iDRAC diagnostics
 version_added: "9.0.0"
 description:
-  - This module allows to run and export diagnostics on iDRAC.
+  - This module allows you to run and export diagnostics on iDRAC.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
   run:
     description:
-      - Run the diagnostics job.
+      - Run the diagnostics job on iDRAC.
       - Run the diagnostics job based on the I(run_mode) and saves the report in the internal storage. I(reboot_type) is applicable.
     type: bool
     default: true
   export:
     description:
       - Exports the diagnostics information to the given share.
-      - This requires I(share_parameters).
+      - This operation requires I(share_parameters).
     type: bool
     default: true
   run_mode:
     description:
       - This option provides the choices to run the diagnostics.
-      - C(express) The Express diagnostics runs a test package for each server subsystem,
-        but does not run the full set of tests available in the package for each subsystem
-      - C(extended) The Extended diagnostics runs all available tests in each test package for all subsystems.
-      - C(long_run) The long run diagnostics runs both Express and Extended tests.
+      - C(express) The express diagnostics runs a test package for each server subsystem. However,
+        it does not run the complete set of tests available in the package for each subsystem.
+      - C(extended) The extended diagnostics run all available tests in each test package for all subsystems.
+      - C(long_run) The long-run diagnostics runs express and extended tests
     type: str
     choices: [express, extended, long_run]
     default: express
   reboot_type:
     description:
-      - This option provides the choices to reboot the host immediately to run the diagnostics.
-      - This is applicable when I(run) is C(True)
-      - C(force) Forced Graceful shutdown signals operating system to turn off and waits for 10 minutes.
+      - This option provides the choice to reboot the host immediately to run the diagnostics.
+      - This is applicable when I(run) is C(true).
+      - C(force) Forced graceful shutdown signals the operating system to turn off and wait for ten minutes.
         If the operating system does not turn off, the iDRAC power cycles the system.
-      - C(graceful) Graceful shutdown waits for operating system to turn off or for system restart.
+      - C(graceful) Graceful shutdown waits for the operating system to turn off and wait for the system to restart.
       - C(power_cycle) performs a power cycle for a hard reset on the device.
     type: str
     choices: [force, graceful, power_cycle]
     default: graceful
   scheduled_start_time:
     description:
-      - Schedules the job at the time specified.
+      - Schedules the job at the specified time.
       - The accepted formats are yyyymmddhhmmss and YYYY-MM-DDThh:mm:ss+HH:MM
       - This is applicable when I(run) is C(run) or C(run_and_export) and I(reboot_type) is power_cycle
     type: str
   scheduled_end_time:
     description:
-      - Run the diagnostic until a date and time after the I(scheduled_start_time)
+      - Run the diagnostic until the specified end date and end time after the I(scheduled_start_time).
       - The accepted formats are yyyymmddhhmmss and YYYY-MM-DDThh:mm:ss+HH:MM
-      - If it is not started by End time, it is marked as failed with End time expired. if not specified, no end time.
+      - If the run operation does not complete before the specified end time, then the operation fails.
       - This is applicable when I(scheduled_start_time) is specified
       - This is applicable when I(run) is C(True) and I(reboot_type) is C(power_cycle)
     type: str
@@ -138,7 +138,7 @@ options:
         default: "off"
       proxy_support:
         description:
-          - Specifies if proxy is to be used or not.
+          - Specifies if proxy support must be used or not.
           - C(off) does not use proxy settings.
           - C(default_proxy) uses the default proxy settings.
           - C(parameters_proxy) uses the specified proxy settings. I(proxy_server) is required when I(proxy_support) is C(parameters_proxy).
@@ -191,7 +191,6 @@ notes:
     - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
     - This module does not support C(check_mode).
-    - This module will always report "Changes found".
 """
 
 EXAMPLES = r"""
@@ -318,16 +317,19 @@ error_info:
   type: dict
   sample: {
     "error": {
-      "code": "Base.1.8.GeneralError",
+      "code": "Base.1.12.GeneralError",
       "message": "A general error has occurred. See ExtendedInfo for more information.",
       "@Message.ExtendedInfo": [
         {
-          "MessageId": "Base.1.8.AccessDenied",
-          "Message": "The authentication credentials included with this request are missing or invalid.",
+          "Message": "A Remote Diagnostic (ePSA) job already exists.",
           "MessageArgs": [],
+          "MessageArgs@odata.count": 0,
+          "MessageId": "IDRAC.2.9.SYS098",
           "RelatedProperties": [],
-          "Severity": "Critical",
-          "Resolution": "Attempt to ensure that the URI is correct and that the service has the appropriate credentials."
+          "RelatedProperties@odata.count": 0,
+          "Resolution": "A response action is not required if the scheduled start time of the existing Remote Diagnostic (ePSA) job is ok.
+           Else, delete the existing Diagnostics (ePSA) job and recreate another with an appropriate start time.",
+          "Severity": "Informational"
         }
       ]
     }
@@ -337,33 +339,35 @@ error_info:
 import json
 import os
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.compat.version import LooseVersion
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_idrac_firmware_version, get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
 from datetime import datetime
 
 MANAGERS_URI = "/redfish/v1/Managers"
-IDRAC_JOB_URI = "{res_uri}/Jobs/{job_id}"
 
 OEM = "Oem"
 MANUFACTURER = "Dell"
+JOBS = "Jobs"
 LC_SERVICE = "DellLCService"
 ACTIONS = "Actions"
 EXPORT = "#DellLCService.ExportePSADiagnosticsResult"
 RUN = "#DellLCService.RunePSADiagnostics"
+ODATA_REGEX = "(.*?)@odata"
+ODATA = "@odata.id"
 
 SUCCESS_EXPORT_MSG = "Successfully exported the diagnostics."
-EXPORT_NO_RESULTS_MSG = "Unable to export the diagnostics results because the results do not exist."
 SUCCESS_RUN_MSG = "Successfully run the diagnostics operation."
 SUCCESS_RUN_AND_EXPORT_MSG = "Successfully run and exported the diagnostics."
 RUNNING_RUN_MSG = "Successfully triggered the job to run diagnostics."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension is: .txt."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
+NO_OPERATION_SKIP_MSG = "Task is skipped as none of run, export or run and export is specified."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
                                         "Please check if the directory has appropriate permissions"
+UNSUPPORTED_FIRMWARE_MSG = "iDRAC firmware version is not supported."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The parameter `job_wait_timeout` value cannot be negative or zero."
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
 START_TIME = "The specified scheduled start time occurs in the past, " \
@@ -371,9 +375,7 @@ START_TIME = "The specified scheduled start time occurs in the past, " \
 INVALID_TIME = "The specified date and time `{0}` to schedule the diagnostics is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the diagnostics must be greater than the start time `{1}`."
 
-IGNORE_CERTIFICATE_WARNING = {"off": "Off", "on": "On"}
 PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_proxy": "ParametersProxy"}
-PROXY_TYPE = {"http": "HTTP", "socks": "SOCKS"}
 
 
 class ExportDiagnostics:
@@ -382,45 +384,38 @@ class ExportDiagnostics:
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
+        self.export_url = None
 
     def execute(self, module):
-        try:
-            share_type = module.params.get('share_parameters').get('share_type')
-            export_diagnostics_url = self.__get_export_diagnostics_url(module)
-            job_status = {}
-            self.__check_file_extension(module)
-            if share_type == "local":
-                export_diagnostics_status = self.__export_diagnostics_local(module, export_diagnostics_url)
-            elif share_type in ["http", "https"]:
-                export_diagnostics_status = self.__export_diagnostics_http(module, export_diagnostics_url)
-                job_status = self.get_job_status(module, export_diagnostics_status)
-            elif share_type == "cifs":
-                export_diagnostics_status = self.__export_diagnostics_cifs(module, export_diagnostics_url)
-                job_status = self.get_job_status(module, export_diagnostics_status)
-            elif share_type == "nfs":
-                export_diagnostics_status = self.__export_diagnostics_nfs(module, export_diagnostics_url)
-                job_status = self.get_job_status(module, export_diagnostics_status)
-            status = export_diagnostics_status.status_code
-            if status in self.STATUS_SUCCESS:
-                msg = SUCCESS_EXPORT_MSG
-                job_details = job_status
-                return msg, job_details
-        except HTTPError as err:
-            err_msg = json.loads(err.read())["error"]["@Message.ExtendedInfo"][0]["Message"]
-            if err_msg == EXPORT_NO_RESULTS_MSG:
-                module.exit_json(msg=EXPORT_NO_RESULTS_MSG, skipped=True)
-            module.exit_json(msg=err_msg, failed=True)
-        return export_diagnostics_status
+        share_type = module.params.get('share_parameters').get('share_type')
+        self.__get_export_diagnostics_url()
+        job_status = {}
+        self.__check_file_extension()
+        share_type_methods = {
+            "local": self.__export_diagnostics_local,
+            "http": self.__export_diagnostics_http,
+            "https": self.__export_diagnostics_http,
+            "cifs": self.__export_diagnostics_cifs,
+            "nfs": self.__export_diagnostics_nfs
+        }
+        export_diagnostics_status = share_type_methods[share_type]()
+        if share_type_methods[share_type] != self.__export_diagnostics_local:
+            job_status = self.get_job_status(export_diagnostics_status)
+        status = export_diagnostics_status.status_code
+        if status in self.STATUS_SUCCESS:
+            msg = SUCCESS_EXPORT_MSG
+            job_details = job_status
+            return msg, job_details
 
-    def __export_diagnostics_local(self, module, export_diagnostics_url):
+    def __export_diagnostics_local(self):
         payload = {}
         payload["ShareType"] = "Local"
-        path = module.params.get('share_parameters').get('share_name')
-        if not (os.path.exists(path) or os.path.isdir(path)):
-            module.fail_json(msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
+        path = self.module.params.get('share_parameters').get('share_name')
+        if not (os.path.exists(path)):
+            self.module.fail_json(msg=INVALID_DIRECTORY_MSG.format(path=path))
         if not os.access(path, os.W_OK):
-            module.fail_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path), failed=True)
-        diagnostics_status = self.__export_diagnostics(module, payload, export_diagnostics_url)
+            self.module.fail_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path))
+        diagnostics_status = self.__export_diagnostics(payload)
         diagnostics_file_name = payload.get("FileName")
         diagnostics_data = self.idrac.invoke_request(diagnostics_status.headers.get("Location"), "GET")
         diagnostics_output = [line + "\n" for line in diagnostics_data.body.decode().split("\r\n")]
@@ -429,101 +424,98 @@ class ExportDiagnostics:
             fp.writelines(diagnostics_output)
         return diagnostics_status
 
-    def __export_diagnostics_http(self, module, export_diagnostics_url):
-        payload = {}
-        proxy_details = self.get_proxy_details(module)
-        payload.update(proxy_details)
-        export_status = self.__export_diagnostics(module, payload, export_diagnostics_url)
+    def __export_diagnostics_http(self):
+        payload = self.get_payload_details()
+        export_status = self.__export_diagnostics(payload)
         return export_status
 
-    def __export_diagnostics_cifs(self, module, export_diagnostics_url):
-        payload = {}
-        payload["ShareType"] = "CIFS"
-        if module.params.get('share_parameters').get('workgroup'):
-            payload["Workgroup"] = module.params.get('share_parameters').get('workgroup')
-        share_details = self.get_share_details(module)
-        payload.update(share_details)
-        export_status = self.__export_diagnostics(module, payload, export_diagnostics_url)
+    def __export_diagnostics_cifs(self):
+        payload = self.get_payload_details()
+        if self.module.params.get('share_parameters').get('workgroup'):
+            payload["Workgroup"] = self.module.params.get('share_parameters').get('workgroup')
+        export_status = self.__export_diagnostics(payload)
         return export_status
 
-    def __export_diagnostics_nfs(self, module, export_diagnostics_url):
-        payload = {}
-        payload["ShareType"] = "NFS"
-        payload["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-        payload["ShareName"] = module.params.get('share_parameters').get('share_name')
-        payload["FileName"] = module.params.get('share_parameters').get('file_name')
-        export_status = self.__export_diagnostics(module, payload, export_diagnostics_url)
+    def __export_diagnostics_nfs(self):
+        payload = self.get_payload_details()
+        del payload["UserName"], payload["Password"]
+        export_status = self.__export_diagnostics(payload)
         return export_status
 
-    def __get_export_diagnostics_url(self, module):
+    def __get_export_diagnostics_url(self):
         uri, error_msg = validate_and_get_first_resource_id_uri(
             self.module, self.idrac, MANAGERS_URI)
         if error_msg:
             self.module.exit_json(msg=error_msg, failed=True)
         resp = get_dynamic_uri(self.idrac, uri)
-        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get('@odata.id', {})
-        action_resp = get_dynamic_uri(self.idrac, url)
-        export_url = action_resp.get(ACTIONS, {}).get(EXPORT, {}).get('target', {})
-        return export_url
+        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        if url:
+            action_resp = get_dynamic_uri(self.idrac, url)
+            export_url = action_resp.get(ACTIONS, {}).get(EXPORT, {}).get('target', {})
+            self.export_url = export_url
+        else:
+            self.module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG, failed=True)
 
-    def __export_diagnostics(self, module, payload, export_diagnostics_url):
-        diagnostics_file_name = module.params.get('share_parameters').get('file_name')
+    def __export_diagnostics(self, payload):
+        diagnostics_file_name = self.module.params.get('share_parameters').get('file_name')
         if not diagnostics_file_name:
             now = datetime.now()
-            hostname = module.params.get('idrac_ip')
-            diagnostics_file_name = hostname + "_" + now.strftime("%Y%m%d_%H%M%S") + ".txt"
+            hostname = self.module.params.get('idrac_ip')
+            diagnostics_file_name = f"{hostname}_{now.strftime('%Y%m%d_%H%M%S')}.txt"
         payload["FileName"] = diagnostics_file_name
-        diagnostics_status = self.idrac.invoke_request(export_diagnostics_url, "POST", data=payload)
+        diagnostics_status = self.idrac.invoke_request(self.export_url, "POST", data=payload)
         return diagnostics_status
 
-    def __check_file_extension(self, module):
-        file_name = module.params.get('share_parameters').get('file_name')
+    def __check_file_extension(self):
+        file_name = self.module.params.get('share_parameters').get('file_name')
         if file_name:
             file_extension = file_name.lower().endswith(".txt")
             if not file_extension:
-                module.exit_json(msg=INVALID_FILE_MSG, failed=True)
+                self.module.exit_json(msg=INVALID_FILE_MSG, failed=True)
 
-    def get_job_status(self, module, export_diagnostics_status):
+    def get_job_status(self, export_diagnostics_status):
         res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
         job_tracking_uri = export_diagnostics_status.headers.get("Location")
         job_id = job_tracking_uri.split("/")[-1]
-        job_uri = IDRAC_JOB_URI.format(job_id=job_id, res_uri=res_uri[0])
+        job_uri = '/'.join([res_uri[0], OEM, MANUFACTURER, JOBS, job_id])
         job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
-        job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
+        job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
         if job_failed:
-            module.exit_json(msg=job_dict.get('Message'), failed=True, job_details=job_dict)
+            self.module.exit_json(msg=job_dict.get('Message'), failed=True, job_details=job_dict)
         return job_dict
 
-    def get_share_details(self, module):
-        share_details = {}
-        share_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-        share_details["ShareName"] = module.params.get('share_parameters').get('share_name')
-        share_details["UserName"] = module.params.get('share_parameters').get('username')
-        share_details["Password"] = module.params.get('share_parameters').get('password')
-        share_details["FileName"] = module.params.get('share_parameters').get('file_name')
-        return share_details
+    def get_payload_details(self):
+        payload = {}
+        payload["ShareType"] = self.module.params.get('share_parameters').get('share_type').upper()
+        payload["IPAddress"] = self.module.params.get('share_parameters').get('ip_address')
+        payload["ShareName"] = self.module.params.get('share_parameters').get('share_name')
+        payload["UserName"] = self.module.params.get('share_parameters').get('username')
+        payload["Password"] = self.module.params.get('share_parameters').get('password')
+        payload["FileName"] = self.module.params.get('share_parameters').get('file_name')
+        payload["IgnoreCertWarning"] = self.module.params.get('share_parameters').get('ignore_certificate_warning').capitalize()
+        if self.module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
+            payload["ProxySupport"] = PROXY_SUPPORT[self.module.params.get('share_parameters').get('proxy_support')]
+            payload["ProxyType"] = self.module.params.get('share_parameters').get('proxy_type').upper()
+            payload["ProxyServer"] = self.module.params.get('share_parameters').get('proxy_server')
+            payload["ProxyPort"] = self.module.params.get('share_parameters').get('proxy_port')
+            if self.module.params.get('share_parameters').get('proxy_username') and self.module.params.get('share_parameters').get('proxy_password'):
+                payload["ProxyUname"] = self.module.params.get('share_parameters').get('proxy_username')
+                payload["ProxyPasswd"] = self.module.params.get('share_parameters').get('proxy_password')
+        return payload
 
-    def get_proxy_details(self, module):
-        proxy_details = {}
-        if module.params.get('share_parameters').get('share_type') == "http":
-            proxy_details["ShareType"] = "HTTP"
-        else:
-            proxy_details["ShareType"] = "HTTPS"
-        proxy_details["IPAddress"] = module.params.get('share_parameters').get('ip_address')
-        proxy_details["ShareName"] = module.params.get('share_parameters').get('share_name')
-        proxy_details["UserName"] = module.params.get('share_parameters').get('username')
-        proxy_details["Password"] = module.params.get('share_parameters').get('password')
-        proxy_details["FileName"] = module.params.get('share_parameters').get('file_name')
-        proxy_details["IgnoreCertWarning"] = IGNORE_CERTIFICATE_WARNING[module.params.get('share_parameters').get('ignore_certificate_warning')]
-        if module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
-            proxy_details["ProxySupport"] = PROXY_SUPPORT[module.params.get('share_parameters').get('proxy_support')]
-            proxy_details["ProxyType"] = PROXY_TYPE[module.params.get('share_parameters').get('proxy_type')]
-            proxy_details["ProxyServer"] = module.params.get('share_parameters').get('proxy_server')
-            proxy_details["ProxyPort"] = module.params.get('share_parameters').get('proxy_port')
-            if module.params.get('share_parameters').get('proxy_username') and module.params.get('share_parameters').get('proxy_password'):
-                proxy_details["ProxyUname"] = module.params.get('share_parameters').get('proxy_username')
-                proxy_details["ProxyPasswd"] = module.params.get('share_parameters').get('proxy_password')
-        return proxy_details
+
+class Diagnostics:
+    _diagnostics_classes = {
+        "export": ExportDiagnostics,
+    }
+
+    @staticmethod
+    def diagnostics_operation(idrac, module):
+        diagnostics = next((param for param in ["export"] if module.params[param]), None)
+        if not diagnostics:
+            module.exit_json(msg=NO_OPERATION_SKIP_MSG, skipped=True)
+        diagnostics_class = Diagnostics._diagnostics_classes.get(diagnostics)
+        return diagnostics_class(idrac, module)
 
 
 def main():
@@ -540,19 +532,17 @@ def main():
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            idrac_firmware_version = get_idrac_firmware_version(idrac)
-            if LooseVersion(idrac_firmware_version) <= '3.0':
-                module.exit_json(msg="iDRAC firmware version is not supported.", failed=True)
-            diagnostics_ob = None
-            if module.params["export"]:
-                diagnostics_ob = ExportDiagnostics(idrac, module)
-            if diagnostics_ob:
-                msg, job_status = diagnostics_ob.execute(module)
+            diagnostics_obj = Diagnostics.diagnostics_operation(idrac, module)
+            if diagnostics_obj:
+                msg, job_status = diagnostics_obj.execute(module)
                 module.exit_json(msg=msg, changed=True, job_details=job_status)
-            else:
-                module.exit_json(msg="Task is skipped as none of run, export or run and export is specified.", skipped=True)
     except HTTPError as err:
-        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
+        filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
+        message_details = filter_err.get('error').get('@Message.ExtendedInfo')[0]
+        message_id = message_details.get('MessageId')
+        if 'SYS099' in message_id:
+            module.exit_json(msg=message_details.get('Message'), skipped=True)
+        module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
