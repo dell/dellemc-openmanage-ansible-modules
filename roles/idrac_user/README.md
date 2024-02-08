@@ -116,7 +116,7 @@ dellemc.openmanage
     <td></td>
     <td></td>
     <td>str</td>
-    <td>- Provide the username of the account to be created, deleted or modified.</td>
+    <td>- Provide username of the iDRAC user account that is created, deleted, or modified.</td>
   </tr>
   <tr>
     <td>user_password</td>
@@ -124,7 +124,7 @@ dellemc.openmanage
     <td></td>
     <td></td>
     <td>str</td>
-    <td>- Provide the password for the user account. The password can be changed when the user account is modified.</br>- To ensure security, the I(user_password) must be at least eight characters long and must contain
+    <td>- Provide password for the iDRAC user account that is created, or modified. The password can be changed when the user account is modified.</br>- To ensure security, the I(user_password) must be at least eight characters long and must contain
     lowercase and upper-case characters, numbers, and special characters.
 </td>
   </tr>
@@ -134,7 +134,7 @@ dellemc.openmanage
     <td></td>
     <td></td>
     <td>str</td>
-    <td>- Provide the I(user_name) for the account to be modified.</td>
+    <td>- Provide the I(user_name) for the iDRAC user account that is modified.</td>
   </tr>
   <tr>
     <td>privilege</td>
@@ -229,7 +229,7 @@ dellemc.openmanage
            "failed": false,
            "msg": "Successfully created user account details."
 }</td>
-<td>Module output of the idrac user</td>
+<td>Output of the iDRAC user role</td>
 </tr>
 <tr>
   <td>idrac_user_account</td>
@@ -281,7 +281,7 @@ dellemc.openmanage
     "UserName": "root"
 }"
 }</td>
-<td>The account which was created or modified</td>
+<td>Details of the iDRAC user account that is created or modified.</td>
 </tr>
 </tbody>
 </table>
@@ -313,7 +313,7 @@ dellemc.openmanage
 ```
 
 ```yml
-- name: Modify existing iDRAC user username and password
+- name: Modify username and password for the existing iDRAC user
   ansible.builtin.import_role:
     name: idrac_user
   vars:

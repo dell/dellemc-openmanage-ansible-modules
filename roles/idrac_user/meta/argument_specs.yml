@@ -49,20 +49,21 @@ argument_specs:
             "absent"
           ]
       user_name:
-        description: Provide the username of the account to be created,
-         deleted or modified.
+        description: Provide username of the iDRAC user account that
+          is created, deleted, or modified.
         type: str
         required: true
       user_password:
         description:
-          - Provide the password for the user account. The password can be
-            changed when the user account is modified.
+          - Password for the iDRAC user account that is created,
+            or modified. The password can be changed when the user
+            account is modified.
           - To ensure security, the I(user_password) must be at least eight
             characters long and must contain lowercase and upper-case
             characters, numbers, and special characters.
         type: str
       new_user_name:
-        description: Provide the I(user_name) for the account to be modified.
+        description: Provide the I(user_name) for the iDRAC user account that is modified.
         type: str
       privilege:
         description:
