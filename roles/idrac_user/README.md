@@ -1,4 +1,4 @@
-# redfish_storage_volume
+# idrac_user
 
 Role to manage local users for iDRAC.
 
