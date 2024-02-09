@@ -1,0 +1,41 @@
+---
+- name: TC-152120
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_user_user_name: "moleculeTest"
+  tasks:
+    - name: Configure a new iDRAC user with all parameters except user_password
+      ansible.builtin.import_role:
+        name: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        user_name: "{{ idrac_user_user_name }}"
+        user_password: 'test1234'
+        privilege: Administrator
+        ipmi_lan_privilege: Administrator
+        ipmi_serial_privilege: Administrator
+        enable: true
+        sol_enable: true
+        protocol_enable: true
+        authentication_protocol: SHA
+        privacy_protocol: AES
+      tags: molecule-idempotence-notest
+  
+    - name: Asserting user creation in check mode
+      ansible.builtin.assert:
+        that: idrac_user_out.msg == "Changes found to commit!"
+      when: ansible_check_mode
+      tags: molecule-idempotence-notest
+    
+    - name: Asserting user creation in normal mode
+      ansible.builtin.assert:
+        that:
+          - idrac_user_out.msg == "Successfully created user account."
+          - idrac_user_out.changed
+      when: not ansible_check_mode
+      tags: molecule-idempotence-notest
