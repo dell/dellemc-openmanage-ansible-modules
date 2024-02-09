@@ -63,7 +63,8 @@ argument_specs:
             characters, numbers, and special characters.
         type: str
       new_user_name:
-        description: Provide the I(user_name) for the iDRAC user account that is modified.
+        description: Provide the I(user_name) for the iDRAC user
+          account that is modified.
         type: str
       privilege:
         description:
