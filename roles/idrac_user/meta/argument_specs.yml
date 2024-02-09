@@ -135,7 +135,7 @@ argument_specs:
         description: Enables Serial Over Lan (SOL) for an iDRAC user.
         type: bool
       protocol_enable:
-        description: Enables protocol for the iDRAC user.
+        description: Enables SNMPv3 protocol for the iDRAC user.
         type: bool
       authentication_protocol:
         description:
@@ -143,7 +143,8 @@ argument_specs:
             authentication protocol types to authenticate the iDRAC user.
           - Secure Hash Algorithm C(SHA).
           - Message Digest 5 C(MD5).
-          - An authentication protocol is not configured if C(None) is selected.
+          - If C(None) is selected, then the authentication protocol
+            is not configured.
         type: str
         choices:
           [
@@ -157,7 +158,8 @@ argument_specs:
             privacy encryption protocols for the iDRAC user.
           - Data Encryption Standard C(DES).
           - Advanced Encryption Standard C(AES).
-          - A privacy protocol is not configured if C(None) is selected.
+          - If C(None) is selected, then the privacy protocol =
+            is not configured.
         type: str
         choices:
           [

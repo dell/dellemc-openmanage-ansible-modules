@@ -192,7 +192,7 @@ dellemc.openmanage
     <td></td>
     <td></td>
     <td>bool</td>
-    <td>Enables protocol for the iDRAC user.</td>
+    <td>Enables SNMPv3 protocol for the iDRAC user.</td>
   </tr>
   <tr>
     <td>authentication_protocol</td>
@@ -200,7 +200,7 @@ dellemc.openmanage
     <td></td>
     <td>["None","SHA5","MD5"]</td>
     <td>str</td>
-    <td>- This option allows to configure one of the following authentication protocol types to authenticate the iDRAC user.</br>- Secure Hash Algorithm C(SHA).</br>- Message Digest 5 C(MD5).</br>- An authentication protocol is not configured if C(None) is selected.</td>
+    <td>- This option allows to configure one of the following authentication protocol types to authenticate the iDRAC user.</br>- Secure Hash Algorithm C(SHA).</br>- Message Digest 5 C(MD5).</br>- If C(None) is selected, then the authentication protocol is not configured.</td>
   </tr>
   <tr>
     <td>privacy_protocol</td>
@@ -208,7 +208,7 @@ dellemc.openmanage
     <td></td>
     <td>["None","DES","AES"]</td>
     <td>str</td>
-    <td>- This option allows to configure one of the following privacy encryption protocols for the iDRAC user.</br>- Data Encryption Standard C(DES).</br>- Advanced Encryption Standard C(AES).</br>- A privacy protocol is not configured if C(None) is selected.</td>
+    <td>- This option allows to configure one of the following privacy encryption protocols for the iDRAC user.</br>- Data Encryption Standard C(DES).</br>- Advanced Encryption Standard C(AES).</br>- If C(None) is selected, then the privacy protocol is not configured.</td>
   </tr>
 
   
