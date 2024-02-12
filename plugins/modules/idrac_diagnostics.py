@@ -27,7 +27,7 @@ options:
   run:
     description:
       - Run the diagnostics job on iDRAC.
-      - Run the diagnostics job based on the I(run_mode) and saves the report in the internal storage. I(reboot_type) is applicable.
+      - Run the diagnostics job based on the I(run_mode) and save the report in the internal storage. I(reboot_type) is applicable.
     type: bool
     default: true
   export:
@@ -42,7 +42,7 @@ options:
       - C(express) The express diagnostics runs a test package for each server subsystem. However,
         it does not run the complete set of tests available in the package for each subsystem.
       - C(extended) The extended diagnostics run all available tests in each test package for all subsystems.
-      - C(long_run) The long-run diagnostics runs express and extended tests
+      - C(long_run) The long-run diagnostics runs express and extended tests.
     type: str
     choices: [express, extended, long_run]
     default: express
@@ -60,26 +60,25 @@ options:
   scheduled_start_time:
     description:
       - Schedules the job at the specified time.
-      - The accepted formats are yyyymmddhhmmss and YYYY-MM-DDThh:mm:ss+HH:MM
-      - This is applicable when I(run) is C(run) or C(run_and_export) and I(reboot_type) is power_cycle
+      - The accepted formats are yyyymmddhhmmss and YYYY-MM-DDThh:mm:ss+HH:MM.
+      - This is applicable when I(run) is C(true) and I(reboot_type) is power_cycle.
     type: str
   scheduled_end_time:
     description:
       - Run the diagnostic until the specified end date and end time after the I(scheduled_start_time).
-      - The accepted formats are yyyymmddhhmmss and YYYY-MM-DDThh:mm:ss+HH:MM
+      - The accepted formats are yyyymmddhhmmss and YYYY-MM-DDThh:mm:ss+HH:MM.
       - If the run operation does not complete before the specified end time, then the operation fails.
-      - This is applicable when I(scheduled_start_time) is specified
-      - This is applicable when I(run) is C(True) and I(reboot_type) is C(power_cycle)
+      - This is applicable when I(run) is C(True) and I(reboot_type) is C(power_cycle).
     type: str
   job_wait:
     description:
       - Provides the option to wait for job completion.
-      - This is applicable when I(run) is C(True) and I(reboot_type) is C(power_cycle)
+      - This is applicable when I(run) is C(true) and I(reboot_type) is C(power_cycle).
     type: bool
     default: true
   job_wait_timeout:
     description:
-      - Time in seconds to wait for job completion
+      - Time in seconds to wait for job completion.
       - This is applicable when I(job_wait) is C(true).
     type: int
     default: 1200
@@ -165,8 +164,8 @@ options:
         description:
           - The port of the proxy server.
           - I(proxy_port) is only applicable when I(share_type) is C(https) or C(https) and when I(proxy_support) is C(parameters_proxy).
-        type: str
-        default: '80'
+        type: int
+        default: 80
       proxy_username:
         description:
           - The username of the proxy server.
@@ -190,7 +189,9 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
+    - This module requires Dell Diagnostics firmware package to be present on the server.
+    - When I(share_type) is C(local) for I(export) operation, job_details are not displayed.
 """
 
 EXAMPLES = r"""
@@ -208,15 +209,16 @@ EXAMPLES = r"""
       share_path: "/opt/local/diagnostics/"
       file_name: "diagnostics.txt"
 
-- name: Run the diagnostics with force reboot on schedule
+- name: Run the diagnostics with power cycle reboot on schedule
   dellemc.openmanage.idrac_diagnostics:
     hostname: "192.168.0.1"
     username: "username"
     password: "password"
     ca_path: "path/to/ca_file"
     run: true
+    export: false
     run_mode: "express"
-    reboot_type: "force"
+    reboot_type: "power_cycle"
     scheduled_start_time: 20240101101015
 
 - name: Run and export the diagnostics to HTTPS share
@@ -255,6 +257,7 @@ EXAMPLES = r"""
     password: "password"
     ca_path: "path/to/ca_file"
     export: true
+    run: false
     share_parameters:
       share_type: "NFS"
       share_name: "/cifsshare/diagnostics_collection_path/"
@@ -268,6 +271,7 @@ EXAMPLES = r"""
     password: "password"
     ca_path: "path/to/ca_file"
     export: true
+    run: false
     share_parameters:
       share_type: "HTTPS"
       share_name: "/share_path/diagnostics_collection_path"
@@ -343,7 +347,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
+    get_current_time, get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
 from datetime import datetime
 
 MANAGERS_URI = "/redfish/v1/Managers"
@@ -351,17 +355,21 @@ MANAGERS_URI = "/redfish/v1/Managers"
 OEM = "Oem"
 MANUFACTURER = "Dell"
 JOBS = "Jobs"
+JOBS_EXPAND = "?$expand=*($levels=1)"
 LC_SERVICE = "DellLCService"
 ACTIONS = "Actions"
 EXPORT = "#DellLCService.ExportePSADiagnosticsResult"
 RUN = "#DellLCService.RunePSADiagnostics"
 ODATA_REGEX = "(.*?)@odata"
 ODATA = "@odata.id"
-
+TIME_FORMAT_FILE = "%Y%m%d_%H%M%S"
+TIME_FORMAT_WITHOUT_OFFSET = "%Y%m%d%H%M%S"
+TIME_FORMAT_WITH_OFFSET = "%Y-%m-%dT%H:%M:%S%z"
 SUCCESS_EXPORT_MSG = "Successfully exported the diagnostics."
 SUCCESS_RUN_MSG = "Successfully run the diagnostics operation."
 SUCCESS_RUN_AND_EXPORT_MSG = "Successfully run and exported the diagnostics."
 RUNNING_RUN_MSG = "Successfully triggered the job to run diagnostics."
+ALREADY_RUN_MSG = "The diagnostics job is already present."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension is: .txt."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
 NO_OPERATION_SKIP_MSG = "Task is skipped as none of run, export or run and export is specified."
@@ -374,8 +382,156 @@ START_TIME = "The specified scheduled start time occurs in the past, " \
              "provide a future time to schedule the start time."
 INVALID_TIME = "The specified date and time `{0}` to schedule the diagnostics is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the diagnostics must be greater than the start time `{1}`."
+NO_CHANGES_FOUND_MSG = "No changes found to be applied."
+CHANGES_FOUND_MSG = "Changes found to be applied."
 
 PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_proxy": "ParametersProxy"}
+
+
+class RunDiagnostics:
+    STATUS_SUCCESS = [200, 202]
+
+    def __init__(self, idrac, module):
+        self.idrac = idrac
+        self.module = module
+        self.run_url = None
+
+    def execute(self):
+        self.__get_run_diagnostics_url()
+        self.check_diagnostics_jobs()
+        run_diagnostics_status = self.__run_diagnostics()
+        job_status = self.__perform_job_wait(run_diagnostics_status)
+        status = run_diagnostics_status.status_code
+        if status in self.STATUS_SUCCESS and job_status.get('JobState') == "Completed":
+            msg = SUCCESS_RUN_MSG
+            job_details = job_status
+            return msg, job_details
+        if status in self.STATUS_SUCCESS and job_status.get('JobState') in ["Scheduled", "Running", "New"]:
+            msg = RUNNING_RUN_MSG
+            job_details = job_status
+            return msg, job_details
+
+    def __run_diagnostics(self):
+        reboot_job_types = {
+            "graceful": "GracefulRebootWithoutForcedShutdown",
+            "force": "GracefulRebootWithForcedShutdown",
+            "power_cycle": "PowerCycle"
+        }
+        run_modes = {
+            "express": "Express",
+            "extended": "Extended",
+            "long_run": "ExpressAndExtended"
+        }
+        payload = {}
+        reboot_type = self.module.params.get('reboot_type')
+        run_mode = self.module.params.get('run_mode')
+        if reboot_type == "power_cycle":
+            if self.module.params.get('scheduled_start_time'):
+                start_time = self.__validate_time_format(self.module.params.get('scheduled_start_time'))
+                if self.__validate_time(start_time):
+                    payload["ScheduledStartTime"] = start_time
+            if self.module.params.get('scheduled_end_time'):
+                end_time = self.__validate_time_format(self.module.params.get('scheduled_end_time'))
+                if self.__validate_time(end_time) and self.__validate_end_time(start_time, end_time):
+                    payload["UntilTime"] = end_time
+        payload["RebootJobType"] = reboot_job_types.get(reboot_type)
+        payload["RunMode"] = run_modes.get(run_mode)
+        run_diagnostics_status = self.idrac.invoke_request(self.run_url, "POST", data=payload)
+        return run_diagnostics_status
+
+    def __get_run_diagnostics_url(self):
+        uri, error_msg = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, MANAGERS_URI)
+        if error_msg:
+            self.module.exit_json(msg=error_msg, failed=True)
+        resp = get_dynamic_uri(self.idrac, uri)
+        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        if url:
+            action_resp = get_dynamic_uri(self.idrac, url)
+            run_url = action_resp.get(ACTIONS, {}).get(RUN, {}).get('target', {})
+            self.run_url = run_url
+        else:
+            self.module.exit_json(msg=UNSUPPORTED_FIRMWARE_MSG, failed=True)
+
+    def __validate_job_timeout(self):
+        if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
+            self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+
+    def __perform_job_wait(self, run_diagnostics_status):
+        job_dict = {}
+        job_wait = self.module.params.get('job_wait')
+        job_wait_timeout = self.module.params.get('job_wait_timeout')
+        self.__validate_job_timeout()
+        job_tracking_uri = run_diagnostics_status.headers.get("Location")
+        if job_tracking_uri:
+            job_id = job_tracking_uri.split("/")[-1]
+            res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
+            job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}/{job_id}"
+            if job_wait:
+                job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri,
+                                                                                  max_job_wait_sec=job_wait_timeout,
+                                                                                  sleep_interval_secs=1)
+                job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+                if int(wait_time) >= int(job_wait_timeout):
+                    self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(
+                        job_wait_timeout), changed=True, job_status=job_dict)
+                if job_failed:
+                    self.module.fail_json(
+                        msg=job_dict.get("Message"), job_status=job_dict)
+            else:
+                job_resp = self.idrac.invoke_request(job_uri, 'GET')
+                job_dict = job_resp.json_data
+                job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+        return job_dict
+
+    def __validate_time_format(self, time):
+        try:
+            datetime_obj = datetime.strptime(time, TIME_FORMAT_WITH_OFFSET)
+        except ValueError:
+            try:
+                datetime_obj = datetime.strptime(time, TIME_FORMAT_WITHOUT_OFFSET)
+            except ValueError:
+                self.module.exit_json(failed=True, msg=INVALID_TIME.format(time))
+        if datetime_obj:
+            formatted_time = datetime_obj.strftime(TIME_FORMAT_WITHOUT_OFFSET)
+        return formatted_time
+
+    def __validate_time(self, time):
+        curr_idrac_time, offset = get_current_time(self.idrac)
+        curr_idrac_time = datetime.strptime(curr_idrac_time, TIME_FORMAT_WITH_OFFSET)
+        curr_idrac_time = curr_idrac_time.strftime(TIME_FORMAT_WITHOUT_OFFSET)
+        currtime_obj = datetime.strptime(curr_idrac_time, TIME_FORMAT_WITHOUT_OFFSET)
+        starttime_obj = datetime.strptime(time, TIME_FORMAT_WITHOUT_OFFSET)
+        if starttime_obj < currtime_obj:
+            self.module.exit_json(failed=True, msg=START_TIME)
+        return True
+
+    def __validate_end_time(self, start_time, end_time):
+        starttime_obj = datetime.strptime(start_time, TIME_FORMAT_WITHOUT_OFFSET)
+        endtime_obj = datetime.strptime(end_time, TIME_FORMAT_WITHOUT_OFFSET)
+        if starttime_obj > endtime_obj:
+            self.module.exit_json(failed=True, msg=END_START_TIME.format(end_time, start_time))
+        return True
+
+    def check_diagnostics_jobs(self):
+        res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
+        job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}{JOBS_EXPAND}"
+        job_resp = self.idrac.invoke_request(job_uri, "GET")
+        job_list = job_resp.json_data.get('Members', [])
+        job_id = ""
+        for jb in job_list:
+            if jb.get("JobType") == "RemoteDiagnostics" and jb.get("JobState") in ["Scheduled", "Running", "Starting", "New"]:
+                job_id = jb['Id']
+                job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}/{job_id}"
+                job_details = self.idrac.invoke_request(job_uri, "GET")
+                job_dict = remove_key(job_details.json_data, regex_pattern=ODATA_REGEX)
+                break
+        if self.module.check_mode and job_id:
+            self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
+        if self.module.check_mode and not job_id:
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+        if job_id:
+            self.module.exit_json(msg=ALREADY_RUN_MSG, job_details=job_dict, skipped=True)
 
 
 class ExportDiagnostics:
@@ -386,11 +542,13 @@ class ExportDiagnostics:
         self.module = module
         self.export_url = None
 
-    def execute(self, module):
-        share_type = module.params.get('share_parameters').get('share_type')
+    def execute(self):
         self.__get_export_diagnostics_url()
+        if self.module.check_mode:
+            self.perform_check_mode()
         job_status = {}
         self.__check_file_extension()
+        share_type = self.module.params.get('share_parameters').get('share_type')
         share_type_methods = {
             "local": self.__export_diagnostics_local,
             "http": self.__export_diagnostics_http,
@@ -461,7 +619,7 @@ class ExportDiagnostics:
         if not diagnostics_file_name:
             now = datetime.now()
             hostname = self.module.params.get('idrac_ip')
-            diagnostics_file_name = f"{hostname}_{now.strftime('%Y%m%d_%H%M%S')}.txt"
+            diagnostics_file_name = f"{hostname}_{now.strftime(TIME_FORMAT_FILE)}.txt"
         payload["FileName"] = diagnostics_file_name
         diagnostics_status = self.idrac.invoke_request(self.export_url, "POST", data=payload)
         return diagnostics_status
@@ -477,7 +635,7 @@ class ExportDiagnostics:
         res_uri = validate_and_get_first_resource_id_uri(self.module, self.idrac, MANAGERS_URI)
         job_tracking_uri = export_diagnostics_status.headers.get("Location")
         job_id = job_tracking_uri.split("/")[-1]
-        job_uri = '/'.join([res_uri[0], OEM, MANUFACTURER, JOBS, job_id])
+        job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}/{job_id}"
         job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri)
         job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
         if job_failed:
@@ -497,25 +655,61 @@ class ExportDiagnostics:
             payload["ProxySupport"] = PROXY_SUPPORT[self.module.params.get('share_parameters').get('proxy_support')]
             payload["ProxyType"] = self.module.params.get('share_parameters').get('proxy_type').upper()
             payload["ProxyServer"] = self.module.params.get('share_parameters').get('proxy_server')
-            payload["ProxyPort"] = self.module.params.get('share_parameters').get('proxy_port')
+            payload["ProxyPort"] = str(self.module.params.get('share_parameters').get('proxy_port'))
             if self.module.params.get('share_parameters').get('proxy_username') and self.module.params.get('share_parameters').get('proxy_password'):
                 payload["ProxyUname"] = self.module.params.get('share_parameters').get('proxy_username')
                 payload["ProxyPasswd"] = self.module.params.get('share_parameters').get('proxy_password')
         return payload
 
+    def perform_check_mode(self):
+        try:
+            payload = {}
+            payload['ShareType'] = 'Local'
+            export_status = self.idrac.invoke_request(self.export_url, "POST", data=payload)
+            if export_status.status_code in self.STATUS_SUCCESS:
+                self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+        except HTTPError as err:
+            filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
+            message_details = filter_err.get('error').get('@Message.ExtendedInfo')[0]
+            message_id = message_details.get('MessageId')
+            if 'SYS099' in message_id:
+                self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
+
+
+class RunAndExportDiagnostics:
+
+    def __init__(self, idrac, module):
+        self.run = RunDiagnostics(idrac, module)
+        self.export = ExportDiagnostics(idrac, module)
+
+    def execute(self):
+        msg, job_status = self.run.execute()
+        msg, job_status = self.export.execute()
+        msg = SUCCESS_RUN_AND_EXPORT_MSG
+        return msg, job_status
+
 
 class Diagnostics:
     _diagnostics_classes = {
+        "run": RunDiagnostics,
         "export": ExportDiagnostics,
+        "run_and_export": RunAndExportDiagnostics
     }
 
     @staticmethod
     def diagnostics_operation(idrac, module):
-        diagnostics = next((param for param in ["export"] if module.params[param]), None)
-        if not diagnostics:
+        class_type = None
+        if module.params.get("run") and module.params.get("export"):
+            class_type = "run_and_export"
+        if module.params.get("run"):
+            class_type = "run"
+        if module.params.get("export"):
+            class_type = "export"
+        if class_type:
+            diagnostics_class = Diagnostics._diagnostics_classes.get(class_type)
+            return diagnostics_class(idrac, module)
+        else:
             module.exit_json(msg=NO_OPERATION_SKIP_MSG, skipped=True)
-        diagnostics_class = Diagnostics._diagnostics_classes.get(diagnostics)
-        return diagnostics_class(idrac, module)
 
 
 def main():
@@ -527,20 +721,21 @@ def main():
             ["run", True, ("reboot_type", "run_mode",)],
             ["export", True, ("share_parameters",)]
         ],
-        supports_check_mode=False
+        supports_check_mode=True
     )
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             diagnostics_obj = Diagnostics.diagnostics_operation(idrac, module)
-            if diagnostics_obj:
-                msg, job_status = diagnostics_obj.execute(module)
-                module.exit_json(msg=msg, changed=True, job_details=job_status)
+            msg, job_status = diagnostics_obj.execute()
+            module.exit_json(msg=msg, changed=True, job_details=job_status)
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         message_details = filter_err.get('error').get('@Message.ExtendedInfo')[0]
         message_id = message_details.get('MessageId')
         if 'SYS099' in message_id:
+            module.exit_json(msg=message_details.get('Message'), skipped=True)
+        if 'SYS098' in message_id:
             module.exit_json(msg=message_details.get('Message'), skipped=True)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
@@ -598,7 +793,7 @@ def get_argument_spec():
                     "choices": ['http', 'socks']
                 },
                 "proxy_server": {"type": 'str'},
-                "proxy_port": {"type": 'str', "default": '80'},
+                "proxy_port": {"type": 'int', "default": 80},
                 "proxy_username": {"type": 'str'},
                 "proxy_password": {"type": 'str', "no_log": True}
             },
