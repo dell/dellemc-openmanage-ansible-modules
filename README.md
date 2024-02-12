@@ -25,11 +25,11 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
 ## Supported Platforms
   * iDRAC8 based Dell PowerEdge Servers with firmware versions 2.84.84.84 and above.
   * iDRAC9 based Dell PowerEdge Servers with firmware versions 6.10.80.00 and above.
-  * Dell OpenManage Enterprise versions 3.10.2 and 4.0.0.
+  * Dell OpenManage Enterprise versions 4.0.0 and 4.0.1.
   * Dell OpenManage Enterprise Modular versions 2.10.10 and above.
 
 ## Prerequisites
-  * [Ansible Core >= 2.16.2 and 2.15.8](https://github.com/ansible/ansible)
+  * [Ansible Core >= 2.16.3 and 2.15.9](https://github.com/ansible/ansible)
   * Python >= 3.9.6
   * To run the iDRAC modules, install OpenManage Python Software Development Kit (OMSDK) 
   using either ```pip install omsdk --upgrade``` or ```pip install -r requirements.txt```. 
