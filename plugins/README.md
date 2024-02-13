@@ -28,6 +28,7 @@ Here are the list of modules and module_utils supported by Dell.
     ├── idrac_bios.py
     ├── idrac_boot.py
     ├── idrac_certificates.py
+    ├── idrac_diagnostics.py
     ├── idrac_firmware.py
     ├── idrac_firmware_info.py
     ├── idrac_license.py
