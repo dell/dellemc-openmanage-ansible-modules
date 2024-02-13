@@ -25,7 +25,7 @@
         authentication_protocol: SHA
         privacy_protocol: AES
       tags: molecule-idempotence-notest
-  
+
     - name: Asserting user creation in check mode
       ansible.builtin.assert:
         that: idrac_user_out.msg == "Changes found to commit!"
