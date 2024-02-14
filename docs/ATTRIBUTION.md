@@ -1,4 +1,4 @@
-OpenSource Licenses for Ansible Provider for OpenManage Enterprise
+OpenSource Licenses for Dell OpenManage Ansible Modules
 =======================================================================
 
 ***
