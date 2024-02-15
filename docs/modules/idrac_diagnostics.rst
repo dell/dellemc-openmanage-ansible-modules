@@ -27,13 +27,13 @@ The below requirements are needed on the host that executes this module.
 Parameters
 ----------
 
-  run (optional, bool, True)
+  run (optional, bool, False)
     Run the diagnostics job on iDRAC.
 
     Run the diagnostics job based on the \ :emphasis:`run\_mode`\  and save the report in the internal storage. \ :emphasis:`reboot\_type`\  is applicable.
 
 
-  export (optional, bool, True)
+  export (optional, bool, False)
     Exports the diagnostics information to the given share.
 
     This operation requires \ :emphasis:`share\_parameters`\ .
@@ -249,7 +249,7 @@ Notes
    - This module supports only iDRAC9 and above.
    - This module supports IPv4 and IPv6 addresses.
    - This module supports \ :literal:`check\_mode`\ .
-   - This module requires Dell Diagnostics firmware package to be present on the server.
+   - This module requires 'Dell Diagnostics' firmware package to be present on the server.
    - When \ :emphasis:`share\_type`\  is \ :literal:`local`\  for \ :emphasis:`export`\  operation, job\_details are not displayed.
 
 
@@ -282,7 +282,6 @@ Examples
         password: "password"
         ca_path: "path/to/ca_file"
         run: true
-        export: false
         run_mode: "express"
         reboot_type: "power_cycle"
         scheduled_start_time: 20240101101015
@@ -323,7 +322,6 @@ Examples
         password: "password"
         ca_path: "path/to/ca_file"
         export: true
-        run: false
         share_parameters:
           share_type: "NFS"
           share_name: "/cifsshare/diagnostics_collection_path/"
@@ -337,7 +335,6 @@ Examples
         password: "password"
         ca_path: "path/to/ca_file"
         export: true
-        run: false
         share_parameters:
           share_type: "HTTPS"
           share_name: "/share_path/diagnostics_collection_path"
@@ -360,8 +357,12 @@ msg (always, str, Successfully ran and exported the diagnostics.)
   Status of the diagnostics operation.
 
 
-job_details (For import and export operations, dict, {'ActualRunningStartTime': '2024-01-10T10:14:31', 'ActualRunningStopTime': '2024-01-10T10:26:34', 'CompletionTime': '2024-01-10T10:26:34', 'Description': 'Job Instance', 'EndTime': '2024-01-10T10:30:15', 'Id': 'JID_XXXXXXXXXXXX', 'JobState': 'Completed', 'JobType': 'RemoteDiagnostics', 'Message': 'Job completed successfully.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'SYS018', 'Name': 'Remote Diagnostics', 'PercentComplete': 100, 'StartTime': '2024-01-10T10:12:15', 'TargetSettingsURI': None})
+job_details (For run and export operations, dict, {'ActualRunningStartTime': '2024-01-10T10:14:31', 'ActualRunningStopTime': '2024-01-10T10:26:34', 'CompletionTime': '2024-01-10T10:26:34', 'Description': 'Job Instance', 'EndTime': '2024-01-10T10:30:15', 'Id': 'JID_XXXXXXXXXXXX', 'JobState': 'Completed', 'JobType': 'RemoteDiagnostics', 'Message': 'Job completed successfully.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'SYS018', 'Name': 'Remote Diagnostics', 'PercentComplete': 100, 'StartTime': '2024-01-10T10:12:15', 'TargetSettingsURI': None})
   Returns the output for status of the job.
+
+
+diagnostics_file_path (For export operation, str, /share_path/diagnostics_collection_path/diagnostics.txt)
+  Returns the full path of the diagnostics file.
 
 
 error_info (on HTTP error, dict, {'error': {'code': 'Base.1.12.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information.', '@Message.ExtendedInfo': [{'Message': 'A Remote Diagnostic (ePSA) job already exists.', 'MessageArgs': [], 'MessageArgs@odata.count': 0, 'MessageId': 'IDRAC.2.9.SYS098', 'RelatedProperties': [], 'RelatedProperties@odata.count': 0, 'Resolution': 'A response action is not required if the scheduled start time of the existing Remote Diagnostic (ePSA) job is ok. Else, delete the existing Diagnostics (ePSA) job and recreate another with an appropriate start time.', 'Severity': 'Informational'}]}})

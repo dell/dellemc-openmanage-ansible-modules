@@ -25,7 +25,6 @@
         idrac_password: "idrac_password"
         ca_path: "path/to/ca_file"
         run: true
-        export: false
         run_mode: "express"
         reboot_type: "power_cycle"
         scheduled_start_time: 20240101101015
@@ -69,7 +68,6 @@
         idrac_password: "idrac_password"
         ca_path: "path/to/ca_file"
         export: true
-        run: false
         share_parameters:
           share_type: "NFS"
           share_name: "/cifsshare/diagnostics_collection_path/"
@@ -84,7 +82,6 @@
         idrac_password: "idrac_password"
         ca_path: "path/to/ca_file"
         export: true
-        run: false
         share_parameters:
           share_type: "HTTPS"
           share_name: "/share_path/diagnostics_collection_path"

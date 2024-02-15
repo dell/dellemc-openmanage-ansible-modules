@@ -29,13 +29,13 @@ options:
       - Run the diagnostics job on iDRAC.
       - Run the diagnostics job based on the I(run_mode) and save the report in the internal storage. I(reboot_type) is applicable.
     type: bool
-    default: true
+    default: false
   export:
     description:
       - Exports the diagnostics information to the given share.
       - This operation requires I(share_parameters).
     type: bool
-    default: true
+    default: false
   run_mode:
     description:
       - This option provides the choices to run the diagnostics.
@@ -190,7 +190,7 @@ notes:
     - This module supports only iDRAC9 and above.
     - This module supports IPv4 and IPv6 addresses.
     - This module supports C(check_mode).
-    - This module requires Dell Diagnostics firmware package to be present on the server.
+    - This module requires 'Dell Diagnostics' firmware package to be present on the server.
     - When I(share_type) is C(local) for I(export) operation, job_details are not displayed.
 """
 
@@ -216,7 +216,6 @@ EXAMPLES = r"""
     password: "password"
     ca_path: "path/to/ca_file"
     run: true
-    export: false
     run_mode: "express"
     reboot_type: "power_cycle"
     scheduled_start_time: 20240101101015
@@ -257,7 +256,6 @@ EXAMPLES = r"""
     password: "password"
     ca_path: "path/to/ca_file"
     export: true
-    run: false
     share_parameters:
       share_type: "NFS"
       share_name: "/cifsshare/diagnostics_collection_path/"
@@ -271,7 +269,6 @@ EXAMPLES = r"""
     password: "password"
     ca_path: "path/to/ca_file"
     export: true
-    run: false
     share_parameters:
       share_type: "HTTPS"
       share_name: "/share_path/diagnostics_collection_path"
@@ -295,7 +292,7 @@ msg:
   sample: "Successfully ran and exported the diagnostics."
 job_details:
     description: Returns the output for status of the job.
-    returned: For import and export operations
+    returned: For run and export operations
     type: dict
     sample: {
         "ActualRunningStartTime": "2024-01-10T10:14:31",
@@ -315,6 +312,11 @@ job_details:
         "StartTime": "2024-01-10T10:12:15",
         "TargetSettingsURI": null
     }
+diagnostics_file_path:
+  description: Returns the full path of the diagnostics file.
+  returned: For export operation
+  type: str
+  sample: "/share_path/diagnostics_collection_path/diagnostics.txt"
 error_info:
   description: Details of the HTTP Error.
   returned: on HTTP error
@@ -360,8 +362,10 @@ LC_SERVICE = "DellLCService"
 ACTIONS = "Actions"
 EXPORT = "#DellLCService.ExportePSADiagnosticsResult"
 RUN = "#DellLCService.RunePSADiagnostics"
+TEST_SHARE = "#DellLCService.TestNetworkShare"
 ODATA_REGEX = "(.*?)@odata"
 ODATA = "@odata.id"
+MESSAGE_EXTENDED_INFO = "@Message.ExtendedInfo"
 TIME_FORMAT_FILE = "%Y%m%d_%H%M%S"
 TIME_FORMAT_WITHOUT_OFFSET = "%Y%m%d%H%M%S"
 TIME_FORMAT_WITH_OFFSET = "%Y-%m-%dT%H:%M:%S%z"
@@ -388,15 +392,78 @@ PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_prox
 STATUS_SUCCESS = [200, 202]
 
 
-class RunDiagnostics:
+class Diagnostics:
 
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
+        self.diagnostics_file_path = None
         self.run_url = None
+        self.export_url = None
+        self.share_name = None
+        self.file_name = None
+
+    def execute(self):
+        # To be overridden by the subclasses
+        pass
+
+    def get_payload_details(self):
+        payload = {}
+        payload["ShareType"] = self.module.params.get('share_parameters').get('share_type').upper()
+        payload["IPAddress"] = self.module.params.get('share_parameters').get('ip_address')
+        payload["ShareName"] = self.module.params.get('share_parameters').get('share_name')
+        payload["UserName"] = self.module.params.get('share_parameters').get('username')
+        payload["Password"] = self.module.params.get('share_parameters').get('password')
+        payload["FileName"] = self.module.params.get('share_parameters').get('file_name')
+        payload["IgnoreCertWarning"] = self.module.params.get('share_parameters').get('ignore_certificate_warning').capitalize()
+        if self.module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
+            payload["ProxySupport"] = PROXY_SUPPORT[self.module.params.get('share_parameters').get('proxy_support')]
+            payload["ProxyType"] = self.module.params.get('share_parameters').get('proxy_type').upper()
+            payload["ProxyServer"] = self.module.params.get('share_parameters').get('proxy_server')
+            payload["ProxyPort"] = str(self.module.params.get('share_parameters').get('proxy_port'))
+            if self.module.params.get('share_parameters').get('proxy_username') and self.module.params.get('share_parameters').get('proxy_password'):
+                payload["ProxyUname"] = self.module.params.get('share_parameters').get('proxy_username')
+                payload["ProxyPasswd"] = self.module.params.get('share_parameters').get('proxy_password')
+        return payload
+
+    def test_network_share(self):
+        payload = self.get_payload_details()
+        del payload["FileName"]
+        payload = {key: value for key, value in payload.items() if value is not None}
+        if payload.get("ShareType") == "LOCAL":
+            path = payload.get("ShareName")
+            if not (os.path.exists(path)):
+                self.module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
+            if not os.access(path, os.W_OK):
+                self.module.exit_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path), failed=True)
+        else:
+            try:
+                test_url = self.get_test_network_share_url()
+                self.idrac.invoke_request(test_url, "POST", data=payload)
+            except HTTPError as err:
+                filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
+                message_details = filter_err.get('error').get(MESSAGE_EXTENDED_INFO)[0]
+                message = message_details.get('Message')
+                self.module.exit_json(msg=message, error_info=filter_err, failed=True)
+
+    def get_test_network_share_url(self):
+        uri, error_msg = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, MANAGERS_URI)
+        if error_msg:
+            self.module.exit_json(msg=error_msg, failed=True)
+        resp = get_dynamic_uri(self.idrac, uri)
+        url = resp.get('Links', {}).get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA, {})
+        action_resp = get_dynamic_uri(self.idrac, url)
+        url = action_resp.get(ACTIONS, {}).get(TEST_SHARE, {}).get('target', {})
+        return url
+
+
+class RunDiagnostics(Diagnostics):
 
     def execute(self):
         msg, job_details = None, None
+        if self.module.params.get('export'):
+            self.test_network_share()
         self.__get_run_diagnostics_url()
         self.check_diagnostics_jobs()
         run_diagnostics_status = self.__run_diagnostics()
@@ -526,23 +593,17 @@ class RunDiagnostics:
                 job_dict = remove_key(job_details.json_data, regex_pattern=ODATA_REGEX)
                 break
         if self.module.check_mode and job_id:
-            self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
+            self.module.exit_json(msg=ALREADY_RUN_MSG, job_details=job_dict, skipped=True)
         if self.module.check_mode and not job_id:
             self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         if job_id:
             self.module.exit_json(msg=ALREADY_RUN_MSG, job_details=job_dict, skipped=True)
 
 
-class ExportDiagnostics:
-
-    def __init__(self, idrac, module):
-        self.idrac = idrac
-        self.module = module
-        self.export_url = None
-        self.share_name = None
-        self.file_name = None
+class ExportDiagnostics(Diagnostics):
 
     def execute(self):
+        self.test_network_share()
         self.__get_export_diagnostics_url()
         if self.module.check_mode:
             self.perform_check_mode()
@@ -570,17 +631,12 @@ class ExportDiagnostics:
     def __export_diagnostics_local(self):
         payload = {}
         payload["ShareType"] = "Local"
-        path = self.module.params.get('share_parameters').get('share_name')
-        self.share_name = path
-        if not (os.path.exists(path)):
-            self.module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=path), failed=True)
-        if not os.access(path, os.W_OK):
-            self.module.exit_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path), failed=True)
+        self.share_name = self.module.params.get('share_parameters').get('share_name')
         diagnostics_status = self.__export_diagnostics(payload)
         diagnostics_file_name = payload.get("FileName")
         diagnostics_data = self.idrac.invoke_request(diagnostics_status.headers.get("Location"), "GET")
-        diagnostics_output = [line + "\n" for line in diagnostics_data.body.decode().split("\r\n")]
-        file_name = os.path.join(path, diagnostics_file_name)
+        diagnostics_output = list(diagnostics_data.body.decode().split(os.linesep))
+        file_name = os.path.join(self.share_name, diagnostics_file_name)
         with open(file_name, "w") as fp:
             fp.writelines(diagnostics_output)
         return diagnostics_status
@@ -589,7 +645,7 @@ class ExportDiagnostics:
         payload = self.get_payload_details()
         export_status = self.__export_diagnostics(payload)
         share = self.module.params.get('share_parameters')
-        self.share_name = f"{share.get('share_type')}://{share.get('ip_address')}/{share.get('share_name')}"
+        self.share_name = f"{share.get('share_type')}://{share.get('ip_address')}{share.get('share_name')}"
         return export_status
 
     def __export_diagnostics_cifs(self):
@@ -598,14 +654,14 @@ class ExportDiagnostics:
             payload["Workgroup"] = self.module.params.get('share_parameters').get('workgroup')
         export_status = self.__export_diagnostics(payload)
         share_name = self.module.params.get('share_parameters').get('share_name').replace("\\", "/")
-        self.share_name = f"//{self.module.params.get('share_parameters').get('ip_address')}/{share_name}"
+        self.share_name = f"//{self.module.params.get('share_parameters').get('ip_address')}{share_name}"
         return export_status
 
     def __export_diagnostics_nfs(self):
         payload = self.get_payload_details()
         del payload["UserName"], payload["Password"]
         export_status = self.__export_diagnostics(payload)
-        self.share_name = f"{self.module.params.get('share_parameters').get('ip_address')}:/{self.module.params.get('share_parameters').get('share_name')}"
+        self.share_name = f"{self.module.params.get('share_parameters').get('ip_address')}:{self.module.params.get('share_parameters').get('share_name')}"
         return export_status
 
     def __get_export_diagnostics_url(self):
@@ -644,25 +700,6 @@ class ExportDiagnostics:
             self.module.exit_json(msg=job_dict.get('Message'), failed=True, job_details=job_dict)
         return job_dict
 
-    def get_payload_details(self):
-        payload = {}
-        payload["ShareType"] = self.module.params.get('share_parameters').get('share_type').upper()
-        payload["IPAddress"] = self.module.params.get('share_parameters').get('ip_address')
-        payload["ShareName"] = self.module.params.get('share_parameters').get('share_name')
-        payload["UserName"] = self.module.params.get('share_parameters').get('username')
-        payload["Password"] = self.module.params.get('share_parameters').get('password')
-        payload["FileName"] = self.module.params.get('share_parameters').get('file_name')
-        payload["IgnoreCertWarning"] = self.module.params.get('share_parameters').get('ignore_certificate_warning').capitalize()
-        if self.module.params.get('share_parameters').get('proxy_support') == "parameters_proxy":
-            payload["ProxySupport"] = PROXY_SUPPORT[self.module.params.get('share_parameters').get('proxy_support')]
-            payload["ProxyType"] = self.module.params.get('share_parameters').get('proxy_type').upper()
-            payload["ProxyServer"] = self.module.params.get('share_parameters').get('proxy_server')
-            payload["ProxyPort"] = str(self.module.params.get('share_parameters').get('proxy_port'))
-            if self.module.params.get('share_parameters').get('proxy_username') and self.module.params.get('share_parameters').get('proxy_password'):
-                payload["ProxyUname"] = self.module.params.get('share_parameters').get('proxy_username')
-                payload["ProxyPasswd"] = self.module.params.get('share_parameters').get('proxy_password')
-        return payload
-
     def perform_check_mode(self):
         try:
             payload = {}
@@ -672,7 +709,7 @@ class ExportDiagnostics:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         except HTTPError as err:
             filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
-            message_details = filter_err.get('error').get('@Message.ExtendedInfo')[0]
+            message_details = filter_err.get('error').get(MESSAGE_EXTENDED_INFO)[0]
             message_id = message_details.get('MessageId')
             if 'SYS099' in message_id:
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
@@ -691,7 +728,7 @@ class RunAndExportDiagnostics:
         return msg, job_status, file_path
 
 
-class Diagnostics:
+class DiagnosticsType:
     _diagnostics_classes = {
         "run": RunDiagnostics,
         "export": ExportDiagnostics,
@@ -708,7 +745,7 @@ class Diagnostics:
         elif module.params.get("export"):
             class_type = "export"
         if class_type:
-            diagnostics_class = Diagnostics._diagnostics_classes.get(class_type)
+            diagnostics_class = DiagnosticsType._diagnostics_classes.get(class_type)
             return diagnostics_class(idrac, module)
         else:
             module.exit_json(msg=NO_OPERATION_SKIP_MSG, skipped=True)
@@ -728,14 +765,14 @@ def main():
 
     try:
         with iDRACRedfishAPI(module.params) as idrac:
-            diagnostics_obj = Diagnostics.diagnostics_operation(idrac, module)
+            diagnostics_obj = DiagnosticsType.diagnostics_operation(idrac, module)
             msg, job_status, file_path = diagnostics_obj.execute()
             if file_path is None:
                 module.exit_json(msg=msg, changed=True, job_details=job_status)
             module.exit_json(msg=msg, changed=True, job_details=job_status, diagnostics_file_path=file_path)
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
-        message_details = filter_err.get('error').get('@Message.ExtendedInfo')[0]
+        message_details = filter_err.get('error').get(MESSAGE_EXTENDED_INFO)[0]
         message_id = message_details.get('MessageId')
         if 'SYS099' in message_id:
             module.exit_json(msg=message_details.get('Message'), skipped=True)
@@ -744,15 +781,14 @@ def main():
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (ImportError, ValueError, RuntimeError, SSLValidationError,
-            ConnectionError, KeyError, TypeError, IndexError) as e:
+    except (OSError, ValueError, SSLValidationError, ConnectionError, TypeError) as e:
         module.exit_json(msg=str(e), failed=True)
 
 
 def get_argument_spec():
     return {
-        "run": {"type": 'bool', "default": True},
-        "export": {"type": 'bool', "default": True},
+        "run": {"type": 'bool', "default": False},
+        "export": {"type": 'bool', "default": False},
         "run_mode": {
             "type": 'str',
             "default": 'express',
@@ -769,39 +805,42 @@ def get_argument_spec():
         "job_wait_timeout": {"type": 'int', "default": 1200},
         "share_parameters": {
             "type": 'dict',
-            "required": False,
             "options": {
                 "share_type": {
                     "type": 'str',
                     "default": 'local',
                     "choices": ['local', 'nfs', 'cifs', 'http', 'https']
                 },
-                "file_name": {"type": 'str'},
-                "ip_address": {"type": 'str'},
-                "share_name": {"type": 'str'},
-                "workgroup": {"type": 'str'},
-                "username": {"type": 'str'},
-                "password": {"type": 'str', "no_log": True},
-                "ignore_certificate_warning": {
-                    "type": 'str',
-                    "default": "off",
-                    "choices": ["off", "on"]
-                },
-                "proxy_support": {
-                    "type": 'str',
-                    "default": "off",
-                    "choices": ["off", "default_proxy", "parameters_proxy"]
-                },
                 "proxy_type": {
                     "type": 'str',
                     "default": 'http',
                     "choices": ['http', 'socks']
                 },
-                "proxy_server": {"type": 'str'},
+                "username": {"type": 'str'},
+                "password": {"type": 'str', "no_log": True},
                 "proxy_port": {"type": 'int', "default": 80},
+                "file_name": {"type": 'str'},
+                "ignore_certificate_warning": {
+                    "type": 'str',
+                    "default": "off",
+                    "choices": ["off", "on"]
+                },
+                "ip_address": {"type": 'str'},
+                "proxy_server": {"type": 'str'},
+                "workgroup": {"type": 'str'},
+                "proxy_support": {
+                    "type": 'str',
+                    "default": "off",
+                    "choices": ["off", "default_proxy", "parameters_proxy"]
+                },
+                "share_name": {"type": 'str'},
                 "proxy_username": {"type": 'str'},
                 "proxy_password": {"type": 'str', "no_log": True}
             },
+            "required_together": [
+                ("username", "password"),
+                ("proxy_username", "proxy_password")
+            ],
             "required_if": [
                 ["share_type", "local", ["share_name"]],
                 ["share_type", "nfs", ["ip_address", "share_name"]],
@@ -810,10 +849,6 @@ def get_argument_spec():
                 ["share_type", "https", ["ip_address", "share_name"]],
                 ["proxy_support", "parameters_proxy", ["proxy_server"]]
             ],
-            "required_together": [
-                ("username", "password"),
-                ("proxy_username", "proxy_password")
-            ]
         },
         "resource_id": {"type": 'str'}
     }
