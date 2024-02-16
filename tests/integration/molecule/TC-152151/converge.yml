@@ -156,7 +156,7 @@
       block:
         - name: Fetching all the user info
           ansible.builtin.include_tasks:
-            file: ../resources/idrac_user/get_user.yml
+            file: ../resources/idrac_user/get_user_info.yml
           vars:
             idrac_user_name: "{{ tmp | default(omit) }}"
 

@@ -1,5 +1,5 @@
 ---
-- name: TC-152120
+- name: Ansible -  Role - idrac_user - [Check Mode] [Idempotency] Validate creating a user with all parameters
   hosts: all
   gather_facts: false
   vars:
@@ -34,7 +34,7 @@
 
     - name: Fetching user info in normal mode
       ansible.builtin.include_tasks:
-        file: ../resources/idrac_user/get_user.yml
+        file: ../resources/idrac_user/get_user_info.yml
       when: not ansible_check_mode and idrac_user_out.changed
       tags: molecule-idempotence-notest
 
