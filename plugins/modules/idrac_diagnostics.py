@@ -29,13 +29,11 @@ options:
       - Run the diagnostics job on iDRAC.
       - Run the diagnostics job based on the I(run_mode) and save the report in the internal storage. I(reboot_type) is applicable.
     type: bool
-    default: false
   export:
     description:
       - Exports the diagnostics information to the given share.
       - This operation requires I(share_parameters).
     type: bool
-    default: false
   run_mode:
     description:
       - This option provides the choices to run the diagnostics.
@@ -351,6 +349,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_current_time, get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
 from datetime import datetime
+from ipaddress import ip_address
 
 MANAGERS_URI = "/redfish/v1/Managers"
 
@@ -375,7 +374,7 @@ SUCCESS_RUN_AND_EXPORT_MSG = "Successfully ran and exported the diagnostics."
 RUNNING_RUN_MSG = "Successfully triggered the job to run diagnostics."
 ALREADY_RUN_MSG = "The diagnostics job is already present."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
-NO_OPERATION_SKIP_MSG = "Task is skipped as none of run or export is specified."
+NO_OPERATION_SKIP_MSG = "The operation is skipped."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
                                         "Please check if the directory has appropriate permissions"
 UNSUPPORTED_FIRMWARE_MSG = "iDRAC firmware version is not supported."
@@ -588,9 +587,7 @@ class RunDiagnostics(Diagnostics):
         for jb in job_list:
             if jb.get("JobType") == "RemoteDiagnostics" and jb.get("JobState") in ["Scheduled", "Running", "Starting", "New"]:
                 job_id = jb['Id']
-                job_uri = f"{res_uri[0]}/{OEM}/{MANUFACTURER}/{JOBS}/{job_id}"
-                job_details = self.idrac.invoke_request(job_uri, "GET")
-                job_dict = remove_key(job_details.json_data, regex_pattern=ODATA_REGEX)
+                job_dict = remove_key(jb, regex_pattern=ODATA_REGEX)
                 break
         if self.module.check_mode and job_id:
             self.module.exit_json(msg=ALREADY_RUN_MSG, job_details=job_dict, skipped=True)
@@ -620,9 +617,7 @@ class ExportDiagnostics(Diagnostics):
         if share_type_methods[share_type] != self.__export_diagnostics_local:
             job_status = self.get_job_status(export_diagnostics_status)
         status = export_diagnostics_status.status_code
-        if not self.share_name.endswith("/"):
-            self.share_name = f"{self.share_name}/"
-        diagnostics_file_path = f"{self.share_name}{self.file_name}"
+        diagnostics_file_path = f"{self.share_name}/{self.file_name}"
         if status in STATUS_SUCCESS:
             msg = SUCCESS_EXPORT_MSG
             job_details = job_status
@@ -631,21 +626,26 @@ class ExportDiagnostics(Diagnostics):
     def __export_diagnostics_local(self):
         payload = {}
         payload["ShareType"] = "Local"
-        self.share_name = self.module.params.get('share_parameters').get('share_name')
+        file_path = self.module.params.get('share_parameters').get('share_name')
+        self.share_name = file_path.rstrip("/")
         diagnostics_status = self.__export_diagnostics(payload)
         diagnostics_file_name = payload.get("FileName")
         diagnostics_data = self.idrac.invoke_request(diagnostics_status.headers.get("Location"), "GET")
-        diagnostics_output = list(diagnostics_data.body.decode().split(os.linesep))
-        file_name = os.path.join(self.share_name, diagnostics_file_name)
+        file_name = os.path.join(file_path, diagnostics_file_name)
         with open(file_name, "w") as fp:
-            fp.writelines(diagnostics_output)
+            fp.write(diagnostics_data.body.decode().replace("\r", ""))
         return diagnostics_status
 
     def __export_diagnostics_http(self):
         payload = self.get_payload_details()
         export_status = self.__export_diagnostics(payload)
         share = self.module.params.get('share_parameters')
-        self.share_name = f"{share.get('share_type')}://{share.get('ip_address')}{share.get('share_name')}"
+        ip_obj = ip_address(share.get('ip_address'))
+        if ip_obj.version == 6:
+            ip = f"[{share.get('ip_address')}]"
+        else:
+            ip = share.get('ip_address')
+        self.share_name = f"{share.get('share_type')}://{ip}/{share.get('share_name').strip('/')}"
         return export_status
 
     def __export_diagnostics_cifs(self):
@@ -654,14 +654,15 @@ class ExportDiagnostics(Diagnostics):
             payload["Workgroup"] = self.module.params.get('share_parameters').get('workgroup')
         export_status = self.__export_diagnostics(payload)
         share_name = self.module.params.get('share_parameters').get('share_name').replace("\\", "/")
-        self.share_name = f"//{self.module.params.get('share_parameters').get('ip_address')}{share_name}"
+        self.share_name = f"//{self.module.params.get('share_parameters').get('ip_address')}/{share_name.strip('/')}"
         return export_status
 
     def __export_diagnostics_nfs(self):
         payload = self.get_payload_details()
         del payload["UserName"], payload["Password"]
         export_status = self.__export_diagnostics(payload)
-        self.share_name = f"{self.module.params.get('share_parameters').get('ip_address')}:{self.module.params.get('share_parameters').get('share_name')}"
+        share = self.module.params.get('share_parameters')
+        self.share_name = f"{share.get('ip_address')}:/{share.get('share_name').strip('/')}"
         return export_status
 
     def __get_export_diagnostics_url(self):
@@ -756,6 +757,7 @@ def main():
     specs.update(idrac_auth_params)
     module = AnsibleModule(
         argument_spec=specs,
+        required_one_of=[["run", "export"]],
         required_if=[
             ["run", True, ("reboot_type", "run_mode",)],
             ["export", True, ("share_parameters",)]
@@ -787,8 +789,8 @@ def main():
 
 def get_argument_spec():
     return {
-        "run": {"type": 'bool', "default": False},
-        "export": {"type": 'bool', "default": False},
+        "run": {"type": 'bool'},
+        "export": {"type": 'bool'},
         "run_mode": {
             "type": 'str',
             "default": 'express',

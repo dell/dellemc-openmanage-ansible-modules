@@ -27,13 +27,13 @@ The below requirements are needed on the host that executes this module.
 Parameters
 ----------
 
-  run (optional, bool, False)
+  run (optional, bool, None)
     Run the diagnostics job on iDRAC.
 
     Run the diagnostics job based on the \ :emphasis:`run\_mode`\  and save the report in the internal storage. \ :emphasis:`reboot\_type`\  is applicable.
 
 
-  export (optional, bool, False)
+  export (optional, bool, None)
     Exports the diagnostics information to the given share.
 
     This operation requires \ :emphasis:`share\_parameters`\ .
