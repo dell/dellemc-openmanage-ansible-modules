@@ -255,7 +255,7 @@ EXAMPLES = r"""
     ca_path: "path/to/ca_file"
     export: true
     share_parameters:
-      share_type: "NFS"
+      share_type: "CIFS"
       share_name: "/cifsshare/diagnostics_collection_path/"
       ip_address: "192.168.0.4"
       file_name: "diagnostics.txt"
@@ -380,8 +380,8 @@ INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not
 UNSUPPORTED_FIRMWARE_MSG = "iDRAC firmware version is not supported."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The parameter `job_wait_timeout` value cannot be negative or zero."
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
-START_TIME = "The specified scheduled start time occurs in the past, " \
-             "provide a future time to schedule the start time."
+START_TIME = "The specified scheduled time occurs in the past, " \
+             "provide a future time to schedule the job."
 INVALID_TIME = "The specified date and time `{0}` to schedule the diagnostics is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the diagnostics must be greater than the start time `{1}`."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
@@ -497,8 +497,11 @@ class RunDiagnostics(Diagnostics):
                     payload["ScheduledStartTime"] = start_time
             if self.module.params.get('scheduled_end_time'):
                 end_time = self.__validate_time_format(self.module.params.get('scheduled_end_time'))
-                if self.__validate_time(end_time) and self.__validate_end_time(start_time, end_time):
+                if self.__validate_time(end_time):
                     payload["UntilTime"] = end_time
+            if (self.module.params.get('scheduled_start_time') and self.module.params.get('scheduled_end_time')
+               and self.__validate_end_time(start_time, end_time)):
+                payload["UntilTime"] = end_time
         payload["RebootJobType"] = reboot_job_types.get(reboot_type)
         payload["RunMode"] = run_modes.get(run_mode)
         run_diagnostics_status = self.idrac.invoke_request(self.run_url, "POST", data=payload)
@@ -557,8 +560,7 @@ class RunDiagnostics(Diagnostics):
                 datetime_obj = datetime.strptime(time, TIME_FORMAT_WITHOUT_OFFSET)
             except ValueError:
                 self.module.exit_json(failed=True, msg=INVALID_TIME.format(time))
-        if datetime_obj:
-            formatted_time = datetime_obj.strftime(TIME_FORMAT_WITHOUT_OFFSET)
+        formatted_time = datetime_obj.strftime(TIME_FORMAT_WITHOUT_OFFSET)
         return formatted_time
 
     def __validate_time(self, time):

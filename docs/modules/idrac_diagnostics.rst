@@ -323,7 +323,7 @@ Examples
         ca_path: "path/to/ca_file"
         export: true
         share_parameters:
-          share_type: "NFS"
+          share_type: "CIFS"
           share_name: "/cifsshare/diagnostics_collection_path/"
           ip_address: "192.168.0.4"
           file_name: "diagnostics.txt"
