@@ -16,4 +16,4 @@
         state: present
         user_name: "{{ idrac_user_name }}"
         user_password: "#1234Abc"
-        custom_privilege: 0
+        custom_privilege: 65
