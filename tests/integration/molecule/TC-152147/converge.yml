@@ -17,7 +17,7 @@
         privilege: Operator
         custom_privilege: 1
 
-  tasks:      
+  tasks:
     - name: Fetching user info in normal mode
       ansible.builtin.include_tasks:
         file: ../resources/idrac_user/get_user_info.yml

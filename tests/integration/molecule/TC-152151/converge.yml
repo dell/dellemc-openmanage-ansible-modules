@@ -18,12 +18,13 @@
         user_name: "{{ idrac_user_name }}"
       ignore_errors: true
       ignore_unreachable: true
+      register: idrac_user_fail_case
 
     - name: Asserting for invalid hostname
       ansible.builtin.assert:
         that:
           - idrac_user_out.msg == "<urlopen error [Errno -2] Name or service not known>"
-    
+
     - name: Invalid username value
       ansible.builtin.import_role:
         name: idrac_user
@@ -36,12 +37,13 @@
         user_name: "{{ idrac_user_name }}"
       ignore_errors: true
       ignore_unreachable: true
+      register: idrac_user_fail_case
 
     - name: Asserting for invalid username
       ansible.builtin.assert:
         that:
           - '"HTTP Error 401" in idrac_user_out.msg'
-    
+
     - name: Invalid password value
       ansible.builtin.import_role:
         name: idrac_user
@@ -54,12 +56,13 @@
         user_name: "{{ idrac_user_name }}"
       ignore_errors: true
       ignore_unreachable: true
+      register: idrac_user_fail_case
 
     - name: Asserting for invalid password
       ansible.builtin.assert:
         that:
           - '"HTTP Error 401" in idrac_user_out.msg'
-    
+
     - name: Invalid validate_certs value
       ansible.builtin.import_role:
         name: idrac_user
@@ -72,12 +75,13 @@
         user_name: "{{ idrac_user_name }}"
       ignore_errors: true
       ignore_unreachable: true
+      register: idrac_user_fail_case
 
     - name: Asserting for invalid validate_certs
       ansible.builtin.assert:
         that:
           - '"not a valid boolean" in idrac_user_out.msg'
-    
+
     - name: Invalid ca_path value
       ansible.builtin.import_role:
         name: idrac_user
@@ -90,12 +94,13 @@
         user_name: "{{ idrac_user_name }}"
       ignore_errors: true
       ignore_unreachable: true
+      register: idrac_user_fail_case
 
     - name: Asserting for invalid ca_path
       ansible.builtin.assert:
         that:
           - idrac_user_out.failed # Raising traceback error, can not check message
-    
+
     - name: Invalid username value
       ansible.builtin.import_role:
         name: idrac_user
@@ -108,12 +113,13 @@
         user_name: "12345@Dell"
       ignore_errors: true
       ignore_unreachable: true
+      register: idrac_user_fail_case
 
     - name: Asserting for invalid username
       ansible.builtin.assert:
         that:
           - '"HTTP Error 400" in idrac_user_out.msg'
-    
+
     - name: Delete a idrac_user by giving invalid user_name
       ansible.builtin.import_role:
         name: idrac_user
@@ -126,13 +132,14 @@
         user_name: "12345Dell"
       ignore_errors: true
       ignore_unreachable: true
+      register: idrac_user_fail_case
 
     - name: Asserting for deletion of a idrac_user by giving invalid user_name
       ansible.builtin.assert:
         that:
           - idrac_user_out.msg == "The user account is absent."
 
-    - name: Invalid value for "custom_priviledge" 
+    - name: Invalid value for "custom_priviledge"
       ansible.builtin.import_role:
         name: idrac_user
       vars:
@@ -146,8 +153,9 @@
         custom_privilege: -1
       ignore_errors: true
       ignore_unreachable: true
+      register: idrac_user_fail_case
 
-    - name: Asserting for invalid value for "custom_priviledge" 
+    - name: Asserting for invalid value for "custom_priviledge"
       ansible.builtin.assert:
         that:
           - idrac_user_out.msg == "custom_privilege value should be from 0 to 511."
@@ -172,6 +180,7 @@
             user_name: "{{ idrac_user_name }}_{{ item }}"
           loop: "{{ range(0, max_user | int - user_details.user_info | length + 1) | list }}"
           ignore_errors: true
+          register: idrac_user_fail_case
 
         - name: Asserting for creating more than max user
           ansible.builtin.assert:
@@ -191,3 +200,4 @@
             user_name: "{{ idrac_user_name }}_{{ item }}"
           loop: "{{ range(0, user_details.user_info | length + 1) | list }}"
           ignore_errors: true
+          register: idrac_user_fail_case
