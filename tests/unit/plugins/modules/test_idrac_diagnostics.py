@@ -44,7 +44,7 @@ START_TIME = "The specified scheduled time occurs in the past, " \
 INVALID_TIME = "The specified date and time `{0}` to schedule the diagnostics is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the diagnostics must be greater than the start time `{1}`."
 CHANGES_FOUND_MSG = "Changes found to be applied."
-NO_FILE = "The diagnostics file does not exists."
+NO_FILE = "The diagnostics file does not exist."
 
 PROXY_SERVER = "proxy.example.com"
 PAYLOAD_FUNC = "Diagnostics.get_payload_details"

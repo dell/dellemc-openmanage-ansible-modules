@@ -385,7 +385,7 @@ START_TIME = "The specified scheduled time occurs in the past, " \
 INVALID_TIME = "The specified date and time `{0}` to schedule the diagnostics is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the diagnostics must be greater than the start time `{1}`."
 CHANGES_FOUND_MSG = "Changes found to be applied."
-NO_FILE = "The diagnostics file does not exists."
+NO_FILE = "The diagnostics file does not exist."
 
 PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_proxy": "ParametersProxy"}
 STATUS_SUCCESS = [200, 202]
@@ -725,7 +725,7 @@ class RunAndExportDiagnostics:
         msg, job_status, file_path = self.run.execute()
         if self.module.params.get("job_wait"):
             msg, job_status, file_path = self.export.execute()
-            msg = SUCCESS_RUN_AND_EXPORT_MSG            
+            msg = SUCCESS_RUN_AND_EXPORT_MSG
         return msg, job_status, file_path
 
 
