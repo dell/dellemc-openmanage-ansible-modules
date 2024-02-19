@@ -272,11 +272,11 @@ class TestRunDiagnostics(FakeAnsibleModule):
         obj.status_code = 200
         # Scenario 1: JobState is completed
         job = {"JobState": "Completed"}
-        mocker.patch(MODULE_PATH + "Diagnostics.test_network_share" , return_value=None)
-        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__get_run_diagnostics_url" , return_value=None)
-        mocker.patch(MODULE_PATH + "RunDiagnostics.check_diagnostics_jobs" , return_value=None)
-        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__run_diagnostics" , return_value=obj)
-        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__perform_job_wait" , return_value=job)
+        mocker.patch(MODULE_PATH + "Diagnostics.test_network_share", return_value=None)
+        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__get_run_diagnostics_url", return_value=None)
+        mocker.patch(MODULE_PATH + "RunDiagnostics.check_diagnostics_jobs", return_value=None)
+        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__run_diagnostics", return_value=obj)
+        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__perform_job_wait", return_value=job)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         run_diagnostics_obj = self.module.RunDiagnostics(idrac_connection_diagnostics_mock, f_module)
         msg, job_status, file_path = run_diagnostics_obj.execute()
@@ -287,7 +287,7 @@ class TestRunDiagnostics(FakeAnsibleModule):
         # Scenario 2: JobState is scheduled
         job = {"JobState": "Scheduled"}
         idrac_default_args.update({'export': True})
-        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__perform_job_wait" , return_value=job)
+        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__perform_job_wait", return_value=job)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         run_diagnostics_obj = self.module.RunDiagnostics(idrac_connection_diagnostics_mock, f_module)
         msg, job_status, file_path = run_diagnostics_obj.execute()
@@ -298,18 +298,18 @@ class TestRunDiagnostics(FakeAnsibleModule):
     def test_run_diagnostics(self, idrac_default_args, idrac_connection_diagnostics_mock, mocker):
         obj = MagicMock()
         obj.status_code = 200
-        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__get_run_diagnostics_url" , return_value=API_ONE)
-        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__validate_time_format" , return_value=True)
-        mocker.patch(MODULE_PATH + VALIDATE_TIME_FUNC , return_value=True)
-        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__validate_end_time" , return_value=True)
+        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__get_run_diagnostics_url", return_value=API_ONE)
+        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__validate_time_format", return_value=True)
+        mocker.patch(MODULE_PATH + VALIDATE_TIME_FUNC, return_value=True)
+        mocker.patch(MODULE_PATH + "RunDiagnostics._RunDiagnostics__validate_end_time", return_value=True)
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
 
         # Scenario 1: With start and end time
         run_params = {
             'run_mode': 'express',
-            'reboot_type' : 'power_cycle',
-            'scheduled_start_time' : '20240715235959',
-            'scheduled_end_time' : '20250715235959'
+            'reboot_type': 'power_cycle',
+            'scheduled_start_time': '20240715235959',
+            'scheduled_end_time': '20250715235959'
         }
         idrac_default_args.update(run_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
@@ -320,7 +320,7 @@ class TestRunDiagnostics(FakeAnsibleModule):
         # Scenario 2: Without time
         run_params = {
             'run_mode': 'express',
-            'reboot_type' : 'force'
+            'reboot_type': 'force'
         }
         idrac_default_args.update(run_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
@@ -331,9 +331,9 @@ class TestRunDiagnostics(FakeAnsibleModule):
         # Scenario 3: With start and end time as empty
         run_params = {
             'run_mode': 'express',
-            'reboot_type' : 'power_cycle',
-            'scheduled_start_time' : '',
-            'scheduled_end_time' : ''
+            'reboot_type': 'power_cycle',
+            'scheduled_start_time': '',
+            'scheduled_end_time': ''
         }
         idrac_default_args.update(run_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
@@ -344,10 +344,10 @@ class TestRunDiagnostics(FakeAnsibleModule):
         # Scenario 4: With start time
         run_params = {
             'run_mode': 'express',
-            'reboot_type' : 'power_cycle',
-            'scheduled_start_time' : '20200715235959'
+            'reboot_type': 'power_cycle',
+            'scheduled_start_time': '20200715235959'
         }
-        mocker.patch(MODULE_PATH + VALIDATE_TIME_FUNC , return_value=False)
+        mocker.patch(MODULE_PATH + VALIDATE_TIME_FUNC, return_value=False)
         idrac_default_args.update(run_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         run_diagnostics_obj = self.module.RunDiagnostics(idrac_connection_diagnostics_mock, f_module)
@@ -357,10 +357,10 @@ class TestRunDiagnostics(FakeAnsibleModule):
         # Scenario 5: With end time
         run_params = {
             'run_mode': 'express',
-            'reboot_type' : 'power_cycle',
-            'scheduled_end_time' : '20200715235959'
+            'reboot_type': 'power_cycle',
+            'scheduled_end_time': '20200715235959'
         }
-        mocker.patch(MODULE_PATH + VALIDATE_TIME_FUNC , return_value=False)
+        mocker.patch(MODULE_PATH + VALIDATE_TIME_FUNC, return_value=False)
         idrac_default_args.update(run_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         run_diagnostics_obj = self.module.RunDiagnostics(idrac_connection_diagnostics_mock, f_module)
@@ -395,7 +395,7 @@ class TestRunDiagnostics(FakeAnsibleModule):
 
     def test_check_diagnostics_jobs(self, idrac_default_args, idrac_connection_diagnostics_mock, mocker):
         obj = MagicMock()
-        temp_list = {"Members" : [{"Id": "JID_123", "JobType": "RemoteDiagnostics", "JobState": "New"}]}
+        temp_list = {"Members": [{"Id": "JID_123", "JobType": "RemoteDiagnostics", "JobState": "New"}]}
         obj.json_data = temp_list
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
                      return_value=(REDFISH, None))
@@ -410,7 +410,7 @@ class TestRunDiagnostics(FakeAnsibleModule):
         assert exc.value.args[0] == ALREADY_RUN_MSG
 
         # Scenario 2: Check mode without job id
-        temp_list = {"Members" : [{"Id": "", "JobType": "Test", "JobState": "New"}]}
+        temp_list = {"Members": [{"Id": "", "JobType": "Test", "JobState": "New"}]}
         obj.json_data = temp_list
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=obj)
@@ -421,7 +421,7 @@ class TestRunDiagnostics(FakeAnsibleModule):
         assert exc.value.args[0] == CHANGES_FOUND_MSG
 
         # Scenario 3: Normal mode with job id
-        temp_list = {"Members" : [{"Id": "666", "JobType": "RemoteDiagnostics", "JobState": "New"}]}
+        temp_list = {"Members": [{"Id": "666", "JobType": "RemoteDiagnostics", "JobState": "New"}]}
         obj.json_data = temp_list
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=obj)
@@ -432,7 +432,7 @@ class TestRunDiagnostics(FakeAnsibleModule):
         assert exc.value.args[0] == ALREADY_RUN_MSG
 
         # Scenario 4: Normal mode without job id
-        temp_list = {"Members" : [{"Id": "", "JobType": "RemoteDiagnostics", "JobState": "New"}]}
+        temp_list = {"Members": [{"Id": "", "JobType": "RemoteDiagnostics", "JobState": "New"}]}
         obj.json_data = temp_list
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=obj)
