@@ -190,9 +190,7 @@ class TestDiagnostics(FakeAnsibleModule):
         assert exc.value.args[0] == INVALID_DIRECTORY_MSG.format(path="my_share")
 
         # Scenario 2: ShareType is LOCAL and directory is not writable
-        temp_dir = tempfile.gettempdir()
-        os.chmod(temp_dir, 0o555)
-        payload = {"FileName": DIAGS_FILE_NAME, "ShareType": "HTTP", "ShareName": temp_dir}
+        payload = {"FileName": DIAGS_FILE_NAME, "ShareType": "HTTP", "ShareName": SHARE_NAME}
         mocker.patch(MODULE_PATH + PAYLOAD_FUNC, return_value=payload)
         mocker.patch(MODULE_PATH + "Diagnostics.get_test_network_share_url", return_value=API_ONE)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
