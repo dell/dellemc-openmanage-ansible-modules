@@ -12,8 +12,6 @@ from __future__ import absolute_import, division, print_function
 
 from io import StringIO
 import json
-import tempfile
-import os
 
 import pytest
 from urllib.error import HTTPError, URLError
