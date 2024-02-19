@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.7.0
+# Version 9.0.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -43,8 +43,8 @@ START_TIME = "The specified scheduled time occurs in the past, " \
              "provide a future time to schedule the job."
 INVALID_TIME = "The specified date and time `{0}` to schedule the diagnostics is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the diagnostics must be greater than the start time `{1}`."
-NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
+NO_FILE = "The diagnostics file does not exists."
 
 PROXY_SERVER = "proxy.example.com"
 PAYLOAD_FUNC = "Diagnostics.get_payload_details"
@@ -863,7 +863,7 @@ class TestExportDiagnostics(FakeAnsibleModule):
         json_str = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
             {
                 'MessageId': "SYS099",
-                "Message": NO_CHANGES_FOUND_MSG
+                "Message": NO_FILE
             }
         ]}}))
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
@@ -875,7 +875,7 @@ class TestExportDiagnostics(FakeAnsibleModule):
         export_diagnostics_obj = self.module.ExportDiagnostics(idrac_connection_diagnostics_mock, f_module)
         with pytest.raises(Exception) as exc:
             export_diagnostics_obj.perform_check_mode()
-        assert exc.value.args[0] == NO_CHANGES_FOUND_MSG
+        assert exc.value.args[0] == NO_FILE
 
         # Scenario 4: HTTP Error without message id
         json_str = to_text(json.dumps({"error": {MESSAGE_EXTENDED: [
@@ -926,6 +926,8 @@ class TestRunAndExportDiagnostics(FakeAnsibleModule):
             file_path = SHARE_NAME
             return msg, job_status, file_path
 
+        # Scenario 1: When job wait is true
+        idrac_default_args.update({'job_wait': True})
         obj.execute = run_execute
         mocker.patch(MODULE_PATH + "RunDiagnostics", return_value=obj)
         obj.execute = export_execute
@@ -934,6 +936,21 @@ class TestRunAndExportDiagnostics(FakeAnsibleModule):
         run_and_export_obj = self.module.RunAndExportDiagnostics(idrac_connection_diagnostics_mock, f_module)
         msg, job_status, file_path = run_and_export_obj.execute()
         assert msg == SUCCESS_RUN_AND_EXPORT_MSG
+
+        # Scenario 2: When job wait is false
+        def run_execute():
+            msg = RUNNING_RUN_MSG
+            job_status = "None"
+            file_path = "None"
+            return msg, job_status, file_path
+
+        idrac_default_args.update({'job_wait': False})
+        obj.execute = run_execute
+        mocker.patch(MODULE_PATH + "RunDiagnostics", return_value=obj)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        run_obj = self.module.RunAndExportDiagnostics(idrac_connection_diagnostics_mock, f_module)
+        msg, job_status, file_path = run_obj.execute()
+        assert msg == RUNNING_RUN_MSG
 
 
 class TestDiagnosticsType(FakeAnsibleModule):

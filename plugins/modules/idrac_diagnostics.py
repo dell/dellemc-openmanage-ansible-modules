@@ -72,6 +72,7 @@ options:
     description:
       - Provides the option to wait for job completion.
       - This is applicable when I(run) is C(true) and I(reboot_type) is C(power_cycle).
+      - When I(job_wait) is C(false) and I(export) and I(run) are C(true), only the run operation is triggered.
     type: bool
     default: true
   job_wait_timeout:
@@ -383,8 +384,8 @@ START_TIME = "The specified scheduled time occurs in the past, " \
              "provide a future time to schedule the job."
 INVALID_TIME = "The specified date and time `{0}` to schedule the diagnostics is not valid. Enter a valid date and time."
 END_START_TIME = "The end time `{0}` to schedule the diagnostics must be greater than the start time `{1}`."
-NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 CHANGES_FOUND_MSG = "Changes found to be applied."
+NO_FILE = "The diagnostics file does not exists."
 
 PROXY_SUPPORT = {"off": "Off", "default_proxy": "DefaultProxy", "parameters_proxy": "ParametersProxy"}
 STATUS_SUCCESS = [200, 202]
@@ -710,7 +711,7 @@ class ExportDiagnostics(Diagnostics):
             message_details = filter_err.get('error').get(MESSAGE_EXTENDED_INFO)[0]
             message_id = message_details.get('MessageId')
             if 'SYS099' in message_id:
-                self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
+                self.module.exit_json(msg=NO_FILE, skipped=True)
 
 
 class RunAndExportDiagnostics:
@@ -718,11 +719,13 @@ class RunAndExportDiagnostics:
     def __init__(self, idrac, module):
         self.run = RunDiagnostics(idrac, module)
         self.export = ExportDiagnostics(idrac, module)
+        self.module = module
 
     def execute(self):
         msg, job_status, file_path = self.run.execute()
-        msg, job_status, file_path = self.export.execute()
-        msg = SUCCESS_RUN_AND_EXPORT_MSG
+        if self.module.params.get("job_wait"):
+            msg, job_status, file_path = self.export.execute()
+            msg = SUCCESS_RUN_AND_EXPORT_MSG            
         return msg, job_status, file_path
 
 
@@ -774,7 +777,7 @@ def main():
         message_details = filter_err.get('error').get(MESSAGE_EXTENDED_INFO)[0]
         message_id = message_details.get('MessageId')
         if 'SYS099' in message_id:
-            module.exit_json(msg=message_details.get('Message'), skipped=True)
+            module.exit_json(msg=NO_FILE, skipped=True)
         if 'SYS098' in message_id:
             module.exit_json(msg=message_details.get('Message'), skipped=True)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
