@@ -33,7 +33,7 @@ options:
     description:
       - Exports the diagnostics information to the given share.
       - This operation requires I(share_parameters).
-      - When I(run) is C(true) and I(job_wait) is C(false), only when the run diagnostics job is triggered. I(export) is ignored.
+      - When I(run) is C(true) and I(job_wait) is C(false), only then the run diagnostics job is triggered. I(export) is ignored.
     type: bool
   run_mode:
     description:

@@ -38,7 +38,7 @@ Parameters
 
     This operation requires \ :emphasis:`share\_parameters`\ .
 
-    When \ :emphasis:`run`\  is \ :literal:`true`\  and \ :emphasis:`job\_wait`\  is \ :literal:`false`\ , only when the run diagnostics job is triggered. \ :emphasis:`export`\  is ignored.
+    When \ :emphasis:`run`\  is \ :literal:`true`\  and \ :emphasis:`job\_wait`\  is \ :literal:`false`\ , only then the run diagnostics job is triggered. \ :emphasis:`export`\  is ignored.
 
 
   run_mode (optional, str, express)
