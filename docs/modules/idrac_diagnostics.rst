@@ -38,6 +38,8 @@ Parameters
 
     This operation requires \ :emphasis:`share\_parameters`\ .
 
+    When \ :emphasis:`run`\  is \ :literal:`true`\  and \ :emphasis:`job\_wait`\  is \ :literal:`false`\ , only when the run diagnostics job is triggered. \ :emphasis:`export`\  is ignored.
+
 
   run_mode (optional, str, express)
     This option provides the choices to run the diagnostics.
@@ -83,6 +85,8 @@ Parameters
     Provides the option to wait for job completion.
 
     This is applicable when \ :emphasis:`run`\  is \ :literal:`true`\  and \ :emphasis:`reboot\_type`\  is \ :literal:`power\_cycle`\ .
+
+    This is applicable only to run the diagnostics job.
 
 
   job_wait_timeout (optional, int, 1200)
