@@ -12,6 +12,7 @@ from __future__ import absolute_import, division, print_function
 
 from io import StringIO
 import json
+import tempfile
 
 import pytest
 from urllib.error import HTTPError, URLError
@@ -62,7 +63,8 @@ RUN_URL_MOCK = '/redfish/v1/import_diagnostics'
 API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
 ODATA = "@odata.id"
 DIAGS_FILE_NAME = 'test_diagnostics.txt'
-SHARE_NAME = "/tmp/test"
+SHARE_NAME = tempfile.gettempdir()
+IP = "X.X.X.X"
 HTTPS_PATH = "https://testhost.com"
 HTTP_ERROR = "http error message"
 APPLICATION_JSON = "application/json"
@@ -93,7 +95,7 @@ class TestDiagnostics(FakeAnsibleModule):
         diags_obj = self.module.Diagnostics(idrac_connection_diagnostics_mock, obj)
         # Scenario 1: With all values
         obj.params.get.return_value = {
-            'ip_address': '1.1.1.1',
+            'ip_address': IP,
             'share_name': 'my_share',
             'username': 'my_user',
             'password': 'my_password',
@@ -109,7 +111,7 @@ class TestDiagnostics(FakeAnsibleModule):
         }
         result = diags_obj.get_payload_details()
         expected_result = {
-            'IPAddress': '1.1.1.1',
+            'IPAddress': IP,
             'ShareName': 'my_share',
             'UserName': 'my_user',
             'Password': 'my_password',
@@ -127,7 +129,7 @@ class TestDiagnostics(FakeAnsibleModule):
 
         # Scenario 2: With no proxy values
         obj.params.get.return_value = {
-            'ip_address': '1.1.1.1',
+            'ip_address': IP,
             'share_name': 'my_share',
             'username': 'my_user',
             'password': 'my_password',
@@ -137,7 +139,7 @@ class TestDiagnostics(FakeAnsibleModule):
         }
         result = diags_obj.get_payload_details()
         expected_result = {
-            'IPAddress': '1.1.1.1',
+            'IPAddress': IP,
             'ShareName': 'my_share',
             'UserName': 'my_user',
             'Password': 'my_password',
@@ -149,7 +151,7 @@ class TestDiagnostics(FakeAnsibleModule):
 
         # Scenario 3: With no proxy username and password values
         obj.params.get.return_value = {
-            'ip_address': '1.1.1.1',
+            'ip_address': IP,
             'share_name': 'my_share',
             'username': 'my_user',
             'password': 'my_password',
@@ -163,7 +165,7 @@ class TestDiagnostics(FakeAnsibleModule):
         }
         result = diags_obj.get_payload_details()
         expected_result = {
-            'IPAddress': '1.1.1.1',
+            'IPAddress': IP,
             'ShareName': 'my_share',
             'UserName': 'my_user',
             'Password': 'my_password',
@@ -667,7 +669,7 @@ class TestExportDiagnostics(FakeAnsibleModule):
         # Scenario 1: With ipv4
         export_params = {
             'share_parameters': {
-                'ip_address': '1.1.1.1',
+                'ip_address': IP,
                 'file_name': 'test_diags',
                 'share_type': 'http',
                 'share_name': 'myshare'
@@ -682,7 +684,7 @@ class TestExportDiagnostics(FakeAnsibleModule):
         # Scenario 2: With ipv6
         export_params = {
             'share_parameters': {
-                'ip_address': '2b5b:1e49:8d01:c2ac:fffd:833e:dfee:13a4',
+                'ip_address': 'XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX',
                 'file_name': 'test_diags',
                 'share_type': 'http',
                 'share_name': 'myshare'
@@ -802,7 +804,7 @@ class TestExportDiagnostics(FakeAnsibleModule):
 
         # Scenario 2: Without file name
         export_params = {
-            'idrac_ip': '1.1.1.1',
+            'idrac_ip': IP,
             'share_parameters': {
                 'file_name': ''
             }

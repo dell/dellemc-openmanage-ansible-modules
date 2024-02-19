@@ -347,9 +347,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_current_time, get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
+    config_ipv6, get_current_time, get_dynamic_uri, validate_and_get_first_resource_id_uri, remove_key, idrac_redfish_job_tracking)
 from datetime import datetime
-from ipaddress import ip_address
 
 MANAGERS_URI = "/redfish/v1/Managers"
 
@@ -642,11 +641,7 @@ class ExportDiagnostics(Diagnostics):
         payload = self.get_payload_details()
         export_status = self.__export_diagnostics(payload)
         share = self.module.params.get('share_parameters')
-        ip_obj = ip_address(share.get('ip_address'))
-        if ip_obj.version == 6:
-            ip = f"[{share.get('ip_address')}]"
-        else:
-            ip = share.get('ip_address')
+        ip = config_ipv6(share.get('ip_address'))
         self.share_name = f"{share.get('share_type')}://{ip}/{share.get('share_name').strip('/')}"
         return export_status
 
