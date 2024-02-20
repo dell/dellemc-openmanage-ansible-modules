@@ -1,29 +1,22 @@
 ---
-- name: Fetch user accounts
-  ansible.builtin.uri:
-    url: "https://{{ hostname }}:{{ https_port }}/redfish/\
-    v1/Managers/iDRAC.Embedded.1/Accounts?$expand=*($levels=1)"
-    method: "{{ idrac_user_uri_method }}"
-    user: "{{ username }}"
-    password: "{{ password }}"
-    headers: "{{ idrac_user_uri_headers }}"
-    body_format: "{{ idrac_user_uri_body_format }}"
-    status_code: "{{ idrac_user_uri_status_code }}"
-    return_content: "{{ idrac_user_uri_return_content }}"
-    validate_certs: "{{ validate_certs }}"
-    ca_path: "{{ ca_path | default(omit) }}"
-    force_basic_auth: "{{ idrac_user_force_basic_auth }}"
-    timeout: "{{ https_timeout }}"
-  register: user_accounts_out
-  no_log: true
-
 - name: Set user_name based on new_user_name
   ansible.builtin.set_fact:
     user_name: "{{ new_user_name if new_user_name is defined else user_name }}"
 
+- name: Fetch user account details
+  dellemc.openmanage.idrac_user_info:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username }}"
+    idrac_password: "{{ password }}"
+    idrac_port: "{{ https_port }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    username: "{{ user_name }}"
+    timeout: "{{ https_timeout }}"
+  register: idrac_user_account
+  delegate_to: "{{ idrac_user_delegate }}"
+
 - name: Extracting user account details
   ansible.builtin.set_fact:
-    idrac_user_account: "{{ user_accounts_out.json.Members |
-          selectattr('UserName', 'equalto', user_name) | first |
-          ansible.utils.remove_keys(target=['@odata.context',
-          '@odata.id', '@odata.type', '@odata.etag', 'Keys', 'Links']) }}"
+    idrac_user_account: "{{ idrac_user_account.user_info[0] |
+      ansible.utils.remove_keys('Keys') }}"
