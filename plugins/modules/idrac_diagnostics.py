@@ -466,6 +466,7 @@ class RunDiagnostics(Diagnostics):
             self.test_network_share()
         self.__get_run_diagnostics_url()
         self.check_diagnostics_jobs()
+        self.__validate_job_timeout()
         run_diagnostics_status = self.__run_diagnostics()
         job_status = self.__perform_job_wait(run_diagnostics_status)
         status = run_diagnostics_status.status_code
@@ -530,7 +531,6 @@ class RunDiagnostics(Diagnostics):
         job_dict = {}
         job_wait = self.module.params.get('job_wait')
         job_wait_timeout = self.module.params.get('job_wait_timeout')
-        self.__validate_job_timeout()
         job_tracking_uri = run_diagnostics_status.headers.get("Location")
         if job_tracking_uri:
             job_id = job_tracking_uri.split("/")[-1]
