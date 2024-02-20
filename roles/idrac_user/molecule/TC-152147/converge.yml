@@ -1,5 +1,5 @@
 ---
-- name: Ansible -  Role - idrac_user - Verifying custom_previlege has precedence over previlege parameters
+- name: Verifying custom_previlege has precedence over previlege parameters
   hosts: all
   gather_facts: false
   vars:
@@ -27,6 +27,6 @@
         that:
           - idrac_user_out.msg == "Successfully created user account."
           - "{{ (user_details.user_info | length) != 0 }}"
-          - user_details.user_info[0].UserName == "{{ idrac_user_name }}"
+          - user_details.user_info[0].UserName == idrac_user_account.UserName
           - user_details.user_info[0].RoleId == "ReadOnly"
           - idrac_user_out.changed

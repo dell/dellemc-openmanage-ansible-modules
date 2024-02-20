@@ -1,9 +1,10 @@
 ---
-- name: Ansible -  Role - idrac_user - [Check Mode] [Idempotency] Validate modifying a user with all parameters
+- name: Validate modifying a user with all parameters
   hosts: all
   gather_facts: false
   vars:
     idrac_user_name: "moleculeTest"
+    idem_msg: "Requested changes are already present in the user slot."
   tasks:
     - name: Modify iDRAC user with all parameters
       ansible.builtin.import_role:
@@ -41,7 +42,7 @@
         that:
           - idrac_user_out.msg == "Successfully updated user account."
           - "{{ (user_details.user_info | length) != 0 }}"
-          - user_details.user_info[0].UserName == "{{ idrac_user_name }}"
+          - user_details.user_info[0].UserName == idrac_user_account.UserName
           - user_details.user_info[0].RoleId == "Operator"
       when: not ansible_check_mode and idrac_user_out.changed
       tags: molecule-idempotence-notest
@@ -49,5 +50,5 @@
     - name: Asserting user creation in Idempotency mode
       ansible.builtin.assert:
         that:
-          - idrac_user_out.msg == "Requested changes are already present in the user slot."
+          - idrac_user_out.msg == idem_msg
       when: not ansible_check_mode and not idrac_user_out.changed

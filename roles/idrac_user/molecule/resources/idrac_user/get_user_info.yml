@@ -1,3 +1,4 @@
+---
 - name: Fetching user info
   dellemc.openmanage.idrac_user_info:
     idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"

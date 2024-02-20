@@ -1,5 +1,5 @@
 ---
-- name: TC-152151 - Ansible - Role - idrac_user - Validate proper error message is shown for all negative scenarios
+- name: TC-152151 - Validate all negative scenarios
   hosts: all
   gather_facts: false
   vars:
@@ -23,7 +23,8 @@
     - name: Asserting for invalid hostname
       ansible.builtin.assert:
         that:
-          - idrac_user_out.msg == "<urlopen error [Errno -2] Name or service not known>"
+          - idrac_user_out.msg == 
+          "<urlopen error [Errno -2] Name or service not known>"
 
     - name: Invalid username value
       ansible.builtin.import_role:
@@ -99,7 +100,7 @@
     - name: Asserting for invalid ca_path
       ansible.builtin.assert:
         that:
-          - idrac_user_out.failed # Raising traceback error, can not check message
+          - idrac_user_out.failed
 
     - name: Invalid username value
       ansible.builtin.import_role:
@@ -158,7 +159,8 @@
     - name: Asserting for invalid value for "custom_priviledge"
       ansible.builtin.assert:
         that:
-          - idrac_user_out.msg == "custom_privilege value should be from 0 to 511."
+          - idrac_user_out.msg == 
+          "custom_privilege value should be from 0 to 511."
 
     - name: Block for testing max user
       block:
@@ -178,14 +180,16 @@
             validate_certs: false
             state: present
             user_name: "{{ idrac_user_name }}_{{ item }}"
-          loop: "{{ range(0, max_user | int - user_details.user_info | length + 1) | list }}"
+          loop: "{{ range(0, max_user | int - user_details.user_info | length 
+                + 1) | list }}"
           ignore_errors: true
           register: idrac_user_fail_case
 
         - name: Asserting for creating more than max user
           ansible.builtin.assert:
             that:
-              - idrac_user_out.msg == "Maximum number of users reached. Delete a user account and retry the operation."
+              - idrac_user_out.msg == 
+              "Maximum number of users reached. Delete a user account and retry the operation."
 
       always:
         - name: Deleting the user

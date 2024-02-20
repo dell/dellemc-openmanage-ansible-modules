@@ -1,5 +1,5 @@
 ---
-- name: Ansible -  Role - idrac_user - [Check Mode] [Idempotency] Validate deleting a user
+- name: Validate deleting a user
   hosts: all
   gather_facts: false
   vars:
@@ -32,7 +32,7 @@
 
     - name: Extracting username
       ansible.builtin.set_fact:
-        username_list: "{{ user_details.user_info | map(attribute='UserName') }}"
+        user_list: "{{ user_details.user_info | map(attribute='UserName') }}"
       when: not ansible_check_mode and idrac_user_out.changed
       tags: molecule-idempotence-notest
 
@@ -40,7 +40,7 @@
       ansible.builtin.assert:
         that:
           - idrac_user_out.msg == "Successfully deleted user account."
-          - "{{ idrac_user_name not in username_list }}"
+          - "{{ idrac_user_name not in user_list }}"
       when: not ansible_check_mode and idrac_user_out.changed
       tags: molecule-idempotence-notest
 
