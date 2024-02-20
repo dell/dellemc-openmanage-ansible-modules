@@ -88,13 +88,9 @@
       register: response_power_supply
       no_log: true
 
-    - name: Set query
-      ansible.builtin.set_fact:
-        jq: "[*].Id"
-
     - name: Get Power Supply Metrics ids
       ansible.builtin.set_fact:
-        psu_ids: "{{ power_result.json.Members | json_query(jq) }}"
+        psu_ids: "{{ power_result.json.Members | map(attribute='Id') | list }}"
 
     - name: Call assertion for Power metrics
       ansible.builtin.include_tasks: ../../tests/asserts/psmetrics_assert.yml
