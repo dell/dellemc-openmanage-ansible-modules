@@ -1,8 +1,19 @@
 ---
 - name: Converge
   hosts: all
+  vars:
+    share_input: &share_input
+      share_name: "{{ lookup('env', 'NFS_URL') }}"
+      scp_file: "{{ lookup('env', 'nfs_filename') }}"
   gather_facts: false
   tasks:
+    - name: "Pre-requisites"
+      ansible.builtin.include_tasks:
+        file: "../resources/tests/export.yml"
+      vars:
+        _share_parameters:
+          <<: *share_input
+      tags: molecule-idempotence-notest
 
     - name: "Importing SCP from NFS"
       ansible.builtin.import_role:
@@ -13,8 +24,7 @@
         password: "{{ lookup('env', 'PASSWORD') }}"
         validate_certs: false
         share_parameters:
-          share_name: "{{ lookup('env', 'NFS_URL') }}"
-          scp_file: "{{ lookup('env', 'nfs_filename') }}"
+          <<: *share_input
         shutdown_type: 'Forced'
         end_host_power_state: 'On'
       when: not ansible_check_mode
