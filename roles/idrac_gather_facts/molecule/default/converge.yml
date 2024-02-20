@@ -68,10 +68,8 @@
     - name: Response filter
       ansible.builtin.set_fact:
         api_response:
-          "{{ system_result.json | json_query(jquery) | combine(os_result.json.Attributes) |
+          "{{ system_result.json.Oem.Dell.DellSystem | combine(os_result.json.Attributes) |
           ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type']) }}"
-      vars:
-        jquery: "Oem.Dell.DellSystem"
 
     - name: Set the keys diff
       ansible.builtin.set_fact:
