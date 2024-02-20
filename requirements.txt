@@ -1,3 +1,2 @@
 omsdk
 netaddr>=0.7.19
-jmespath
