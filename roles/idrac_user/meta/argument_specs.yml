@@ -1,0 +1,170 @@
+---
+argument_specs:
+  main:
+    version_added: "9.0.0"
+    short_description: Role to manage local users for iDRAC.
+    description:
+      - Role to manage manage local users for iDRACs
+        (iDRAC8 and iDRAC9 only) for Dell PowerEdge servers.
+    options:
+      hostname:
+        required: true
+        type: str
+        description: IPv4, IPv6 Address or hostname of the iDRAC.
+      username:
+        type: str
+        description: iDRAC username with 'Administrator' privilege.
+      password:
+        type: str
+        description: iDRAC user password.
+      https_port:
+        type: int
+        description: iDRAC port.
+        default: 443
+      validate_certs:
+        description:
+          - If C(false), the SSL certificates will not be validated.
+          - Configure C(false) only on personally controlled sites
+            where self-signed certificates are used.
+        type: bool
+        default: true
+      ca_path:
+        description:
+          - The Privacy Enhanced Mail (PEM) file that contains a CA
+            certificate to be used for the validation.
+        type: path
+      https_timeout:
+        description: The HTTPS socket level timeout in seconds.
+        type: int
+        default: 30
+      state:
+        description:
+          - Select C(present) to create or modify a user account.
+          - Select C(absent) to remove a user account.
+        type: str
+        default: present
+        choices:
+          [
+            "present",
+            "absent"
+          ]
+      user_name:
+        description: Provide username of the iDRAC user account that
+          is created, deleted, or modified.
+        type: str
+        required: true
+      user_password:
+        description:
+          - Password for the iDRAC user account that is created,
+            or modified. The password can be changed when the user
+            account is modified.
+          - To ensure security, the I(user_password) must be at least eight
+            characters long and must contain lowercase and upper-case
+            characters, numbers, and special characters.
+        type: str
+      new_user_name:
+        description: Provide the I(user_name) for the iDRAC user
+          account that is modified.
+        type: str
+      privilege:
+        description:
+          - Following are the role-based privileges.
+          - A user with C(Administrator) privilege can log in to iDRAC,
+            and then configure iDRAC, configure users, clear logs, control
+            and configure system, access virtual console, access virtual
+            media, test alerts, and execute debug commands.
+          - A user with C(Operator) privilege can log in to iDRAC, and then
+            configure iDRAC, control and configure system, access virtual
+            console, access virtual media, and execute debug commands.
+          - A user with C(ReadOnly) privilege can only log in to iDRAC.
+          - A user with C(None), no privileges assigned.
+          - Will be ignored, if I(custom_privilege) parameter is provided.
+        type: str
+        choices:
+          [
+            "Administrator",
+            "ReadOnly",
+            "Operator",
+            "None"
+          ]
+      custom_privilege:
+        description:
+          - Provide the custom role-based authority privileges allowed
+            for the user .
+          - To create a custom privilege, add up the privilege decimal
+            values as defined below.
+            Login - 1
+            Configure - 2
+            Configure Users - 4
+            Logs - 8
+            System Control - 16
+            Access Virtual Console - 32
+            Access Virtual Media - 64
+            System Operations - 128
+            Debug - 256
+           - The value has to be in the range 0-511.
+        type: int
+      ipmi_lan_privilege:
+        description: The Intelligent Platform Management
+         Interface LAN privilege level assigned to the user.
+        type: str
+        choices:
+          [
+            "Administrator",
+            "Operator",
+            "User",
+            "No Access"
+          ]
+      ipmi_serial_privilege:
+        description:
+          - The Intelligent Platform Management Interface Serial Port
+            privilege level assigned to the user.
+          - This option is only applicable for rack and tower servers.
+        type: str
+        choices:
+          [
+            "Administrator",
+            "Operator",
+            "User",
+            "No Access"
+          ]
+      enable:
+        description: Provide the option to enable or disable a user
+         from logging in to iDRAC.
+        type: bool
+      sol_enable:
+        description: Enables Serial Over Lan (SOL) for an iDRAC user.
+        type: bool
+      protocol_enable:
+        description: Enables SNMPv3 protocol for the iDRAC user.
+        type: bool
+      authentication_protocol:
+        description:
+          - This option allows to configure one of the following
+            authentication protocol types to authenticate the iDRAC user.
+          - Secure Hash Algorithm C(SHA).
+          - Message Digest 5 C(MD5).
+          - If C(None) is selected, then the authentication protocol
+            is not configured.
+        type: str
+        choices:
+          [
+            "None",
+            "SHA",
+            "MD5"
+          ]
+      privacy_protocol:
+        description:
+          - This option allows to configure one of the following
+            privacy encryption protocols for the iDRAC user.
+          - Data Encryption Standard C(DES).
+          - Advanced Encryption Standard C(AES).
+          - If C(None) is selected, then the privacy protocol =
+            is not configured.
+        type: str
+        choices:
+          [
+            "None",
+            "DES",
+            "AES"
+          ]
