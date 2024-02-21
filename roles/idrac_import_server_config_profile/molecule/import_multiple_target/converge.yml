@@ -1,9 +1,13 @@
 ---
 - name: Converge
   hosts: all
+  vars:
+    _target: ['NIC', 'IDRAC']
+    share_input: &share_input
+      share_name: "{{ lookup('env', 'NFS_URL') }}"
+      scp_file: "{{ lookup('env', 'nfs_filename') }}"
   gather_facts: false
   tasks:
-
     - name: "Importing SCP from NFS with multiple components"
       ansible.builtin.import_role:
         name: idrac_import_server_config_profile
@@ -12,12 +16,9 @@
         username: "{{ lookup('env', 'USERNAME') }}"
         password: "{{ lookup('env', 'PASSWORD') }}"
         validate_certs: false
-        target:
-          - 'NIC'
-          - 'IDRAC'
+        target: "{{ _target }}"
         share_parameters:
-          share_name: "{{ lookup('env', 'NFS_URL') }}"
-          scp_file: "{{ lookup('env', 'nfs_filename') }}"
+          <<: *share_input
         shutdown_type: 'Forced'
         end_host_power_state: 'On'
       when: not ansible_check_mode
