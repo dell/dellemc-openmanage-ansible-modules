@@ -1,0 +1,29 @@
+---
+- name: Create or modify a iDRAC user
+  dellemc.openmanage.idrac_user:
+    idrac_ip: "{{ hostname }}"
+    idrac_user: "{{ username | default(omit) }}"
+    idrac_password: "{{ password | default(omit) }}"
+    idrac_port: "{{ https_port }}"
+    ca_path: "{{ ca_path | default(omit) }}"
+    validate_certs: "{{ validate_certs }}"
+    state: "{{ state }}"
+    user_name: "{{ user_name }}"
+    user_password: "{{ user_password | default(omit) }}"
+    new_user_name: "{{ new_user_name | default(omit) }}"
+    privilege: "{{ privilege | default(omit) }}"
+    custom_privilege: "{{ custom_privilege | default(omit) }}"
+    ipmi_lan_privilege: "{{ ipmi_lan_privilege | default(omit) }}"
+    ipmi_serial_privilege: "{{ ipmi_serial_privilege | default(omit) }}"
+    enable: "{{ enable | default(omit) }}"
+    sol_enable: "{{ sol_enable | default(omit) }}"
+    protocol_enable: "{{ protocol_enable | default(omit) }}"
+    authentication_protocol: "{{ authentication_protocol | default(omit) }}"
+    privacy_protocol: "{{ privacy_protocol | default(omit) }}"
+    timeout: "{{ https_timeout }}"
+  register: idrac_user_out
+  delegate_to: "{{ idrac_user_delegate }}"
+
+- name: Fetch user account information
+  ansible.builtin.include_tasks: get_user.yml
+  when: idrac_user_out.changed and not ansible_check_mode

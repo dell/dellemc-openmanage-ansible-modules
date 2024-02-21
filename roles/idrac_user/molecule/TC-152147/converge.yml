@@ -1,0 +1,32 @@
+---
+- name: Verifying custom_previlege has precedence over previlege parameters
+  hosts: all
+  gather_facts: false
+  vars:
+    idrac_user_name: "moleculeTest"
+  roles:
+    - role: idrac_user
+      vars:
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
+        validate_certs: false
+        state: present
+        user_name: "{{ idrac_user_name }}"
+        user_password: '#testABCdef1234!'
+        privilege: Operator
+        custom_privilege: 1
+
+  tasks:
+    - name: Fetching user info in normal mode
+      ansible.builtin.include_tasks:
+        file: ../resources/idrac_user/get_user_info.yml
+
+    - name: Asserting user creation in normal mode
+      ansible.builtin.assert:
+        that:
+          - idrac_user_out.msg == "Successfully created user account."
+          - "{{ (user_details.user_info | length) != 0 }}"
+          - user_details.user_info[0].UserName == idrac_user_account.UserName
+          - user_details.user_info[0].RoleId == "ReadOnly"
+          - idrac_user_out.changed
