@@ -723,20 +723,15 @@ def export_scp_redfish(module, idrac):
     share, scp_file_name_format = get_scp_share_details(module)
     scp_components = ",".join(module.params["scp_components"])
     include_in_export = IN_EXPORTS[module.params["include_in_export"]]
+    scp_response = idrac.export_scp(export_format=module.params["export_format"],
+                                    export_use=module.params["export_use"],
+                                    target=scp_components, include_in_export=include_in_export,
+                                    job_wait=False, share=share, )  # Assigning it as false because job tracking is done in idrac_redfish.py as well.
     if share["share_type"] == "LOCAL":
-        scp_response = idrac.export_scp(export_format=module.params["export_format"],
-                                        export_use=module.params["export_use"],
-                                        target=scp_components, include_in_export=include_in_export,
-                                        job_wait=False, share=share, )
         scp_response = wait_for_response(scp_response, module, share, idrac)
-    else:
-        scp_response = idrac.export_scp(export_format=module.params["export_format"],
-                                        export_use=module.params["export_use"],
-                                        target=scp_components, include_in_export=include_in_export,
-                                        job_wait=False, share=share, )  # Assigning it as false because job tracking is done in idrac_redfish.py as well.
-        scp_response = wait_for_job_tracking_redfish(
-            module, idrac, scp_response
-        )
+    scp_response = wait_for_job_tracking_redfish(
+        module, idrac, scp_response
+    )
     scp_response = response_format_change(scp_response, module.params, scp_file_name_format)
     exit_on_failure(module, scp_response, command)
     return scp_response
@@ -753,14 +748,6 @@ def wait_for_response(scp_resp, module, share, idrac):
         else:
             wait_resp_value = wait_resp.decode("utf-8")
             file_obj.write(wait_resp_value)
-    if module.params["job_wait"]:
-        try:
-            # try the default job URI
-            scp_resp = idrac.invoke_request(job_uri, "GET")
-        except HTTPError:
-            # if the default job URI raises an HTTPError exception, try the legacy jobs URI
-            job_uri = iDRAC_JOB_URI.format(job_id=job_id)
-            scp_resp = idrac.invoke_request(job_uri, "GET")
     return scp_resp
 
 
