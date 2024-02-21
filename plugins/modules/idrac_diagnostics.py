@@ -617,7 +617,7 @@ class ExportDiagnostics(Diagnostics):
             "nfs": self.__export_diagnostics_nfs
         }
         export_diagnostics_status = share_type_methods[share_type]()
-        if share_type_methods[share_type] != self.__export_diagnostics_local:
+        if share_type != "local":
             job_status = self.get_job_status(export_diagnostics_status)
         status = export_diagnostics_status.status_code
         diagnostics_file_path = f"{self.share_name}/{self.file_name}"
@@ -683,6 +683,8 @@ class ExportDiagnostics(Diagnostics):
         if not diagnostics_file_name:
             now = datetime.now()
             hostname = self.module.params.get('idrac_ip')
+            hostname = self.expand_ipv6(hostname)
+            hostname = hostname.replace(":", ".")
             diagnostics_file_name = f"{hostname}_{now.strftime(TIME_FORMAT_FILE)}.txt"
         payload["FileName"] = diagnostics_file_name
         self.file_name = diagnostics_file_name
@@ -713,6 +715,17 @@ class ExportDiagnostics(Diagnostics):
             message_id = message_details.get('MessageId')
             if 'SYS099' in message_id:
                 self.module.exit_json(msg=NO_FILE, skipped=True)
+
+    def expand_ipv6(self, ip):
+        sections = ip.split(':')
+        num_sections = len(sections)
+        double_colon_index = sections.index('') if '' in sections else -1
+        if double_colon_index != -1:
+            missing_sections = 8 - num_sections + 1
+            sections[double_colon_index:double_colon_index + 1] = ['0000'] * missing_sections
+        sections = [section.zfill(4) for section in sections]
+        expanded_ip = ':'.join(sections)
+        return expanded_ip
 
 
 class RunAndExportDiagnostics:
