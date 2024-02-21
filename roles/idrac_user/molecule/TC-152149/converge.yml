@@ -1,5 +1,5 @@
 ---
-- name: Validate creating a user with minimum required parameters
+- name: Validate creating a user with minimum required parameters with env
   hosts: all
   gather_facts: false
   vars:
@@ -11,8 +11,6 @@
         name: idrac_user
       vars:
         hostname: "{{ lookup('env', 'IDRAC_IP') }}"
-        username: "{{ lookup('env', 'IDRAC_USER') }}"
-        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         state: present
         user_name: "{{ idrac_user_name }}"
