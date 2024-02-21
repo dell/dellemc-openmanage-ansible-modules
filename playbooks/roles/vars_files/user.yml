@@ -1,0 +1,15 @@
+---
+# Role idrac_user Vars
+user_name: test_user
+state: present
+new_user_name: test_user_updated
+user_password: password123
+privilege: Administrator
+ipmi_lan_privilege: No Access
+ipmi_serial_privilege: Administrator
+enable: true
+sol_enable: true
+protocol_enable: true
+authentication_protocol: SHA
+privacy_protocol: AES
+custom_privilege: 511

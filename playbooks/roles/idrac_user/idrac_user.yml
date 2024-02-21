@@ -1,0 +1,9 @@
+---
+- name: Idrac user Configurations
+  hosts: idrac
+  gather_facts: false
+  vars_files:
+    - ../vars_files/credentials.yml
+    - ../vars_files/user.yml
+  roles:
+    - dellemc.openmanage.idrac_user
