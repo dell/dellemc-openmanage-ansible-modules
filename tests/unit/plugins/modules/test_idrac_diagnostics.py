@@ -914,12 +914,6 @@ class TestRunAndExportDiagnostics(FakeAnsibleModule):
         obj = MagicMock()
         obj.status_code = 200
 
-        def run_execute():
-            msg = SUCCESS_RUN_MSG
-            job_status = "None"
-            file_path = "None"
-            return msg, job_status, file_path
-
         def export_execute():
             msg = SUCCESS_EXPORT_MSG
             job_status = "None"
@@ -928,7 +922,6 @@ class TestRunAndExportDiagnostics(FakeAnsibleModule):
 
         # Scenario 1: When job wait is true
         idrac_default_args.update({'job_wait': True})
-        obj.execute = run_execute
         mocker.patch(MODULE_PATH + "RunDiagnostics", return_value=obj)
         obj.execute = export_execute
         mocker.patch(MODULE_PATH + "ExportDiagnostics", return_value=obj)
