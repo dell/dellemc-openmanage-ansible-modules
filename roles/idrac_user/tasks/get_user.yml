@@ -1,7 +1,7 @@
 ---
 - name: Set user_name based on new_user_name
   ansible.builtin.set_fact:
-    user_name: "{{ new_user_name if new_user_name is defined else user_name }}"
+    idrac_user_present_name: "{{ new_user_name if new_user_name is defined else user_name }}"
 
 - name: Fetch user account details
   dellemc.openmanage.idrac_user_info:
@@ -11,7 +11,7 @@
     idrac_port: "{{ https_port }}"
     ca_path: "{{ ca_path | default(omit) }}"
     validate_certs: "{{ validate_certs }}"
-    username: "{{ user_name }}"
+    username: "{{ idrac_user_present_name }}"
     timeout: "{{ https_timeout }}"
   register: idrac_user_account
   delegate_to: "{{ idrac_user_delegate }}"
