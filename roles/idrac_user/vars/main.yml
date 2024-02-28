@@ -1,0 +1,12 @@
+---
+# vars file for idrac_user
+idrac_user_delegate:
+  "{{ lookup('ansible.builtin.env', 'RUNON', default='localhost') }}"
+idrac_user_uri_headers:
+  Accept: "application/json"
+  Content-Type: "application/json"
+idrac_user_uri_body_format: "json"
+idrac_user_uri_status_code: 200
+idrac_user_uri_return_content: true
+idrac_user_force_basic_auth: true
+idrac_user_uri_method: GET

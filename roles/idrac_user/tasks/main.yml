@@ -1,0 +1,10 @@
+---
+# tasks file for idrac_user
+
+- name: Create or modify user
+  ansible.builtin.include_tasks: present.yml
+  when: state == "present"
+
+- name: Delete user
+  ansible.builtin.include_tasks: absent.yml
+  when: state == "absent"
