@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 9.1.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -122,9 +122,11 @@ options:
     choices: [None, Fast]
 
 requirements:
-  - "omsdk >= 1.2.488"
   - "python >= 3.9.6"
-author: "Felix Stephen (@felixs88)"
+author: 
+  - "Felix Stephen (@felixs88)"
+  - "Kritika Bhateja (@Kritika-Bhateja-03)"
+  - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
@@ -134,7 +136,7 @@ notes:
 EXAMPLES = r'''
 ---
 - name: Create single volume
-  dellemc.openmanage.dellemc_idrac_storage_volume:
+  dellemc.openmanage.idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -146,7 +148,7 @@ EXAMPLES = r'''
         location: [5]
 
 - name: Create multiple volume
-  dellemc.openmanage.dellemc_idrac_storage_volume:
+  dellemc.openmanage.idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -182,7 +184,7 @@ EXAMPLES = r'''
         raid_init_operation: "None"
 
 - name: View all volume details
-  dellemc.openmanage.dellemc_idrac_storage_volume:
+  dellemc.openmanage.idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -190,7 +192,7 @@ EXAMPLES = r'''
     state: "view"
 
 - name: View specific volume details
-  dellemc.openmanage.dellemc_idrac_storage_volume:
+  dellemc.openmanage.idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -200,7 +202,7 @@ EXAMPLES = r'''
     volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
 
 - name: Delete single volume
-  dellemc.openmanage.dellemc_idrac_storage_volume:
+  dellemc.openmanage.idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -210,7 +212,7 @@ EXAMPLES = r'''
       - name: "volume_1"
 
 - name: Delete multiple volume
-  dellemc.openmanage.dellemc_idrac_storage_volume:
+  dellemc.openmanage.idrac_storage_volume:
     idrac_ip: "192.168.0.1"
     idrac_user: "username"
     idrac_password: "password"
@@ -248,63 +250,49 @@ storage_status:
     }
 '''
 
-
-import os
-import tempfile
-import copy
-from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACConnection, idrac_auth_params
-from ansible_collections.dellemc.openmanage.plugins.module_utils.raid_helper import Controller
+import json
+import time
+from urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, check_specified_identifier_exists_in_the_system)
 
 
-def error_handling_for_negative_num(option, val):
-    return "{0} cannot be a negative number or zero,got {1}".format(option, val)
+SYSTEMS_URI = "/redfish/v1/Systems"
+CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
+SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volume operation"
+DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller Id: {controller_id}."
+DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}"
 
 
-def _validate_options(options):
-    if options['state'] == "create":
-        if options["controller_id"] is None or options["controller_id"] == "":
-            raise ValueError('Controller ID is required.')
-        capacity = options.get("capacity")
-        if capacity is not None:
-            size_check = float(capacity)
-            if size_check <= 0:
-                raise ValueError(error_handling_for_negative_num("capacity", capacity))
-        stripe_size = options.get('stripe_size')
-        if stripe_size is not None:
-            stripe_size_check = int(stripe_size)
-            if stripe_size_check <= 0:
-                raise ValueError(error_handling_for_negative_num("stripe_size", stripe_size))
-        # validating for each vd options
-        if options['volumes'] is not None:
-            for each in options['volumes']:
-                drives = each.get("drives")
+class StorageDataAndValidation:
+    def __init__(self, idrac, module):
+        self.module = module
+        self.idrac = idrac
+        self.controller_id = self.module.params.get("controller_id")
+
+    def fetch_storage_data(self):
+        storage_info = {}
+        storage_controllers = self.fetch_controllers_uri()
+        controllers_details_uri = (
+            f"{storage_controllers['@odata.id']}?$expand=*($levels=1)"
+        )
+        controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
+        for member in controllers_list['Members']:
+            controllers = member.get("Controllers")
+            if controllers:
+                controller_name = (controllers["@odata.id"].split("/")[-2])
+                storage_info[controller_name] = {}
+                drives = [
+                    drive['@odata.id'].split("/")[-1] 
+                    for drive in member['Drives']
+                ]
                 if drives:
-                    if "id" in drives and "location" in drives:
-                        raise ValueError("Either {0} or {1} is allowed".format("id", "location"))
-                    elif "id" not in drives and "location" not in drives:
-                        raise ValueError("Either {0} or {1} should be specified".format("id", "location"))
-                else:
-                    raise ValueError("Drives must be defined for volume creation.")
-                capacity = each.get("capacity")
-                if capacity is not None:
-                    size_check = float(capacity)
-                    if size_check <= 0:
-                        raise ValueError(error_handling_for_negative_num("capacity", capacity))
-                stripe_size = each.get('stripe_size')
-                if stripe_size is not None:
-                    stripe_size_check = int(stripe_size)
-                    if stripe_size_check <= 0:
-                        raise ValueError(error_handling_for_negative_num("stripe_size", stripe_size))
-    elif options['state'] == "delete":
-        message = "Virtual disk name is a required parameter for remove virtual disk operations."
-        if options['volumes'] is None or None in options['volumes']:
-            raise ValueError(message)
-        elif options['volumes']:
-            if not all("name" in each for each in options['volumes']):
-                raise ValueError(message)
-
-
+                    storage_info[controller_name]['PhysicalDisk'] = drives
+        return storage_info
+    
 def main():
     specs = {
         "state": {"required": False, "choices": ['create', 'delete', 'view'], "default": 'view'},
@@ -334,32 +322,18 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
-
+    
     try:
-        _validate_options(module.params)
-        with iDRACConnection(module.params) as idrac:
-            storage_status = run_server_raid_config(idrac, module)
+        with iDRACRedfishAPI(module.params) as idrac:
             changed = False
-            if 'changes_applicable' in storage_status:
-                changed = storage_status['changes_applicable']
-            elif module.params['state'] != 'view':
-                if storage_status.get("Status", "") == "Success.":
-                    changed = True
-                    if storage_status.get("Message", "") == "No changes found to commit!" \
-                            or storage_status.get("Message", "") == "Unable to find the virtual disk":
-                        changed = False
-                        module.exit_json(msg=storage_status.get('Message', ""),
-                                         changed=changed, storage_status=storage_status)
-                elif storage_status.get("Status") == "Failed":
-                    module.fail_json(msg=storage_status.get("Message"))
-                else:
-                    module.fail_json(msg="Failed to perform storage operation")
+            storage_obj = StorageDataAndValidation(idrac, module)
+            storage_output = {}
+            if module.params['state'] == 'view':
+                storage_output = storage_obj.fetch_storage_data()
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
-        module.fail_json(msg=str(e))
-    msg = "Successfully completed the {0} storage volume operation".format(module.params['state'])
-    if module.check_mode and module.params['state'] != 'view':
-        msg = storage_status.get("Message", "")
-    module.exit_json(msg=msg, changed=changed, storage_status=storage_status)
+        module.exit_json(msg=str(e), failed=True)
+    msg = SUCCESSFUL_OPERATION_MSG.format(operation = module.params['state'])
+    module.exit_json(msg=msg, changed=changed, storage_status=storage_output)
 
 
 if __name__ == '__main__':
