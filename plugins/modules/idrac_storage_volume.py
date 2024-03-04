@@ -257,7 +257,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, validate_and_get_first_resource_id_uri)
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion)
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -297,8 +297,36 @@ class StorageBase:
         return module
 
 
-    def contruct_payload(self):
-        pass
+    def construct_volume_payload(self, number_of_existing_vd, volume_dict, ) -> dict:
+        
+        """
+        Constructs a payload dictionary for the given key mappings.
+
+        Returns:
+            dict: The constructed payload dictionary.
+        """
+        key_mapping: dict = {
+            'raid_reset_config': 'RAIDresetConfig',
+            'raid_init_operation': 'RAIDinitOperation',
+            'state': "RAIDaction",
+            'disk_cache_policy': "DiskCachePolicy",
+            'write_cache_policy': "RAIDdefaultWritePolicy",
+            'read_cache_policy': "RAIDdefaultReadPolicy",
+            'stripe_size': "StripeSize",
+            'span_depth': "SpanDepth",
+            'span_length': "SpanLength",
+            'volume_type': "RAIDTypes",
+            'name': 'Name',
+            'capacity': 'Size',
+            'dedicated_hot_spare': "DedicatedSpare",
+        }
+
+        vdfqdd = "Disk.Virtual.{0}:{1}".format(int(number_of_existing_vd)+1, self.module.params.get("controller_id"))
+        
+
+        payload = {}
+
+        return payload
 
 class StorageValidation:    
     def __init__(self, idrac, module):
