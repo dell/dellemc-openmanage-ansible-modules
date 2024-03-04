@@ -266,6 +266,59 @@ SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volum
 DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller Id: {controller_id}."
 DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}"
 
+class StorageBase:
+    def __init__(self, idrac, module):
+      self.module = module
+      self.idrac = idrac
+
+    def module_extend_input(self):
+        volume_related_input = ['volume_type', 'span_length', 'span_depth',
+                                'number_dedicated_hot_spare', 'disk_cache_policy',
+                                'write_cache_policy', 'read_cache_policy', 'stripe_size',
+                                'capacity', 'raid_init_operation']
+        if self.module.params.get('volumes'):
+            for each_member in self.module.params.get('volumes'):
+                for key in volume_related_input:
+                    if key in each_member:
+                        each_member[key] = self.module.params.get(key)
+        return self.module.params
+              
+
+class StorageValidation:
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
+class StorageView(StorageBase):
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
+class StorageCreate(StorageBase):
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
+class StorageUpdate(StorageBase):
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
+class StorageDelete(StorageBase):
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
 
 class StorageDataAndValidation:
     def __init__(self, idrac, module):
