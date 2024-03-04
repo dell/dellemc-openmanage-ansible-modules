@@ -120,6 +120,18 @@ options:
     type: str
     description: This option represents initialization configuration operation to be performed on the virtual disk.
     choices: [None, Fast]
+  job_wait:
+    description:
+      - This parameter provides the option to wait for the job completion.
+      - This is applicable when I(state) is C(create) or C(delete).
+    type: bool
+    default: true
+  job_wait_timeout:
+    description:
+      - This parameter is the maximum wait time of I(job_wait) in seconds.
+      - This option is applicable when I(job_wait) is C(true).
+    type: int
+    default: 900
 
 requirements:
   - "python >= 3.9.6"
@@ -265,6 +277,8 @@ CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exis
 SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volume operation"
 DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller Id: {controller_id}."
 DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}"
+NEGATIVE_OR_ZERO_MSG = "The value for the `{parameter}` parameter cannot be negative or zero."
+NEGATIVE_MSG = "The value for the `{parameter}` parameter cannot be negative."
 
 class StorageBase:
     def __init__(self, idrac, module):
@@ -340,14 +354,19 @@ class StorageValidation:
         if self.controller_id not in controllers.keys():
             self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
         return True
-
-    def validate(self):
-        pass
     
-    def execute(self):
-        pass
+    def validate_negative_values(self):
+        if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
+            self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter = "job_wait_timeout"), failed=True)
 
-class StorageView(StorageBase):
+        params = ["span_depth", "span_length"]
+        for param in params:
+            if self.module.params.get(param) <= 0:
+                self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter=param), failed=True)
+
+        if self.module.params.get("number_dedicated_hot_spare") < 0:
+            self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
+
     def validate(self):
         pass
     
@@ -389,6 +408,20 @@ class StorageData:
               self.module.exit_json(msg=err_msg, failed=True)
           storage_controllers = get_dynamic_uri(self.idrac, uri, 'Storage')
           return storage_controllers
+    
+    def fetch_drives_details(self, url_list):
+        drives_dict = {}
+        for url in url_list:
+            url_resp = self.idrac.invoke_request(url, "GET")
+            drive_id = url_resp.json_data["Id"]
+            drives_dict[drive_id] = {}
+            drives_dict[drive_id].update({
+                    'Slot': url_resp.json_data["Oem"]["Dell"]["DellPhysicalDisk"]["Slot"],
+                    'RaidStatus': url_resp.json_data["Oem"]["Dell"]["DellPhysicalDisk"]["RaidStatus"],
+                    'Protocol': url_resp.json_data["Protocol"],
+                    'MediaType': url_resp.json_data["MediaType"]
+                })
+        return drives_dict
 
     def fetch_storage_data(self):
         storage_info = {}
@@ -400,11 +433,11 @@ class StorageData:
             if controllers:
                 controller_name = controllers["@odata.id"].split("/")[-2]
                 storage_info[controller_name] = {}
-                drives = [drive['@odata.id'].split("/")[-1] for drive in member['Drives']]
-                if drives:
-                    storage_info[controller_name]['PhysicalDisk'] = drives
+                drives_uri = [drive['@odata.id'] for drive in member['Drives']]
+                drives_dict = self.fetch_drives_details(drives_uri)
                 storage_controller_extended_details = member.get("StorageControllers")[0]
                 storage_info[controller_name].update({
+                    'Drives': drives_dict,
                     'SupportedDeviceProtocols': storage_controller_extended_details.get("SupportedDeviceProtocols", []),
                     'SupportedRAIDTypes': storage_controller_extended_details.get("SupportedRAIDTypes", []),
                     'SupportedControllerProtocols': storage_controller_extended_details.get("SupportedControllerProtocols", [])
@@ -413,7 +446,14 @@ class StorageData:
                 if controller_battery_details:
                     storage_info[controller_name]["DellControllerBattery"] = controller_battery_details["Id"]
         return storage_info
+
+class StorageView(StorageBase):
+    def validate(self):
+        pass
     
+    def execute(self):
+        pass
+
 def main():
     specs = {
         "state": {"required": False, "choices": ['create', 'delete', 'view'], "default": 'view'},
@@ -437,7 +477,9 @@ def main():
         "media_type": {"required": False, "choices": ['HDD', 'SSD']},
         "protocol": {"required": False, "choices": ['SAS', 'SATA']},
         "raid_reset_config": {"required": False, "choices": ['True', 'False'], "default": 'False'},
-        "raid_init_operation": {"required": False, "choices": ['None', 'Fast']}
+        "raid_init_operation": {"required": False, "choices": ['None', 'Fast']},
+        "job_wait": {"required": False, "type": "bool", "default": True},
+        "job_wait_timeout": {"required": False, "type": "int", "default": 900}
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
@@ -457,6 +499,7 @@ def main():
             elif module.params['state'] == 'create':
                 validate_obj = StorageValidation(idrac, module)
                 validate_obj.validate_controller_exists()
+                validate_obj.validate_negative_values()
                 
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
         module.exit_json(msg=str(e), failed=True)
