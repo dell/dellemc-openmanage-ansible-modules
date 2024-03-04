@@ -257,7 +257,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, validate_and_get_first_resource_id_uri, check_specified_identifier_exists_in_the_system)
+    get_dynamic_uri, validate_and_get_first_resource_id_uri)
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -268,21 +268,37 @@ DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to 
 
 class StorageBase:
     def __init__(self, idrac, module):
-      self.module = module
+      self.module = self.module_extend_input(module)
       self.idrac = idrac
 
-    def module_extend_input(self):
-        volume_related_input = ['volume_type', 'span_length', 'span_depth',
-                                'number_dedicated_hot_spare', 'disk_cache_policy',
-                                'write_cache_policy', 'read_cache_policy', 'stripe_size',
-                                'capacity', 'raid_init_operation']
-        if self.module.params.get('volumes'):
-            for each_member in self.module.params.get('volumes'):
-                for key in volume_related_input:
-                    if key in each_member:
-                        each_member[key] = self.module.params.get(key)
-        return self.module.params
-              
+    def module_extend_input(self, module):
+        """
+        Extends the input module with additional volume-related parameters.
+
+        Args:
+            module (object): The module object.
+
+        Returns:
+            object: The updated module object.
+        """
+        volume_related_input = [
+            'volume_type', 'span_length', 'span_depth',
+            'number_dedicated_hot_spare', 'disk_cache_policy',
+            'write_cache_policy', 'read_cache_policy', 'stripe_size',
+            'capacity', 'raid_init_operation'
+        ]
+        
+        volumes = module.params.get('volumes', [])
+        for each_member in volumes:
+            for key in volume_related_input:
+                if key not in each_member:
+                    each_member[key] = module.params.get(key)
+        
+        return module
+
+
+    def contruct_payload(self):
+        pass
 
 class StorageValidation:
     def validate(self):
@@ -379,10 +395,12 @@ def main():
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             changed = False
-            storage_obj = StorageDataAndValidation(idrac, module)
-            storage_output = {}
-            if module.params['state'] == 'view':
-                storage_output = storage_obj.fetch_storage_data()
+            obj = StorageBase(idrac, module)
+            storage_output = obj.module.params
+            # storage_obj = StorageDataAndValidation(idrac, module)
+            # storage_output = {}
+            # if module.params['state'] == 'view':
+            #     storage_output = storage_obj.fetch_storage_data()
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
         module.exit_json(msg=str(e), failed=True)
     msg = SUCCESSFUL_OPERATION_MSG.format(operation = module.params['state'])
