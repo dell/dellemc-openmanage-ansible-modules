@@ -300,7 +300,19 @@ class StorageBase:
     def contruct_payload(self):
         pass
 
-class StorageValidation:
+class StorageValidation:    
+    def __init__(self, idrac, module):
+      self.idrac = idrac
+      self.module = module
+      self.controller_id = module.params.get("controller_id")
+
+    def validate_controller_exists(self):
+        obj = StorageData(self.idrac, self.module)
+        controllers = obj.fetch_storage_data()
+        if self.controller_id not in controllers.keys():
+            self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
+        return True
+
     def validate(self):
         pass
     
@@ -336,30 +348,42 @@ class StorageDelete(StorageBase):
         pass
 
 
-class StorageDataAndValidation:
+class StorageData:
     def __init__(self, idrac, module):
         self.module = module
         self.idrac = idrac
         self.controller_id = self.module.params.get("controller_id")
+      
+    def fetch_controllers_uri(self):
+          uri, err_msg = validate_and_get_first_resource_id_uri(
+              self.module, self.idrac, SYSTEMS_URI)
+          if err_msg:
+              self.module.exit_json(msg=err_msg, failed=True)
+          storage_controllers = get_dynamic_uri(self.idrac, uri, 'Storage')
+          return storage_controllers
 
     def fetch_storage_data(self):
         storage_info = {}
         storage_controllers = self.fetch_controllers_uri()
-        controllers_details_uri = (
-            f"{storage_controllers['@odata.id']}?$expand=*($levels=1)"
-        )
+        controllers_details_uri = f"{storage_controllers['@odata.id']}?$expand=*($levels=1)"
         controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
         for member in controllers_list['Members']:
             controllers = member.get("Controllers")
             if controllers:
-                controller_name = (controllers["@odata.id"].split("/")[-2])
+                controller_name = controllers["@odata.id"].split("/")[-2]
                 storage_info[controller_name] = {}
-                drives = [
-                    drive['@odata.id'].split("/")[-1] 
-                    for drive in member['Drives']
-                ]
+                drives = [drive['@odata.id'].split("/")[-1] for drive in member['Drives']]
                 if drives:
                     storage_info[controller_name]['PhysicalDisk'] = drives
+                storage_controller_extended_details = member.get("StorageControllers")[0]
+                storage_info[controller_name].update({
+                    'SupportedDeviceProtocols': storage_controller_extended_details.get("SupportedDeviceProtocols", []),
+                    'SupportedRAIDTypes': storage_controller_extended_details.get("SupportedRAIDTypes", []),
+                    'SupportedControllerProtocols': storage_controller_extended_details.get("SupportedControllerProtocols", [])
+                })
+                controller_battery_details = member["Oem"]["Dell"].get("DellControllerBattery")
+                if controller_battery_details:
+                    storage_info[controller_name]["DellControllerBattery"] = controller_battery_details["Id"]
         return storage_info
     
 def main():
@@ -395,16 +419,21 @@ def main():
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             changed = False
-            obj = StorageBase(idrac, module)
-            storage_output = obj.module.params
-            # storage_obj = StorageDataAndValidation(idrac, module)
-            # storage_output = {}
-            # if module.params['state'] == 'view':
-            #     storage_output = storage_obj.fetch_storage_data()
+            # obj = StorageBase(idrac, module)
+            # storage_output = obj.module.params
+            
+            storage_details = {}
+            if module.params['state'] == 'view':
+                data_obj = StorageData(idrac, module)
+                storage_details = data_obj.fetch_storage_data()
+            elif module.params['state'] == 'create':
+                validate_obj = StorageValidation(idrac, module)
+                validate_obj.validate_controller_exists()
+                
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
         module.exit_json(msg=str(e), failed=True)
     msg = SUCCESSFUL_OPERATION_MSG.format(operation = module.params['state'])
-    module.exit_json(msg=msg, changed=changed, storage_status=storage_output)
+    module.exit_json(msg=msg, changed=changed, storage_status=storage_details)
 
 
 if __name__ == '__main__':
