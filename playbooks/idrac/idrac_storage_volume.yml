@@ -1,0 +1,114 @@
+---
+- name: Storage volume configuration on iDRAC.
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Create single volume.
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "create"
+        controller_id: "RAID.Slot.1-1"
+        volumes:
+          - drives:
+              location: [5]
+      delegate_to: localhost
+      tags:
+        - create_single_volume
+
+    - name: Create multiple volume.
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        raid_reset_config: "True"
+        state: "create"
+        controller_id: "RAID.Slot.1-1"
+        volume_type: "RAID 1"
+        span_depth: 1
+        span_length: 2
+        number_dedicated_hot_spare: 1
+        disk_cache_policy: "Enabled"
+        write_cache_policy: "WriteBackForce"
+        read_cache_policy: "ReadAhead"
+        stripe_size: 65536
+        capacity: 100
+        raid_init_operation: "Fast"
+        volumes:
+          - name: "volume_1"
+            drives:
+              id:
+                [
+                  "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1",
+                  "Disk.Bay.2:Enclosure.Internal.0-1:RAID.Slot.1-1",
+                ]
+          - name: "volume_2"
+            volume_type: "RAID 5"
+            span_length: 3
+            span_depth: 1
+            drives:
+              location: [7, 3, 5]
+            disk_cache_policy: "Disabled"
+            write_cache_policy: "WriteBack"
+            read_cache_policy: "NoReadAhead"
+            stripe_size: 131072
+            capacity: "200"
+            raid_init_operation: "None"
+      delegate_to: localhost
+      tags:
+        - create_multiple_volume
+
+    - name: Delete single volume.
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "delete"
+        volumes:
+          - name: "volume_1"
+      delegate_to: localhost
+      tags:
+        - delete_single_volume
+
+    - name: Delete multiple volume.
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "delete"
+        volumes:
+          - name: "volume_1"
+          - name: "volume_2"
+      delegate_to: localhost
+      tags:
+        - delete_multiple_volume
+
+    - name: View specific volume details.
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "view"
+        controller_id: "RAID.Slot.1-1"
+        volume_id: "Disk.Virtual.0:RAID.Slot.1-1"
+      delegate_to: localhost
+      tags:
+        - view_specific_volume
+
+    - name: View all volume details.
+      dellemc.openmanage.idrac_storage_volume:
+        idrac_ip: "{{ idrac_ip }}"
+        idrac_user: "{{ idrac_user }}"
+        idrac_password: "{{ idrac_password }}"
+        ca_path: "/path/to/ca_cert.pem"
+        state: "view"
+      delegate_to: localhost
+      tags:
+        - view_all_volume
