@@ -268,12 +268,16 @@ import operator
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
+CONTROLLER_NOT_DEFINED = "Controller ID is required."
 SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volume operation"
 DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller Id: {controller_id}."
 DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}"
 NEGATIVE_OR_ZERO_MSG = "The value for the `{parameter}` parameter cannot be negative or zero."
 NEGATIVE_MSG = "The value for the `{parameter}` parameter cannot be negative."
 INVALID_VALUE_MSG = " The value for the `{parameter}` parameter are invalid."
+ID_AND_LOCATION_BOTH_DEFINED = "Either id or location is allowed."
+ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
+DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
 
 
 class StorageBase:
@@ -399,7 +403,9 @@ class StorageValidation(StorageBase):
         self.controller_id = module.params.get("controller_id")
 
     def validate_controller_exists(self):
-        controllers = self.data
+        if not self.controller_id:
+            self.module.exit_json(msg=CONTROLLER_NOT_DEFINED, failed=True)
+        controllers = self.idrac_data
         if self.controller_id not in controllers.keys():
             self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
         return True
@@ -417,10 +423,17 @@ class StorageValidation(StorageBase):
             self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
         return True
 
-    def validate_volume_drives():
-        pass
+    def validate_volume_drives(self, specified_drives):
+        if not specified_drives:
+            self.module.exit_json(msg=DRIVES_NOT_DEFINED, failed=True)
+        if specified_drives.get("id") and specified_drives.get("location"):
+            self.module.exit_json(msg=ID_AND_LOCATION_BOTH_DEFINED, failed=True)
+        elif not specified_drives.get("id") and not specified_drives.get("location"):
+            self.module.exit_json(msg=ID_AND_LOCATION_BOTH_NOT_DEFINED, failed=True)
+        drives_count = len(specified_drives.id) or len(specified_drives.location)
+        return self.raid_std_validation(specified_drives.span_length, specified_drives.span_depth, specified_drives.volume_type, drives_count)
 
-    
+
     def raid_std_validation(self, span_length, span_depth, volume_type, pd_count):
         raid_std = {
             "RAID 0": {'pd_slots': range(1, 2), 'span_length': 1, 'checks': operator.ge, 'span_depth': 1},
@@ -446,15 +459,18 @@ class StorageValidation(StorageBase):
         pass
     
     def execute(self):
-        pass
+        self.validate_controller_exists()
+        self.validate_negative_values()
+        for volume in self.module.params.get("volumes"):
+            self.validate_volume_drives(volume.get("drives"))
 
 
 class StorageCreate(StorageValidation):
     def validate(self):
-        pass
+        super().execute()
     
     def execute(self):
-        pass
+        self.validate()
 
 
 class StorageUpdate(StorageValidation):
