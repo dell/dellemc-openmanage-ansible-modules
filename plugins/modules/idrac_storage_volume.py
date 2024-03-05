@@ -74,8 +74,7 @@ options:
   controller_id:
     type: str
     description:
-      - >-
-        Fully Qualified Device Descriptor (FQDD) of the storage controller, for example 'RAID.Integrated.1-1'.
+      - Fully Qualified Device Descriptor (FQDD) of the storage controller, for example 'RAID.Integrated.1-1'.
         Controller FQDD is required for C(create) RAID configuration.
   media_type:
     type: str
@@ -88,22 +87,17 @@ options:
   volume_id:
     type: str
     description:
-      - >-
-        Fully Qualified Device Descriptor (FQDD) of the virtual disk, for example 'Disk.virtual.0:RAID.Slot.1-1'.
+      - Fully Qualified Device Descriptor (FQDD) of the virtual disk, for example 'Disk.virtual.0:RAID.Slot.1-1'.
         This option is used to get the virtual disk information.
   volumes:
     type: list
     elements: dict
     description:
-      - >-
-        A list of virtual disk specific iDRAC attributes. This is applicable for C(create) and C(delete) operations.
-      - >-
-        For C(create) operation, name and drives are applicable options, other volume options can also be specified.
-      - >-
-        The drives is a required option for C(create) operation and accepts either location (list of drive slot)
+      - A list of virtual disk specific iDRAC attributes. This is applicable for C(create) and C(delete) operations.
+      - For C(create) operation, name and drives are applicable options, other volume options can also be specified.
+      - The drives is a required option for C(create) operation and accepts either location (list of drive slot)
         or id (list of drive fqdd).
-      - >-
-        For C(delete) operation, only name option is applicable.
+      - For C(delete) operation, only name option is applicable.
       - See the examples for more details.
   capacity:
     type: float
@@ -111,8 +105,7 @@ options:
   raid_reset_config:
     type: str
     description:
-      - >-
-        This option represents whether a reset config operation needs to be performed on the RAID controller.
+      - This option represents whether a reset config operation needs to be performed on the RAID controller.
         Reset Config operation deletes all the virtual disks present on the RAID controller.
     choices: ['True', 'False']
     default: 'False'
@@ -270,6 +263,7 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish i
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion)
+import operator
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -279,6 +273,7 @@ DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller I
 DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}"
 NEGATIVE_OR_ZERO_MSG = "The value for the `{parameter}` parameter cannot be negative or zero."
 NEGATIVE_MSG = "The value for the `{parameter}` parameter cannot be negative."
+INVALID_VALUE_MSG = " The value for the `{parameter}` parameter are invalid."
 
 
 class StorageBase:
@@ -304,10 +299,11 @@ class StorageBase:
         ]
         
         volumes = module.params.get('volumes', [])
-        for each_member in volumes:
-            for key in volume_related_input:
-                if key not in each_member:
-                    each_member[key] = module.params.get(key)
+        if volumes:
+            for each_member in volumes:
+                for key in volume_related_input:
+                    if key not in each_member:
+                        each_member[key] = module.params.get(key)
         
         return module
 
@@ -344,11 +340,10 @@ class StorageBase:
         return payload
 
 
-class StorageValidation:    
+class StorageValidation(StorageBase):
     def __init__(self, idrac, module):
-      self.idrac = idrac
-      self.module = module
-      self.controller_id = module.params.get("controller_id")
+        super().__init__(idrac,module)
+        self.controller_id = module.params.get("controller_id")
 
     def validate_controller_exists(self):
         obj = StorageData(self.idrac, self.module)
@@ -368,6 +363,32 @@ class StorageValidation:
 
         if self.module.params.get("number_dedicated_hot_spare") < 0:
             self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
+        return True
+
+    def validate_volume_drives():
+        pass
+        
+    
+    def raid_std_validation(self, span_length, span_depth, volume_type, pd_count):
+        raid_std = {
+            "RAID 0": {'pd_slots': range(1, 2), 'span_length': 1, 'checks': operator.ge, 'span_depth': 1},
+            "RAID 1": {'pd_slots': range(1, 3), 'span_length': 2, 'checks': operator.eq, 'span_depth': 1},
+            "RAID 5": {'pd_slots': range(1, 4), 'span_length': 3, 'checks': operator.ge, 'span_depth': 1},
+            "RAID 6": {'pd_slots': range(1, 5), 'span_length': 4, 'checks': operator.ge, 'span_depth': 1},
+            "RAID 10": {'pd_slots': range(1, 5), 'span_length': 2, 'checks': operator.ge, 'span_depth': 2},
+            "RAID 50": {'pd_slots': range(1, 7), 'span_length': 3, 'checks': operator.ge, 'span_depth': 2},
+            "RAID 60": {'pd_slots': range(1, 9), 'span_length': 4, 'checks': operator.ge, 'span_depth': 2}
+        }
+        raid_info = raid_std.get(volume_type)
+        if not raid_std.get('checks')(span_length, raid_info.get('span_length')):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+        if volume_type in ["RAID 0", "RAID 1", "RAID 5", "RAID 6"] and operator.ne(span_depth, raid_info('span_depth')):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+        if volume_type in ["RAID 10", "RAID 50", "RAID 60"] and operator.ge(span_depth, raid_info('span_depth')):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+        if not operator.eq(pd_count, span_depth*span_length):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="drives"))
+        return True
 
     def validate(self):
         pass
@@ -401,16 +422,17 @@ class StorageDelete(StorageBase):
 
 
 class StorageData(StorageBase):
+    
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
 
     def fetch_controllers_uri(self):
-          uri, err_msg = validate_and_get_first_resource_id_uri(
-              self.module, self.idrac, SYSTEMS_URI)
-          if err_msg:
-              self.module.exit_json(msg=err_msg, failed=True)
-          storage_controllers = get_dynamic_uri(self.idrac, uri, 'Storage')
-          return storage_controllers
+        uri, err_msg = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, SYSTEMS_URI)
+        if err_msg:
+            self.module.exit_json(msg=err_msg, failed=True)
+        storage_controllers = get_dynamic_uri(self.idrac, uri, 'Storage')
+        return storage_controllers
     
     def fetch_drives_details(self, url_list):
         drives_dict = {}
@@ -451,12 +473,13 @@ class StorageData(StorageBase):
         return storage_info
 
 
-class StorageView(StorageBase):
-    def validate(self):
-        pass
-    
+class StorageView(StorageData):
+    def __init__(self, idrac, module):
+        super().__init__(idrac, module)
+
     def execute(self):
-        pass
+        # self.module.exit_json(msg = "passed till here line no-484")
+        return self.fetch_storage_data()
 
 
 def main():
@@ -503,7 +526,7 @@ def main():
             obj = state_type(idrac, module)
             output = obj.execute()
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
-        module.exit_json(msg=str(e), failed=True)
+        module.fail_json(msg=str(e), failed=True)
     msg = SUCCESSFUL_OPERATION_MSG.format(operation = module.params['state'])
     module.exit_json(msg=msg, changed=changed, storage_status=output)
 

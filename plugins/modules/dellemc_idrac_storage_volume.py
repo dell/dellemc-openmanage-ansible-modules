@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -17,7 +17,7 @@ DOCUMENTATION = r'''
 ---
 module: dellemc_idrac_storage_volume
 short_description: Configures the RAID configuration attributes
-version_added: "2.0.0"
+version_added: "9.1.0"
 description:
   - This module is responsible for configuring the RAID attributes.
 extends_documentation_fragment:
@@ -122,7 +122,6 @@ options:
     choices: [None, Fast]
 
 requirements:
-  - "omsdk >= 1.2.488"
   - "python >= 3.9.6"
 author: "Felix Stephen (@felixs88)"
 notes:
@@ -248,203 +247,92 @@ storage_status:
     }
 '''
 
-
-import os
-import tempfile
-import copy
-from ansible_collections.dellemc.openmanage.plugins.module_utils.dellemc_idrac import iDRACConnection, idrac_auth_params
+import json
+import time
+from urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
+from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
-try:
-    from omdrivers.types.iDRAC.RAID import RAIDactionTypes, RAIDdefaultReadPolicyTypes, RAIDinitOperationTypes, \
-        DiskCachePolicyTypes, RAIDresetConfigTypes
-    from omsdk.sdkfile import file_share_manager
-except ImportError:
-    pass
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, check_specified_identifier_exists_in_the_system)
 
 
-def error_handling_for_negative_num(option, val):
-    return "{0} cannot be a negative number or zero,got {1}".format(option, val)
+SYSTEMS_URI = "/redfish/v1/Systems"
+CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
+SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volume operation"
+DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller Id: {controller_id}."
+DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}"
 
 
-def set_liason_share(idrac, module):
-    idrac.use_redfish = True
-    share_name = tempfile.gettempdir() + os.sep
-    storage_share = file_share_manager.create_share_obj(share_path=share_name,
-                                                        isFolder=True)
-    set_liason = idrac.config_mgr.set_liason_share(storage_share)
-    if set_liason['Status'] == "Failed":
-        liason_data = set_liason.get('Data', set_liason)
-        module.fail_json(msg=liason_data.get('Message', "Failed to set Liason share"))
+class StorageDataAndValidation:
+    def __init__(self, idrac, module):
+        self.module = module
+        self.idrac = idrac
+        self.controller_id = self.module.params.get("controller_id")
 
+    def fetch_controllers_uri(self):
+          uri, err_msg = validate_and_get_first_resource_id_uri(
+              self.module, self.idrac, SYSTEMS_URI)
+          if err_msg:
+              self.module.exit_json(msg=err_msg, failed=True)
+          storage_controllers = get_dynamic_uri(self.idrac, uri, 'Storage')
+          return storage_controllers
 
-def view_storage(idrac, module):
-    idrac.get_entityjson()
-    storage_status = idrac.config_mgr.RaidHelper.view_storage(controller=module.params["controller_id"],
-                                                              virtual_disk=module.params['volume_id'])
-    if storage_status['Status'] == 'Failed':
-        module.fail_json(msg="Failed to fetch storage details", storage_status=storage_status)
-    return storage_status
+    def validate_controller_exists(self):
+        storage_controllers = self.fetch_controllers_uri()
+        try:
+            controller_uri = get_dynamic_uri(self.idrac, storage_controllers['@odata.id']+"/"+self.controller_id)
+        except HTTPError as err:
+            if err.code == 404:
+                self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
+            raise err
+        return controller_uri
 
+    def check_physical_disk_exists(self, specified_drives):
+        controller_output = self.validate_controller_exists()
+        existing_drives = [drive['@odata.id'].split("/")[-1] for drive in controller_output["Drives"]]
+        if not existing_drives:
+            self.module.exit_json(msg=DRIVES_NOT_EXIST_ERROR.format(self.controller_id),
+                                 failed=True)
+        invalid_drives = list(set(specified_drives) - set(existing_drives))
+        if invalid_drives:
+            invalid_drive_msg = ",".join(invalid_drives)
+            self.module.exit_json(msg=DRIVES_NOT_MATCHED.format(specified_drives = invalid_drive_msg,
+                                                                controller_id = self.controller_id),
+                                                                failed=True)
+        return True
 
-def create_storage(idrac, module):
-    pd_filter = '((disk.parent.parent is Controller and ' \
-                'disk.parent.parent.FQDD._value == "{0}")' \
-        .format(module.params["controller_id"])
-    pd_filter += ' or (disk.parent is Controller and ' \
-                 'disk.parent.FQDD._value == "{0}"))' \
-        .format(module.params["controller_id"])
-
-    vd_values = []
-    if module.params['volumes'] is not None:
-        for each in module.params['volumes']:
-            mod_args = copy.deepcopy(module.params)
-            each_vd = multiple_vd_config(mod_args=mod_args,
-                                         each_vd=each, pd_filter=pd_filter)
-            vd_values.append(each_vd)
-    else:
-        each_vd = multiple_vd_config(mod_args=module.params,
-                                     pd_filter=pd_filter)
-        vd_values.append(each_vd)
-    storage_status = idrac.config_mgr.RaidHelper.new_virtual_disk(multiple_vd=vd_values,
-                                                                  apply_changes=not module.check_mode)
-    return storage_status
-
-
-def delete_storage(idrac, module):
-    names = [key.get("name") for key in module.params['volumes']]
-    storage_status = idrac.config_mgr.RaidHelper.delete_virtual_disk(vd_names=names,
-                                                                     apply_changes=not module.check_mode)
-    return storage_status
-
-
-def _validate_options(options):
-    if options['state'] == "create":
-        if options["controller_id"] is None or options["controller_id"] == "":
-            raise ValueError('Controller ID is required.')
-        capacity = options.get("capacity")
-        if capacity is not None:
-            size_check = float(capacity)
-            if size_check <= 0:
-                raise ValueError(error_handling_for_negative_num("capacity", capacity))
-        stripe_size = options.get('stripe_size')
-        if stripe_size is not None:
-            stripe_size_check = int(stripe_size)
-            if stripe_size_check <= 0:
-                raise ValueError(error_handling_for_negative_num("stripe_size", stripe_size))
-        # validating for each vd options
-        if options['volumes'] is not None:
-            for each in options['volumes']:
-                drives = each.get("drives")
+    def fetch_storage_data(self):
+        storage_info = {}
+        storage_controllers = self.fetch_controllers_uri()
+        controllers_details_uri = (
+            f"{storage_controllers['@odata.id']}?$expand=*($levels=1)"
+        )
+        controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
+        for member in controllers_list['Members']:
+            controllers = member.get("Controllers")
+            if controllers:
+                controller_name = (controllers["@odata.id"].split("/")[-2])
+                storage_info[controller_name] = {}
+                drives = [
+                    drive['@odata.id'].split("/")[-1] 
+                    for drive in member['Drives']
+                ]
                 if drives:
-                    if "id" in drives and "location" in drives:
-                        raise ValueError("Either {0} or {1} is allowed".format("id", "location"))
-                    elif "id" not in drives and "location" not in drives:
-                        raise ValueError("Either {0} or {1} should be specified".format("id", "location"))
-                else:
-                    raise ValueError("Drives must be defined for volume creation.")
-                capacity = each.get("capacity")
-                if capacity is not None:
-                    size_check = float(capacity)
-                    if size_check <= 0:
-                        raise ValueError(error_handling_for_negative_num("capacity", capacity))
-                stripe_size = each.get('stripe_size')
-                if stripe_size is not None:
-                    stripe_size_check = int(stripe_size)
-                    if stripe_size_check <= 0:
-                        raise ValueError(error_handling_for_negative_num("stripe_size", stripe_size))
-    elif options['state'] == "delete":
-        message = "Virtual disk name is a required parameter for remove virtual disk operations."
-        if options['volumes'] is None or None in options['volumes']:
-            raise ValueError(message)
-        elif options['volumes']:
-            if not all("name" in each for each in options['volumes']):
-                raise ValueError(message)
+                    storage_info[controller_name]['PhysicalDisk'] = drives
+                # enclosures = member["Links"].get("Enclosures")
+                # enclosures = self.fetch_data_from_url(enclosures)
+                # storage_info[controller_name]["Enclosure"] = enclosures
+        return storage_info
 
+    # def fetch_data_from_url(self,list_url):
+    #     list_data = []
+    #     for member in list_url:
+    #         uri = member.get("@odata.id")
+    #         resp = get_dynamic_uri(self.idrac, uri)
+    #         list_data.append(resp)
 
-def multiple_vd_config(mod_args=None, pd_filter="", each_vd=None):
-    if mod_args is None:
-        mod_args = {}
-    if each_vd is None:
-        each_vd = {}
-    if each_vd:
-        mod_args.update(each_vd)
-    disk_size = None
-    location_list = []
-    id_list = []
-    size = mod_args.get("capacity")
-    drives = mod_args.get("drives")
-    if drives:
-        if "location" in drives:
-            location_list = drives.get("location")
-        elif "id" in drives:
-            id_list = drives.get("id")
-    if size is not None:
-        size_check = float(size)
-        disk_size = "{0}".format(int(size_check * 1073741824))
-
-    if mod_args['media_type'] is not None:
-        pd_filter += ' and disk.MediaType == "{0}"'.format(mod_args['media_type'])
-    if mod_args["protocol"] is not None:
-        pd_filter += ' and disk.BusProtocol == "{0}"'.format(mod_args["protocol"])
-    pd_selection = pd_filter
-
-    if location_list:
-        slots = ""
-        for i in location_list:
-            slots += "\"" + str(i) + "\","
-        slots_list = "[" + slots[0:-1] + "]"
-        pd_selection += " and disk.Slot._value in " + slots_list
-    elif id_list:
-        pd_selection += " and disk.FQDD._value in " + str(id_list)
-
-    raid_init_operation, raid_reset_config = "None", "False"
-    if mod_args['raid_init_operation'] == "None":
-        raid_init_operation = RAIDinitOperationTypes.T_None
-    if mod_args['raid_init_operation'] == "Fast":
-        raid_init_operation = RAIDinitOperationTypes.Fast
-
-    if mod_args['raid_reset_config'] == "False":
-        raid_reset_config = RAIDresetConfigTypes.T_False
-    if mod_args['raid_reset_config'] == "True":
-        raid_reset_config = RAIDresetConfigTypes.T_True
-
-    vd_value = dict(
-        Name=mod_args.get("name"),
-        SpanDepth=int(mod_args['span_depth']),
-        SpanLength=int(mod_args['span_length']),
-        NumberDedicatedHotSpare=int(mod_args['number_dedicated_hot_spare']),
-        RAIDTypes=mod_args["volume_type"],
-        DiskCachePolicy=DiskCachePolicyTypes[mod_args['disk_cache_policy']],
-        RAIDdefaultWritePolicy=mod_args['write_cache_policy'],
-        RAIDdefaultReadPolicy=RAIDdefaultReadPolicyTypes[mod_args['read_cache_policy']],
-        StripeSize=int(mod_args['stripe_size']),
-        RAIDforeignConfig="Clear",
-        RAIDaction=RAIDactionTypes.Create,
-        PhysicalDiskFilter=pd_selection,
-        Size=disk_size,
-        RAIDresetConfig=raid_reset_config,
-        RAIDinitOperation=raid_init_operation,
-        PDSlots=location_list,
-        ControllerFQDD=mod_args.get("controller_id"),
-        mediatype=mod_args['media_type'],
-        busprotocol=mod_args["protocol"],
-        FQDD=id_list
-    )
-    return vd_value
-
-
-def run_server_raid_config(idrac, module):
-    if module.params['state'] == "view":
-        storage_status = view_storage(idrac, module)
-    if module.params['state'] == "create":
-        set_liason_share(idrac, module)
-        storage_status = create_storage(idrac, module)
-    if module.params['state'] == "delete":
-        set_liason_share(idrac, module)
-        storage_status = delete_storage(idrac, module)
-    return storage_status
-
-
+    
 def main():
     specs = {
         "state": {"required": False, "choices": ['create', 'delete', 'view'], "default": 'view'},
@@ -474,32 +362,21 @@ def main():
     module = AnsibleModule(
         argument_spec=specs,
         supports_check_mode=True)
-
+    
     try:
-        _validate_options(module.params)
-        with iDRACConnection(module.params) as idrac:
-            storage_status = run_server_raid_config(idrac, module)
+        with iDRACRedfishAPI(module.params) as idrac:
             changed = False
-            if 'changes_applicable' in storage_status:
-                changed = storage_status['changes_applicable']
-            elif module.params['state'] != 'view':
-                if storage_status.get("Status", "") == "Success":
-                    changed = True
-                    if storage_status.get("Message", "") == "No changes found to commit!" \
-                            or storage_status.get("Message", "") == "Unable to find the virtual disk":
-                        changed = False
-                        module.exit_json(msg=storage_status.get('Message', ""),
-                                         changed=changed, storage_status=storage_status)
-                elif storage_status.get("Status") == "Failed":
-                    module.fail_json(msg=storage_status.get("Message"))
-                else:
-                    module.fail_json(msg="Failed to perform storage operation")
+            storage_obj = StorageDataAndValidation(idrac, module)
+            storage_output = {}
+            if module.params['state'] == 'create':
+                storage_obj.validate_controller_exists()
+                storage_obj.check_physical_disk_exists(["Disk.Direct.0-0:BOSS.SL.14-1", "Disk.Direct.0-0:BOSS.SL.14-9"])
+            elif module.params['state'] == 'view':
+                storage_output = storage_obj.fetch_storage_data()
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
-        module.fail_json(msg=str(e))
-    msg = "Successfully completed the {0} storage volume operation".format(module.params['state'])
-    if module.check_mode and module.params['state'] != 'view':
-        msg = storage_status.get("Message", "")
-    module.exit_json(msg=msg, changed=changed, storage_status=storage_status)
+        module.exit_json(msg=str(e), failed=True)
+    msg = SUCCESSFUL_OPERATION_MSG.format(operation = module.params['state'])
+    module.exit_json(msg=msg, changed=changed, storage_status=storage_output)
 
 
 if __name__ == '__main__':

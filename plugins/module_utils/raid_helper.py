@@ -102,10 +102,6 @@ class Controller:
         base_resource_uri = validate_and_get_first_resource_id_uri(self.module_inp, self.idrac_obj, SYSTEMS_URI)
         self.controller_details = get_dynamic_uri(self.module_inp, self.idrac_obj, self.controller_id)
         
-
-
-    
-
 class Volume:
     def __init__(self, module) -> None:
         self.module = None
