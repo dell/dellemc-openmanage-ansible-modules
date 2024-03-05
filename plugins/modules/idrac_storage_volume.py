@@ -349,6 +349,22 @@ class StorageData:
         self.idrac = idrac
         self.module = module
 
+    def fetch_api_data(self, uri, key_index_from_end):
+        key = uri.split("/")[key_index_from_end]
+        uri_data = self.idrac.invoke_request(uri, "GET")
+        return key,uri_data
+    
+    def all_storage_data(self):
+        storage_controllers = self.fetch_controllers_uri()
+        controllers_details_uri = f"{storage_controllers['@odata.id']}?$expand=*($levels=1)"
+        controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
+        for each_member in controllers_list["Members"]:
+            for each_uri in each_member["Drives"]:
+                key,uri_data = self.fetch_api_data(each_uri["@odata.id"], -1)
+                each_uri.clear()
+                each_uri[key] = uri_data.json_data
+        return controllers_list
+
     def fetch_controllers_uri(self):
         uri, err_msg = validate_and_get_first_resource_id_uri(
             self.module, self.idrac, SYSTEMS_URI)
@@ -356,21 +372,8 @@ class StorageData:
             self.module.exit_json(msg=err_msg, failed=True)
         storage_controllers = get_dynamic_uri(self.idrac, uri, 'Storage')
         return storage_controllers
-    
-    def fetch_drives_details(self, url_list):
-        drives_dict = {}
-        for url in url_list:
-            url_resp = self.idrac.invoke_request(url, "GET")
-            drive_id = url_resp.json_data["Id"]
-            drives_dict[drive_id] = {}
-            drives_dict[drive_id].update({
-                    'Slot': url_resp.json_data["Oem"]["Dell"]["DellPhysicalDisk"]["Slot"],
-                    'RaidStatus': url_resp.json_data["Oem"]["Dell"]["DellPhysicalDisk"]["RaidStatus"],
-                    'Protocol': url_resp.json_data["Protocol"],
-                    'MediaType': url_resp.json_data["MediaType"]
-                })
-        return drives_dict
-
+  
+  
     def fetch_storage_data(self):
         storage_info = {}
         storage_controllers = self.fetch_controllers_uri()
@@ -489,13 +492,12 @@ class StorageDelete(StorageValidation):
         pass
 
 
-class StorageView(StorageValidation):
+class StorageView(StorageData):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
 
     def execute(self):
-        # self.module.exit_json(msg = "passed till here line no-484")
-        return self.idrac_data
+        return self.all_storage_data()
 
 
 def main():
