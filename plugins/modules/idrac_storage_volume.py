@@ -280,6 +280,7 @@ DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to 
 NEGATIVE_OR_ZERO_MSG = "The value for the `{parameter}` parameter cannot be negative or zero."
 NEGATIVE_MSG = "The value for the `{parameter}` parameter cannot be negative."
 
+
 class StorageBase:
     def __init__(self, idrac, module):
       self.module = self.module_extend_input(module)
@@ -342,6 +343,7 @@ class StorageBase:
 
         return payload
 
+
 class StorageValidation:    
     def __init__(self, idrac, module):
       self.idrac = idrac
@@ -354,7 +356,7 @@ class StorageValidation:
         if self.controller_id not in controllers.keys():
             self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
         return True
-    
+
     def validate_negative_values(self):
         if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
             self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter = "job_wait_timeout"), failed=True)
@@ -373,6 +375,7 @@ class StorageValidation:
     def execute(self):
         pass
 
+
 class StorageCreate(StorageBase):
     def validate(self):
         pass
@@ -380,12 +383,14 @@ class StorageCreate(StorageBase):
     def execute(self):
         pass
 
+
 class StorageUpdate(StorageBase):
     def validate(self):
         pass
     
     def execute(self):
         pass
+
 
 class StorageDelete(StorageBase):
     def validate(self):
@@ -398,7 +403,7 @@ class StorageDelete(StorageBase):
 class StorageData(StorageBase):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
-      
+
     def fetch_controllers_uri(self):
           uri, err_msg = validate_and_get_first_resource_id_uri(
               self.module, self.idrac, SYSTEMS_URI)
@@ -445,6 +450,7 @@ class StorageData(StorageBase):
                     storage_info[controller_name]["DellControllerBattery"] = controller_battery_details["Id"]
         return storage_info
 
+
 class StorageView(StorageBase):
     def validate(self):
         pass
@@ -452,32 +458,32 @@ class StorageView(StorageBase):
     def execute(self):
         pass
 
+
 def main():
     specs = {
-        "state": {"required": False, "choices": ['create', 'delete', 'view'], "default": 'view'},
-        "volume_id": {"required": False, "type": 'str'},
-        "volumes": {"required": False, "type": 'list', "elements": 'dict'},
-        "span_depth": {"required": False, "type": 'int', "default": 1},
-        "span_length": {"required": False, "type": 'int', "default": 1},
-        "number_dedicated_hot_spare": {"required": False, "type": 'int', "default": 0},
-        "volume_type": {"required": False,
-                        "choices": ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60'],
+        "state": {"choices": ['create', 'delete', 'view'], "default": 'view'},
+        "volume_id": {"type": 'str'},
+        "volumes": {"type": 'list', "elements": 'dict'},
+        "span_depth": {"type": 'int', "default": 1},
+        "span_length": {"type": 'int', "default": 1},
+        "number_dedicated_hot_spare": {"type": 'int', "default": 0},
+        "volume_type": {"choices": ['RAID 0', 'RAID 1', 'RAID 5', 'RAID 6', 'RAID 10', 'RAID 50', 'RAID 60'],
                         "default": 'RAID 0'},
-        "disk_cache_policy": {"required": False, "choices": ["Default", "Enabled", "Disabled"],
+        "disk_cache_policy": {"choices": ["Default", "Enabled", "Disabled"],
                               "default": "Default"},
-        "write_cache_policy": {"required": False, "choices": ["WriteThrough", "WriteBack", "WriteBackForce"],
+        "write_cache_policy": {"choices": ["WriteThrough", "WriteBack", "WriteBackForce"],
                                "default": "WriteThrough"},
-        "read_cache_policy": {"required": False, "choices": ["NoReadAhead", "ReadAhead", "AdaptiveReadAhead"],
+        "read_cache_policy": {"choices": ["NoReadAhead", "ReadAhead", "AdaptiveReadAhead"],
                               "default": "NoReadAhead"},
-        "stripe_size": {"required": False, "type": 'int', "default": 64 * 1024},
-        "capacity": {"required": False, "type": 'float'},
-        "controller_id": {"required": False, "type": 'str'},
-        "media_type": {"required": False, "choices": ['HDD', 'SSD']},
-        "protocol": {"required": False, "choices": ['SAS', 'SATA']},
-        "raid_reset_config": {"required": False, "choices": ['True', 'False'], "default": 'False'},
-        "raid_init_operation": {"required": False, "choices": ['None', 'Fast']},
-        "job_wait": {"required": False, "type": "bool", "default": True},
-        "job_wait_timeout": {"required": False, "type": "int", "default": 900}
+        "stripe_size": {"type": 'int', "default": 64 * 1024},
+        "capacity": {"type": 'float'},
+        "controller_id": {"type": 'str'},
+        "media_type": {"choices": ['HDD', 'SSD']},
+        "protocol": {"choices": ['SAS', 'SATA']},
+        "raid_reset_config": {"choices": ['True', 'False'], "default": 'False'},
+        "raid_init_operation": {"choices": ['None', 'Fast']},
+        "job_wait": {"type": "bool", "default": True},
+        "job_wait_timeout": {"type": "int", "default": 900}
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
