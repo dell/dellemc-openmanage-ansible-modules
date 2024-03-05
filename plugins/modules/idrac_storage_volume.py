@@ -395,11 +395,9 @@ class StorageDelete(StorageBase):
         pass
 
 
-class StorageData:
+class StorageData(StorageBase):
     def __init__(self, idrac, module):
-        self.module = module
-        self.idrac = idrac
-        self.controller_id = self.module.params.get("controller_id")
+        super().__init__(idrac, module)
       
     def fetch_controllers_uri(self):
           uri, err_msg = validate_and_get_first_resource_id_uri(
@@ -489,22 +487,19 @@ def main():
     try:
         with iDRACRedfishAPI(module.params) as idrac:
             changed = False
-            # obj = StorageBase(idrac, module)
-            # storage_output = obj.module.params
-            
-            storage_details = {}
-            if module.params['state'] == 'view':
-                data_obj = StorageData(idrac, module)
-                storage_details = data_obj.fetch_storage_data()
-            elif module.params['state'] == 'create':
-                validate_obj = StorageValidation(idrac, module)
-                validate_obj.validate_controller_exists()
-                validate_obj.validate_negative_values()
-                
+            state_class_mapping = {
+              'create': StorageCreate,
+              'view': StorageView,
+              'update': StorageUpdate,
+              'delete': StorageDelete,
+            }
+            state_type = state_class_mapping.get(module.params['state'])
+            obj = state_type(idrac, module)
+            output = obj.execute()
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
         module.exit_json(msg=str(e), failed=True)
     msg = SUCCESSFUL_OPERATION_MSG.format(operation = module.params['state'])
-    module.exit_json(msg=msg, changed=changed, storage_status=storage_details)
+    module.exit_json(msg=msg, changed=changed, storage_status=output)
 
 
 if __name__ == '__main__':
