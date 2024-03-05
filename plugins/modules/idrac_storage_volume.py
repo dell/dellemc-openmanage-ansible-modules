@@ -340,91 +340,10 @@ class StorageBase:
         return payload
 
 
-class StorageValidation(StorageBase):
+class StorageData: 
     def __init__(self, idrac, module):
-        super().__init__(idrac,module)
-        self.controller_id = module.params.get("controller_id")
-
-    def validate_controller_exists(self):
-        obj = StorageData(self.idrac, self.module)
-        controllers = obj.fetch_storage_data()
-        if self.controller_id not in controllers.keys():
-            self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
-        return True
-
-    def validate_negative_values(self):
-        if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
-            self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter = "job_wait_timeout"), failed=True)
-
-        params = ["span_depth", "span_length"]
-        for param in params:
-            if self.module.params.get(param) <= 0:
-                self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter=param), failed=True)
-
-        if self.module.params.get("number_dedicated_hot_spare") < 0:
-            self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
-        return True
-
-    def validate_volume_drives():
-        pass
-        
-    
-    def raid_std_validation(self, span_length, span_depth, volume_type, pd_count):
-        raid_std = {
-            "RAID 0": {'pd_slots': range(1, 2), 'span_length': 1, 'checks': operator.ge, 'span_depth': 1},
-            "RAID 1": {'pd_slots': range(1, 3), 'span_length': 2, 'checks': operator.eq, 'span_depth': 1},
-            "RAID 5": {'pd_slots': range(1, 4), 'span_length': 3, 'checks': operator.ge, 'span_depth': 1},
-            "RAID 6": {'pd_slots': range(1, 5), 'span_length': 4, 'checks': operator.ge, 'span_depth': 1},
-            "RAID 10": {'pd_slots': range(1, 5), 'span_length': 2, 'checks': operator.ge, 'span_depth': 2},
-            "RAID 50": {'pd_slots': range(1, 7), 'span_length': 3, 'checks': operator.ge, 'span_depth': 2},
-            "RAID 60": {'pd_slots': range(1, 9), 'span_length': 4, 'checks': operator.ge, 'span_depth': 2}
-        }
-        raid_info = raid_std.get(volume_type)
-        if not raid_std.get('checks')(span_length, raid_info.get('span_length')):
-            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
-        if volume_type in ["RAID 0", "RAID 1", "RAID 5", "RAID 6"] and operator.ne(span_depth, raid_info('span_depth')):
-            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
-        if volume_type in ["RAID 10", "RAID 50", "RAID 60"] and operator.ge(span_depth, raid_info('span_depth')):
-            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
-        if not operator.eq(pd_count, span_depth*span_length):
-            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="drives"))
-        return True
-
-    def validate(self):
-        pass
-    
-    def execute(self):
-        pass
-
-
-class StorageCreate(StorageBase):
-    def validate(self):
-        pass
-    
-    def execute(self):
-        pass
-
-
-class StorageUpdate(StorageBase):
-    def validate(self):
-        pass
-    
-    def execute(self):
-        pass
-
-
-class StorageDelete(StorageBase):
-    def validate(self):
-        pass
-    
-    def execute(self):
-        pass
-
-
-class StorageData(StorageBase):
-    
-    def __init__(self, idrac, module):
-        super().__init__(idrac, module)
+        self.idrac = idrac
+        self.module = module
 
     def fetch_controllers_uri(self):
         uri, err_msg = validate_and_get_first_resource_id_uri(
@@ -473,13 +392,94 @@ class StorageData(StorageBase):
         return storage_info
 
 
-class StorageView(StorageData):
+class StorageValidation(StorageBase):
+    def __init__(self, idrac, module):
+        super().__init__(idrac,module)
+        self.idrac_data = StorageData(idrac, module).fetch_storage_data()
+        self.controller_id = module.params.get("controller_id")
+
+    def validate_controller_exists(self):
+        controllers = self.data
+        if self.controller_id not in controllers.keys():
+            self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
+        return True
+
+    def validate_negative_values(self):
+        if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
+            self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter = "job_wait_timeout"), failed=True)
+
+        params = ["span_depth", "span_length"]
+        for param in params:
+            if self.module.params.get(param) <= 0:
+                self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter=param), failed=True)
+
+        if self.module.params.get("number_dedicated_hot_spare") < 0:
+            self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
+        return True
+
+    def validate_volume_drives():
+        pass
+
+    
+    def raid_std_validation(self, span_length, span_depth, volume_type, pd_count):
+        raid_std = {
+            "RAID 0": {'pd_slots': range(1, 2), 'span_length': 1, 'checks': operator.ge, 'span_depth': 1},
+            "RAID 1": {'pd_slots': range(1, 3), 'span_length': 2, 'checks': operator.eq, 'span_depth': 1},
+            "RAID 5": {'pd_slots': range(1, 4), 'span_length': 3, 'checks': operator.ge, 'span_depth': 1},
+            "RAID 6": {'pd_slots': range(1, 5), 'span_length': 4, 'checks': operator.ge, 'span_depth': 1},
+            "RAID 10": {'pd_slots': range(1, 5), 'span_length': 2, 'checks': operator.ge, 'span_depth': 2},
+            "RAID 50": {'pd_slots': range(1, 7), 'span_length': 3, 'checks': operator.ge, 'span_depth': 2},
+            "RAID 60": {'pd_slots': range(1, 9), 'span_length': 4, 'checks': operator.ge, 'span_depth': 2}
+        }
+        raid_info = raid_std.get(volume_type)
+        if not raid_std.get('checks')(span_length, raid_info.get('span_length')):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+        if volume_type in ["RAID 0", "RAID 1", "RAID 5", "RAID 6"] and operator.ne(span_depth, raid_info('span_depth')):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+        if volume_type in ["RAID 10", "RAID 50", "RAID 60"] and operator.ge(span_depth, raid_info('span_depth')):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+        if not operator.eq(pd_count, span_depth*span_length):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="drives"))
+        return True
+
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
+
+class StorageCreate(StorageValidation):
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
+
+class StorageUpdate(StorageValidation):
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
+
+class StorageDelete(StorageValidation):
+    def validate(self):
+        pass
+    
+    def execute(self):
+        pass
+
+
+class StorageView(StorageValidation):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
 
     def execute(self):
         # self.module.exit_json(msg = "passed till here line no-484")
-        return self.fetch_storage_data()
+        return self.idrac_data
 
 
 def main():
