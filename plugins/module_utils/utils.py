@@ -525,14 +525,3 @@ def validate_and_get_first_resource_id_uri(module, idrac, base_uri):
 def get_idrac_firmware_version(idrac):
     firm_version = idrac.invoke_request(method='GET', uri=GET_IDRAC_FIRMWARE_VER_URI)
     return firm_version.json_data.get('FirmwareVersion', '')
-
-def check_specified_identifier_exists_in_the_system(idrac, uri):
-    """
-    common validation to check if , specified identifier exist in the system or not
-    """
-    try:
-        resp = idrac.invoke_request(uri,'GET')
-        return resp
-    except HTTPError as err:
-        resp = {}
-    return resp
