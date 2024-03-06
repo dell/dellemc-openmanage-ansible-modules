@@ -381,6 +381,7 @@ class StorageData:
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
+        self.storage_data = self.all_storage_data()
 
     def fetch_controllers_uri(self):
         uri, err_msg = validate_and_get_first_resource_id_uri(
@@ -422,40 +423,29 @@ class StorageData:
 
   
     def fetch_storage_data(self):
-        storage_info = {}
-        storage_controllers = self.fetch_controllers_uri()
-        controllers_details_uri = f"{storage_controllers['ODATA_ID']}?$expand=*($levels=1)"
-        controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
-        for member in controllers_list['Members']:
-            controllers = member.get("Controllers")
-            if controllers:
-                controller_name = controllers["ODATA_ID"].split("/")[-2]
-                storage_info[controller_name] = {}
-                drives_uri = [drive['ODATA_ID'] for drive in member['Drives']]
-                drives_dict = self.fetch_drives_details(drives_uri)
-                storage_controller_extended_details = member.get("StorageControllers")[0]
-                storage_info[controller_name].update({
-                    'Drives': drives_dict,
-                    'SupportedDeviceProtocols': storage_controller_extended_details.get("SupportedDeviceProtocols", []),
-                    'SupportedRAIDTypes': storage_controller_extended_details.get("SupportedRAIDTypes", []),
-                    'SupportedControllerProtocols': storage_controller_extended_details.get("SupportedControllerProtocols", [])
-                })
-                controller_battery_details = member["Oem"]["Dell"].get("DellControllerBattery")
-                if controller_battery_details:
-                    storage_info[controller_name]["DellControllerBattery"] = controller_battery_details["Id"]
+        storage_info = {"Message": {"Controller": {}}}
+        for controller_id, controller_details in self.storage_data["Controllers"].items():
+            storage_info["Message"]["Controller"][controller_id] = {
+                "ControllerSensor": {controller_id: {}}
+            }
+            controller_battery_details = controller_details["Oem"]["Dell"].get("DellControllerBattery")
+            if controller_battery_details:
+                storage_info["Message"]["Controller"][controller_id]["ControllerSensor"][controller_id]["DellControllerBattery"] = [controller_battery_details["Id"]]
+            if controller_details["Drives"]:
+                storage_info["Message"]["Controller"][controller_id]["PhysicalDisk"] = controller_details["Drives"].keys()
         return storage_info
 
 
 class StorageValidation(StorageBase):
     def __init__(self, idrac, module):
         super().__init__(idrac,module)
-        self.idrac_data = StorageData(idrac, module).fetch_storage_data()
+        self.idrac_data = StorageData(idrac, module).all_storage_data()
         self.controller_id = module.params.get("controller_id")
 
     def validate_controller_exists(self):
         if not self.controller_id:
             self.module.exit_json(msg=CONTROLLER_NOT_DEFINED, failed=True)
-        controllers = self.idrac_data
+        controllers = self.idrac_data["Controllers"]
         if self.controller_id not in controllers.keys():
             self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
         return True
@@ -464,7 +454,7 @@ class StorageValidation(StorageBase):
         if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
             self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter = "job_wait_timeout"), failed=True)
 
-        params = ["span_depth", "span_length"]
+        params = ["span_depth", "span_length", "capacity", "strip_size"]
         for param in params:
             if self.module.params.get(param) <= 0:
                 self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter=param), failed=True)
@@ -544,7 +534,7 @@ class StorageView(StorageData):
         super().__init__(idrac, module)
 
     def execute(self):
-        return self.all_storage_data()
+        return self.fetch_storage_data()
 
 
 def main():
@@ -591,7 +581,7 @@ def main():
             obj = state_type(idrac, module)
             output = obj.execute()
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
-        module.fail_json(msg=str(e), failed=True)
+        module.exit_json(msg=str(e), failed=True)
     msg = SUCCESSFUL_OPERATION_MSG.format(operation = module.params['state'])
     module.exit_json(msg=msg, changed=changed, storage_status=output)
 
