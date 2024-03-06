@@ -262,7 +262,7 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, remove_key)
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion)
 import operator
 
 
@@ -278,7 +278,8 @@ INVALID_VALUE_MSG = " The value for the `{parameter}` parameter are invalid."
 ID_AND_LOCATION_BOTH_DEFINED = "Either id or location is allowed."
 ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
-ODATA_ID = '@odata.id'
+ODATA_ID = "@odata.id"
+
 
 class StorageBase:
     def __init__(self, idrac, module):
@@ -349,46 +350,74 @@ class StorageData:
         self.idrac = idrac
         self.module = module
 
-    def fetch_data_from_idrac(self, remove_odata=True):
-        storage_info = {}
+    def fetch_controllers_uri(self):
         uri, err_msg = validate_and_get_first_resource_id_uri(
             self.module, self.idrac, SYSTEMS_URI)
         if err_msg:
             self.module.exit_json(msg=err_msg, failed=True)
         storage_controllers = get_dynamic_uri(self.idrac, uri, 'Storage')
-        controllers_expand_uri = f"{storage_controllers[ODATA_ID]}?$expand=*($levels=1)"
-        storage_expand_response = get_dynamic_uri(self.idrac, controllers_expand_uri, 'Members')
-        for each_controller in storage_expand_response:
-            controller_id = each_controller.get("Id")
+        return storage_controllers
+
+
+    def fetch_api_data(self, uri, key_index_from_end):
+        key = uri.split("/")[key_index_from_end]
+        uri_data = self.idrac.invoke_request(uri, "GET")
+        return key,uri_data
+
+
+    def all_storage_data(self):
+        storage_info = {"Controllers":{}}
+        controllers_details_uri = self.fetch_controllers_uri()[ODATA_ID] + "?$expand=*($levels=1)"
+        controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
+        for each_controller in controllers_list["Members"]:
             if "Controllers" not in each_controller:
                 continue
-            storage_info[controller_id] = each_controller
-            #  For Drives
-            drives_uri_list = [drive[ODATA_ID] for drive in each_controller['Drives']]
-            drives_dict = {}
-            for each_drive_uri in drives_uri_list:
-                drive = get_dynamic_uri(self.idrac, each_drive_uri)
-                if drive:
-                    drives_dict[drive.get('Id')] = drive
-            storage_info[controller_id]['Drives'] = drives_dict
-            #  For Volumes
+            controller_id = each_controller.get("Id")
+            storage_info["Controllers"][controller_id] = each_controller.copy()
+            storage_info["Controllers"][controller_id]["Drives"] = {}
+            storage_info["Controllers"][controller_id]["Volumes"] = {}
+            # To fetch drives data
+            for each_drive_uri in each_controller["Drives"]:
+                key, uri_data = self.fetch_api_data(each_drive_uri[ODATA_ID], -1)
+                storage_info["Controllers"][controller_id]["Drives"][key] = uri_data.json_data
+            # To fetch volumes data
             volume_uri = each_controller['Volumes'][ODATA_ID]
-            volume_uri_list = [volume[ODATA_ID] for volume in get_dynamic_uri(self.idrac, volume_uri, 'Members')]
-            volume_dict = {}
-            for each_volume_uri in volume_uri_list:
-                volume = get_dynamic_uri(self.idrac, each_volume_uri)
-                if volume:
-                    volume_dict[volume.get('Id')] = volume
-            storage_info[controller_id]['Volumes'] = volume_dict
-        if remove_odata:
-            storage_info = remove_key(storage_info, regex_pattern="(.*?)@odata")
+            volumes_list = get_dynamic_uri(self.idrac, volume_uri, "Members")
+            for each_volume_uri in volumes_list:
+                key, uri_data = self.fetch_api_data(each_volume_uri[ODATA_ID], -1)
+                storage_info["Controllers"][controller_id]["Volumes"][key] = uri_data.json_data
+        return storage_info
+
+  
+    def fetch_storage_data(self):
+        storage_info = {}
+        storage_controllers = self.fetch_controllers_uri()
+        controllers_details_uri = f"{storage_controllers['ODATA_ID']}?$expand=*($levels=1)"
+        controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
+        for member in controllers_list['Members']:
+            controllers = member.get("Controllers")
+            if controllers:
+                controller_name = controllers["ODATA_ID"].split("/")[-2]
+                storage_info[controller_name] = {}
+                drives_uri = [drive['ODATA_ID'] for drive in member['Drives']]
+                drives_dict = self.fetch_drives_details(drives_uri)
+                storage_controller_extended_details = member.get("StorageControllers")[0]
+                storage_info[controller_name].update({
+                    'Drives': drives_dict,
+                    'SupportedDeviceProtocols': storage_controller_extended_details.get("SupportedDeviceProtocols", []),
+                    'SupportedRAIDTypes': storage_controller_extended_details.get("SupportedRAIDTypes", []),
+                    'SupportedControllerProtocols': storage_controller_extended_details.get("SupportedControllerProtocols", [])
+                })
+                controller_battery_details = member["Oem"]["Dell"].get("DellControllerBattery")
+                if controller_battery_details:
+                    storage_info[controller_name]["DellControllerBattery"] = controller_battery_details["Id"]
         return storage_info
 
 
 class StorageValidation(StorageBase):
     def __init__(self, idrac, module):
         super().__init__(idrac,module)
-        self.idrac_data = StorageData(idrac, module).fetch_data_from_idrac()
+        self.idrac_data = StorageData(idrac, module).fetch_storage_data()
         self.controller_id = module.params.get("controller_id")
 
     def validate_controller_exists(self):
@@ -478,15 +507,12 @@ class StorageDelete(StorageValidation):
         pass
 
 
-class StorageView(StorageValidation):
+class StorageView(StorageData):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
-    
-    def validate(self):
-        pass
 
     def execute(self):
-        return self.idrac_data
+        return self.all_storage_data()
 
 
 def main():
