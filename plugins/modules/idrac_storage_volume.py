@@ -312,8 +312,17 @@ class StorageBase:
         
         return module
 
-
-    def construct_volume_payload(self, number_of_existing_vd, volume_dict, ) -> dict:
+    def payload_for_disk(self, volume):
+        attr = {}
+        if 'drives' in volume and 'id' in volume['drives']:
+            for each_pd_id in v['drives']['id']:
+                attr['IncludedPhysicalDiskID'] = each_pd_id
+        if 'number_dedicated_hot_spare' in volume:
+            for each_dhs in volume['number_dedicated_hot_spare']:
+                attr['RAIDdedicatedSpare'] = each_dhs
+        return attr
+  
+    def construct_volume_payload(self, number_of_existing_vd, volume) -> dict:
         
         """
         Constructs a payload dictionary for the given key mappings.
@@ -322,7 +331,6 @@ class StorageBase:
             dict: The constructed payload dictionary.
         """
         key_mapping: dict = {
-            'raid_reset_config': 'RAIDresetConfig',
             'raid_init_operation': 'RAIDinitOperation',
             'state': "RAIDaction",
             'disk_cache_policy': "DiskCachePolicy",
@@ -334,15 +342,39 @@ class StorageBase:
             'volume_type': "RAIDTypes",
             'name': 'Name',
             'capacity': 'Size',
-            'dedicated_hot_spare': "DedicatedSpare",
         }
-
-        vdfqdd = "Disk.Virtual.{0}:{1}".format(int(number_of_existing_vd)+1, self.module.params.get("controller_id"))
-        
-
-        payload = {}
-
+        controller_id = self.module.params.get("controller_id")
+        payload = ''
+        attr = {}
+        for key in key_mapping:
+            if key in volume:
+                attr[key_mapping[key]] = volume[key]
+            attr.update(self.payload_for_disk(volume))
+        vdfqdd = "Disk.Virtual.{0}:{1}".format(number_of_existing_vd+1, controller_id)
+        payload = xml_data_conversion(attr, vdfqdd)
         return payload
+  
+    def disk_slot_location_to_id_conversion(self, volume, physical_disk):
+        drives = {'id': []}
+        slot_id_mapping = {value.get('Oem', {}).get('Dell', {}).get('Slot', -1): key for key, value in physical_disk.items()}
+        for each_pd in volume['drives']['location']:
+            disk_id = slot_id_mapping.get(each_pd)
+            if disk_id:
+                drives['id'].append(disk_id)
+        return drives
+
+    def updating_volume_module_input(self):
+        reserved_pd = []
+        volumes = self.module.params.get('volumes', [])
+        for each in volumes:
+            if 'stripe_size' in each:
+                # Converting from KB to Bytes
+                each['stripe_size'] = int(each['stripe_size'])/1024
+            if 'capacity' in each:
+                # Converting from GB to Bytes
+                each['capacity'] = int(float(['capacity'])*1024*1024)
+            if 'drives' in each:
+                pass
 
 
 class StorageData: 
@@ -451,7 +483,6 @@ class StorageValidation(StorageBase):
         drives_count = len(specified_drives.id) or len(specified_drives.location)
         return self.raid_std_validation(specified_drives.span_length, specified_drives.span_depth, specified_drives.volume_type, drives_count)
 
-
     def raid_std_validation(self, span_length, span_depth, volume_type, pd_count):
         raid_std = {
             "RAID 0": {'pd_slots': range(1, 2), 'span_length': 1, 'checks': operator.ge, 'span_depth': 1},
@@ -488,7 +519,8 @@ class StorageCreate(StorageValidation):
         super().execute()
     
     def execute(self):
-        self.validate()
+        # self.validate()
+        return self.construct_volume_payload(self.idrac_data)
 
 
 class StorageUpdate(StorageValidation):
