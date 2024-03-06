@@ -360,6 +360,8 @@ class StorageData:
         storage_expand_response = get_dynamic_uri(self.idrac, controllers_expand_uri, 'Members')
         for each_controller in storage_expand_response:
             controller_id = each_controller.get("Id")
+            if "Controllers" not in each_controller:
+                continue
             storage_info[controller_id] = each_controller
             #  For Drives
             drives_uri_list = [drive[ODATA_ID] for drive in each_controller['Drives']]
