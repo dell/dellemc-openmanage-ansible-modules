@@ -535,7 +535,6 @@ class StorageCreate(StorageValidation):
         physical_disk = self.idrac_data["Controllers"][self.controller_id]["Drives"]
         slot_id_mapping = {value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {})
                            .get('Slot'): key for key, value in physical_disk.items()}
-        self.module.warn("Slot id mapping: {}".format(slot_id_mapping))
         drives['id'] = [slot_id_mapping.get(each_pd) for each_pd in each_volume['drives']['location']
                         if slot_id_mapping.get(each_pd)]
         return drives
@@ -562,23 +561,18 @@ class StorageCreate(StorageValidation):
         return data
 
     def updating_volume_module_input(self):
-        reserved_pd = []
         volumes = self.module.params.get('volumes', [])
-        #  Updating dictionary of volumes in runtime
         for each in volumes:
-            filtered_disk = self.filter_disk(each)
             if 'stripe_size' in each:
-                # Converting from KB to Bytes
-                each['stripe_size'] = int(each['stripe_size'])//1024
+                each['stripe_size'] = int(each['stripe_size']) // 1024
             if 'capacity' in each:
-                # Converting from GB to Bytes
-                each['capacity'] = int(float(each['capacity'])*1024*1024)
-            if 'drives' in each and 'location' in each['drives']:
-                each['drives'] = self.disk_slot_location_to_id_conversion(each)
-            if 'drives' in each and 'id' in each['drives']:
-                for each_pd in each['drives']['id']:
-                    # In progress
-                    pass
+                each['capacity'] = int(float(each['capacity']) * 1024 * 1024)
+            if 'drives' in each:
+                if 'location' in each['drives'] and each['drives']['location']:
+                    each['drives'] = self.disk_slot_location_to_id_conversion(each)
+                if 'id' in each['drives']:
+                    for each_pd in each['drives']['id']:
+                        pass
 
     def validate(self):
         super().execute()
