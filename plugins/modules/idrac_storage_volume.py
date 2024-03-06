@@ -300,7 +300,7 @@ class StorageBase:
             'volume_type', 'span_length', 'span_depth',
             'number_dedicated_hot_spare', 'disk_cache_policy',
             'write_cache_policy', 'read_cache_policy', 'stripe_size',
-            'capacity', 'raid_init_operation'
+            'capacity', 'raid_init_operation', 'protocol', 'media_type'
         ]
         
         volumes = module.params.get('volumes', [])
@@ -354,6 +354,30 @@ class StorageBase:
         payload = xml_data_conversion(attr, vdfqdd)
         return payload
   
+  
+    def disk_slot_location_to_id_conversion(self, volume, physical_disk):
+        drives = {'id': []}
+        slot_id_mapping = {value.get('Oem', {}).get('Dell', {}).get('Slot', -1): key for key, value in physical_disk.items()}
+        for each_pd in volume['drives']['location']:
+            disk_id = slot_id_mapping.get(each_pd)
+            if disk_id:
+                drives['id'].append(disk_id)
+        return drives
+
+    def updating_volume_module_input(self):
+        reserved_pd = []
+        volumes = self.module.params.get('volumes', [])
+        for each in volumes:
+            if 'stripe_size' in each:
+                # Converting from KB to Bytes
+                each['stripe_size'] = int(each['stripe_size'])/1024
+            if 'capacity' in each:
+                # Converting from GB to Bytes
+                each['capacity'] = int(float(['capacity'])*1024*1024)
+            if 'drives' in each:
+                pass
+
+
     def disk_slot_location_to_id_conversion(self, volume, physical_disk):
         drives = {'id': []}
         slot_id_mapping = {value.get('Oem', {}).get('Dell', {}).get('Slot', -1): key for key, value in physical_disk.items()}
@@ -505,12 +529,64 @@ class StorageValidation(StorageBase):
 
 
 class StorageCreate(StorageValidation):
+
+    def disk_slot_location_to_id_conversion(self, each_volume):
+        drives = {}
+        physical_disk = self.idrac_data["Controllers"][self.controller_id]["Drives"]
+        slot_id_mapping = {value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {})
+                           .get('Slot'): key for key, value in physical_disk.items()}
+        self.module.warn("Slot id mapping: {}".format(slot_id_mapping))
+        drives['id'] = [slot_id_mapping.get(each_pd) for each_pd in each_volume['drives']['location']
+                        if slot_id_mapping.get(each_pd)]
+        return drives
+
+    def filter_disk(self, each_volume):
+        data = {
+            'healthy_disk': set(),
+            'available_disk': set(),
+            'protocol_supported_disk': set(),
+            'media_type_supported_disk': set()
+        }
+        disk_dict = self.idrac_data["Controllers"][self.controller_id]["Drives"]
+        for key, value in disk_dict.items():
+            if each_volume.get('media_type') and value.get('MediaType') == each_volume.get('media_type'):
+                data['media_type_supported_disk'].add(key)
+            if each_volume.get('protocol') and value.get('Protocol') == each_volume.get('protocol'):
+                data["protocol_supported_disk"].add(key)
+            status = value.get('Status', {}).get('Health', {})
+            if status == "OK":
+                data['healthy_disk'].add(key)
+            raid_status = value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus', {})
+            if raid_status == "Ready":
+                data['available_disk'].add(key)
+        return data
+
+    def updating_volume_module_input(self):
+        reserved_pd = []
+        volumes = self.module.params.get('volumes', [])
+        #  Updating dictionary of volumes in runtime
+        for each in volumes:
+            filtered_disk = self.filter_disk(each)
+            if 'stripe_size' in each:
+                # Converting from KB to Bytes
+                each['stripe_size'] = int(each['stripe_size'])//1024
+            if 'capacity' in each:
+                # Converting from GB to Bytes
+                each['capacity'] = int(float(each['capacity'])*1024*1024)
+            if 'drives' in each and 'location' in each['drives']:
+                each['drives'] = self.disk_slot_location_to_id_conversion(each)
+            if 'drives' in each and 'id' in each['drives']:
+                for each_pd in each['drives']['id']:
+                    # In progress
+                    pass
+
     def validate(self):
         super().execute()
     
     def execute(self):
         # self.validate()
-        return self.construct_volume_payload(self.idrac_data)
+        self.updating_volume_module_input()
+        return self.module.params
 
 
 class StorageUpdate(StorageValidation):
