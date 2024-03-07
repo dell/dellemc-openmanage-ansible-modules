@@ -265,6 +265,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion)
 import operator
+import copy
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -403,9 +404,10 @@ class StorageData:
             if "Controllers" not in each_controller:
                 continue
             controller_id = each_controller.get("Id")
-            storage_info["Controllers"][controller_id] = each_controller.copy()
+            storage_info["Controllers"][controller_id] = copy.deepcopy(each_controller)
             storage_info["Controllers"][controller_id]["Drives"] = {}
             storage_info["Controllers"][controller_id]["Volumes"] = {}
+            storage_info["Controllers"][controller_id]["Links"]["Enclosures"] = {}
             # To fetch drives data
             for each_drive_uri in each_controller["Drives"]:
                 key, uri_data = self.fetch_api_data(each_drive_uri[ODATA_ID], -1)
@@ -416,6 +418,10 @@ class StorageData:
             for each_volume_uri in volumes_list:
                 key, uri_data = self.fetch_api_data(each_volume_uri[ODATA_ID], -1)
                 storage_info["Controllers"][controller_id]["Volumes"][key] = uri_data.json_data
+            # To fetch enclosures
+            for each_enclosure_uri in each_controller["Links"]["Enclosures"]:
+                key, uri_data = self.fetch_api_data(each_enclosure_uri[ODATA_ID], -1)
+                storage_info["Controllers"][controller_id]["Links"]["Enclosures"][key] = uri_data.json_data
         return storage_info
 
   
@@ -427,9 +433,24 @@ class StorageData:
             }
             controller_battery_details = controller_details["Oem"]["Dell"].get("DellControllerBattery")
             if controller_battery_details:
-                storage_info["Message"]["Controller"][controller_id]["ControllerSensor"][controller_id]["DellControllerBattery"] = [controller_battery_details["Id"]]
-            if controller_details["Drives"]:
-                storage_info["Message"]["Controller"][controller_id]["PhysicalDisk"] = controller_details["Drives"].keys()
+                storage_info["Message"]["Controller"][controller_id]["ControllerSensor"][controller_id]["ControllerBattery"] = [controller_battery_details["Id"]]
+            if controller_details["Volumes"]:
+                storage_info["Message"]["Controller"][controller_id]["VirtualDisk"] = {}
+                for volume,volume_details in controller_details["Volumes"].items():
+                    physical_disk = []
+                    for drive in (volume_details["Links"]["Drives"]):
+                        key, uri_data = self.fetch_api_data(drive[ODATA_ID], -1)
+                        physical_disk.append(key)
+                    storage_info["Message"]["Controller"][controller_id]["VirtualDisk"][volume] = {"PhysicalDisk":physical_disk}
+            if controller_details["Links"]["Enclosures"]:
+                for enclosure in controller_details["Links"]["Enclosures"].keys():
+                    if enclosure.startswith("Enclosure"):
+                        storage_info["Message"]["Controller"][controller_id]["Enclosure"] = {enclosure: {"EnclosureSensor": {enclosure: {}}}}
+                        if controller_details["Drives"]:
+                            storage_info["Message"]["Controller"][controller_id]["Enclosure"]["PhysicalDisk"] = controller_details["Drives"].keys()
+                else:
+                    if controller_details["Drives"]:
+                        storage_info["Message"]["Controller"][controller_id]["PhysicalDisk"] = controller_details["Drives"].keys()
         return storage_info
 
 
@@ -459,15 +480,15 @@ class StorageValidation(StorageBase):
         if each_volume.get("number_dedicated_hot_spare") < 0:
             self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
 
-    def validate_volume_drives(self, specified_drives):
-        if not specified_drives:
+    def validate_volume_drives(self, specified_volumes):
+        if not specified_volumes:
             self.module.exit_json(msg=DRIVES_NOT_DEFINED, failed=True)
-        if specified_drives.get("id") and specified_drives.get("location"):
+        if specified_volumes.get("id") and specified_volumes.get("location"):
             self.module.exit_json(msg=ID_AND_LOCATION_BOTH_DEFINED, failed=True)
-        elif not specified_drives.get("id") and not specified_drives.get("location"):
+        elif not specified_volumes.get("id") and not specified_volumes.get("location"):
             self.module.exit_json(msg=ID_AND_LOCATION_BOTH_NOT_DEFINED, failed=True)
-        drives_count = len(specified_drives.id) or len(specified_drives.location)
-        return self.raid_std_validation(specified_drives.span_length, specified_drives.span_depth, specified_drives.volume_type, drives_count)
+        drives_count = len(specified_volumes.id) or len(specified_volumes.location)
+        return self.raid_std_validation(specified_volumes.span_length, specified_volumes.span_depth, specified_volumes.volume_type, drives_count)
 
     def raid_std_validation(self, span_length, span_depth, volume_type, pd_count):
         raid_std = {
