@@ -313,7 +313,7 @@ class StorageBase:
                 for key in volume_related_input:
                     if key not in each_member:
                         each_member[key] = module.params.get(key)
-        
+
         return module_copy
 
     def payload_for_disk(self, volume):
@@ -325,9 +325,9 @@ class StorageBase:
             for each_dhs in volume['dedicated_hot_spare']:
                 attr['RAIDdedicatedSpare'] = each_dhs
         return attr
-  
+
     def construct_volume_payload(self, number_of_existing_vd, volume, name_id_mapping) -> dict:
-        
+
         """
         Constructs a payload dictionary for the given key mappings.
 
@@ -375,7 +375,7 @@ class StorageBase:
         return updated_payload
 
 
-class StorageData: 
+class StorageData:
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
@@ -491,9 +491,9 @@ class StorageValidation(StorageBase):
             self.module.exit_json(msg=ID_AND_LOCATION_BOTH_DEFINED, failed=True)
         elif not specified_drives.get("id") and not specified_drives.get("location"):
             self.module.exit_json(msg=ID_AND_LOCATION_BOTH_NOT_DEFINED, failed=True)
-        drives_count = len(specified_drives.get("location")) if specified_drives.get("location") is not None else len(specified_drives.get("id"))
-        return self.raid_std_validation(specified_volume.get("span_length"), 
-                                        specified_volume.get("span_depth"), 
+        drives_count = len(specified_drives.get("location")) if specified_drives.get("location") is not None else len(specified_drives.get("id")) 
+        return self.raid_std_validation(specified_volume.get("span_length"),
+                                        specified_volume.get("span_depth"),
                                         specified_volume.get("volume_type"),
                                         drives_count)
 
@@ -510,9 +510,9 @@ class StorageValidation(StorageBase):
         raid_info = raid_std.get(volume_type)
         if not raid_info.get('checks')(span_length, raid_info.get('span_length')):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_length"), failed=True)
-        if volume_type in ["RAID 0", "RAID 1", "RAID 5", "RAID 6"] and operator.ne(span_depth, raid_info('span_depth')):
+        if volume_type in ["RAID 0", "RAID 1", "RAID 5", "RAID 6"] and operator.ne(span_depth, raid_info.get('span_depth')):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_depth"), failed=True)
-        if volume_type in ["RAID 10", "RAID 50", "RAID 60"] and operator.ge(span_depth, raid_info('span_depth')):
+        if volume_type in ["RAID 10", "RAID 50", "RAID 60"] and operator.ge(span_depth, raid_info.get('span_depth')):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_depth"), failed=True)
         if not operator.eq(pd_count, span_depth*span_length):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="drives"), failed=True)
@@ -520,7 +520,7 @@ class StorageValidation(StorageBase):
 
     def validate(self):
         pass
-    
+
     def execute(self):
         pass
 
@@ -630,16 +630,14 @@ class StorageCreate(StorageValidation):
         #  Validate upper layer input
         self.validate_controller_exists()
         self.validate_job_wait_negative_values()
-
         #  Validate std raid validation for inner layer
         for each_volume in self.module_ext_params.get('volumes'):
             #  Validatiing for negative values
-            self.validate_negative_values_for_volume_params(each_volume) 
+            self.validate_negative_values_for_volume_params(each_volume)
             self.validate_volume_drives(each_volume)
-
         #  Extendeding volume module input in module_ext_params for drives id and hotspare 
         self.updating_volume_module_input()
-           
+        
 
     def execute(self):
         self.validate()
@@ -650,7 +648,7 @@ class StorageCreate(StorageValidation):
 class StorageUpdate(StorageValidation):
     def validate(self):
         pass
-    
+
     def execute(self):
         pass
 
@@ -658,7 +656,7 @@ class StorageUpdate(StorageValidation):
 class StorageDelete(StorageValidation):
     def validate(self):
         pass
-    
+
     def execute(self):
         pass
 
