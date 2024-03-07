@@ -424,34 +424,36 @@ class StorageData:
                 storage_info["Controllers"][controller_id]["Links"]["Enclosures"][key] = uri_data.json_data
         return storage_info
 
-  
     def fetch_storage_data(self):
         storage_info = {"Message": {"Controller": {}}}
-        for controller_id, controller_details in self.storage_data["Controllers"].items():
+        for controller_id, controller_data in self.storage_data["Controllers"].items():
             storage_info["Message"]["Controller"][controller_id] = {
                 "ControllerSensor": {controller_id: {}}
             }
-            controller_battery_details = controller_details["Oem"]["Dell"].get("DellControllerBattery")
-            if controller_battery_details:
-                storage_info["Message"]["Controller"][controller_id]["ControllerSensor"][controller_id]["ControllerBattery"] = [controller_battery_details["Id"]]
-            if controller_details["Volumes"]:
-                storage_info["Message"]["Controller"][controller_id]["VirtualDisk"] = {}
-                for volume,volume_details in controller_details["Volumes"].items():
-                    physical_disk = []
-                    for drive in (volume_details["Links"]["Drives"]):
-                        key, uri_data = self.fetch_api_data(drive[ODATA_ID], -1)
-                        physical_disk.append(key)
-                    storage_info["Message"]["Controller"][controller_id]["VirtualDisk"][volume] = {"PhysicalDisk":physical_disk}
-            if controller_details["Links"]["Enclosures"]:
-                for enclosure in controller_details["Links"]["Enclosures"].keys():
-                    if enclosure.startswith("Enclosure"):
-                        storage_info["Message"]["Controller"][controller_id]["Enclosure"] = {enclosure: {"EnclosureSensor": {enclosure: {}}}}
-                        if controller_details["Drives"]:
-                            storage_info["Message"]["Controller"][controller_id]["Enclosure"]["PhysicalDisk"] = controller_details["Drives"].keys()
-                else:
-                    if controller_details["Drives"]:
-                        storage_info["Message"]["Controller"][controller_id]["PhysicalDisk"] = controller_details["Drives"].keys()
+            battery_data = controller_data["Oem"]["Dell"].get("DellControllerBattery")
+            if battery_data:
+                storage_info["Message"]["Controller"][controller_id]["ControllerSensor"][controller_id]["ControllerBattery"] = [battery_data["Id"]]
+            self.fetch_volumes(controller_id, controller_data, storage_info)
+            self.fetch_enclosures_and_physical_disk(controller_id, controller_data, storage_info)
         return storage_info
+
+    def fetch_volumes(self, controller_id, controller_data, storage_info):
+        if controller_data["Volumes"]:
+            storage_info["Message"]["Controller"][controller_id]["VirtualDisk"] = {}
+            for volume_id, volume_data in controller_data["Volumes"].items():
+                physical_disk = [drive[ODATA_ID] for drive in volume_data["Links"]["Drives"]]
+                storage_info["Message"]["Controller"][controller_id]["VirtualDisk"][volume_id] = {"PhysicalDisk": physical_disk}
+
+    def fetch_enclosures_and_physical_disk(self, controller_id, controller_data, storage_info):
+        if controller_data["Links"]["Enclosures"]:
+            for enclosure_id in controller_data["Links"]["Enclosures"].keys():
+                if enclosure_id.startswith("Enclosure"):
+                    storage_info["Message"]["Controller"][controller_id]["Enclosure"] = {enclosure_id: {"EnclosureSensor": {enclosure_id: {}}}}
+                    if controller_data["Drives"]:
+                        storage_info["Message"]["Controller"][controller_id]["Enclosure"]["PhysicalDisk"] = controller_data["Drives"].keys()
+        else:
+            if controller_data["Drives"]:
+                storage_info["Message"]["Controller"][controller_id]["PhysicalDisk"] = controller_data["Drives"].keys()
 
 
 class StorageValidation(StorageBase):
@@ -474,21 +476,26 @@ class StorageValidation(StorageBase):
     def validate_negative_values_for_volume_params(self, each_volume):
         inner_params = ["span_depth", "span_length", "capacity", "strip_size"]
         for param in inner_params:
-            if each_volume.get(param, 0) <= 0:
+            value = each_volume.get(param)
+            if value is not None and value <= 0:
                 self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter=param), failed=True)
 
         if each_volume.get("number_dedicated_hot_spare") < 0:
             self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
 
-    def validate_volume_drives(self, specified_volumes):
-        if not specified_volumes:
+    def validate_volume_drives(self, specified_volume):
+        specified_drives = specified_volume.get("drives")
+        if not specified_drives:
             self.module.exit_json(msg=DRIVES_NOT_DEFINED, failed=True)
-        if specified_volumes.get("id") and specified_volumes.get("location"):
+        if specified_drives.get("id") and specified_drives.get("location"):
             self.module.exit_json(msg=ID_AND_LOCATION_BOTH_DEFINED, failed=True)
-        elif not specified_volumes.get("id") and not specified_volumes.get("location"):
+        elif not specified_drives.get("id") and not specified_drives.get("location"):
             self.module.exit_json(msg=ID_AND_LOCATION_BOTH_NOT_DEFINED, failed=True)
-        drives_count = len(specified_volumes.id) or len(specified_volumes.location)
-        return self.raid_std_validation(specified_volumes.span_length, specified_volumes.span_depth, specified_volumes.volume_type, drives_count)
+        drives_count = len(specified_drives.get("location")) if specified_drives.get("location") is not None else len(specified_drives.get("id"))
+        return self.raid_std_validation(specified_volume.get("span_length"), 
+                                        specified_volume.get("span_depth"), 
+                                        specified_volume.get("volume_type"),
+                                        drives_count)
 
     def raid_std_validation(self, span_length, span_depth, volume_type, pd_count):
         raid_std = {
@@ -501,25 +508,21 @@ class StorageValidation(StorageBase):
             "RAID 60": {'pd_slots': range(1, 9), 'span_length': 4, 'checks': operator.ge, 'span_depth': 2}
         }
         raid_info = raid_std.get(volume_type)
-        if not raid_std.get('checks')(span_length, raid_info.get('span_length')):
-            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+        if not raid_info.get('checks')(span_length, raid_info.get('span_length')):
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_length"), failed=True)
         if volume_type in ["RAID 0", "RAID 1", "RAID 5", "RAID 6"] and operator.ne(span_depth, raid_info('span_depth')):
-            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_depth"), failed=True)
         if volume_type in ["RAID 10", "RAID 50", "RAID 60"] and operator.ge(span_depth, raid_info('span_depth')):
-            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter=span_length))
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_depth"), failed=True)
         if not operator.eq(pd_count, span_depth*span_length):
-            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="drives"))
+            self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="drives"), failed=True)
         return True
 
     def validate(self):
         pass
     
     def execute(self):
-        self.validate_controller_exists()
-        self.validate_job_wait_negative_values()
-        for volume in self.module_ext_params.get("volumes"):
-            self.validate_volume_drives(volume.get("drives"))
-            self.validate_negative_values_for_volume_params(volume)
+        pass
 
 
 class StorageCreate(StorageValidation):
@@ -630,14 +633,13 @@ class StorageCreate(StorageValidation):
 
         #  Validate std raid validation for inner layer
         for each_volume in self.module_ext_params.get('volumes'):
-            self.validate_volume_drives(each_volume.get('drives'))
+            #  Validatiing for negative values
+            self.validate_negative_values_for_volume_params(each_volume) 
+            self.validate_volume_drives(each_volume)
 
         #  Extendeding volume module input in module_ext_params for drives id and hotspare 
         self.updating_volume_module_input()
-
-        #  Validatiing for negative values
-        for each_volume in self.module_ext_params.get('volumes'):
-            self.validate_negative_values_for_volume_params(each_volume) 
+           
 
     def execute(self):
         self.validate()
