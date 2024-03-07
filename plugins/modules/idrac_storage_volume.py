@@ -318,14 +318,14 @@ class StorageBase:
     def payload_for_disk(self, volume):
         attr = {}
         if 'drives' in volume and 'id' in volume['drives']:
-            for each_pd_id in v['drives']['id']:
+            for each_pd_id in volume['drives']['id']:
                 attr['IncludedPhysicalDiskID'] = each_pd_id
         if 'dedicated_hot_spare' in volume:
             for each_dhs in volume['dedicated_hot_spare']:
                 attr['RAIDdedicatedSpare'] = each_dhs
         return attr
   
-    def construct_volume_payload(self, number_of_existing_vd, volume) -> dict:
+    def construct_volume_payload(self, number_of_existing_vd, volume, name_id_mapping) -> dict:
         
         """
         Constructs a payload dictionary for the given key mappings.
@@ -356,6 +356,22 @@ class StorageBase:
         vdfqdd = "Disk.Virtual.{0}:{1}".format(number_of_existing_vd+1, controller_id)
         payload = xml_data_conversion(attr, vdfqdd)
         return payload
+
+    def constuct_payload(self, name_id_mapping):
+        number_of_existing_vd = len(name_id_mapping)
+        volume_payload = ''
+        parent_payload = "<SystemConfiguration>{raid_payload}</SystemConfiguration>"
+        raid_key_mapping = {'raid_reset_config': 'RAIDresetConfig'}
+        attr = {raid_key_mapping['raid_reset_config']: self.module_ext_params.get('raid_reset_config')}
+        raid_payload = xml_data_conversion(attr, self.module_ext_params.get('controller_id'))
+        payload = parent_payload.format(raid_payload=raid_payload)
+        for each_volume in self.module_ext_params.get('volumes'):
+            volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd, each_volume, name_id_mapping)
+            number_of_existing_vd = number_of_existing_vd + 1
+        comp_len = len("</Component>")
+        index = payload.index("</Component>")
+        updated_payload = payload[:index+comp_len] + volume_payload + payload[index+comp_len:]
+        return updated_payload
 
 
 class StorageData: 
@@ -486,7 +502,6 @@ class StorageValidation(StorageBase):
 
 
 class StorageCreate(StorageValidation):
-
     def disk_slot_location_to_id_conversion(self, each_volume):
         drives = {}
         physical_disk = self.idrac_data["Controllers"][self.controller_id]["Drives"]
@@ -586,8 +601,7 @@ class StorageCreate(StorageValidation):
         if 'number_dedicated_hot_spare' in each_volume:
             if int(each_volume['number_dedicated_hot_spare']) != len(each_volume['dedicated_hot_spare']):
                 self.module.exit_json(msg=NOT_ENOUGH_DRIVES.format(controller_id=controller_id), failed=True)
-        
-    
+
     def validate(self):
         #  Validate upper layer input
         self.validate_controller_exists()
@@ -599,14 +613,15 @@ class StorageCreate(StorageValidation):
 
         #  Extendeding volume module input in module_ext_params for drives id and hotspare 
         self.updating_volume_module_input()
-        
+
         #  Validatiing for negative values
         for each_volume in self.module_ext_params.get('volumes'):
             self.validate_negative_values_for_volume_params(each_volume) 
-        
+
     def execute(self):
         self.validate()
-        return self.module_ext_params
+        name_id_mapping = {value.get('Name'): key for key, value in self.idrac_data["Controllers"][self.controller_id]["Volumes"].items()}
+        return self.constuct_payload(name_id_mapping)
 
 
 class StorageUpdate(StorageValidation):
