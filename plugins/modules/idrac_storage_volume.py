@@ -258,6 +258,7 @@ storage_status:
 import json
 import time
 from urllib.error import HTTPError, URLError
+from copy import deepcopy
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
@@ -278,13 +279,15 @@ INVALID_VALUE_MSG = " The value for the `{parameter}` parameter are invalid."
 ID_AND_LOCATION_BOTH_DEFINED = "Either id or location is allowed."
 ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
+NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{controller_id}'!"
 ODATA_ID = "@odata.id"
 
 
 class StorageBase:
     def __init__(self, idrac, module):
-      self.module = self.module_extend_input(module)
+      self.module_ext_params = self.module_extend_input(module)
       self.idrac = idrac
+      self.module = module
 
     def module_extend_input(self, module):
         """
@@ -302,23 +305,23 @@ class StorageBase:
             'write_cache_policy', 'read_cache_policy', 'stripe_size',
             'capacity', 'raid_init_operation', 'protocol', 'media_type'
         ]
-        
-        volumes = module.params.get('volumes', [])
+        module_copy = deepcopy(module.params)
+        volumes = module_copy.get('volumes', [])
         if volumes:
             for each_member in volumes:
                 for key in volume_related_input:
                     if key not in each_member:
                         each_member[key] = module.params.get(key)
         
-        return module
+        return module_copy
 
     def payload_for_disk(self, volume):
         attr = {}
         if 'drives' in volume and 'id' in volume['drives']:
             for each_pd_id in v['drives']['id']:
                 attr['IncludedPhysicalDiskID'] = each_pd_id
-        if 'number_dedicated_hot_spare' in volume:
-            for each_dhs in volume['number_dedicated_hot_spare']:
+        if 'dedicated_hot_spare' in volume:
+            for each_dhs in volume['dedicated_hot_spare']:
                 attr['RAIDdedicatedSpare'] = each_dhs
         return attr
   
@@ -343,7 +346,7 @@ class StorageBase:
             'name': 'Name',
             'capacity': 'Size',
         }
-        controller_id = self.module.params.get("controller_id")
+        controller_id = self.module_ext_params.get("controller_id")
         payload = ''
         attr = {}
         for key in key_mapping:
@@ -353,52 +356,6 @@ class StorageBase:
         vdfqdd = "Disk.Virtual.{0}:{1}".format(number_of_existing_vd+1, controller_id)
         payload = xml_data_conversion(attr, vdfqdd)
         return payload
-  
-  
-    def disk_slot_location_to_id_conversion(self, volume, physical_disk):
-        drives = {'id': []}
-        slot_id_mapping = {value.get('Oem', {}).get('Dell', {}).get('Slot', -1): key for key, value in physical_disk.items()}
-        for each_pd in volume['drives']['location']:
-            disk_id = slot_id_mapping.get(each_pd)
-            if disk_id:
-                drives['id'].append(disk_id)
-        return drives
-
-    def updating_volume_module_input(self):
-        reserved_pd = []
-        volumes = self.module.params.get('volumes', [])
-        for each in volumes:
-            if 'stripe_size' in each:
-                # Converting from KB to Bytes
-                each['stripe_size'] = int(each['stripe_size'])/1024
-            if 'capacity' in each:
-                # Converting from GB to Bytes
-                each['capacity'] = int(float(['capacity'])*1024*1024)
-            if 'drives' in each:
-                pass
-
-
-    def disk_slot_location_to_id_conversion(self, volume, physical_disk):
-        drives = {'id': []}
-        slot_id_mapping = {value.get('Oem', {}).get('Dell', {}).get('Slot', -1): key for key, value in physical_disk.items()}
-        for each_pd in volume['drives']['location']:
-            disk_id = slot_id_mapping.get(each_pd)
-            if disk_id:
-                drives['id'].append(disk_id)
-        return drives
-
-    def updating_volume_module_input(self):
-        reserved_pd = []
-        volumes = self.module.params.get('volumes', [])
-        for each in volumes:
-            if 'stripe_size' in each:
-                # Converting from KB to Bytes
-                each['stripe_size'] = int(each['stripe_size'])/1024
-            if 'capacity' in each:
-                # Converting from GB to Bytes
-                each['capacity'] = int(float(['capacity'])*1024*1024)
-            if 'drives' in each:
-                pass
 
 
 class StorageData: 
@@ -472,20 +429,19 @@ class StorageValidation(StorageBase):
         controllers = self.idrac_data["Controllers"]
         if self.controller_id not in controllers.keys():
             self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
-        return True
 
-    def validate_negative_values(self):
-        if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
+    def validate_job_wait__negative_values(self):
+        if self.module_ext_params.get("job_wait") and self.module_ext_params.get("job_wait_timeout") <= 0:
             self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter = "job_wait_timeout"), failed=True)
 
-        params = ["span_depth", "span_length", "capacity", "strip_size"]
-        for param in params:
-            if self.module.params.get(param) <= 0:
+    def validate_negative_values_for_volume_params(self, each_volume):
+        inner_params = ["span_depth", "span_length", "capacity", "strip_size"]
+        for param in inner_params:
+            if each_volume.get(param, 0) <= 0:
                 self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter=param), failed=True)
 
-        if self.module.params.get("number_dedicated_hot_spare") < 0:
+        if each_volume.get("number_dedicated_hot_spare") < 0:
             self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
-        return True
 
     def validate_volume_drives(self, specified_drives):
         if not specified_drives:
@@ -523,9 +479,10 @@ class StorageValidation(StorageBase):
     
     def execute(self):
         self.validate_controller_exists()
-        self.validate_negative_values()
-        for volume in self.module.params.get("volumes"):
+        self.validate_job_wait__negative_values()
+        for volume in self.module_ext_params.get("volumes"):
             self.validate_volume_drives(volume.get("drives"))
+            self.validate_negative_values_for_volume_params(volume)
 
 
 class StorageCreate(StorageValidation):
@@ -563,38 +520,94 @@ class StorageCreate(StorageValidation):
             filtered_disk = filtered_disk.intersection(data['media_type_supported_disk'])
         if filtered_disk and each_volume.get('protocol'):
             filtered_disk = filtered_disk.intersection(data['protocol_supported_disk'])
-        return list(filtered_disk), data
+        return sorted(list(filtered_disk))
 
-    def updating_drives_module_input(self, each_volume):
-        filtered_disk, disk_data = self.filter_disk(each_volume)
+    def updating_drives_module_input_when_given(self, each_volume, filter_disk_output):
         updated_disk_id_list = []
         if 'location' in each_volume['drives'] and each_volume['drives']['location']:
             each_volume['drives'] = self.disk_slot_location_to_id_conversion(each_volume)
         if 'id' in each_volume['drives']:
             for each_pd in each_volume['drives']['id']:
-                if each_pd in filtered_disk:
+                if each_pd in filter_disk_output:
                     updated_disk_id_list.append(each_pd)
         each_volume['drives']['id'] = updated_disk_id_list
         return each_volume['drives']
 
+    def updating_drives_module_input_when_not_given(self, each_volume, filter_disk_output, reserved_pd):
+        drives = {'id': []}
+        required_pd = each_volume['span_depth'] * each_volume['span_length']
+        if required_pd <= len(filter_disk_output):
+            for each_pd in filter_disk_output:
+                if each_pd not in reserved_pd:
+                    drives['id'].append(each_pd)
+                if len(drives['id']) == required_pd:
+                    break
+        return drives
+
+    def updating_volume_module_input_for_hotspare(self, each_volume, filter_disk_output, reserved_pd):
+        tmp_list = []
+        if 'number_dedicated_hot_spare' in each_volume and each_volume['number_dedicated_hot_spare'] > 0:
+            for each_pd in filter_disk_output:
+                if each_pd not in reserved_pd:
+                    tmp_list.append(each_pd)
+                if len(tmp_list) == each_volume['number_dedicated_hot_spare']:
+                    break
+        return tmp_list
+
     def updating_volume_module_input(self):
-        volumes = self.module.params.get('volumes', [])
+        volumes = self.module_ext_params.get('volumes', [])
+        reserved_pd = []
         for each in volumes:
-            required_pd = each['span_depth'] * each['span_length']
+            filtered_disk = self.filter_disk(each)
             if 'stripe_size' in each:
                 each['stripe_size'] = int(each['stripe_size'] // 1024)
             if 'capacity' in each:
                 each['capacity'] = int(float(each['capacity']) * 1024 * 1024)
             if 'drives' in each:
-                each['drives'] = self.updating_drives_module_input(each)
+                each['drives'] = self.updating_drives_module_input_when_given(each, filtered_disk)
+            else:
+                data = self.updating_drives_module_input_when_not_given(each, filtered_disk, reserved_pd)
+                reserved_pd += data['id']
+                each['drives'] = data
+            if 'number_dedicated_hot_spare' in each:
+                data = self.updating_volume_module_input_for_hotspare(each, filtered_disk, reserved_pd)
+                reserved_pd += data
+                each['dedicated_hot_spare'] = data
+            self.validate_enough_drives_available(each)
+        self.module_ext_params['volumes'] = volumes
 
-    def validate(self):
-        super().execute()
+    def validate_enough_drives_available(self, each_volume):
+        controller_id = self.module_ext_params.get('controller_id')
+        #  For drives
+        required_pd = each_volume['span_depth'] * each_volume['span_length']
+        if required_pd > len(each_volume['drives']['id']):
+            self.module.exit_json(msg=NOT_ENOUGH_DRIVES.format(controller_id=controller_id), failed=True)
+        # For Hotspare
+        if 'number_dedicated_hot_spare' in each_volume:
+            if int(each_volume['number_dedicated_hot_spare']) != len(each_volume['dedicated_hot_spare']):
+                self.module.exit_json(msg=NOT_ENOUGH_DRIVES.format(controller_id=controller_id), failed=True)
+        
     
-    def execute(self):
-        # self.validate()
+    def validate(self):
+        #  Validate upper layer input
+        self.validate_controller_exists()
+        self.validate_job_wait__negative_values()
+
+        #  Validate std raid validation for inner layer
+        for each_volume in self.module_ext_params.get('volumes'):
+            self.module.warn("Volume - {}".format(each_volume))
+            self.validate_volume_drives(each_volume.get('drives'))
+
+        #  Extendeding volume module input in module_ext_params for drives id and hotspare 
         self.updating_volume_module_input()
-        return self.module.params
+        
+        #  Validatiing for negative values
+        for each_volume in self.module_ext_params.get('volumes'):
+            self.validate_negative_values_for_volume_params(each_volume) 
+        
+    def execute(self):
+        self.validate()
+        return self.module_ext_params
 
 
 class StorageUpdate(StorageValidation):
