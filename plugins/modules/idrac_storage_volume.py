@@ -286,9 +286,9 @@ ODATA_ID = "@odata.id"
 
 class StorageBase:
     def __init__(self, idrac, module):
-      self.module_ext_params = self.module_extend_input(module)
-      self.idrac = idrac
-      self.module = module
+        self.module_ext_params = self.module_extend_input(module)
+        self.idrac = idrac
+        self.module = module
 
     def module_extend_input(self, module):
         """
@@ -354,7 +354,7 @@ class StorageBase:
             if key in volume:
                 attr[key_mapping[key]] = volume[key]
             attr.update(self.payload_for_disk(volume))
-        vdfqdd = "Disk.Virtual.{0}:{1}".format(number_of_existing_vd+1, controller_id)
+        vdfqdd = "Disk.Virtual.{0}:{1}".format(number_of_existing_vd+ 1, controller_id)
         payload = xml_data_conversion(attr, vdfqdd)
         return payload
 
@@ -371,7 +371,7 @@ class StorageBase:
             number_of_existing_vd = number_of_existing_vd + 1
         comp_len = len("</Component>")
         index = payload.index("</Component>")
-        updated_payload = payload[:index+comp_len] + volume_payload + payload[index+comp_len:]
+        updated_payload = payload[:index+ comp_len] + volume_payload + payload[index+ comp_len:]
         return updated_payload
 
 
@@ -389,15 +389,13 @@ class StorageData:
         storage_controllers = get_dynamic_uri(self.idrac, uri, 'Storage')
         return storage_controllers
 
-
     def fetch_api_data(self, uri, key_index_from_end):
         key = uri.split("/")[key_index_from_end]
         uri_data = self.idrac.invoke_request(uri, "GET")
         return key,uri_data
 
-
     def all_storage_data(self):
-        storage_info = {"Controllers":{}}
+        storage_info = {"Controllers": {}}
         controllers_details_uri = self.fetch_controllers_uri()[ODATA_ID] + "?$expand=*($levels=1)"
         controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
         for each_controller in controllers_list["Members"]:
@@ -458,7 +456,7 @@ class StorageData:
 
 class StorageValidation(StorageBase):
     def __init__(self, idrac, module):
-        super().__init__(idrac,module)
+        super().__init__(idrac, module)
         self.idrac_data = StorageData(idrac, module).all_storage_data()
         self.controller_id = module.params.get("controller_id")
 
@@ -666,7 +664,11 @@ class StorageView(StorageData):
         super().__init__(idrac, module)
 
     def execute(self):
-        return self.fetch_storage_data()
+        storage_data = self.fetch_storage_data()
+        if self.module.params.get('controller_id'):
+            pass
+        return storage_data
+
 
 
 def main():
