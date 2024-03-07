@@ -430,7 +430,7 @@ class StorageValidation(StorageBase):
         if self.controller_id not in controllers.keys():
             self.module.exit_json(msg=CONTROLLER_NOT_EXIST_ERROR.format(controller_id=self.controller_id), failed=True)
 
-    def validate_job_wait__negative_values(self):
+    def validate_job_wait_negative_values(self):
         if self.module_ext_params.get("job_wait") and self.module_ext_params.get("job_wait_timeout") <= 0:
             self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter = "job_wait_timeout"), failed=True)
 
@@ -479,7 +479,7 @@ class StorageValidation(StorageBase):
     
     def execute(self):
         self.validate_controller_exists()
-        self.validate_job_wait__negative_values()
+        self.validate_job_wait_negative_values()
         for volume in self.module_ext_params.get("volumes"):
             self.validate_volume_drives(volume.get("drives"))
             self.validate_negative_values_for_volume_params(volume)
@@ -591,11 +591,10 @@ class StorageCreate(StorageValidation):
     def validate(self):
         #  Validate upper layer input
         self.validate_controller_exists()
-        self.validate_job_wait__negative_values()
+        self.validate_job_wait_negative_values()
 
         #  Validate std raid validation for inner layer
         for each_volume in self.module_ext_params.get('volumes'):
-            self.module.warn("Volume - {}".format(each_volume))
             self.validate_volume_drives(each_volume.get('drives'))
 
         #  Extendeding volume module input in module_ext_params for drives id and hotspare 
