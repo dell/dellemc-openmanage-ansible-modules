@@ -558,21 +558,35 @@ class StorageCreate(StorageValidation):
             raid_status = value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus', {})
             if raid_status == "Ready":
                 data['available_disk'].add(key)
-        return data
+        filtered_disk = data['healthy_disk'].intersection(data['available_disk'])
+        if filtered_disk and each_volume.get('media_type'):
+            filtered_disk = filtered_disk.intersection(data['media_type_supported_disk'])
+        if filtered_disk and each_volume.get('protocol'):
+            filtered_disk = filtered_disk.intersection(data['protocol_supported_disk'])
+        return list(filtered_disk), data
+
+    def updating_drives_module_input(self, each_volume):
+        filtered_disk, disk_data = self.filter_disk(each_volume)
+        updated_disk_id_list = []
+        if 'location' in each_volume['drives'] and each_volume['drives']['location']:
+            each_volume['drives'] = self.disk_slot_location_to_id_conversion(each_volume)
+        if 'id' in each_volume['drives']:
+            for each_pd in each_volume['drives']['id']:
+                if each_pd in filtered_disk:
+                    updated_disk_id_list.append(each_pd)
+        each_volume['drives']['id'] = updated_disk_id_list
+        return each_volume['drives']
 
     def updating_volume_module_input(self):
         volumes = self.module.params.get('volumes', [])
         for each in volumes:
+            required_pd = each['span_depth'] * each['span_length']
             if 'stripe_size' in each:
-                each['stripe_size'] = int(each['stripe_size']) // 1024
+                each['stripe_size'] = int(each['stripe_size'] // 1024)
             if 'capacity' in each:
                 each['capacity'] = int(float(each['capacity']) * 1024 * 1024)
             if 'drives' in each:
-                if 'location' in each['drives'] and each['drives']['location']:
-                    each['drives'] = self.disk_slot_location_to_id_conversion(each)
-                if 'id' in each['drives']:
-                    for each_pd in each['drives']['id']:
-                        pass
+                each['drives'] = self.updating_drives_module_input(each)
 
     def validate(self):
         super().execute()
