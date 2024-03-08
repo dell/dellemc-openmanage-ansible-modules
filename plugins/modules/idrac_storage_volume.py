@@ -286,6 +286,10 @@ WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
 ODATA_ID = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 ATTRIBUTE = "</Attribute>"
+VIEW_OPERATION_FAILED = "Failed to fetch storage details."
+VIEW_CONTROLLER_DETAILS_NOT_FOUND = "Failed to find the controller {controller_id}."
+SUCCESS_STATUS = "Success"
+FAILED_STATUS = "Failed"
 
 
 class StorageBase:
@@ -463,35 +467,38 @@ class StorageData:
         return storage_info
 
     def fetch_storage_data(self):
-        storage_info = {"Message": {"Controller": {}}}
+        storage_info = {"Controller": {}}
         for controller_id, controller_data in self.storage_data["Controllers"].items():
-            storage_info["Message"]["Controller"][controller_id] = {
+            storage_info["Controller"][controller_id] = {
                 "ControllerSensor": {controller_id: {}}
             }
             battery_data = controller_data["Oem"]["Dell"].get("DellControllerBattery")
             if battery_data:
-                storage_info["Message"]["Controller"][controller_id]["ControllerSensor"][controller_id]["ControllerBattery"] = [battery_data["Id"]]
+                storage_info["Controller"][controller_id]["ControllerSensor"][controller_id]["ControllerBattery"] = [battery_data["Id"]]
             self.fetch_volumes(controller_id, controller_data, storage_info)
             self.fetch_enclosures_and_physical_disk(controller_id, controller_data, storage_info)
         return storage_info
 
     def fetch_volumes(self, controller_id, controller_data, storage_info):
         if controller_data["Volumes"]:
-            storage_info["Message"]["Controller"][controller_id]["VirtualDisk"] = {}
+            storage_info.setdefault("Controller", {}).setdefault(controller_id, {})["VirtualDisk"] = {}
             for volume_id, volume_data in controller_data["Volumes"].items():
-                physical_disk = [drive[ODATA_ID] for drive in volume_data["Links"]["Drives"]]
-                storage_info["Message"]["Controller"][controller_id]["VirtualDisk"][volume_id] = {"PhysicalDisk": physical_disk}
+                physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in volume_data["Links"]["Drives"]]
+                storage_info["Controller"][controller_id]["VirtualDisk"][volume_id] = {"PhysicalDisk": physical_disk}
 
     def fetch_enclosures_and_physical_disk(self, controller_id, controller_data, storage_info):
-        if controller_data["Links"]["Enclosures"]:
-            for enclosure_id in controller_data["Links"]["Enclosures"].keys():
-                if enclosure_id.startswith("Enclosure"):
-                    storage_info["Message"]["Controller"][controller_id]["Enclosure"] = {enclosure_id: {"EnclosureSensor": {enclosure_id: {}}}}
-                    if controller_data["Drives"]:
-                        storage_info["Message"]["Controller"][controller_id]["Enclosure"]["PhysicalDisk"] = controller_data["Drives"].keys()
+        enclosures = [enclosure_id for enclosure_id in controller_data["Links"]["Enclosures"].keys() if enclosure_id.startswith("Enclosure")]
+        if len(enclosures) >= 1:
+            storage_info.setdefault("Controller", {})
+            storage_info["Controller"].setdefault(controller_id, {})
+            storage_info["Controller"][controller_id].setdefault("Enclosure", {})
+            for enclosure_id in enclosures:
+                storage_info["Controller"][controller_id]["Enclosure"][enclosure_id] = {"EnclosureSensor": {enclosure_id: {}}}
+                physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in controller_data["Links"]["Enclosures"][enclosure_id]["Links"]["Drives"]]
+                storage_info["Controller"][controller_id]["Enclosure"][enclosure_id]["PhysicalDisk"] = physical_disk
         else:
-            if controller_data["Drives"]:
-                storage_info["Message"]["Controller"][controller_id]["PhysicalDisk"] = controller_data["Drives"].keys()
+            if controller_data["Drives"].keys():
+                storage_info["Controller"][controller_id]["PhysicalDisk"] = controller_data["Drives"].keys()
 
 
 class StorageValidation(StorageBase):
@@ -712,11 +719,18 @@ class StorageView(StorageData):
         super().__init__(idrac, module)
 
     def execute(self):
+        status = SUCCESS_STATUS
         storage_data = self.fetch_storage_data()
-        if self.module.params.get('controller_id'):
-            pass
-        return storage_data
-
+        controller_id = self.module.params.get("controller_id")
+        if controller_id:
+            if storage_data["Controller"].get(controller_id):
+                del storage_data["Controller"]
+                storage_data[controller_id] = storage_data["Controller"].get(controller_id)
+            else:
+                status = FAILED_STATUS
+                message = VIEW_CONTROLLER_DETAILS_NOT_FOUND.format(controller_id = controller_id)
+                self.module.exit_json(msg = VIEW_OPERATION_FAILED, storage_status = {"Message": message, "Status":status}, failed=True)
+        return {"Message": storage_data, "Status": status}
 
 
 def main():
