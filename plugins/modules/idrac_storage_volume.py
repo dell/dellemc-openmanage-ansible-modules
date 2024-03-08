@@ -285,6 +285,8 @@ NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{contro
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
 ODATA_ID = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
+ATTRIBUTE = "</Attribute>"
+
 
 class StorageBase:
     def __init__(self, idrac, module):
@@ -319,14 +321,16 @@ class StorageBase:
         return module_copy
 
     def payload_for_disk(self, volume):
-        attr = {}
+        disk_payload = ''
         if 'drives' in volume and 'id' in volume['drives']:
             for each_pd_id in volume['drives']['id']:
-                attr['IncludedPhysicalDiskID'] = each_pd_id
+                scp = '<Attribute Name="IncludedPhysicalDiskID">{id}</Attribute>'.format(id=each_pd_id)
+                disk_payload = disk_payload + scp
         if 'dedicated_hot_spare' in volume:
             for each_dhs in volume['dedicated_hot_spare']:
-                attr['RAIDdedicatedSpare'] = each_dhs
-        return attr
+                scp = '<Attribute Name="RAIDdedicatedSpare">{id}</Attribute>'.format(id=each_dhs)
+                disk_payload = disk_payload + scp
+        return disk_payload
 
     def construct_volume_payload(self, vd_id, volume, name_id_mapping) -> dict:
 
@@ -365,9 +369,12 @@ class StorageBase:
         for key in key_mapping:
             if key in volume:
                 attr[key_mapping[key]] = volume[key]
-            attr.update(self.payload_for_disk(volume))
         payload = xml_data_conversion(attr, vdfqdd)
-        return payload
+        disk_paylod = self.payload_for_disk(volume)
+        attr_str_len = len(ATTRIBUTE)
+        index = payload.index(ATTRIBUTE)
+        updated_payload = payload[:index+ attr_str_len] + disk_paylod + payload[index+ attr_str_len:]
+        return updated_payload
 
     def constuct_payload(self, name_id_mapping):
         number_of_existing_vd = len(name_id_mapping)
@@ -380,9 +387,9 @@ class StorageBase:
         for each_volume in self.module_ext_params.get('volumes'):
             volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd, each_volume, name_id_mapping)
             number_of_existing_vd = number_of_existing_vd + 1
-        comp_len = len("</Attribute>")
-        index = payload.index("</Attribute>")
-        updated_payload = payload[:index+ comp_len] + volume_payload + payload[index+ comp_len:]
+        attr_str_len = len(ATTRIBUTE)
+        index = payload.index(ATTRIBUTE)
+        updated_payload = payload[:index+ attr_str_len] + volume_payload + payload[index+ attr_str_len:]
         return updated_payload
 
     def wait_for_job_completion(self, job_resp):
@@ -631,8 +638,12 @@ class StorageCreate(StorageValidation):
             filtered_disk = self.filter_disk(each)
             if 'stripe_size' in each:
                 each['stripe_size'] = int(each['stripe_size'] // 1024)
-            if 'capacity' in each:
+
+            if each.get('capacity') is not None:
                 each['capacity'] = int(float(each['capacity']) * 1024 * 1024)
+            else:
+                del each['capacity']
+
             if 'drives' in each:
                 each['drives'] = self.updating_drives_module_input_when_given(each, filtered_disk)
             else:
