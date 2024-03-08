@@ -277,6 +277,8 @@ ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
 NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{controller_id}'!"
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+VOLUME_NAME_REQUIRED_FOR_DELETE = "Virtual disk name is a required parameter for remove virtual disk operations."
+VOLUME_NOT_FOUND = "Unable to find the virtual disk."
 ODATA_ID = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 ATTRIBUTE = "</Attribute>"
@@ -673,16 +675,25 @@ class StorageCreate(StorageValidation):
 
 
 class StorageDelete(StorageValidation):
+    def validate_volume_exists_in_server(self, name_list):
+        for each_name in self.module.params.get('volumes'):
+            if each_name not in name_list:
+                self.module.exit_json(msg=VOLUME_NOT_FOUND, failed=True)
+
     def validate(self):
         #  Validate upper layer input
         self.validate_controller_exists()
         self.validate_job_wait_negative_values()
 
+        #  Validate for volume and volume_name
+        if (not (volumes := self.module.params.get('volumes'))) or (volumes and not all("name" in each for each in volumes)):
+            self.module.exit_json(msg=VOLUME_NAME_REQUIRED_FOR_DELETE, failed=True)
+
     def execute(self):
         self.validate()
         name_id_mapping = {value.get('Name'): key for key, value in self.idrac_data["Controllers"][self.controller_id]["Volumes"].items()}
+        self.validate_volume_exists_in_server(name_id_mapping.keys())
         payload = self.constuct_payload(name_id_mapping)
-        self.module.warn("payload {0}".format(payload))
         resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
