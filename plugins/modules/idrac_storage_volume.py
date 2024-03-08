@@ -263,12 +263,13 @@ from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion)
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, idrac_redfish_job_tracking, remove_key)
 import operator
 import copy
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
+iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
 CONTROLLER_NOT_DEFINED = "Controller ID is required."
 SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volume operation"
@@ -281,8 +282,9 @@ ID_AND_LOCATION_BOTH_DEFINED = "Either id or location is allowed."
 ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
 NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{controller_id}'!"
+WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
 ODATA_ID = "@odata.id"
-
+ODATA_REGEX = "(.*?)@odata"
 
 class StorageBase:
     def __init__(self, idrac, module):
@@ -326,7 +328,7 @@ class StorageBase:
                 attr['RAIDdedicatedSpare'] = each_dhs
         return attr
 
-    def construct_volume_payload(self, number_of_existing_vd, volume, name_id_mapping) -> dict:
+    def construct_volume_payload(self, vd_id, volume, name_id_mapping) -> dict:
 
         """
         Constructs a payload dictionary for the given key mappings.
@@ -334,7 +336,7 @@ class StorageBase:
         Returns:
             dict: The constructed payload dictionary.
         """
-        key_mapping: dict = {
+        key_mapping_create: dict = {
             'raid_init_operation': 'RAIDinitOperation',
             'state': "RAIDaction",
             'disk_cache_policy': "DiskCachePolicy",
@@ -347,14 +349,23 @@ class StorageBase:
             'name': 'Name',
             'capacity': 'Size',
         }
+        key_mapping_delete: dict = {
+            'name': 'Name'
+        }
         controller_id = self.module_ext_params.get("controller_id")
+        state = self.module_ext_params.get("state")
+        #  Including state in each_volume as it mapped to RAIDaction
+        volume.update({'state': state.capitalize()})
         payload = ''
         attr = {}
+        key_mapping = locals()['key_mapping_'+state]
+        vdfqdd_create = "Disk.Virtual.{0}:{1}".format(vd_id, controller_id)
+        vdfqdd_delete = name_id_mapping.get(volume['name'], "")
+        vdfqdd = locals()['vdfqdd_'+state]
         for key in key_mapping:
             if key in volume:
                 attr[key_mapping[key]] = volume[key]
             attr.update(self.payload_for_disk(volume))
-        vdfqdd = "Disk.Virtual.{0}:{1}".format(number_of_existing_vd+ 1, controller_id)
         payload = xml_data_conversion(attr, vdfqdd)
         return payload
 
@@ -369,10 +380,32 @@ class StorageBase:
         for each_volume in self.module_ext_params.get('volumes'):
             volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd, each_volume, name_id_mapping)
             number_of_existing_vd = number_of_existing_vd + 1
-        comp_len = len("</Component>")
-        index = payload.index("</Component>")
+        comp_len = len("</Attribute>")
+        index = payload.index("</Attribute>")
         updated_payload = payload[:index+ comp_len] + volume_payload + payload[index+ comp_len:]
         return updated_payload
+
+    def wait_for_job_completion(self, job_resp):
+        job_wait = self.module_ext_params.get('job_wait')
+        job_wait_timeout = self.module_ext_params.get('job_wait_timeout')
+        job_dict = {}
+        if (job_tracking_uri := job_resp.headers.get("Location")):
+            job_id = job_tracking_uri.split("/")[-1]
+            job_uri = iDRAC_JOB_URI.format(job_id=job_id)
+            if job_wait:
+                job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri,
+                                                                                  max_job_wait_sec=job_wait_timeout,
+                                                                                  sleep_interval_secs=1)
+                job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+                if int(wait_time) >= int(job_wait_timeout):
+                    self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(job_wait_timeout), changed=True, job_status=job_dict)
+                if job_failed:
+                    self.module.fail_json(msg=job_dict.get("Message"), job_status=job_dict)
+            else:
+                job_resp = self.idrac.invoke_request(job_uri, 'GET')
+                job_dict = job_resp.json_data
+                job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+        return job_dict
 
 
 class StorageData:
@@ -640,23 +673,27 @@ class StorageCreate(StorageValidation):
     def execute(self):
         self.validate()
         name_id_mapping = {value.get('Name'): key for key, value in self.idrac_data["Controllers"][self.controller_id]["Volumes"].items()}
-        return self.constuct_payload(name_id_mapping)
-
-
-class StorageUpdate(StorageValidation):
-    def validate(self):
-        pass
-
-    def execute(self):
-        pass
+        payload = self.constuct_payload(name_id_mapping)
+        self.module.warn("payload {0}".format(payload))
+        resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
+        job_dict = self.wait_for_job_completion(resp)
+        return job_dict
 
 
 class StorageDelete(StorageValidation):
     def validate(self):
-        pass
+        #  Validate upper layer input
+        self.validate_controller_exists()
+        self.validate_job_wait_negative_values()
 
     def execute(self):
-        pass
+        self.validate()
+        name_id_mapping = {value.get('Name'): key for key, value in self.idrac_data["Controllers"][self.controller_id]["Volumes"].items()}
+        payload = self.constuct_payload(name_id_mapping)
+        self.module.warn("payload {0}".format(payload))
+        resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
+        job_dict = self.wait_for_job_completion(resp)
+        return job_dict
 
 
 class StorageView(StorageData):
@@ -708,7 +745,6 @@ def main():
             state_class_mapping = {
               'create': StorageCreate,
               'view': StorageView,
-              'update': StorageUpdate,
               'delete': StorageDelete,
             }
             state_type = state_class_mapping.get(module.params['state'])
