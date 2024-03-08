@@ -676,8 +676,8 @@ class StorageCreate(StorageValidation):
 
 class StorageDelete(StorageValidation):
     def validate_volume_exists_in_server(self, name_list):
-        for each_name in self.module.params.get('volumes'):
-            if each_name not in name_list:
+        for each_volume in self.module.params.get('volumes'):
+            if (name := each_volume.get('name')) and name not in name_list:
                 self.module.exit_json(msg=VOLUME_NOT_FOUND, failed=True)
 
     def validate(self):
@@ -759,7 +759,7 @@ def main():
             obj = state_type(idrac, module)
             output = obj.execute()
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
-        module.exit_json(msg=str(e), failed=True)
+        module.fail_json(msg=str(e), failed=True)
     msg = SUCCESSFUL_OPERATION_MSG.format(operation=module.params['state'])
     module.exit_json(msg=msg, changed=changed, storage_status=output)
 
