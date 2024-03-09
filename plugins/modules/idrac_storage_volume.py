@@ -271,7 +271,7 @@ DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller I
 DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}."
 NEGATIVE_OR_ZERO_MSG = "The value for the `{parameter}` parameter cannot be negative or zero."
 NEGATIVE_MSG = "The value for the `{parameter}` parameter cannot be negative."
-INVALID_VALUE_MSG = " The value for the `{parameter}` parameter are invalid."
+INVALID_VALUE_MSG = "The value for the `{parameter}` parameter are invalid."
 ID_AND_LOCATION_BOTH_DEFINED = "Either id or location is allowed."
 ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
@@ -279,6 +279,8 @@ NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{contro
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
 VOLUME_NAME_REQUIRED_FOR_DELETE = "Virtual disk name is a required parameter for remove virtual disk operations."
 VOLUME_NOT_FOUND = "Unable to find the virtual disk."
+CHANGES_NOT_FOUND = "No changes found to commit!"
+CHANGES_FOUND = "Changes found to commit!"
 ODATA_ID = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 ATTRIBUTE = "</Attribute>"
@@ -644,18 +646,24 @@ class StorageCreate(StorageValidation):
                 reserved_pd += data
                 each['dedicated_hot_spare'] = data
             self.validate_enough_drives_available(each)
+        if self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND, changed=True)
         self.module_ext_params['volumes'] = volumes
 
     def validate_enough_drives_available(self, each_volume):
         controller_id = self.module_ext_params.get('controller_id')
-        #  For drives
         required_pd = each_volume['span_depth'] * each_volume['span_length']
-        if required_pd > len(each_volume['drives']['id']):
-            self.module.exit_json(msg=NOT_ENOUGH_DRIVES.format(controller_id=controller_id), failed=True)
-        # For Hotspare
-        if 'number_dedicated_hot_spare' in each_volume:
-            if int(each_volume['number_dedicated_hot_spare']) != len(each_volume['dedicated_hot_spare']):
-                self.module.exit_json(msg=NOT_ENOUGH_DRIVES.format(controller_id=controller_id), failed=True)
+        drives_available = len(each_volume['drives']['id'])
+        dedicated_hot_spare_required = int(each_volume['number_dedicated_hot_spare'])
+        dedicated_hot_spare_available = len(each_volume['dedicated_hot_spare'])
+        changed, failed = False, False
+        if (required_pd > drives_available or
+            dedicated_hot_spare_required != dedicated_hot_spare_available):
+            if not self.module.check_mode:
+                msg, failed = NOT_ENOUGH_DRIVES.format(controller_id=controller_id), True
+            else:
+                msg, changed = CHANGES_NOT_FOUND, False
+            self.module.exit_json(msg=msg, changed=changed, failed=failed)
 
     def validate(self):
         #  Validate upper layer input
@@ -680,9 +688,19 @@ class StorageCreate(StorageValidation):
 
 class StorageDelete(StorageValidation):
     def validate_volume_exists_in_server(self, name_list):
+        changed, failed, flag_update = False, False, False
         for each_volume in self.module.params.get('volumes'):
-            if (name := each_volume.get('name')) and name not in name_list:
-                self.module.exit_json(msg=VOLUME_NOT_FOUND, failed=True)
+            name = each_volume.get('name')
+            if name and name not in name_list:
+                if not self.module.check_mode:
+                    msg, failed, flag_update = VOLUME_NOT_FOUND, True, True
+                else:
+                    msg, changed, flag_update = CHANGES_NOT_FOUND, False, True
+                break
+            elif self.module.check_mode:
+                msg, changed, flag_update = CHANGES_FOUND, True, True
+        if flag_update:
+            self.module.exit_json(msg=msg, failed=failed, changed=changed)
 
     def validate(self):
         #  Validate upper layer input
