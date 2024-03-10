@@ -730,14 +730,14 @@ class StorageView(StorageData):
                     status = FAILED_STATUS
                     message = VIEW_VIRTUAL_DISK_DETAILS_NOT_FOUND.format(volume_id=volume_id, controller_id=controller_id)
                     self.module.exit_json(msg=VIEW_OPERATION_FAILED,
-                                    storage_status={"Message": message, "Status": status},
-                                    failed=True)
+                                          storage_status={"Message": message, "Status": status},
+                                          failed=True)
             else:
                 status = FAILED_STATUS
                 message = VIEW_CONTROLLER_DETAILS_NOT_FOUND.format(controller_id=controller_id)
                 self.module.exit_json(msg=VIEW_OPERATION_FAILED,
-                                    storage_status={"Message": message, "Status": status},
-                                    failed=True)
+                                      storage_status={"Message": message, "Status": status},
+                                      failed=True)
         else:
             status = FAILED_STATUS
             message = VIEW_OPERATION_CONTROLLER_NOT_SPECIFIED
