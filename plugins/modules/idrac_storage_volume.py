@@ -417,7 +417,6 @@ class StorageData:
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
-        self.storage_data = self.all_storage_data()
 
     def fetch_controllers_uri(self):
         uri, err_msg = validate_and_get_first_resource_id_uri(
@@ -462,7 +461,8 @@ class StorageData:
 
     def fetch_storage_data(self):
         storage_info = {"Controller": {}}
-        for controller_id, controller_data in self.storage_data["Controllers"].items():
+        storage_data = self.all_storage_data()
+        for controller_id, controller_data in storage_data["Controllers"].items():
             storage_info["Controller"][controller_id] = {
                 "ControllerSensor": {controller_id: {}}
             }
@@ -488,7 +488,7 @@ class StorageData:
             storage_info["Controller"][controller_id].setdefault("Enclosure", {})
             for enclosure_id in enclosures:
                 storage_info["Controller"][controller_id]["Enclosure"][enclosure_id] = {"EnclosureSensor": {enclosure_id: {}}}
-                physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in 
+                physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in
                                  controller_data["Links"]["Enclosures"][enclosure_id]["Links"]["Drives"]]
                 if physical_disk:
                     storage_info["Controller"][controller_id]["Enclosure"][enclosure_id]["PhysicalDisk"] = physical_disk
@@ -702,6 +702,7 @@ class StorageDelete(StorageValidation):
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 
+
 class StorageView(StorageData):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
@@ -727,22 +728,22 @@ class StorageView(StorageData):
                     del storage_data["Controller"]
                 else:
                     status = FAILED_STATUS
-                    message = VIEW_VIRTUAL_DISK_DETAILS_NOT_FOUND.format(volume_id = volume_id, controller_id = controller_id)
-                    self.module.exit_json(msg=VIEW_OPERATION_FAILED, 
-                                    storage_status={"Message": message, "Status":status}, 
+                    message = VIEW_VIRTUAL_DISK_DETAILS_NOT_FOUND.format(volume_id=volume_id, controller_id=controller_id)
+                    self.module.exit_json(msg=VIEW_OPERATION_FAILED,
+                                    storage_status={"Message": message, "Status": status},
                                     failed=True)
             else:
                 status = FAILED_STATUS
-                message = VIEW_OPERATION_CONTROLLER_NOT_SPECIFIED.format(controller_id = controller_id)
-                self.module.exit_json(msg=VIEW_OPERATION_FAILED, 
-                                    storage_status={"Message": message, "Status":status}, 
+                message = VIEW_CONTROLLER_DETAILS_NOT_FOUND.format(controller_id=controller_id)
+                self.module.exit_json(msg=VIEW_OPERATION_FAILED,
+                                    storage_status={"Message": message, "Status": status},
                                     failed=True)
         else:
             status = FAILED_STATUS
-            message = VIEW_OPERATION_CONTROLLER_NOT_SPECIFIED.format(controller_id = controller_id)
-            self.module.exit_json(msg=VIEW_OPERATION_FAILED, 
-                                storage_status={"Message": message, "Status":status}, 
-                                failed=True)
+            message = VIEW_OPERATION_CONTROLLER_NOT_SPECIFIED
+            self.module.exit_json(msg=VIEW_OPERATION_FAILED,
+                                  storage_status={"Message": message, "Status": status},
+                                  failed=True)
         return status, storage_data
 
     def process_controller_id(self, controller_id, storage_data):
@@ -753,10 +754,10 @@ class StorageView(StorageData):
             del storage_data["Controller"]
         else:
             status = FAILED_STATUS
-            message = VIEW_CONTROLLER_DETAILS_NOT_FOUND.format(controller_id = controller_id)
-            self.module.exit_json(msg=VIEW_OPERATION_FAILED, 
-                                storage_status={"Message": message, "Status":status}, 
-                                failed=True)
+            message = VIEW_CONTROLLER_DETAILS_NOT_FOUND.format(controller_id=controller_id)
+            self.module.exit_json(msg=VIEW_OPERATION_FAILED,
+                                  storage_status={"Message": message, "Status": status},
+                                  failed=True)
         return status, storage_data
 
 
