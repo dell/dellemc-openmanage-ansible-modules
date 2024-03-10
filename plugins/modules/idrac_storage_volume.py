@@ -266,9 +266,9 @@ SYSTEMS_URI = "/redfish/v1/Systems"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exist in the System."
 CONTROLLER_NOT_DEFINED = "Controller ID is required."
-SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volume operation"
+SUCCESSFUL_OPERATION_MSG = "Successfully completed the {operation} storage volume operation."
 DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller Id: {controller_id}."
-DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}"
+DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}."
 NEGATIVE_OR_ZERO_MSG = "The value for the `{parameter}` parameter cannot be negative or zero."
 NEGATIVE_MSG = "The value for the `{parameter}` parameter cannot be negative."
 INVALID_VALUE_MSG = " The value for the `{parameter}` parameter are invalid."
@@ -284,6 +284,8 @@ ODATA_REGEX = "(.*?)@odata"
 ATTRIBUTE = "</Attribute>"
 VIEW_OPERATION_FAILED = "Failed to fetch storage details."
 VIEW_CONTROLLER_DETAILS_NOT_FOUND = "Failed to find the controller {controller_id}."
+VIEW_OPERATION_CONTROLLER_NOT_SPECIFIED = "Controller identifier parameter is missing."
+VIEW_VIRTUAL_DISK_DETAILS_NOT_FOUND = "Failed to find the volume : {volume_id} in controller : {controller_id}."
 SUCCESS_STATUS = "Success"
 FAILED_STATUS = "Failed"
 
@@ -486,8 +488,10 @@ class StorageData:
             storage_info["Controller"][controller_id].setdefault("Enclosure", {})
             for enclosure_id in enclosures:
                 storage_info["Controller"][controller_id]["Enclosure"][enclosure_id] = {"EnclosureSensor": {enclosure_id: {}}}
-                physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in controller_data["Links"]["Enclosures"][enclosure_id]["Links"]["Drives"]]
-                storage_info["Controller"][controller_id]["Enclosure"][enclosure_id]["PhysicalDisk"] = physical_disk
+                physical_disk = [self.fetch_api_data(drive[ODATA_ID], -1)[0] for drive in 
+                                 controller_data["Links"]["Enclosures"][enclosure_id]["Links"]["Drives"]]
+                if physical_disk:
+                    storage_info["Controller"][controller_id]["Enclosure"][enclosure_id]["PhysicalDisk"] = physical_disk
         else:
             if controller_data["Drives"].keys():
                 storage_info["Controller"][controller_id]["PhysicalDisk"] = controller_data["Drives"].keys()
@@ -698,7 +702,6 @@ class StorageDelete(StorageValidation):
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 
-
 class StorageView(StorageData):
     def __init__(self, idrac, module):
         super().__init__(idrac, module)
@@ -707,15 +710,55 @@ class StorageView(StorageData):
         status = SUCCESS_STATUS
         storage_data = self.fetch_storage_data()
         controller_id = self.module.params.get("controller_id")
+        volume_id = self.module.params.get("volume_id")
+        if volume_id:
+            status, storage_data = self.process_volume_id(volume_id, controller_id, storage_data)
+        elif controller_id:
+            status, storage_data = self.process_controller_id(controller_id, storage_data)
+        return {"Message": storage_data, "Status": status}
+
+    def process_volume_id(self, volume_id, controller_id, storage_data):
+        status = SUCCESS_STATUS
         if controller_id:
-            if storage_data["Controller"].get(controller_id):
-                del storage_data["Controller"]
-                storage_data[controller_id] = storage_data["Controller"].get(controller_id)
+            ctrl_data = storage_data["Controller"].get(controller_id)
+            if ctrl_data:
+                if volume_id in ctrl_data["VirtualDisk"].keys():
+                    storage_data[controller_id] = {"VirtualDisk": ctrl_data["VirtualDisk"]}
+                    del storage_data["Controller"]
+                else:
+                    status = FAILED_STATUS
+                    message = VIEW_VIRTUAL_DISK_DETAILS_NOT_FOUND.format(volume_id = volume_id, controller_id = controller_id)
+                    self.module.exit_json(msg=VIEW_OPERATION_FAILED, 
+                                    storage_status={"Message": message, "Status":status}, 
+                                    failed=True)
             else:
                 status = FAILED_STATUS
-                message = VIEW_CONTROLLER_DETAILS_NOT_FOUND.format(controller_id = controller_id)
-                self.module.exit_json(msg = VIEW_OPERATION_FAILED, storage_status = {"Message": message, "Status":status}, failed=True)
-        return {"Message": storage_data, "Status": status}
+                message = VIEW_OPERATION_CONTROLLER_NOT_SPECIFIED.format(controller_id = controller_id)
+                self.module.exit_json(msg=VIEW_OPERATION_FAILED, 
+                                    storage_status={"Message": message, "Status":status}, 
+                                    failed=True)
+        else:
+            status = FAILED_STATUS
+            message = VIEW_OPERATION_CONTROLLER_NOT_SPECIFIED.format(controller_id = controller_id)
+            self.module.exit_json(msg=VIEW_OPERATION_FAILED, 
+                                storage_status={"Message": message, "Status":status}, 
+                                failed=True)
+        return status, storage_data
+
+    def process_controller_id(self, controller_id, storage_data):
+        status = SUCCESS_STATUS
+        ctrl_data = storage_data["Controller"].get(controller_id)
+        if ctrl_data:
+            storage_data[controller_id] = ctrl_data
+            del storage_data["Controller"]
+        else:
+            status = FAILED_STATUS
+            message = VIEW_CONTROLLER_DETAILS_NOT_FOUND.format(controller_id = controller_id)
+            self.module.exit_json(msg=VIEW_OPERATION_FAILED, 
+                                storage_status={"Message": message, "Status":status}, 
+                                failed=True)
+        return status, storage_data
+
 
 def main():
     specs = {
