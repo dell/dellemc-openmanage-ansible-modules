@@ -383,7 +383,7 @@ class TestStorageView(TestStorageData):
                      return_value=data_when_controller_id_passed)
         idrac_default_args.update({"controller_id": "AHCI.Embedded.1-1"})
         out = idr_obj.execute()
-        assert out == {"Message": data_when_controller_id_passed ,"Status": SUCCESS_STATUS}
+        assert out == {"Message": data_when_controller_id_passed, "Status": SUCCESS_STATUS}
 
         # Scenario - When invalid controller_id is passed
         data_when_invlid_controller_id_passed = deepcopy(TestStorageData.storage_data_expected)
@@ -431,3 +431,83 @@ class TestStorageView(TestStorageData):
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
+
+
+class TestStorageBase:
+    module = idrac_storage_volume
+
+    @pytest.fixture
+    def idrac_storage_volume_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_storage_volume_mock(self, mocker, idrac_storage_volume_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
+                                       return_value=idrac_storage_volume_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_storage_volume_mock
+        return idrac_conn_mock
+
+
+class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
+    module = idrac_storage_volume
+
+    @pytest.fixture
+    def idrac_storage_volume_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_storage_volume_mock(self, mocker, idrac_storage_volume_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
+                                       return_value=idrac_storage_volume_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_storage_volume_mock
+        return idrac_conn_mock
+
+    def test_validate_controller_exists(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        # Scenario - when controller_id is not passed
+        mocker.patch(MODULE_PATH + "StorageData.all_storage_data",
+                     return_value=TestStorageData.storage_data)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_controller_exists()
+        assert exc.value.args[0] == CONTROLLER_NOT_DEFINED
+
+        # Scenario - when invalid controller_id is passed
+        controller_id = "AHCI.Embedded.1-invalid"
+        idrac_default_args.update({"controller_id": controller_id})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_controller_exists()
+        assert exc.value.args[0] == CONTROLLER_NOT_EXIST_ERROR.format(controller_id=controller_id)
+
+        # Scenario - when controller_id is passed
+        controller_id = "AHCI.Embedded.1-1"
+        idrac_default_args.update({"controller_id": controller_id})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.validate_controller_exists()
+
+    def test_validate_job_wait_negative_values(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        # Scenario - when job_wait_timeout is negative
+        mocker.patch(MODULE_PATH + "StorageData.all_storage_data",
+                     return_value=TestStorageData.storage_data)
+        idrac_default_args.update({"job_wait": True, "job_wait_timeout": -120})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_job_wait_negative_values()
+        assert exc.value.args[0] == NEGATIVE_OR_ZERO_MSG.format(parameter="job_wait_timeout")
+
+        # Scenario - when job_wait_timeout is positive
+        idrac_default_args.update({"job_wait": True, "job_wait_timeout": 120})
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.validate_job_wait_negative_values()
