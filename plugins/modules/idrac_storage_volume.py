@@ -497,7 +497,7 @@ class StorageData:
                     storage_info["Controller"][controller_id]["Enclosure"][enclosure_id]["PhysicalDisk"] = physical_disk
         else:
             if controller_data["Drives"].keys():
-                storage_info["Controller"][controller_id]["PhysicalDisk"] = controller_data["Drives"].keys()
+                storage_info["Controller"][controller_id]["PhysicalDisk"] = list(controller_data["Drives"].keys())
 
 
 class StorageValidation(StorageBase):
@@ -740,15 +740,16 @@ class StorageView(StorageData):
         if controller_id:
             ctrl_data = storage_data["Controller"].get(controller_id)
             if ctrl_data:
-                if volume_id in ctrl_data["VirtualDisk"].keys():
-                    storage_data[controller_id] = {"VirtualDisk": ctrl_data["VirtualDisk"]}
-                    del storage_data["Controller"]
-                else:
+                virtual_disk = ctrl_data.get("VirtualDisk")
+                if not virtual_disk or volume_id not in virtual_disk:
                     status = FAILED_STATUS
                     message = VIEW_VIRTUAL_DISK_DETAILS_NOT_FOUND.format(volume_id=volume_id, controller_id=controller_id)
                     self.module.exit_json(msg=VIEW_OPERATION_FAILED,
                                           storage_status={"Message": message, "Status": status},
                                           failed=True)
+                else:
+                    storage_data[controller_id] = {"VirtualDisk": ctrl_data["VirtualDisk"]}
+                    del storage_data["Controller"]
             else:
                 status = FAILED_STATUS
                 message = VIEW_CONTROLLER_DETAILS_NOT_FOUND.format(controller_id=controller_id)
