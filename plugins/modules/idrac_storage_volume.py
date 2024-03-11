@@ -561,12 +561,6 @@ class StorageValidation(StorageBase):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="drives"), failed=True)
         return True
 
-    def validate(self):
-        pass
-
-    def execute(self):
-        pass
-
 
 class StorageCreate(StorageValidation):
     def disk_slot_location_to_id_conversion(self, each_volume):
@@ -606,26 +600,23 @@ class StorageCreate(StorageValidation):
 
     def updating_drives_module_input_when_given(self, each_volume, filter_disk_output):
         updated_disk_id_list = []
-        if 'location' in each_volume['drives'] and each_volume['drives']['location']:
-            each_volume['drives'] = self.disk_slot_location_to_id_conversion(each_volume)
         if 'id' in each_volume['drives']:
             for each_pd in each_volume['drives']['id']:
                 if each_pd in filter_disk_output:
                     updated_disk_id_list.append(each_pd)
-        each_volume['drives']['id'] = updated_disk_id_list
-        return each_volume['drives']
+        return updated_disk_id_list
 
-    def updating_volume_module_input_for_hotspare(self, each_volume, filter_disk_output, reserved_pd):
+    def updating_volume_module_input_for_hotspare(self, each_volume, filter_disk_output, reserved_pd, drives_exists_in_id):
         tmp_list = []
         if 'number_dedicated_hot_spare' in each_volume and each_volume['number_dedicated_hot_spare'] > 0:
             for each_pd in filter_disk_output:
-                if each_pd not in reserved_pd:
+                if each_pd not in reserved_pd and each_pd not in drives_exists_in_id:
                     tmp_list.append(each_pd)
                 if len(tmp_list) == each_volume['number_dedicated_hot_spare']:
                     break
         return tmp_list
 
-    def updating_volume_module_input(self):
+    def updating_volume_module_input(self, drives_exists_in_id):
         volumes = self.module_ext_params.get('volumes', [])
         reserved_pd = []
         for each in volumes:
@@ -635,16 +626,17 @@ class StorageCreate(StorageValidation):
 
             if each.get('capacity') is not None:
                 each['capacity'] = int(float(each['capacity']) * 1024 * 1024)
-            else:
-                del each['capacity']
 
             if 'drives' in each:
-                each['drives'] = self.updating_drives_module_input_when_given(each, filtered_disk)
+                drives_id_list = self.updating_drives_module_input_when_given(each, filtered_disk)
+                reserved_pd += drives_id_list
+                each['drives']['id'] = drives_id_list
 
             if 'number_dedicated_hot_spare' in each:
-                data = self.updating_volume_module_input_for_hotspare(each, filtered_disk, reserved_pd)
-                reserved_pd += data
-                each['dedicated_hot_spare'] = data
+                hotspare_disk_list = self.updating_volume_module_input_for_hotspare(each, filtered_disk, reserved_pd,
+                                                                                    drives_exists_in_id)
+                reserved_pd += hotspare_disk_list
+                each['dedicated_hot_spare'] = hotspare_disk_list
             self.validate_enough_drives_available(each)
         if self.module.check_mode:
             self.module.exit_json(msg=CHANGES_FOUND, changed=True)
@@ -657,8 +649,7 @@ class StorageCreate(StorageValidation):
         dedicated_hot_spare_required = int(each_volume['number_dedicated_hot_spare'])
         dedicated_hot_spare_available = len(each_volume['dedicated_hot_spare'])
         changed, failed = False, False
-        if (required_pd > drives_available or
-            dedicated_hot_spare_required != dedicated_hot_spare_available):
+        if (required_pd > drives_available or dedicated_hot_spare_required != dedicated_hot_spare_available):
             if not self.module.check_mode:
                 msg, failed = NOT_ENOUGH_DRIVES.format(controller_id=controller_id), True
             else:
@@ -670,12 +661,16 @@ class StorageCreate(StorageValidation):
         self.validate_controller_exists()
         self.validate_job_wait_negative_values()
         #  Validate std raid validation for inner layer
+        drives_exists_in_id = []
         for each_volume in self.module_ext_params.get('volumes'):
             #  Validatiing for negative values
             self.validate_negative_values_for_volume_params(each_volume)
             self.validate_volume_drives(each_volume)
+            if 'location' in each_volume['drives'] and each_volume['drives']['location']:
+                each_volume['drives'] = self.disk_slot_location_to_id_conversion(each_volume)
+            drives_exists_in_id += each_volume['drives']['id']
         #  Extendeding volume module input in module_ext_params for drives id and hotspare
-        self.updating_volume_module_input()
+        self.updating_volume_module_input(drives_exists_in_id)
 
     def execute(self):
         self.validate()
@@ -821,7 +816,7 @@ def main():
             obj = state_type(idrac, module)
             output = obj.execute()
     except (ImportError, ValueError, RuntimeError, TypeError) as e:
-        module.fail_json(msg=str(e), failed=True)
+        module.exit_json(msg=str(e), failed=True)
     msg = SUCCESSFUL_OPERATION_MSG.format(operation=module.params['state'])
     module.exit_json(msg=msg, changed=changed, storage_status=output)
 
