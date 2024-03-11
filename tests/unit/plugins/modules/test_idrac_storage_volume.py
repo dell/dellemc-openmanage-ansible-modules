@@ -511,3 +511,40 @@ class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
         idr_obj.validate_job_wait_negative_values()
+
+    @pytest.mark.parametrize("params", [
+        {"span_depth": -1, "span_length": 2, "capacity": 200, "strip_size": 131072},
+        {"span_depth": 1, "span_length": -1, "capacity": 200, "strip_size": 131072},
+        {"span_depth": 1, "span_length": 2, "capacity": -1, "strip_size": 131072},
+        {"span_depth": 1, "span_length": 2, "capacity": 200, "strip_size": -131072},
+    ])
+    def test_validate_negative_values_for_volume_params(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker, params):
+        # Scenario - when job_wait_timeout is negative
+        mocker.patch(MODULE_PATH + "StorageData.all_storage_data",
+                     return_value=TestStorageData.storage_data)
+        # idrac_default_args.update(params)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_negative_values_for_volume_params(params)
+        # TO DO replace job_wait_timeout with key in params which has negative value
+        negative_key = next((k for k, v in params.items() if v < 0), None)
+        assert exc.value.args[0] == NEGATIVE_OR_ZERO_MSG.format(parameter=negative_key)
+
+    def test_validate_negative_values_for_volume_params_with_different_parameter(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        # Scenario - passing different parameter
+        mocker.patch(MODULE_PATH + "StorageData.all_storage_data",
+                     return_value=TestStorageData.storage_data)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.validate_negative_values_for_volume_params({"volume_type": "RAID 0"})
+
+        # Scenario - when number_dedicated_hot_spare is negative
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_negative_values_for_volume_params({"number_dedicated_hot_spare": -1})
+        assert exc.value.args[0] == NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare")
+
+        # Scenario - when number_dedicated_hot_spare is not negative
+        idr_obj.validate_negative_values_for_volume_params({"number_dedicated_hot_spare": 0})
