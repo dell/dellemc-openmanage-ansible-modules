@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 6.1.0
-# Copyright (C) 2021-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -456,12 +456,12 @@ class TestOmeDevices(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'get_dev_ids', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'get_dev_ids',
                          side_effect=exc_type('https://testhost.com', 400, 'http error message',
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
