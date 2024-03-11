@@ -383,7 +383,7 @@ class TestStorageView(TestStorageData):
                      return_value=data_when_controller_id_passed)
         idrac_default_args.update({"controller_id": "AHCI.Embedded.1-1"})
         out = idr_obj.execute()
-        assert out == {"Message": data_when_controller_id_passed , "Status": SUCCESS_STATUS}
+        assert out == {"Message": data_when_controller_id_passed ,"Status": SUCCESS_STATUS}
 
         # Scenario - When invalid controller_id is passed
         data_when_invlid_controller_id_passed = deepcopy(TestStorageData.storage_data_expected)
@@ -411,7 +411,7 @@ class TestStorageView(TestStorageData):
                      return_value=data_when_controller_id_and_volume_id_passed)
         idrac_default_args.update({"controller_id": "RAID.SL.5-1", "volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
         out = idr_obj.execute()
-        assert out == {"Message": data_when_controller_id_and_volume_id_passed , "Status": SUCCESS_STATUS}
+        assert out == {"Message": data_when_controller_id_and_volume_id_passed, "Status": SUCCESS_STATUS}
 
         # Scenario - When invalid volume_id and valid controller_id is passed
         data_when_controller_id_and_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
