@@ -29,7 +29,7 @@ DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller I
 DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}."
 NEGATIVE_OR_ZERO_MSG = "The value for the `{parameter}` parameter cannot be negative or zero."
 NEGATIVE_MSG = "The value for the `{parameter}` parameter cannot be negative."
-INVALID_VALUE_MSG = " The value for the `{parameter}` parameter are invalid."
+INVALID_VALUE_MSG = "The value for the `{parameter}` parameter are invalid."
 ID_AND_LOCATION_BOTH_DEFINED = "Either id or location is allowed."
 ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
@@ -180,6 +180,34 @@ class TestStorageData(FakeAnsibleModule):
                     }
                 }
             },
+            'AHCI.Embedded.1-3': {
+                'Controllers': {
+                    '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-2/Controllers',
+                },
+                'Drives': {
+                    'Disk.Bay.0:Enclosure.Internal.0-1:AHCI.Embedded.1-3': '/redfish/v1/\
+                    Systems/System.Embedded.1/Storage/AHCI.Embedded.1-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:AHCI.Embedded.1-3',
+                },
+                'Id': 'AHCI.Embedded.1-3',
+                'Links': {
+                    'Enclosures': {
+                        'Enclosure.Internal.0-1:RAID.SL.5-1': {
+                            "Links": {
+                                "Drives": []
+                            },
+                            'System.Embedded.1': "/redfish/v1/Chassis/System.Embedded.1"
+                        },
+                    },
+                },
+                'Volumes': {},
+                "Oem": {
+                    "Dell": {
+                        "@odata.type": "#DellOem.v1_3_0.DellOemLinks",
+                        "CPUAffinity": [],
+                        "CPUAffinity@odata.count": 0
+                    }
+                }
+            },
             'RAID.SL.5-1': {
                 'Controllers': {
                     '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Controllers',
@@ -247,6 +275,18 @@ class TestStorageData(FakeAnsibleModule):
                 'PhysicalDisk': [
                     'Disk.Bay.0:Enclosure.Internal.0-1:AHCI.Embedded.1-2',
                 ],
+            },
+            'AHCI.Embedded.1-3': {
+                'ControllerSensor': {
+                    'AHCI.Embedded.1-3': {}
+                },
+                'Enclosure': {
+                    'Enclosure.Internal.0-1:RAID.SL.5-1': {
+                        'EnclosureSensor': {
+                            'Enclosure.Internal.0-1:RAID.SL.5-1': {},
+                        },
+                    },
+                },
             },
             'RAID.SL.5-1': {
                 'ControllerSensor': {
@@ -539,7 +579,7 @@ class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
-        idr_obj.validate_negative_values_for_volume_params({"volume_type": "RAID 0"})
+        idr_obj.validate_negative_values_for_volume_params({"volume_type": "RAID 0","number_dedicated_hot_spare": 0})
 
         # Scenario - when number_dedicated_hot_spare is negative
         with pytest.raises(Exception) as exc:
@@ -548,3 +588,112 @@ class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
 
         # Scenario - when number_dedicated_hot_spare is not negative
         idr_obj.validate_negative_values_for_volume_params({"number_dedicated_hot_spare": 0})
+
+    def test_validate_volume_drives(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        # Scenario - when volume drives are not defined
+        volumes = {
+            "name": "volume_1"
+        }
+        mocker.patch(MODULE_PATH + "StorageData.all_storage_data",
+                     return_value=TestStorageData.storage_data)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_volume_drives(volumes)
+        assert exc.value.args[0] == DRIVES_NOT_DEFINED
+
+        # Scenario - when in volume drives id and location both defined
+        volumes = {
+            "name": "volume_1",
+            "drives": {
+                "id": [
+                    "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1",
+                    "Disk.Bay.2:Enclosure.Internal.0-1:RAID.Slot.1-1"
+                ],
+                "location": [7, 3]
+            }
+        }
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_volume_drives(volumes)
+        assert exc.value.args[0] == ID_AND_LOCATION_BOTH_DEFINED
+
+        # Scenario - when in volume drives id and location both not defined
+        volumes = {
+            "name": "volume_1",
+            "drives": {
+                "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1": {}
+            }
+        }
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_volume_drives(volumes)
+        assert exc.value.args[0] == ID_AND_LOCATION_BOTH_NOT_DEFINED
+
+        # Scenario - when in volume drives id is defined
+        volumes = {
+            "name": "volume_1",
+            "drives": {
+                "id": [
+                    "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1",
+                    "Disk.Bay.2:Enclosure.Internal.0-1:RAID.Slot.1-1"
+                ]
+            }
+        }
+        mocker.patch(MODULE_PATH + "StorageValidation.raid_std_validation",
+                     return_value=True)
+        out = idr_obj.validate_volume_drives(volumes)
+        assert out is True
+
+    # @pytest.mark.parametrize("params", [
+    #     {"span_depth": 4, "span_length": 1, "pd_count": 3, "volume_type": "RAID 1"},
+    #     # {"span_depth": 1, "span_length": 2, "pd_count": -1, "volume_type": 131072},
+    #     # {"span_depth": 1, "span_length": 2, "pd_count": 200, "volume_type": -131072},
+    # ])
+    def test_raid_std_validation(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        mocker.patch(MODULE_PATH + "StorageData.all_storage_data",
+                     return_value=TestStorageData.storage_data)
+        f_module = self.get_module_mock(
+            params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
+        # Scenario - Invalid span_length
+        params = {"span_depth": 1, "span_length": 4, "pd_count": 2, "volume_type": "RAID 1"}
+        with pytest.raises(Exception) as exc:
+            idr_obj.raid_std_validation(params["span_length"],
+                                        params["span_depth"],
+                                        params["volume_type"],
+                                        params["pd_count"])
+        assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="span_length")
+
+        # Scenario - Invalid span_depth for RAID 1
+        params = {"span_depth": 4, "span_length": 2, "pd_count": 3, "volume_type": "RAID 1"}
+        with pytest.raises(Exception) as exc:
+            idr_obj.raid_std_validation(params["span_length"],
+                                        params["span_depth"],
+                                        params["volume_type"],
+                                        params["pd_count"])
+        assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="span_depth")
+
+        # Scenario - Invalid span_depth for RAID 10
+        params = {"span_depth": 6, "span_length": 2, "pd_count": 9, "volume_type": "RAID 10"}
+        with pytest.raises(Exception) as exc:
+            idr_obj.raid_std_validation(params["span_length"],
+                                        params["span_depth"],
+                                        params["volume_type"],
+                                        params["pd_count"])
+        assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="span_depth")
+
+        # Scenario - Invalid drive count
+        params = {"span_depth": 1, "span_length": 2, "pd_count": 1, "volume_type": "RAID 10"}
+        with pytest.raises(Exception) as exc:
+            idr_obj.raid_std_validation(params["span_length"],
+                                        params["span_depth"],
+                                        params["volume_type"],
+                                        params["pd_count"])
+        assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="drives")
+
+        # Scenario - Valid
+        params = {"span_depth": 1, "span_length": 2, "pd_count": 2, "volume_type": "RAID 10"}
+        out = idr_obj.raid_std_validation(params["span_length"],
+                                          params["span_depth"],
+                                          params["volume_type"],
+                                          params["pd_count"])
+        assert out is True

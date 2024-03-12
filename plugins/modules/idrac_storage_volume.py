@@ -523,8 +523,7 @@ class StorageValidation(StorageBase):
             value = each_volume.get(param)
             if value is not None and value <= 0:
                 self.module.exit_json(msg=NEGATIVE_OR_ZERO_MSG.format(parameter=param), failed=True)
-        hot_spare = each_volume.get("number_dedicated_hot_spare")
-        if hot_spare is not None and hot_spare< 0:
+        if each_volume.get("number_dedicated_hot_spare") < 0:
             self.module.exit_json(msg=NEGATIVE_MSG.format(parameter="number_dedicated_hot_spare"), failed=True)
 
     def validate_volume_drives(self, specified_volume):
