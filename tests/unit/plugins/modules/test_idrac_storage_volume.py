@@ -579,7 +579,7 @@ class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageValidation(idrac_connection_storage_volume_mock, f_module)
-        idr_obj.validate_negative_values_for_volume_params({"volume_type": "RAID 0","number_dedicated_hot_spare": 0})
+        idr_obj.validate_negative_values_for_volume_params({"volume_type": "RAID 0", "number_dedicated_hot_spare": 0})
 
         # Scenario - when number_dedicated_hot_spare is negative
         with pytest.raises(Exception) as exc:
