@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -59,7 +59,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             "SettingType": "LocalAccessConfiguration", "EnableChassisDirect": False,
             "EnableChassisPowerButton": False, "EnableKvmAccess": True, "EnableLcdOverridePin": False,
             "LcdAccess": "VIEW_ONLY", "LcdCustomString": "LCD Text", "LcdLanguage": "en",
-            "LcdPresence": "Present", "LcdOverridePin": "123456",
+            "LcdPresence": "Present", "LcdPinLength": 6, "LedPresence": "Absent", "LcdOverridePin": "123456",
             "QuickSync": {"QuickSyncAccess": True, "TimeoutLimit": 10, "EnableInactivityTimeout": True,
                           "TimeoutLimitUnit": "MINUTES", "EnableReadAuthentication": True,
                           "EnableQuickSyncWifi": True, "QuickSyncHardware": "Present"}},
@@ -86,7 +86,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             "SettingType": "LocalAccessConfiguration", "EnableChassisDirect": False,
             "EnableChassisPowerButton": False, "EnableKvmAccess": True, "EnableLcdOverridePin": False,
             "LcdAccess": "VIEW_ONLY", "LcdCustomString": "LCD Text", "LcdLanguage": "en",
-            "LcdPresence": "Present", "LcdOverridePin": "123456",
+            "LcdPresence": "Present", "LcdPinLength": 6, "LedPresence": "Absent", "LcdOverridePin": "123456",
             "QuickSync": {"QuickSyncAccess": True, "TimeoutLimit": 10, "EnableInactivityTimeout": True,
                           "TimeoutLimitUnit": "MINUTES", "EnableReadAuthentication": True,
                           "EnableQuickSyncWifi": True, "QuickSyncHardware": "Present"}},
@@ -287,7 +287,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
     def test_check_mode_validation(self, ome_conn_mock_lac, ome_default_args, ome_response_mock, mocker):
         loc_data = {"EnableKvmAccess": True, "EnableChassisDirect": True, "EnableChassisPowerButton": True,
                     "EnableLcdOverridePin": True, "LcdAccess": True, "LcdCustomString": "LCD Text",
-                    "LcdLanguage": "en", "LcdOverridePin": "123456", "LcdPresence": "Present",
+                    "LcdLanguage": "en", "LcdPresence": "Present", "LcdPinLength": 6, "LedPresence": "Absent", "LcdOverridePin": "123456",
                     "QuickSync": {"QuickSyncAccess": True, "TimeoutLimit": 10, "EnableInactivityTimeout": True,
                                   "TimeoutLimitUnit": "MINUTES", "EnableReadAuthentication": True,
                                   "EnableQuickSyncWifi": True, "QuickSyncHardware": "Present"}, }
@@ -329,18 +329,12 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'check_domain_service',
                          side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
-            assert result['failed'] is True
-        elif exc_type in [HTTPError]:
-            mocker.patch(MODULE_PATH + 'check_domain_service',
-                         side_effect=exc_type(HTTPS_ADDRESS, 400, HTTP_ERROR_MSG,
-                                              {"accept-type": "application/json"}, StringIO(json_str)))
             result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
                          side_effect=exc_type(HTTPS_ADDRESS, 400, HTTP_ERROR_MSG,
                                               {"accept-type": "application/json"}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result

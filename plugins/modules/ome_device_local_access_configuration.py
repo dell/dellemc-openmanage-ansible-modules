@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.1.0
-# Copyright (C) 2021-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -130,7 +130,7 @@ options:
           - ja to set Japanese language.
           - zh to set Chinese language.
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 author:
   - "Felix Stephen (@felixs88)"
   - "Shivam Sharma (@ShivamSh3)"
@@ -221,9 +221,9 @@ location_details:
     "LcdCustomString": "LCD Text",
     "LcdLanguage": "en",
     "LcdOverridePin": "",
-    "LcdPinLength": null,
+    "LcdPinLength": 6,
     "LcdPresence": "Present",
-    "LedPresence": null,
+    "LedPresence": "Absent",
     "QuickSync": {
       "EnableInactivityTimeout": true,
       "EnableQuickSyncWifi": false,
@@ -380,6 +380,8 @@ def check_mode_validation(module, loc_resp):
     payload["QuickSync"]["QuickSyncHardware"] = loc_resp["QuickSync"]["QuickSyncHardware"]
     payload["SettingType"] = "LocalAccessConfiguration"
     payload["LcdPresence"] = loc_resp["LcdPresence"]
+    payload["LcdPinLength"] = loc_resp["LcdPinLength"]
+    payload["LedPresence"] = loc_resp["LedPresence"]
     return payload
 
 
@@ -476,7 +478,7 @@ def main():
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
