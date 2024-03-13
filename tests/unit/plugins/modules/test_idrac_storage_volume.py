@@ -388,6 +388,8 @@ class TestStorageData(FakeAnsibleModule):
     def test_fetch_storage_data(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + "StorageData.all_storage_data",
                      return_value=self.storage_data)
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
+                     return_value="3.00.00.00")
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
         idr_obj = self.module.StorageData(idrac_connection_storage_volume_mock, f_module)
         storage_info = idr_obj.fetch_storage_data()
