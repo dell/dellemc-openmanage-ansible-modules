@@ -22,7 +22,7 @@ from ansible.module_utils._text import to_text
 from io import StringIO
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
-
+VERSION = "3.60.60.60"
 
 class TestIDRACUser(FakeAnsibleModule):
     module = idrac_user
@@ -293,7 +293,7 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idrac_connection_user_mock.get_server_generation = (14, "3.60.60.60")
+        idrac_connection_user_mock.get_server_generation = (14, VERSION)
         mocker.patch(MODULE_PATH + "idrac_user.get_payload", return_value={"Users.2#UserName": "test_user"})
         mocker.patch(MODULE_PATH + "idrac_user.convert_payload_xml",
                      return_value=("<xml-data>", {"Users.1#UserName": "test_user"}))
@@ -314,7 +314,7 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
-        idrac_connection_user_mock.get_server_generation = (14, "3.60.60.60")
+        idrac_connection_user_mock.get_server_generation = (14, VERSION)
         mocker.patch(MODULE_PATH + "idrac_user.get_payload", return_value={"Users.2#UserName": "test_user"})
         mocker.patch(MODULE_PATH + "idrac_user.convert_payload_xml",
                      return_value=("<xml-data>", {"Users.1#UserName": "test_user"}))
@@ -336,7 +336,7 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idrac_connection_user_mock.get_server_generation = (14, "3.60.60.60")
+        idrac_connection_user_mock.get_server_generation = (14, VERSION)
         mocker.patch(MODULE_PATH + "idrac_user.get_payload", return_value={"Users.2#UserName": "test_user"})
         mocker.patch(MODULE_PATH + "idrac_user.convert_payload_xml",
                      return_value=("<xml-data>", {"Users.1#UserName": "test_user"}))
@@ -357,7 +357,7 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idrac_connection_user_mock.get_server_generation = (14, "3.60.60.60")
+        idrac_connection_user_mock.get_server_generation = (14, VERSION)
         mocker.patch(MODULE_PATH + "idrac_user.get_payload", return_value={"Users.2#UserName": "test_user"})
         mocker.patch(MODULE_PATH + "idrac_user.convert_payload_xml",
                      return_value=("<xml-data>", {"Users.1#UserName": "test_user"}))
@@ -378,7 +378,7 @@ class TestIDRACUser(FakeAnsibleModule):
                                    "sol_enable": True, "protocol_enable": True,
                                    "authentication_protocol": "SHA", "privacy_protocol": "AES"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idrac_connection_user_mock.get_server_generation = (14, "3.60.60.60")
+        idrac_connection_user_mock.get_server_generation = (14, VERSION)
         mocker.patch(MODULE_PATH + "idrac_user.get_payload", return_value={"Users.2#UserName": "test_user"})
         mocker.patch(MODULE_PATH + "idrac_user.convert_payload_xml",
                      return_value=("<xml-data>", {"Users.1#UserName": "test_user"}))

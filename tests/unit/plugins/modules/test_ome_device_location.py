@@ -112,29 +112,29 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
             {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "xxx.xxx.x.x",
                         "device_id": 1234, "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
         {"json_data": {"value": [
             {'Id': 1234, 'DeviceServiceTag': 'ABCD123',
-                'PublicAddress': "1.2.3.4", 'DeviceId': 1234, "Type": 1000},
+                'PublicAddress': "xxx.xxx.x.x", 'DeviceId': 1234, "Type": 1000},
             {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "xxx.xxx.x.x",
                         "device_service_tag": "ABCD123", "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
             {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "xxx.xxx.x.x",
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
@@ -159,7 +159,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
 
     @pytest.mark.parametrize("params", [
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
             {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
             'message': "The device location settings operation is supported only on OpenManage Enterprise Modular systems.",
@@ -179,12 +179,12 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
                     ]
                 }
         },
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "xxx.xxx.x.x",
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
         },
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
             {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Unable to complete the operation because the location settings are not supported on the specified device.",
@@ -206,16 +206,16 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         },
             'check_domain_service': 'mocked_check_domain_service',
             'standalone_chassis': ('Id', 1234),
-            'mparams': {"hostname": "1.2.3.4",
+            'mparams': {"hostname": "xxx.xxx.x.x",
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
         },
         {"json_data": {"value": [
-            {'Id': 1234, 'PublicAddress': "1.2.3.4",
+            {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
             {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Unable to complete the operation because the entered target device id '123' is invalid.",
-            'mparams': {"hostname": "1.2.3.4", "device_id": 123,
+            'mparams': {"hostname": "xxx.xxx.x.x.x.x.x.x.x.x", "device_id": 123,
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
