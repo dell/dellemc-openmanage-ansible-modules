@@ -322,6 +322,93 @@ class TestStorageData(FakeAnsibleModule):
         }
     }
 
+    storage_data_idrac8 = {
+        'Controllers': {
+            'RAID.SL.5-1': {
+                'Controllers': {
+                    '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Controllers',
+                },
+                'Drives': {
+                    'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1': '/redfish/v1/Systems\
+                        /System.Embedded.1/Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1',
+                },
+                'Id': 'RAID.SL.5-1',
+                'Links': {
+                    'Enclosures': {
+                        'Enclosure.Internal.0-1:RAID.SL.5-1': {"Links": {
+                            "Drives": [
+                                {
+                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                        /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
+                                }
+                            ]}},
+                        'System.Embedded.1': "/redfish/v1/Chassis/System.Embedded.1",
+                    },
+                },
+                'Volumes': {
+                    'Disk.Virtual.0:RAID.SL.5-1': {
+                        "Links": {
+                            "Drives": [
+                                {
+                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                        /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
+                                }
+                            ]
+                        },
+                    },
+                    'Disk.Virtual.1:RAID.SL.5-1': {
+                        "Links": {
+                            "Drives": [
+                                {
+                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                        /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
+                                }
+                            ]
+                        },
+                    },
+                },
+                "Oem": {
+                    "Dell": {
+                        "DellControllerBattery": {
+                            "Id": "Battery.Integrated.1:RAID.SL.5-1"
+                        }}
+                }
+            }
+        }
+    }
+
+    storage_data_expected_idrac8 = {
+        'Controller': {
+            'RAID.SL.5-1': {
+                'ControllerSensor': {
+                    'RAID.SL.5-1': {},
+                },
+                'Enclosure': {
+                    'Enclosure.Internal.0-1:RAID.SL.5-1': {
+                        'EnclosureSensor': {
+                            'Enclosure.Internal.0-1:RAID.SL.5-1': {},
+                        },
+                        'PhysicalDisk': [
+                            'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1',
+                        ],
+                    },
+                },
+                'VirtualDisk': {
+                    'Disk.Virtual.0:RAID.SL.5-1': {
+                        'PhysicalDisk': [
+                            'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1',
+                        ],
+                    },
+                    'Disk.Virtual.1:RAID.SL.5-1': {
+                        'PhysicalDisk': [
+                            'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1',
+                        ],
+                    },
+                },
+            },
+        }
+    }
+
     @pytest.fixture
     def idrac_storage_volume_mock(self):
         idrac_obj = MagicMock()
@@ -394,6 +481,16 @@ class TestStorageData(FakeAnsibleModule):
         idr_obj = self.module.StorageData(idrac_connection_storage_volume_mock, f_module)
         storage_info = idr_obj.fetch_storage_data()
         assert storage_info == self.storage_data_expected
+
+        # Scenario - for idrac 8
+        mocker.patch(MODULE_PATH + "StorageData.all_storage_data",
+                     return_value=self.storage_data_idrac8)
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
+                     return_value="2.00.00.00")
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.StorageData(idrac_connection_storage_volume_mock, f_module)
+        storage_info = idr_obj.fetch_storage_data()
+        assert storage_info == self.storage_data_expected_idrac8
 
 
 class TestStorageView(TestStorageData):
