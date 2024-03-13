@@ -385,6 +385,7 @@ class StorageBase:
         raid_reset_config_value = self.module_ext_params.get('raid_reset_config')
         raid_key_mapping = {'raid_reset_config': 'RAIDresetConfig'}
         if raid_reset_config_value == 'true':
+            raid_reset_config_value = 'True'
             attr = {raid_key_mapping['raid_reset_config']: raid_reset_config_value}
         for each_volume in self.module_ext_params.get('volumes'):
             volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd, each_volume, name_id_mapping)
@@ -471,7 +472,7 @@ class StorageData:
             storage_info["Controller"][controller_id] = {
                 "ControllerSensor": {controller_id: {}}
             }
-            if firm_ver >= "3.00.00.00":
+            if firm_ver >= "3.00":
                 battery_data = controller_data["Oem"]["Dell"].get("DellControllerBattery")
                 if battery_data:
                     storage_info["Controller"][controller_id]["ControllerSensor"][controller_id]["ControllerBattery"] = [battery_data["Id"]]
