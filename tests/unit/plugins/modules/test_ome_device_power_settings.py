@@ -36,27 +36,28 @@ POWER_FAIL_MSG = "Unable to complete the operation because the power settings " 
 DOMAIN_FAIL_MSG = "The device location settings operation is supported only on " \
                   "OpenManage Enterprise Modular."
 ERROR_JSON = {
-                "error": {
-                    "code": "Base.1.0.GeneralError",
-                    "message": "A general error has occurred. See ExtendedInfo for more information.",
-                    "@Message.ExtendedInfo": [
-                        {
-                            "MessageId": "CGEN1004",
-                            "RelatedProperties": [],
-                            "Message": "Unable to process the request because an error occurred.",
-                            "MessageArgs": [],
-                            "Severity": "Critical",
+    "error": {
+        "code": "Base.1.0.GeneralError",
+        "message": "A general error has occurred. See ExtendedInfo for more information.",
+        "@Message.ExtendedInfo": [
+            {
+                "MessageId": "CGEN1004",
+                "RelatedProperties": [],
+                "Message": "Unable to process the request because an error occurred.",
+                "MessageArgs": [],
+                "Severity": "Critical",
                             "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
-                        }
-                    ]
-                }}
+            }
+        ]
+    }}
 MPARAMS = {"hostname": "xxx.xxx.x.x",
-                        "power_configuration": {"enable_power_cap": True, "power_cap": 3424}
-                        }
+           "power_configuration": {"enable_power_cap": True, "power_cap": 3424}
+           }
 POWER_JSON_DATA = {"value": [
-            {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
-             'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]}
+    {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
+     'DeviceId': 1234, "Type": 1000},
+    {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]}
+
 
 @pytest.fixture
 def ome_conn_mock_power(mocker, ome_response_mock):
@@ -150,7 +151,6 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         result = self._run_module(
             ome_default_args, check_mode=params_inp.get('check_mode', False))
         assert result['msg'] == params_inp['message']
-
 
     @pytest.mark.parametrize("params", [
         {"json_data": POWER_JSON_DATA,
@@ -306,7 +306,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
                          side_effect=exc_type_ps('https://testhost.com', 400, 'http error message',
-                                              {"accept-type": "application/json"}, StringIO(json_str)))
+                                                 {"accept-type": "application/json"}, StringIO(json_str)))
             result_ps = self._run_module_with_fail_json(ome_default_args)
             assert result_ps['failed'] is True
         assert 'msg' in result_ps
