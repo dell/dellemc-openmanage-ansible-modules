@@ -680,7 +680,6 @@ class StorageCreate(StorageValidation):
         job_dict = {}
         name_id_mapping = {value.get('Name'): key for key, value in self.idrac_data["Controllers"][self.controller_id]["Volumes"].items()}
         payload = self.constuct_payload(name_id_mapping)
-        self.module.warn("Importing volume: {0}".format(payload))
         resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
