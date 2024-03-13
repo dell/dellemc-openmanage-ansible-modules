@@ -24,6 +24,7 @@ from io import StringIO
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 VERSION = "3.60.60.60"
 
+
 class TestIDRACUser(FakeAnsibleModule):
     module = idrac_user
 
