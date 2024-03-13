@@ -56,7 +56,7 @@ MPARAMS = {"hostname": "xxx.xxx.x.x",
 POWER_JSON_DATA = {"value": [
     {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
      'DeviceId': 1234, "Type": 1000},
-    {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]}
+    {'PublicAddress': "xxx.xxx.xx.x", 'DeviceId': 1235, "Type": 1000}]}
 
 
 @pytest.fixture
