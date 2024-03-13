@@ -297,6 +297,21 @@ class StorageBase:
         self.module_ext_params = self.module_extend_input(module)
         self.idrac = idrac
         self.module = module
+    
+    def data_conversion(self, module, dictionary):
+        volume_related_input = [
+            'volume_type', 'span_length', 'span_depth',
+            'number_dedicated_hot_spare', 'disk_cache_policy',
+            'write_cache_policy', 'read_cache_policy', 'stripe_size',
+            'capacity', 'raid_init_operation', 'protocol', 'media_type'
+        ]
+        int_input = ['span_length', 'span_depth', 'number_dedicated_hot_spare',
+                     'stripe_size']
+        for key in volume_related_input:
+            if key not in dictionary:
+                value = module.params.get(key)
+                dictionary[key] = int(value) if key in int_input else value
+        return dictionary
 
     def module_extend_input(self, module):
         """
@@ -308,20 +323,16 @@ class StorageBase:
         Returns:
             object: The updated module object.
         """
-        volume_related_input = [
-            'volume_type', 'span_length', 'span_depth',
-            'number_dedicated_hot_spare', 'disk_cache_policy',
-            'write_cache_policy', 'read_cache_policy', 'stripe_size',
-            'capacity', 'raid_init_operation', 'protocol', 'media_type'
-        ]
+        
         module_copy = deepcopy(module.params)
-        volumes = module_copy.get('volumes', [])
+        volumes = module_copy.get('volumes')
         if volumes:
             for each_member in volumes:
-                for key in volume_related_input:
-                    if key not in each_member:
-                        each_member[key] = module.params.get(key)
-
+                each_member = self.data_conversion(module, each_member)
+        else:
+            tmp_volume = self.data_conversion(module, {})
+            tmp_volume['drives'] = {'id': [-1]}
+            module_copy['volumes'] = [tmp_volume]
         return module_copy
 
     def payload_for_disk(self, volume):
@@ -536,7 +547,7 @@ class StorageValidation(StorageBase):
             self.module.exit_json(msg=DRIVES_NOT_DEFINED, failed=True)
         if specified_drives.get("id") and specified_drives.get("location"):
             self.module.exit_json(msg=ID_AND_LOCATION_BOTH_DEFINED, failed=True)
-        elif not specified_drives.get("id") and not specified_drives.get("location"):
+        elif "id" not in specified_drives and "location" not in specified_drives:
             self.module.exit_json(msg=ID_AND_LOCATION_BOTH_NOT_DEFINED, failed=True)
         drives_count = len(specified_drives.get("location")) if specified_drives.get("location") is not None else len(specified_drives.get("id"))
         return self.raid_std_validation(specified_volume.get("span_length"),
@@ -595,7 +606,13 @@ class StorageCreate(StorageValidation):
             raid_status = value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus', {})
             if raid_status == "Ready":
                 data['available_disk'].add(key)
-        filtered_disk = data['healthy_disk'].intersection(data['available_disk'])
+
+        firm_ver = get_idrac_firmware_version(self.idrac)
+        if firm_ver >= "3.00":
+            filtered_disk = data['healthy_disk'].intersection(data['available_disk'])
+        else:
+            filtered_disk = data['healthy_disk']
+
         if filtered_disk and each_volume.get('media_type'):
             filtered_disk = filtered_disk.intersection(data['media_type_supported_disk'])
         if filtered_disk and each_volume.get('protocol'):
@@ -630,6 +647,11 @@ class StorageCreate(StorageValidation):
 
             if each.get('capacity') is not None:
                 each['capacity'] = int(float(each['capacity']) * 1024 * 1024)
+
+            if self.module.params.get('volumes') is None:
+                disk = filtered_disk[0]
+                each['drives']['id'] = [disk]
+                reserved_pd.append(disk)
 
             if 'drives' in each:
                 drives_id_list = self.updating_drives_module_input_when_given(each, filtered_disk)
@@ -666,7 +688,7 @@ class StorageCreate(StorageValidation):
         self.validate_job_wait_negative_values()
         #  Validate std raid validation for inner layer
         drives_exists_in_id = []
-        for each_volume in self.module_ext_params.get('volumes'):
+        for each_volume in self.module_ext_params.get('volumes', []):
             #  Validatiing for negative values
             self.validate_negative_values_for_volume_params(each_volume)
             self.validate_volume_drives(each_volume)
