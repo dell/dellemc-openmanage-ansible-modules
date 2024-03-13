@@ -258,7 +258,7 @@ from copy import deepcopy
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, idrac_redfish_job_tracking, remove_key)
+    get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, idrac_redfish_job_tracking, remove_key, get_idrac_firmware_version)
 import operator
 
 
@@ -439,9 +439,9 @@ class StorageData:
         controllers_details_uri = self.fetch_controllers_uri()[ODATA_ID] + "?$expand=*($levels=1)"
         controllers_list = get_dynamic_uri(self.idrac, controllers_details_uri)
         for each_controller in controllers_list["Members"]:
-            if "Controllers" not in each_controller:
-                continue
             controller_id = each_controller.get("Id")
+            if controller_id.startswith("CPU"):
+                continue
             storage_info["Controllers"][controller_id] = deepcopy(each_controller)
             storage_info["Controllers"][controller_id]["Drives"] = {}
             storage_info["Controllers"][controller_id]["Volumes"] = {}
@@ -450,6 +450,7 @@ class StorageData:
             for each_drive_uri in each_controller["Drives"]:
                 key, uri_data = self.fetch_api_data(each_drive_uri[ODATA_ID], -1)
                 storage_info["Controllers"][controller_id]["Drives"][key] = uri_data.json_data
+
             # To fetch volumes data
             volume_uri = each_controller['Volumes'][ODATA_ID]
             volumes_list = get_dynamic_uri(self.idrac, volume_uri, "Members")
@@ -465,13 +466,15 @@ class StorageData:
     def fetch_storage_data(self):
         storage_info = {"Controller": {}}
         storage_data = self.all_storage_data()
+        firm_ver = get_idrac_firmware_version(self.idrac)
         for controller_id, controller_data in storage_data["Controllers"].items():
             storage_info["Controller"][controller_id] = {
                 "ControllerSensor": {controller_id: {}}
             }
-            battery_data = controller_data["Oem"]["Dell"].get("DellControllerBattery")
-            if battery_data:
-                storage_info["Controller"][controller_id]["ControllerSensor"][controller_id]["ControllerBattery"] = [battery_data["Id"]]
+            if firm_ver >= "3.00.00.00":
+                battery_data = controller_data["Oem"]["Dell"].get("DellControllerBattery")
+                if battery_data:
+                    storage_info["Controller"][controller_id]["ControllerSensor"][controller_id]["ControllerBattery"] = [battery_data["Id"]]
             self.fetch_volumes(controller_id, controller_data, storage_info)
             self.fetch_enclosures_and_physical_disk(controller_id, controller_data, storage_info)
         return storage_info
