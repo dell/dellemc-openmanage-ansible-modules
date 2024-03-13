@@ -23,6 +23,7 @@ from io import StringIO
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 VERSION = "3.60.60.60"
+VERSION13G = "2.70.70.70"
 SLOT_API = "/redfish/v1/Managers/iDRAC.Embedded.1/Accounts/{0}/"
 CHANGES_FOUND = "Changes found to commit!"
 SLEEP_PATH = 'idrac_user.time.sleep'
@@ -229,7 +230,7 @@ class TestIDRACUser(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=False)
         idrac_connection_user_mock.get_server_generation = params.get(
-            "firm_ver", (13, "2.70.70.70"))
+            "firm_ver", (13, VERSION13G))
         mocker.patch(MODULE_PATH + GET_PAYLOAD,
                      return_value={USERNAME2: "test_user"})
         mocker.patch(MODULE_PATH + PAYLOAD_XML,
@@ -270,7 +271,7 @@ class TestIDRACUser(FakeAnsibleModule):
         f_module = self.get_module_mock(
             params=idrac_default_args, check_mode=params.get("check_mode", False))
         idrac_connection_user_mock.get_server_generation = params.get(
-            "firm_ver", (13, "2.70.70.70"))
+            "firm_ver", (13, VERSION13G))
         mocker.patch(MODULE_PATH + GET_PAYLOAD,
                      return_value={USERNAME2: "test_user"})
         mocker.patch(MODULE_PATH + PAYLOAD_XML,

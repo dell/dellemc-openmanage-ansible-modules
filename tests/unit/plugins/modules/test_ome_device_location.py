@@ -215,7 +215,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
                 'DeviceId': 1234, "Type": 1000},
             {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Unable to complete the operation because the entered target device id '123' is invalid.",
-            'mparams': {"hostname": "xxx.xxx.x.x.x.x.x.x.x.x", "device_id": 123,
+            'mparams': {"hostname": "xxx.xxx.x.x.x.x.x.x", "device_id": 123,
                         "data_center": "data center",
                         "room": "room", "aisle": "aisle", "rack": "rack"}
          },
