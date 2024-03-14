@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 9.1.0
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -421,9 +421,9 @@ def main():
         supports_check_mode=True
     )
     try:
+        if module.params.get("job_wait") and module.params.get("job_wait_timeout") <= 0:
+            module.exit_json(msg=TIMEOUT_NEGATIVE_MSG, failed=True)
         with RestOME(module.params, req_session=True) as rest_obj:
-            if module.params.get("job_wait") and module.params.get("job_wait_timeout") <= 0:
-                module.exit_json(msg=TIMEOUT_NEGATIVE_MSG, failed=True)
             if module.params.get("state") == 'present':
                 valids, invalids = get_dev_ids(module, rest_obj,
                                                device_type_map.get(module.params.get("device_action")))
