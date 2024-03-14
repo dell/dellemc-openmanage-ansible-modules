@@ -297,7 +297,7 @@ class StorageBase:
         self.module_ext_params = self.module_extend_input(module)
         self.idrac = idrac
         self.module = module
-    
+
     def data_conversion(self, module, dictionary):
         volume_related_input = [
             'volume_type', 'span_length', 'span_depth',
@@ -323,7 +323,7 @@ class StorageBase:
         Returns:
             object: The updated module object.
         """
-        
+
         module_copy = deepcopy(module.params)
         volumes = module_copy.get('volumes')
         if volumes:
@@ -649,9 +649,7 @@ class StorageCreate(StorageValidation):
                 each['capacity'] = int(float(each['capacity']) * 1024 * 1024)
 
             if self.module.params.get('volumes') is None:
-                disk = filtered_disk[0]
-                each['drives']['id'] = [disk]
-                reserved_pd.append(disk)
+                each['drives']['id'] = [filtered_disk[0]]
 
             if 'drives' in each:
                 drives_id_list = self.updating_drives_module_input_when_given(each, filtered_disk)
