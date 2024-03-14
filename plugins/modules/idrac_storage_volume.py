@@ -310,7 +310,10 @@ class StorageBase:
         for key in volume_related_input:
             if key not in dictionary:
                 value = module.params.get(key)
-                dictionary[key] = int(value) if key in int_input else value
+                if key in int_input and isinstance(value, str):
+                    dictionary[key] = int(value)
+                else:
+                    dictionary[key] = value
         return dictionary
 
     def module_extend_input(self, module):
