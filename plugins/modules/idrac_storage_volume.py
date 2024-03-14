@@ -570,7 +570,7 @@ class StorageValidation(StorageBase):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_length"), failed=True)
         if volume_type in ["RAID 0", "RAID 1", "RAID 5", "RAID 6"] and operator.ne(span_depth, raid_info.get('span_depth')):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_depth"), failed=True)
-        if volume_type in ["RAID 10", "RAID 50", "RAID 60"] and operator.ge(span_depth, raid_info.get('span_depth')):
+        if volume_type in ["RAID 10", "RAID 50", "RAID 60"] and operator.lt(span_depth, raid_info.get('span_depth')):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="span_depth"), failed=True)
         if not operator.eq(pd_count, span_depth * span_length):
             self.module.exit_json(msg=INVALID_VALUE_MSG.format(parameter="drives"), failed=True)
