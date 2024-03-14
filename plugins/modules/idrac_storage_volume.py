@@ -254,6 +254,7 @@ storage_status:
     }
 '''
 
+import re
 from copy import deepcopy
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
@@ -583,9 +584,9 @@ class StorageValidation(StorageBase):
 class StorageCreate(StorageValidation):
     def disk_slot_location_to_id_conversion(self, each_volume):
         drives = {}
+        regex_pattern = r"\d+"
         physical_disk = self.idrac_data["Controllers"][self.controller_id]["Drives"]
-        slot_id_mapping = {value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {})
-                           .get('Slot'): key for key, value in physical_disk.items()}
+        slot_id_mapping = {int(re.search(regex_pattern, key).group()): key for key in physical_disk.keys()}
         drives['id'] = [slot_id_mapping.get(each_pd) for each_pd in each_volume['drives']['location']
                         if slot_id_mapping.get(each_pd)]
         return drives
