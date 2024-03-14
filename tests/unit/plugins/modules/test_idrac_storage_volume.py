@@ -738,11 +738,6 @@ class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
         out = idr_obj.validate_volume_drives(volumes)
         assert out is True
 
-    # @pytest.mark.parametrize("params", [
-    #     {"span_depth": 4, "span_length": 1, "pd_count": 3, "volume_type": "RAID 1"},
-    #     # {"span_depth": 1, "span_length": 2, "pd_count": -1, "volume_type": 131072},
-    #     # {"span_depth": 1, "span_length": 2, "pd_count": 200, "volume_type": -131072},
-    # ])
     def test_raid_std_validation(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD,
                      return_value=TestStorageData.storage_data)
@@ -768,7 +763,7 @@ class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
         assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="span_depth")
 
         # Scenario - Invalid span_depth for RAID 10
-        params = {"span_depth": 6, "span_length": 2, "pd_count": 9, "volume_type": "RAID 10"}
+        params = {"span_depth": 1, "span_length": 2, "pd_count": 9, "volume_type": "RAID 10"}
         with pytest.raises(Exception) as exc:
             idr_obj.raid_std_validation(params["span_length"],
                                         params["span_depth"],
@@ -777,7 +772,7 @@ class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
         assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="span_depth")
 
         # Scenario - Invalid drive count
-        params = {"span_depth": 1, "span_length": 2, "pd_count": 1, "volume_type": "RAID 10"}
+        params = {"span_depth": 3, "span_length": 2, "pd_count": 1, "volume_type": "RAID 10"}
         with pytest.raises(Exception) as exc:
             idr_obj.raid_std_validation(params["span_length"],
                                         params["span_depth"],
@@ -786,7 +781,7 @@ class TestStorageValidation(FakeAnsibleModule, TestStorageBase):
         assert exc.value.args[0] == INVALID_VALUE_MSG.format(parameter="drives")
 
         # Scenario - Valid
-        params = {"span_depth": 1, "span_length": 2, "pd_count": 2, "volume_type": "RAID 10"}
+        params = {"span_depth": 2, "span_length": 2, "pd_count": 4, "volume_type": "RAID 10"}
         out = idr_obj.raid_std_validation(params["span_length"],
                                           params["span_depth"],
                                           params["volume_type"],
