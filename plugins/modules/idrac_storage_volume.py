@@ -591,37 +591,37 @@ class StorageCreate(StorageValidation):
                         if slot_id_mapping.get(each_pd)]
         return drives
 
-    def filter_disk(self, each_volume):
-        data = {
-            'healthy_disk': set(),
-            'available_disk': set(),
-            'protocol_supported_disk': set(),
-            'media_type_supported_disk': set()
-        }
-        disk_dict = self.idrac_data["Controllers"][self.controller_id]["Drives"]
-        for key, value in disk_dict.items():
-            if each_volume.get('media_type') and value.get('MediaType') == each_volume.get('media_type'):
-                data['media_type_supported_disk'].add(key)
-            if each_volume.get('protocol') and value.get('Protocol') == each_volume.get('protocol'):
-                data["protocol_supported_disk"].add(key)
-            status = value.get('Status', {}).get('Health', {})
-            if status == "OK":
-                data['healthy_disk'].add(key)
-            raid_status = value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus', {})
-            if raid_status == "Ready":
-                data['available_disk'].add(key)
-
+    def perform_intersection_on_disk(self, each_volume, healthy_disk, available_disk,
+                                     media_type_supported_disk, protocol_supported_disk):
+        filtered_disk = healthy_disk
         firm_ver = get_idrac_firmware_version(self.idrac)
         if firm_ver >= "3.00":
-            filtered_disk = data['healthy_disk'].intersection(data['available_disk'])
-        else:
-            filtered_disk = data['healthy_disk']
-
+            filtered_disk = filtered_disk.intersection(available_disk)
         if filtered_disk and each_volume.get('media_type'):
-            filtered_disk = filtered_disk.intersection(data['media_type_supported_disk'])
+            filtered_disk = filtered_disk.intersection(media_type_supported_disk)
         if filtered_disk and each_volume.get('protocol'):
-            filtered_disk = filtered_disk.intersection(data['protocol_supported_disk'])
+            filtered_disk = filtered_disk.intersection(protocol_supported_disk)
         return sorted(list(filtered_disk))
+
+    def filter_disk(self, each_volume):
+        disk_dict = self.idrac_data["Controllers"][self.controller_id]["Drives"]
+        healthy_disk = set()
+        available_disk = set()
+        media_type_supported_disk = set()
+        protocol_supported_disk = set()
+        for key, value in disk_dict.items():
+            if each_volume.get('media_type') and value.get('MediaType') == each_volume.get('media_type'):
+                media_type_supported_disk.add(key)
+            if each_volume.get('protocol') and value.get('Protocol') == each_volume.get('protocol'):
+                protocol_supported_disk.add(key)
+            status = value.get('Status', {}).get('Health', {})
+            if status == "OK":
+                healthy_disk.add(key)
+            raid_status = value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus', {})
+            if raid_status == "Ready":
+                available_disk.add(key)
+        return self.perform_intersection_on_disk(each_volume, healthy_disk, available_disk,
+                                                 media_type_supported_disk, protocol_supported_disk)
 
     def updating_drives_module_input_when_given(self, each_volume, filter_disk_output):
         updated_disk_id_list = []
