@@ -251,9 +251,7 @@ storage_status:
       "Name": "Import Configuration",
       "PercentComplete": 100,
       "StartTime": "TIME_NOW",
-      "Status": "Success",
       "TargetSettingsURI": null,
-      "retval": true
     }
 '''
 
@@ -281,6 +279,7 @@ ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
 NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{controller_id}'!"
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+JOB_TRIGERRED = "Successfully triggered the {0} storage volume operation."
 VOLUME_NAME_REQUIRED_FOR_DELETE = "Virtual disk name is a required parameter for remove virtual disk operations."
 VOLUME_NOT_FOUND = "Unable to find the virtual disk."
 CHANGES_NOT_FOUND = "No changes found to commit!"
@@ -428,13 +427,14 @@ class StorageBase:
                                                                                   sleep_interval_secs=1)
                 job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
                 if int(wait_time) >= int(job_wait_timeout):
-                    self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(job_wait_timeout), changed=True, job_status=job_dict)
+                    self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(job_wait_timeout), changed=True, storage_status=job_dict)
                 if job_failed:
-                    self.module.fail_json(msg=job_dict.get("Message"), job_status=job_dict)
+                    self.module.exit_json(msg=job_dict.get("Message"), storage_status=job_dict, failed=True)
             else:
                 job_resp = self.idrac.invoke_request(job_uri, 'GET')
                 job_dict = job_resp.json_data
                 job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
+                self.module.exit_json(msg=JOB_TRIGERRED.format(self.module.params.get('state')), storage_status=job_dict, changed=True)
         return job_dict
 
 

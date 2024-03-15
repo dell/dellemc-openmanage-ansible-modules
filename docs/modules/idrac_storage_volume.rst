@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -28,23 +28,23 @@ Parameters
 ----------
 
   state (optional, str, view)
-    ``create``, performs create volume operation.
+    \ :literal:`create`\ , performs create volume operation.
 
-    ``delete``, performs remove volume operation.
+    \ :literal:`delete`\ , performs remove volume operation.
 
-    ``view``, returns storage view.
+    \ :literal:`view`\ , returns storage view.
 
 
   span_depth (optional, int, 1)
     Number of spans in the RAID configuration.
 
-    *span_depth* is required for ``create`` and its value depends on *volume_type*.
+    \ :emphasis:`span\_depth`\  is required for \ :literal:`create`\  and its value depends on \ :emphasis:`volume\_type`\ .
 
 
   span_length (optional, int, 1)
     Number of disks in a span.
 
-    *span_length* is required for ``create`` and its value depends on *volume_type*.
+    \ :emphasis:`span\_length`\  is required for \ :literal:`create`\  and its value depends on \ :emphasis:`volume\_type`\ .
 
 
   number_dedicated_hot_spare (optional, int, 0)
@@ -68,11 +68,11 @@ Parameters
 
 
   stripe_size (optional, int, 65536)
-    Stripe size value to be provided in multiples of 64 * 1024.
+    Stripe size value to be provided in multiples of 64 \* 1024.
 
 
   controller_id (optional, str, None)
-    Fully Qualified Device Descriptor (FQDD) of the storage controller, for example 'RAID.Integrated.1-1'. Controller FQDD is required for ``create`` RAID configuration.
+    Fully Qualified Device Descriptor (FQDD) of the storage controller, for example 'RAID.Integrated.1-1'. Controller FQDD is required for \ :literal:`create`\  RAID configuration.
 
 
   media_type (optional, str, None)
@@ -88,15 +88,15 @@ Parameters
 
 
   volumes (optional, list, None)
-    A list of virtual disk specific iDRAC attributes. This is applicable for ``create`` and ``delete`` operations.
+    A list of virtual disk specific iDRAC attributes. This is applicable for \ :literal:`create`\  and \ :literal:`delete`\  operations.
 
-    For ``create`` operation, name and drives are applicable options, other volume options can also be specified.
+    For \ :literal:`create`\  operation, name and drives are applicable options, other volume options can also be specified.
 
-    The drives is a required option for ``create`` operation and accepts either location (list of drive slot) or id (list of drive fqdd).
+    The drives is a required option for \ :literal:`create`\  operation and accepts either location (list of drive slot) or id (list of drive fqdd).
 
     In iDRAC8, there is no pre-validation for the state of drives. The disk ID or slot number of the drive provided may or may not be in Ready state. Enter the disk ID or slot number of the drive that is already in Ready state.
 
-    For ``delete`` operation, only name option is applicable.
+    For \ :literal:`delete`\  operation, only name option is applicable.
 
     See the examples for more details.
 
@@ -116,13 +116,13 @@ Parameters
   job_wait (optional, bool, True)
     This parameter provides the option to wait for the job completion.
 
-    This is applicable when *state* is ``create`` or ``delete``.
+    This is applicable when \ :emphasis:`state`\  is \ :literal:`create`\  or \ :literal:`delete`\ .
 
 
   job_wait_timeout (optional, int, 900)
-    This parameter is the maximum wait time of *job_wait* in seconds.
+    This parameter is the maximum wait time of \ :emphasis:`job\_wait`\  in seconds.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   idrac_ip (True, str, None)
@@ -132,17 +132,17 @@ Parameters
   idrac_user (True, str, None)
     iDRAC username.
 
-    If the username is not provided, then the environment variable ``IDRAC_USERNAME`` is used.
+    If the username is not provided, then the environment variable \ :literal:`IDRAC\_USERNAME`\  is used.
 
-    Example: export IDRAC_USERNAME=username
+    Example: export IDRAC\_USERNAME=username
 
 
   idrac_password (True, str, None)
     iDRAC user password.
 
-    If the password is not provided, then the environment variable ``IDRAC_PASSWORD`` is used.
+    If the password is not provided, then the environment variable \ :literal:`IDRAC\_PASSWORD`\  is used.
 
-    Example: export IDRAC_PASSWORD=password
+    Example: export IDRAC\_PASSWORD=password
 
 
   idrac_port (optional, int, 443)
@@ -150,11 +150,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -173,8 +173,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to Integrated Dell Remote Access Controller.
-   - This module supports both IPv4 and IPv6 address for *idrac_ip*.
-   - This module supports ``check_mode``.
+   - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -282,7 +282,7 @@ msg (always, str, Successfully completed the view storage volume operation)
   Overall status of the storage configuration operation.
 
 
-storage_status (success, dict, {'Id': 'JID_XXXXXXXXX', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageId': 'XXX123', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'Status': 'Success', 'TargetSettingsURI': None, 'retval': True})
+storage_status (success, dict, {'Id': 'JID_XXXXXXXXX', 'JobState': 'Completed', 'JobType': 'ImportConfiguration', 'Message': 'Successfully imported and applied Server Configuration Profile.', 'MessageId': 'XXX123', 'Name': 'Import Configuration', 'PercentComplete': 100, 'StartTime': 'TIME_NOW', 'TargetSettingsURI': None})
   Storage configuration job and progress details from the iDRAC.
 
 
