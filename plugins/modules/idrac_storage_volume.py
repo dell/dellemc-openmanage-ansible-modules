@@ -97,6 +97,9 @@ options:
       - For C(create) operation, name and drives are applicable options, other volume options can also be specified.
       - The drives is a required option for C(create) operation and accepts either location (list of drive slot)
         or id (list of drive fqdd).
+      - In iDRAC8, there is no pre-validation for the state of drives. The disk ID or slot number of the drive
+        provided may or may not be in Ready state. Enter the disk ID or slot number of the drive that is already
+        in Ready state.
       - For C(delete) operation, only name option is applicable.
       - See the examples for more details.
   capacity:
