@@ -624,7 +624,7 @@ class StorageCreate(StorageValidation):
             if status == "OK":
                 healthy_disk.add(key)
             raid_status = value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus', {})
-            if raid_status == "Ready":
+            if raid_status in ["Ready", "NonRAID"]:
                 available_disk.add(key)
         return self.perform_intersection_on_disk(each_volume, healthy_disk, available_disk,
                                                  media_type_supported_disk, protocol_supported_disk)
