@@ -272,7 +272,7 @@ DRIVES_NOT_EXIST_ERROR = "No Drive(s) are attached to the specified Controller I
 DRIVES_NOT_MATCHED = "Following Drive(s) {specified_drives} are not attached to the specified Controller Id: {controller_id}."
 NEGATIVE_OR_ZERO_MSG = "The value for the `{parameter}` parameter cannot be negative or zero."
 NEGATIVE_MSG = "The value for the `{parameter}` parameter cannot be negative."
-INVALID_VALUE_MSG = "The value for the `{parameter}` parameter are invalid."
+INVALID_VALUE_MSG = "The value for the `{parameter}` parameter is invalid."
 ID_AND_LOCATION_BOTH_DEFINED = "Either id or location is allowed."
 ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
@@ -299,23 +299,18 @@ class StorageBase:
         self.idrac = idrac
         self.module = module
 
-    def data_conversion(self, module, dictionary):
+    def data_conversion(self, module, each_volume):
         volume_related_input = [
             'volume_type', 'span_length', 'span_depth',
             'number_dedicated_hot_spare', 'disk_cache_policy',
             'write_cache_policy', 'read_cache_policy', 'stripe_size',
             'capacity', 'raid_init_operation', 'protocol', 'media_type'
         ]
-        int_input = ['span_length', 'span_depth', 'number_dedicated_hot_spare',
-                     'stripe_size']
         for key in volume_related_input:
-            if key not in dictionary:
-                value = module.params.get(key)
-                if key in int_input and isinstance(value, str):
-                    dictionary[key] = int(value)
-                else:
-                    dictionary[key] = value
-        return dictionary
+            value = module.params.get(key)
+            if key not in each_volume:
+                each_volume[key] = value
+        return each_volume
 
     def module_extend_input(self, module):
         """
@@ -331,12 +326,19 @@ class StorageBase:
         module_copy = deepcopy(module.params)
         volumes = module_copy.get('volumes')
         if volumes:
-            for each_member in volumes:
-                each_member = self.data_conversion(module, each_member)
+            for index in range(len(volumes)):
+                volumes[index] = self.data_conversion(module, volumes[index])
         else:
             tmp_volume = self.data_conversion(module, {})
             tmp_volume['drives'] = {'id': [-1]}
             module_copy['volumes'] = [tmp_volume]
+
+        int_input = ['span_length', 'span_depth', 'number_dedicated_hot_spare',
+                     'stripe_size']
+        for each_volume in volumes:
+            for each_input in each_volume:
+                if each_input in int_input:
+                    each_volume[each_input] = int(each_volume[each_input])
         return module_copy
 
     def payload_for_disk(self, volume):
@@ -650,7 +652,7 @@ class StorageCreate(StorageValidation):
                 each['stripe_size'] = int(each['stripe_size'] / 512)
 
             if each.get('capacity') is not None:
-                each['capacity'] = int(float(each['capacity']) * 1024 * 1024)
+                each['capacity'] = str(int(float(each['capacity']) * 1073741824))
 
             if self.module.params.get('volumes') is None:
                 each['drives']['id'] = [filtered_disk[0]]
