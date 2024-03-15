@@ -127,6 +127,7 @@ requirements:
 author:
   - "Felix Stephen (@felixs88)"
   - "Shivam Sharma (@ShivamSh3)"
+  - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
   - Run this module from a system that has direct access to OpenManage Enterprise Modular.
   - This module supports C(check_mode).
@@ -472,9 +473,9 @@ def check_mode_validation(module, deploy_data):
                 else:
                     req_slot_1.update({"VlanId": ""})
                 req_filter_slot = dict([(k, v) for k, v in req_slot_1.items() if v is not None])
-                exist_slot_1 = {"SlotId": exist_filter_slot[0]["SlotId"],
-                                "SlotIPV4Address": exist_filter_slot[0]["SlotIPV4Address"],
-                                "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"]}
+                exist_slot_1 = {"SlotId": exist_filter_slot[0].get("SlotId"),
+                                "SlotIPV4Address": exist_filter_slot[0].get("SlotIPV4Address"),
+                                "SlotIPV6Address": exist_filter_slot[0].get("SlotIPV6Address")}
                 if "VlanId" in exist_filter_slot[0]:
                     exist_slot_1.update({"VlanId": exist_filter_slot[0]["VlanId"]})
                 else:
@@ -610,8 +611,10 @@ def get_device_details(rest_obj, module):
     try:
         deploy_resp = rest_obj.invoke_request("GET", QUICK_DEPLOY_API.format(device_id, settings_type))
     except HTTPError as err:
-        err_message = json.load(err)
-        error_msg = err_message.get('error', {}).get('@Message.ExtendedInfo')
+        if err.status == 404:
+            module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
+        err_message = json.load(err).get("error")
+        error_msg = err_message.get('@Message.ExtendedInfo')
         if error_msg and error_msg[0].get("MessageId") == "CGEN1004":
             module.exit_json(msg=QUICK_DEPLOY_FAIL_MSG.format(settings_key), failed=True)
     else:
