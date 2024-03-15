@@ -335,10 +335,11 @@ class StorageBase:
 
         int_input = ['span_length', 'span_depth', 'number_dedicated_hot_spare',
                      'stripe_size']
-        for each_volume in volumes:
-            for each_input in each_volume:
-                if each_input in int_input:
-                    each_volume[each_input] = int(each_volume[each_input])
+        if volumes:
+            for each_volume in volumes:
+                for each_input in each_volume:
+                    if each_input in int_input:
+                        each_volume[each_input] = int(each_volume[each_input])
         return module_copy
 
     def payload_for_disk(self, volume):
@@ -353,7 +354,7 @@ class StorageBase:
                 disk_payload = disk_payload + scp
         return disk_payload
 
-    def construct_volume_payload(self, vd_id, volume, name_id_mapping) -> dict:
+    def construct_volume_payload(self, vd_id, volume, name_id_mapping):
 
         """
         Constructs a payload dictionary for the given key mappings.
