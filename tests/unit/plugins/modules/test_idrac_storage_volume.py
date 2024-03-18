@@ -585,6 +585,7 @@ class TestStorageBase(FakeAnsibleModule):
 
     def test_module_extend_input(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + 'StorageBase.data_conversion', return_value={})
+        idrac_default_args.update({'span_length': 1, 'span_depth': 1})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         vars = idr_obj.module_extend_input(f_module)
@@ -592,19 +593,19 @@ class TestStorageBase(FakeAnsibleModule):
         assert vars['volumes'] == [{'drives': {'id': [-1]}}]
 
         # Scenario 2: when volumes is given
-        idrac_default_args.update({'volumes': [{"drives": {'location': [3]},'span_length': '1'}]})
+        idrac_default_args.update({'volumes': [{"drives": {'location': [3]}, 'span_length': '1'}]})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        mocker.patch(MODULE_PATH + 'StorageBase.data_conversion', return_value={"drives": {'location': [3]},'span_length': '1'})
+        mocker.patch(MODULE_PATH + 'StorageBase.data_conversion', return_value={"drives": {'location': [3]}, 'span_length': '1'})
         # import pdb; pdb.set_trace()
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         vars = idr_obj.module_extend_input(f_module)
-        assert vars['volumes'] == [{"drives": {'location': [3]},'span_length': 1}]
+        assert vars['volumes'] == [{"drives": {'location': [3]}, 'span_length': 1}]
 
     def test_payload_for_disk(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         # Scenario 1: When drives is given
-        vars = idr_obj.payload_for_disk({'drives': {'id': [1,2]}})
+        vars = idr_obj.payload_for_disk({'drives': {'id': [1, 2]}})
         assert vars == '<Attribute Name="IncludedPhysicalDiskID">1</Attribute><Attribute Name="IncludedPhysicalDiskID">2</Attribute>'
 
         # Scenario 2: When dedicate_hot_spare is in each_volume
@@ -620,14 +621,14 @@ class TestStorageBase(FakeAnsibleModule):
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         vars = idr_obj.construct_volume_payload(1, {}, {'Virtual Disk 0': 'Disk ID 1'})
         assert vars == '<Data></Data>'
-        
+
         # Scenario 1: When state is delete
         idrac_default_args.update({'state': 'delete'})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         vars = idr_obj.construct_volume_payload(1, {'name': 'Virtual Disk 0'}, {'Virtual Disk 0': 'Disk ID 1'})
         assert vars == '<Data></Data>'
-    
+
     def test_constuct_payload(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value='<Data></Data>')
         mocker.patch(MODULE_PATH + 'StorageBase.construct_volume_payload', return_value='<Volume></Volume>')
@@ -635,14 +636,14 @@ class TestStorageBase(FakeAnsibleModule):
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         # Scenario 1: Default
         vars = idr_obj.constuct_payload({})
-        assert vars == '<SystemConfiguration><Data></Data></SystemConfiguration>'
+        assert vars == '<Data></Data>'
 
         # Scenario 2: When raid_reset_config is 'true'
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         idr_obj.module_ext_params.update({'raid_reset_config': 'true'})
         vars = idr_obj.constuct_payload({})
-        assert vars == '<SystemConfiguration><Data></Data></SystemConfiguration>'
+        assert vars == '<Data></Data>'
 
     # def test_wait_for_job_completion(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
     #     mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value='<Data></Data>')
@@ -659,6 +660,7 @@ class TestStorageBase(FakeAnsibleModule):
     #     idr_obj.module_ext_params.update({'raid_reset_config': 'true'})
     #     vars = idr_obj.constuct_payload({})
     #     assert vars == '<SystemConfiguration><Data></Data></SystemConfiguration>'
+
 
 class TestStorageValidation(TestStorageBase):
     module = idrac_storage_volume

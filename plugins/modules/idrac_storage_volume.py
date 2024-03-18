@@ -256,12 +256,14 @@ storage_status:
 '''
 
 import re
+import operator
+from urllib.error import HTTPError, URLError
 from copy import deepcopy
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
     get_dynamic_uri, validate_and_get_first_resource_id_uri, xml_data_conversion, idrac_redfish_job_tracking, remove_key, get_idrac_firmware_version)
-import operator
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -332,7 +334,8 @@ class StorageBase:
                 volumes[index] = self.data_conversion(module, volumes[index])
         else:
             tmp_volume = self.data_conversion(module, {})
-            tmp_volume['drives'] = {'id': [-1]}
+            required_pd = int(module_copy.get('span_length', 1)) * int(module_copy.get('span_depth', 1))
+            tmp_volume['drives'] = {'id': [(-i) for i in range(1, required_pd + 1)]}
             module_copy['volumes'] = [tmp_volume]
 
         int_input = ['span_length', 'span_depth', 'number_dedicated_hot_spare',
@@ -401,7 +404,6 @@ class StorageBase:
     def constuct_payload(self, name_id_mapping):
         number_of_existing_vd = len(name_id_mapping)
         volume_payload, attr = '', {}
-        parent_payload = """<SystemConfiguration>{0}</SystemConfiguration>"""
         raid_reset_config_value = self.module_ext_params.get('raid_reset_config')
         raid_key_mapping = {'raid_reset_config': 'RAIDresetConfig'}
         if raid_reset_config_value == 'true':
@@ -411,8 +413,7 @@ class StorageBase:
             volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd, each_volume, name_id_mapping)
             number_of_existing_vd = number_of_existing_vd + 1
         raid_payload = xml_data_conversion(attr, self.module_ext_params.get('controller_id'), volume_payload)
-        payload = parent_payload.format(raid_payload)
-        return payload
+        return raid_payload
 
     def wait_for_job_completion(self, job_resp):
         job_wait = self.module_ext_params.get('job_wait')
@@ -590,11 +591,14 @@ class StorageValidation(StorageBase):
 class StorageCreate(StorageValidation):
     def disk_slot_location_to_id_conversion(self, each_volume):
         drives = {}
-        regex_pattern = r"\d+"
-        physical_disk = self.idrac_data["Controllers"][self.controller_id]["Drives"]
-        slot_id_mapping = {int(re.search(regex_pattern, key).group()): key for key in physical_disk.keys()}
-        drives['id'] = [slot_id_mapping.get(each_pd) for each_pd in each_volume['drives']['location']
-                        if slot_id_mapping.get(each_pd)]
+        if "location" in each_volume['drives']:
+            regex_pattern = r"\d+"
+            physical_disk = self.idrac_data["Controllers"][self.controller_id]["Drives"]
+            slot_id_mapping = {int(re.search(regex_pattern, key).group()): key for key in physical_disk.keys()}
+            drives['id'] = [slot_id_mapping.get(each_pd) for each_pd in each_volume['drives']['location']
+                            if slot_id_mapping.get(each_pd)]
+        elif "id" in each_volume['drives']:
+            drives['id'] = each_volume['drives']['id']
         return drives
 
     def perform_intersection_on_disk(self, each_volume, healthy_disk, available_disk,
@@ -651,6 +655,7 @@ class StorageCreate(StorageValidation):
         volumes = self.module_ext_params.get('volumes', [])
         reserved_pd = []
         for each in volumes:
+            required_pd = each['span_depth'] * each['span_length']
             filtered_disk = self.filter_disk(each)
             if 'stripe_size' in each:
                 each['stripe_size'] = int(each['stripe_size'] / 512)
@@ -659,9 +664,10 @@ class StorageCreate(StorageValidation):
                 each['capacity'] = str(int(float(each['capacity']) * 1073741824))
 
             if self.module.params.get('volumes') is None:
-                each['drives']['id'] = [filtered_disk[0]]
+                each['drives']['id'] = filtered_disk[:required_pd]
 
             if 'drives' in each:
+                each['drives']['id_backup'] = each['drives']['id']
                 drives_id_list = self.updating_drives_module_input_when_given(each, filtered_disk)
                 reserved_pd += drives_id_list
                 each['drives']['id'] = drives_id_list
@@ -678,16 +684,25 @@ class StorageCreate(StorageValidation):
 
     def validate_enough_drives_available(self, each_volume):
         controller_id = self.module_ext_params.get('controller_id')
+        raid_reset_config = self.module_ext_params.get('raid_reset_config')
         required_pd = each_volume['span_depth'] * each_volume['span_length']
-        drives_available = len(each_volume['drives']['id'])
+        drives_available = each_volume['drives']['id']
         dedicated_hot_spare_required = int(each_volume['number_dedicated_hot_spare'])
         dedicated_hot_spare_available = len(each_volume['dedicated_hot_spare'])
         changed, failed = False, False
-        if (required_pd > drives_available or dedicated_hot_spare_required != dedicated_hot_spare_available):
+        if (required_pd > len(drives_available) or dedicated_hot_spare_required != dedicated_hot_spare_available):
             if not self.module.check_mode:
                 msg, failed = NOT_ENOUGH_DRIVES.format(controller_id=controller_id), True
             else:
                 msg, changed = CHANGES_NOT_FOUND, False
+                if raid_reset_config == 'true':
+                    existing_pd_list = list(self.idrac_data["Controllers"][self.controller_id]["Drives"].keys())
+                    drives_passed_input = each_volume['drives']['id_backup']
+                    drives_needed = set(drives_passed_input).intersection(set(existing_pd_list))
+                    if required_pd > len(drives_needed) or dedicated_hot_spare_required != dedicated_hot_spare_available:
+                        msg, failed = NOT_ENOUGH_DRIVES.format(controller_id=controller_id), True
+                    else:
+                        msg, changed = CHANGES_FOUND, True
             self.module.exit_json(msg=msg, changed=changed, failed=failed)
 
     def validate(self):
@@ -710,8 +725,10 @@ class StorageCreate(StorageValidation):
         self.validate()
         job_dict = {}
         name_id_mapping = {value.get('Name'): key for key, value in self.idrac_data["Controllers"][self.controller_id]["Volumes"].items()}
+        parent_payload = """<SystemConfiguration>{0}</SystemConfiguration>"""
         payload = self.constuct_payload(name_id_mapping)
-        resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
+        parent_payload = parent_payload.format(payload)
+        resp = self.idrac.import_scp(import_buffer=parent_payload, target="RAID", job_wait=False)
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 
@@ -734,19 +751,37 @@ class StorageDelete(StorageValidation):
 
     def validate(self):
         #  Validate upper layer input
-        self.validate_controller_exists()
         self.validate_job_wait_negative_values()
 
         #  Validate for volume and volume_name
         if (not (volumes := self.module.params.get('volumes'))) or (volumes and not all("name" in each for each in volumes)):
             self.module.exit_json(msg=VOLUME_NAME_REQUIRED_FOR_DELETE, failed=True)
 
+    def construct_payload_for_delete(self, cntrl_id_volume_name_mapping, volume_name_volume_id_mapping):
+        parent_payload = """<SystemConfiguration>{0}</SystemConfiguration>"""
+        payload = ""
+        for each_controller, value in cntrl_id_volume_name_mapping.items():
+            self.module_ext_params['controller_id'] = each_controller
+            self.module_ext_params['volumes'] = value
+            payload = payload + self.constuct_payload(volume_name_volume_id_mapping)
+        parent_payload = parent_payload.format(payload)
+        return parent_payload
+
     def execute(self):
         self.validate()
         job_dict = {}
-        name_id_mapping = {value.get('Name'): key for key, value in self.idrac_data["Controllers"][self.controller_id]["Volumes"].items()}
-        self.validate_volume_exists_in_server(name_id_mapping.keys())
-        payload = self.constuct_payload(name_id_mapping)
+        volume_name_volume_id_mapping = {}
+        cntrl_id_volume_name_mapping = {}
+        for cntrl_id, detail in self.idrac_data.get('Controllers').items():
+            for vol_id, volume in detail.get('Volumes').items():
+                volume_name_volume_id_mapping[volume.get('Name')] = vol_id
+                name_vol_dict = {'name': volume.get('Name')}
+                if cntrl_id not in cntrl_id_volume_name_mapping:
+                    cntrl_id_volume_name_mapping[cntrl_id] = [name_vol_dict]
+                else:
+                    cntrl_id_volume_name_mapping[cntrl_id].append(name_vol_dict)
+        self.validate_volume_exists_in_server(volume_name_volume_id_mapping.keys())
+        payload = self.construct_payload_for_delete(cntrl_id_volume_name_mapping, volume_name_volume_id_mapping)
         resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
@@ -852,11 +887,17 @@ def main():
             state_type = state_class_mapping.get(module.params['state'])
             obj = state_type(idrac, module)
             output = obj.execute()
-    except (ImportError, ValueError, RuntimeError, TypeError) as e:
-        module.exit_json(msg=str(e), failed=True)
-    msg = SUCCESSFUL_OPERATION_MSG.format(operation=module.params['state'])
-    changed = True if module.params['state'] in ['create', 'delete'] else False
-    module.exit_json(msg=msg, changed=changed, storage_status=output)
+            msg = SUCCESSFUL_OPERATION_MSG.format(operation=module.params['state'])
+            changed = True if module.params['state'] in ['create', 'delete'] else False
+            module.exit_json(msg=msg, changed=changed, storage_status=output)
+    except HTTPError as err:
+        import json
+        module.exit_json(msg=str(err), error_info=json.load(err) , failed=True)
+    except URLError as err:
+        module.exit_json(msg=str(err), unreachable=True)
+    except (ImportError, ValueError, RuntimeError, SSLValidationError,
+            ConnectionError, KeyError, TypeError, IndexError) as err:
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
