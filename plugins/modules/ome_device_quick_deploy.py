@@ -585,7 +585,29 @@ def job_payload_submission(rest_obj, payload, slot_payload, settings_type, devic
     return job_sub_resp.json_data.get('Id')
 
 
-def server_quick_deploy(rest_obj, module, device_id, settings_type, settings_key, rename_key, value):
+def get_device_details(rest_obj, module):
+    job_success_data, job_id = None, None
+    device_id, tag = module.params.get("device_id"), module.params.get("device_service_tag")
+    if device_id is None and tag is None:
+        key, value = get_chassis_device(module, rest_obj)
+        device_id = value
+    else:
+        key, value = ("Id", device_id) if device_id is not None else ("DeviceServiceTag", tag)
+        param_value = "{0} eq {1}".format(key, value) if key == "Id" else "{0} eq '{1}'".format(key, value)
+        resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={"$filter": param_value})
+        resp_data = resp.json_data.get("value")
+        rename_key = "id" if key == "Id" else "service tag"
+        if not resp_data:
+            module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
+        if key == "DeviceServiceTag" and resp_data[0]["DeviceServiceTag"] == tag:
+            device_id = resp_data[0]["Id"]
+        elif key == "Id" and resp_data[0]["Id"] == device_id:
+            device_id = resp_data[0]["Id"]
+        else:
+            module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
+    settings_type, settings_key = "IOMQuickDeploy", "IOM Quick Deploy"
+    if module.params["setting_type"] == "ServerQuickDeploy":
+        settings_type, settings_key = "ServerQuickDeploy", "Server Quick Deploy"
     try:
         deploy_resp = rest_obj.invoke_request("GET", QUICK_DEPLOY_API.format(device_id, settings_type))
     except HTTPError as err:
@@ -595,52 +617,16 @@ def server_quick_deploy(rest_obj, module, device_id, settings_type, settings_key
         error_msg = err_message.get('@Message.ExtendedInfo')
         if error_msg and error_msg[0].get("MessageId") == "CGEN1004":
             module.exit_json(msg=QUICK_DEPLOY_FAIL_MSG.format(settings_key), failed=True)
-    return deploy_resp
-    
-
-def validate_service_tag(rest_obj, module, key, value, tag):
-    key, value = ("Id", device_id) if device_id is not None else ("DeviceServiceTag", tag)
-    param_value = "{0} eq {1}".format(key, value) if key == "Id" else "{0} eq '{1}'".format(key, value)
-    resp = rest_obj.invoke_request("GET", DEVICE_URI, query_param={"$filter": param_value})
-    resp_data = resp.json_data.get("value")
-    rename_key = "id" if key == "Id" else "service tag"
-    if not resp_data:
-        module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
-    if key == "DeviceServiceTag" and resp_data[0]["DeviceServiceTag"] == tag:
-        device_id = resp_data[0]["Id"]
-    elif key == "Id" and resp_data[0]["Id"] == device_id:
-        device_id = resp_data[0]["Id"]
-    else:
-        module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
-    return rename_key
-
-def job_tracking(rest_obj, module, device_id, settings_type):
-    job_failed, job_msg = rest_obj.job_tracking(job_id, job_wait_sec=module.params["job_wait_timeout"])
-    if job_failed is True:
-        module.exit_json(msg=FAIL_MSG, failed=True)
-    job_success_resp = rest_obj.invoke_request("GET", QUICK_DEPLOY_API.format(device_id, settings_type))
-    job_success_data = rest_obj.strip_substr_dict(job_success_resp.json_data)
-    return job_success_data
-
-
-def get_device_details(rest_obj, module):
-    job_success_data, job_id = None, None
-    device_id, tag = module.params.get("device_id"), module.params.get("device_service_tag")
-    if device_id is None and tag is None:
-        key, value = get_chassis_device(module, rest_obj)
-        device_id = value
-    else:
-        rename_key = validate_service_tag(rest_obj, module, key, value)
-    settings_type, settings_key = "IOMQuickDeploy", "IOM Quick Deploy"
-    if module.params["setting_type"] == "ServerQuickDeploy":
-        settings_type, settings_key = "ServerQuickDeploy", "Server Quick Deploy"
-        deploy_resp = server_quick_deploy(rest_obj, module, device_id, settings_type, settings_key, rename_key, value)
     else:
         resp_data = rest_obj.strip_substr_dict(deploy_resp.json_data)
         payload, slot_payload = check_mode_validation(module, resp_data)
         job_id = job_payload_submission(rest_obj, payload, slot_payload, settings_type, device_id, resp_data)
         if module.params["job_wait"]:
-            job_success_data = job_tracking(rest_obj, module, device_id, settings_type)
+            job_failed, job_msg = rest_obj.job_tracking(job_id, job_wait_sec=module.params["job_wait_timeout"])
+            if job_failed is True:
+                module.exit_json(msg=FAIL_MSG, failed=True)
+            job_success_resp = rest_obj.invoke_request("GET", QUICK_DEPLOY_API.format(device_id, settings_type))
+            job_success_data = rest_obj.strip_substr_dict(job_success_resp.json_data)
     return job_id, job_success_data
 
 
