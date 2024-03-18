@@ -699,7 +699,8 @@ class StorageCreate(StorageValidation):
                     existing_pd_list = list(self.idrac_data["Controllers"][self.controller_id]["Drives"].keys())
                     drives_passed_input = each_volume['drives']['id_backup']
                     drives_needed = set(drives_passed_input).intersection(set(existing_pd_list))
-                    if required_pd > len(drives_needed) or dedicated_hot_spare_required != dedicated_hot_spare_available:
+                    if self.module.params.get('volumes') is not None and \
+                       required_pd > len(drives_needed) or dedicated_hot_spare_required != dedicated_hot_spare_available:
                         msg, failed = NOT_ENOUGH_DRIVES.format(controller_id=controller_id), True
                     else:
                         msg, changed = CHANGES_FOUND, True
@@ -892,7 +893,7 @@ def main():
             module.exit_json(msg=msg, changed=changed, storage_status=output)
     except HTTPError as err:
         import json
-        module.exit_json(msg=str(err), error_info=json.load(err) , failed=True)
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (ImportError, ValueError, RuntimeError, SSLValidationError,
