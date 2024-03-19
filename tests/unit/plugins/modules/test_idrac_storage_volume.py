@@ -229,8 +229,7 @@ class TestStorageData(FakeAnsibleModule):
                         ENCLOSURE_ID: {"Links": {
                             "Drives": [
                                 {
-                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
-                                        /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
+                                    ODATA_ID: PHYSICAL_DISK_FIRST
                                 }
                             ]}}
                     },
@@ -240,8 +239,7 @@ class TestStorageData(FakeAnsibleModule):
                         "Links": {
                             "Drives": [
                                 {
-                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
-                                        /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
+                                    ODATA_ID: PHYSICAL_DISK_FIRST
                                 }
                             ]
                         },
@@ -250,8 +248,7 @@ class TestStorageData(FakeAnsibleModule):
                         "Links": {
                             "Drives": [
                                 {
-                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
-                                        /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
+                                    ODATA_ID: PHYSICAL_DISK_FIRST
                                 }
                             ]
                         },
@@ -344,8 +341,7 @@ class TestStorageData(FakeAnsibleModule):
                         ENCLOSURE_ID: {"Links": {
                             "Drives": [
                                 {
-                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
-                                        /Storage/RAID.SL.5-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3"
+                                    ODATA_ID: PHYSICAL_DISK_SECOND
                                 }
                             ]}}
                     },
@@ -355,8 +351,7 @@ class TestStorageData(FakeAnsibleModule):
                         "Links": {
                             "Drives": [
                                 {
-                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
-                                        /Storage/RAID.SL.5-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3"
+                                    ODATA_ID: PHYSICAL_DISK_SECOND
                                 }
                             ]
                         },
@@ -365,8 +360,7 @@ class TestStorageData(FakeAnsibleModule):
                         "Links": {
                             "Drives": [
                                 {
-                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
-                                        /Storage/RAID.SL.5-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3"
+                                    ODATA_ID: PHYSICAL_DISK_SECOND
                                 }
                             ]
                         },
@@ -543,7 +537,7 @@ class TestStorageView(TestStorageData):
         data_when_invlid_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_invlid_volume_id_passed)
-        idrac_default_args.update({"volume_id": VIRTUAL_DISK_FIRST})
+        idrac_default_args.update({"volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
@@ -553,7 +547,7 @@ class TestStorageView(TestStorageData):
         data_when_controller_id_and_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_controller_id_and_volume_id_passed)
-        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
         out = idr_obj.execute()
         assert out == {"Message": data_when_controller_id_and_volume_id_passed, "Status": SUCCESS_STATUS}
 
@@ -561,7 +555,7 @@ class TestStorageView(TestStorageData):
         data_when_controller_id_and_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_controller_id_and_volume_id_passed)
-        idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST, "volume_id": VIRTUAL_DISK_FIRST})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST, "volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
@@ -571,7 +565,7 @@ class TestStorageView(TestStorageData):
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_volume_id_passed)
         del idrac_default_args["controller_id"]
-        idrac_default_args.update({"volume_id": VIRTUAL_DISK_FIRST})
+        idrac_default_args.update({"volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
@@ -819,8 +813,8 @@ class TestStorageValidation(TestStorageBase):
             "name": "volume_1",
             "drives": {
                 "id": [
-                    "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1",
-                    "Disk.Bay.2:Enclosure.Internal.0-1:RAID.Slot.1-1"
+                    PHYSICAL_DISK_FIRST,
+                    PHYSICAL_DISK_SECOND
                 ],
                 "location": [7, 3]
             }
@@ -833,7 +827,7 @@ class TestStorageValidation(TestStorageBase):
         volumes = {
             "name": "volume_1",
             "drives": {
-                "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1": {}
+                PHYSICAL_DISK_FIRST: {}
             }
         }
         with pytest.raises(Exception) as exc:
@@ -845,8 +839,8 @@ class TestStorageValidation(TestStorageBase):
             "name": "volume_1",
             "drives": {
                 "id": [
-                    "Disk.Bay.1:Enclosure.Internal.0-1:RAID.Slot.1-1",
-                    "Disk.Bay.2:Enclosure.Internal.0-1:RAID.Slot.1-1"
+                    PHYSICAL_DISK_FIRST,
+                    PHYSICAL_DISK_SECOND
                 ]
             }
         }

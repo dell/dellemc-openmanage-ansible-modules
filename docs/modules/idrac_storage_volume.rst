@@ -175,6 +175,7 @@ Notes
    - Run this module from a system that has direct access to Integrated Dell Remote Access Controller.
    - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .
    - This module supports \ :literal:`check\_mode`\ .
+   - The module doesn't give controller battery details in \ :literal:`view`\  operation for iDRAC8.
 
 
 
