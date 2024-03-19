@@ -35,6 +35,11 @@ ID_AND_LOCATION_BOTH_NOT_DEFINED = "Either id or location should be specified."
 DRIVES_NOT_DEFINED = "Drives must be defined for volume creation."
 NOT_ENOUGH_DRIVES = "Number of sufficient disks not found in Controller '{controller_id}'!"
 WAIT_TIMEOUT_MSG = "The job is not complete after {0} seconds."
+JOB_TRIGERRED = "Successfully triggered the {0} storage volume operation."
+VOLUME_NAME_REQUIRED_FOR_DELETE = "Virtual disk name is a required parameter for remove virtual disk operations."
+VOLUME_NOT_FOUND = "Unable to find the virtual disk."
+CHANGES_NOT_FOUND = "No changes found to commit!"
+CHANGES_FOUND = "Changes found to commit!"
 ODATA_ID = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 ATTRIBUTE = "</Attribute>"
@@ -588,29 +593,29 @@ class TestStorageBase(FakeAnsibleModule):
         idrac_default_args.update({'span_length': 1, 'span_depth': 1})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-        vars = idr_obj.module_extend_input(f_module)
+        data = idr_obj.module_extend_input(f_module)
         # Scenario 1: when volumes is None
-        assert vars['volumes'] == [{'drives': {'id': [-1]}}]
+        assert data['volumes'] == [{'drives': {'id': [-1]}}]
 
         # Scenario 2: when volumes is given
         idrac_default_args.update({'volumes': [{"drives": {'location': [3]}, 'span_length': '1'}]})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         mocker.patch(MODULE_PATH + 'StorageBase.data_conversion', return_value={"drives": {'location': [3]}, 'span_length': '1'})
-        # import pdb; pdb.set_trace()
+
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-        vars = idr_obj.module_extend_input(f_module)
-        assert vars['volumes'] == [{"drives": {'location': [3]}, 'span_length': 1}]
+        data = idr_obj.module_extend_input(f_module)
+        assert data['volumes'] == [{"drives": {'location': [3]}, 'span_length': 1}]
 
     def test_payload_for_disk(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         # Scenario 1: When drives is given
-        vars = idr_obj.payload_for_disk({'drives': {'id': [1, 2]}})
-        assert vars == '<Attribute Name="IncludedPhysicalDiskID">1</Attribute><Attribute Name="IncludedPhysicalDiskID">2</Attribute>'
+        data = idr_obj.payload_for_disk({'drives': {'id': [1, 2]}})
+        assert data == '<Attribute Name="IncludedPhysicalDiskID">1</Attribute><Attribute Name="IncludedPhysicalDiskID">2</Attribute>'
 
         # Scenario 2: When dedicate_hot_spare is in each_volume
-        vars = idr_obj.payload_for_disk({'dedicated_hot_spare': [3, 5]})
-        assert vars == '<Attribute Name="RAIDdedicatedSpare">3</Attribute><Attribute Name="RAIDdedicatedSpare">5</Attribute>'
+        data = idr_obj.payload_for_disk({'dedicated_hot_spare': [3, 5]})
+        assert data == '<Attribute Name="RAIDdedicatedSpare">3</Attribute><Attribute Name="RAIDdedicatedSpare">5</Attribute>'
 
     def test_construct_volume_payloadk(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value='<Data></Data>')
@@ -619,15 +624,15 @@ class TestStorageBase(FakeAnsibleModule):
         idrac_default_args.update({'state': 'create'})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-        vars = idr_obj.construct_volume_payload(1, {}, {'Virtual Disk 0': 'Disk ID 1'})
-        assert vars == '<Data></Data>'
+        data = idr_obj.construct_volume_payload(1, {}, {'Virtual Disk 0': 'Disk ID 1'})
+        assert data == '<Data></Data>'
 
         # Scenario 1: When state is delete
         idrac_default_args.update({'state': 'delete'})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-        vars = idr_obj.construct_volume_payload(1, {'name': 'Virtual Disk 0'}, {'Virtual Disk 0': 'Disk ID 1'})
-        assert vars == '<Data></Data>'
+        data = idr_obj.construct_volume_payload(1, {'name': 'Virtual Disk 0'}, {'Virtual Disk 0': 'Disk ID 1'})
+        assert data == '<Data></Data>'
 
     def test_constuct_payload(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value='<Data></Data>')
@@ -635,31 +640,60 @@ class TestStorageBase(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         # Scenario 1: Default
-        vars = idr_obj.constuct_payload({})
-        assert vars == '<Data></Data>'
+        data = idr_obj.constuct_payload({})
+        assert data == '<Data></Data>'
 
         # Scenario 2: When raid_reset_config is 'true'
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         idr_obj.module_ext_params.update({'raid_reset_config': 'true'})
-        vars = idr_obj.constuct_payload({})
-        assert vars == '<Data></Data>'
+        data = idr_obj.constuct_payload({})
+        assert data == '<Data></Data>'
 
-    # def test_wait_for_job_completion(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
-    #     mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value='<Data></Data>')
-    #     mocker.patch(MODULE_PATH + 'StorageBase.construct_volume_payload', return_value='<Volume></Volume>')
-    #     f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-    #     idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-    #     # Scenario 1: Default
-    #     vars = idr_obj.wait_for_job_completion({})
-    #     assert vars == '<SystemConfiguration><Data></Data></SystemConfiguration>'
+    def test_wait_for_job_completion(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        obj = MagicMock()
+        obj.headers = {'Location': "/joburl/JID12345"}
+        job = {"job_wait": True, "job_wait_timeout": 1200}
+        idrac_default_args.update(job)
+        job_resp_completed = {'JobStatus': 'Completed'}
+        idrac_redfish_resp = (False, 'Job Success', job_resp_completed, 1200)
+        mocker.patch(MODULE_PATH + 'idrac_redfish_job_tracking', return_value=idrac_redfish_resp)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
+        # Scenario 1: Job_wait is True, job_wait_timeout match with default
+        with pytest.raises(Exception) as exc:
+            idr_obj.wait_for_job_completion(obj)
+        assert exc.value.args[0] == WAIT_TIMEOUT_MSG.format(1200)
 
-    #     # Scenario 2: When raid_reset_config is 'true'
-    #     f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-    #     idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-    #     idr_obj.module_ext_params.update({'raid_reset_config': 'true'})
-    #     vars = idr_obj.constuct_payload({})
-    #     assert vars == '<SystemConfiguration><Data></Data></SystemConfiguration>'
+        # Scenario 2: Job_wait is True, job_wait_timeout less than default
+        idrac_redfish_resp = (False, 'Job Success', job_resp_completed, 1000)
+        mocker.patch(MODULE_PATH + 'idrac_redfish_job_tracking', return_value=idrac_redfish_resp)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
+        data = idr_obj.wait_for_job_completion(obj)
+        assert data == job_resp_completed
+
+        # Scenario 3: Job failed in resp
+        job_resp_failed = {'JobStatus': 'Failed', 'Message': 'Job failed.'}
+        idrac_redfish_resp = (True, 'Job Failed', job_resp_failed, 1000)
+        mocker.patch(MODULE_PATH + 'idrac_redfish_job_tracking', return_value=idrac_redfish_resp)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.wait_for_job_completion(obj)
+        assert exc.value.args[0] == 'Job failed.'
+
+        # Scenario 4: Job wait is false
+        obj.json_data = {'JobStatus': 'Running'}
+        mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
+        job = {"job_wait": False, "job_wait_timeout": 1200}
+        idrac_default_args.update(job)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        f_module.params.update({'state': 'create'})
+        idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.wait_for_job_completion(obj)
+        assert exc.value.args[0] == JOB_TRIGERRED.format('create')
 
 
 class TestStorageValidation(TestStorageBase):
@@ -865,3 +899,120 @@ class TestStorageValidation(TestStorageBase):
                                           params["volume_type"],
                                           params["pd_count"])
         assert out is True
+
+
+class TestStorageCreate(TestStorageBase):
+    module = idrac_storage_volume
+
+    @pytest.fixture
+    def idrac_storage_volume_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_storage_volume_mock(self, mocker, idrac_storage_volume_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
+                                       return_value=idrac_storage_volume_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_storage_volume_mock
+        return idrac_conn_mock
+
+    def test_disk_slot_id_conversion(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+        # Scenario 1: location is given in drives
+        volume = {'drives': {'location': [0, 1]}}
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_SECOND})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        data = idr_obj.disk_slot_location_to_id_conversion(volume)
+        assert data['id'] == TestStorageData.storage_data_expected['Controller'][CONTROLLER_ID_SECOND]['PhysicalDisk']
+
+        # Scenario 2: id is given in drives
+        id_list = ['Disk.Bay.0:Enclosure.Internal.0-1:AHCI.Embedded.1-2',
+                   'Disk.Bay.2:Enclosure.Internal.0-1:AHCI.Embedded.1-2']
+        volume = {'drives': {'id': id_list}}
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_SECOND})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        data = idr_obj.disk_slot_location_to_id_conversion(volume)
+        assert data['id'] == id_list
+
+        # Scenario 3: When id and location is not given in drives
+        volume = {'drives': {}}
+        data = idr_obj.disk_slot_location_to_id_conversion(volume)
+        assert data == {}
+
+    def test_perform_intersection_on_disk(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        # Scenario 1: When iDRAC has firmware version equal to 3.00.00.00
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="3.00.00.00")
+        volume = {'media_type': 'HDD', 'protocol': 'SATA'}
+        healthy_disk, available_disk, media_disk, protocol_disk = {1, 2, 3, 4, 5}, {1, 2, 3, 5}, {2, 3, 4, 5}, {1, 5}
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        data = idr_obj.perform_intersection_on_disk(volume, healthy_disk, available_disk, media_disk, protocol_disk)
+        assert data == [5]
+
+        # Scenario 1: When iDRAC has firmware version less than 3.00.00.00
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="2.00.00.00")
+        volume = {'media_type': None, 'protocol': None}
+        data = idr_obj.perform_intersection_on_disk(volume, healthy_disk, available_disk, media_disk, protocol_disk)
+        assert data == [1, 2, 3, 4, 5]
+
+    def test_filter_disk(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        drive_resp = {'DriveID1': {'MediaType': 'HDD', 'Protocol': 'SAS', 'Status': {'Health': 'OK'},
+                                   'Oem': {'Dell': {'DellPhysicalDisk': {'RaidStatus': 'Ready'}}}},
+                      'DriveID2': {'MediaType': 'SSD', 'Protocol': 'SATA', 'Status': {'Health': 'Not OK'}}}
+        idrac_data = {'Controllers': {CONTROLLER_ID_FIRST: {'Drives': drive_resp}}}
+        # Scenario 1: When iDRAC has firmware version equal to 3.00.00.00
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_data)
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="3.00.00.00")
+        volume = {'media_type': 'HDD', 'protocol': 'SAS'}
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        data = idr_obj.filter_disk(volume)
+        assert data == ['DriveID1']
+
+    def test_updating_drives_module_input_when_given(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        # Scenario 1: When id is in drives
+        volume = {'drives': {'id': [2, 3, 4, 5]}}
+        filter_disk_output = [1, 3, 5]
+        data = idr_obj.updating_drives_module_input_when_given(volume, filter_disk_output)
+        assert data == [3, 5]
+
+        # Scenario 2: When id is not in drives
+        volume = {'drives': {'location': [2, 3, 4, 5]}}
+        data = idr_obj.updating_drives_module_input_when_given(volume, filter_disk_output)
+        assert data == []
+
+    def test_updating_volume_module_input_for_hotspare(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        # Scenario 1: number_dedicated_hot_spare is in volume and greator than zero
+        volume = {'number_dedicated_hot_spare': 2}
+        filter_disk_output = [1, 3, 5, 4, 2]
+        reserved_pd = [1]
+        drive_exists_in_id = [3, 5]
+        data = idr_obj.updating_volume_module_input_for_hotspare(volume, filter_disk_output, reserved_pd, drive_exists_in_id)
+        assert data == [4, 2]
+
+        # Scenario 2: number_dedicated_hot_spare is in volume and equal to zero
+        volume = {'number_dedicated_hot_spare': 0}
+        data = idr_obj.updating_volume_module_input_for_hotspare(volume, filter_disk_output, reserved_pd, drive_exists_in_id)
+        assert data == []
+
+    # def test_updating_volume_module_input(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+    #     mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+    #     f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+    #     idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+    #     # Scenario 1: number_dedicated_hot_spare is in volume and greator than zero
+    #     data = {'volumes': {'span_depth': 1, 'span_length': 1, 'strip_size': 65536,}}
+    #     filter_disk_output = [1, 3, 5, 4, 2]
+    #     reserved_pd = [1]
+    #     drive_exists_in_id = [3, 5]
+    #     data = idr_obj.updating_volume_module_input(volume, filter_disk_output, reserved_pd, drive_exists_in_id)
+    #     assert data == [4, 2]

@@ -253,6 +253,26 @@ storage_status:
       "StartTime": "TIME_NOW",
       "TargetSettingsURI": null,
     }
+error_info:
+  description: Details of the HTTP Error.
+  returned: on HTTP error
+  type: dict
+  sample: {
+    "error": {
+      "code": "Base.1.0.GeneralError",
+      "message": "A general error has occurred. See ExtendedInfo for more information.",
+      "@Message.ExtendedInfo": [
+        {
+          "MessageId": "GEN1234",
+          "RelatedProperties": [],
+          "Message": "Unable to process the request because an error occurred.",
+          "MessageArgs": [],
+          "Severity": "Critical",
+          "Resolution": "Retry the operation. If the issue persists, contact your system administrator."
+        }
+      ]
+    }
+  }
 '''
 
 import re
@@ -761,9 +781,11 @@ class StorageDelete(StorageValidation):
     def construct_payload_for_delete(self, cntrl_id_volume_name_mapping, volume_name_volume_id_mapping):
         parent_payload = """<SystemConfiguration>{0}</SystemConfiguration>"""
         payload = ""
+        volume_name_input = [each_dict.get('name') for each_dict in self.module.params.get('volumes')]
         for each_controller, value in cntrl_id_volume_name_mapping.items():
             self.module_ext_params['controller_id'] = each_controller
-            self.module_ext_params['volumes'] = value
+            value_updated = [each_dict for each_dict in value if each_dict.get('name') in volume_name_input]
+            self.module_ext_params['volumes'] = value_updated
             payload = payload + self.constuct_payload(volume_name_volume_id_mapping)
         parent_payload = parent_payload.format(payload)
         return parent_payload
