@@ -37,5 +37,6 @@ plugin_routing:
     dellemc_idrac_storage_volume:
       deprecation:
         removal_date: "2026-03-31"
-        warning_text: dellemc_idrac_storage_volume will be removed in a future release of this collection.
+        warning_text: dellemc_idrac_storage_volume will be removed in a future
+                      release of this collection.
                       Use dellemc.openmanage.idrac_storage_volume instead.

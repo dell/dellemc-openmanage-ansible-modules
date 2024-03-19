@@ -943,9 +943,9 @@ class TestStorageCreate(TestStorageBase):
         assert data == {}
 
     def test_perform_intersection_on_disk(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
-        # Scenario 1: When iDRAC has firmware version equal to 3.00.00.00
+        # Scenario 1: When iDRAC has firmware version greater than 3.00.00.00
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
-        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="3.00.00.00")
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="3.10.00")
         volume = {'media_type': 'HDD', 'protocol': 'SATA'}
         healthy_disk, available_disk, media_disk, protocol_disk = {1, 2, 3, 4, 5}, {1, 2, 3, 5}, {2, 3, 4, 5}, {1, 5}
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
@@ -954,7 +954,7 @@ class TestStorageCreate(TestStorageBase):
         assert data == [5]
 
         # Scenario 1: When iDRAC has firmware version less than 3.00.00.00
-        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="2.00.00.00")
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="2.00.00")
         volume = {'media_type': None, 'protocol': None}
         data = idr_obj.perform_intersection_on_disk(volume, healthy_disk, available_disk, media_disk, protocol_disk)
         assert data == [1, 2, 3, 4, 5]
