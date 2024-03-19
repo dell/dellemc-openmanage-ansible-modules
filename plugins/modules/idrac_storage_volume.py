@@ -422,28 +422,32 @@ class StorageBase:
         payload = xml_data_conversion(attr, vdfqdd, disk_paylod)
         return payload
 
-    def constuct_payload(self, name_id_mapping_list):
-        number_of_existing_vd = len(name_id_mapping_list)
+    def constuct_payload(self, name_id_mapping):
+        number_of_existing_vd = len(name_id_mapping)
         volume_payload, attr = '', {}
+        state = self.module_ext_params.get("state")
         raid_reset_config_value = self.module_ext_params.get('raid_reset_config')
         raid_key_mapping = {'raid_reset_config': 'RAIDresetConfig'}
         if raid_reset_config_value == 'true':
             raid_reset_config_value = 'True'
             attr = {raid_key_mapping['raid_reset_config']: raid_reset_config_value}
+        deepcopy_name_id_mapping = deepcopy(name_id_mapping)
         for each_volume in self.module_ext_params.get('volumes'):
-            flag_break, vd_name_id_map, index_to_remove = False, {}, -1
-            for each_dict in name_id_mapping_list:
-                for key, value in each_dict.items():
-                    if key == each_volume.get('name'):
-                        vd_name_id_map[key] = value
-                        flag_break = True
-                        index_to_remove = name_id_mapping_list.index(each_dict)
+            if state == 'delete':
+                flag_break, vd_name_id_map, index_to_remove = False, {}, -1
+                for each_dict in deepcopy_name_id_mapping:
+                    for key, value in each_dict.items():
+                        if key == each_volume.get('name'):
+                            vd_name_id_map[key] = value
+                            flag_break = True
+                            index_to_remove = deepcopy_name_id_mapping.index(each_dict)
+                            break
+                    if flag_break:
                         break
-                if flag_break:
-                    break
-            if index_to_remove >= 0:
-                name_id_mapping_list.pop(index_to_remove)
-            volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd, each_volume, vd_name_id_map)
+                if index_to_remove >= 0:
+                    deepcopy_name_id_mapping.pop(index_to_remove)
+                name_id_mapping = vd_name_id_map
+            volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd, each_volume, name_id_mapping)
             number_of_existing_vd = number_of_existing_vd + 1
         raid_payload = xml_data_conversion(attr, self.module_ext_params.get('controller_id'), volume_payload)
         return raid_payload
