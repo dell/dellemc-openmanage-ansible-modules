@@ -53,6 +53,8 @@ CONTROLLER_BATTERY = "Battery.Integrated.1:RAID.SL.5-1"
 CONTROLLER_ID_FIRST = "AHCI.Embedded.1-1"
 CONTROLLER_ID_SECOND = "AHCI.Embedded.1-2"
 CONTROLLER_ID_THIRD = "AHCI.Embedded.1-3"
+CONTROLLER_ID_FOURTH = "RAID.SL.5-1"
+CONTROLLER_ID_FIFTH = "RAID.SL.5-3"
 SYSTEM = 'System.Embedded.1'
 ENCLOSURE_ID = 'Enclosure.Internal.0-1:RAID.SL.5-1'
 PHYSICAL_DISK = 'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1'
@@ -63,41 +65,42 @@ FETCH_STORAGE_DATA_METHOD = "StorageData.fetch_storage_data"
 DATA_XML = '<Data></Data>'
 REDFISH = "/redfish/v1"
 API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
+BASE_IDRAC_API = "/redfish/v1/Chassis/System.Embedded.1"
 
 
 class TestStorageData(FakeAnsibleModule):
     module = idrac_storage_volume
     storage_controllers = {
-        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage"
+        ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage"
     }
     volumes_list = [
         {
-            "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Volumes/Disk.Virtual.0:RAID.SL.5-1"
+            ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Volumes/Disk.Virtual.0:RAID.SL.5-1"
         },
         {
-            "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Volumes/Disk.Virtual.1:RAID.SL.5-1"
+            ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Volumes/Disk.Virtual.1:RAID.SL.5-1"
         }]
     controllers_list = {
         "Members": [
             {
                 "Controllers": {
-                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Controllers"
+                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Controllers"
                 },
                 "Drives": [
                     {
-                        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
+                        ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
                     }
                 ],
                 "Id": "RAID.SL.5-1",
                 "Links": {
                     "Enclosures": [
                         {
-                            "@odata.id": "/redfish/v1/Chassis/Enclosure.Internal.0-1:RAID.SL.5-1"
+                            ODATA_ID: "/redfish/v1/Chassis/Enclosure.Internal.0-1:RAID.SL.5-1"
                         }
                     ]
                 },
                 "Volumes": {
-                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Volumes"
+                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Volumes"
                 },
                 "Oem": {
                     "Dell": {
@@ -109,7 +112,7 @@ class TestStorageData(FakeAnsibleModule):
             {
                 "Drives": [
                     {
-                        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/CPU.1/Drives/Disk.Bay.23:Enclosure.Internal.0-3"
+                        ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/CPU.1/Drives/Disk.Bay.23:Enclosure.Internal.0-3"
                     }
                 ],
                 "Drives@odata.count": 1,
@@ -117,29 +120,29 @@ class TestStorageData(FakeAnsibleModule):
                 "Links": {
                     "Enclosures": [
                         {
-                            "@odata.id": "/redfish/v1/Chassis/Enclosure.Internal.0-3"
+                            ODATA_ID: "/redfish/v1/Chassis/Enclosure.Internal.0-3"
                         }
                     ],
                 },
                 "Volumes": {
-                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/CPU.1/Volumes"
+                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/CPU.1/Volumes"
                 }
             },
             {
                 "Controllers": {
-                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-1/Controllers"
+                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-1/Controllers"
                 },
                 "Drives": [],
                 "Id": CONTROLLER_ID_FIRST,
                 "Links": {
                     "Enclosures": [
                         {
-                            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1"
+                            ODATA_ID: BASE_IDRAC_API
                         }
                     ]
                 },
                 "Volumes": {
-                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-1/Volumes"
+                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-1/Volumes"
                 }
             }
         ]
@@ -155,7 +158,7 @@ class TestStorageData(FakeAnsibleModule):
                 'Id': CONTROLLER_ID_FIRST,
                 'Links': {
                     'Enclosures': {
-                        SYSTEM: "/redfish/v1/Chassis/System.Embedded.1",
+                        SYSTEM: BASE_IDRAC_API,
                     },
                 },
                 'Volumes': {},
@@ -176,7 +179,7 @@ class TestStorageData(FakeAnsibleModule):
                 'Id': CONTROLLER_ID_SECOND,
                 'Links': {
                     'Enclosures': {
-                        SYSTEM: "/redfish/v1/Chassis/System.Embedded.1",
+                        SYSTEM: BASE_IDRAC_API,
                     },
                 },
                 'Volumes': {},
@@ -211,7 +214,7 @@ class TestStorageData(FakeAnsibleModule):
                     }
                 }
             },
-            'RAID.SL.5-1': {
+            CONTROLLER_ID_FOURTH: {
                 'Controllers': {
                     '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Controllers',
                 },
@@ -219,13 +222,13 @@ class TestStorageData(FakeAnsibleModule):
                     PHYSICAL_DISK: '/redfish/v1/Systems\
                         /System.Embedded.1/Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1',
                 },
-                'Id': 'RAID.SL.5-1',
+                'Id': CONTROLLER_ID_FOURTH,
                 'Links': {
                     'Enclosures': {
                         ENCLOSURE_ID: {"Links": {
                             "Drives": [
                                 {
-                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
                                         /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
                                 }
                             ]}}
@@ -236,7 +239,7 @@ class TestStorageData(FakeAnsibleModule):
                         "Links": {
                             "Drives": [
                                 {
-                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
                                         /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
                                 }
                             ]
@@ -246,7 +249,7 @@ class TestStorageData(FakeAnsibleModule):
                         "Links": {
                             "Drives": [
                                 {
-                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
                                         /Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
                                 }
                             ]
@@ -290,9 +293,9 @@ class TestStorageData(FakeAnsibleModule):
                     },
                 },
             },
-            'RAID.SL.5-1': {
+            CONTROLLER_ID_FOURTH: {
                 'ControllerSensor': {
-                    'RAID.SL.5-1': {
+                    CONTROLLER_ID_FOURTH: {
                         'ControllerBattery': [
                             'Battery.Integrated.1:RAID.SL.5-1',
                         ],
@@ -326,7 +329,7 @@ class TestStorageData(FakeAnsibleModule):
 
     storage_data_idrac8 = {
         'Controllers': {
-            'RAID.SL.5-3': {
+            CONTROLLER_ID_FIFTH: {
                 'Controllers': {
                     '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-3/Controllers',
                 },
@@ -334,13 +337,13 @@ class TestStorageData(FakeAnsibleModule):
                     'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3': '/redfish/v1/Systems\
                         /System.Embedded.1/Storage/RAID.SL.5-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3',
                 },
-                'Id': 'RAID.SL.5-3',
+                'Id': CONTROLLER_ID_FIFTH,
                 'Links': {
                     'Enclosures': {
                         'Enclosure.Internal.0-1:RAID.SL.5-3': {"Links": {
                             "Drives": [
                                 {
-                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
                                         /Storage/RAID.SL.5-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3"
                                 }
                             ]}}
@@ -351,7 +354,7 @@ class TestStorageData(FakeAnsibleModule):
                         "Links": {
                             "Drives": [
                                 {
-                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
                                         /Storage/RAID.SL.5-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3"
                                 }
                             ]
@@ -361,7 +364,7 @@ class TestStorageData(FakeAnsibleModule):
                         "Links": {
                             "Drives": [
                                 {
-                                    "@odata.id": "/redfish/v1/Systems/System.Embedded.1\
+                                    ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
                                         /Storage/RAID.SL.5-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3"
                                 }
                             ]
@@ -380,9 +383,9 @@ class TestStorageData(FakeAnsibleModule):
 
     storage_data_expected_idrac8 = {
         'Controller': {
-            'RAID.SL.5-3': {
+            CONTROLLER_ID_FIFTH: {
                 'ControllerSensor': {
-                    'RAID.SL.5-3': {},
+                    CONTROLLER_ID_FIFTH: {},
                 },
                 'Enclosure': {
                     'Enclosure.Internal.0-1:RAID.SL.5-3': {
@@ -453,7 +456,7 @@ class TestStorageData(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER, return_value=obj)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
         idr_obj = self.module.StorageData(idrac_connection_storage_volume_mock, f_module)
-        key_out, uri_data_out = idr_obj.fetch_api_data(self.storage_controllers["@odata.id"], -1)
+        key_out, uri_data_out = idr_obj.fetch_api_data(self.storage_controllers[ODATA_ID], -1)
         assert key == key_out
         assert obj == uri_data_out
 
@@ -471,7 +474,7 @@ class TestStorageData(FakeAnsibleModule):
         idr_obj = self.module.StorageData(idrac_connection_storage_volume_mock, f_module)
         storage_info = idr_obj.all_storage_data()
         assert set(storage_info.keys()) == {'Controllers'}
-        assert set(storage_info["Controllers"].keys()) == {CONTROLLER_ID_FIRST, 'RAID.SL.5-1'}
+        assert set(storage_info["Controllers"].keys()) == {CONTROLLER_ID_FIRST, CONTROLLER_ID_FOURTH}
 
     def test_fetch_storage_data(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD,
