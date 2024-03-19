@@ -57,7 +57,8 @@ CONTROLLER_ID_FOURTH = "RAID.SL.5-1"
 CONTROLLER_ID_FIFTH = "RAID.SL.5-3"
 SYSTEM = 'System.Embedded.1'
 ENCLOSURE_ID = 'Enclosure.Internal.0-1:RAID.SL.5-1'
-PHYSICAL_DISK = 'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1'
+PHYSICAL_DISK_FIRST = 'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1'
+PHYSICAL_DISK_SECOND = 'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3'
 VIRTUAL_DISK_FIRST = 'Disk.Virtual.0:RAID.SL.5-1'
 VIRTUAL_DISK_SECOND = 'Disk.Virtual.1:RAID.SL.5-1'
 ALL_STORAGE_DATA_METHOD = "StorageData.all_storage_data"
@@ -91,7 +92,7 @@ class TestStorageData(FakeAnsibleModule):
                         ODATA_ID: "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1"
                     }
                 ],
-                "Id": "RAID.SL.5-1",
+                "Id": CONTROLLER_ID_FOURTH,
                 "Links": {
                     "Enclosures": [
                         {
@@ -152,7 +153,7 @@ class TestStorageData(FakeAnsibleModule):
         'Controllers': {
             CONTROLLER_ID_FIRST: {
                 'Controllers': {
-                    '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-1/Controllers',
+                    ODATA_ID: '/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-1/Controllers',
                 },
                 'Drives': {},
                 'Id': CONTROLLER_ID_FIRST,
@@ -170,7 +171,7 @@ class TestStorageData(FakeAnsibleModule):
             },
             CONTROLLER_ID_SECOND: {
                 'Controllers': {
-                    '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-2/Controllers',
+                    ODATA_ID: '/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-2/Controllers',
                 },
                 'Drives': {
                     'Disk.Bay.0:Enclosure.Internal.0-1:AHCI.Embedded.1-2': '/redfish/v1/\
@@ -191,7 +192,7 @@ class TestStorageData(FakeAnsibleModule):
             },
             CONTROLLER_ID_THIRD: {
                 'Controllers': {
-                    '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-2/Controllers',
+                    ODATA_ID: '/redfish/v1/Systems/System.Embedded.1/Storage/AHCI.Embedded.1-2/Controllers',
                 },
                 'Drives': {
                     'Disk.Bay.0:Enclosure.Internal.0-1:AHCI.Embedded.1-3': '/redfish/v1/\
@@ -216,10 +217,10 @@ class TestStorageData(FakeAnsibleModule):
             },
             CONTROLLER_ID_FOURTH: {
                 'Controllers': {
-                    '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Controllers',
+                    ODATA_ID: '/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-1/Controllers',
                 },
                 'Drives': {
-                    PHYSICAL_DISK: '/redfish/v1/Systems\
+                    PHYSICAL_DISK_FIRST: '/redfish/v1/Systems\
                         /System.Embedded.1/Storage/RAID.SL.5-1/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-1',
                 },
                 'Id': CONTROLLER_ID_FOURTH,
@@ -307,19 +308,19 @@ class TestStorageData(FakeAnsibleModule):
                             ENCLOSURE_ID: {},
                         },
                         'PhysicalDisk': [
-                            PHYSICAL_DISK,
+                            PHYSICAL_DISK_FIRST,
                         ],
                     },
                 },
                 'VirtualDisk': {
                     VIRTUAL_DISK_FIRST: {
                         'PhysicalDisk': [
-                            PHYSICAL_DISK,
+                            PHYSICAL_DISK_FIRST,
                         ],
                     },
                     VIRTUAL_DISK_SECOND: {
                         'PhysicalDisk': [
-                            PHYSICAL_DISK,
+                            PHYSICAL_DISK_FIRST,
                         ],
                     },
                 },
@@ -331,16 +332,16 @@ class TestStorageData(FakeAnsibleModule):
         'Controllers': {
             CONTROLLER_ID_FIFTH: {
                 'Controllers': {
-                    '@odata.id': '/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-3/Controllers',
+                    ODATA_ID: '/redfish/v1/Systems/System.Embedded.1/Storage/RAID.SL.5-3/Controllers',
                 },
                 'Drives': {
-                    'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3': '/redfish/v1/Systems\
+                    PHYSICAL_DISK_SECOND: '/redfish/v1/Systems\
                         /System.Embedded.1/Storage/RAID.SL.5-3/Drives/Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3',
                 },
                 'Id': CONTROLLER_ID_FIFTH,
                 'Links': {
                     'Enclosures': {
-                        'Enclosure.Internal.0-1:RAID.SL.5-3': {"Links": {
+                        ENCLOSURE_ID: {"Links": {
                             "Drives": [
                                 {
                                     ODATA_ID: "/redfish/v1/Systems/System.Embedded.1\
@@ -388,24 +389,24 @@ class TestStorageData(FakeAnsibleModule):
                     CONTROLLER_ID_FIFTH: {},
                 },
                 'Enclosure': {
-                    'Enclosure.Internal.0-1:RAID.SL.5-3': {
+                    ENCLOSURE_ID: {
                         'EnclosureSensor': {
-                            'Enclosure.Internal.0-1:RAID.SL.5-3': {},
+                            ENCLOSURE_ID: {},
                         },
                         'PhysicalDisk': [
-                            'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3',
+                            PHYSICAL_DISK_SECOND,
                         ],
                     },
                 },
                 'VirtualDisk': {
                     'Disk.Virtual.0:RAID.SL.5-3': {
                         'PhysicalDisk': [
-                            'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3',
+                            PHYSICAL_DISK_SECOND,
                         ],
                     },
                     'Disk.Virtual.1:RAID.SL.5-3': {
                         'PhysicalDisk': [
-                            'Disk.Bay.0:Enclosure.Internal.0-1:RAID.SL.5-3',
+                            PHYSICAL_DISK_SECOND,
                         ],
                     },
                 },
@@ -542,7 +543,7 @@ class TestStorageView(TestStorageData):
         data_when_invlid_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_invlid_volume_id_passed)
-        idrac_default_args.update({"volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
+        idrac_default_args.update({"volume_id": VIRTUAL_DISK_FIRST})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
@@ -552,7 +553,7 @@ class TestStorageView(TestStorageData):
         data_when_controller_id_and_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_controller_id_and_volume_id_passed)
-        idrac_default_args.update({"controller_id": "RAID.SL.5-1", "volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST})
         out = idr_obj.execute()
         assert out == {"Message": data_when_controller_id_and_volume_id_passed, "Status": SUCCESS_STATUS}
 
@@ -560,7 +561,7 @@ class TestStorageView(TestStorageData):
         data_when_controller_id_and_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_controller_id_and_volume_id_passed)
-        idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST, "volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST, "volume_id": VIRTUAL_DISK_FIRST})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
@@ -570,7 +571,7 @@ class TestStorageView(TestStorageData):
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_volume_id_passed)
         del idrac_default_args["controller_id"]
-        idrac_default_args.update({"volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
+        idrac_default_args.update({"volume_id": VIRTUAL_DISK_FIRST})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
