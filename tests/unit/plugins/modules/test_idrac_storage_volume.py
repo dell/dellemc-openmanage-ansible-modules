@@ -60,7 +60,7 @@ VIRTUAL_DISK_FIRST = 'Disk.Virtual.0:RAID.SL.5-1'
 VIRTUAL_DISK_SECOND = 'Disk.Virtual.1:RAID.SL.5-1'
 ALL_STORAGE_DATA_METHOD = "StorageData.all_storage_data"
 FETCH_STORAGE_DATA_METHOD = "StorageData.fetch_storage_data"
-
+DATA_XML = '<Data></Data>'
 REDFISH = "/redfish/v1"
 API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
 
@@ -618,37 +618,38 @@ class TestStorageBase(FakeAnsibleModule):
         assert data == '<Attribute Name="RAIDdedicatedSpare">3</Attribute><Attribute Name="RAIDdedicatedSpare">5</Attribute>'
 
     def test_construct_volume_payloadk(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
-        mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value='<Data></Data>')
+        mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value=DATA_XML)
         mocker.patch(MODULE_PATH + 'StorageBase.payload_for_disk', return_value='payload_detail_in_xml')
         # Scenario 1: When state is create
         idrac_default_args.update({'state': 'create'})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-        data = idr_obj.construct_volume_payload(1, {}, {'Virtual Disk 0': 'Disk ID 1'})
-        assert data == '<Data></Data>'
+        vd0 = 'Virtual Disk 0'
+        data = idr_obj.construct_volume_payload(1, {}, {vd0: 'Disk ID 1'})
+        assert data == DATA_XML
 
         # Scenario 1: When state is delete
         idrac_default_args.update({'state': 'delete'})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-        data = idr_obj.construct_volume_payload(1, {'name': 'Virtual Disk 0'}, {'Virtual Disk 0': 'Disk ID 1'})
-        assert data == '<Data></Data>'
+        data = idr_obj.construct_volume_payload(1, {'name': vd0}, {vd0: 'Disk ID 1'})
+        assert data == DATA_XML
 
     def test_constuct_payload(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
-        mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value='<Data></Data>')
+        mocker.patch(MODULE_PATH + 'xml_data_conversion', return_value=DATA_XML)
         mocker.patch(MODULE_PATH + 'StorageBase.construct_volume_payload', return_value='<Volume></Volume>')
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         # Scenario 1: Default
         data = idr_obj.constuct_payload({})
-        assert data == '<Data></Data>'
+        assert data == DATA_XML
 
         # Scenario 2: When raid_reset_config is 'true'
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         idr_obj.module_ext_params.update({'raid_reset_config': 'true'})
         data = idr_obj.constuct_payload({})
-        assert data == '<Data></Data>'
+        assert data == DATA_XML
 
     def test_wait_for_job_completion(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         obj = MagicMock()
@@ -927,7 +928,7 @@ class TestStorageCreate(TestStorageBase):
         assert data['id'] == TestStorageData.storage_data_expected['Controller'][CONTROLLER_ID_SECOND]['PhysicalDisk']
 
         # Scenario 2: id is given in drives
-        id_list = ['Disk.Bay.0:Enclosure.Internal.0-1:AHCI.Embedded.1-2',
+        id_list = ['Disk.Bay.3:Enclosure.Internal.0-1:AHCI.Embedded.1-2',
                    'Disk.Bay.2:Enclosure.Internal.0-1:AHCI.Embedded.1-2']
         volume = {'drives': {'id': id_list}}
         idrac_default_args.update({"controller_id": CONTROLLER_ID_SECOND})
