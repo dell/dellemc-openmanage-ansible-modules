@@ -2,8 +2,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2020-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2020-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -40,6 +40,10 @@ class TestStorageVolume(FakeAnsibleModule):
     def storage_volume_base_uri(self):
         self.module.storage_collection_map.update({"storage_base_uri": "/redfish/v1/Systems/System.Embedded.1/Storage"})
 
+    @pytest.fixture
+    def greater_version(self):
+        return True
+
     arg_list1 = [{"state": "present"}, {"state": "present", "volume_id": "volume_id"},
                  {"state": "absent", "volume_id": "volume_id"},
                  {"command": "initialize", "volume_id": "volume_id"},
@@ -61,6 +65,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                          redfish_connection_mock_for_storage_volume, param,
                                                          storage_volume_base_uri):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.validate_inputs')
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.is_fw_ver_greater', return_value=True)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.fetch_storage_resource')
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.configure_raid_operation',
                      return_value={"msg": "Successfully submitted volume task.",
@@ -95,8 +100,8 @@ class TestStorageVolume(FakeAnsibleModule):
     def test_redfish_storage_volume_main_exception_handling_case(self, exc_type, mocker, redfish_default_args,
                                                                  redfish_connection_mock_for_storage_volume,
                                                                  redfish_response_mock):
-        redfish_default_args.update({"state": "present"})
-        mocker.patch(MODULE_PATH + 'redfish_storage_volume.validate_inputs')
+        redfish_default_args.update({"state": "present", "controller_id": "controller_id"})
+        mocker.patch(MODULE_PATH + 'redfish_storage_volume.is_fw_ver_greater')
         redfish_response_mock.status_code = 400
         redfish_response_mock.success = False
         json_str = to_text(json.dumps({"data": "out"}))
@@ -150,7 +155,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert message["msg"] == "Successfully submitted {0} volume task.".format(action)
 
     @pytest.mark.parametrize("input", [{"state": "present"}, {"state": "absent"}, {"command": "initialize"}, {"command": None}])
-    def test_configure_raid_operation(self, input, redfish_connection_mock_for_storage_volume, mocker):
+    def test_configure_raid_operation(self, input, redfish_connection_mock_for_storage_volume, mocker, greater_version):
         f_module = self.get_module_mock(params=input)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_volume_create_modify',
                      return_value={"msg": "Successfully submitted create volume task.",
@@ -164,7 +169,7 @@ class TestStorageVolume(FakeAnsibleModule):
                      return_value={"msg": "Successfully submitted initialize volume task.",
                                    "task_uri": "JobService/Jobs",
                                    "task_id": "JID_789"})
-        message = self.module.configure_raid_operation(f_module, redfish_connection_mock_for_storage_volume)
+        message = self.module.configure_raid_operation(f_module, redfish_connection_mock_for_storage_volume, greater_version)
         val = list(input.values())
         if val[0] == "present":
             assert message["msg"] == "Successfully submitted create volume task."
@@ -257,7 +262,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert exc.value.args[0] == "No changes found to be applied."
 
     def test_perform_volume_create_modify_success_case_01(self, mocker, storage_volume_base_uri,
-                                                          redfish_connection_mock_for_storage_volume):
+                                                          redfish_connection_mock_for_storage_volume, greater_version):
         f_module = self.get_module_mock(params={"volume_id": "volume_id", "controller_id": "controller_id"})
         message = {"msg": "Successfully submitted create volume task.", "task_uri": "JobService/Jobs",
                    "task_id": "JID_123"}
@@ -265,13 +270,13 @@ class TestStorageVolume(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.volume_payload', return_value={"payload": "value"})
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action', return_value=message)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_mode_validation', return_value=None)
-        message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
+        message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume, greater_version)
         assert message["msg"] == "Successfully submitted create volume task."
         assert message["task_id"] == "JID_123"
 
     def test_perform_volume_create_modify_success_case_02(self, mocker, storage_volume_base_uri,
                                                           redfish_connection_mock_for_storage_volume,
-                                                          redfish_response_mock):
+                                                          redfish_response_mock, greater_version):
         f_module = self.get_module_mock(params={"volume_id": "volume_id"})
         message = {"msg": "Successfully submitted modify volume task.", "task_uri": "JobService/Jobs",
                    "task_id": "JID_123"}
@@ -280,13 +285,13 @@ class TestStorageVolume(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.volume_payload', return_value={"payload": "value"})
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action', return_value=message)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_mode_validation', return_value=None)
-        message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
+        message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume, greater_version)
         assert message["msg"] == "Successfully submitted modify volume task."
         assert message["task_id"] == "JID_123"
 
     def test_perform_volume_create_modify_success_case_03(self, mocker, storage_volume_base_uri,
                                                           redfish_connection_mock_for_storage_volume,
-                                                          redfish_response_mock):
+                                                          redfish_response_mock, greater_version):
         f_module = self.get_module_mock(params={"volume_id": "volume_id"})
         message = {"msg": "Successfully submitted modify volume task.", "task_uri": "JobService/Jobs",
                    "task_id": "JID_123"}
@@ -295,13 +300,13 @@ class TestStorageVolume(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.volume_payload', return_value={"payload": "value"})
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action', return_value=message)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_mode_validation', return_value=None)
-        message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
+        message = self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume, greater_version)
         assert message["msg"] == "Successfully submitted modify volume task."
         assert message["task_id"] == "JID_123"
 
     def test_perform_volume_create_modify_failure_case_01(self, mocker, storage_volume_base_uri,
                                                           redfish_connection_mock_for_storage_volume,
-                                                          redfish_response_mock):
+                                                          redfish_response_mock, greater_version):
         f_module = self.get_module_mock(params={"volume_id": "volume_id"})
         message = {"msg": "Successfully submitted modify volume task.", "task_uri": "JobService/Jobs",
                    "task_id": "JID_123"}
@@ -311,7 +316,7 @@ class TestStorageVolume(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.perform_storage_volume_action', return_value=message)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.check_mode_validation', return_value=None)
         with pytest.raises(Exception) as exc:
-            self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume)
+            self.module.perform_volume_create_modify(f_module, redfish_connection_mock_for_storage_volume, greater_version)
         assert exc.value.args[0] == "Input options are not provided for the modify volume task."
 
     def test_perform_storage_volume_action_success_case(self, mocker, redfish_response_mock,
@@ -485,7 +490,7 @@ class TestStorageVolume(FakeAnsibleModule):
             self.module.check_physical_disk_exists(f_module, drive)
         assert exc.value.args[0] == "No Drive(s) are attached to the specified Controller Id: RAID.Mezzanine.1C-1."
 
-    def test_volume_payload_case_01(self, storage_volume_base_uri):
+    def test_volume_payload_case_01(self, storage_volume_base_uri, greater_version):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
@@ -505,7 +510,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module)
+        payload = self.module.volume_payload(f_module, greater_version)
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
                                                     "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
@@ -518,19 +523,19 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
         assert payload["@Redfish.OperationApplyTime"] == "Immediate"
 
-    def test_volume_payload_case_02(self):
+    def test_volume_payload_case_02(self, greater_version):
         param = {"block_size_bytes": 512,
                  "raid_type": "RAID0",
                  "name": "VD1",
                  "optimum_io_size_bytes": 65536}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module)
+        payload = self.module.volume_payload(f_module, greater_version)
         assert payload["RAIDType"] == "RAID0"
         assert payload["Name"] == "VD1"
         assert payload["BlockSizeBytes"] == 512
         assert payload["OptimumIOSizeBytes"] == 65536
 
-    def test_volume_payload_case_03(self, storage_volume_base_uri):
+    def test_volume_payload_case_03(self, storage_volume_base_uri, greater_version):
         """Testing encrypted value in case value is passed false"""
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
@@ -550,7 +555,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module)
+        payload = self.module.volume_payload(f_module, greater_version)
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/" \
                                                     "Storage/Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
@@ -562,7 +567,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
-    def test_volume_payload_case_04(self, storage_volume_base_uri):
+    def test_volume_payload_case_04(self, storage_volume_base_uri, greater_version):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"],
             "capacity_bytes": 299439751168,
@@ -581,7 +586,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module)
+        payload = self.module.volume_payload(f_module, greater_version)
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
                                                     "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID0"
@@ -593,7 +598,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
-    def test_volume_payload_case_05(self, storage_volume_base_uri):
+    def test_volume_payload_case_05(self, storage_volume_base_uri, greater_version):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1",
                        "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Mezzanine.1C-1",
@@ -615,7 +620,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module)
+        payload = self.module.volume_payload(f_module, greater_version)
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
                                                     "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID6"
@@ -627,7 +632,7 @@ class TestStorageVolume(FakeAnsibleModule):
         assert payload["EncryptionTypes"] == ["NativeDriveEncryption"]
         assert payload["Dell"]["DellVirtualDisk"]["ReadCachePolicy"] == "NoReadAhead"
 
-    def test_volume_payload_case_06(self, storage_volume_base_uri):
+    def test_volume_payload_case_06(self, storage_volume_base_uri, greater_version):
         param = {
             "drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1",
                        "Disk.Bay.0:Enclosure.Internal.0-1:RAID.Mezzanine.1C-1",
@@ -653,7 +658,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                  "SpanLength": 2,
                                                  "WriteCachePolicy": "WriteThrough"}}}}
         f_module = self.get_module_mock(params=param)
-        payload = self.module.volume_payload(f_module)
+        payload = self.module.volume_payload(f_module, greater_version)
         assert payload["Drives"][0]["@odata.id"] == "/redfish/v1/Systems/System.Embedded.1/Storage/" \
                                                     "Drives/Disk.Bay.0:Enclosure.Internal.0-0:RAID.Mezzanine.1C-1"
         assert payload["RAIDType"] == "RAID60"
@@ -742,7 +747,7 @@ class TestStorageVolume(FakeAnsibleModule):
             self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
 
     def test_check_mode_validation(self, redfish_connection_mock_for_storage_volume,
-                                   redfish_response_mock, storage_volume_base_uri):
+                                   redfish_response_mock, storage_volume_base_uri, greater_version):
         param = {"drives": ["Disk.Bay.0:Enclosure.Internal.0-0:RAID.Integrated.1-1"],
                  "capacity_bytes": 214748364800, "block_size_bytes": 512, "encryption_types": "NativeDriveEncryption",
                  "encrypted": False, "raid_type": "RAID0", "optimum_io_size_bytes": 65536}
@@ -751,13 +756,15 @@ class TestStorageVolume(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.check_mode_validation(
                 f_module, redfish_connection_mock_for_storage_volume, "create",
-                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/")
+                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/",
+                greater_version=True)
         assert exc.value.args[0] == "Changes found to be applied."
         redfish_response_mock.json_data = {"Members@odata.count": 0}
         with pytest.raises(Exception) as exc:
             self.module.check_mode_validation(
                 f_module, redfish_connection_mock_for_storage_volume, "create",
-                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/")
+                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/",
+                greater_version=True)
         assert exc.value.args[0] == "Changes found to be applied."
         redfish_response_mock.json_data = {
             "Members@odata.count": 1, "Id": "Disk.Virtual.0:RAID.Integrated.1-1",
@@ -772,18 +779,20 @@ class TestStorageVolume(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.check_mode_validation(
                 f_module, redfish_connection_mock_for_storage_volume, "create",
-                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/")
+                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/",
+                greater_version=True)
         assert exc.value.args[0] == "No changes found to be applied."
 
     def test_check_mode_validation_01(self, redfish_connection_mock_for_storage_volume,
-                                      redfish_response_mock, storage_volume_base_uri):
+                                      redfish_response_mock, storage_volume_base_uri, greater_version):
         param1 = {"volume_id": None, 'name': None}
         f_module = self.get_module_mock(params=param1)
         f_module.check_mode = False
         result = self.module.check_mode_validation(f_module,
                                                    redfish_connection_mock_for_storage_volume,
                                                    "",
-                                                   "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/")
+                                                   "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/",
+                                                   greater_version=True)
         assert not result
 
     def test_check_raid_type_supported_success_case01(self, mocker, redfish_response_mock, storage_volume_base_uri,
@@ -845,29 +854,31 @@ class TestStorageVolume(FakeAnsibleModule):
 
     def test_get_apply_time_success_case_01(self, redfish_response_mock,
                                             redfish_connection_mock_for_storage_volume,
-                                            storage_volume_base_uri):
+                                            storage_volume_base_uri, greater_version):
         param = {"controller_id": "controller_id", "apply_time": "Immediate"}
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"@Redfish.OperationApplyTimeSupport": {"SupportedValues": ["Immediate"]}}
         self.module.get_apply_time(f_module,
                                    redfish_connection_mock_for_storage_volume,
-                                   controller_id="controller_id")
+                                   controller_id="controller_id",
+                                   greater_version=True)
 
     def test_get_apply_time_success_case_02(self, redfish_response_mock,
                                             redfish_connection_mock_for_storage_volume,
-                                            storage_volume_base_uri):
+                                            storage_volume_base_uri, greater_version):
         param = {"controller_id": "controller_id"}
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
         redfish_response_mock.json_data = {"@Redfish.OperationApplyTimeSupport": {"SupportedValues": ["Immediate"]}}
         self.module.get_apply_time(f_module,
                                    redfish_connection_mock_for_storage_volume,
-                                   controller_id="controller_id")
+                                   controller_id="controller_id",
+                                   greater_version=True)
 
     def test_get_apply_time_supported_failure_case(self, redfish_response_mock,
                                                    redfish_connection_mock_for_storage_volume,
-                                                   storage_volume_base_uri):
+                                                   storage_volume_base_uri, greater_version):
         param = {"controller_id": "controller_id", "apply_time": "Immediate"}
         f_module = self.get_module_mock(params=param)
         redfish_response_mock.success = True
@@ -875,25 +886,27 @@ class TestStorageVolume(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.get_apply_time(f_module,
                                        redfish_connection_mock_for_storage_volume,
-                                       controller_id="controller_id")
+                                       controller_id="controller_id",
+                                       greater_version=True)
         assert exc.value.args[0] == "Apply time Immediate \
 is not supported. The supported values are ['OnReset']. Enter the valid values and retry the operation."
 
     def test_get_apply_time_supported_exception_case(self, redfish_response_mock,
                                                      redfish_connection_mock_for_storage_volume,
-                                                     storage_volume_base_uri):
+                                                     storage_volume_base_uri, greater_version):
         param = {"controller_id": "controller_id", "apply_time": "Immediate"}
         f_module = self.get_module_mock(params=param)
         redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400,
                                                                                           '', {}, None)
         with pytest.raises(HTTPError) as ex:
             self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume,
-                                       controller_id="controller_id")
+                                       controller_id="controller_id",
+                                       greater_version=True)
 
     def test_check_apply_time_supported_and_reboot_required_success_case01(self, mocker,
                                                                            redfish_response_mock,
                                                                            redfish_connection_mock_for_storage_volume,
-                                                                           storage_volume_base_uri):
+                                                                           storage_volume_base_uri, greater_version):
         param = {"reboot_server": True}
         f_module = self.get_module_mock(params=param)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
@@ -901,13 +914,14 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         apply_time = self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume)
         val = self.module.check_apply_time_supported_and_reboot_required(f_module,
                                                                          redfish_connection_mock_for_storage_volume,
-                                                                         controller_id="controller_id")
+                                                                         controller_id="controller_id",
+                                                                         greater_version=True)
         assert val
 
     def test_check_apply_time_supported_and_reboot_required_success_case02(self, mocker,
                                                                            redfish_response_mock,
                                                                            redfish_connection_mock_for_storage_volume,
-                                                                           storage_volume_base_uri):
+                                                                           storage_volume_base_uri, greater_version):
         param = {"reboot_server": False}
         f_module = self.get_module_mock(params=param)
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
@@ -915,12 +929,13 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         apply_time = self.module.get_apply_time(f_module, redfish_connection_mock_for_storage_volume)
         val = self.module.check_apply_time_supported_and_reboot_required(f_module,
                                                                          redfish_connection_mock_for_storage_volume,
-                                                                         controller_id="controller_id")
+                                                                         controller_id="controller_id",
+                                                                         greater_version=True)
         assert not val
 
     def test_check_job_tracking_required_success_case01(self, mocker, redfish_response_mock,
                                                         redfish_connection_mock_for_storage_volume,
-                                                        storage_volume_base_uri):
+                                                        storage_volume_base_uri, greater_version):
         param = {"job_wait": True}
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
                      return_value="OnReset")
@@ -929,12 +944,13 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         val = self.module.check_job_tracking_required(f_module,
                                                       redfish_connection_mock_for_storage_volume,
                                                       reboot_required=False,
-                                                      controller_id="controller_id")
+                                                      controller_id="controller_id",
+                                                      greater_version=True)
         assert not val
 
     def test_check_job_tracking_required_success_case02(self, mocker, redfish_response_mock,
                                                         redfish_connection_mock_for_storage_volume,
-                                                        storage_volume_base_uri):
+                                                        storage_volume_base_uri, greater_version):
         param = {"job_wait": True}
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
                      return_value="Immediate")
@@ -942,12 +958,13 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         val = self.module.check_job_tracking_required(f_module,
                                                       redfish_connection_mock_for_storage_volume,
                                                       reboot_required=True,
-                                                      controller_id="controller_id")
+                                                      controller_id="controller_id",
+                                                      greater_version=True)
         assert val
 
     def test_check_job_tracking_required_success_case03(self, mocker, redfish_response_mock,
                                                         redfish_connection_mock_for_storage_volume,
-                                                        storage_volume_base_uri):
+                                                        storage_volume_base_uri, greater_version):
         param = {"job_wait": False}
         mocker.patch(MODULE_PATH + 'redfish_storage_volume.get_apply_time',
                      return_value="Immediate")
@@ -955,7 +972,8 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         val = self.module.check_job_tracking_required(f_module,
                                                       redfish_connection_mock_for_storage_volume,
                                                       reboot_required=True,
-                                                      controller_id=None)
+                                                      controller_id=None,
+                                                      greater_version=True)
         assert not val
 
     def test_perform_reboot_timeout_case(self, mocker, redfish_response_mock,
@@ -1129,3 +1147,32 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
         with pytest.raises(Exception) as ex:
             self.module.validate_negative_job_time_out(f_module)
         assert ex.value.args[0] == "The parameter job_wait_timeout value cannot be negative or zero."
+
+    def test_is_fw_ver_greater(self, redfish_connection_mock_for_storage_volume, redfish_response_mock):
+        # Scenario 1: FW version is not greater
+        redfish_response_mock.json_data = {
+            '@odata.context': '/redfish/v1/$metadata#Manager.Manager',
+            '@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1',
+            '@odata.type': '#Manager.v1_3_3.Manager',
+            'FirmwareVersion': '2.81.81.81'
+        }
+        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        ver = self.module.is_fw_ver_greater(redfish_connection_mock_for_storage_volume)
+        if ver is True:
+            assert ver is True
+        else:
+            assert ver is False
+
+        # Scenario 1: FW version is not greater
+        redfish_response_mock.json_data = {
+            '@odata.context': '/redfish/v1/$metadata#Manager.Manager',
+            '@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1',
+            '@odata.type': '#Manager.v1_18_0.Manager',
+            'FirmwareVersion': '7.10.30.00'
+        }
+        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        ver = self.module.is_fw_ver_greater(redfish_connection_mock_for_storage_volume)
+        if ver is True:
+            assert ver is True
+        else:
+            assert ver is False
