@@ -802,10 +802,11 @@ class StorageDelete(StorageValidation):
         payload = ""
         volume_name_input = [each_dict.get('name') for each_dict in self.module.params.get('volumes')]
         for each_controller, value in cntrl_id_volume_name_mapping.items():
-            self.module_ext_params['controller_id'] = each_controller
             value_updated = [each_dict for each_dict in value if each_dict.get('name') in volume_name_input]
-            self.module_ext_params['volumes'] = value_updated
-            payload = payload + self.constuct_payload(volume_name_volume_id_mapping_list)
+            if value_updated:
+                self.module_ext_params['controller_id'] = each_controller
+                self.module_ext_params['volumes'] = value_updated
+                payload = payload + self.constuct_payload(volume_name_volume_id_mapping_list)
         parent_payload = parent_payload.format(payload)
         return parent_payload
 
