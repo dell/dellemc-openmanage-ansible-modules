@@ -23,6 +23,8 @@ from ansible.module_utils._text import to_text
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.'
 HTTPS_ADDRESS = 'https://testhost.com'
+REDFISH = "/redfish/v1/"
+VOLUME_URI = "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/"
 
 
 @pytest.fixture
@@ -684,7 +686,7 @@ class TestStorageVolume(FakeAnsibleModule):
                 "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage"
             },
         }
-        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        redfish_connection_mock_for_storage_volume.root_uri = REDFISH
         self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
         assert self.module.storage_collection_map["storage_base_uri"] == "/redfish/v1/Systems/System.Embedded.1/Storage"
 
@@ -699,7 +701,7 @@ class TestStorageVolume(FakeAnsibleModule):
                 }
             ],
         }
-        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        redfish_connection_mock_for_storage_volume.root_uri = REDFISH
         with pytest.raises(Exception) as exc:
             self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
         assert exc.value.args[0] == "Target out-of-band controller does not support storage feature using Redfish API."
@@ -712,7 +714,7 @@ class TestStorageVolume(FakeAnsibleModule):
             "Members": [
             ],
         }
-        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        redfish_connection_mock_for_storage_volume.root_uri = REDFISH
         with pytest.raises(Exception) as exc:
             self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
         assert exc.value.args[0] == "Target out-of-band controller does not support storage feature using Redfish API."
@@ -721,7 +723,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                   redfish_response_mock):
         f_module = self.get_module_mock()
         msg = "Target out-of-band controller does not support storage feature using Redfish API."
-        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        redfish_connection_mock_for_storage_volume.root_uri = REDFISH
         redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 404,
                                                                                           json.dumps(msg), {}, None)
         with pytest.raises(Exception) as exc:
@@ -731,7 +733,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                   redfish_response_mock):
         f_module = self.get_module_mock()
         msg = "http error"
-        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        redfish_connection_mock_for_storage_volume.root_uri = REDFISH
         redfish_connection_mock_for_storage_volume.invoke_request.side_effect = HTTPError(HTTPS_ADDRESS, 400,
                                                                                           msg, {}, None)
         with pytest.raises(Exception, match=msg) as exc:
@@ -741,7 +743,7 @@ class TestStorageVolume(FakeAnsibleModule):
                                                   redfish_response_mock):
         f_module = self.get_module_mock()
         msg = "connection error"
-        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        redfish_connection_mock_for_storage_volume.root_uri = REDFISH
         redfish_connection_mock_for_storage_volume.invoke_request.side_effect = URLError(msg)
         with pytest.raises(Exception, match=msg) as exc:
             self.module.fetch_storage_resource(f_module, redfish_connection_mock_for_storage_volume)
@@ -756,14 +758,14 @@ class TestStorageVolume(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.check_mode_validation(
                 f_module, redfish_connection_mock_for_storage_volume, "create",
-                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/",
+                VOLUME_URI,
                 greater_version=True)
         assert exc.value.args[0] == "Changes found to be applied."
         redfish_response_mock.json_data = {"Members@odata.count": 0}
         with pytest.raises(Exception) as exc:
             self.module.check_mode_validation(
                 f_module, redfish_connection_mock_for_storage_volume, "create",
-                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/",
+                VOLUME_URI,
                 greater_version=True)
         assert exc.value.args[0] == "Changes found to be applied."
         redfish_response_mock.json_data = {
@@ -779,7 +781,7 @@ class TestStorageVolume(FakeAnsibleModule):
         with pytest.raises(Exception) as exc:
             self.module.check_mode_validation(
                 f_module, redfish_connection_mock_for_storage_volume, "create",
-                "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/",
+                VOLUME_URI,
                 greater_version=True)
         assert exc.value.args[0] == "No changes found to be applied."
 
@@ -791,7 +793,7 @@ class TestStorageVolume(FakeAnsibleModule):
         result = self.module.check_mode_validation(f_module,
                                                    redfish_connection_mock_for_storage_volume,
                                                    "",
-                                                   "/redfish/v1/Systems/System.Embedded.1/Storage/RAID.Integrated.1-1/Volumes/",
+                                                   VOLUME_URI,
                                                    greater_version=True)
         assert not result
 
@@ -1154,9 +1156,9 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
             '@odata.context': '/redfish/v1/$metadata#Manager.Manager',
             '@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1',
             '@odata.type': '#Manager.v1_3_3.Manager',
-            'FirmwareVersion': '2.81.81.81'
+            'FirmwareVersion': '2.81'
         }
-        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        redfish_connection_mock_for_storage_volume.root_uri = REDFISH
         ver = self.module.is_fw_ver_greater(redfish_connection_mock_for_storage_volume)
         if ver is True:
             assert ver is True
@@ -1168,9 +1170,9 @@ is not supported. The supported values are ['OnReset']. Enter the valid values a
             '@odata.context': '/redfish/v1/$metadata#Manager.Manager',
             '@odata.id': '/redfish/v1/Managers/iDRAC.Embedded.1',
             '@odata.type': '#Manager.v1_18_0.Manager',
-            'FirmwareVersion': '7.10.30.00'
+            'FirmwareVersion': '7.10'
         }
-        redfish_connection_mock_for_storage_volume.root_uri = "/redfish/v1/"
+        redfish_connection_mock_for_storage_volume.root_uri = REDFISH
         ver = self.module.is_fw_ver_greater(redfish_connection_mock_for_storage_volume)
         if ver is True:
             assert ver is True
