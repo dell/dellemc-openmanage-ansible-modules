@@ -10,12 +10,16 @@
 
 from __future__ import absolute_import, division, print_function
 
-from copy import deepcopy
-
+import json
 import pytest
+from io import StringIO
+from ansible.module_utils._text import to_text
+from urllib.error import HTTPError, URLError
+from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.modules import idrac_storage_volume
 from ansible_collections.dellemc.openmanage.tests.unit.plugins.modules.common import FakeAnsibleModule
 from mock import MagicMock
+from copy import deepcopy
 
 MODULE_PATH = 'ansible_collections.dellemc.openmanage.plugins.modules.idrac_storage_volume.'
 MODULE_UTILS_PATH = 'ansible_collections.dellemc.openmanage.plugins.module_utils.utils.'
@@ -1057,3 +1061,124 @@ class TestStorageCreate(TestStorageBase):
         with pytest.raises(Exception) as exc:
             idr_obj.updating_volume_module_input(drive_exists_in_id)
         assert exc.value.args[0] == CHANGES_NOT_FOUND
+
+    def test_validate_create(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+        mocker.patch(MODULE_PATH + 'StorageValidation.validate_controller_exists', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageValidation.validate_job_wait_negative_values', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageValidation.validate_negative_values_for_volume_params', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageValidation.validate_volume_drives', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageCreate.updating_volume_module_input', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageCreate.disk_slot_location_to_id_conversion', return_value={'id': []})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        # Scenario 1: When required pd is less than available pd
+        volume = {'volumes': [{'drives': {'location': [2, 3, 4]}},
+                              {'drives': {'id': [1]}}]}
+        idr_obj.module_ext_params.update(volume)
+        idr_obj.validate()
+        assert idr_obj.module_ext_params['volumes'][0]['drives']['id'] == []
+
+    def test_execute_create(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+        mocker.patch(MODULE_PATH + 'StorageCreate.validate', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageBase.constuct_payload', return_value=None)
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI.import_scp', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageBase.wait_for_job_completion', return_value={})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.controller_id = CONTROLLER_ID_FOURTH
+        data = idr_obj.execute()
+        assert data == {}
+
+
+class TestStorageDelete(TestStorageBase):
+    module = idrac_storage_volume
+
+    @pytest.fixture
+    def idrac_storage_volume_mock(self):
+        idrac_obj = MagicMock()
+        return idrac_obj
+
+    @pytest.fixture
+    def idrac_connection_storage_volume_mock(self, mocker, idrac_storage_volume_mock):
+        idrac_conn_mock = mocker.patch(MODULE_PATH + 'iDRACRedfishAPI',
+                                       return_value=idrac_storage_volume_mock)
+        idrac_conn_mock.return_value.__enter__.return_value = idrac_storage_volume_mock
+        return idrac_conn_mock
+
+    def test_execute_delete(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        idrac_resp = {'Controllers': {'Cntrl1': {'Volumes': {'Volume_ID1': {'Name': 'Volume Name 1'}}}}}
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_resp)
+        mocker.patch(MODULE_PATH + 'StorageDelete.validate', return_value=None)
+        mocker.patch(MODULE_PATH + 'iDRACRedfishAPI.import_scp', return_value=None)
+        mocker.patch(MODULE_PATH + 'StorageBase.wait_for_job_completion', return_value={})
+        mocker.patch(MODULE_PATH + 'StorageBase.module_extend_input', return_value={})
+
+        # Scenario 1: When Non existing volume is passed as input
+        volume = {'volumes': [{'name': 'volume-1', 'span_depth': 1, 'span_length': 1},
+                              {'name': 'volume-2', 'span_depth': 1, 'span_length': 1}]}
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageDelete(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module.params.update(volume)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == VOLUME_NOT_FOUND
+
+        # Scenario 2: When Non existing volume is passed as input with check_mode
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.StorageDelete(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module.params.update(volume)
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == CHANGES_NOT_FOUND
+
+        # Scenario 3: When Existing volume is passed as input
+        volume = {'volumes': [{'name': 'Volume Name 1', 'span_depth': 1, 'span_length': 1}]}
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageDelete(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module.params.update(volume)
+        idr_obj.module_ext_params.update({'state': 'delete', 'volumes': volume})
+        data = idr_obj.execute()
+        assert data == {}
+
+        # Scenario 3: When Existing volume is passed as input with check_mode
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.StorageDelete(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module.params.update(volume)
+        idr_obj.module_ext_params.update({'state': 'delete', 'volumes': volume})
+        with pytest.raises(Exception) as exc:
+            idr_obj.execute()
+        assert exc.value.args[0] == CHANGES_FOUND
+
+    def test_idrac_storage_volume_main_positive_case(self, idrac_default_args,
+                                                     idrac_connection_storage_volume_mock, mocker):
+        def returning_None():
+            return None
+        mocker.patch(MODULE_PATH + 'StorageView.execute', return_value=returning_None)
+        view = 'view'
+        idrac_default_args.update({'state': view})
+        data = self._run_module(idrac_default_args)
+        assert data['msg'] == SUCCESSFUL_OPERATION_MSG.format(operation=view)
+
+    @pytest.mark.parametrize("exc_type",
+                             [URLError, HTTPError, SSLValidationError, ConnectionError, TypeError, ValueError])
+    def test_idrac_storage_volume_main_exception_handling_case(self, exc_type, idrac_default_args,
+                                                               idrac_connection_storage_volume_mock, mocker):
+
+        json_str = to_text(json.dumps({"data": "out"}))
+        if exc_type in [HTTPError, SSLValidationError]:
+            mocker.patch(MODULE_PATH + 'StorageView.execute',
+                         side_effect=exc_type('https://testhost.com', 400,
+                                              'http error message',
+                                              {"accept-type": "application/json"},
+                                              StringIO(json_str)))
+        else:
+            mocker.patch(MODULE_PATH + 'StorageView.execute',
+                         side_effect=exc_type('test'))
+        result = self._run_module(idrac_default_args)
+        if exc_type == URLError:
+            assert result['unreachable'] is True
+        else:
+            assert result['failed'] is True
+        assert 'msg' in result
