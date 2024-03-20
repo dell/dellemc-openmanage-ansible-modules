@@ -705,7 +705,7 @@ class StorageCreate(StorageValidation):
         volumes = self.module_ext_params.get('volumes', [])
         reserved_pd = []
         for each in volumes:
-            required_pd = each['span_depth'] * each['span_length']
+            required_pd = int(each['span_depth']) * int(each['span_length'])
             filtered_disk = self.filter_disk(each)
             if 'stripe_size' in each:
                 each['stripe_size'] = int(each['stripe_size'] / 512)
@@ -717,7 +717,6 @@ class StorageCreate(StorageValidation):
                 each['drives']['id'] = filtered_disk[:required_pd]
 
             if 'drives' in each:
-                each['drives']['id_backup'] = each['drives']['id']
                 drives_id_list = self.updating_drives_module_input_when_given(each, filtered_disk)
                 reserved_pd += drives_id_list
                 each['drives']['id'] = drives_id_list

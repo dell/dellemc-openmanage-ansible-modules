@@ -1004,14 +1004,56 @@ class TestStorageCreate(TestStorageBase):
         data = idr_obj.updating_volume_module_input_for_hotspare(volume, filter_disk_output, reserved_pd, drive_exists_in_id)
         assert data == []
 
-    # def test_updating_volume_module_input(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
-    #     mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
-    #     f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-    #     idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
-    #     # Scenario 1: number_dedicated_hot_spare is in volume and greator than zero
-    #     data = {'volumes': {'span_depth': 1, 'span_length': 1, 'strip_size': 65536,}}
-    #     filter_disk_output = [1, 3, 5, 4, 2]
-    #     reserved_pd = [1]
-    #     drive_exists_in_id = [3, 5]
-    #     data = idr_obj.updating_volume_module_input(volume, filter_disk_output, reserved_pd, drive_exists_in_id)
-    #     assert data == [4, 2]
+    def test_updating_volume_module_input(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
+        mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
+        mocker.patch(MODULE_PATH + 'StorageCreate.filter_disk', return_value=[1, 2, 3, 4, 5])
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        # Scenario 1: When required pd is less than available pd
+        volume = {'volumes': [{'span_depth': 1, 'span_length': 1, 'stripe_size': 65536, 'capacity': 50.45,
+                               'drives': {'id': [2, 3, 4]},
+                               'number_dedicated_hot_spare': 1}]}
+        idr_obj.module_ext_params.update(volume)
+        drive_exists_in_id = [1, 2]
+        idr_obj.updating_volume_module_input(drive_exists_in_id)
+        assert idr_obj.module_ext_params['volumes'][0]['drives']['id'] == [1]
+
+        # Scenario 2: When required pd is less than available pd with check_mode
+        volume = {'volumes': [{'span_depth': 1, 'span_length': 1, 'stripe_size': 65536, 'capacity': 50.45,
+                               'drives': {'id': [2, 3, 4]},
+                               'number_dedicated_hot_spare': 1}]}
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module_ext_params.update(volume)
+        drive_exists_in_id = [1, 2]
+        with pytest.raises(Exception) as exc:
+            idr_obj.updating_volume_module_input(drive_exists_in_id)
+        assert exc.value.args[0] == CHANGES_FOUND
+
+        # Scenario 3: When required pd is greater than available pd
+        mocker.patch(MODULE_PATH + 'StorageCreate.filter_disk', return_value=[1])
+        controller_id = 'Qwerty'
+        volume = {'volumes': [{'span_depth': 2, 'span_length': 1,
+                               'drives': {'id': [1]}, 'number_dedicated_hot_spare': 0}],
+                  'controller_id': controller_id}
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module_ext_params.update(volume)
+        drive_exists_in_id = [1, 2]
+        with pytest.raises(Exception) as exc:
+            idr_obj.updating_volume_module_input(drive_exists_in_id)
+        assert exc.value.args[0] == NOT_ENOUGH_DRIVES.format(controller_id=controller_id)
+
+        # Scenario 4: When required pd is greater than available pd with check_mode
+        mocker.patch(MODULE_PATH + 'StorageCreate.filter_disk', return_value=[1])
+        controller_id = 'Qwerty'
+        volume = {'volumes': [{'span_depth': 2, 'span_length': 1,
+                               'drives': {'id': [1, 2]}, 'number_dedicated_hot_spare': 0}],
+                  'controller_id': controller_id}
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
+        idr_obj.module_ext_params.update(volume)
+        drive_exists_in_id = [1]
+        with pytest.raises(Exception) as exc:
+            idr_obj.updating_volume_module_input(drive_exists_in_id)
+        assert exc.value.args[0] == CHANGES_NOT_FOUND
