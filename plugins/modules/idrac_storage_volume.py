@@ -316,6 +316,9 @@ VIEW_OPERATION_CONTROLLER_NOT_SPECIFIED = "Controller identifier parameter is mi
 VIEW_VIRTUAL_DISK_DETAILS_NOT_FOUND = "Failed to find the volume : {volume_id} in controller : {controller_id}."
 SUCCESS_STATUS = "Success"
 FAILED_STATUS = "Failed"
+ERROR_CODES = ["SYS041", "SYS044", "SYS045", "SYS046", "SYS047", "SYS048", "SYS050", "SYS051", "SYS062",
+               "SYS063", "SYS064", "SYS065", "SYS067", "SYS068", "SYS070", "SYS071", "SYS072",
+               "SYS073", "SYS075", "SYS076", "SYS077", "SYS078", "SYS079", "SYS080"]
 
 
 class StorageBase:
@@ -422,6 +425,19 @@ class StorageBase:
         payload = xml_data_conversion(attr, vdfqdd, disk_paylod)
         return payload
 
+    def special_handling_for_delete(self, each_volume, deepcopy_name_id_mapping):
+        flag_break, vd_name_id_map, index_to_remove = False, {}, -1
+        for each_dict in deepcopy_name_id_mapping:
+            for key, value in each_dict.items():
+                if key == each_volume.get('name'):
+                    vd_name_id_map[key] = value
+                    flag_break = True
+                    index_to_remove = deepcopy_name_id_mapping.index(each_dict)
+                    break
+            if flag_break:
+                break
+        return index_to_remove, vd_name_id_map
+
     def constuct_payload(self, name_id_mapping):
         number_of_existing_vd = len(name_id_mapping)
         volume_payload, attr = '', {}
@@ -434,20 +450,13 @@ class StorageBase:
         deepcopy_name_id_mapping = deepcopy(name_id_mapping)
         for each_volume in self.module_ext_params.get('volumes'):
             if state == 'delete':
-                flag_break, vd_name_id_map, index_to_remove = False, {}, -1
-                for each_dict in deepcopy_name_id_mapping:
-                    for key, value in each_dict.items():
-                        if key == each_volume.get('name'):
-                            vd_name_id_map[key] = value
-                            flag_break = True
-                            index_to_remove = deepcopy_name_id_mapping.index(each_dict)
-                            break
-                    if flag_break:
-                        break
+                index_to_remove, vd_name_id_map = self.special_handling_for_delete(each_volume,
+                                                                                   deepcopy_name_id_mapping)
                 if index_to_remove >= 0:
                     deepcopy_name_id_mapping.pop(index_to_remove)
                 name_id_mapping = vd_name_id_map
-            volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd, each_volume, name_id_mapping)
+            volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd,
+                                                                            each_volume, name_id_mapping)
             number_of_existing_vd = number_of_existing_vd + 1
         raid_payload = xml_data_conversion(attr, self.module_ext_params.get('controller_id'), volume_payload)
         return raid_payload
@@ -466,7 +475,7 @@ class StorageBase:
                 job_dict = remove_key(job_dict, regex_pattern=ODATA_REGEX)
                 if int(wait_time) >= int(job_wait_timeout):
                     self.module.exit_json(msg=WAIT_TIMEOUT_MSG.format(job_wait_timeout), changed=True, storage_status=job_dict)
-                if job_failed:
+                if job_failed or job_dict.get("MessageId", "") in ERROR_CODES:
                     self.module.exit_json(msg=job_dict.get("Message"), storage_status=job_dict, failed=True)
             else:
                 job_resp = self.idrac.invoke_request(job_uri, 'GET')
@@ -656,6 +665,10 @@ class StorageCreate(StorageValidation):
         available_disk = set()
         media_type_supported_disk = set()
         protocol_supported_disk = set()
+        raid_reset_config_value = self.module_ext_params.get('raid_reset_config')
+        raid_status_list = ["Ready", "NonRAID"]
+        if raid_reset_config_value == "true":
+            raid_status_list.append("Online")
         for key, value in disk_dict.items():
             if each_volume.get('media_type') and value.get('MediaType') == each_volume.get('media_type'):
                 media_type_supported_disk.add(key)
@@ -665,7 +678,7 @@ class StorageCreate(StorageValidation):
             if status == "OK":
                 healthy_disk.add(key)
             raid_status = value.get('Oem', {}).get('Dell', {}).get('DellPhysicalDisk', {}).get('RaidStatus', {})
-            if raid_status in ["Ready", "NonRAID"]:
+            if raid_status in raid_status_list:
                 available_disk.add(key)
         return self.perform_intersection_on_disk(each_volume, healthy_disk, available_disk,
                                                  media_type_supported_disk, protocol_supported_disk)
@@ -721,7 +734,6 @@ class StorageCreate(StorageValidation):
 
     def validate_enough_drives_available(self, each_volume):
         controller_id = self.module_ext_params.get('controller_id')
-        raid_reset_config = self.module_ext_params.get('raid_reset_config')
         required_pd = each_volume['span_depth'] * each_volume['span_length']
         drives_available = each_volume['drives']['id']
         dedicated_hot_spare_required = int(each_volume['number_dedicated_hot_spare'])
@@ -732,15 +744,6 @@ class StorageCreate(StorageValidation):
                 msg, failed = NOT_ENOUGH_DRIVES.format(controller_id=controller_id), True
             else:
                 msg, changed = CHANGES_NOT_FOUND, False
-                if raid_reset_config == 'true':
-                    existing_pd_list = list(self.idrac_data["Controllers"][self.controller_id]["Drives"].keys())
-                    drives_passed_input = each_volume['drives']['id_backup']
-                    drives_needed = set(drives_passed_input).intersection(set(existing_pd_list))
-                    if self.module.params.get('volumes') is not None and \
-                       required_pd > len(drives_needed) or dedicated_hot_spare_required != dedicated_hot_spare_available:
-                        msg, failed = NOT_ENOUGH_DRIVES.format(controller_id=controller_id), True
-                    else:
-                        msg, changed = CHANGES_FOUND, True
             self.module.exit_json(msg=msg, changed=changed, failed=failed)
 
     def validate(self):
@@ -937,8 +940,7 @@ def main():
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (ImportError, ValueError, RuntimeError, SSLValidationError,
-            ConnectionError, KeyError, TypeError, IndexError) as err:
+    except (SSLValidationError, ConnectionError, TypeError, ValueError, OSError) as err:
         module.exit_json(msg=str(err), failed=True)
 
 
