@@ -67,6 +67,7 @@ VIRTUAL_DISK_FIRST = 'Disk.Virtual.0:RAID.SL.5-1'
 VIRTUAL_DISK_SECOND = 'Disk.Virtual.1:RAID.SL.5-1'
 ALL_STORAGE_DATA_METHOD = "StorageData.all_storage_data"
 FETCH_STORAGE_DATA_METHOD = "StorageData.fetch_storage_data"
+FILTER_DISK = 'StorageCreate.filter_disk'
 DATA_XML = '<Data></Data>'
 REDFISH = "/redfish/v1"
 API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
@@ -479,7 +480,7 @@ class TestStorageData(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD,
                      return_value=self.storage_data)
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version",
-                     return_value="3.00.00.00")
+                     return_value="3.20.00")
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
         idr_obj = self.module.StorageData(idrac_connection_storage_volume_mock, f_module)
         storage_info = idr_obj.fetch_storage_data()
@@ -541,7 +542,7 @@ class TestStorageView(TestStorageData):
         data_when_invlid_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_invlid_volume_id_passed)
-        idrac_default_args.update({"volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
+        idrac_default_args.update({"volume_id": VIRTUAL_DISK_FIRST})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
@@ -551,7 +552,7 @@ class TestStorageView(TestStorageData):
         data_when_controller_id_and_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_controller_id_and_volume_id_passed)
-        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FOURTH, "volume_id": VIRTUAL_DISK_FIRST})
         out = idr_obj.execute()
         assert out == {"Message": data_when_controller_id_and_volume_id_passed, "Status": SUCCESS_STATUS}
 
@@ -559,7 +560,7 @@ class TestStorageView(TestStorageData):
         data_when_controller_id_and_volume_id_passed = deepcopy(TestStorageData.storage_data_expected)
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_controller_id_and_volume_id_passed)
-        idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST, "volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
+        idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST, "volume_id": VIRTUAL_DISK_FIRST})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
@@ -569,7 +570,7 @@ class TestStorageView(TestStorageData):
         mocker.patch(MODULE_PATH + FETCH_STORAGE_DATA_METHOD,
                      return_value=data_when_volume_id_passed)
         del idrac_default_args["controller_id"]
-        idrac_default_args.update({"volume_id": "Disk.Virtual.0:RAID.SL.5-1"})
+        idrac_default_args.update({"volume_id": VIRTUAL_DISK_FIRST})
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
         assert exc.value.args[0] == VIEW_OPERATION_FAILED
@@ -968,7 +969,7 @@ class TestStorageCreate(TestStorageBase):
         idrac_data = {'Controllers': {CONTROLLER_ID_FIRST: {'Drives': drive_resp}}}
         # Scenario 1: When iDRAC has firmware version equal to 3.00.00.00
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=idrac_data)
-        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="3.00.00.00")
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="3.05.00")
         volume = {'media_type': 'HDD', 'protocol': 'SAS'}
         idrac_default_args.update({"controller_id": CONTROLLER_ID_FIRST})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
@@ -1010,7 +1011,7 @@ class TestStorageCreate(TestStorageBase):
 
     def test_updating_volume_module_input(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
         mocker.patch(MODULE_PATH + ALL_STORAGE_DATA_METHOD, return_value=TestStorageData.storage_data)
-        mocker.patch(MODULE_PATH + 'StorageCreate.filter_disk', return_value=[1, 2, 3, 4, 5])
+        mocker.patch(MODULE_PATH + FILTER_DISK, return_value=[1, 2, 3, 4, 5])
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageCreate(idrac_connection_storage_volume_mock, f_module)
         # Scenario 1: When required pd is less than available pd
@@ -1035,7 +1036,7 @@ class TestStorageCreate(TestStorageBase):
         assert exc.value.args[0] == CHANGES_FOUND
 
         # Scenario 3: When required pd is greater than available pd
-        mocker.patch(MODULE_PATH + 'StorageCreate.filter_disk', return_value=[1])
+        mocker.patch(MODULE_PATH + FILTER_DISK, return_value=[1])
         controller_id = 'Qwerty'
         volume = {'volumes': [{'span_depth': 2, 'span_length': 1,
                                'drives': {'id': [1]}, 'number_dedicated_hot_spare': 0}],
@@ -1049,7 +1050,7 @@ class TestStorageCreate(TestStorageBase):
         assert exc.value.args[0] == NOT_ENOUGH_DRIVES.format(controller_id=controller_id)
 
         # Scenario 4: When required pd is greater than available pd with check_mode
-        mocker.patch(MODULE_PATH + 'StorageCreate.filter_disk', return_value=[1])
+        mocker.patch(MODULE_PATH + FILTER_DISK, return_value=[1])
         controller_id = 'Qwerty'
         volume = {'volumes': [{'span_depth': 2, 'span_length': 1,
                                'drives': {'id': [1, 2]}, 'number_dedicated_hot_spare': 0}],
@@ -1153,9 +1154,9 @@ class TestStorageDelete(TestStorageBase):
 
     def test_idrac_storage_volume_main_positive_case(self, idrac_default_args,
                                                      idrac_connection_storage_volume_mock, mocker):
-        def returning_None():
+        def returning_none():
             return None
-        mocker.patch(MODULE_PATH + 'StorageView.execute', return_value=returning_None)
+        mocker.patch(MODULE_PATH + 'StorageView.execute', return_value=returning_none)
         view = 'view'
         idrac_default_args.update({'state': view})
         data = self._run_module(idrac_default_args)
