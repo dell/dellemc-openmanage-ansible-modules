@@ -68,6 +68,7 @@ VIRTUAL_DISK_SECOND = 'Disk.Virtual.1:RAID.SL.5-1'
 ALL_STORAGE_DATA_METHOD = "StorageData.all_storage_data"
 FETCH_STORAGE_DATA_METHOD = "StorageData.fetch_storage_data"
 FILTER_DISK = 'StorageCreate.filter_disk'
+VIEW_EXECUTE = 'StorageView.execute'
 DATA_XML = '<Data></Data>'
 REDFISH = "/redfish/v1"
 API_INVOKE_MOCKER = "iDRACRedfishAPI.invoke_request"
@@ -1156,7 +1157,7 @@ class TestStorageDelete(TestStorageBase):
                                                      idrac_connection_storage_volume_mock, mocker):
         def returning_none():
             return None
-        mocker.patch(MODULE_PATH + 'StorageView.execute', return_value=returning_none)
+        mocker.patch(MODULE_PATH + VIEW_EXECUTE, return_value=returning_none)
         view = 'view'
         idrac_default_args.update({'state': view})
         data = self._run_module(idrac_default_args)
@@ -1169,13 +1170,13 @@ class TestStorageDelete(TestStorageBase):
 
         json_str = to_text(json.dumps({"data": "out"}))
         if exc_type in [HTTPError, SSLValidationError]:
-            mocker.patch(MODULE_PATH + 'StorageView.execute',
+            mocker.patch(MODULE_PATH + VIEW_EXECUTE,
                          side_effect=exc_type('https://testhost.com', 400,
                                               'http error message',
                                               {"accept-type": "application/json"},
                                               StringIO(json_str)))
         else:
-            mocker.patch(MODULE_PATH + 'StorageView.execute',
+            mocker.patch(MODULE_PATH + VIEW_EXECUTE,
                          side_effect=exc_type('test'))
         result = self._run_module(idrac_default_args)
         if exc_type == URLError:
