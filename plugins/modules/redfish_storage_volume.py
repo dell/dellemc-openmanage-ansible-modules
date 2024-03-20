@@ -404,6 +404,8 @@ CONTROLLER_NOT_EXIST_ERROR = "Specified Controller {controller_id} does not exis
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The parameter job_wait_timeout value cannot be negative or zero."
 SYSTEM_ID = "System.Embedded.1"
 GET_IDRAC_FIRMWARE_VER_URI = "/redfish/v1/Managers/iDRAC.Embedded.1?$select=FirmwareVersion"
+ODATA_ID = "@odata.id"
+TARGET_OUT_OF_BAND = "Target out-of-band controller does not support storage feature using Redfish API."
 volume_type_map = {"NonRedundant": "RAID0",
                    "Mirrored": "RAID1",
                    "StripedWithParity": "RAID5",
@@ -417,19 +419,19 @@ def fetch_storage_resource(module, session_obj):
         system_resp = session_obj.invoke_request("GET", system_uri)
         system_members = system_resp.json_data.get("Members")
         if system_members:
-            system_id_res = system_members[0]["@odata.id"]
-            SYSTEM_ID = system_id_res.split('/')[-1]
+            system_id_res = system_members[0][ODATA_ID]
+            _SYSTEM_ID = system_id_res.split('/')[-1]
             system_id_res_resp = session_obj.invoke_request("GET", system_id_res)
             system_id_res_data = system_id_res_resp.json_data.get("Storage")
             if system_id_res_data:
-                storage_collection_map.update({"storage_base_uri": system_id_res_data["@odata.id"]})
+                storage_collection_map.update({"storage_base_uri": system_id_res_data[ODATA_ID]})
             else:
-                module.fail_json(msg="Target out-of-band controller does not support storage feature using Redfish API.")
+                module.fail_json(msg=TARGET_OUT_OF_BAND)
         else:
-            module.fail_json(msg="Target out-of-band controller does not support storage feature using Redfish API.")
+            module.fail_json(msg=TARGET_OUT_OF_BAND)
     except HTTPError as err:
         if err.code in [404, 405]:
-            module.fail_json(msg="Target out-of-band controller does not support storage feature using Redfish API.",
+            module.fail_json(msg=TARGET_OUT_OF_BAND,
                              error_info=json.load(err))
         raise err
     except (URLError, SSLValidationError, ConnectionError, TypeError, ValueError) as err:
@@ -451,8 +453,8 @@ def volume_payload(module, greater_version):
         capacity_bytes = int(capacity_bytes)
     if drives:
         storage_base_uri = storage_collection_map["storage_base_uri"]
-        physical_disks = [{"@odata.id": DRIVES_URI.format(storage_base_uri=storage_base_uri,
-                                                          driver_id=drive_id)} for drive_id in drives]
+        physical_disks = [{ODATA_ID: DRIVES_URI.format(storage_base_uri=storage_base_uri,
+                           driver_id=drive_id)} for drive_id in drives]
     raid_mapper = {
         "Name": params.get("name"),
         "BlockSizeBytes": params.get("block_size_bytes"),
@@ -583,60 +585,86 @@ def check_mode_validation(module, session_obj, action, uri, greater_version):
     if name is None and volume_id is None and module.check_mode:
         module.exit_json(msg=CHANGES_FOUND, changed=True)
     if action == "create" and name is not None:
-        volume_resp = session_obj.invoke_request("GET", uri)
-        volume_resp_data = volume_resp.json_data
-        if volume_resp_data.get("Members@odata.count") == 0 and module.check_mode:
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        elif 0 < volume_resp_data.get("Members@odata.count"):
-            for mem in volume_resp_data.get("Members"):
-                mem_resp = session_obj.invoke_request("GET", mem["@odata.id"])
-                if mem_resp.json_data["Name"] == name:
-                    volume_id = mem_resp.json_data["Id"]
-                    break
-        if name is not None and module.check_mode and volume_id is None:
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
+        volume_id = _create_name(module, session_obj, uri, name)
     if volume_id is not None:
-        resp = session_obj.invoke_request("GET", SETTING_VOLUME_ID_URI.format(
-            storage_base_uri=storage_collection_map["storage_base_uri"],
-            volume_id=volume_id))
-        resp_data = resp.json_data
-        if greater_version:
-            exist_value = {"Name": resp_data["Name"], "BlockSizeBytes": resp_data["BlockSizeBytes"],
-                           "CapacityBytes": resp_data["CapacityBytes"], "Encrypted": resp_data["Encrypted"],
-                           "EncryptionTypes": resp_data["EncryptionTypes"][0],
-                           "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "RAIDType": resp_data["RAIDType"]}
-        else:
-            exist_value = {"Name": resp_data["Name"], "BlockSizeBytes": resp_data["BlockSizeBytes"],
-                           "CapacityBytes": resp_data["CapacityBytes"], "Encrypted": resp_data["Encrypted"],
-                           "EncryptionTypes": resp_data["EncryptionTypes"][0],
-                           "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "VolumeType": resp_data["VolumeType"]}
-        exit_value_filter = dict([(k, v) for k, v in exist_value.items() if v is not None])
-        cp_exist_value = copy.deepcopy(exit_value_filter)
-        if greater_version:
-            req_value = {"Name": name, "BlockSizeBytes": block_size_bytes,
-                         "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
-                         "RAIDType": raid_type, "EncryptionTypes": encryption_types}
-        else:
-            req_value = {"Name": name, "BlockSizeBytes": block_size_bytes,
-                         "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
-                         "VolumeType": volume_type, "EncryptionTypes": encryption_types}
-        if capacity_bytes is not None:
-            req_value["CapacityBytes"] = int(capacity_bytes)
-        req_value_filter = dict([(k, v) for k, v in req_value.items() if v is not None])
-        cp_exist_value.update(req_value_filter)
-        exist_drive, req_drive = [], []
-        if resp_data["Links"]:
-            exist_drive = [disk["@odata.id"].split("/")[-1] for disk in resp_data["Links"]["Drives"]]
-        if drives is not None:
-            req_drive = sorted(drives)
-        diff_changes = [bool(set(exit_value_filter.items()) ^ set(cp_exist_value.items())) or
-                        bool(set(exist_drive) ^ set(req_drive))]
-        if module.check_mode and any(diff_changes) is True:
-            module.exit_json(msg=CHANGES_FOUND, changed=True)
-        elif (module.check_mode and any(diff_changes) is False) or \
-                (not module.check_mode and any(diff_changes) is False):
-            module.exit_json(msg=NO_CHANGES_FOUND)
+        _volume_id_check_mode(module, session_obj, greater_version, volume_id,
+                              name, block_size_bytes, capacity_bytes, optimum_io_size_bytes,
+                              encryption_types, encrypted, volume_type, raid_type, drives)
     return None
+
+
+def _volume_id_check_mode(module, session_obj, greater_version, volume_id, name,
+                          block_size_bytes, capacity_bytes, optimum_io_size_bytes,
+                          encryption_types, encrypted, volume_type, raid_type, drives):
+    resp = session_obj.invoke_request("GET", SETTING_VOLUME_ID_URI.format(
+        storage_base_uri=storage_collection_map["storage_base_uri"],
+        volume_id=volume_id))
+    resp_data = resp.json_data
+    exist_value = _get_payload_for_version(greater_version, resp_data)
+    exit_value_filter = dict(
+        [(k, v) for k, v in exist_value.items() if v is not None])
+    cp_exist_value = copy.deepcopy(exit_value_filter)
+    req_value = get_request_value(greater_version, name, block_size_bytes, optimum_io_size_bytes, encryption_types, encrypted, volume_type, raid_type)
+    if capacity_bytes is not None:
+        req_value["CapacityBytes"] = int(capacity_bytes)
+    req_value_filter = dict([(k, v)
+                            for k, v in req_value.items() if v is not None])
+    cp_exist_value.update(req_value_filter)
+    exist_drive, req_drive = [], []
+    if resp_data["Links"]:
+        exist_drive = [
+            disk[ODATA_ID].split("/")[-1] for disk in resp_data["Links"]["Drives"]]
+    if drives is not None:
+        req_drive = sorted(drives)
+    diff_changes = [bool(set(exit_value_filter.items()) ^ set(cp_exist_value.items())) or
+                    bool(set(exist_drive) ^ set(req_drive))]
+    if module.check_mode and any(diff_changes) is True:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    elif (module.check_mode and any(diff_changes) is False) or \
+            (not module.check_mode and any(diff_changes) is False):
+        module.exit_json(msg=NO_CHANGES_FOUND)
+
+
+def get_request_value(greater_version, name, block_size_bytes, optimum_io_size_bytes, encryption_types, encrypted, volume_type, raid_type):
+    if greater_version:
+        req_value = {"Name": name, "BlockSizeBytes": block_size_bytes,
+                     "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
+                     "RAIDType": raid_type, "EncryptionTypes": encryption_types}
+    else:
+        req_value = {"Name": name, "BlockSizeBytes": block_size_bytes,
+                     "Encrypted": encrypted, "OptimumIOSizeBytes": optimum_io_size_bytes,
+                     "VolumeType": volume_type, "EncryptionTypes": encryption_types}
+    return req_value
+
+
+def _get_payload_for_version(greater_version, resp_data):
+    if greater_version:
+        exist_value = {"Name": resp_data["Name"], "BlockSizeBytes": resp_data["BlockSizeBytes"],
+                       "CapacityBytes": resp_data["CapacityBytes"], "Encrypted": resp_data["Encrypted"],
+                       "EncryptionTypes": resp_data["EncryptionTypes"][0],
+                       "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "RAIDType": resp_data["RAIDType"]}
+    else:
+        exist_value = {"Name": resp_data["Name"], "BlockSizeBytes": resp_data["BlockSizeBytes"],
+                       "CapacityBytes": resp_data["CapacityBytes"], "Encrypted": resp_data["Encrypted"],
+                       "EncryptionTypes": resp_data["EncryptionTypes"][0],
+                       "OptimumIOSizeBytes": resp_data["OptimumIOSizeBytes"], "VolumeType": resp_data["VolumeType"]}
+    return exist_value
+
+
+def _create_name(module, session_obj, uri, name):
+    volume_resp = session_obj.invoke_request("GET", uri)
+    volume_resp_data = volume_resp.json_data
+    if volume_resp_data.get("Members@odata.count") == 0 and module.check_mode:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    elif 0 < volume_resp_data.get("Members@odata.count"):
+        for mem in volume_resp_data.get("Members"):
+            mem_resp = session_obj.invoke_request("GET", mem[ODATA_ID])
+            if mem_resp.json_data["Name"] == name:
+                volume_id = mem_resp.json_data["Id"]
+                break
+    if name is not None and module.check_mode and volume_id is None:
+        module.exit_json(msg=CHANGES_FOUND, changed=True)
+    return volume_id
 
 
 def check_raid_type_supported(module, session_obj):
