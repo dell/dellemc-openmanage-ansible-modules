@@ -139,7 +139,6 @@ notes:
     - Run this module from a system that has direct access to Integrated Dell Remote Access Controller.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
-    - The module doesn't give controller battery details in C(view) operation for iDRAC8.
     - This module does not display the controller battery details for the C(view) operation of the storage in iDRAC8.
 '''
 
@@ -748,20 +747,28 @@ class StorageCreate(StorageValidation):
 
 
 class StorageDelete(StorageValidation):
-    def validate_volume_exists_in_server(self, name_list):
-        changed, failed, flag_update = False, False, False
-        for each_volume in self.module.params.get('volumes'):
-            name = each_volume.get('name')
-            if name and name not in name_list:
-                if not self.module.check_mode:
-                    msg, failed, flag_update = VOLUME_NOT_FOUND, True, True
-                else:
-                    msg, changed, flag_update = CHANGES_NOT_FOUND, False, True
+    def validate_volume_exists_in_server(self, volume_name_input_list):
+        changed, failed = False, False
+        single_volume_name_matched, break_flag = False, False
+        for each_name in volume_name_input_list:
+            for cntrl_id, detail in self.idrac_data.get('Controllers').items():
+                for vol_id, volume in detail.get('Volumes').items():
+                    if each_name == volume.get('Name'):
+                        single_volume_name_matched = True
+                        break_flag = True
+                        break
+                if break_flag:
+                    break
+            if break_flag:
                 break
-            elif self.module.check_mode:
-                msg, changed, flag_update = CHANGES_FOUND, True, True
-        if flag_update:
-            self.module.exit_json(msg=msg, failed=failed, changed=changed)
+        if single_volume_name_matched:
+            if self.module.check_mode:
+                msg, changed = CHANGES_FOUND, True
+            else:
+                return
+        else:
+            msg, failed = VOLUME_NOT_FOUND, True
+        self.module.exit_json(msg=msg, failed=failed, changed=changed)
 
     def validate(self):
         #  Validate upper layer input
@@ -782,19 +789,23 @@ class StorageDelete(StorageValidation):
         parent_payload = parent_payload.format(raid_payload)
         return parent_payload
 
+    def get_vd_id_based_on_controller_id_vd_name(self, user_volume_input_list):
+        cntrl_id_vd_id_mapping = {}
+        for cntrl_id, detail in self.idrac_data.get('Controllers').items():
+            for vd_id, volume in detail.get('Volumes').items():
+                if volume.get('Name') in user_volume_input_list:
+                    if cntrl_id not in cntrl_id_vd_id_mapping:
+                        cntrl_id_vd_id_mapping[cntrl_id] = [vd_id]
+                    else:
+                        cntrl_id_vd_id_mapping[cntrl_id].append(vd_id)
+        return cntrl_id_vd_id_mapping
+
     def execute(self):
         self.validate()
         job_dict = {}
-        cntrl_id_vd_id_mapping = {}
-        volume_name_list = []
-        for cntrl_id, detail in self.idrac_data.get('Controllers').items():
-            for vol_id, volume in detail.get('Volumes').items():
-                if cntrl_id not in cntrl_id_vd_id_mapping:
-                    cntrl_id_vd_id_mapping[cntrl_id] = [vol_id]
-                else:
-                    cntrl_id_vd_id_mapping[cntrl_id].append(vol_id)
-                volume_name_list.append(volume.get('Name'))
-        self.validate_volume_exists_in_server(volume_name_list)
+        volume_name_input_list = [each.get('name') for each in self.module.params.get('volumes')]
+        self.validate_volume_exists_in_server(set(volume_name_input_list))
+        cntrl_id_vd_id_mapping = self.get_vd_id_based_on_controller_id_vd_name(set(volume_name_input_list))
         payload = self.construct_payload_for_delete(cntrl_id_vd_id_mapping)
         resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
         job_dict = self.wait_for_job_completion(resp)

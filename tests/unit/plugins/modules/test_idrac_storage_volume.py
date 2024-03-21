@@ -1126,7 +1126,7 @@ class TestStorageDelete(TestStorageBase):
         idr_obj.module.params.update(volume)
         with pytest.raises(Exception) as exc:
             idr_obj.execute()
-        assert exc.value.args[0] == CHANGES_NOT_FOUND
+        assert exc.value.args[0] == VOLUME_NOT_FOUND
 
         # Scenario 3: When Existing volume is passed as input
         volume = {'volumes': [{'name': 'Volume Name 1', 'span_depth': 1, 'span_length': 1}]}
