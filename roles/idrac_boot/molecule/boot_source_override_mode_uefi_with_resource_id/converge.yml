@@ -8,6 +8,7 @@
     password: "{{ lookup('ansible.builtin.env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     system_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Systems"
+    job_status_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
     lc_uri: "https://{{ hostname }}:{{ https_port }}/redfish/v1/Dell/Managers/iDRAC.Embedded.1/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
     retry_count: 60
     delay_count: 30
@@ -54,6 +55,7 @@
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
       no_log: true
+      tags: molecule-idempotence-notest
 
     - name: Pre-requisite - Making sure boot mode is legacy
       check_mode: false
@@ -71,7 +73,6 @@
         body: {}
       register: lc_status_result
       check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
       until: lc_status_result.json.LCStatus == "Ready"
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
@@ -91,11 +92,12 @@
         method: GET
       register: job_status_result
       check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
-      until: job_status_result.json.LCStatus == "Ready"
+      when: not ansible_check_mode # noqa: no-handler
+      until: job_status_result.json.JobState == "Completed"
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
       no_log: true
+      tags: molecule-idempotence-notest
 
     - name: Checking for LCStatus after performing operation
       ansible.builtin.uri:
@@ -110,6 +112,7 @@
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
       no_log: true
+      tags: molecule-idempotence-notest
 
     - name: Asserting TC-115430 in check mode
       ansible.builtin.assert:
@@ -119,7 +122,7 @@
 
     - name: Asserting TC-115430 in normal mode
       ansible.builtin.assert:
-        that: idrac_boot_out.msg == "The boot settings job is triggered successfully."
+        that: idrac_boot_out.msg == "Successfully updated the boot settings."
       when: not ansible_check_mode and idrac_boot_out.changed
 
     - name: Asserting TC-115430 in idempotence mode
