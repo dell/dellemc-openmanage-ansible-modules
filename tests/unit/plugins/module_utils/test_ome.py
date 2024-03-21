@@ -47,7 +47,7 @@ class TestOMERest(object):
 
     @pytest.fixture
     def module_params(self):
-        module_parameters = {'hostname': '192.168.0.1', 'username': 'username',
+        module_parameters = {'hostname': 'xxx.xxx.x.x', 'username': 'username',
                              'password': 'password', "port": 443}
         return module_parameters
 
@@ -150,7 +150,7 @@ class TestOMERest(object):
     ])
     def test_build_url(self, query_param, mocker, module_params):
         """builds complete url"""
-        base_uri = 'https://192.168.0.1:443/api'
+        base_uri = 'https://xxx.xxx.x.x:443/api'
         path = "AccountService/Accounts"
         mocker.patch(MODULE_UTIL_PATH + 'ome.RestOME._get_base_url',
                      return_value=base_uri)

@@ -366,11 +366,11 @@ class TestOmeDeviceMgmtNetwork(FakeAnsibleModule):
         {"mparams": {"device_id": 123}, "success": True,
          "json_data": {"Type": 2000, "Id": 123, "Identifier": "ABCD123"},
          "res": {"Type": 2000, "Id": 123, "Identifier": "ABCD123"},
-         "diff": {"IPV4": "1.2.3.4"}},
+         "diff": {"IPV4": "xxx.xxx.x.x"}},
         {"mparams": {"device_id": 123}, "success": True,
          "json_data": {"Type": 4000, "Id": 123, "Identifier": "ABCD123"},
          "res": {"Type": 4000, "Id": 123, "Identifier": "ABCD123"},
-         "diff": {"IPV4": "1.2.3.4"}},
+         "diff": {"IPV4": "xxx.xxx.x.x"}},
     ])
     def test_get_network_payload(
             self, params, ome_connection_mock_for_device_network, ome_response_mock, mocker):
