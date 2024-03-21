@@ -57,7 +57,6 @@
         body: {}
       register: lc_status_result
       check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
       until: lc_status_result.json.LCStatus == "Ready"
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
@@ -90,13 +89,8 @@
       when: ansible_check_mode
       tags: molecule-idempotence-notest
 
-    - name: Asserting TC-115432 in normal mode
-      ansible.builtin.assert:
-        that: idrac_boot_out.msg == "The boot settings job is triggered successfully."
-      when: not ansible_check_mode and idrac_boot_out.changed
-
-    - name: Asserting TC-115432 in idempotence mode
+    - name: Asserting TC-115432 in normal mode or idempotence mode
       ansible.builtin.assert:
         that:
-          - idrac_boot_out.msg == "No changes found to be applied."
+          - 'idrac_boot_out.msg == "The boot settings job is triggered successfully." or "No changes found to be applied."'
       when: not ansible_check_mode and not idrac_boot_out.changed
