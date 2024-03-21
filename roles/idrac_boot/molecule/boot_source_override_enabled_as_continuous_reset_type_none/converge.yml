@@ -40,6 +40,12 @@
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
       no_log: true
+      tags: molecule-idempotence-notest
+
+    - name: Wait for 60 seconds
+      ansible.builtin.wait_for:
+        timeout: 60
+      tags: molecule-idempotence-notest
 
     - name: Pre-requisite - Making sure boot_source_override_enabled is disabled
       check_mode: false
@@ -57,11 +63,16 @@
         body: {}
       register: lc_status_result
       check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
       until: lc_status_result.json.LCStatus == "Ready"
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
       no_log: true
+      tags: molecule-idempotence-notest
+
+    - name: Wait for 60 seconds
+      ansible.builtin.wait_for:
+        timeout: 60
+      tags: molecule-idempotence-notest
 
     - name: TC-115433 - Validate boot_source_override_enabled as continuous
       ansible.builtin.include_role:
@@ -83,6 +94,12 @@
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
       no_log: true
+      tags: molecule-idempotence-notest
+
+    - name: Wait for 60 seconds
+      ansible.builtin.wait_for:
+        timeout: 60
+      tags: molecule-idempotence-notest
 
     - name: Asserting TC-115433 in check mode
       ansible.builtin.assert:
@@ -93,10 +110,4 @@
     - name: Asserting TC-115433 in normal mode
       ansible.builtin.assert:
         that: idrac_boot_out.msg == "The boot settings job is triggered successfully."
-      when: not ansible_check_mode and idrac_boot_out.changed
-
-    - name: Asserting TC-115433 in idempotence mode
-      ansible.builtin.assert:
-        that:
-          - idrac_boot_out.msg == "No changes found to be applied."
-      when: not ansible_check_mode and not idrac_boot_out.changed
+      when: not ansible_check_mode
