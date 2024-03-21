@@ -585,7 +585,7 @@ def check_mode_validation(module, session_obj, action, uri, greater_version):
     if name is None and volume_id is None and module.check_mode:
         module.exit_json(msg=CHANGES_FOUND, changed=True)
     if action == "create" and name is not None:
-        volume_id = _create_name(module, session_obj, uri, name)
+        volume_id = _create_name(module, session_obj, uri, name, volume_id)
     if volume_id is not None:
         _volume_id_check_mode(module, session_obj, greater_version, volume_id,
                               name, block_size_bytes, capacity_bytes, optimum_io_size_bytes,
@@ -651,7 +651,7 @@ def _get_payload_for_version(greater_version, resp_data):
     return exist_value
 
 
-def _create_name(module, session_obj, uri, name):
+def _create_name(module, session_obj, uri, name, volume_id):
     volume_resp = session_obj.invoke_request("GET", uri)
     volume_resp_data = volume_resp.json_data
     if volume_resp_data.get("Members@odata.count") == 0 and module.check_mode:
