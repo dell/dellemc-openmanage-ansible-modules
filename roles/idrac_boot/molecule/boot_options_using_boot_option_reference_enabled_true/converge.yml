@@ -55,6 +55,11 @@
       delay: "{{ delay_count }}"
       no_log: true
 
+    - name: Waiting for the iDRAC to be available
+      ansible.builtin.wait_for:
+        timeout: 60
+      tags: molecule-idempotence-notest
+
     - name: Pre-requisite - Making sure enabled is false on first boot_option_reference
       check_mode: false
       ansible.builtin.import_role:
@@ -64,20 +69,6 @@
           - boot_option_reference: "{{ data | default('') }}"
             enabled: false
       tags: molecule-idempotence-notest
-
-    - name: Checking for LCStatus after running pre-requisite
-      ansible.builtin.uri:
-        <<: *uri_input
-        url: "{{ lc_uri }}"
-        method: POST
-        body: {}
-      register: lc_status_result
-      check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
-      until: lc_status_result.json.LCStatus == "Ready"
-      retries: "{{ retry_count }}"
-      delay: "{{ delay_count }}"
-      no_log: true
 
     - name: TC-115424 - Validate boot_options using boot_option_reference and default enabled
       ansible.builtin.include_role:
@@ -100,6 +91,11 @@
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
       no_log: true
+
+    - name: Waiting for the iDRAC to be available
+      ansible.builtin.wait_for:
+        timeout: 60
+      tags: molecule-idempotence-notest
 
     - name: Asserting TC-115424 in check mode
       ansible.builtin.assert:

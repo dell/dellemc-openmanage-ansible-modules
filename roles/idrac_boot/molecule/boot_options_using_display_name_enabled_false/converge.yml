@@ -73,7 +73,6 @@
         body: {}
       register: lc_status_result
       check_mode: false
-      when: idrac_boot_out.changed # noqa: no-handler
       until: lc_status_result.json.LCStatus == "Ready"
       retries: "{{ retry_count }}"
       delay: "{{ delay_count }}"
