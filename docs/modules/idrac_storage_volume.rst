@@ -176,6 +176,7 @@ Notes
    - This module supports both IPv4 and IPv6 address for \ :emphasis:`idrac\_ip`\ .
    - This module supports \ :literal:`check\_mode`\ .
    - The module doesn't give controller battery details in \ :literal:`view`\  operation for iDRAC8.
+   - This module does not display the controller battery details for the \ :literal:`view`\  operation of the storage in iDRAC8.
 
 
 
@@ -304,6 +305,7 @@ Status
 Authors
 ~~~~~~~
 
+- Felix Stephen (@felixs88)
 - Kritika Bhateja (@Kritika-Bhateja-03)
 - Abhishek Sinha(@ABHISHEK-SINHA10)
 
