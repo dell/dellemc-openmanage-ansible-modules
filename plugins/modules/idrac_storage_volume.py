@@ -132,6 +132,7 @@ options:
 requirements:
   - "python >= 3.9.6"
 author:
+  - "Felix Stephen (@felixs88)"
   - "Kritika Bhateja (@Kritika-Bhateja-03)"
   - "Abhishek Sinha(@ABHISHEK-SINHA10)"
 notes:
@@ -139,6 +140,7 @@ notes:
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
     - The module doesn't give controller battery details in C(view) operation for iDRAC8.
+    - This module does not display the controller battery details for the C(view) operation of the storage in iDRAC8.
 '''
 
 EXAMPLES = r'''
@@ -383,7 +385,7 @@ class StorageBase:
                 disk_payload = disk_payload + scp
         return disk_payload
 
-    def construct_volume_payload(self, vd_id, volume, name_id_mapping):
+    def construct_volume_payload(self, vd_id, volume):
 
         """
         Constructs a payload dictionary for the given key mappings.
@@ -391,7 +393,7 @@ class StorageBase:
         Returns:
             dict: The constructed payload dictionary.
         """
-        key_mapping_create: dict = {
+        key_mapping: dict = {
             'raid_init_operation': 'RAIDinitOperation',
             'state': "RAIDaction",
             'disk_cache_policy': "DiskCachePolicy",
@@ -404,20 +406,13 @@ class StorageBase:
             'name': 'Name',
             'capacity': 'Size',
         }
-        key_mapping_delete: dict = {
-            'state': "RAIDaction"
-        }
         controller_id = self.module_ext_params.get("controller_id")
         state = self.module_ext_params.get("state")
         #  Including state in each_volume as it mapped to RAIDaction
         volume.update({'state': state.capitalize()})
         payload = ''
         attr = {}
-        key_mapping = locals()['key_mapping_' + state]
-        vdfqdd_create = "Disk.Virtual.{0}:{1}".format(vd_id, controller_id)
-        if name := volume.get('name'):
-            vdfqdd_delete = name_id_mapping.get(name)
-        vdfqdd = locals()['vdfqdd_' + state]
+        vdfqdd = "Disk.Virtual.{0}:{1}".format(vd_id, controller_id)
         for key in volume:
             if volume[key] and key in key_mapping:
                 attr[key_mapping[key]] = volume[key]
@@ -425,38 +420,17 @@ class StorageBase:
         payload = xml_data_conversion(attr, vdfqdd, disk_paylod)
         return payload
 
-    def special_handling_for_delete(self, each_volume, deepcopy_name_id_mapping):
-        flag_break, vd_name_id_map, index_to_remove = False, {}, -1
-        for each_dict in deepcopy_name_id_mapping:
-            for key, value in each_dict.items():
-                if key == each_volume.get('name'):
-                    vd_name_id_map[key] = value
-                    flag_break = True
-                    index_to_remove = deepcopy_name_id_mapping.index(each_dict)
-                    break
-            if flag_break:
-                break
-        return index_to_remove, vd_name_id_map
-
     def constuct_payload(self, name_id_mapping):
         number_of_existing_vd = len(name_id_mapping)
         volume_payload, attr = '', {}
-        state = self.module_ext_params.get("state")
         raid_reset_config_value = self.module_ext_params.get('raid_reset_config')
         raid_key_mapping = {'raid_reset_config': 'RAIDresetConfig'}
         if raid_reset_config_value == 'true':
             raid_reset_config_value = 'True'
             attr = {raid_key_mapping['raid_reset_config']: raid_reset_config_value}
-        deepcopy_name_id_mapping = deepcopy(name_id_mapping)
         for each_volume in self.module_ext_params.get('volumes'):
-            if state == 'delete':
-                index_to_remove, vd_name_id_map = self.special_handling_for_delete(each_volume,
-                                                                                   deepcopy_name_id_mapping)
-                if index_to_remove >= 0:
-                    deepcopy_name_id_mapping.pop(index_to_remove)
-                name_id_mapping = vd_name_id_map
             volume_payload = volume_payload + self.construct_volume_payload(number_of_existing_vd,
-                                                                            each_volume, name_id_mapping)
+                                                                            each_volume)
             number_of_existing_vd = number_of_existing_vd + 1
         raid_payload = xml_data_conversion(attr, self.module_ext_params.get('controller_id'), volume_payload)
         return raid_payload
@@ -797,36 +771,31 @@ class StorageDelete(StorageValidation):
         if (not (volumes := self.module.params.get('volumes'))) or (volumes and not all("name" in each for each in volumes)):
             self.module.exit_json(msg=VOLUME_NAME_REQUIRED_FOR_DELETE, failed=True)
 
-    def construct_payload_for_delete(self, cntrl_id_volume_name_mapping, volume_name_volume_id_mapping_list):
+    def construct_payload_for_delete(self, cntrl_id_vd_id_mapping):
         parent_payload = """<SystemConfiguration>{0}</SystemConfiguration>"""
-        payload = ""
-        volume_name_input = [each_dict.get('name') for each_dict in self.module.params.get('volumes')]
-        for each_controller, value in cntrl_id_volume_name_mapping.items():
-            value_updated = [each_dict for each_dict in value if each_dict.get('name') in volume_name_input]
-            if value_updated:
-                self.module_ext_params['controller_id'] = each_controller
-                self.module_ext_params['volumes'] = value_updated
-                payload = payload + self.constuct_payload(volume_name_volume_id_mapping_list)
-        parent_payload = parent_payload.format(payload)
+        raid_payload = ""
+        for each_controller, value in cntrl_id_vd_id_mapping.items():
+            volume_payload = ""
+            for each_value in value:
+                volume_payload += xml_data_conversion({'RAIDaction': 'Delete'}, each_value)
+            raid_payload += xml_data_conversion({}, each_controller, volume_payload)
+        parent_payload = parent_payload.format(raid_payload)
         return parent_payload
 
     def execute(self):
         self.validate()
         job_dict = {}
-        volume_name_volume_id_mapping_list = []
+        cntrl_id_vd_id_mapping = {}
         volume_name_list = []
-        cntrl_id_volume_name_mapping = {}
         for cntrl_id, detail in self.idrac_data.get('Controllers').items():
             for vol_id, volume in detail.get('Volumes').items():
-                volume_name_volume_id_mapping_list.append({volume.get('Name'): vol_id})
-                name_vol_dict = {'name': volume.get('Name')}
-                if cntrl_id not in cntrl_id_volume_name_mapping:
-                    cntrl_id_volume_name_mapping[cntrl_id] = [name_vol_dict]
+                if cntrl_id not in cntrl_id_vd_id_mapping:
+                    cntrl_id_vd_id_mapping[cntrl_id] = [vol_id]
                 else:
-                    cntrl_id_volume_name_mapping[cntrl_id].append(name_vol_dict)
+                    cntrl_id_vd_id_mapping[cntrl_id].append(vol_id)
                 volume_name_list.append(volume.get('Name'))
         self.validate_volume_exists_in_server(volume_name_list)
-        payload = self.construct_payload_for_delete(cntrl_id_volume_name_mapping, volume_name_volume_id_mapping_list)
+        payload = self.construct_payload_for_delete(cntrl_id_vd_id_mapping)
         resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
         job_dict = self.wait_for_job_completion(resp)
         return job_dict

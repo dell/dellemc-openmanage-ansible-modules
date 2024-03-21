@@ -629,14 +629,7 @@ class TestStorageBase(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
         vd0 = 'Virtual Disk 0'
-        data = idr_obj.construct_volume_payload(1, {}, {vd0: 'Disk ID 1'})
-        assert data == DATA_XML
-
-        # Scenario 1: When state is delete
-        idrac_default_args.update({'state': 'delete'})
-        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
-        idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-        data = idr_obj.construct_volume_payload(1, {'name': vd0}, {vd0: 'Disk ID 1'})
+        data = idr_obj.construct_volume_payload(1, {})
         assert data == DATA_XML
 
     def test_constuct_payload(self, idrac_default_args, idrac_connection_storage_volume_mock, mocker):
