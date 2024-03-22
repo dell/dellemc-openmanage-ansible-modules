@@ -227,6 +227,7 @@ Notes
    - Run this module from a system that has direct access to Redfish APIs.
    - This module supports \ :literal:`check\_mode`\ .
    - This module always reports changes when \ :emphasis:`name`\  and \ :emphasis:`volume\_id`\  are not specified. Either \ :emphasis:`name`\  or \ :emphasis:`volume\_id`\  is required to support \ :literal:`check\_mode`\ .
+   - This module does not support the create operation of RAID6 and RAID60 storage volume on iDRAC8
    - This module supports IPv4 and IPv6 addresses.
 
 
@@ -405,4 +406,5 @@ Authors
 
 - Sajna Shetty(@Sajna-Shetty)
 - Kritika Bhateja(@Kritika-Bhateja-03)
+- Shivam Sharma(@ShivamSh3)
 
