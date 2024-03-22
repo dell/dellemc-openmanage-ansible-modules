@@ -5,7 +5,7 @@
 
   tasks:
     - name: Create single volume.
-      dellemc.openmanage.dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -20,7 +20,7 @@
         - create_single_volume
 
     - name: Create multiple volume.
-      dellemc.openmanage.dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -63,7 +63,7 @@
         - create_multiple_volume
 
     - name: Delete single volume.
-      dellemc.openmanage.dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -76,7 +76,7 @@
         - delete_single_volume
 
     - name: Delete multiple volume.
-      dellemc.openmanage.dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -90,7 +90,7 @@
         - delete_multiple_volume
 
     - name: View specific volume details.
-      dellemc.openmanage.dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"
@@ -103,7 +103,7 @@
         - view_specific_volume
 
     - name: View all volume details.
-      dellemc.openmanage.dellemc_idrac_storage_volume:
+      dellemc.openmanage.idrac_storage_volume:
         idrac_ip: "{{ idrac_ip }}"
         idrac_user: "{{ idrac_user }}"
         idrac_password: "{{ idrac_password }}"

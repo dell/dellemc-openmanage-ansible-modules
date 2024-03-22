@@ -19,6 +19,7 @@ You may obtain a copy of the License at
 - [idrac_bios](modules/idrac_bios.rst)
 - [idrac_boot](modules/idrac_boot.rst)
 - [idrac_certificates](modules/idrac_certificates.rst)
+- [idrac_diagnostics](modules/idrac_diagnostics.rst)
 - [idrac_firmware](modules/idrac_firmware.rst)
 - [idrac_firmware_info](modules/idrac_firmware_info.rst)
 - [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)
@@ -31,6 +32,7 @@ You may obtain a copy of the License at
 - [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)
 - [idrac_reset](modules/idrac_reset.rst)
 - [idrac_server_config_profile](modules/idrac_server_config_profile.rst)
+- [idrac_storage_volume](modules/idrac_storage_volume.rst)
 - [idrac_syslog](modules/idrac_syslog.rst)
 - [idrac_system_info](modules/idrac_system_info.rst)
 - [idrac_timezone_ntp](modules/idrac_timezone_ntp.rst)
@@ -38,6 +40,7 @@ You may obtain a copy of the License at
 - [idrac_user_info](modules/idrac_user_info.rst)
 - [idrac_virtual_media](modules/idrac_virtual_media.rst)
 - [redfish_event_subscription](modules/redfish_event_subscription.rst)
+- [redfish_firmware_rollback](modules/redfish_firmware_rollback.rst)
 - [redfish_firmware](modules/redfish_firmware.rst)
 - [redfish_powerstate](modules/redfish_powerstate.rst)
 - [redfish_storage_volume](modules/redfish_storage_volume.rst)
@@ -101,3 +104,41 @@ You may obtain a copy of the License at
 - [ome_template_network_vlan_info](modules/ome_template_network_vlan_info.rst)
 - [ome_user](modules/ome_user.rst)
 - [ome_user_info](modules/ome_user_info.rst)
+
+| Serial No | Module Name                                                                                                                                                                           | iDRAC8 | iDRAC9 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1         | [dellemc_configure_idrac_eventing](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_configure_idrac_eventing.rst)                     | ✓      | ✓      |
+| 2         | [dellemc_configure_idrac_services](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_configure_idrac_services.rst)                     | ✓      | ✓      |
+| 3         | [dellemc_idrac_lc_attributes](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_idrac_lc_attributes.rst)                               | ✓      | ✓      |
+| 4         | [dellemc_idrac_storage_volume](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_idrac_storage_volume.rst)                             | ✓      | ✓      |
+| 5         | [dellemc_system_lockdown_mode](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_system_lockdown_mode.rst)                             | ✓      | ✓      |
+| 6         | [idrac_attributes](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_attributes.rst)                                                     | ✓      | ✓      |
+| 7         | [idrac_bios](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_bios.rst)                                                                 | ✓      | ✓      |
+| 8         | [idrac_boot](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_boot.rst)                                                                 | ✓      | ✓      |
+| 9         | [idrac_certificates](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_certificates.rst)                                                 | ✕      | ✓      |
+| 10        | [idrac_diagnostics](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_diagnostics.rst "idrac_diagnostics.py")                            | ✕      | ✓      |
+| 11        | [idrac_firmware](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_firmware.rst)                                                         | ✓      | ✓      |
+| 12        | [idrac_firmware_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_firmware_info.rst)                                               | ✓      | ✓      |
+| 13        | [idrac_lifecycle_controller_jobs](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_lifecycle_controller_jobs.rst)                       | ✕      | ✓      |
+| 14        | [idrac_lifecycle_controller_job_status_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_lifecycle_controller_job_status_info.rst) | ✓      | ✓      |
+| 15        | [idrac_lifecycle_controller_logs](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      |
+| 16        | [idrac_lifecycle_controller_status_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_lifecycle_controller_status_info.rst)         | ✓      | ✓      |
+| 17        | [idrac_network_attributes](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_network_attributes.rst)                                     | ✓      | ✓      |
+| 18        | [idrac_network](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_network.rst)                                                           | ✓      | ✓      |
+| 19        | [idrac_network_attributes](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_network_attributes.rst "idrac_network_attributes.py")       | ✓      | ✓      |
+| 20        | [idrac_os_deployment](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_os_deployment.rst)                                               | ✓      | ✓      |
+| 21        | [idrac_redfish_storage_controller](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_redfish_storage_controller.rst)                     | ✕      | ✓      |
+| 22        | [idrac_reset](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_reset.rst)                                                               | ✓      | ✓      |
+| 23        | [idrac_server_config_profile](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_server_config_profile.rst)                               | ✓      | ✓      |
+| 24        | [idrac_storage_volume](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_storage_volume.rst)                                             | ✓      | ✓      |
+| 25        | [idrac_syslog](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_syslog.rst)                                                             | ✓      | ✓      |
+| 26        | [idrac_system_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_system_info.rst)                                                   | ✓      | ✓      |
+| 27        | [idrac_timezone_ntp](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_timezone_ntp.rst)                                                 | ✓      | ✓      |
+| 28        | [idrac_user](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_user.rst)                                                                 | ✓      | ✓      |
+| 29        | [idrac_user_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_user_info.rst)                                                       | ✓      | ✓      |
+| 30        | [idrac_virtual_media](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_virtual_media.rst)                                               | ✓      | ✓      |
+| 31        | [redfish_event_subscription](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_event_subscription.rst)                                 | ✕      | ✓      |
+| 32        | [redfish_firmware](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_firmware.rst)                                                     | ✕      | ✓      |
+| 33        | [redfish_firmware_rollback](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_firmware_rollback.rst "redfish_firmware_rollback.py")    | ✓      | ✓      |
+| 34        | [redfish_powerstate](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_powerstate.rst)                                                 | ✓      | ✓      |
+| 35        | [redfish_storage_volume](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_storage_volume.rst)                                         | ✓      | ✓      |
