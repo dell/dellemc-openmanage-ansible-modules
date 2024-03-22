@@ -127,6 +127,7 @@ requirements:
 author:
   - "Felix Stephen (@felixs88)"
   - "Shivam Sharma (@ShivamSh3)"
+  - "Kritika Bhateja (@Kritika-Bhateja-03)"
 notes:
   - Run this module from a system that has direct access to OpenManage Enterprise Modular.
   - This module supports C(check_mode).
@@ -395,7 +396,7 @@ def ip_address_field(module, field, deploy_options, slot=False):
         if field_value is not None:
             valid = validate_ip_address(module_params.get(val[0]), val[1])
             if valid is False:
-                module.fail_json(msg=IP_FAIL_MSG.format(field_value, val[0]))
+                module.exit_json(msg=IP_FAIL_MSG.format(field_value, val[0]), failed=True)
 
 
 def check_domain_service(module, rest_obj):
@@ -404,7 +405,7 @@ def check_domain_service(module, rest_obj):
     except HTTPError as err:
         err_message = json.load(err)
         if err_message["error"]["@Message.ExtendedInfo"][0]["MessageId"] == "CGEN1006":
-            module.fail_json(msg=DOMAIN_FAIL_MSG)
+            module.exit_json(msg=DOMAIN_FAIL_MSG, failed=True)
 
 
 def get_ip_from_host(hostname):
@@ -431,7 +432,7 @@ def get_chassis_device(module, rest_obj):
             key, value = ("Id", data["DeviceId"])
             break
     else:
-        module.fail_json(msg=FETCH_FAIL_MSG)
+        module.exit_json(msg=FETCH_FAIL_MSG, failed=True)
     return key, value
 
 
@@ -472,9 +473,9 @@ def check_mode_validation(module, deploy_data):
                 else:
                     req_slot_1.update({"VlanId": ""})
                 req_filter_slot = dict([(k, v) for k, v in req_slot_1.items() if v is not None])
-                exist_slot_1 = {"SlotId": exist_filter_slot[0]["SlotId"],
-                                "SlotIPV4Address": exist_filter_slot[0]["SlotIPV4Address"],
-                                "SlotIPV6Address": exist_filter_slot[0]["SlotIPV6Address"]}
+                exist_slot_1 = {"SlotId": exist_filter_slot[0].get("SlotId"),
+                                "SlotIPV4Address": exist_filter_slot[0].get("SlotIPV4Address"),
+                                "SlotIPV6Address": exist_filter_slot[0].get("SlotIPV6Address")}
                 if "VlanId" in exist_filter_slot[0]:
                     exist_slot_1.update({"VlanId": exist_filter_slot[0]["VlanId"]})
                 else:
@@ -487,7 +488,7 @@ def check_mode_validation(module, deploy_data):
             else:
                 invalid_slot.append(each["slot_id"])
         if invalid_slot:
-            module.fail_json(msg=INVALID_SLOT_MSG.format(", ".join(map(str, invalid_slot))))
+            module.exit_json(msg=INVALID_SLOT_MSG.format(", ".join(map(str, invalid_slot))), failed=True)
     if module.check_mode and any(diff_changes) is True:
         module.exit_json(msg=CHANGES_FOUND, changed=True, quick_deploy_settings=deploy_data)
     elif (module.check_mode and any(diff_changes) is False) or \
@@ -597,23 +598,25 @@ def get_device_details(rest_obj, module):
         resp_data = resp.json_data.get("value")
         rename_key = "id" if key == "Id" else "service tag"
         if not resp_data:
-            module.fail_json(msg=DEVICE_FAIL_MSG.format(rename_key, value))
+            module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
         if key == "DeviceServiceTag" and resp_data[0]["DeviceServiceTag"] == tag:
             device_id = resp_data[0]["Id"]
         elif key == "Id" and resp_data[0]["Id"] == device_id:
             device_id = resp_data[0]["Id"]
         else:
-            module.fail_json(msg=DEVICE_FAIL_MSG.format(rename_key, value))
+            module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
     settings_type, settings_key = "IOMQuickDeploy", "IOM Quick Deploy"
     if module.params["setting_type"] == "ServerQuickDeploy":
         settings_type, settings_key = "ServerQuickDeploy", "Server Quick Deploy"
     try:
         deploy_resp = rest_obj.invoke_request("GET", QUICK_DEPLOY_API.format(device_id, settings_type))
     except HTTPError as err:
-        err_message = json.load(err)
-        error_msg = err_message.get('error', {}).get('@Message.ExtendedInfo')
+        if err.status == 404:
+            module.exit_json(msg=DEVICE_FAIL_MSG.format(rename_key, value), failed=True)
+        err_message = json.load(err).get("error")
+        error_msg = err_message.get('@Message.ExtendedInfo')
         if error_msg and error_msg[0].get("MessageId") == "CGEN1004":
-            module.fail_json(msg=QUICK_DEPLOY_FAIL_MSG.format(settings_key))
+            module.exit_json(msg=QUICK_DEPLOY_FAIL_MSG.format(settings_key), failed=True)
     else:
         resp_data = rest_obj.strip_substr_dict(deploy_resp.json_data)
         payload, slot_payload = check_mode_validation(module, resp_data)
@@ -621,7 +624,7 @@ def get_device_details(rest_obj, module):
         if module.params["job_wait"]:
             job_failed, job_msg = rest_obj.job_tracking(job_id, job_wait_sec=module.params["job_wait_timeout"])
             if job_failed is True:
-                module.fail_json(msg=FAIL_MSG)
+                module.exit_json(msg=FAIL_MSG, failed=True)
             job_success_resp = rest_obj.invoke_request("GET", QUICK_DEPLOY_API.format(device_id, settings_type))
             job_success_data = rest_obj.strip_substr_dict(job_success_resp.json_data)
     return job_id, job_success_data
@@ -667,7 +670,7 @@ def main():
                            mutually_exclusive=[('device_id', 'device_service_tag')],
                            supports_check_mode=True,)
     if module.params["quick_deploy_options"] is None:
-        module.fail_json(msg="missing required arguments: quick_deploy_options")
+        module.exit_json(msg="missing required arguments: quick_deploy_options", failed=True)
     fields = [("ipv4_subnet_mask", "IPV4"), ("ipv4_gateway", "IPV4"), ("ipv6_gateway", "IPV6")]
     ip_address_field(module, fields, module.params["quick_deploy_options"], slot=False)
     slot_options = module.params["quick_deploy_options"].get("slots")
@@ -683,12 +686,12 @@ def main():
                 module.exit_json(msg=SUCCESS_MSG, job_id=job_id, quick_deploy_settings=data, changed=True)
             module.exit_json(msg=JOB_MSG, job_id=job_id)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError,
             AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
