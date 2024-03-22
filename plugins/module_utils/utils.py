@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 8.2.0
-# Copyright (C) 2022-2023 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -85,11 +85,26 @@ def config_ipv6(hostname):
         if ']:' in ip_addr:
             ip_addr, port = ip_addr.split(']:')
         ip_addr = ip_addr.strip('[]')
+        ip_addr = compress_ipv6(ip_addr)
         if port is None or port == "":
             hostname = "[{0}]".format(ip_addr)
         else:
             hostname = "[{0}]:{1}".format(ip_addr, port)
     return hostname
+
+
+def compress_ipv6(ipv6_long):
+    groups = ipv6_long.split(':')
+    temp = []
+    for group in groups:
+        group = re.sub(r'^0+', '', group)
+        group = group.lower()
+        if 0 == len(group):
+            group = '0'
+        temp.append(group)
+    tempstr = ':'.join(temp)
+    ipv6_short = re.sub(r'(:0)+', ':', tempstr, 1)
+    return ipv6_short
 
 
 def job_tracking(rest_obj, job_uri, max_job_wait_sec=600, job_state_var=('LastRunStatus', 'Id'),
