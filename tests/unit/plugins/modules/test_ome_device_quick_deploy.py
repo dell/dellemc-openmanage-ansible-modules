@@ -267,13 +267,13 @@ class TestOMEMDevicePower(FakeAnsibleModule):
             assert result["unreachable"] is True
         elif exc_type not in [HTTPError, SSLValidationError]:
             mocker.patch(MODULE_PATH + 'check_domain_service', side_effect=exc_type("exception message"))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         else:
             mocker.patch(MODULE_PATH + 'check_domain_service',
                          side_effect=exc_type(HTTP_ADDRESS, 400, HTTP_ERROR_MSG,
                                               {"accept-type": ACCESS_TYPE}, StringIO(json_str)))
-            result = self._run_module_with_fail_json(ome_default_args)
+            result = self._run_module(ome_default_args)
             assert result['failed'] is True
         assert 'msg' in result
 
