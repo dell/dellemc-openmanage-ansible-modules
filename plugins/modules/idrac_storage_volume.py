@@ -747,20 +747,16 @@ class StorageCreate(StorageValidation):
 
 
 class StorageDelete(StorageValidation):
-    def validate_volume_exists_in_server(self, volume_name_input_list):
-        changed, failed = False, False
-        single_volume_name_matched, break_flag = False, False
+    def check_even_single_given_volume_exists(self, volume_name_input_list):
         for each_name in volume_name_input_list:
             for cntrl_id, detail in self.idrac_data.get('Controllers').items():
                 for vol_id, volume in detail.get('Volumes').items():
                     if each_name == volume.get('Name'):
-                        single_volume_name_matched = True
-                        break_flag = True
-                        break
-                if break_flag:
-                    break
-            if break_flag:
-                break
+                        return True
+
+    def validate_volume_exists_in_server(self, volume_name_input_list):
+        changed, failed = False, False
+        single_volume_name_matched = self.check_even_single_given_volume_exists(volume_name_input_list)
         if single_volume_name_matched:
             if self.module.check_mode:
                 msg, changed = CHANGES_FOUND, True

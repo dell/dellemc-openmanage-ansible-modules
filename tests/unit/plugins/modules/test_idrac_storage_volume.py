@@ -628,7 +628,6 @@ class TestStorageBase(FakeAnsibleModule):
         idrac_default_args.update({'state': 'create'})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.StorageBase(idrac_connection_storage_volume_mock, f_module)
-        vd0 = 'Virtual Disk 0'
         data = idr_obj.construct_volume_payload(1, {})
         assert data == DATA_XML
 
