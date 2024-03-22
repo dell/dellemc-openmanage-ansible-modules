@@ -18,6 +18,11 @@ DOCUMENTATION = r'''
 module: dellemc_idrac_storage_volume
 short_description: Configures the RAID configuration attributes
 version_added: "2.0.0"
+deprecated:
+  removed_at_date: "2026-03-31"
+  why: Replaced with M(dellemc.openmanage.idrac_storage_volume).
+  alternative: Use M(dellemc.openmanage.idrac_storage_volume) instead.
+  removed_from_collection: dellemc.openmanage
 description:
   - This module is responsible for configuring the RAID attributes.
 extends_documentation_fragment:
