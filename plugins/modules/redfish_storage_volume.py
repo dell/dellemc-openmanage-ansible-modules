@@ -188,6 +188,7 @@ notes:
     - This module supports C(check_mode).
     - This module always reports changes when I(name) and I(volume_id) are not specified.
       Either I(name) or I(volume_id) is required to support C(check_mode).
+    - This module does not support the create operation of RAID6 and RAID60 storage volume on iDRAC8
     - This module supports IPv4 and IPv6 addresses.
 '''
 
