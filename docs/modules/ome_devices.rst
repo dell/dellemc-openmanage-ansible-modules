@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -30,27 +30,27 @@ Parameters
   device_service_tags (optional, list, None)
     Service tag of the target devices.
 
-    This is mutually exclusive with *device_ids*.
+    This is mutually exclusive with \ :emphasis:`device\_ids`\ .
 
 
   device_ids (optional, list, None)
     IDs of the target devices.
 
-    This is mutually exclusive with *device_service_tags*.
+    This is mutually exclusive with \ :emphasis:`device\_service\_tags`\ .
 
 
   state (optional, str, present)
-    ``present`` Allows to perform the *device_action* on the target devices.
+    \ :literal:`present`\  Allows to perform the \ :emphasis:`device\_action`\  on the target devices.
 
-    ``absent`` Removes the device from OpenManage Enterprise. Job is not triggered. *job_wait*, *job_schedule*, *job_name*, and *job_description* are not applicable to this operation.
+    \ :literal:`absent`\  Removes the device from OpenManage Enterprise. Job is not triggered. \ :emphasis:`job\_wait`\ , \ :emphasis:`job\_schedule`\ , \ :emphasis:`job\_name`\ , and \ :emphasis:`job\_description`\  are not applicable to this operation.
 
 
   device_action (optional, str, refresh_inventory)
-    ``refresh_inventory`` refreshes the inventory on the target devices.
+    \ :literal:`refresh\_inventory`\  refreshes the inventory on the target devices.
 
-    ``reset_idrac`` Triggers a reset on the target iDRACs.
+    \ :literal:`reset\_idrac`\  Triggers a reset on the target iDRACs.
 
-    ``clear_idrac_job_queue`` Clears the job queue on the target iDRACs.
+    \ :literal:`clear\_idrac\_job\_queue`\  Clears the job queue on the target iDRACs.
 
     A job is triggered for each action.
 
@@ -58,15 +58,15 @@ Parameters
   job_wait (optional, bool, True)
     Provides an option to wait for the job completion.
 
-    This option is applicable when *state* is ``present``.
+    This option is applicable when \ :emphasis:`state`\  is \ :literal:`present`\ .
 
-    This is applicable when *job_schedule* is ``startnow``.
+    This is applicable when \ :emphasis:`job\_schedule`\  is \ :literal:`startnow`\ .
 
 
   job_wait_timeout (optional, int, 1200)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   job_schedule (optional, str, startnow)
@@ -98,11 +98,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -120,9 +120,9 @@ Notes
 -----
 
 .. note::
-   - For ``idrac_reset``, the job triggers only the iDRAC reset operation and does not track the complete reset cycle.
+   - For \ :literal:`idrac\_reset`\ , the job triggers only the iDRAC reset operation and does not track the complete reset cycle.
    - Run this module from a system that has direct access to Dell OpenManage Enterprise.
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -216,4 +216,5 @@ Authors
 ~~~~~~~
 
 - Jagadeesh N V(@jagadeeshnv)
+- ShivamSh3(@ShivamSh3)
 

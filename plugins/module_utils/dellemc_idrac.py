@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Dell OpenManage Ansible Modules
-# Version 7.1.0
-# Copyright (C) 2019-2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2019-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # Redistribution and use in source and binary forms, with or without modification,
 # are permitted provided that the following conditions are met:
@@ -30,6 +30,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 import os
 from ansible.module_utils.common.parameters import env_fallback
+from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import compress_ipv6
 try:
     from omsdk.sdkinfra import sdkinfra
     from omsdk.sdkcreds import UserCredentials
@@ -56,7 +57,7 @@ class iDRACConnection:
     def __init__(self, module_params):
         if not HAS_OMSDK:
             raise ImportError("Dell OMSDK library is required for this module")
-        self.idrac_ip = module_params['idrac_ip']
+        self.idrac_ip = compress_ipv6(module_params['idrac_ip'])
         self.idrac_user = module_params['idrac_user']
         self.idrac_pwd = module_params['idrac_password']
         self.idrac_port = module_params['idrac_port']

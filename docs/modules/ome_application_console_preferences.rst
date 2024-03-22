@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -42,17 +42,17 @@ Parameters
     health_check_interval_unit (optional, str, None)
       The time unit of the frequency at which the device health must be recorded and data stored.
 
-      ``Hourly`` to set the frequency in hours.
+      \ :literal:`Hourly`\  to set the frequency in hours.
 
-      ``Minutes`` to set the frequency in minutes.
+      \ :literal:`Minutes`\  to set the frequency in minutes.
 
 
     health_and_power_state_on_connection_lost (optional, str, None)
       The latest recorded device health.
 
-      ``last_known`` to display the latest recorded device health when the power connection was lost.
+      \ :literal:`last\_known`\  to display the latest recorded device health when the power connection was lost.
 
-      ``unknown`` to display the latest recorded device health when the device status moved to unknown.
+      \ :literal:`unknown`\  to display the latest recorded device health when the device status moved to unknown.
 
 
 
@@ -63,17 +63,17 @@ Parameters
     general_device_naming (optional, str, DNS)
       Applicable to all the discovered devices other than the iDRACs.
 
-      ``DNS`` to use the DNS name.
+      \ :literal:`DNS`\  to use the DNS name.
 
-      ``NETBIOS`` to use the NetBIOS name.
+      \ :literal:`NETBIOS`\  to use the NetBIOS name.
 
 
     server_device_naming (optional, str, IDRAC_SYSTEM_HOSTNAME)
       Applicable to iDRACs only.
 
-      ``IDRAC_HOSTNAME`` to use the iDRAC hostname.
+      \ :literal:`IDRAC\_HOSTNAME`\  to use the iDRAC hostname.
 
-      ``IDRAC_SYSTEM_HOSTNAME`` to use the system hostname.
+      \ :literal:`IDRAC\_SYSTEM\_HOSTNAME`\  to use the system hostname.
 
 
     invalid_device_hostname (optional, str, None)
@@ -92,9 +92,9 @@ Parameters
     device_discovery_approval_policy (optional, str, None)
       Discovery approval policies.
 
-      ``Automatic`` allows servers with iDRAC Firmware version 4.00.00.00, which are on the same network as the console, to be discovered automatically by the console.
+      \ :literal:`Automatic`\  allows servers with iDRAC Firmware version 4.00.00.00, which are on the same network as the console, to be discovered automatically by the console.
 
-      ``Manual`` for the servers to be discovered by the user manually.
+      \ :literal:`Manual`\  for the servers to be discovered by the user manually.
 
 
     set_trap_destination (optional, bool, None)
@@ -105,9 +105,9 @@ Parameters
   mx7000_onboarding_preferences (optional, str, None)
     Alert-forwarding behavior on chassis when they are onboarded.
 
-    ``all`` to receive all alert.
+    \ :literal:`all`\  to receive all alert.
 
-    ``chassis`` to receive chassis category alerts only.
+    \ :literal:`chassis`\  to receive chassis category alerts only.
 
 
   builtin_appliance_share (optional, dict, None)
@@ -117,19 +117,19 @@ Parameters
     share_options (optional, str, None)
       The share options.
 
-      ``CIFS`` to select CIFS share type.
+      \ :literal:`CIFS`\  to select CIFS share type.
 
-      ``HTTPS`` to select HTTPS share type.
+      \ :literal:`HTTPS`\  to select HTTPS share type.
 
 
     cifs_options (optional, str, None)
       The SMB protocol version.
 
-      *cifs_options* is required *share_options* is ``CIFS``.
+      \ :emphasis:`cifs\_options`\  is required \ :emphasis:`share\_options`\  is \ :literal:`CIFS`\ .
 
-      ``V1`` to enable SMBv1.
+      \ :literal:`V1`\  to enable SMBv1.
 
-      ``V2`` to enable SMBv2
+      \ :literal:`V2`\  to enable SMBv2
 
 
 
@@ -140,9 +140,9 @@ Parameters
   trap_forwarding_format (optional, str, None)
     The trap forwarding format.
 
-    ``Original`` to retain the trap data as is.
+    \ :literal:`Original`\  to retain the trap data as is.
 
-    ``Normalized`` to normalize the trap data.
+    \ :literal:`Normalized`\  to normalize the trap data.
 
 
   metrics_collection_settings (optional, int, None)
@@ -166,11 +166,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -188,7 +188,7 @@ Notes
 -----
 
 .. note::
-   - This module supports ``check_mode``.
+   - This module supports \ :literal:`check\_mode`\ .
 
 
 
@@ -311,4 +311,5 @@ Authors
 
 - Sachin Apagundi(@sachin-apa)
 - Husniya Hameed (@husniya-hameed)
+- ShivamSh3 (@ShivamSh3)
 

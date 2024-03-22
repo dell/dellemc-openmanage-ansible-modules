@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 6.1.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -19,8 +19,6 @@ module: ome_devices
 short_description: Perform device-specific operations on target devices
 description: Perform device-specific operations such as refresh inventory, clear iDRAC job queue, and reset iDRAC from OpenManage Enterprise.
 version_added: 6.1.0
-author:
-  - Jagadeesh N V(@jagadeeshnv)
 extends_documentation_fragment:
   - dellemc.openmanage.oment_auth_options
 options:
@@ -77,7 +75,10 @@ options:
     description: Optional description for the job.
     type: str
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
+author:
+  - Jagadeesh N V(@jagadeeshnv)
+  - ShivamSh3(@ShivamSh3)
 notes:
   - For C(idrac_reset), the job triggers only the iDRAC reset operation and does not track the complete reset cycle.
   - Run this module from a system that has direct access to Dell OpenManage Enterprise.
@@ -248,6 +249,7 @@ JOB_DESC = "The {0} task initiated from OpenManage Ansible Modules for devices w
 APPLY_TRIGGERED = "Successfully initiated the device action job."
 JOB_SCHEDULED = "The job is scheduled successfully."
 SUCCESS_MSG = "The device operation is performed successfully."
+TIMEOUT_NEGATIVE_MSG = "The parameter `job_wait_timeout` value cannot be negative or zero."
 
 all_device_types = [1000, 2000, 4000, 5000, 7000, 8000, 9001]
 device_type_map = {"refresh_inventory": all_device_types, "reset_idrac": [1000], "clear_idrac_job_queue": [1000]}
@@ -419,6 +421,8 @@ def main():
         supports_check_mode=True
     )
     try:
+        if module.params.get("job_wait") and module.params.get("job_wait_timeout") <= 0:
+            module.exit_json(msg=TIMEOUT_NEGATIVE_MSG, failed=True)
         with RestOME(module.params, req_session=True) as rest_obj:
             if module.params.get("state") == 'present':
                 valids, invalids = get_dev_ids(module, rest_obj,
@@ -432,12 +436,12 @@ def main():
                     module.exit_json(msg=NO_CHANGES_MSG)
                 delete_devices(module, rest_obj, valids)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError,
             OSError) as err:
-        module.fail_json(msg=str(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':
