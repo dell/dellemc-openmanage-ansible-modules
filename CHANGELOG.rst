@@ -4,26 +4,59 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+v9.1.0
+======
+
+Release Summary
+---------------
+
+- idrac_storage_volume - Configures the RAID configuration attributes.
+
+Minor Changes
+-------------
+
+- redfish_storage_volume - This module is enhanced to support iDRAC8.
+
+Deprecated Features
+-------------------
+
+- The ``dellemc_idrac_storage_volume`` module is deprecated and replaced with ``idrac_storage_volume``.
+
+Bugfixes
+--------
+
+- Added support for RAID creation using NVMe disks.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/635)
+- redfish_storage_volume is enhanced to support iDRAC8.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/625)
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
 v9.0.0
 ======
 
 Release Summary
 ---------------
-- Module ``idrac_diagnostics`` is added to run and export diagnostics on iDRAC.
-- Role ``idrac_user`` is added to manage local users of iDRAC.
+
+- idrac_diagnostics module is added to run and export diagnostics on iDRAC.
+- idrac_user role is added to manage local users of iDRAC.
 
 Major Changes
 -------------
 
-- idrac_user - This role is introduced to manage local users of iDRAC.
 - idrac_diagnostics - The module is introduced to run and export diagnostics on iDRAC.
+- idrac_user - This role is introduced to manage local users of iDRAC.
 
 Bugfixes
 --------
 
+- idrac_network_attributes - Issue(279049) -  If unsupported values are provided for the parameter ``ome_network_attributes``, then this module does not provide a correct error message.
 - ome_device_network_services - Issue(212681) - The module does not provide a proper error message if unsupported values are provided for the following parameters- port_number, community_name, max_sessions, max_auth_retries, and idle_timeout.
 - ome_device_power_settings - Issue(212679) - The module displays the following message if the value provided for the parameter ``power_cap`` is not within the supported range of 0 to 32767, ``Unable to complete the request because PowerCap does not exist or is not applicable for the resource URI.``
-- idrac_network_attributes - Issue(279049) -  If unsupported values are provided for the parameter ``ome_network_attributes``, then this module does not provide a correct error message.
 
 Known Issues
 ------------
@@ -36,12 +69,12 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.idrac_diagnostics - This module allows to to run and export diagnostics on iDRAC.
+- dellemc.openmanage.idrac_diagnostics - This module allows to run and export diagnostics on iDRAC.
 
 New Roles
 ---------
 
-- dellemc.openmanage.idrac_user - Role to manage local users for iDRAC.
+- dellemc.openmanage.idrac_user - Role to manage local users of iDRAC.
 
 v8.7.0
 ======
@@ -419,7 +452,6 @@ Release Summary
 - Role to support the Import server configuration profile, Manage iDRAC power states, Manage iDRAC certificate,
   Gather facts from iDRAC and Deploy operating system is added.
 - Plugin OME inventory is enhanced to support the environment variables for the input parameters.
-
 
 Known Issues
 ------------
