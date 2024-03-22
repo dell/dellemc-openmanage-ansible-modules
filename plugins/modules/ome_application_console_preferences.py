@@ -3,8 +3,8 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 7.0.0
-# Copyright (C) 2022 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Version 9.1.0
+# Copyright (C) 2022-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -130,12 +130,13 @@ options:
     description: The frequency of the PowerManager extension data maintenance and purging.
     type: int
 requirements:
-  - "python >= 3.8.6"
+  - "python >= 3.9.6"
 notes:
   - This module supports C(check_mode).
 author:
   - Sachin Apagundi(@sachin-apa)
   - Husniya Hameed (@husniya-hameed)
+  - ShivamSh3 (@ShivamSh3)
 '''
 
 EXAMPLES = r'''
@@ -656,13 +657,13 @@ def main():
             for cp in resp_data:
                 cp_data = strip_substr_dict(cp)
                 cp_list.append(cp_data)
-            module.exit_json(msg=SUCCESS_MSG, console_preferences=cp_list)
+            module.exit_json(msg=SUCCESS_MSG, console_preferences=cp_list, changed=True)
     except HTTPError as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
     except (IOError, ValueError, SSLError, TypeError, ConnectionError, AttributeError, IndexError, KeyError, OSError) as err:
-        module.fail_json(msg=str(err), error_info=json.load(err))
+        module.exit_json(msg=str(err), failed=True)
 
 
 if __name__ == '__main__':

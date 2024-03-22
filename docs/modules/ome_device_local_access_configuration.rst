@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.8.6
+- python \>= 3.9.6
 
 
 
@@ -30,17 +30,17 @@ Parameters
   device_id (optional, int, None)
     The ID of the chassis for which the local access configuration to be updated.
 
-    If the device ID is not specified, this module updates the local access settings for the *hostname*.
+    If the device ID is not specified, this module updates the local access settings for the \ :emphasis:`hostname`\ .
 
-    *device_id* is mutually exclusive with *device_service_tag*.
+    \ :emphasis:`device\_id`\  is mutually exclusive with \ :emphasis:`device\_service\_tag`\ .
 
 
   device_service_tag (optional, str, None)
     The service tag of the chassis for which the local access settings needs to be updated.
 
-    If the device service tag is not specified, this module updates the local access settings for the *hostname*.
+    If the device service tag is not specified, this module updates the local access settings for the \ :emphasis:`hostname`\ .
 
-    *device_service_tag* is mutually exclusive with *device_id*.
+    \ :emphasis:`device\_service\_tag`\  is mutually exclusive with \ :emphasis:`device\_id`\ .
 
 
   enable_kvm_access (optional, bool, None)
@@ -58,21 +58,21 @@ Parameters
     enable_chassis_power_button (True, bool, None)
       Enables or disables the chassis power button.
 
-      If ``false``, the chassis cannot be turn on or turn off using the power button.
+      If \ :literal:`false`\ , the chassis cannot be turn on or turn off using the power button.
 
 
     enable_lcd_override_pin (optional, bool, None)
       Enables or disables the LCD override pin.
 
-      This is required when *enable_chassis_power_button* is ``false``.
+      This is required when \ :emphasis:`enable\_chassis\_power\_button`\  is \ :literal:`false`\ .
 
 
     disabled_button_lcd_override_pin (optional, str, None)
       The six digit LCD override pin to change the power state of the chassis.
 
-      This is required when *enable_lcd_override_pin* is ``true``.
+      This is required when \ :emphasis:`enable\_lcd\_override\_pin`\  is \ :literal:`true`\ .
 
-      The module will always report change when *disabled_button_lcd_override_pin* is ``true``.
+      The module will always report change when \ :emphasis:`disabled\_button\_lcd\_override\_pin`\  is \ :literal:`true`\ .
 
       The value must be specified in quotes. ex: "001100".
 
@@ -81,17 +81,17 @@ Parameters
   quick_sync (optional, dict, None)
     The settings for quick sync.
 
-    The *quick_sync* options are ignored if the quick sync hardware is not present.
+    The \ :emphasis:`quick\_sync`\  options are ignored if the quick sync hardware is not present.
 
 
     quick_sync_access (optional, str, None)
-      Users with administrator privileges can set the following types of *quick_sync_access*.
+      Users with administrator privileges can set the following types of \ :emphasis:`quick\_sync\_access`\ .
 
-      ``READ_WRITE`` enables writing configuration using quick sync.
+      \ :literal:`READ\_WRITE`\  enables writing configuration using quick sync.
 
-      ``READ_ONLY`` enables read only access to Wi-Fi and Bluetooth Low Energy(BLE).
+      \ :literal:`READ\_ONLY`\  enables read only access to Wi-Fi and Bluetooth Low Energy(BLE).
 
-      ``DISABLED`` disables reading or writing configuration through quick sync.
+      \ :literal:`DISABLED`\  disables reading or writing configuration through quick sync.
 
 
     enable_inactivity_timeout (optional, bool, None)
@@ -103,17 +103,17 @@ Parameters
 
       The range is 120 to 3600 in seconds, or 2 to 60 in minutes.
 
-      This option is required when *enable_inactivity_timeout* is ``true``.
+      This option is required when \ :emphasis:`enable\_inactivity\_timeout`\  is \ :literal:`true`\ .
 
 
     timeout_limit_unit (optional, str, None)
       Inactivity timeout limit unit.
 
-      ``SECONDS`` to set *timeout_limit* in seconds.
+      \ :literal:`SECONDS`\  to set \ :emphasis:`timeout\_limit`\  in seconds.
 
-      ``MINUTES`` to set *timeout_limit* in minutes.
+      \ :literal:`MINUTES`\  to set \ :emphasis:`timeout\_limit`\  in minutes.
 
-      This option is required when *enable_inactivity_timeout* is ``true``.
+      This option is required when \ :emphasis:`enable\_inactivity\_timeout`\  is \ :literal:`true`\ .
 
 
     enable_read_authentication (optional, bool, None)
@@ -128,17 +128,17 @@ Parameters
   lcd (optional, dict, None)
     The settings for LCD.
 
-    The *lcd* options are ignored if the LCD hardware is not present in the chassis.
+    The \ :emphasis:`lcd`\  options are ignored if the LCD hardware is not present in the chassis.
 
 
     lcd_access (optional, str, None)
       Option to configure the quick sync settings using LCD.
 
-      ``VIEW_AND_MODIFY`` to set access level to view and modify.
+      \ :literal:`VIEW\_AND\_MODIFY`\  to set access level to view and modify.
 
-      ``VIEW_ONLY`` to set access level to view.
+      \ :literal:`VIEW\_ONLY`\  to set access level to view.
 
-      ``DISABLED`` to disable the access.
+      \ :literal:`DISABLED`\  to disable the access.
 
 
     user_defined (optional, str, None)
@@ -179,11 +179,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -202,8 +202,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to OpenManage Enterprise Modular.
-   - This module supports ``check_mode``.
-   - The module will always report change when *enable_chassis_power_button* is ``true``.
+   - This module supports \ :literal:`check\_mode`\ .
+   - The module will always report change when \ :emphasis:`enable\_chassis\_power\_button`\  is \ :literal:`true`\ .
 
 
 
@@ -281,7 +281,7 @@ msg (always, str, Successfully updated the local access settings.)
   Overall status of the device local access settings.
 
 
-location_details (success, dict, {'SettingType': 'LocalAccessConfiguration', 'EnableChassisDirect': False, 'EnableChassisPowerButton': False, 'EnableKvmAccess': True, 'EnableLcdOverridePin': False, 'LcdAccess': 'VIEW_ONLY', 'LcdCustomString': 'LCD Text', 'LcdLanguage': 'en', 'LcdOverridePin': '', 'LcdPinLength': None, 'LcdPresence': 'Present', 'LedPresence': None, 'QuickSync': {'EnableInactivityTimeout': True, 'EnableQuickSyncWifi': False, 'EnableReadAuthentication': False, 'QuickSyncAccess': 'READ_ONLY', 'QuickSyncHardware': 'Present', 'TimeoutLimit': 7, 'TimeoutLimitUnit': 'MINUTES'}})
+location_details (success, dict, {'SettingType': 'LocalAccessConfiguration', 'EnableChassisDirect': False, 'EnableChassisPowerButton': False, 'EnableKvmAccess': True, 'EnableLcdOverridePin': False, 'LcdAccess': 'VIEW_ONLY', 'LcdCustomString': 'LCD Text', 'LcdLanguage': 'en', 'LcdOverridePin': '', 'LcdPinLength': 6, 'LcdPresence': 'Present', 'LedPresence': 'Absent', 'QuickSync': {'EnableInactivityTimeout': True, 'EnableQuickSyncWifi': False, 'EnableReadAuthentication': False, 'QuickSyncAccess': 'READ_ONLY', 'QuickSyncHardware': 'Present', 'TimeoutLimit': 7, 'TimeoutLimitUnit': 'MINUTES'}})
   returned when local access settings are updated successfully.
 
 
