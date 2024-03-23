@@ -1772,32 +1772,31 @@ releases:
           name: idrac_user
           namespace: null
     release_date: '2024-02-29'
-
   9.1.0:
-      changes:
-        release_summary: '- idrac_storage_volume - Configures the RAID configuration attributes.'
-        bugfixes:
-          - Added support for RAID creation using NVMe disks.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/635)
-          - redfish_storage_volume is enhanced to support iDRAC8.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/625)
-        deprecated_features:
-          - The ``dellemc_idrac_storage_volume`` module is deprecated and replaced with
-            ``idrac_storage_volume``.
-        minor_changes:
-          - redfish_storage_volume - This module is enhanced to support iDRAC8.
-        known_issues:
-          - idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics
-            file to HTTP and HTTPS share via SOCKS proxy.
-          - idrac_firmware - Issue(279282) - This module does not support firmware update using
-            HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
-          - ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the
-            share location fails on OME version 4.0.0.
-          - ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage
-            Enterprise Modular, however it does not allow the creation of multiple uplinks
-            of the same name. If an uplink is created using the same name as an existing
-            uplink, then the existing uplink is modified.
-      modules:
-        - description:
-            Configures the RAID configuration attributes.
-          name: idrac_storage_volume
-          namespace: null
-      release_date: '2024-03-29'
+    changes:
+      release_summary: '- idrac_storage_volume - Configures the RAID configuration attributes.'
+      bugfixes:
+        - Added support for RAID creation using NVMe disks.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/635)
+        - redfish_storage_volume is enhanced to support iDRAC8.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/625)
+      deprecated_features:
+        - The ``dellemc_idrac_storage_volume`` module is deprecated and replaced with
+          ``idrac_storage_volume``.
+      minor_changes:
+        - redfish_storage_volume - This module is enhanced to support iDRAC8.
+      known_issues:
+        - idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics
+          file to HTTP and HTTPS share via SOCKS proxy.
+        - idrac_firmware - Issue(279282) - This module does not support firmware update using
+          HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+        - ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the
+          share location fails on OME version 4.0.0.
+        - ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage
+          Enterprise Modular, however it does not allow the creation of multiple uplinks
+          of the same name. If an uplink is created using the same name as an existing
+          uplink, then the existing uplink is modified.
+    modules:
+      - description:
+          Configures the RAID configuration attributes.
+        name: idrac_storage_volume
+        namespace: ''
+    release_date: '2024-03-29'
