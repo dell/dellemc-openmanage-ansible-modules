@@ -114,7 +114,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
             'mparams': {"hostname": "xxx.xxx.x.x",
                         "device_id": 1234, "data_center": "data center",
@@ -123,7 +123,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'DeviceServiceTag': 'ABCD123',
                 'PublicAddress': "xxx.xxx.x.x", 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
             'mparams': {"hostname": "xxx.xxx.x.x",
                         "device_service_tag": "ABCD123", "data_center": "data center",
@@ -132,7 +132,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
             'mparams': {"hostname": "xxx.xxx.x.x",
                         "data_center": "data center",
@@ -141,7 +141,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "dummyhost_shouldnotexist",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Successfully updated the location settings.",
             'mparams': {"hostname": "dummyhost_shouldnotexist",
                         "data_center": "data center",
@@ -161,7 +161,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': "The device location settings operation is supported only on OpenManage Enterprise Modular systems.",
             'http_error_json': {
                 "error": {
@@ -186,7 +186,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Unable to complete the operation because the location settings are not supported on the specified device.",
             'http_error_json': {
                 "error": {
@@ -213,7 +213,7 @@ class TestOMEMDeviceLocation(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
                 'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': "Unable to complete the operation because the entered target device id '123' is invalid.",
             'mparams': {"hostname": "xxx.xxx.x.x.x.x.x.x", "device_id": 123,
                         "data_center": "data center",
