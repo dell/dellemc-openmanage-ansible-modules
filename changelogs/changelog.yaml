@@ -1786,6 +1786,9 @@ releases:
       minor_changes:
         - redfish_storage_volume - This module is enhanced to support iDRAC8.
       known_issues:
+        - idrac_storage_volume - Issue(290766) - The module will report success instead of showing
+          failure for new virtual creation on the BOSS-N1 controller if a virtual disk is already
+          present on the same controller.
         - idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics
           file to HTTP and HTTPS share via SOCKS proxy.
         - idrac_firmware - Issue(279282) - This module does not support firmware update using
