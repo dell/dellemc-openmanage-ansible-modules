@@ -31,7 +31,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * Dell OpenManage Enterprise Modular versions 2.10.10 and above.
 
 ## Prerequisites
-  * [Ansible Core >= 2.16.3 and 2.15.9](https://github.com/ansible/ansible)
+  * [Ansible Core >= 2.16.4 and 2.15.9](https://github.com/ansible/ansible)
   * Python >= 3.9.6
   * To run the iDRAC modules, install OpenManage Python Software Development Kit (OMSDK) 
   using either ```pip install omsdk --upgrade``` or ```pip install -r requirements.txt```. 
@@ -39,7 +39,7 @@ OpenManage Ansible Modules simplifies and automates provisioning, deployment, an
   * Operating System
     * Red Hat Enterprise Linux (RHEL) 9.3 and 8.9
     * SUSE Linux Enterprise Server (SLES) 15 SP5 and 15 SP4
-    * Ubuntu 22.04.3 and 22.04.2
+    * Ubuntu 22.04.4 and 22.04.3
 
 ## Installation
 

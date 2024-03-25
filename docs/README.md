@@ -10,135 +10,102 @@ You may obtain a copy of the License at
 # OpenManage Ansible Modules Documentation
 
 ### iDRAC Modules
-- [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)
-- [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)
-- [dellemc_idrac_lc_attributes](modules/dellemc_idrac_lc_attributes.rst)
-- [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)
-- [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)
-- [idrac_attributes](modules/idrac_attributes.rst)
-- [idrac_bios](modules/idrac_bios.rst)
-- [idrac_boot](modules/idrac_boot.rst)
-- [idrac_certificates](modules/idrac_certificates.rst)
-- [idrac_diagnostics](modules/idrac_diagnostics.rst)
-- [idrac_firmware](modules/idrac_firmware.rst)
-- [idrac_firmware_info](modules/idrac_firmware_info.rst)
-- [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)
-- [idrac_lifecycle_controller_job_status_info](modules/idrac_lifecycle_controller_job_status_info.rst)
-- [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)
-- [idrac_lifecycle_controller_status_info](modules/idrac_lifecycle_controller_status_info.rst)
-- [idrac_network_attributes](modules/idrac_network_attributes.rst)
-- [idrac_network](modules/idrac_network.rst)
-- [idrac_os_deployment](modules/idrac_os_deployment.rst)
-- [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)
-- [idrac_reset](modules/idrac_reset.rst)
-- [idrac_server_config_profile](modules/idrac_server_config_profile.rst)
-- [idrac_storage_volume](modules/idrac_storage_volume.rst)
-- [idrac_syslog](modules/idrac_syslog.rst)
-- [idrac_system_info](modules/idrac_system_info.rst)
-- [idrac_timezone_ntp](modules/idrac_timezone_ntp.rst)
-- [idrac_user](modules/idrac_user.rst)
-- [idrac_user_info](modules/idrac_user_info.rst)
-- [idrac_virtual_media](modules/idrac_virtual_media.rst)
-- [redfish_event_subscription](modules/redfish_event_subscription.rst)
-- [redfish_firmware_rollback](modules/redfish_firmware_rollback.rst)
-- [redfish_firmware](modules/redfish_firmware.rst)
-- [redfish_powerstate](modules/redfish_powerstate.rst)
-- [redfish_storage_volume](modules/redfish_storage_volume.rst)
- 
-### OpenManage Enterprise Modules
-- [ome_active_directory](modules/ome_active_directory.rst)
-- [ome_alert_policies](modules/ome_alert_policies.rst)
-- [ome_alert_policies_message_id_info](modules/ome_alert_policies_message_id_info.rst)
-- [ome_alert_policies_info](modules/ome_alert_policies_info.rst)
-- [ome_alert_policies_actions_info](modules/ome_alert_policies_actions_info.rst)
-- [ome_alert_policies_category_info](modules/ome_alert_policies_category_info.rst)
-- [ome_application_alerts_smtp](modules/ome_application_alerts_smtp.rst)
-- [ome_application_alerts_syslog](modules/ome_application_alerts_syslog.rst)
-- [ome_application_certificate](modules/ome_application_certificate.rst)
-- [ome_application_console_preferences](modules/ome_application_console_preferences.rst)
-- [ome_application_network_address](modules/ome_application_network_address.rst)
-- [ome_application_network_proxy](modules/ome_application_network_proxy.rst)
-- [ome_application_network_settings](modules/ome_application_network_settings.rst)
-- [ome_application_network_time](modules/ome_application_network_time.rst)
-- [ome_application_network_webserver](modules/ome_application_network_webserver.rst)
-- [ome_application_security_settings](modules/ome_application_security_settings.rst)
-- [ome_chassis_slots](modules/ome_chassis_slots.rst)
-- [ome_configuration_compliance_baseline](modules/ome_configuration_compliance_baseline.rst)
-- [ome_configuration_compliance_info](modules/ome_configuration_compliance_info.rst)
-- [ome_device_group](modules/ome_device_group.rst)
-- [ome_device_info](modules/ome_device_info.rst)
-- [ome_device_local_access_configuration](modules/ome_device_local_access_configuration.rst)
-- [ome_device_location](modules/ome_device_location.rst)
-- [ome_device_mgmt_network](modules/ome_device_mgmt_network.rst)
-- [ome_device_network_services](modules/ome_device_network_services.rst)
-- [ome_device_power_settings](modules/ome_device_power_settings.rst)
-- [ome_device_quick_deploy](modules/ome_device_quick_deploy.rst)
-- [ome_devices](modules/ome_devices.rst)
-- [ome_diagnostics](modules/ome_diagnostics.rst)
-- [ome_discovery](modules/ome_discovery.rst)
-- [ome_domain_user_groups](modules/ome_domain_user_groups.rst)
-- [ome_firmware](modules/ome_firmware.rst)
-- [ome_firmware_baseline](modules/ome_firmware_baseline.rst)
-- [ome_firmware_baseline_compliance_info](modules/ome_firmware_baseline_compliance_info.rst)
-- [ome_firmware_baseline_info](modules/ome_firmware_baseline_info.rst)
-- [ome_firmware_catalog](modules/ome_firmware_catalog.rst)
-- [ome_groups](modules/ome_groups.rst)
-- [ome_identity_pool](modules/ome_identity_pool.rst)
-- [ome_job_info](modules/ome_job_info.rst)
-- [ome_network_port_breakout](modules/ome_network_port_breakout.rst)
-- [ome_network_vlan](modules/ome_network_vlan.rst)
-- [ome_network_vlan_info](modules/ome_network_vlan_info.rst)
-- [ome_powerstate](modules/ome_powerstate.rst)
-- [ome_profile](modules/ome_profile.rst)
-- [ome_profile_info](modules/ome_profile_info.rst)
-- [ome_server_interface_profile_info](modules/ome_server_interface_profile_info.rst)
-- [ome_server_interface_profiles](modules/ome_server_interface_profiles.rst)
-- [ome_smart_fabric_info](modules/ome_smart_fabric_info.rst)
-- [ome_smart_fabric](modules/ome_smart_fabric.rst)
-- [ome_smart_fabric_uplink_info](modules/ome_smart_fabric_uplink_info.rst)
-- [ome_smart_fabric_uplink](modules/ome_smart_fabric_uplink.rst)
-- [ome_template](modules/ome_template.rst)
-- [ome_template_identity_pool](modules/ome_template_identity_pool.rst)
-- [ome_template_info](modules/ome_template_info.rst)
-- [ome_template_network_vlan](modules/ome_template_network_vlan.rst)
-- [ome_template_network_vlan_info](modules/ome_template_network_vlan_info.rst)
-- [ome_user](modules/ome_user.rst)
-- [ome_user_info](modules/ome_user_info.rst)
+| Module Name                                                                                          | iDRAC8 | iDRAC9 |
+| ---------------------------------------------------------------------------------------------------- | ------ | ------ |
+| [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)                     | ✓      | ✓      |
+| [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)                     | ✓      | ✓      |
+| [dellemc_idrac_lc_attributes](modules/dellemc_idrac_lc_attributes.rst)                               | ✓      | ✓      |
+| [dellemc_idrac_storage_volume](modules/dellemc_idrac_storage_volume.rst)                             | ✓      | ✓      |
+| [dellemc_system_lockdown_mode](modules/dellemc_system_lockdown_mode.rst)                             | ✓      | ✓      |
+| [idrac_attributes](modules/idrac_attributes.rst)                                                     | ✓      | ✓      |
+| [idrac_bios](modules/idrac_bios.rst)                                                                 | ✓      | ✓      |
+| [idrac_boot](modules/idrac_boot.rst)                                                                 | ✓      | ✓      |
+| [idrac_certificates](modules/idrac_certificates.rst)                                                 | ✕      | ✓      |
+| [idrac_diagnostics](modules/idrac_diagnostics.rst)                                                   | ✕      | ✓      |
+| [idrac_firmware](modules/idrac_firmware.rst)                                                         | ✓      | ✓      |
+| [idrac_firmware_info](modules/idrac_firmware_info.rst)                                               | ✓      | ✓      |
+| [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)                       | ✓      | ✓      |
+| [idrac_lifecycle_controller_job_status_info](modules/idrac_lifecycle_controller_job_status_info.rst) | ✓      | ✓      |
+| [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      |
+| [idrac_lifecycle_controller_status_info](modules/idrac_lifecycle_controller_status_info.rst)         | ✓      | ✓      |
+| [idrac_network_attributes](modules/idrac_network_attributes.rst)                                     | ✓      | ✓      |
+| [idrac_network](modules/idrac_network.rst)                                                           | ✓      | ✓      |
+| [idrac_os_deployment](modules/idrac_os_deployment.rst)                                               | ✓      | ✓      |
+| [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)                     | ✕      | ✓      |
+| [idrac_reset](modules/idrac_reset.rst)                                                               | ✓      | ✓      |
+| [idrac_server_config_profile](modules/idrac_server_config_profile.rst)                               | ✓      | ✓      |
+| [idrac_storage_volume](modules/idrac_storage_volume.rst)                                             | ✓      | ✓      |
+| [idrac_syslog](modules/idrac_syslog.rst)                                                             | ✓      | ✓      |
+| [idrac_system_info](modules/idrac_system_info.rst)                                                   | ✓      | ✓      |
+| [idrac_timezone_ntp](modules/idrac_timezone_ntp.rst)                                                 | ✓      | ✓      |
+| [idrac_user](modules/idrac_user.rst)                                                                 | ✓      | ✓      |
+| [idrac_user_info](modules/idrac_user_info.rst)                                                       | ✓      | ✓      |
+| [idrac_virtual_media](modules/idrac_virtual_media.rst)                                               | ✓      | ✓      |
+| [redfish_event_subscription](modules/redfish_event_subscription.rst)                                 | ✕      | ✓      |
+| [redfish_firmware](modules/redfish_firmware.rst)                                                     | ✕      | ✓      |
+| [redfish_firmware_rollback](modules/redfish_firmware_rollback.rst)                                   | ✓      | ✓      |
+| [redfish_powerstate](modules/redfish_powerstate.rst)                                                 | ✓      | ✓      |
+| [redfish_storage_volume](modules/redfish_storage_volume.rst)                                         | ✓      | ✓      | 
 
-| Serial No | Module Name                                                                                                                                                                           | iDRAC8 | iDRAC9 |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1         | [dellemc_configure_idrac_eventing](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_configure_idrac_eventing.rst)                     | ✓      | ✓      |
-| 2         | [dellemc_configure_idrac_services](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_configure_idrac_services.rst)                     | ✓      | ✓      |
-| 3         | [dellemc_idrac_lc_attributes](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_idrac_lc_attributes.rst)                               | ✓      | ✓      |
-| 4         | [dellemc_idrac_storage_volume](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_idrac_storage_volume.rst)                             | ✓      | ✓      |
-| 5         | [dellemc_system_lockdown_mode](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/dellemc_system_lockdown_mode.rst)                             | ✓      | ✓      |
-| 6         | [idrac_attributes](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_attributes.rst)                                                     | ✓      | ✓      |
-| 7         | [idrac_bios](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_bios.rst)                                                                 | ✓      | ✓      |
-| 8         | [idrac_boot](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_boot.rst)                                                                 | ✓      | ✓      |
-| 9         | [idrac_certificates](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_certificates.rst)                                                 | ✕      | ✓      |
-| 10        | [idrac_diagnostics](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_diagnostics.rst "idrac_diagnostics.py")                            | ✕      | ✓      |
-| 11        | [idrac_firmware](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_firmware.rst)                                                         | ✓      | ✓      |
-| 12        | [idrac_firmware_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_firmware_info.rst)                                               | ✓      | ✓      |
-| 13        | [idrac_lifecycle_controller_jobs](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_lifecycle_controller_jobs.rst)                       | ✕      | ✓      |
-| 14        | [idrac_lifecycle_controller_job_status_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_lifecycle_controller_job_status_info.rst) | ✓      | ✓      |
-| 15        | [idrac_lifecycle_controller_logs](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      |
-| 16        | [idrac_lifecycle_controller_status_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_lifecycle_controller_status_info.rst)         | ✓      | ✓      |
-| 17        | [idrac_network_attributes](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_network_attributes.rst)                                     | ✓      | ✓      |
-| 18        | [idrac_network](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_network.rst)                                                           | ✓      | ✓      |
-| 19        | [idrac_network_attributes](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_network_attributes.rst "idrac_network_attributes.py")       | ✓      | ✓      |
-| 20        | [idrac_os_deployment](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_os_deployment.rst)                                               | ✓      | ✓      |
-| 21        | [idrac_redfish_storage_controller](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_redfish_storage_controller.rst)                     | ✕      | ✓      |
-| 22        | [idrac_reset](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_reset.rst)                                                               | ✓      | ✓      |
-| 23        | [idrac_server_config_profile](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_server_config_profile.rst)                               | ✓      | ✓      |
-| 24        | [idrac_storage_volume](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_storage_volume.rst)                                             | ✓      | ✓      |
-| 25        | [idrac_syslog](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_syslog.rst)                                                             | ✓      | ✓      |
-| 26        | [idrac_system_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_system_info.rst)                                                   | ✓      | ✓      |
-| 27        | [idrac_timezone_ntp](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_timezone_ntp.rst)                                                 | ✓      | ✓      |
-| 28        | [idrac_user](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_user.rst)                                                                 | ✓      | ✓      |
-| 29        | [idrac_user_info](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_user_info.rst)                                                       | ✓      | ✓      |
-| 30        | [idrac_virtual_media](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/idrac_virtual_media.rst)                                               | ✓      | ✓      |
-| 31        | [redfish_event_subscription](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_event_subscription.rst)                                 | ✕      | ✓      |
-| 32        | [redfish_firmware](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_firmware.rst)                                                     | ✕      | ✓      |
-| 33        | [redfish_firmware_rollback](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_firmware_rollback.rst "redfish_firmware_rollback.py")    | ✓      | ✓      |
-| 34        | [redfish_powerstate](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_powerstate.rst)                                                 | ✓      | ✓      |
-| 35        | [redfish_storage_volume](https://github.com/dell/dellemc-openmanage-ansible-modules/blob/collections/docs/modules/redfish_storage_volume.rst)                                         | ✓      | ✓      |
+### OpenManage Enterprise Modules
+
+|  Module Name                                                                               |
+| ------------------------------------------------------------------------------------------ |
+| [ome_active_directory](modules/ome_active_directory.rst)                                   |
+| [ome_alert_policies](modules/ome_alert_policies.rst)                                       |
+| [ome_alert_policies_message_id_info](modules/ome_alert_policies_message_id_info.rst)       |
+| [ome_alert_policies_info](modules/ome_alert_policies_info.rst)                             |
+| [ome_alert_policies_actions_info](modules/ome_alert_policies_actions_info.rst)             |
+| [ome_alert_policies_category_info](modules/ome_alert_policies_category_info.rst)           |
+| [ome_application_alerts_smtp](modules/ome_application_alerts_smtp.rst)                     |
+| [ome_application_alerts_syslog](modules/ome_application_alerts_syslog.rst)                 |
+| [ome_application_certificate](modules/ome_application_certificate.rst)                     |
+| [ome_application_console_preferences](modules/ome_application_console_preferences.rst)     |
+| [ome_application_network_address](modules/ome_application_network_address.rst)             |
+| [ome_application_network_proxy](modules/ome_application_network_proxy.rst)                 |
+| [ome_application_network_settings](modules/ome_application_network_settings.rst)           |
+| [ome_application_network_time](modules/ome_application_network_time.rst)                   |
+| [ome_application_network_webserver](modules/ome_application_network_webserver.rst)         |
+| [ome_application_security_settings](modules/ome_application_security_settings.rst)         |
+| [ome_chassis_slots](modules/ome_chassis_slots.rst)                                         |
+| [ome_configuration_compliance_baseline](modules/ome_configuration_compliance_baseline.rst) |
+| [ome_configuration_compliance_info](modules/ome_configuration_compliance_info.rst)         |
+| [ome_device_group](modules/ome_device_group.rst)                                           |
+| [ome_device_info](modules/ome_device_info.rst)                                             |
+| [ome_device_local_access_configuration](modules/ome_device_local_access_configuration.rst) |
+| [ome_device_location](modules/ome_device_location.rst)                                     |
+| [ome_device_mgmt_network](modules/ome_device_mgmt_network.rst)                             |
+| [ome_device_network_services](modules/ome_device_network_services.rst)                     |
+| [ome_device_power_settings](modules/ome_device_power_settings.rst)                         |
+| [ome_device_quick_deploy](modules/ome_device_quick_deploy.rst)                             |
+| [ome_devices](modules/ome_devices.rst)                                                     |
+| [ome_diagnostics](modules/ome_diagnostics.rst)                                             |
+| [ome_discovery](modules/ome_discovery.rst)                                                 |
+| [ome_domain_user_groups](modules/ome_domain_user_groups.rst)                               |
+| [ome_firmware](modules/ome_firmware.rst)                                                   |
+| [ome_firmware_baseline](modules/ome_firmware_baseline.rst)                                 |
+| [ome_firmware_baseline_compliance_info](modules/ome_firmware_baseline_compliance_info.rst) |
+| [ome_firmware_baseline_info](modules/ome_firmware_baseline_info.rst)                       |
+| [ome_firmware_catalog](modules/ome_firmware_catalog.rst)                                   |
+| [ome_groups](modules/ome_groups.rst)                                                       |
+| [ome_identity_pool](modules/ome_identity_pool.rst)                                         |
+| [ome_job_info](modules/ome_job_info.rst)                                                   |
+| [ome_network_port_breakout](modules/ome_network_port_breakout.rst)                         |
+| [ome_network_vlan](modules/ome_network_vlan.rst)                                           |
+| [ome_network_vlan_info](modules/ome_network_vlan_info.rst)                                 |
+| [ome_powerstate](modules/ome_powerstate.rst)                                               |
+| [ome_profile](modules/ome_profile.rst)                                                     |
+| [ome_profile_info](modules/ome_profile_info.rst)                                           |
+| [ome_server_interface_profile_info](modules/ome_server_interface_profile_info.rst)         |
+| [ome_server_interface_profiles](modules/ome_server_interface_profiles.rst)                 |
+| [ome_smart_fabric_info](modules/ome_smart_fabric_info.rst)                                 |
+| [ome_smart_fabric](modules/ome_smart_fabric.rst)                                           |
+| [ome_smart_fabric_uplink_info](modules/ome_smart_fabric_uplink_info.rst)                   |
+| [ome_smart_fabric_uplink](modules/ome_smart_fabric_uplink.rst)                             |
+| [ome_template](modules/ome_template.rst)                                                   |
+| [ome_template_identity_pool](modules/ome_template_identity_pool.rst)                       |
+| [ome_template_info](modules/ome_template_info.rst)                                         |
+| [ome_template_network_vlan](modules/ome_template_network_vlan.rst)                         |
+| [ome_template_network_vlan_info](modules/ome_template_network_vlan_info.rst)               |
+| [ome_user](modules/ome_user.rst)                                                           |
+| [ome_user_info](modules/ome_user_info.rst)                                                 |
