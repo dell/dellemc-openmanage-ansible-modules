@@ -20,7 +20,7 @@ Requirements
 ------------
 The below requirements are needed on the host that executes this module.
 
-- python >= 3.9.6
+- python \>= 3.9.6
 
 
 
@@ -30,25 +30,25 @@ Parameters
   device_id (optional, int, None)
     The ID of the chassis for which the Quick Deploy settings to be deployed.
 
-    If the device ID is not specified, this module updates the Quick Deploy settings for the *hostname*.
+    If the device ID is not specified, this module updates the Quick Deploy settings for the \ :emphasis:`hostname`\ .
 
-    *device_id* is mutually exclusive with *device_service_tag*.
+    \ :emphasis:`device\_id`\  is mutually exclusive with \ :emphasis:`device\_service\_tag`\ .
 
 
   device_service_tag (optional, str, None)
     The service tag of the chassis for which the Quick Deploy settings to be deployed.
 
-    If the device service tag is not specified, this module updates the Quick Deploy settings for the *hostname*.
+    If the device service tag is not specified, this module updates the Quick Deploy settings for the \ :emphasis:`hostname`\ .
 
-    *device_service_tag* is mutually exclusive with *device_id*.
+    \ :emphasis:`device\_service\_tag`\  is mutually exclusive with \ :emphasis:`device\_id`\ .
 
 
   setting_type (True, str, None)
     The type of the Quick Deploy settings to be applied.
 
-    ``ServerQuickDeploy`` to apply the server Quick Deploy settings.
+    \ :literal:`ServerQuickDeploy`\  to apply the server Quick Deploy settings.
 
-    ``IOMQuickDeploy`` to apply the IOM Quick Deploy settings.
+    \ :literal:`IOMQuickDeploy`\  to apply the IOM Quick Deploy settings.
 
 
   job_wait (optional, bool, True)
@@ -56,9 +56,9 @@ Parameters
 
 
   job_wait_timeout (optional, int, 120)
-    The maximum wait time of *job_wait* in seconds. The job is tracked only for this duration.
+    The maximum wait time of \ :emphasis:`job\_wait`\  in seconds. The job is tracked only for this duration.
 
-    This option is applicable when *job_wait* is ``true``.
+    This option is applicable when \ :emphasis:`job\_wait`\  is \ :literal:`true`\ .
 
 
   quick_deploy_options (True, dict, None)
@@ -68,7 +68,7 @@ Parameters
     password (optional, str, None)
       The password to login to the server or IOM.
 
-      The module will always report change when *password* option is added.
+      The module will always report change when \ :emphasis:`password`\  option is added.
 
 
     ipv4_enabled (optional, bool, None)
@@ -78,23 +78,23 @@ Parameters
     ipv4_network_type (optional, str, None)
       IPv4 network type.
 
-      *ipv4_network_type* is required if *ipv4_enabled* is ``true``.
+      \ :emphasis:`ipv4\_network\_type`\  is required if \ :emphasis:`ipv4\_enabled`\  is \ :literal:`true`\ .
 
-      ``Static`` to configure the static IP settings.
+      \ :literal:`Static`\  to configure the static IP settings.
 
-      ``DHCP`` to configure the Dynamic IP settings.
+      \ :literal:`DHCP`\  to configure the Dynamic IP settings.
 
 
     ipv4_subnet_mask (optional, str, None)
       IPv4 subnet mask.
 
-      *ipv4_subnet_mask* is required if *ipv4_network_type* is ``Static``.
+      \ :emphasis:`ipv4\_subnet\_mask`\  is required if \ :emphasis:`ipv4\_network\_type`\  is \ :literal:`Static`\ .
 
 
     ipv4_gateway (optional, str, None)
       IPv4 gateway.
 
-      *ipv4_gateway* is required if *ipv4_network_type* is ``Static``.
+      \ :emphasis:`ipv4\_gateway`\  is required if \ :emphasis:`ipv4\_network\_type`\  is \ :literal:`Static`\ .
 
 
     ipv6_enabled (optional, bool, None)
@@ -104,23 +104,23 @@ Parameters
     ipv6_network_type (optional, str, None)
       IPv6 network type.
 
-      *ipv6_network_type* is required if *ipv6_enabled* is ``true``.
+      \ :emphasis:`ipv6\_network\_type`\  is required if \ :emphasis:`ipv6\_enabled`\  is \ :literal:`true`\ .
 
-      ``Static`` to configure the static IP settings.
+      \ :literal:`Static`\  to configure the static IP settings.
 
-      ``DHCP`` to configure the Dynamic IP settings.
+      \ :literal:`DHCP`\  to configure the Dynamic IP settings.
 
 
     ipv6_prefix_length (optional, int, None)
       IPV6 prefix length.
 
-      *ipv6_prefix_length* is required if *ipv6_network_type* is ``Static``.
+      \ :emphasis:`ipv6\_prefix\_length`\  is required if \ :emphasis:`ipv6\_network\_type`\  is \ :literal:`Static`\ .
 
 
     ipv6_gateway (optional, str, None)
       IPv6 gateway.
 
-      *ipv6_gateway* is required if *ipv6_network_type* is ``Static``.
+      \ :emphasis:`ipv6\_gateway`\  is required if \ :emphasis:`ipv6\_network\_type`\  is \ :literal:`Static`\ .
 
 
     slots (optional, list, None)
@@ -152,9 +152,17 @@ Parameters
   username (True, str, None)
     OpenManage Enterprise Modular username.
 
+    If the username is not provided, then the environment variable \ :literal:`OME\_USERNAME`\  is used.
+
+    Example: export OME\_USERNAME=username
+
 
   password (True, str, None)
     OpenManage Enterprise Modular password.
+
+    If the password is not provided, then the environment variable \ :literal:`OME\_PASSWORD`\  is used.
+
+    Example: export OME\_PASSWORD=password
 
 
   port (optional, int, 443)
@@ -162,11 +170,11 @@ Parameters
 
 
   validate_certs (optional, bool, True)
-    If ``false``, the SSL certificates will not be validated.
+    If \ :literal:`false`\ , the SSL certificates will not be validated.
 
-    Configure ``false`` only on personally controlled sites where self-signed certificates are used.
+    Configure \ :literal:`false`\  only on personally controlled sites where self-signed certificates are used.
 
-    Prior to collection version ``5.0.0``, the *validate_certs* is ``false`` by default.
+    Prior to collection version \ :literal:`5.0.0`\ , the \ :emphasis:`validate\_certs`\  is \ :literal:`false`\  by default.
 
 
   ca_path (optional, path, None)
@@ -185,8 +193,8 @@ Notes
 
 .. note::
    - Run this module from a system that has direct access to OpenManage Enterprise Modular.
-   - This module supports ``check_mode``.
-   - The module will always report change when *password* option is added.
+   - This module supports \ :literal:`check\_mode`\ .
+   - The module will always report change when \ :emphasis:`password`\  option is added.
    - If the chassis is a member of a multi-chassis group and it is assigned as a backup lead chassis, the operations performed on the chassis using this module may conflict with the management operations performed on the chassis through the lead chassis.
 
 
@@ -291,4 +299,5 @@ Authors
 
 - Felix Stephen (@felixs88)
 - Shivam Sharma (@ShivamSh3)
+- Kritika Bhateja (@Kritika-Bhateja-03)
 
