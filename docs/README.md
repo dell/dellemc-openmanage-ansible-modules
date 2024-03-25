@@ -24,7 +24,7 @@ You may obtain a copy of the License at
 | [idrac_diagnostics](modules/idrac_diagnostics.rst)                                                   | ✕      | ✓      |
 | [idrac_firmware](modules/idrac_firmware.rst)                                                         | ✓      | ✓      |
 | [idrac_firmware_info](modules/idrac_firmware_info.rst)                                               | ✓      | ✓      |
-| [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)                       | ✕      | ✓      |
+| [idrac_lifecycle_controller_jobs](modules/idrac_lifecycle_controller_jobs.rst)                       | ✓      | ✓      |
 | [idrac_lifecycle_controller_job_status_info](modules/idrac_lifecycle_controller_job_status_info.rst) | ✓      | ✓      |
 | [idrac_lifecycle_controller_logs](modules/idrac_lifecycle_controller_logs.rst)                       | ✓      | ✓      |
 | [idrac_lifecycle_controller_status_info](modules/idrac_lifecycle_controller_status_info.rst)         | ✓      | ✓      |
