@@ -10,7 +10,7 @@ You may obtain a copy of the License at
 # OpenManage Ansible Modules Documentation
 
 ### iDRAC Modules
-| Module Name                                                                                              | iDRAC8 | iDRAC9 |
+| Module Name                                                                                          | iDRAC8 | iDRAC9 |
 | ---------------------------------------------------------------------------------------------------- | ------ | ------ |
 | [dellemc_configure_idrac_eventing](modules/dellemc_configure_idrac_eventing.rst)                     | ✓      | ✓      |
 | [dellemc_configure_idrac_services](modules/dellemc_configure_idrac_services.rst)                     | ✓      | ✓      |
@@ -42,8 +42,8 @@ You may obtain a copy of the License at
 | [idrac_user_info](modules/idrac_user_info.rst)                                                       | ✓      | ✓      |
 | [idrac_virtual_media](modules/idrac_virtual_media.rst)                                               | ✓      | ✓      |
 | [redfish_event_subscription](modules/redfish_event_subscription.rst)                                 | ✕      | ✓      |
-| [redfish_firmware](modules/redfish_firmware.rst)                                   | ✕      | ✓      |
-| [redfish_firmware_rollback](modules/redfish_firmware_rollback.rst)                                                     | ✓      | ✓      |
+| [redfish_firmware](modules/redfish_firmware.rst)                                                     | ✕      | ✓      |
+| [redfish_firmware_rollback](modules/redfish_firmware_rollback.rst)                                   | ✓      | ✓      |
 | [redfish_powerstate](modules/redfish_powerstate.rst)                                                 | ✓      | ✓      |
 | [redfish_storage_volume](modules/redfish_storage_volume.rst)                                         | ✓      | ✓      | 
 

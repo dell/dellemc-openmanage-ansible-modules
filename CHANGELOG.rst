@@ -10,7 +10,8 @@ v9.1.0
 Release Summary
 ---------------
 
-- idrac_storage_volume - Configures the RAID configuration attributes.
+- ``redfish_storage_volume`` is enhanced to support iDRAC8.
+- ``dellemc_idrac_storage_module`` is deprecated and replaced with ``idrac_storage_volume``.
 
 Minor Changes
 -------------
