@@ -75,7 +75,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
              'DeviceServiceTag': 'ABCD123', "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}],
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}],
             "EnableHotSpare": True,
             "EnablePowerCapSettings": True,
             "MaxPowerCap": "3424",
@@ -93,7 +93,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
              'DeviceServiceTag': 'ABCD123', "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}],
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}],
             "EnableHotSpare": True,
             "EnablePowerCapSettings": True,
             "MaxPowerCap": "3424",
@@ -111,7 +111,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}],
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}],
             "EnableHotSpare": True,
             "EnablePowerCapSettings": True,
             "MaxPowerCap": "3424",
@@ -128,7 +128,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "dummyhostname_shouldnotexist",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}],
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}],
             "EnableHotSpare": True,
             "EnablePowerCapSettings": True,
             "MaxPowerCap": "3424",
@@ -177,7 +177,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': POWER_FAIL_MSG,
             'check_domain_service': 'mocked_check_domain_service',
             'get_chassis_device': ('Id', 1234),
@@ -200,7 +200,7 @@ class TestOMEMDevicePower(FakeAnsibleModule):
         {"json_data": {"value": [
             {'Id': 1234, 'PublicAddress': "xxx.xxx.x.x",
              'DeviceId': 1234, "Type": 1000},
-            {'PublicAddress': "1.2.3.5", 'DeviceId': 1235, "Type": 1000}]},
+            {'PublicAddress': "X.X.X.X", 'DeviceId': 1235, "Type": 1000}]},
             'message': CONFIG_FAIL_MSG,
             'mparams': {"hostname": "xxx.xxx.x.x", "device_id": 123}}
     ])
