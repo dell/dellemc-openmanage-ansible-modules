@@ -1774,7 +1774,9 @@ releases:
     release_date: '2024-02-29'
   9.1.0:
     changes:
-      release_summary: '- idrac_storage_volume - Configures the RAID configuration attributes.'
+      release_summary: '- ``redfish_storage_volume`` is enhanced to support iDRAC8.
+      
+      - ``dellemc_idrac_storage_module`` is deprecated and replaced with ``idrac_storage_volume``.'
       bugfixes:
         - Added support for RAID creation using NVMe disks.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/635)
         - redfish_storage_volume is enhanced to support iDRAC8.(https://github.com/dell/dellemc-openmanage-ansible-modules/issues/625)
