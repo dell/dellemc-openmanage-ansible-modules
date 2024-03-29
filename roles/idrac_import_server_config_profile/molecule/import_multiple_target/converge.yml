@@ -4,7 +4,7 @@
   vars:
     _target: ['NIC', 'IDRAC']
     share_input: &share_input
-      share_name: "{{ lookup('env', 'NFS_URL') }}"
+      share_name: "{{ lookup('env', 'nfs_url') }}"
       scp_file: "{{ lookup('env', 'nfs_filename') }}"
   gather_facts: false
   tasks:
@@ -12,9 +12,9 @@
       ansible.builtin.import_role:
         name: idrac_import_server_config_profile
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         target: "{{ _target }}"
         share_parameters:
