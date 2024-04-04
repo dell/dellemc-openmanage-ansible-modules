@@ -7,14 +7,14 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         target: ['IDRAC']
         share_parameters:
-          share_user: "{{ lookup('env', 'USERNAME') }}"
-          share_password: "{{ lookup('env', 'PASSWORD') }}"
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
           scp_file: "{{ lookup('env', 'http_filename') }}"
       ignore_errors: true
       register: idrac_import_server_config_profile_status
@@ -28,15 +28,15 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         target: ['IDRAC']
         share_parameters:
-          share_name: "{{ lookup('env', 'HTTP_URL') }}"
-          share_user: "{{ lookup('env', 'USERNAME') }}"
-          share_password: "{{ lookup('env', 'PASSWORD') }}"
+          share_name: "{{ lookup('env', 'http_url') }}"
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
       ignore_errors: true
       register: idrac_import_server_config_profile_status
 
@@ -50,14 +50,14 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_parameters:
-          share_name: "{{ lookup('env', 'CIFS_URL') }}"
-          share_user: "{{ lookup('env', 'CIFS_USERNAME') }}"
-          share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+          share_name: "{{ lookup('env', 'cifs_url') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
           scp_file: "invalid_file.xml"
       ignore_errors: true
       register: idrac_import_server_config_profile_status
@@ -76,14 +76,14 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_parameters:
           share_name: "192.168.0.1:/cifsshare"
-          share_user: "{{ lookup('env', 'CIFS_USERNAME') }}"
-          share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
           scp_file: "{{ lookup('env', 'cifs_filename') }}"
       ignore_errors: true
       register: idrac_import_server_config_profile_status
@@ -99,13 +99,13 @@
         name: "idrac_import_server_config_profile"
       vars:
         hostname: "randomHostname"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_parameters:
-          share_name: "{{ lookup('env', 'CIFS_URL') }}"
-          share_user: "{{ lookup('env', 'CIFS_USERNAME') }}"
-          share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+          share_name: "{{ lookup('env', 'cifs_url') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
           scp_file: "{{ lookup('env', 'cifs_filename') }}"
       ignore_errors: true
       ignore_unreachable: true
@@ -121,14 +121,14 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "WrongUsername123"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_parameters:
-          share_name: "{{ lookup('env', 'CIFS_URL') }}"
-          share_user: "{{ lookup('env', 'CIFS_USERNAME') }}"
-          share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+          share_name: "{{ lookup('env', 'cifs_url') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
           scp_file: "{{ lookup('env', 'cifs_filename') }}"
       ignore_errors: true
       ignore_unreachable: true
@@ -143,14 +143,14 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "WrongPassword@123"
         validate_certs: false
         share_parameters:
-          share_name: "{{ lookup('env', 'CIFS_URL') }}"
-          share_user: "{{ lookup('env', 'CIFS_USERNAME') }}"
-          share_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+          share_name: "{{ lookup('env', 'cifs_url') }}"
+          share_user: "{{ lookup('env', 'cifs_username') }}"
+          share_password: "{{ lookup('env', 'cifs_password') }}"
           scp_file: "{{ lookup('env', 'cifs_filename') }}"
       ignore_errors: true
       ignore_unreachable: true
@@ -165,15 +165,15 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         target: ['idrac']
         share_parameters:
-          share_name: "{{ lookup('env', 'HTTP_URL') }}"
-          share_user: "{{ lookup('env', 'HTTP_USERNAME') }}"
-          share_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
+          share_name: "{{ lookup('env', 'http_url') }}"
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
           scp_file: "{{ lookup('env', 'http_filename') }}"
       ignore_errors: true
       register: idrac_import_server_config_profile_status
@@ -188,15 +188,15 @@
     #   ansible.builtin.import_role:
     #     name: "idrac_import_server_config_profile"
     #   vars:
-    #     hostname: "{{ lookup('env', 'HOSTNAME') }}"
-    #     username: "{{ lookup('env', 'USERNAME') }}"
-    #     password: "{{ lookup('env', 'PASSWORD') }}"
+    #     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    #     username: "{{ lookup('env', 'IDRAC_USER') }}"
+    #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     #     validate_certs: false
     #     target: ['IDRAC']
     #     share_parameters:
-    #       share_name: "{{ lookup('env', 'HTTP_URL') }}"
+    #       share_name: "{{ lookup('env', 'http_url') }}"
     #       share_user: "WrongUsername123"
-    #       share_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
+    #       share_password: "{{ lookup('env', 'http_password') }}"
     #       scp_file: "{{ lookup('env', 'http_filename') }}"
     #   ignore_errors: true
     #   register: idrac_import_server_config_profile_status
@@ -217,14 +217,14 @@
     #   ansible.builtin.import_role:
     #     name: "idrac_import_server_config_profile"
     #   vars:
-    #     hostname: "{{ lookup('env', 'HOSTNAME') }}"
-    #     username: "{{ lookup('env', 'USERNAME') }}"
-    #     password: "{{ lookup('env', 'PASSWORD') }}"
+    #     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    #     username: "{{ lookup('env', 'IDRAC_USER') }}"
+    #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     #     validate_certs: false
     #     target: ['IDRAC']
     #     share_parameters:
-    #       share_name: "{{ lookup('env', 'HTTP_URL') }}"
-    #       share_user: "{{ lookup('env', 'USERNAME') }}"
+    #       share_name: "{{ lookup('env', 'http_url') }}"
+    #       share_user: "{{ lookup('env', 'http_username') }}"
     #       share_password: "WrongPassword@123"
     #       scp_file: "{{ lookup('env', 'http_filename') }}"
     #   ignore_errors: true
@@ -241,14 +241,14 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         target: ['IDRAC']
         share_parameters:
           share_name: None
-          share_user: "{{ lookup('env', 'USERNAME') }}"
+          share_user: "{{ lookup('env', 'http_username') }}"
           share_password: "WrongPassword@123"
           scp_file: "{{ lookup('env', 'http_filename') }}"
       ignore_errors: true
@@ -263,15 +263,15 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         target: ['ALL']
         share_parameters:
-          share_name: "{{ lookup('env', 'HTTP_URL') }}"
-          share_user: "{{ lookup('env', 'HTTP_USERNAME') }}"
-          share_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
+          share_name: "{{ lookup('env', 'http_url') }}"
+          share_user: "{{ lookup('env', 'http_username') }}"
+          share_password: "{{ lookup('env', 'http_password') }}"
           scp_file: "{{ lookup('env', 'http_filename') }}"
           proxy_support: true
       ignore_errors: true
@@ -287,21 +287,21 @@
     #   ansible.builtin.import_role:
     #     name: "idrac_import_server_config_profile"
     #   vars:
-    #     hostname: "{{ lookup('env', 'HOSTNAME') }}"
-    #     username: "{{ lookup('env', 'USERNAME') }}"
-    #     password: "{{ lookup('env', 'PASSWORD') }}"
+    #     hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    #     username: "{{ lookup('env', 'IDRAC_USER') }}"
+    #     password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     #     validate_certs: false
     #     target: ['ALL']
     #     share_parameters:
-    #       share_name: "{{ lookup('env', 'HTTP_URL') }}"
-    #       share_user: "{{ lookup('env', 'HTTP_USERNAME') }}"
-    #       share_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
+    #       share_name: "{{ lookup('env', 'http_url') }}"
+    #       share_user: "{{ lookup('env', 'http_username') }}"
+    #       share_password: "{{ lookup('env', 'http_password') }}"
     #       scp_file: "{{ lookup('env', 'http_filename') }}"
     #       proxy_support: true
     #       proxy_type: http
     #       proxy_server: "randomProxyServer"
-    #       proxy_port: "{{ lookup('env', 'PROXY_PORT') }}"
-    #       proxy_password: "{{ lookup('env', 'PROXY_PASSWORD') }}"
+    #       proxy_port: "{{ lookup('env', 'proxy_port') }}"
+    #       proxy_password: "{{ lookup('env', 'proxy_password') }}"
     #   ignore_errors: true
     #   register: idrac_import_server_config_profile_status
 

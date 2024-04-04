@@ -8,8 +8,8 @@
         name: idrac_firmware
       vars:
         hostname: "invalidHostname"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         share_name: "{{ lookup('env', 'httpshare') }}"
         catalog_file_name: "Catalog.xml"
         reboot: true
@@ -25,9 +25,9 @@
       ansible.builtin.import_role:
         name: idrac_firmware
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
         username: "invalidUsername"
-        password: "{{ lookup('env', 'password') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         share_name: "{{ lookup('env', 'httpshare') }}"
         catalog_file_name: "Catalog.xml"
         reboot: true
@@ -45,8 +45,8 @@
       ansible.builtin.import_role:
         name: idrac_firmware
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
         password: "invalidPassword"
         share_name: "{{ lookup('env', 'httpsshare') }}"
         catalog_file_name: "Catalog.xml"
@@ -65,9 +65,9 @@
       ansible.builtin.import_role:
         name: idrac_firmware
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         share_name: "{{ lookup('env', 'httpsshare') }}"
         ca_path: "/invalid/ca/path.cert"
         catalog_file_name: "Catalog.xml"
@@ -86,9 +86,9 @@
       ansible.builtin.import_role:
         name: idrac_firmware
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         share_name: "{{ lookup('env', 'httpshare') }}"
         reboot: true
         job_wait: true
@@ -106,9 +106,9 @@
       ansible.builtin.import_role:
         name: "idrac_firmware"
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsshare') }}"
         share_user: "invalidUser"
@@ -131,9 +131,9 @@
       ansible.builtin.import_role:
         name: "idrac_firmware"
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsshare') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
@@ -156,9 +156,9 @@
       ansible.builtin.import_role:
         name: "idrac_firmware"
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsshare') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
@@ -170,8 +170,8 @@
         proxy_server: "{{ lookup('env', 'proxyserver') }}"
         proxy_type: "HTTP"
         proxy_port: "{{ lookup('env', 'proxyport') }}"
-        proxy_uname: "{{ lookup('env', 'proxyuname') }}"
-        proxy_passwd: "{{ lookup('env', 'proxypass') }}"
+        proxy_uname: "{{ lookup('env', 'proxy_username') }}"
+        proxy_passwd: "{{ lookup('env', 'proxy_password') }}"
         catalog_file_name: "catalog.xml"
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share with invalid proxy_uname"
@@ -184,9 +184,9 @@
       ansible.builtin.import_role:
         name: "idrac_firmware"
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsshare') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
@@ -198,7 +198,7 @@
         proxy_server: "{{ lookup('env', 'proxyserver') }}"
         proxy_type: "HTTP"
         proxy_port: "{{ lookup('env', 'proxyport') }}"
-        proxy_uname: "{{ lookup('env', 'proxyuname') }}"
+        proxy_uname: "{{ lookup('env', 'proxy_username') }}"
         proxy_passwd: "invalidPasswd"
         catalog_file_name: "catalog.xml"
       ignore_errors: true
