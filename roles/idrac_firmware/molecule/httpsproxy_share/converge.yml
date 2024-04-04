@@ -7,9 +7,9 @@
       ansible.builtin.import_role:
         name: "idrac_firmware"
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsproxy') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"
@@ -21,8 +21,8 @@
         proxy_server: "{{ lookup('env', 'proxyserver') }}"
         proxy_type: "HTTP"
         proxy_port: 3128
-        proxy_uname: "{{ lookup('env', 'proxyuname') }}"
-        proxy_passwd: "{{ lookup('env', 'proxypass') }}"
+        proxy_uname: "{{ lookup('env', 'proxy_username') }}"
+        proxy_passwd: "{{ lookup('env', 'proxy_password') }}"
         catalog_file_name: "Catalog.xml"
 
     - name: "Verifying update firmware from repository on a HTTPS via parameter proxy share in check mode"
@@ -48,9 +48,9 @@
       ansible.builtin.import_role:
         name: "idrac_firmware"
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         reboot: true
         job_wait: true
@@ -81,9 +81,9 @@
       ansible.builtin.import_role:
         name: "idrac_firmware"
       vars:
-        hostname: "{{ lookup('env', 'hostname') }}"
-        username: "{{ lookup('env', 'username') }}"
-        password: "{{ lookup('env', 'password') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_name: "{{ lookup('env', 'httpsproxy') }}"
         share_user: "{{ lookup('env', 'shareuser') }}"

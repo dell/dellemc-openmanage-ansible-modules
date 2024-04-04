@@ -7,7 +7,7 @@
       ansible.builtin.set_fact:
         input: &input
           hostname: "{{ lookup('env', 'IDRAC_IP') }}"
-          username: "{{ lookup('env', 'IDRAC_USERNAME') }}"
+          username: "{{ lookup('env', 'IDRAC_USER') }}"
           password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
           validate_certs: false
       no_log: true
@@ -83,7 +83,7 @@
     - name: Creating a job which exports SCP local path with all components
       dellemc.openmanage.idrac_server_config_profile:
         idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
-        idrac_user: "{{ lookup('env', 'IDRAC_USERNAME') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
         idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         scp_components:

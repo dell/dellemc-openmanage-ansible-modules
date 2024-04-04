@@ -10,18 +10,18 @@
     nfs_mount_path: "{{ lookup('env', 'nfs_mount_path') }}"
     cifs_mount_path: "{{ lookup('env', 'nfs_mount_path') }}"
 
-    nfs_url: "{{ lookup('env', 'NFS_URL') }}"
-    cifs_url: "{{ lookup('env', 'CIFS_URL') }}"
-    cifs_username: "{{ lookup('env', 'CIFS_USERNAME') }}"
-    cifs_password: "{{ lookup('env', 'CIFS_PASSWORD') }}"
+    nfs_url: "{{ lookup('env', 'nfs_url') }}"
+    cifs_url: "{{ lookup('env', 'cifs_url') }}"
+    cifs_username: "{{ lookup('env', 'cifs_username') }}"
+    cifs_password: "{{ lookup('env', 'cifs_password') }}"
 
-    https_url: "{{ lookup('env', 'HTTPS_URL') }}"
-    https_username: "{{ lookup('env', 'HTTPS_USERNAME') }}"
-    https_password: "{{ lookup('env', 'HTTPS_PASSWORD') }}"
+    https_url: "{{ lookup('env', 'https_url') }}"
+    https_username: "{{ lookup('env', 'https_username') }}"
+    https_password: "{{ lookup('env', 'https_password') }}"
 
-    http_url: "{{ lookup('env', 'HTTP_URL') }}"
-    http_username: "{{ lookup('env', 'HTTP_USERNAME') }}"
-    http_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
+    http_url: "{{ lookup('env', 'http_url') }}"
+    http_username: "{{ lookup('env', 'http_username') }}"
+    http_password: "{{ lookup('env', 'http_password') }}"
   gather_facts: false
   tasks:
     - name: Exporting SCP local path with all components
