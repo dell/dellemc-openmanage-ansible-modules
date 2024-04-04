@@ -3,9 +3,9 @@
   hosts: all
   gather_facts: false
   vars:
-    hostname: "{{ lookup('env', 'hostname') }}"
-    username: "{{ lookup('env', 'username') }}"
-    password: "{{ lookup('env', 'password') }}"
+    hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+    username: "{{ lookup('env', 'IDRAC_USER') }}"
+    password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
     validate_certs: false
     target:
       - System
