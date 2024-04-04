@@ -211,6 +211,7 @@ TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The parameter `job_wait_timeout` value cannot be
 NO_OPERATION_SKIP_MSG = "Task is skipped as none of import, export or delete is specified."
 INVALID_FILE_MSG = "File extension is invalid. Supported extensions for local 'share_type' " \
                    "are: .txt and .xml, and for network 'share_type' is: .xml."
+LC_STATUS_MSG = "LC status check is {{ lc_status }} after {{ retries }} number of retries, Exiting.."                   
 CHANGES_NOT_FOUND = "No changes found to commit!"
 CHANGES_FOUND = "Changes found to commit!"
 ODATA_ID = "@odata.id"
@@ -281,13 +282,14 @@ class FACTORYRESET():
               break
             time.sleep(10)
             retry_count = retry_count + 1
-          except URLError:
+          except URLError as err:
             time.sleep(10)
             retry_count = retry_count + 1
-            # pass
+            if retry_count == IDRAC_RESET_RETRIES:
+              self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status= 'unreachable', retries=retry_count), unreachable=True)
 
         if retry_count == IDRAC_RESET_RETRIES and lc_status_dict.get('LCStatus') != "Ready":
-            self.module.exit_json(msg="LC status check is {{ idrac_lc_status.LCStatus }} after {{ retry_count }} number of retries, Exiting..",failed=True)
+            self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status=lc_status_dict.get('LCStatus'), retries=retry_count),failed=True)
     
     def __create_output(self,status):
       result = {}
@@ -296,11 +298,13 @@ class FACTORYRESET():
       result['idracreset']['Data'] = {'StatusCode': status}
       result['idracreset']['StatusCode'] = status
       track_failed, wait_msg = None, None
+      self.staus_code_after_wait = 202
       if status in STATUS_SUCCESS:
-        track_failed, status_code, wait_msg = self.__wait_for_port_open()
-        self.staus_code_after_wait = status_code
-        if track_failed:
-          self.module.exit_json(msg=wait_msg, changed=True)
+        if self.wait_for_idrac:
+          track_failed, status_code, wait_msg = self.__wait_for_port_open()
+          self.staus_code_after_wait = status_code
+          if track_failed:
+            self.module.exit_json(msg=wait_msg, changed=True)
         tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG
         tmp_res['changed'] = True
         result['idracreset']['Message'] = IDRAC_RESET_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESET_TRIGGER_MSG
