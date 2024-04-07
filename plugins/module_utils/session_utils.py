@@ -149,27 +149,47 @@ class SessionAPI():
               value.
         """
         self.ipaddress = module_params.get("hostname")
+        self.username = module_params.get("username")
+        self.password = module_params.get("password")
+        self.port = module_params.get("port")
+        self.validate_certs = module_params.get("validate_certs", False)
+        self.ca_path = module_params.get("ca_path")
+        self.timeout = module_params.get("timeout")
+        self.use_proxy = module_params.get("use_proxy", True)
+        self.req_session = req_session
+        self.session_id = None
+        self.protocol = 'https'
+        self.ipaddress = config_ipv6(self.ipaddress)
+        self.set_headers(module_params)
+
+    def set_headers(self, module_params):
+        """
+        Set the headers for the HTTP request based on the module parameters.
+
+        Parameters:
+            module_params (dict): The module parameters containing the state and auth_token.
+
+        Returns:
+            None
+
+        This function sets the headers for the HTTP request based on the state parameter in the
+        module_params.
+        If the state is "present", the headers will include 'Content-Type' and 'Accept' with values
+        'application/json'.
+        If the state is not "present", the headers will include 'Content-Type', 'Accept', and
+        'X-Auth-Token' with the value from the auth_token parameter in module_params.
+        """
         if module_params.get("state") == "present":
-            self.username = module_params.get("username")
-            self.password = module_params.get("password")
             self._headers = {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'}
+                'Accept': 'application/json'
+            }
         else:
             self._headers = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'X-Auth-Token': module_params.get("auth_token")
             }
-        self.port = module_params.get("port")
-        self.validate_certs = module_params.get("validate_certs", False)
-        self.ca_path = module_params.get("ca_path")
-        self.timeout = module_params.get("timeout")
-        self.use_proxy = module_params.get("use_proxy", True)  # Check
-        self.req_session = req_session
-        self.session_id = None
-        self.protocol = 'https'
-        self.ipaddress = config_ipv6(self.ipaddress)
 
     def _get_url(self, uri):
         """
@@ -184,7 +204,25 @@ class SessionAPI():
         return f"{self.protocol}://{self.ipaddress}:{self.port}{uri}"
 
     def _build_url(self, path, query_param=None):
-        """builds complete url"""
+        """
+        Builds a URL by concatenating the base URI with the given path and query parameters.
+
+        Args:
+            path (str): The path component of the URL.
+            query_param (dict, optional): A dictionary of query parameters to be appended to the
+            URL. Defaults to None.
+
+        Returns:
+            str: The fully constructed URL.
+
+        Raises:
+            None
+
+        Examples:
+            >>> session = SessionUtils()
+            >>> session._build_url("/api/endpoint", {"param1": "value1", "param2": "value2"})
+            "/api/endpoint?param1=value1&param2=value2"
+        """
         url = path
         base_uri = self._get_url(url)
         if path:
@@ -194,7 +232,27 @@ class SessionAPI():
         return url
 
     def _url_common_args_spec(self, method, api_timeout, headers=None):
-        """Creates an argument common spec"""
+        """
+        Generates the common arguments for a URL request.
+
+        Args:
+            method (str): The HTTP method for the request.
+            api_timeout (int, optional): The timeout for the API request. If None, the default
+            timeout is used.
+            headers (dict, optional): Additional headers to include in the request.
+
+        Returns:
+            dict: A dictionary containing the common arguments for the URL request. The dictionary
+            has the following keys:
+                - method (str): The HTTP method for the request.
+                - validate_certs (bool): Whether to validate the SSL certificates.
+                - ca_path (str): The path to the CA certificate bundle.
+                - use_proxy (bool): Whether to use a proxy for the request.
+                - headers (dict): The headers to include in the request.
+                - timeout (int): The timeout for the request.
+                - follow_redirects (str): The policy for following redirects.
+
+        """
         req_header = self._headers
         if headers:
             req_header.update(headers)
@@ -213,7 +271,7 @@ class SessionAPI():
         }
         return url_kwargs
 
-    def _args_session(self, path, method, api_timeout, headers=None):  # Check
+    def _args_session(self, path, method, api_timeout, headers=None):
         """
         Returns a dictionary containing the arguments needed to establish a session.
 

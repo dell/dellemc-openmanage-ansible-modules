@@ -17,10 +17,10 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 module: idrac_session
-short_description: Configure iDRAC sessions
+short_description: Manage iDRAC sessions
 version_added: "9.2.0"
 description:
-  - This module allows to create and destroy sessions on iDRAC.
+  - This module allows the creation and deletion of sessions on iDRAC.
 options:
   hostname:
     description:
@@ -58,9 +58,10 @@ options:
     default: 30
   state:
     description:
-     - The state of the session in an iDRAC machine.
+     - The state of the session in an iDRAC.
      - C(present) creates a session.
      - C(absent) deletes a session.
+     - Module will always report changes found to be applied when I(state) is C(present).
     choices: [present, absent]
     type: str
     default: present
@@ -81,7 +82,8 @@ author:
 notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports IPv4 and IPv6 addresses.
-    - This module does not support C(check_mode).
+    - This module supports C(check_mode).
+    - This module will always report changes found to be applied when I(state) is C(present).
 """
 
 EXAMPLES = r"""
@@ -93,7 +95,7 @@ EXAMPLES = r"""
     password: password
     state: present
 
-- name: Destroy a session
+- name: Delete a session
   dellemc.openmanage.idrac_session:
     hostname: 198.162.0.1
     state: absent
@@ -181,6 +183,8 @@ CREATE_SUCCESS_MSG = "The session has been created successfully."
 CREATE_FAILURE_MSG = "Unable to create a session."
 DELETE_SUCCESS_MSG = "The session has been deleted successfully."
 DELETE_FAILURE_MSG = "Unable to delete a session."
+CHANGES_FOUND_MSG = "Changes found to be applied."
+NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 
 
 class Session():
@@ -251,6 +255,8 @@ class CreateSession(Session):
         payload = {"UserName": self.module.params.get("username"),
                    "Password": self.module.params.get("password")}
         session_url = self.get_session_url()
+        if self.module.check_mode:
+            self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
         session_response = self.idrac.invoke_request(session_url, "POST", data=payload)
         status = session_response.status_code
         if status == 201:
@@ -288,14 +294,50 @@ class DeleteSession(Session):
         Returns:
             None
         """
-        session_id = self.module.params["session_id"]
+        session_id = self.module.params.get("session_id")
         session_url = self.get_session_url()
-        session_response = self.idrac.invoke_request(session_url + f"/{session_id}", "DELETE")
-        status = session_response.status_code
-        if status == 200:
-            self.module.exit_json(msg=DELETE_SUCCESS_MSG, changed=True)
+        if self.module.check_mode:
+            session_status = self.__get_session_status(session_url, session_id)
+            if session_status == 200:
+                self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
+            else:
+                self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
         else:
-            self.module.exit_json(msg=DELETE_FAILURE_MSG, failed=True)
+            session_status = self.__get_session_status(session_url, session_id)
+            if session_status == 200:
+                try:
+                    session_response = self.idrac.invoke_request(session_url + f"/{session_id}",
+                                                                 "DELETE")
+                    status = session_response.status_code
+                    if status == 200:
+                        self.module.exit_json(msg=DELETE_SUCCESS_MSG, changed=True)
+                except HTTPError as err:
+                    filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
+                    self.module.exit_json(msg=DELETE_FAILURE_MSG, error_info=filter_err,
+                                          failed=True)
+            else:
+                self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
+
+    def __get_session_status(self, session_url, session_id):
+        """
+        Retrieves the status of a session given its URL and ID.
+
+        Args:
+            session_url (str): The URL of the session.
+            session_id (str): The ID of the session.
+
+
+        Returns:
+            int: The status code of the session status response. If an HTTPError occurs, the status
+            code of the error is returned.
+        """
+        try:
+            session_status_response = self.idrac.invoke_request(session_url + f"/{session_id}",
+                                                                "GET")
+            session_status = session_status_response.status_code
+        except HTTPError as err:
+            session_status = err.status
+        return session_status
 
 
 def main():
@@ -325,17 +367,17 @@ def main():
             ["state", "present", ("username", "password",)],
             ["state", "absent", ("auth_token", "session_id",)]
         ],
-        supports_check_mode=False
+        supports_check_mode=True
     )
 
     try:
         with SessionAPI(module.params) as idrac:
-            session_operation = module.params["state"]
+            session_operation = module.params.get("state")
             if session_operation == "present":
                 session_operation_obj = CreateSession(idrac, module)
             else:
                 session_operation_obj = DeleteSession(idrac, module)
-            session_status = session_operation_obj.execute()
+            session_operation_obj.execute()
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
