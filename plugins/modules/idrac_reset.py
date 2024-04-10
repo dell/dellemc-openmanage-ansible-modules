@@ -10,7 +10,6 @@
 #
 
 from __future__ import (absolute_import, division, print_function)
-import os
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -28,11 +27,10 @@ options:
     description:
         - If this value is not set the default behavior is to restart the IDRAC.
         - C(All) Discards all settings and reset to default credentials.
-        - C(ResetAllWithRootDefaults) Discards all settings and reset the default username to root and password to the shipping value (root/shipping value.
+        - C(ResetAllWithRootDefaults) Discards all settings and reset the default username to root and password to the shipping value.
         - C(Default) Discards all settings, but preserves user and network settings.
         - C(CustomDefaults) All configuration is set to custom defaults.This option is supported on firmware version 7.00.30.00 and above.
     choices: ['Default', 'All', 'ResetAllWithRootDefaults', 'CustomDefaults']
-    default: 'Default'
     version_added: 9.2.0
   custom_defaults_file:
     description:
@@ -45,7 +43,7 @@ options:
       - This parameter provides the opton to import the buffer input of xml as custom default configuration.
       - This option is applicable when I(reset_to_default) is C(CustomDefaults).
       - I(custom_defaults_buffer) is mutually exclusive with I(custom_defaults_file).
-    type: str    
+    type: str
   wait_for_idrac:
     description:
       - This parameter provides the option to wait for the iDRAC to reset and LC status to be ready.
@@ -56,7 +54,7 @@ options:
       - Time in seconds to wait for job completion.
       - This is applicable when I(job_wait) is C(true).
     type: int
-    default: 300 
+    default: 300
   force_reset:
     description:
       - This parameter provides the option to force reset the iDRAC without checking the iDRAC lifecycle controller status.
@@ -171,19 +169,16 @@ error_info:
   }
 '''
 
-import re
+import os
 import json
 import time
-import socket
-import subprocess
 from urllib.error import HTTPError, URLError
-from copy import deepcopy
 from ansible_collections.dellemc.openmanage.plugins.module_utils.idrac_redfish import iDRACRedfishAPI, idrac_auth_params
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_idrac_firmware_version, wait_after_idrac_reset, remove_key, idrac_redfish_job_tracking)
+    get_idrac_firmware_version, remove_key, idrac_redfish_job_tracking)
 
 
 SYSTEMS_URI = "/redfish/v1/Systems"
@@ -193,9 +188,9 @@ IDRAC_RESET_RETRIES = 10
 LC_STATUS_CHECK_SLEEP = 30
 IDRAC_RESET_OPTIONS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
-IDRAC_RESET_LIFECYCLE_STATUS_URI =  "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
+IDRAC_RESET_LIFECYCLE_STATUS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
 IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/{ManagerId}/Actions/Oem/DellManager.SetCustomDefaults"
-IDRAC_RESET_GET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI" 
+IDRAC_RESET_GET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI"
 IDRAC_RESET_GRACEFUL_RESTART_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset"
 IDRAC_RESET_RESET_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.ResetToDefaults"
 RESET_TO_DEFAULT_ERROR = "{0} is not supported. The supported values are {1}. Enter the valid values and retry the operation."
@@ -215,63 +210,63 @@ RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC r
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
 NO_OPERATION_SKIP_MSG = "Task is skipped as none of import, export or delete is specified."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
-LC_STATUS_MSG = "LC status check is `{lc_status}`after `{retries}` number of retries, Exiting.."  
-INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."       
+LC_STATUS_MSG = "LC status check is `{lc_status}`after `{retries}` number of retries, Exiting.."
+INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
-                                        "Please check if the directory has appropriate permissions"          
+                                        "Please check if the directory has appropriate permissions"
 CHANGES_NOT_FOUND = "No changes found to commit!"
-CUSTOM_UPLOAD_FAILED =" Failed to upload the custom defaults."
+CUSTOM_UPLOAD_FAILED = " Failed to upload the custom defaults."
 CHANGES_FOUND = "Changes found to commit!"
 ODATA_ID = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 ATTRIBUTE = "</Attribute>"
 SUCCESS_STATUS = "Success"
 FAILED_STATUS = "Failed"
-STATUS_SUCCESS = [200,202,204]
-ERR_STATUS_CODE = [400,404]
+STATUS_SUCCESS = [200, 202, 204]
+ERR_STATUS_CODE = [400, 404]
 RESET_KEY = "Oem.#DellManager.ResetToDefaults"
 
+
 class Validation():
-  def __init__(self, idrac, module):
-    self.idrac= idrac
-    self.module= module
- 
-  def validate_reset_options(self, allowed_choices, api_key):
-      # Add key check if exists --> Not Done
+    def __init__(self, idrac, module):
+        self.idrac = idrac
+        self.module = module
+
+    def validate_reset_options(self, allowed_choices, api_key):
+        # Add key check if exists --> Not Done
         res = self.idrac.invoke_request(IDRAC_RESET_OPTIONS_URI, "GET")
         reset_to_default = self.module.params.get('reset_to_default')
-        key_list = api_key.split(".",1)
+        key_list = api_key.split(".", 1)
         if key_list[0] in res.json_data["Actions"] and key_list[1] in res.json_data["Actions"][key_list[0]]:
-          reset_to_defaults_val = res.json_data["Actions"][key_list[0]][key_list[1]]
-          reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
-          if reset_to_default not in reset_type_values:
-            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default, allowed_choices),skipped=True)
+            reset_to_defaults_val = res.json_data["Actions"][key_list[0]][key_list[1]]
+            reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
+            if reset_to_default not in reset_type_values:
+                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default, allowed_choices), skipped=True)
 
-  def validate_job_timeout(self):
-    if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
-        self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
+    def validate_job_timeout(self):
+        if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
+            self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
 
-  def validate_path(self, file_path):
-    if not (os.path.exists(file_path)):
-        self.module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=file_path), failed=True)
-    if not os.access(file_path, os.W_OK):
-        self.module.exit_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=file_path), failed=True)
-  
-  def validate_file_format(self, file_name):
-    if not (file_name.endswith(".xml")):
-        self.module.exit_json(msg=INVALID_FILE_MSG, failed=True)
-  
-  def validate_custom_option(self, reset_to_default=None, allowed_choices=None):
-    try:
-      self.idrac.invoke_request(IDRAC_RESET_GET_CUSTOM_DEFAULTS_URI, "GET")
-      return True
-    except HTTPError as err:
-      if err.code in ERR_STATUS_CODE:
-          self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default, allowed_choices),skipped=True)
+    def validate_path(self, file_path):
+        if not (os.path.exists(file_path)):
+            self.module.exit_json(msg=INVALID_DIRECTORY_MSG.format(path=file_path), failed=True)
+        if not os.access(file_path, os.W_OK):
+            self.module.exit_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=file_path), failed=True)
+
+    def validate_file_format(self, file_name):
+        if not (file_name.endswith(".xml")):
+            self.module.exit_json(msg=INVALID_FILE_MSG, failed=True)
+
+    def validate_custom_option(self, reset_to_default=None, allowed_choices=None):
+        try:
+            self.idrac.invoke_request(IDRAC_RESET_GET_CUSTOM_DEFAULTS_URI, "GET")
+            return True
+        except HTTPError as err:
+            if err.code in ERR_STATUS_CODE:
+                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default, allowed_choices), skipped=True)
 
 
-class FactoryReset(): 
-  # Use composition vs Inheritance -> better composition for Validation class
+class FactoryReset():
     def __init__(self, idrac, module, allowed_choices):
         self.idrac = idrac
         self.module = module
@@ -287,13 +282,13 @@ class FactoryReset():
         is_idrac9 = self.is_check_idrac_latest()
         if not is_idrac9 and self.reset_to_default:
             if self.module.check_mode:
-              self.module.exit_json(msg=CHANGES_NOT_FOUND) 
+                self.module.exit_json(msg=CHANGES_NOT_FOUND)
             self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(self.reset_to_default, self.allowed_choices), skipped=True)
         # Check if need to use this individually check mode1
         if self.module.check_mode:
-          self.check_mode_output(is_idrac9)
+            self.check_mode_output(is_idrac9)
         if is_idrac9 and not self.force_reset:
-          self.check_lcstatus(post_op=False)
+            self.check_lcstatus(post_op=False)
         reset_status_mapping = {key: self.reset_to_default_mapped for key in ['Default', 'All', 'ResetAllWithRootDefaults']}
         reset_status_mapping.update({
             'CustomDefaults': self.reset_custom_defaults,
@@ -301,146 +296,146 @@ class FactoryReset():
         })
         msg_res, job_res = reset_status_mapping[str(self.reset_to_default)]()
         if is_idrac9 and self.wait_for_idrac:
-          self.check_lcstatus()    
-        return msg_res,job_res
+            self.check_lcstatus()
+        return msg_res, job_res
 
     def check_mode_output(self, is_idrac9):
-      if is_idrac9 and self.reset_to_default == 'CustomDefaults' and self.idrac_firmware_version < '7.00.30.00':
-        self.module.exit_json(msg=CHANGES_NOT_FOUND)
-      self.module.exit_json(msg=CHANGES_FOUND, changed=True)
-    
+        if is_idrac9 and self.reset_to_default == 'CustomDefaults' and self.idrac_firmware_version < '7.00.30.00':
+            self.module.exit_json(msg=CHANGES_NOT_FOUND)
+        self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+
     def is_check_idrac_latest(self):
-      self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
-      if LooseVersion(self.idrac_firmware_version) >= '3.0':
-        return True
+        self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
+        if LooseVersion(self.idrac_firmware_version) >= '3.0':
+            return True
 
     def check_lcstatus(self, post_op=True):
         if self.reset_to_default == 'All' and post_op and self.staus_code_after_wait == 401:
-          return
+            return
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
         retry_count = 1
         while retry_count < IDRAC_RESET_RETRIES:
-          try:
-            lcstatus = self.idrac.invoke_request(IDRAC_RESET_LIFECYCLE_STATUS_URI,"POST",data="{}", dump=False)
-            lcstatus_data = lcstatus.json_data.get('LCStatus')
-            lc_status_dict['LCStatus'] = lcstatus_data
-            if lc_status_dict.get('LCStatus') == 'Ready':
-              break
-            time.sleep(10)
-            retry_count = retry_count + 1
-          except URLError:
-            time.sleep(10)
-            retry_count = retry_count + 1
-            if retry_count == IDRAC_RESET_RETRIES:
-              self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status= 'unreachable', retries=retry_count), unreachable=True)
+            try:
+                lcstatus = self.idrac.invoke_request(IDRAC_RESET_LIFECYCLE_STATUS_URI, "POST", data="{}", dump=False)
+                lcstatus_data = lcstatus.json_data.get('LCStatus')
+                lc_status_dict['LCStatus'] = lcstatus_data
+                if lc_status_dict.get('LCStatus') == 'Ready':
+                    break
+                time.sleep(10)
+                retry_count = retry_count + 1
+            except URLError:
+                time.sleep(10)
+                retry_count = retry_count + 1
+                if retry_count == IDRAC_RESET_RETRIES:
+                    self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status='unreachable', retries=retry_count), unreachable=True)
 
         if retry_count == IDRAC_RESET_RETRIES and lc_status_dict.get('LCStatus') != "Ready":
-            self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status=lc_status_dict.get('LCStatus'), retries=retry_count),failed=True)
+            self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status=lc_status_dict.get('LCStatus'), retries=retry_count), failed=True)
 
-    def create_output(self,status):
-      result = {}
-      tmp_res = {}
-      result['idracreset'] = {}
-      result['idracreset']['Data'] = {'StatusCode': status}
-      result['idracreset']['StatusCode'] = status
-      track_failed, wait_msg = None, None
-      self.staus_code_after_wait = 202
-      if status in STATUS_SUCCESS:
-        if self.wait_for_idrac:
-          track_failed, status_code, wait_msg = self.wait_for_port_open()
-          self.staus_code_after_wait = status_code
-          if track_failed:
-            self.module.exit_json(msg=wait_msg, changed=True)
-        tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG
-        tmp_res['changed'] = True
-        result['idracreset']['Message'] = IDRAC_RESET_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESET_TRIGGER_MSG
-        result['idracreset']['Status'] = 'Success'
-        result['idracreset']['retVal'] = True
-      else:
-        tmp_res['msg']  = FAILED_RESET_MSG
-        tmp_res['changed'] = False
-        result['idracreset']['Message'] = FAILED_RESET_MSG
-        result['idracreset']['Status'] = 'FAILED'
-        result['idracreset']['retVal'] = False
-      return tmp_res, result
+    def create_output(self, status):
+        result = {}
+        tmp_res = {}
+        result['idracreset'] = {}
+        result['idracreset']['Data'] = {'StatusCode': status}
+        result['idracreset']['StatusCode'] = status
+        track_failed, wait_msg = None, None
+        self.staus_code_after_wait = 202
+        if status in STATUS_SUCCESS:
+            if self.wait_for_idrac:
+                track_failed, status_code, wait_msg = self.wait_for_port_open()
+                self.staus_code_after_wait = status_code
+                if track_failed:
+                    self.module.exit_json(msg=wait_msg, changed=True)
+            tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG
+            tmp_res['changed'] = True
+            result['idracreset']['Message'] = IDRAC_RESET_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESET_TRIGGER_MSG
+            result['idracreset']['Status'] = 'Success'
+            result['idracreset']['retVal'] = True
+        else:
+            tmp_res['msg'] = FAILED_RESET_MSG
+            tmp_res['changed'] = False
+            result['idracreset']['Message'] = FAILED_RESET_MSG
+            result['idracreset']['Status'] = 'FAILED'
+            result['idracreset']['retVal'] = False
+        return tmp_res, result
 
     def perform_operation(self, payload):
-      tmp_res, res = None, None
-      run_reset_status = self.idrac.invoke_request(IDRAC_RESET_RESET_URI, "POST", data=payload)
-      status = run_reset_status.status_code
-      tmp_res, res = self.create_output(status)
-      return tmp_res, res 
+        tmp_res, res = None, None
+        run_reset_status = self.idrac.invoke_request(IDRAC_RESET_RESET_URI, "POST", data=payload)
+        status = run_reset_status.status_code
+        tmp_res, res = self.create_output(status)
+        return tmp_res, res
 
     def upload_cd_content(self, data):
-      payload = {}
-      payload["CustomDefaults"] = data
-      job_resp = self.idrac.invoke_request(IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI, "POST", data=payload)
-      if (job_tracking_uri := job_resp.headers.get("Location")):
-        job_id = job_tracking_uri.split("/")[-1]
-        job_uri = iDRAC_JOB_URI.format(job_id=job_id)
-        job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri,
-                                                                                        max_job_wait_sec=self.job_wait_timeout,
-                                                                                        sleep_interval_secs=1)
-        job_dict = remove_key(job_dict,regex_pattern='(.*?)@odata')
-        if job_failed:
-            self.module.exit_json(msg=job_dict.get("Message"), job_status=job_dict, failed=True)
-    
-    def wait_for_port_open(self,interval=30):
-      timeout_wait = self.module.params.get('job_wait_timeout')
-      time.sleep(interval // 2)
-      msg = RESET_UNTRACK
-      wait = timeout_wait
-      track_failed = True
-      status_code = 503
-      while int(wait) > 0:
-          try:
-              self.idrac.invoke_request(MANAGERS_URI, 'GET')
-              time.sleep(interval // 2)
-              msg = IDRAC_RESET_SUCCESS_MSG
-              track_failed = False
-              status_code= 200
-              break
-          except HTTPError as err:
-            status_code = err.code
-            if status_code == 401:
-              time.sleep(interval // 2)
-              msg = IDRAC_RESET_SUCCESS_MSG
-              track_failed = False
-              break
-          except URLError as err:
-              time.sleep(interval)
-              wait = wait - interval
-      return track_failed, status_code, msg
-     
+        payload = {}
+        payload["CustomDefaults"] = data
+        job_resp = self.idrac.invoke_request(IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI, "POST", data=payload)
+        if (job_tracking_uri := job_resp.headers.get("Location")):
+            job_id = job_tracking_uri.split("/")[-1]
+            job_uri = iDRAC_JOB_URI.format(job_id=job_id)
+            job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri,
+                                                                              max_job_wait_sec=self.job_wait_timeout,
+                                                                              sleep_interval_secs=1)
+            job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
+            if job_failed:
+                self.module.exit_json(msg=job_dict.get("Message"), job_status=job_dict, failed=True)
+
+    def wait_for_port_open(self, interval=30):
+        timeout_wait = self.module.params.get('job_wait_timeout')
+        time.sleep(interval // 2)
+        msg = RESET_UNTRACK
+        wait = timeout_wait
+        track_failed = True
+        status_code = 503
+        while int(wait) > 0:
+            try:
+                self.idrac.invoke_request(MANAGERS_URI, 'GET')
+                time.sleep(interval // 2)
+                msg = IDRAC_RESET_SUCCESS_MSG
+                track_failed = False
+                status_code = 200
+                break
+            except HTTPError as err:
+                status_code = err.code
+                if status_code == 401:
+                    time.sleep(interval // 2)
+                    msg = IDRAC_RESET_SUCCESS_MSG
+                    track_failed = False
+                    break
+            except URLError as err:
+                time.sleep(interval)
+                wait = wait - interval
+        return track_failed, status_code, msg
+
     def reset_to_default_mapped(self):
         payload = {}
         payload["ResetType"] = self.reset_to_default
         self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
         return self.perform_operation(payload)
-  
+
     def reset_custom_defaults(self):
-      # add a check for firmware version for this > 7.00.30.00
-      if self.idrac_firmware_version < '7.00.30.00':
-        self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(self.reset_to_default, self.allowed_choices), skipped=True)
-      tmp_res, res = None, None
-      custom_default_file = self.module.params.get('custom_defaults_file')
-      custom_default_buffer = self.module.params.get('custom_defaults_buffer')
-      upload_perfom= False
-      default_data = None
-      if custom_default_file:
-        self.validate_obj.validate_path(custom_default_file)
-        self.validate_obj.validate_file_format(custom_default_file)
-        upload_perfom= True
-        default_data = custom_default_file
-      elif custom_default_buffer:
-        upload_perfom= True
-        default_data = custom_default_buffer
-      if upload_perfom:
-        self.upload_cd_file(default_data)      
-      self.validate_obj.validate_custom_option(self.reset_to_default, self.allowed_choices)
-      return self.reset_to_default_mapped()
-    
+        # add a check for firmware version for this > 7.00.30.00
+        if self.idrac_firmware_version < '7.00.30.00':
+            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(self.reset_to_default, self.allowed_choices), skipped=True)
+        tmp_res, res = None, None
+        custom_default_file = self.module.params.get('custom_defaults_file')
+        custom_default_buffer = self.module.params.get('custom_defaults_buffer')
+        upload_perfom = False
+        default_data = None
+        if custom_default_file:
+            self.validate_obj.validate_path(custom_default_file)
+            self.validate_obj.validate_file_format(custom_default_file)
+            upload_perfom = True
+            default_data = custom_default_file
+        elif custom_default_buffer:
+            upload_perfom = True
+            default_data = custom_default_buffer
+        if upload_perfom:
+            self.upload_cd_file(default_data)
+        self.validate_obj.validate_custom_option(self.reset_to_default, self.allowed_choices)
+        return self.reset_to_default_mapped()
+
     def graceful_restart(self):
         payload = {}
         payload["ResetType"] = "GracefulRestart"
@@ -448,17 +443,18 @@ class FactoryReset():
         status = run_reset_status.status_code
         tmp_res, resp = self.create_output(status)
         if status in STATUS_SUCCESS:
-          resp['idracreset']['Message'] = IDRAC_RESET_RESTART_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESTART_TRIGGER_MSG
-        return tmp_res, resp 
+            resp['idracreset']['Message'] = IDRAC_RESET_RESTART_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESTART_TRIGGER_MSG
+        return tmp_res, resp
+
 
 def main():
     specs = {
-        "reset_to_default": {"choices": ['All', 'ResetAllWithRootDefaults', 'Default','CustomDefaults']},
+        "reset_to_default": {"choices": ['All', 'ResetAllWithRootDefaults', 'Default', 'CustomDefaults']},
         "custom_defaults_file": {"type": "str"},
         "custom_defaults_buffer": {"type": "str"},
         "wait_for_idrac": {"type": "bool", "default": True},
         "job_wait_timeout": {"type": 'int', "default": 300},
-        "force_reset": {"type": "bool", "default": False}       
+        "force_reset": {"type": "bool", "default": False}
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(
@@ -471,7 +467,7 @@ def main():
             reset_obj = FactoryReset(idrac, module, allowed_choices)
             message_resp, output = reset_obj.execute()
             if not message_resp.get('changed'):
-              module.exit_json(msg=message_resp.get('msg'), reset_status=output, failed=True)
+                module.exit_json(msg=message_resp.get('msg'), reset_status=output, failed=True)
             module.exit_json(msg=message_resp.get('msg'), reset_status=output, changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
@@ -479,6 +475,7 @@ def main():
         module.exit_json(msg=str(err), unreachable=True)
     except (SSLValidationError, ConnectionError, TypeError, KeyError, ValueError, OSError) as err:
         module.exit_json(msg=str(err), failed=True)
+
 
 if __name__ == '__main__':
     main()
