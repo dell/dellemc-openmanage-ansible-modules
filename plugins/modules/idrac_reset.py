@@ -189,7 +189,7 @@ LC_STATUS_CHECK_SLEEP = 30
 IDRAC_RESET_OPTIONS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 IDRAC_RESET_LIFECYCLE_STATUS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
-IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/{ManagerId}/Actions/Oem/DellManager.SetCustomDefaults"
+IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.SetCustomDefaults"
 IDRAC_RESET_GET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI"
 IDRAC_RESET_GRACEFUL_RESTART_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset"
 IDRAC_RESET_RESET_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.ResetToDefaults"
@@ -210,7 +210,7 @@ RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC r
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
 NO_OPERATION_SKIP_MSG = "Task is skipped as none of import, export or delete is specified."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
-LC_STATUS_MSG = "LC status check is `{lc_status}`after `{retries}` number of retries, Exiting.."
+LC_STATUS_MSG = "LC status check is {lc_status} after {retries} number of retries, Exiting.."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
                                         "Please check if the directory has appropriate permissions"
@@ -370,12 +370,13 @@ class FactoryReset():
     def upload_cd_content(self, data):
         payload = {}
         payload["CustomDefaults"] = data
+        job_wait_timeout = self.module.params.get('job_wait_timeout')
         job_resp = self.idrac.invoke_request(IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI, "POST", data=payload)
         if (job_tracking_uri := job_resp.headers.get("Location")):
             job_id = job_tracking_uri.split("/")[-1]
             job_uri = iDRAC_JOB_URI.format(job_id=job_id)
             job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri,
-                                                                              max_job_wait_sec=self.job_wait_timeout,
+                                                                              max_job_wait_sec=job_wait_timeout,
                                                                               sleep_interval_secs=1)
             job_dict = remove_key(job_dict, regex_pattern='(.*?)@odata')
             if job_failed:
@@ -411,7 +412,8 @@ class FactoryReset():
     def reset_to_default_mapped(self):
         payload = {}
         payload["ResetType"] = self.reset_to_default
-        self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
+        if self.reset_to_default != 'CustomDefaults':
+            self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
         return self.perform_operation(payload)
 
     def reset_custom_defaults(self):
@@ -432,7 +434,7 @@ class FactoryReset():
             upload_perfom = True
             default_data = custom_default_buffer
         if upload_perfom:
-            self.upload_cd_file(default_data)
+            self.upload_cd_content(default_data)
         self.validate_obj.validate_custom_option(self.reset_to_default, self.allowed_choices)
         return self.reset_to_default_mapped()
 
@@ -473,7 +475,7 @@ def main():
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
         module.exit_json(msg=str(err), unreachable=True)
-    except (SSLValidationError, ConnectionError, TypeError, KeyError, ValueError, OSError) as err:
+    except (RuntimeError, SSLValidationError, ConnectionError, TypeError, KeyError, ValueError, OSError) as err:
         module.exit_json(msg=str(err), failed=True)
 
 
