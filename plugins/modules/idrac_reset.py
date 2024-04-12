@@ -184,20 +184,22 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.compat.version import LooseVersion
 from ansible.module_utils.urls import ConnectionError, SSLValidationError
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
-    get_idrac_firmware_version, remove_key, idrac_redfish_job_tracking)
+    get_idrac_firmware_version, remove_key, get_dynamic_uri, validate_and_get_first_resource_id_uri, idrac_redfish_job_tracking)
 
 
-SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
+OEM = "Oem"
+MANUFACTURER = "Dell"
+LC_SERVICE = "DellLCService"
+ACTIONS = "Actions"
+GETREMOTELCSTATUS = "#DellLCService.GetRemoteServicesAPIStatus"
+RESET_TO_DEFAULT_KEY = "#DellManager.ResetToDefaults"
+RESTART_KEY = "#Manager.Reset"
+GET_CUSTOM_DEFAULT_KEY = "CustomDefaultsDownloadURI"
+SET_CUSTOM_DEFAULT_KEY = "#DellManager.SetCustomDefaults"
 IDRAC_RESET_RETRIES = 10
 LC_STATUS_CHECK_SLEEP = 30
-IDRAC_RESET_OPTIONS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
-IDRAC_RESET_LIFECYCLE_STATUS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
-IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.SetCustomDefaults"
-IDRAC_RESET_GET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI"
-IDRAC_RESET_GRACEFUL_RESTART_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset"
-IDRAC_RESET_RESET_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.ResetToDefaults"
 RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. \
                         Enter the valid values and retry the operation."
 IDRAC_RESET_RESTART_SUCCESS_MSG = "iDRAC restart operation completed successfully."
@@ -212,6 +214,7 @@ INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_d
 LC_STATUS_MSG = "LC status check is {lc_status} after {retries} number of retries, Exiting.."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
                                         "Please check if the directory has appropriate permissions."
+UNSUPPORTED_LC_STATUS_MSG = "LC status check is not supported."
 CHANGES_NOT_FOUND = "No changes found to commit!"
 CHANGES_FOUND = "Changes found to commit!"
 ODATA_ID = "@odata.id"
@@ -228,10 +231,17 @@ class Validation():
     def __init__(self, idrac, module):
         self.idrac = idrac
         self.module = module
+        self.base_uri = self.get_base_uri()
+
+    def get_base_uri(self):
+        uri, error_msg = validate_and_get_first_resource_id_uri(
+            self.module, self.idrac, MANAGERS_URI)
+        if error_msg:
+            self.module.exit_json(msg=error_msg, failed=True)
+        return uri
 
     def validate_reset_options(self, allowed_choices, api_key):
-        # Add key check if exists --> Not Done
-        res = self.idrac.invoke_request(IDRAC_RESET_OPTIONS_URI, "GET")
+        res = self.idrac.invoke_request(self.base_uri, "GET")
         reset_to_default = self.module.params.get('reset_to_default')
         key_list = api_key.split(".", 1)
         if key_list[0] in res.json_data["Actions"] and key_list[1] in res.json_data["Actions"][key_list[0]]:
@@ -255,8 +265,12 @@ class Validation():
             self.module.exit_json(msg=INVALID_FILE_MSG, failed=True)
 
     def validate_custom_option(self, reset_to_default=None, allowed_choices=None):
+        url = None
+        resp = get_dynamic_uri(self.idrac, self.base_uri, OEM)
+        if resp:
+            url = resp.get(MANUFACTURER, {}).get(GET_CUSTOM_DEFAULT_KEY, {})
         try:
-            self.idrac.invoke_request(IDRAC_RESET_GET_CUSTOM_DEFAULTS_URI, "GET")
+            self.idrac.invoke_request(url, "GET")
             return True
         except HTTPError as err:
             if err.code in ERR_STATUS_CODE:
@@ -272,6 +286,7 @@ class FactoryReset():
         self.force_reset = self.module.params.get('force_reset')
         self.wait_for_idrac = self.module.params.get('wait_for_idrac')
         self.validate_obj = Validation(self.idrac, self.module)
+        self.uri = self.validate_obj.base_uri
 
     def execute(self):
         msg_res, job_res = None, None
@@ -282,7 +297,6 @@ class FactoryReset():
                 self.module.exit_json(msg=CHANGES_NOT_FOUND)
             self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
                                   skipped=True)
-        # Check if need to use this individually check mode1
         if self.module.check_mode:
             self.check_mode_output(is_idrac9)
         if is_idrac9 and not self.force_reset:
@@ -313,9 +327,16 @@ class FactoryReset():
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
         retry_count = 1
+        resp = get_dynamic_uri(self.idrac, self.uri, "Links")
+        url = resp.get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA_ID, {})
+        if url:
+            action_resp = get_dynamic_uri(self.idrac, url)
+            lc_url = action_resp.get(ACTIONS, {}).get(GETREMOTELCSTATUS, {}).get('target', {})
+        else:
+            self.module.exit_json(msg=UNSUPPORTED_LC_STATUS_MSG, failed=True)
         while retry_count < IDRAC_RESET_RETRIES:
             try:
-                lcstatus = self.idrac.invoke_request(IDRAC_RESET_LIFECYCLE_STATUS_URI, "POST", data="{}", dump=False)
+                lcstatus = self.idrac.invoke_request(lc_url, "POST", data="{}", dump=False)
                 lcstatus_data = lcstatus.json_data.get('LCStatus')
                 lc_status_dict['LCStatus'] = lcstatus_data
                 if lc_status_dict.get('LCStatus') == 'Ready':
@@ -360,7 +381,11 @@ class FactoryReset():
 
     def perform_operation(self, payload):
         tmp_res, res = None, None
-        run_reset_status = self.idrac.invoke_request(IDRAC_RESET_RESET_URI, "POST", data=payload)
+        url = None
+        resp = get_dynamic_uri(self.idrac, self.uri, ACTIONS)
+        if resp:
+            url = resp.get(OEM, {}).get(RESET_TO_DEFAULT_KEY, {}).get('target', {})
+        run_reset_status = self.idrac.invoke_request(url, "POST", data=payload)
         status = run_reset_status.status_code
         tmp_res, res = self.create_output(status)
         return tmp_res, res
@@ -368,7 +393,11 @@ class FactoryReset():
     def upload_cd_content(self, data):
         payload = {"CustomDefaults": data}
         job_wait_timeout = self.module.params.get('job_wait_timeout')
-        job_resp = self.idrac.invoke_request(IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI, "POST", data=payload)
+        url = None
+        resp = get_dynamic_uri(self.idrac, self.uri, ACTIONS)
+        if resp:
+            url = resp.get(OEM, {}).get(SET_CUSTOM_DEFAULT_KEY, {}).get('target', {})
+        job_resp = self.idrac.invoke_request(url, "POST", data=payload)
         if (job_tracking_uri := job_resp.headers.get("Location")):
             job_id = job_tracking_uri.split("/")[-1]
             job_uri = IDRAC_JOB_URI.format(job_id=job_id)
@@ -418,7 +447,6 @@ class FactoryReset():
         return xml_content
 
     def reset_custom_defaults(self):
-        # add a check for firmware version for this > 7.00.30.00
         if self.idrac_firmware_version < '7.00.30.00':
             self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
                                   skipped=True)
@@ -440,8 +468,12 @@ class FactoryReset():
         return self.reset_to_default_mapped()
 
     def graceful_restart(self):
+        url = None
+        resp = get_dynamic_uri(self.idrac, self.uri, ACTIONS)
+        if resp:
+            url = resp.get(RESTART_KEY, {}).get('target', {})
         payload = {"ResetType": "GracefulRestart"}
-        run_reset_status = self.idrac.invoke_request(IDRAC_RESET_GRACEFUL_RESTART_URI, "POST", data=payload)
+        run_reset_status = self.idrac.invoke_request(url, "POST", data=payload)
         status = run_reset_status.status_code
         tmp_res, resp = self.create_output(status)
         if status in STATUS_SUCCESS:
