@@ -69,6 +69,7 @@ author:
   - "Anooja Vardhineni (@anooja-vardhineni)"
   - "Lovepreet Singh (@singh-lovepreet1)"
 notes:
+    - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
     - This module will by default trigger a graceful restart if nothing is specified.
@@ -82,6 +83,7 @@ EXAMPLES = r'''
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
    idrac_password: "user_password"
+   ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "All"
 
 - name: Reset the iDRAC to default and do not wait for the iDRAC to be up.
@@ -89,6 +91,7 @@ EXAMPLES = r'''
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
    idrac_password: "user_password"
+   ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "Default"
    wait_for_idrac: false
 
@@ -97,6 +100,7 @@ EXAMPLES = r'''
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
    idrac_password: "user_password"
+   ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "Default"
    force_reset: true
 
@@ -105,12 +109,14 @@ EXAMPLES = r'''
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
    idrac_password: "user_password"
+   ca_path: "/path/to/ca_cert.pem"
 
 - name: Reset the iDRAC to custom defaults xml and do not wait for the iDRAC to be up.
   dellemc.openmanage.idrac_reset:
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
    idrac_password: "user_password"
+   ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "CustomDefaults"
    custom_defaults_file: "/path/to/custom_defaults.xml"
 
@@ -119,6 +125,7 @@ EXAMPLES = r'''
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
    idrac_password: "user_password"
+   ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "CustomDefaults"
    custom_defaults_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1'>
     Disabled</Attribute></Component></SystemConfiguration>"
@@ -128,15 +135,14 @@ RETURN = r'''
 ---
 msg:
   type: str
-  description: Overall status of the storage configuration operation.
+  description: Status of the iDRAC reset operation.
   returned: always
-  sample: "Successfully completed the "
+  sample: "Successfully performed iDRAC reset."
 reset_status:
   type: dict
-  description: Reset status and progress details from the iDRAC.
-  returned: success
-  sample:
-    {
+  description: Details of iDRAC reset operation.
+  returned: always
+  sample: {
     "idracreset": {
             "Data": {
                 "StatusCode": 204
@@ -183,39 +189,30 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 
 SYSTEMS_URI = "/redfish/v1/Systems"
 MANAGERS_URI = "/redfish/v1/Managers"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 IDRAC_RESET_RETRIES = 10
 LC_STATUS_CHECK_SLEEP = 30
 IDRAC_RESET_OPTIONS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
-iDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
+IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 IDRAC_RESET_LIFECYCLE_STATUS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
 IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.SetCustomDefaults"
 IDRAC_RESET_GET_CUSTOM_DEFAULTS_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI"
 IDRAC_RESET_GRACEFUL_RESTART_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset"
 IDRAC_RESET_RESET_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/DellManager.ResetToDefaults"
-RESET_TO_DEFAULT_ERROR = "{0} is not supported. The supported values are {1}. Enter the valid values and retry the operation."
-IDRAC_RESET_RESTART_SUCCESS_MSG = "iDRAC restart operation completed successfully"
+RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. \
+                        Enter the valid values and retry the operation."
+IDRAC_RESET_RESTART_SUCCESS_MSG = "iDRAC restart operation completed successfully."
 IDRAC_RESET_SUCCESS_MSG = "Successfully performed iDRAC reset."
-IDRAC_RESET_RESET_TRIGGER_MSG = "iDRAC reset operation triggered successfully"
-IDRAC_RESET_RESTART_TRIGGER_MSG = "iDRAC restart operation triggered successfully"
-INVALID_VALUE_MSG = "The value for the `{parameter}` parameter is invalid."
-NOT_ALLOWED_VALUE_MSG = "`{reset_to_default}` is not supported. The supported values are `{supported_reset_to_default_values}`. \
-                          Enter the valid values and retry the operation."
-WAIT_TIMEOUT_MSG = "The job is not completed after {0} seconds."
+IDRAC_RESET_RESET_TRIGGER_MSG = "iDRAC reset operation triggered successfully."
+IDRAC_RESET_RESTART_TRIGGER_MSG = "iDRAC restart operation triggered successfully."
 INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is invalid."
 FAILED_RESET_MSG = "Failed to perform the reset operation."
-MISSING_FILE_NAME_PARAMETER_MSG = "Missing required parameter 'file_name'."
-UNSUPPORTED_FIRMWARE_MSG = "iDRAC firmware version is not supported."
 RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC reset operation is susccessfully completed."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
-NO_OPERATION_SKIP_MSG = "Task is skipped as none of import, export or delete is specified."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
 LC_STATUS_MSG = "LC status check is {lc_status} after {retries} number of retries, Exiting.."
-INVALID_DIRECTORY_MSG = "Provided directory path '{path}' is not valid."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
-                                        "Please check if the directory has appropriate permissions"
+                                        "Please check if the directory has appropriate permissions."
 CHANGES_NOT_FOUND = "No changes found to commit!"
-CUSTOM_UPLOAD_FAILED = " Failed to upload the custom defaults."
 CHANGES_FOUND = "Changes found to commit!"
 ODATA_ID = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
@@ -241,7 +238,7 @@ class Validation():
             reset_to_defaults_val = res.json_data["Actions"][key_list[0]][key_list[1]]
             reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
             if reset_to_default not in reset_type_values:
-                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default, allowed_choices), skipped=True)
+                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
 
     def validate_job_timeout(self):
         if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
@@ -263,7 +260,7 @@ class Validation():
             return True
         except HTTPError as err:
             if err.code in ERR_STATUS_CODE:
-                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default, allowed_choices), skipped=True)
+                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
 
 
 class FactoryReset():
@@ -283,7 +280,8 @@ class FactoryReset():
         if not is_idrac9 and self.reset_to_default:
             if self.module.check_mode:
                 self.module.exit_json(msg=CHANGES_NOT_FOUND)
-            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(self.reset_to_default, self.allowed_choices), skipped=True)
+            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
+                                  skipped=True)
         # Check if need to use this individually check mode1
         if self.module.check_mode:
             self.check_mode_output(is_idrac9)
@@ -368,13 +366,12 @@ class FactoryReset():
         return tmp_res, res
 
     def upload_cd_content(self, data):
-        payload = {}
-        payload["CustomDefaults"] = data
+        payload = {"CustomDefaults": data}
         job_wait_timeout = self.module.params.get('job_wait_timeout')
         job_resp = self.idrac.invoke_request(IDRAC_RESET_SET_CUSTOM_DEFAULTS_URI, "POST", data=payload)
         if (job_tracking_uri := job_resp.headers.get("Location")):
             job_id = job_tracking_uri.split("/")[-1]
-            job_uri = iDRAC_JOB_URI.format(job_id=job_id)
+            job_uri = IDRAC_JOB_URI.format(job_id=job_id)
             job_failed, msg, job_dict, wait_time = idrac_redfish_job_tracking(self.idrac, job_uri,
                                                                               max_job_wait_sec=job_wait_timeout,
                                                                               sleep_interval_secs=1)
@@ -410,17 +407,21 @@ class FactoryReset():
         return track_failed, status_code, msg
 
     def reset_to_default_mapped(self):
-        payload = {}
-        payload["ResetType"] = self.reset_to_default
+        payload = {"ResetType": self.reset_to_default}
         if self.reset_to_default != 'CustomDefaults':
             self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
         return self.perform_operation(payload)
 
+    def get_xml_content(self, file_path):
+        with open(file_path, 'r') as file:
+            xml_content = file.read()
+        return xml_content
+
     def reset_custom_defaults(self):
         # add a check for firmware version for this > 7.00.30.00
         if self.idrac_firmware_version < '7.00.30.00':
-            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(self.reset_to_default, self.allowed_choices), skipped=True)
-        tmp_res, res = None, None
+            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
+                                  skipped=True)
         custom_default_file = self.module.params.get('custom_defaults_file')
         custom_default_buffer = self.module.params.get('custom_defaults_buffer')
         upload_perfom = False
@@ -429,7 +430,7 @@ class FactoryReset():
             self.validate_obj.validate_path(custom_default_file)
             self.validate_obj.validate_file_format(custom_default_file)
             upload_perfom = True
-            default_data = custom_default_file
+            default_data = self.get_xml_content(custom_default_file)
         elif custom_default_buffer:
             upload_perfom = True
             default_data = custom_default_buffer
@@ -439,8 +440,7 @@ class FactoryReset():
         return self.reset_to_default_mapped()
 
     def graceful_restart(self):
-        payload = {}
-        payload["ResetType"] = "GracefulRestart"
+        payload = {"ResetType": "GracefulRestart"}
         run_reset_status = self.idrac.invoke_request(IDRAC_RESET_GRACEFUL_RESTART_URI, "POST", data=payload)
         status = run_reset_status.status_code
         tmp_res, resp = self.create_output(status)
