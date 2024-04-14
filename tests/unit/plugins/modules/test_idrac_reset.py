@@ -9,6 +9,7 @@
 #
 
 from __future__ import absolute_import, division, print_function
+__metaclass__ = type
 
 import pytest
 from urllib.error import URLError
@@ -121,7 +122,7 @@ class TestFactoryReset(FakeAnsibleModule):
     }
 
     action_api_resp = {
-        "Actions" : {
+        "Actions": {
             "#DellLCService.GetRemoteServicesAPIStatus": {
                 "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/DellLCService/Actions/DellLCService.GetRemoteServicesAPIStatus"
             }
@@ -138,7 +139,7 @@ class TestFactoryReset(FakeAnsibleModule):
     }
 
     lc_status_invoke = {
-        "LCStatus" : "Ready"
+        "LCStatus": "Ready"
     }
 
     validate_allowed_values = {
