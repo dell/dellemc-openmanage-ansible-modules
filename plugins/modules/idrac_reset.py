@@ -190,14 +190,8 @@ from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import (
 MANAGERS_URI = "/redfish/v1/Managers"
 OEM = "Oem"
 MANUFACTURER = "Dell"
-LC_SERVICE = "DellLCService"
 ACTIONS = "Actions"
-GETREMOTELCSTATUS = "#DellLCService.GetRemoteServicesAPIStatus"
-RESET_TO_DEFAULT_KEY = "#DellManager.ResetToDefaults"
-RESTART_KEY = "#Manager.Reset"
-GET_CUSTOM_DEFAULT_KEY = "CustomDefaultsDownloadURI"
-SET_CUSTOM_DEFAULT_KEY = "#DellManager.SetCustomDefaults"
-IDRAC_RESET_RETRIES = 10
+IDRAC_RESET_RETRIES = 50
 LC_STATUS_CHECK_SLEEP = 30
 IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. \
@@ -251,7 +245,7 @@ class Validation():
                 self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
 
     def validate_job_timeout(self):
-        if self.module.params.get("job_wait") and self.module.params.get("job_wait_timeout") <= 0:
+        if self.module.params.get("wait_for_idrac") and self.module.params.get("job_wait_timeout") <= 0:
             self.module.exit_json(msg=TIMEOUT_NEGATIVE_OR_ZERO_MSG, failed=True)
 
     def validate_path(self, file_path):
@@ -268,7 +262,7 @@ class Validation():
         url = None
         resp = get_dynamic_uri(self.idrac, self.base_uri, OEM)
         if resp:
-            url = resp.get(MANUFACTURER, {}).get(GET_CUSTOM_DEFAULT_KEY, {})
+            url = resp.get(MANUFACTURER, {}).get('CustomDefaultsDownloadURI', {})
         try:
             self.idrac.invoke_request(url, "GET")
             return True
@@ -287,6 +281,7 @@ class FactoryReset():
         self.wait_for_idrac = self.module.params.get('wait_for_idrac')
         self.validate_obj = Validation(self.idrac, self.module)
         self.uri = self.validate_obj.base_uri
+        self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
 
     def execute(self):
         msg_res, job_res = None, None
@@ -317,7 +312,6 @@ class FactoryReset():
         self.module.exit_json(msg=CHANGES_FOUND, changed=True)
 
     def is_check_idrac_latest(self):
-        self.idrac_firmware_version = get_idrac_firmware_version(self.idrac)
         if LooseVersion(self.idrac_firmware_version) >= '3.0':
             return True
 
@@ -328,10 +322,10 @@ class FactoryReset():
         lc_status_dict['LCStatus'] = ""
         retry_count = 1
         resp = get_dynamic_uri(self.idrac, self.uri, "Links")
-        url = resp.get(OEM, {}).get(MANUFACTURER, {}).get(LC_SERVICE, {}).get(ODATA_ID, {})
+        url = resp.get(OEM, {}).get(MANUFACTURER, {}).get('DellLCService', {}).get(ODATA_ID, {})
         if url:
             action_resp = get_dynamic_uri(self.idrac, url)
-            lc_url = action_resp.get(ACTIONS, {}).get(GETREMOTELCSTATUS, {}).get('target', {})
+            lc_url = action_resp.get(ACTIONS, {}).get('#DellLCService.GetRemoteServicesAPIStatus', {}).get('target', {})
         else:
             self.module.exit_json(msg=UNSUPPORTED_LC_STATUS_MSG, failed=True)
         while retry_count < IDRAC_RESET_RETRIES:
@@ -347,7 +341,7 @@ class FactoryReset():
                 time.sleep(10)
                 retry_count = retry_count + 1
                 if retry_count == IDRAC_RESET_RETRIES:
-                    self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status='unreachable', retries=retry_count), unreachable=True)
+                    self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status='unreachable', retries=IDRAC_RESET_RETRIES), unreachable=True)
 
         if retry_count == IDRAC_RESET_RETRIES and lc_status_dict.get('LCStatus') != "Ready":
             self.module.exit_json(msg=LC_STATUS_MSG.format(lc_status=lc_status_dict.get('LCStatus'), retries=retry_count), failed=True)
@@ -384,7 +378,7 @@ class FactoryReset():
         url = None
         resp = get_dynamic_uri(self.idrac, self.uri, ACTIONS)
         if resp:
-            url = resp.get(OEM, {}).get(RESET_TO_DEFAULT_KEY, {}).get('target', {})
+            url = resp.get(OEM, {}).get('#DellManager.ResetToDefaults', {}).get('target', {})
         run_reset_status = self.idrac.invoke_request(url, "POST", data=payload)
         status = run_reset_status.status_code
         tmp_res, res = self.create_output(status)
@@ -396,7 +390,7 @@ class FactoryReset():
         url = None
         resp = get_dynamic_uri(self.idrac, self.uri, ACTIONS)
         if resp:
-            url = resp.get(OEM, {}).get(SET_CUSTOM_DEFAULT_KEY, {}).get('target', {})
+            url = resp.get(OEM, {}).get('#DellManager.SetCustomDefaults', {}).get('target', {})
         job_resp = self.idrac.invoke_request(url, "POST", data=payload)
         if (job_tracking_uri := job_resp.headers.get("Location")):
             job_id = job_tracking_uri.split("/")[-1]
@@ -471,7 +465,7 @@ class FactoryReset():
         url = None
         resp = get_dynamic_uri(self.idrac, self.uri, ACTIONS)
         if resp:
-            url = resp.get(RESTART_KEY, {}).get('target', {})
+            url = resp.get('#Manager.Reset', {}).get('target', {})
         payload = {"ResetType": "GracefulRestart"}
         run_reset_status = self.idrac.invoke_request(url, "POST", data=payload)
         status = run_reset_status.status_code
