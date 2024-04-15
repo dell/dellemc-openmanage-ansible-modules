@@ -34,6 +34,7 @@ You may obtain a copy of the License at
 | [idrac_redfish_storage_controller](modules/idrac_redfish_storage_controller.rst)                     | ✕      | ✓      |
 | [idrac_reset](modules/idrac_reset.rst)                                                               | ✓      | ✓      |
 | [idrac_server_config_profile](modules/idrac_server_config_profile.rst)                               | ✓      | ✓      |
+| [idrac_session](modules/idrac_session.rst)                                                           | ✓      | ✓      |
 | [idrac_storage_volume](modules/idrac_storage_volume.rst)                                             | ✓      | ✓      |
 | [idrac_syslog](modules/idrac_syslog.rst)                                                             | ✓      | ✓      |
 | [idrac_system_info](modules/idrac_system_info.rst)                                                   | ✓      | ✓      |

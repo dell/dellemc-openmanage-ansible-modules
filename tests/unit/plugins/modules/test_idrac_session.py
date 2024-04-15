@@ -2,7 +2,7 @@
 
 #
 # Dell OpenManage Ansible Modules
-# Version 8.7.0
+# Version 9.2.0
 # Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -29,9 +29,8 @@ SESSION_URL = "/redfish/v1/SessionService/Sessions"
 GET_SESSION_URL = "Session.get_session_url"
 
 CREATE_SUCCESS_MSG = "The session has been created successfully."
-CREATE_FAILURE_MSG = "Unable to create a session."
 DELETE_SUCCESS_MSG = "The session has been deleted successfully."
-DELETE_FAILURE_MSG = "Unable to delete a session."
+FAILURE_MSG = "Unable to '{operation}' a session."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 

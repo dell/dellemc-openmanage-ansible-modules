@@ -100,7 +100,7 @@ EXAMPLES = r"""
     hostname: 198.162.0.1
     state: absent
     auth_token: aed4aa802b748d2f3b31deec00a6b28a
-    session_is: 2
+    session_id: 2
 """
 
 RETURN = r'''
@@ -180,9 +180,8 @@ ODATA = "@odata.id"
 ODATA_REGEX = "(.*?)@odata"
 
 CREATE_SUCCESS_MSG = "The session has been created successfully."
-CREATE_FAILURE_MSG = "Unable to create a session."
 DELETE_SUCCESS_MSG = "The session has been deleted successfully."
-DELETE_FAILURE_MSG = "Unable to delete a session."
+FAILURE_MSG = "Unable to '{operation}' a session."
 CHANGES_FOUND_MSG = "Changes found to be applied."
 NO_CHANGES_FOUND_MSG = "No changes found to be applied."
 
@@ -205,14 +204,6 @@ class Session():
         self.idrac = idrac
         self.module = module
 
-    def execute(self):
-        """
-        Executes the function with the given module.
-
-        :param module: The module to execute.
-        :type module: Any
-        :return: None
-        """
     def get_session_url(self):
         """
         Retrieves the URL for the sessions endpoint from the Redfish API.
@@ -251,7 +242,6 @@ class CreateSession(Session):
         Returns:
             None
         """
-        payload = {}
         payload = {"UserName": self.module.params.get("username"),
                    "Password": self.module.params.get("password")}
         session_url = self.get_session_url()
@@ -268,7 +258,7 @@ class CreateSession(Session):
                                   session_data=session_data,
                                   x_auth_token=x_auth_token)
         else:
-            self.module.exit_json(msg=CREATE_FAILURE_MSG, failed=True)
+            self.module.exit_json(msg=FAILURE_MSG.format(operation="create"), failed=True)
 
 
 class DeleteSession(Session):
@@ -296,14 +286,13 @@ class DeleteSession(Session):
         """
         session_id = self.module.params.get("session_id")
         session_url = self.get_session_url()
+        session_status = self.__get_session_status(session_url, session_id)
         if self.module.check_mode:
-            session_status = self.__get_session_status(session_url, session_id)
             if session_status == 200:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
             else:
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
         else:
-            session_status = self.__get_session_status(session_url, session_id)
             if session_status == 200:
                 try:
                     session_response = self.idrac.invoke_request(session_url + f"/{session_id}",
@@ -313,7 +302,8 @@ class DeleteSession(Session):
                         self.module.exit_json(msg=DELETE_SUCCESS_MSG, changed=True)
                 except HTTPError as err:
                     filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
-                    self.module.exit_json(msg=DELETE_FAILURE_MSG, error_info=filter_err,
+                    self.module.exit_json(msg=FAILURE_MSG.format(operation="delete"),
+                                          error_info=filter_err,
                                           failed=True)
             else:
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
