@@ -36,6 +36,8 @@ from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 
+HEADER_TYPE = "application/json"
+
 
 class OpenURLResponse():
     """
@@ -181,13 +183,13 @@ class SessionAPI():
         """
         if module_params.get("state") == "present":
             self._headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Content-Type': HEADER_TYPE,
+                'Accept': HEADER_TYPE
             }
         else:
             self._headers = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                'Content-Type': HEADER_TYPE,
+                'Accept': HEADER_TYPE,
                 'X-Auth-Token': module_params.get("auth_token")
             }
 
