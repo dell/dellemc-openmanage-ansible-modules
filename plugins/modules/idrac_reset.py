@@ -18,18 +18,18 @@ module: idrac_reset
 short_description: Factory reset the iDRACs
 version_added: "9.2.0"
 description:
-  - This module is responsible to reset the iDRAC to factory default settings.
+  - This module resets the iDRAC to factory default settings.
 extends_documentation_fragment:
   - dellemc.openmanage.idrac_auth_options
 options:
   reset_to_default:
     type: str
     description:
-        - If this value is not set the default behavior is to restart the IDRAC.
+        - If this value is not set the default behaviour is to restart the iDRAC.
         - C(All) Discards all settings and reset to default credentials.
         - C(ResetAllWithRootDefaults) Discards all settings and reset the default username to root and password to the shipping value.
         - C(Default) Discards all settings, but preserves user and network settings.
-        - C(CustomDefaults) All configuration is set to custom defaults.This option is supported on firmware version 7.00.30.00 and above.
+        - C(CustomDefaults) All configuration is set to custom defaults.This option is supported on firmware version 7.00.30.00 and newer versions.
     choices: ['Default', 'All', 'ResetAllWithRootDefaults', 'CustomDefaults']
     version_added: 9.2.0
   custom_defaults_file:
@@ -46,7 +46,7 @@ options:
     type: str
   wait_for_idrac:
     description:
-      - This parameter provides the option to wait for the iDRAC to reset and LC status to be ready.
+      - This parameter provides the option to wait for the iDRAC to reset and lifecycle controller status to be ready.
     type: bool
     default: true
   job_wait_timeout:
@@ -72,8 +72,8 @@ notes:
     - Run this module from a system that has direct access to Dell iDRAC.
     - This module supports both IPv4 and IPv6 address for I(idrac_ip).
     - This module supports C(check_mode).
-    - This module will by default trigger a graceful restart if nothing is specified.
-    - This module skips the execution if reset options is not supported by the iDRAC.
+    - If reset_to_default option is not specified, then this module triggers a graceful restart.
+    - This module skips the execution if reset options are not supported by the iDRAC.
 '''
 
 EXAMPLES = r'''
@@ -111,7 +111,7 @@ EXAMPLES = r'''
    idrac_password: "user_password"
    ca_path: "/path/to/ca_cert.pem"
 
-- name: Reset the iDRAC to custom defaults xml and do not wait for the iDRAC to be up.
+- name: Reset the iDRAC to custom defaults XML and do not wait for the iDRAC to be up.
   dellemc.openmanage.idrac_reset:
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
@@ -204,9 +204,9 @@ FAILED_RESET_MSG = "Failed to perform the reset operation."
 RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC reset operation is susccessfully completed."
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
-LC_STATUS_MSG = "LC status check is {lc_status} after {retries} number of retries, Exiting.."
+LC_STATUS_MSG = "Lifecycle controller status check is {lc_status} after {retries} number of retries, Exiting.."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. Please check if the directory has appropriate permissions."
-UNSUPPORTED_LC_STATUS_MSG = "LC status check is not supported."
+UNSUPPORTED_LC_STATUS_MSG = "Lifecycle controller status check is not supported."
 MINIMUM_SUPPORTED_FIRMWARE_VERSION = "7.00.30"
 CHANGES_NOT_FOUND = "No changes found to commit!"
 CHANGES_FOUND = "Changes found to commit!"
@@ -359,7 +359,7 @@ class FactoryReset():
                 self.staus_code_after_wait = status_code
                 if track_failed:
                     self.module.exit_json(msg=wait_msg, changed=True)
-            tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG
+            tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESET_TRIGGER_MSG
             tmp_res['changed'] = True
             result['idracreset']['Message'] = IDRAC_RESET_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESET_TRIGGER_MSG
             result['idracreset']['Status'] = 'Success'
@@ -370,6 +370,8 @@ class FactoryReset():
             result['idracreset']['Message'] = FAILED_RESET_MSG
             result['idracreset']['Status'] = 'FAILED'
             result['idracreset']['retVal'] = False
+        if self.reset_to_default:
+            result = None
         return tmp_res, result
 
     def perform_operation(self, payload):
@@ -469,6 +471,7 @@ class FactoryReset():
         status = run_reset_status.status_code
         tmp_res, resp = self.create_output(status)
         if status in STATUS_SUCCESS:
+            tmp_res['msg'] = IDRAC_RESET_SUCCESS_MSG
             resp['idracreset']['Message'] = IDRAC_RESET_RESTART_SUCCESS_MSG if self.wait_for_idrac else IDRAC_RESET_RESTART_TRIGGER_MSG
         return tmp_res, resp
 
@@ -492,9 +495,14 @@ def main():
             allowed_choices = specs['reset_to_default']['choices']
             reset_obj = FactoryReset(idrac, module, allowed_choices)
             message_resp, output = reset_obj.execute()
-            if not message_resp.get('changed'):
-                module.exit_json(msg=message_resp.get('msg'), reset_status=output, failed=True)
-            module.exit_json(msg=message_resp.get('msg'), reset_status=output, changed=True)
+            if output:
+                if not message_resp.get('changed'):
+                    module.exit_json(msg=message_resp.get('msg'), reset_status=output, failed=True)
+                module.exit_json(msg=message_resp.get('msg'), reset_status=output, changed=True)
+            else:
+                if not message_resp.get('changed'):
+                    module.exit_json(msg=message_resp.get('msg'), failed=True)
+                module.exit_json(msg=message_resp.get('msg'), changed=True)
     except HTTPError as err:
         module.exit_json(msg=str(err), error_info=json.load(err), failed=True)
     except URLError as err:
