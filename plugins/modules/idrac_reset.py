@@ -54,7 +54,7 @@ options:
       - Time in seconds to wait for job completion.
       - This is applicable when I(job_wait) is C(true).
     type: int
-    default: 300
+    default: 600
   force_reset:
     description:
       - This parameter provides the option to force reset the iDRAC without checking the iDRAC lifecycle controller status.
@@ -402,9 +402,9 @@ class FactoryReset():
             if job_failed:
                 self.module.exit_json(msg=job_dict.get("Message"), job_status=job_dict, failed=True)
 
-    def wait_for_port_open(self, interval=30):
+    def wait_for_port_open(self, interval=45):
         timeout_wait = self.module.params.get('job_wait_timeout')
-        time.sleep(interval // 2)
+        time.sleep(interval)
         msg = RESET_UNTRACK
         wait = timeout_wait
         track_failed = True
@@ -412,7 +412,7 @@ class FactoryReset():
         while int(wait) > 0:
             try:
                 self.idrac.invoke_request(MANAGERS_URI, 'GET')
-                time.sleep(interval // 2)
+                time.sleep(interval)
                 msg = IDRAC_RESET_SUCCESS_MSG
                 track_failed = False
                 status_code = 200
@@ -424,7 +424,7 @@ class FactoryReset():
                     msg = IDRAC_RESET_SUCCESS_MSG
                     track_failed = False
                     break
-            except URLError as err:
+            except Exception:
                 time.sleep(interval)
                 wait = wait - interval
         return track_failed, status_code, msg
@@ -481,7 +481,7 @@ def main():
         "custom_defaults_file": {"type": "str"},
         "custom_defaults_buffer": {"type": "str"},
         "wait_for_idrac": {"type": "bool", "default": True},
-        "job_wait_timeout": {"type": 'int', "default": 300},
+        "job_wait_timeout": {"type": 'int', "default": 600},
         "force_reset": {"type": "bool", "default": False}
     }
     specs.update(idrac_auth_params)
