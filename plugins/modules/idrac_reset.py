@@ -40,7 +40,7 @@ options:
     type: str
   custom_defaults_buffer:
     description:
-      - This parameter provides the opton to import the buffer input of xml as custom default configuration.
+      - This parameter provides the option to import the buffer input in XML format as a custom default configuration.
       - This option is applicable when I(reset_to_default) is C(CustomDefaults).
       - I(custom_defaults_buffer) is mutually exclusive with I(custom_defaults_file).
     type: str
@@ -141,7 +141,7 @@ msg:
 reset_status:
   type: dict
   description: Details of iDRAC reset operation.
-  returned: always
+  returned: reset operation is triggered.
   sample: {
     "idracreset": {
             "Data": {
@@ -194,8 +194,7 @@ ACTIONS = "Actions"
 IDRAC_RESET_RETRIES = 50
 LC_STATUS_CHECK_SLEEP = 30
 IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
-RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. \
-                        Enter the valid values and retry the operation."
+RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. Enter the valid values and retry the operation."
 IDRAC_RESET_RESTART_SUCCESS_MSG = "iDRAC restart operation completed successfully."
 IDRAC_RESET_SUCCESS_MSG = "Successfully performed iDRAC reset."
 IDRAC_RESET_RESET_TRIGGER_MSG = "iDRAC reset operation triggered successfully."
@@ -206,9 +205,9 @@ RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC r
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
 LC_STATUS_MSG = "LC status check is {lc_status} after {retries} number of retries, Exiting.."
-INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
-                                        "Please check if the directory has appropriate permissions."
+INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. Please check if the directory has appropriate permissions."
 UNSUPPORTED_LC_STATUS_MSG = "LC status check is not supported."
+MINIMUM_SUPPORTED_FIRMWARE_VERSION = "7.00.30"
 CHANGES_NOT_FOUND = "No changes found to commit!"
 CHANGES_FOUND = "Changes found to commit!"
 ODATA_ID = "@odata.id"
@@ -307,7 +306,7 @@ class FactoryReset():
         return msg_res, job_res
 
     def check_mode_output(self, is_idrac9):
-        if is_idrac9 and self.reset_to_default == 'CustomDefaults' and self.idrac_firmware_version < '7.00.30.00':
+        if is_idrac9 and self.reset_to_default == 'CustomDefaults' and LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
         self.module.exit_json(msg=CHANGES_FOUND, changed=True)
 
@@ -431,8 +430,7 @@ class FactoryReset():
 
     def reset_to_default_mapped(self):
         payload = {"ResetType": self.reset_to_default}
-        if self.reset_to_default != 'CustomDefaults':
-            self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
+        self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
         return self.perform_operation(payload)
 
     def get_xml_content(self, file_path):
@@ -441,7 +439,7 @@ class FactoryReset():
         return xml_content
 
     def reset_custom_defaults(self):
-        if self.idrac_firmware_version < '7.00.30.00':
+        if LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
             self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
                                   skipped=True)
         custom_default_file = self.module.params.get('custom_defaults_file')
