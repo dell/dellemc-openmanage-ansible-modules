@@ -228,7 +228,7 @@ class TestFactoryReset(FakeAnsibleModule):
                 return self.action_api_resp_restart
             return self.action_api_resp
         allowed_values = ["All", "Default", "ResetAllWithRootDefaults"]
-        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05.00")
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05")
         mocker.patch(MODULE_PATH + "FactoryReset.is_check_idrac_latest", return_value=True)
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj])
@@ -248,7 +248,7 @@ class TestFactoryReset(FakeAnsibleModule):
         allowed_values = ["All", "Default", "ResetAllWithRootDefaults"]
         job_resp_completed = {'JobStatus': 'Completed'}
         idrac_redfish_resp = (False, 'Job Success', job_resp_completed, 1200)
-        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05.00")
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05")
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj2, obj, obj3,
                                                                 URLError('URL error occurred'), obj])
