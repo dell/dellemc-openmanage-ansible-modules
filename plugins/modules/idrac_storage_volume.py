@@ -128,6 +128,12 @@ options:
       - This option is applicable when I(job_wait) is C(true).
     type: int
     default: 900
+  time_to_wait:
+    description:
+      - The maximum wait time before shutdown in seconds for the SCP import operation.
+      - This option is applicable when I(state) is C(create) or C(delete).
+    type: int
+    default: 300
 
 requirements:
   - "python >= 3.9.6"
