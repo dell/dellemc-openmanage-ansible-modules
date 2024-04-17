@@ -741,7 +741,7 @@ class StorageCreate(StorageValidation):
         parent_payload = """<SystemConfiguration>{0}</SystemConfiguration>"""
         payload = self.constuct_payload(name_id_mapping)
         parent_payload = parent_payload.format(payload)
-        resp = self.idrac.import_scp(import_buffer=parent_payload, target="RAID", job_wait=False)
+        resp = self.idrac.import_scp(import_buffer=parent_payload, target="RAID", job_wait=False, time_to_wait=self.module.params.get('time_to_wait'))
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 
@@ -803,7 +803,7 @@ class StorageDelete(StorageValidation):
         self.validate_volume_exists_in_server(set(volume_name_input_list))
         cntrl_id_vd_id_mapping = self.get_vd_id_based_on_controller_id_vd_name(set(volume_name_input_list))
         payload = self.construct_payload_for_delete(cntrl_id_vd_id_mapping)
-        resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False)
+        resp = self.idrac.import_scp(import_buffer=payload, target="RAID", job_wait=False, time_to_wait=self.module.params.get('time_to_wait'))
         job_dict = self.wait_for_job_completion(resp)
         return job_dict
 
@@ -891,7 +891,8 @@ def main():
         "raid_reset_config": {"choices": ['true', 'false'], "default": 'false'},
         "raid_init_operation": {"choices": ['None', 'Fast']},
         "job_wait": {"type": "bool", "default": True},
-        "job_wait_timeout": {"type": "int", "default": 900}
+        "job_wait_timeout": {"type": "int", "default": 900},
+        "time_to_wait": {"type": "int", "default": 300}
     }
     specs.update(idrac_auth_params)
     module = AnsibleModule(

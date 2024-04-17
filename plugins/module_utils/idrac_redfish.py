@@ -300,7 +300,7 @@ class iDRACRedfishAPI(object):
         return response
 
     def import_scp_share(self, shutdown_type=None, host_powerstate=None, job_wait=True,
-                         target=None, import_buffer=None, share=None):
+                         target=None, import_buffer=None, share=None, time_to_wait=300):
         """
         This method imports system configuration using share.
         :param shutdown_type: graceful
@@ -312,7 +312,7 @@ class iDRACRedfishAPI(object):
         :return: json response
         """
         payload = {"ShutdownType": shutdown_type, "EndHostPowerState": host_powerstate,
-                   "ShareParameters": {"Target": target}}
+                   "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
         if import_buffer is not None:
             payload["ImportBuffer"] = import_buffer
         if share is None:
@@ -384,7 +384,7 @@ class iDRACRedfishAPI(object):
             response = self.wait_for_job_complete(task_uri, job_wait=job_wait)
         return response
 
-    def import_scp(self, import_buffer=None, target=None, job_wait=False):
+    def import_scp(self, import_buffer=None, target=None, job_wait=False, time_to_wait=300):
         """
         This method imports system configuration details to the system.
         :param import_buffer: import buffer payload content xml or json format
@@ -392,7 +392,7 @@ class iDRACRedfishAPI(object):
         :param job_wait: True or False decide whether to wait till the job completion.
         :return: json response
         """
-        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}}
+        payload = {"ImportBuffer": import_buffer, "ShareParameters": {"Target": target}, "TimeToWait": time_to_wait}
         response = self.invoke_request(IMPORT_URI, "POST", data=payload)
         if response.status_code == 202 and job_wait:
             task_uri = response.headers["Location"]
