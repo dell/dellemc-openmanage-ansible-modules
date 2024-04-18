@@ -1,0 +1,21 @@
+---
+- name: Dell OpenManage Ansible iDRAC Session Management.
+  hosts: idrac
+  gather_facts: false
+
+  tasks:
+    - name: Create a session
+      dellemc.openmanage.idrac_session:
+        hostname: 198.162.0.1
+        username: username
+        password: password
+        state: present
+      delegate_to: localhost
+
+    - name: Delete a session
+      dellemc.openmanage.idrac_session:
+        hostname: 198.162.0.1
+        state: absent
+        auth_token: aed4aa802b748d2f3b31deec00a6b28a
+        session_id: 2
+      delegate_to: localhost
