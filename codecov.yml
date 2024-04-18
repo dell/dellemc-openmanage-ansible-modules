@@ -1,5 +1,2 @@
 fixes:
    - "/ansible_collections/dellemc/openmanage/::"
-
-codecov:
-   token: e922330b-921b-42f1-bf78-f5209defb95d
