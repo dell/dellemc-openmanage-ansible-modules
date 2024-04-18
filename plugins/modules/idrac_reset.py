@@ -218,6 +218,7 @@ FAILED_STATUS = "Failed"
 STATUS_SUCCESS = [200, 202, 204]
 ERR_STATUS_CODE = [400, 404]
 RESET_KEY = "Oem.#DellManager.ResetToDefaults"
+GRACEFUL_RESTART_KEY = "#Manager.Reset"
 
 
 class Validation():
@@ -233,18 +234,31 @@ class Validation():
             self.module.exit_json(msg=error_msg, failed=True)
         return uri
 
-    def validate_reset_options(self, allowed_choices, api_key):
+    def validate_reset_options(self, api_key):
         res = self.idrac.invoke_request(self.base_uri, "GET")
         reset_to_default = self.module.params.get('reset_to_default')
         key_list = api_key.split(".", 1)
+        is_valid = True
         if key_list[0] in res.json_data["Actions"] and key_list[1] in res.json_data["Actions"][key_list[0]]:
             reset_to_defaults_val = res.json_data["Actions"][key_list[0]][key_list[1]]
             reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
             if reset_to_default not in reset_type_values:
-                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
+                is_valid = False
         else:
-            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices),
-                                  skipped=True)
+            is_valid = False
+        return is_valid
+
+    def validate_graceful_restart_option(self, api_key):
+        res = self.idrac.invoke_request(self.base_uri, "GET")
+        is_valid = True
+        if api_key in res.json_data["Actions"]:
+            reset_to_defaults_val = res.json_data["Actions"][api_key]
+            reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
+            if "GracefulRestart" not in reset_type_values:
+                is_valid = False
+        else:
+            is_valid = False
+        return is_valid
 
     def validate_job_timeout(self):
         if self.module.params.get("wait_for_idrac") and self.module.params.get("job_wait_timeout") <= 0:
@@ -290,9 +304,12 @@ class FactoryReset():
         self.validate_obj.validate_job_timeout()
         is_idrac9 = self.is_check_idrac_latest()
         if not is_idrac9 and self.reset_to_default:
-            if self.module.check_mode:
+            is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
+            if self.module.check_mode and not is_valid_option:
                 self.module.exit_json(msg=CHANGES_NOT_FOUND)
-            self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
+            if not is_valid_option:
+                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
+                                      skipped=True)
         if self.module.check_mode:
             self.check_mode_output(is_idrac9)
         if is_idrac9 and not self.force_reset:
@@ -310,7 +327,18 @@ class FactoryReset():
     def check_mode_output(self, is_idrac9):
         if is_idrac9 and self.reset_to_default == 'CustomDefaults' and LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
-        self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+        if self.reset_to_default:
+            is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
+        else:
+            is_valid_option = self.validate_obj.validate_graceful_restart_option(GRACEFUL_RESTART_KEY)
+        custom_default_file = self.module.params.get('custom_defaults_file')
+        custom_default_buffer = self.module.params.get('custom_defaults_buffer')
+        if is_valid_option:
+            self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+        elif not is_valid_option and self.reset_to_default and self.reset_to_default == 'CustomDefaults' and (custom_default_file or custom_default_buffer):
+            self.module.exit_json(msg=CHANGES_FOUND, changed=True)
+        else:
+            self.module.exit_json(msg=CHANGES_NOT_FOUND)
 
     def is_check_idrac_latest(self):
         if LooseVersion(self.idrac_firmware_version) >= '3.0':
@@ -434,7 +462,10 @@ class FactoryReset():
 
     def reset_to_default_mapped(self):
         payload = {"ResetType": self.reset_to_default}
-        self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
+        is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
+        if not is_valid_option:
+            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
+                                  skipped=True)
         return self.perform_operation(payload)
 
     def get_xml_content(self, file_path):
