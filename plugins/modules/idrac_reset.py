@@ -78,7 +78,7 @@ notes:
 
 EXAMPLES = r'''
 ---
-- name: Reset the iDRAC to all and wait for the iDRAC to be up.
+- name: Reset the iDRAC to all and wait till the iDRAC is accessible.
   dellemc.openmanage.idrac_reset:
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
@@ -86,7 +86,7 @@ EXAMPLES = r'''
    ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "All"
 
-- name: Reset the iDRAC to default and do not wait for the iDRAC to be up.
+- name: Reset the iDRAC to default and do not wait till the iDRAC is accessible.
   dellemc.openmanage.idrac_reset:
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
@@ -111,7 +111,7 @@ EXAMPLES = r'''
    idrac_password: "user_password"
    ca_path: "/path/to/ca_cert.pem"
 
-- name: Reset the iDRAC to custom defaults XML and do not wait for the iDRAC to be up.
+- name: Reset the iDRAC to custom defaults XML and do not wait till the iDRAC is accessible.
   dellemc.openmanage.idrac_reset:
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
@@ -120,7 +120,7 @@ EXAMPLES = r'''
    reset_to_default: "CustomDefaults"
    custom_defaults_file: "/path/to/custom_defaults.xml"
 
-- name: Reset the iDRAC to custom defaults buffer input and do not wait for the iDRAC to be up.
+- name: Reset the iDRAC to custom defaults buffer input and do not wait till the iDRAC is accessible.
   dellemc.openmanage.idrac_reset:
    idrac_ip: "192.168.0.1"
    idrac_user: "user_name"
@@ -242,6 +242,9 @@ class Validation():
             reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
             if reset_to_default not in reset_type_values:
                 self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
+        else:
+            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices),
+                                  skipped=True)
 
     def validate_job_timeout(self):
         if self.module.params.get("wait_for_idrac") and self.module.params.get("job_wait_timeout") <= 0:
@@ -289,8 +292,7 @@ class FactoryReset():
         if not is_idrac9 and self.reset_to_default:
             if self.module.check_mode:
                 self.module.exit_json(msg=CHANGES_NOT_FOUND)
-            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
-                                  skipped=True)
+            self.validate_obj.validate_reset_options(self.allowed_choices, RESET_KEY)
         if self.module.check_mode:
             self.check_mode_output(is_idrac9)
         if is_idrac9 and not self.force_reset:

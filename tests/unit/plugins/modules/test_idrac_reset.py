@@ -43,8 +43,7 @@ RESET_ALLOWABLE_KEY = "ResetType@Redfish.AllowableValues"
 LC_STATUS_CHECK_SLEEP = 30
 IDRAC_URI = "/redfish/v1/Managers/iDRAC.Embedded.1"
 IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
-RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. \
-                        Enter the valid values and retry the operation."
+RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. Enter the valid values and retry the operation."
 IDRAC_RESET_RESTART_SUCCESS_MSG = "iDRAC restart operation completed successfully."
 IDRAC_RESET_SUCCESS_MSG = "Successfully performed iDRAC reset."
 IDRAC_RESET_RESET_TRIGGER_MSG = "iDRAC reset operation triggered successfully."
@@ -55,8 +54,7 @@ RESET_UNTRACK = "iDRAC reset is in progress. Changes will apply once the iDRAC r
 TIMEOUT_NEGATIVE_OR_ZERO_MSG = "The value of `job_wait_timeout` parameter cannot be negative or zero. Enter the valid value and retry the operation."
 INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_default_file' is: .xml."
 LC_STATUS_MSG = "LC status check is {lc_status} after {retries} number of retries, Exiting.."
-INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. " \
-                                        "Please check if the directory has appropriate permissions."
+INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. Please check if the directory has appropriate permissions."
 UNSUPPORTED_LC_STATUS_MSG = "LC status check is not supported."
 CHANGES_NOT_FOUND = "No changes found to commit!"
 CHANGES_FOUND = "Changes found to commit!"
@@ -70,6 +68,26 @@ RESET_KEY = "Oem.#DellManager.ResetToDefaults"
 
 class TestStorageValidation(FakeAnsibleModule):
     module = idrac_reset
+    allowed_values = ["All", "Default", "CustomDefaults", "ResetAllWithRootDefaults"]
+    allowed_values_api = {
+        'Actions':
+        {
+            "Oem": {
+                "#DellManager.ResetToDefaults": {
+                    RESET_ALLOWABLE_KEY: [
+                        "All",
+                        "Default",
+                        "ResetAllWithRootDefaults"
+                    ]
+                }
+            }
+        },
+        "Oem": {
+            "Dell": {
+                "CustomDefaultsDownloadURI": "/redfish/v1/Managers/iDRAC.Embedded.1/Oem/Dell/CustomDefaultsDownloadURI"
+            }
+        }
+    }
 
     @pytest.fixture
     def idrac_reset_mock(self):
@@ -84,7 +102,7 @@ class TestStorageValidation(FakeAnsibleModule):
         return idrac_conn_mock
 
     def test_get_base_uri(self, idrac_default_args, idrac_connection_reset_mock, mocker):
-        # Secnario - when validate_and_get_first_resource_id_uri return proper uri
+        # Scenario - when validate_and_get_first_resource_id_uri return proper uri
         mocker.patch(MODULE_PATH + "validate_and_get_first_resource_id_uri",
                      return_value=(IDRAC_URI, ''))
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
@@ -92,6 +110,82 @@ class TestStorageValidation(FakeAnsibleModule):
             idrac_connection_reset_mock, f_module)
         data = idr_obj.get_base_uri()
         assert data == IDRAC_URI
+
+    def test_validate_reset_options(self, idrac_default_args, idrac_connection_reset_mock, mocker):
+        # Scenario - when key 'OEM' doesn't exist in output from invoke_request
+        obj = MagicMock()
+        obj.json_data = {'Actions': {}}
+        mocker.patch(MODULE_PATH + 'Validation.get_base_uri', return_value=IDRAC_URI)
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, return_value=obj)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idrac_default_args.update({"reset_to_default": 'All'})
+        idr_obj = self.module.Validation(
+            idrac_connection_reset_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_reset_options(self.allowed_values, RESET_KEY)
+        assert exc.value.args[0] == RESET_TO_DEFAULT_ERROR.format(reset_to_default='All', supported_values=self.allowed_values)
+
+        # Scenario - when reset_to_default is not in allowable values
+        obj.json_data = self.allowed_values_api
+        mocker.patch(MODULE_PATH + 'Validation.get_base_uri', return_value=IDRAC_URI)
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, return_value=obj)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idrac_default_args.update({"reset_to_default": 'CustomDefaults'})
+        idr_obj = self.module.Validation(
+            idrac_connection_reset_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_reset_options(self.allowed_values, RESET_KEY)
+        assert exc.value.args[0] == RESET_TO_DEFAULT_ERROR.format(reset_to_default='CustomDefaults', supported_values=self.allowed_values)
+
+    def test_validate_path(self, idrac_default_args, idrac_connection_reset_mock, mocker):
+        # Scenario - when custom default file path doesn't exist
+        mocker.patch(MODULE_PATH + 'Validation.get_base_uri', return_value=IDRAC_URI)
+        mocker.patch(MODULE_PATH + 'os.path.exists', return_value=False)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.Validation(
+            idrac_connection_reset_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_path('abc/test')
+        assert exc.value.args[0] == INVALID_DIRECTORY_MSG.format(path='abc/test')
+
+        # Scenario - when custom default file path doesn't exist
+        mocker.patch(MODULE_PATH + 'Validation.get_base_uri', return_value=IDRAC_URI)
+        mocker.patch(MODULE_PATH + 'os.path.exists', return_value=True)
+        mocker.patch(MODULE_PATH + 'os.access', return_value=False)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.Validation(
+            idrac_connection_reset_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_path('abc/test')
+        assert exc.value.args[0] == INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path='abc/test')
+
+    def test_validate_file_format(self, idrac_default_args, idrac_connection_reset_mock, mocker):
+        # Scenario - when custom default file path doesn't exist
+        mocker.patch(MODULE_PATH + 'Validation.get_base_uri', return_value=IDRAC_URI)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.Validation(
+            idrac_connection_reset_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_file_format('abc/test.json')
+        assert exc.value.args[0] == INVALID_FILE_MSG
+
+    def test_validate_custom_option_exception_case(self, idrac_default_args, idrac_connection_reset_mock, mocker):
+        # Scenario - when custom default file path doesn't exist
+        obj = MagicMock()
+        obj.json_data = self.allowed_values_api
+        json_str = to_text(json.dumps({"data": "out"}))
+        mocker.patch(MODULE_PATH + 'Validation.get_base_uri', return_value=IDRAC_URI)
+        mocker.patch(MODULE_PATH + 'get_dynamic_uri', return_value=obj)
+        mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=HTTPError("https://test.com", 404, 'http error message',
+                                                                         {"accept-type": "application/json"},
+                                                                         StringIO(json_str)))
+        idrac_default_args.update({"reset_to_default": 'CustomDefaults'})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        idr_obj = self.module.Validation(
+            idrac_connection_reset_mock, f_module)
+        with pytest.raises(Exception) as exc:
+            idr_obj.validate_custom_option('CustomDefaults', self.allowed_values)
+        assert exc.value.args[0] == RESET_TO_DEFAULT_ERROR.format(reset_to_default='CustomDefaults', supported_values=self.allowed_values)
 
     def test_validate_job_wait_negative_values(self, idrac_default_args, idrac_connection_reset_mock, mocker):
         # Scenario - when job_wait_timeout is negative
