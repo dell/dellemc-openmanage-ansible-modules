@@ -68,8 +68,6 @@ jobs:
           coverage: always
           ansible-core-version: ${{ matrix.ansible }}
           target-python-version: ${{ matrix.python }}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 ###
 # Sanity tests (REQUIRED)
