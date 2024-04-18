@@ -286,7 +286,7 @@ class DeleteSession(Session):
         """
         session_id = self.module.params.get("session_id")
         session_url = self.get_session_url()
-        session_status = self.__get_session_status(session_url, session_id)
+        session_status = self.get_session_status(session_url, session_id)
         if self.module.check_mode:
             if session_status == 200:
                 self.module.exit_json(msg=CHANGES_FOUND_MSG, changed=True)
@@ -308,7 +308,7 @@ class DeleteSession(Session):
             else:
                 self.module.exit_json(msg=NO_CHANGES_FOUND_MSG)
 
-    def __get_session_status(self, session_url, session_id):
+    def get_session_status(self, session_url, session_id):
         """
         Retrieves the status of a session given its URL and ID.
 
