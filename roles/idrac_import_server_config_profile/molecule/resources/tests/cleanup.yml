@@ -11,9 +11,9 @@
       ansible.builtin.import_role:
         name: idrac_attributes
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         idrac_attributes:
           Time.1.Timezone: "UTC" # "UTC"
@@ -21,9 +21,9 @@
 
     - name: Cleanup when target is ['BIOS']
       dellemc.openmanage.idrac_bios:
-        idrac_ip: "{{ lookup('env', 'HOSTNAME') }}"
-        idrac_user: "{{ lookup('env', 'USERNAME') }}"
-        idrac_password: "{{ lookup('env', 'PASSWORD') }}"
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         attributes:
           NumLock: "On" # "On"
@@ -36,9 +36,9 @@
 
     - name: Cleanup when target is ['NIC']
       dellemc.openmanage.idrac_network_attributes:
-        idrac_ip: "{{ lookup('env', 'HOSTNAME') }}"
-        idrac_user: "{{ lookup('env', 'USERNAME') }}"
-        idrac_password: "{{ lookup('env', 'PASSWORD') }}"
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         network_adapter_id: "{{ inp_network_adapter_id }}"
         network_device_function_id: "{{ inp_network_device_function_id }}"
@@ -54,9 +54,9 @@
 
     - name: Cleanup when target is ['RAID']
       dellemc.openmanage.idrac_redfish_storage_controller:
-        baseuri: "{{ lookup('env', 'HOSTNAME') }}:{{ https_port }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        baseuri: "{{ lookup('env', 'IDRAC_IP') }}:{{ https_port }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         controller_id: "{{ inp_controller_id }}"
         attributes:
