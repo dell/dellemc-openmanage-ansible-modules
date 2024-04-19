@@ -31,8 +31,7 @@ __metaclass__ = type
 
 import json
 import os
-from ansible.module_utils.urls import open_url, SSLValidationError
-from ansible.module_utils.six.moves.urllib.error import URLError, HTTPError
+from ansible.module_utils.urls import open_url
 from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible_collections.dellemc.openmanage.plugins.module_utils.utils import config_ipv6
 
@@ -121,34 +120,24 @@ class SessionAPI():
     """
     Main class for session operations.
     """
-    def __init__(self, module_params, req_session=False):
+    def __init__(self, module_params):
         """
-        Initializes the object with the given module parameters and optional request session.
+        Initializes the object with the given module parameters.
 
         Args:
             module_params (dict): A dictionary containing the module parameters.
-            req_session (bool, optional): Indicates if a request session is required. Defaults
-              to False.
+                - "hostname" (str): The IP address or hostname of the target system.
+                - "username" (str): The username for authentication.
+                - "password" (str): The password for authentication.
+                - "port" (int, optional): The port number. Defaults to None.
+                - "validate_certs" (bool, optional): Whether to validate SSL certificates. Defaults
+                to False.
+                - "ca_path" (str, optional): The path to the CA certificate file. Defaults to None.
+                - "timeout" (int, optional): The timeout value in seconds. Defaults to None.
+                - "use_proxy" (bool, optional): Whether to use a proxy. Defaults to True.
 
-        Initializes the following instance variables:
-            - ipaddress (str): The value of the "hostname" key from module_params.
-            - username (str): The value of the "username" key from module_params, if the "state" key
-              is "present".
-            - password (str): The value of the "password" key from module_params, if the "state" key
-              is "present".
-            - _headers (dict): A dictionary containing the headers for the HTTP requests.
-            - port (str): The value of the "port" key from module_params.
-            - validate_certs (bool): The value of the "validate_certs" key from module_params, or
-              False if not provided.
-            - ca_path (str): The value of the "ca_path" key from module_params.
-            - timeout (int): The value of the "timeout" key from module_params.
-            - use_proxy (bool): The value of the "use_proxy" key from module_params, or True if
-              not provided.
-            - req_session (bool): The value of the req_session parameter.
-            - session_id (None): Initialized as None.
-            - protocol (str): Set to 'https'.
-            - ipaddress (str): The result of calling the config_ipv6 function with the ipaddress
-              value.
+        Returns:
+            None
         """
         self.ipaddress = module_params.get("hostname")
         self.username = module_params.get("username")
@@ -158,8 +147,6 @@ class SessionAPI():
         self.ca_path = module_params.get("ca_path")
         self.timeout = module_params.get("timeout")
         self.use_proxy = module_params.get("use_proxy", True)
-        self.req_session = req_session
-        self.session_id = None
         self.protocol = 'https'
         self.ipaddress = config_ipv6(self.ipaddress)
         self.set_headers(module_params)
@@ -273,7 +260,7 @@ class SessionAPI():
         }
         return url_kwargs
 
-    def _args_session(self, path, method, api_timeout, headers=None):
+    def _args_session(self, method, api_timeout, headers=None):
         """
         Returns a dictionary containing the arguments needed to establish a session.
 
@@ -291,65 +278,35 @@ class SessionAPI():
         url_kwargs = self._url_common_args_spec(method, api_timeout, headers=headers)
         return url_kwargs
 
-    def invoke_request(self, uri, method, data=None, query_param=None, headers=None, api_timeout=None, dump=True):
+    def invoke_request(self, uri, method, data=None, query_param=None, headers=None,
+                       api_timeout=None, dump=True):
         """
-        Sends an HTTP request to the specified URI using the specified method.
+        Invokes a request to the specified URI using the given method and optional parameters.
 
-        Args:
-            uri (str): The URI to send the request to.
-            method (str): The HTTP method to use for the request.
-            data (Optional[dict]): The data to send with the request. Defaults to None.
-            query_param (Optional[dict]): The query parameters to include in the request URL.
-            Defaults to None.
-            headers (Optional[dict]): The headers to include in the request. Defaults to None.
-            api_timeout (Optional[int]): The timeout value for the request in seconds.
-              Defaults to None.
-            dump (bool): Whether to JSON dump the data before sending the request. Defaults to True.
-
-        Returns:
-            OpenURLResponse: The response object containing the response data.
-
-        Raises:
-            HTTPError: If an HTTP error occurs during the request.
-            URLError: If a URL error occurs during the request.
-            SSLValidationError: If an SSL validation error occurs during the request.
-            ConnectionError: If a connection error occurs during the request.
+        :param uri: The URI to send the request to.
+        :type uri: str
+        :param method: The HTTP method to use for the request.
+        :type method: str
+        :param data: The data to send with the request (default: None).
+        :type data: dict or None
+        :param query_param: The query parameters to include in the request URL (default: None).
+        :type query_param: dict or None
+        :param headers: The headers to include in the request (default: None).
+        :type headers: dict or None
+        :param api_timeout: The timeout for the request in seconds (default: None).
+        :type api_timeout: int or None
+        :param dump: Whether to dump the data to JSON before sending the request (default: True).
+        :type dump: bool
+        :return: The response data from the request.
+        :rtype: OpenURLResponse
         """
-        try:
-            url_kwargs = self._args_session(uri, method, api_timeout, headers=headers)
-            if data and dump:
-                data = json.dumps(data)
-            url = self._build_url(uri, query_param=query_param)
-            resp = open_url(url, data=data, **url_kwargs)
-            resp_data = OpenURLResponse(resp)
-        except (HTTPError, URLError, SSLValidationError, ConnectionError) as err:
-            raise err
+        url_kwargs = self._args_session(method, api_timeout, headers=headers)
+        if data and dump:
+            data = json.dumps(data)
+        url = self._build_url(uri, query_param=query_param)
+        resp = open_url(url, data=data, **url_kwargs)
+        resp_data = OpenURLResponse(resp)
         return resp_data
-
-    def __enter__(self):
-        """
-        Returns the current instance of the class, allowing it to be used in a context manager.
-
-        :return: The current instance of the class.
-        :rtype: self
-        """
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """
-        Exit the context manager and return False.
-
-        This method is called when the context manager is exited. It takes in three parameters:
-        - exc_type: the type of the exception that occurred, or None if no exception occurred.
-        - exc_value: the value of the exception that occurred, or None if no exception occurred.
-        - traceback: the traceback of the exception that occurred, or None if no exception occurred.
-
-        This method always returns False.
-
-        Returns:
-            bool: False
-        """
-        return False
 
     def _get_omam_ca_env(self):
         """

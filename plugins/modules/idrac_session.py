@@ -88,28 +88,39 @@ notes:
 
 EXAMPLES = r"""
 ---
-- name: Create a session
-  dellemc.openmanage.idrac_session:
-    hostname: 198.162.0.1
-    username: username
-    password: password
-    state: present
+name: Perform Module operation
+block:
+  - name: Create a session
+    dellemc.openmanage.idrac_session:
+      hostname: 198.162.0.1
+      username: username
+      password: password
+      state: present
+    register: authData
 
-- name: Delete a session
-  dellemc.openmanage.idrac_session:
-    hostname: 198.162.0.1
-    state: absent
-    auth_token: aed4aa802b748d2f3b31deec00a6b28a
-    session_id: 2
+  - name: Call module 1
+    dellemc.openmanage.module1:
+      auth_token: "{{ authData.x_auth_token }}"
+
+  - name: Call module 2
+    dellemc.openmanage.module2:
+      auth_token: "{{ authData.x_auth_token }}"
+
+always:
+  - name: Destroy a session
+    dellemc.openmanage.idrac_session:
+      state: absent
+      auth_token: "{{ authData.x_auth_token }}"
+      session_id: "{{ authData.session_data.Id }}"
 """
 
 RETURN = r'''
 ---
 msg:
-  type: str
-  description: Status of the session operation.
-  returned: always
-  sample: "The session has been created successfully."
+    description: Status of the session operation.
+    returned: always
+    type: str
+    sample: "The session has been created successfully."
 session_data:
     description: The session details.
     returned: For session creation operation
@@ -142,26 +153,32 @@ session_data:
             "SessionType": "Redfish",
             "UserName": "root"
         }
+x_auth_token:
+    description: Authentication token.
+    returned: For session creation operation
+    type: str
+    sample: "d15f17f01cd627c30173b1582642497d"
 error_info:
-  description: Details of the HTTP Error.
-  returned: On HTTP error
-  type: dict
-  sample: {
-        "error": {
-            "@Message.ExtendedInfo": [
-                {
-                    "Message": "Unable to complete the operation because an invalid username and/or password is entered, and therefore authentication failed.",
-                    "MessageArgs": [],
-                    "MessageId": "IDRAC.2.9.SYS415",
-                    "RelatedProperties": [],
-                    "Resolution": "Enter valid user name and password and retry the operation.",
-                    "Severity": "Warning"
-                }
-            ],
-            "code": "Base.1.12.GeneralError",
-            "message": "A general error has occurred. See ExtendedInfo for more information"
+    description: Details of the HTTP Error.
+    returned: On HTTP error
+    type: dict
+    sample: {
+            "error": {
+                "@Message.ExtendedInfo": [
+                    {
+                        "Message": "Unable to complete the operation because an invalid username
+                        and/or password is entered, and therefore authentication failed.",
+                        "MessageArgs": [],
+                        "MessageId": "IDRAC.2.9.SYS415",
+                        "RelatedProperties": [],
+                        "Resolution": "Enter valid user name and password and retry the operation.",
+                        "Severity": "Warning"
+                    }
+                ],
+                "code": "Base.1.12.GeneralError",
+                "message": "A general error has occurred. See ExtendedInfo for more information"
+            }
         }
-    }
 '''
 
 
@@ -361,13 +378,13 @@ def main():
     )
 
     try:
-        with SessionAPI(module.params) as idrac:
-            session_operation = module.params.get("state")
-            if session_operation == "present":
-                session_operation_obj = CreateSession(idrac, module)
-            else:
-                session_operation_obj = DeleteSession(idrac, module)
-            session_operation_obj.execute()
+        idrac = SessionAPI(module.params)
+        session_operation = module.params.get("state")
+        if session_operation == "present":
+            session_operation_obj = CreateSession(idrac, module)
+        else:
+            session_operation_obj = DeleteSession(idrac, module)
+        session_operation_obj.execute()
     except HTTPError as err:
         filter_err = remove_key(json.load(err), regex_pattern=ODATA_REGEX)
         module.exit_json(msg=str(err), error_info=filter_err, failed=True)
