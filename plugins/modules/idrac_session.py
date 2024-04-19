@@ -88,30 +88,19 @@ notes:
 
 EXAMPLES = r"""
 ---
-name: Perform Module operation
-block:
-  - name: Create a session
-    dellemc.openmanage.idrac_session:
-      hostname: 198.162.0.1
-      username: username
-      password: password
-      state: present
-    register: authData
+- name: Create a session
+  dellemc.openmanage.idrac_session:
+    hostname: 198.162.0.1
+    username: username
+    password: password
+    state: present
 
-  - name: Call module 1
-    dellemc.openmanage.module1:
-      auth_token: "{{ authData.x_auth_token }}"
-
-  - name: Call module 2
-    dellemc.openmanage.module2:
-      auth_token: "{{ authData.x_auth_token }}"
-
-always:
-  - name: Destroy a session
-    dellemc.openmanage.idrac_session:
-      state: absent
-      auth_token: "{{ authData.x_auth_token }}"
-      session_id: "{{ authData.session_data.Id }}"
+- name: Delete a session
+  dellemc.openmanage.idrac_session:
+    hostname: 198.162.0.1
+    state: absent
+    auth_token: aed4aa802b748d2f3b31deec00a6b28a
+    session_is: 2
 """
 
 RETURN = r'''
