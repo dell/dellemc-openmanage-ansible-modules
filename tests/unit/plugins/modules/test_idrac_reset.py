@@ -64,7 +64,7 @@ SET_CUSTOM_DEFAULT_KEY = "#DellManager.SetCustomDefaults"
 RESET_ALLOWABLE_KEY = "ResetType@Redfish.AllowableValues"
 VALIDATE_RESET_OPTION_KEY = "Validation.validate_reset_options"
 FILE_PATH = "/root/custom_default_content.xml"
-CHECK_IDRAC_VERSIOn = "FactoryReset.is_check_idrac_latest"
+CHECK_IDRAC_VERSION = "FactoryReset.is_check_idrac_latest"
 EXECUTE_KEY = "FactoryReset.execute"
 HTTP_ERROR_MSG = "http error message"
 RETURN_TYPE = "application/json"
@@ -164,7 +164,7 @@ class TestValidation(FakeAnsibleModule):
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.Validation(
             idrac_connection_reset_mock, f_module)
-        res = idr_obj.validate_reset_options(RESTART_KEY)
+        res = idr_obj.validate_graceful_restart_option(RESTART_KEY)
         assert res is False
 
     def test_validate_path(self, idrac_default_args, idrac_connection_reset_mock, mocker):
@@ -178,7 +178,7 @@ class TestValidation(FakeAnsibleModule):
             idr_obj.validate_path(FILE_PATH)
         assert exc.value.args[0] == INVALID_DIRECTORY_MSG.format(path=FILE_PATH)
 
-        # Scenario - when custom default file path exist
+        # Scenario - when custom default file path exist but not accessible
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + 'os.path.exists', return_value=True)
         mocker.patch(MODULE_PATH + 'os.access', return_value=False)
@@ -190,7 +190,7 @@ class TestValidation(FakeAnsibleModule):
         assert exc.value.args[0] == INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=FILE_PATH)
 
     def test_validate_file_format(self, idrac_default_args, idrac_connection_reset_mock, mocker):
-        # Scenario - when custom default file path doesn't exist
+        # Scenario - when custom default file is not in XML format
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         idr_obj = self.module.Validation(
@@ -200,7 +200,6 @@ class TestValidation(FakeAnsibleModule):
         assert exc.value.args[0] == INVALID_FILE_MSG
 
     def test_validate_custom_option_exception_case(self, idrac_default_args, idrac_connection_reset_mock, mocker):
-        # Scenario - when custom default file path doesn't exist
         obj = MagicMock()
         obj.json_data = self.allowed_values_api
         json_str = to_text(json.dumps({"data": "out"}))
@@ -325,6 +324,27 @@ class TestFactoryReset(FakeAnsibleModule):
         idrac_conn_mock.return_value.__enter__.return_value = idrac_reset_mock
         return idrac_conn_mock
 
+    def test_is_check_idrac_latest(self, idrac_default_args, idrac_connection_reset_mock, mocker):
+        allowed_values = ["All", "Default", "ResetAllWithRootDefaults"]
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05")
+        mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
+        reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
+        res = reset_obj.is_check_idrac_latest()
+        assert res is True
+
+    def test_check_mode_output(self, idrac_default_args, idrac_connection_reset_mock, mocker):
+        # Scenario - When Reset to default is not passed and check mode is true
+        allowed_values = ["All", "Default", "ResetAllWithRootDefaults"]
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05")
+        mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
+        mocker.patch(MODULE_PATH + "Validation.validate_graceful_restart_option", return_value=False)
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
+        with pytest.raises(Exception) as exc:
+            reset_obj.check_mode_output(True)
+        assert exc.value.args[0] == CHANGES_NOT_FOUND
+
     def test_execute(self, idrac_default_args, idrac_connection_reset_mock, mocker):
         # Scenario: when success message is returned for graceful restart for IDRAC8 or IDRAC9
         obj = MagicMock()
@@ -338,7 +358,7 @@ class TestFactoryReset(FakeAnsibleModule):
             elif len(args) > 2 and args[2] == 'Actions':
                 return self.action_api_resp_restart
             return self.action_api_resp
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=True)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=True)
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, return_value=obj)
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
@@ -362,7 +382,7 @@ class TestFactoryReset(FakeAnsibleModule):
                 return self.validate_allowed_values
             return self.action_api_resp
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05")
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=True)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=True)
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, URLError('URL error occurred'), obj, URLError('URL error occurred'), obj3, obj])
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
@@ -384,10 +404,9 @@ class TestFactoryReset(FakeAnsibleModule):
         job_resp_completed = {'JobStatus': 'Completed'}
         idrac_redfish_resp = (False, 'Job Success', job_resp_completed, 1200)
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05")
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=True)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=True)
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + VALIDATE_RESET_OPTION_KEY, return_value=True)
-        # mocker.patch(MODULE_PATH + "FactoryReset.wait_for_port_open", return_value=(False, 200, "Completed"))
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj, obj2, obj, obj2])
         mocker.patch(MODULE_PATH + 'idrac_redfish_job_tracking', return_value=idrac_redfish_resp)
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
@@ -404,7 +423,7 @@ class TestFactoryReset(FakeAnsibleModule):
         # Scenario - When reset_to_default is passed and iDRAC8 and check_mode True
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="2.81.81")
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=False)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=False)
         mocker.patch(MODULE_PATH + VALIDATE_RESET_OPTION_KEY, return_value=False)
         idrac_default_args.update({"reset_to_default": "CustomDefaults"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
@@ -417,7 +436,7 @@ class TestFactoryReset(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="2.81.81")
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + VALIDATE_RESET_OPTION_KEY, return_value=False)
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=False)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=False)
         idrac_default_args.update({"reset_to_default": "CustomDefaults"})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
@@ -429,7 +448,7 @@ class TestFactoryReset(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="2.81.81")
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + VALIDATE_RESET_OPTION_KEY, return_value=True)
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=False)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=False)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
         with pytest.raises(Exception) as exc:
@@ -440,7 +459,8 @@ class TestFactoryReset(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="2.81.81")
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + VALIDATE_RESET_OPTION_KEY, return_value=False)
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=False)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=False)
+        idrac_default_args.update({})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
         with pytest.raises(Exception) as exc:
@@ -451,7 +471,7 @@ class TestFactoryReset(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.60")
         mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
         mocker.patch(MODULE_PATH + VALIDATE_RESET_OPTION_KEY, return_value=False)
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=True)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=True)
         idrac_default_args.update({"reset_to_default": "CustomDefaults", "custom_defaults_buffer": self.custom_default_content})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
@@ -459,10 +479,21 @@ class TestFactoryReset(FakeAnsibleModule):
             reset_obj.execute()
         assert exc.value.args[0] == CHANGES_FOUND
 
+        # Scenario - When reset_to_default is passed and iDRAC9 with firmware version not supported and check_mode True
+        mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="6.81.81")
+        mocker.patch(MODULE_PATH + GET_BASE_URI_KEY, return_value=IDRAC_URI)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=True)
+        idrac_default_args.update({"reset_to_default": "CustomDefaults", "custom_defaults_buffer": self.custom_default_content})
+        f_module = self.get_module_mock(params=idrac_default_args, check_mode=True)
+        reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)
+        with pytest.raises(Exception) as exc:
+            reset_obj.execute()
+        assert exc.value.args[0] == CHANGES_NOT_FOUND
+
         # Scenario - When reset_to_default is 'CustomDefaults' and iDRAC9 and custom_defaults_file is passed
         json_str = to_text(json.dumps({"data": "out"}))
         mocker.patch(MODULE_PATH + "get_idrac_firmware_version", return_value="7.10.05")
-        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSIOn, return_value=True)
+        mocker.patch(MODULE_PATH + CHECK_IDRAC_VERSION, return_value=True)
         mocker.patch(MODULE_PATH + "FactoryReset.check_lcstatus", return_value=None)
         mocker.patch(MODULE_PATH + "Validation.validate_path", return_value=None)
         mocker.patch(MODULE_PATH + "Validation.validate_file_format", return_value=None)
@@ -487,7 +518,7 @@ class TestFactoryReset(FakeAnsibleModule):
         msg_resp, resp = reset_obj.execute()
         assert msg_resp['msg'] == IDRAC_RESET_SUCCESS_MSG
 
-        # Scenario: Failure - when reset_to_default is passed as 'Default' for idrac9 with job_wait set to True
+        # Scenario: Failure - when reset_to_default is passed as 'ResetAllWithRootDefaults' for idrac9 with job_wait set to True
         def mock_get_dynamic_uri_request(*args, **kwargs):
             if len(args) > 2 and args[2] == 'Links':
                 return self.lc_status_api_links
@@ -502,7 +533,7 @@ class TestFactoryReset(FakeAnsibleModule):
         mocker.patch(MODULE_PATH + INVOKE_REQ_KEY, side_effect=[obj])
         mocker.patch(MODULE_PATH + "get_dynamic_uri",
                      side_effect=mock_get_dynamic_uri_request)
-        idrac_default_args.update({"reset_to_default": "Default"})
+        idrac_default_args.update({"reset_to_default": "ResetAllWithRootDefaults"})
         idrac_default_args.update({"wait_for_idrac": False})
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         reset_obj = self.module.FactoryReset(idrac_connection_reset_mock, f_module, allowed_choices=allowed_values)

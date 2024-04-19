@@ -127,8 +127,8 @@ EXAMPLES = r'''
    idrac_password: "user_password"
    ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "CustomDefaults"
-   custom_defaults_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1'>
-    Disabled</Attribute></Component></SystemConfiguration>"
+   custom_defaults_buffer: "<SystemConfiguration Model=\"PowerEdge R7525\" ServiceTag=\"2V4TK93\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n
+                               <Attribute Name=\"IPMILan.1#Enable\">Disabled</Attribute>\n </Component>\n\n</SystemConfiguration>"
 '''
 
 RETURN = r'''
@@ -335,7 +335,7 @@ class FactoryReset():
         custom_default_buffer = self.module.params.get('custom_defaults_buffer')
         if is_valid_option:
             self.module.exit_json(msg=CHANGES_FOUND, changed=True)
-        elif not is_valid_option and self.reset_to_default and self.reset_to_default == 'CustomDefaults' and (custom_default_file or custom_default_buffer):
+        elif self.reset_to_default and self.reset_to_default == 'CustomDefaults' and (custom_default_file or custom_default_buffer):
             self.module.exit_json(msg=CHANGES_FOUND, changed=True)
         else:
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
