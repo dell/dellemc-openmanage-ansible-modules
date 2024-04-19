@@ -132,7 +132,7 @@ EXAMPLES = r'''
    idrac_password: "user_password"
    ca_path: "/path/to/ca_cert.pem"
    reset_to_default: "CustomDefaults"
-   custom_defaults_buffer: "<SystemConfiguration Model=\"PowerEdge R7525\" ServiceTag=\"2V4TK93\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n
+   custom_defaults_buffer: "<SystemConfiguration Model=\"PowerEdge R7525\" ServiceTag=\"ABCD123\">\n<Component FQDD=\"iDRAC.Embedded.1\">\n
                                <Attribute Name=\"IPMILan.1#Enable\">Disabled</Attribute>\n </Component>\n\n</SystemConfiguration>"
 '''
 
