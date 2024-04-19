@@ -16,7 +16,7 @@ DOCUMENTATION = r'''
 ---
 module: idrac_reset
 short_description: Factory reset the iDRACs
-version_added: "9.2.0"
+version_added: "2.1.0"
 description:
   - This module resets the iDRAC to factory default settings.
 extends_documentation_fragment:
@@ -38,29 +38,34 @@ options:
       - This option is applicable when I(reset_to_default) is C(CustomDefaults).
       - I(custom_defaults_file) is mutually exclusive with I(custom_defaults_buffer).
     type: str
+    version_added: 9.2.0
   custom_defaults_buffer:
     description:
       - This parameter provides the option to import the buffer input in XML format as a custom default configuration.
       - This option is applicable when I(reset_to_default) is C(CustomDefaults).
       - I(custom_defaults_buffer) is mutually exclusive with I(custom_defaults_file).
     type: str
+    version_added: 9.2.0
   wait_for_idrac:
     description:
       - This parameter provides the option to wait for the iDRAC to reset and lifecycle controller status to be ready.
     type: bool
     default: true
+    version_added: 9.2.0
   job_wait_timeout:
     description:
       - Time in seconds to wait for job completion.
       - This is applicable when I(job_wait) is C(true).
     type: int
     default: 600
+    version_added: 9.2.0
   force_reset:
     description:
       - This parameter provides the option to force reset the iDRAC without checking the iDRAC lifecycle controller status.
       - This option is applicable only for iDRAC9.
     type: bool
     default: false
+    version_added: 9.2.0
 
 requirements:
   - "python >= 3.9.6"
