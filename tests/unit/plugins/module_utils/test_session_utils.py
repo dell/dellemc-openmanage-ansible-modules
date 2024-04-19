@@ -32,7 +32,9 @@ SLEEP_TIME = 'session_utils.time.sleep'
 
 
 class TestSessionRest(object):
-
+    """
+    Main class for testing the SessionUtils class.
+    """
     @pytest.fixture
     def mock_response(self):
         """
@@ -85,49 +87,46 @@ class TestSessionRest(object):
 
     def test_invoke_request_with_session(self, mock_response, mocker, module_params):
         """
-        Test the `invoke_request` method with session.
+        Test the invoke_request method of the SessionAPI class with a session.
 
         Args:
-            mock_response (MagicMock): The mock response object.
-            mocker (MockerFixture): The mocker fixture for mocking objects.
-            module_params (dict): The module parameters.
-
-        This test case patches the `open_url` method from the `SessionAPI` class
-        with a mock response object. It then creates an instance of `SessionAPI`
-        with the provided `module_params` and invokes the `invoke_request` method
-        with the test path and HTTP method.
-
-        After the request is invoked, the test asserts that the response status
-        code is 200, the response JSON data is `{"value": "data"}`, and the response
-        success flag is `True`.
+            mock_response (MagicMock): A mocked response object.
+            mocker (MockerFixture): A fixture for mocking objects.
+            module_params (dict): The parameters for the module.
 
         Returns:
             None
+
+        Assertions:
+            - Asserts that the response status code is 200.
+            - Asserts that the response JSON data is {"value": "data"}.
+            - Asserts that the response success attribute is True.
         """
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
-        req_session = True
-        with SessionAPI(module_params, req_session) as obj:
-            response = obj.invoke_request(TEST_PATH, "GET")
+        obj = SessionAPI(module_params)
+        response = obj.invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
     def test_invoke_request_without_session(self, mock_response, mocker):
         """
-        Test the invoke_request method without using a session.
+        Test the `invoke_request` method of the `SessionAPI` class without using a session.
 
-        This test case verifies the functionality of the invoke_request method
-        when a session is not required. It mocks the response from the OpenURL
-        function and sets up the necessary module parameters. It then creates an
-        instance of the SessionAPI class with the module parameters and a
-        request session set to False. It invokes the invoke_request method with
-        a test path and GET method, and asserts the response status code, JSON data,
-        and success status.
+        This test case mocks the `open_url` function from the `MODULE_UTIL_PATH` module to return a
+        mock response.
+        It then creates an instance of the `SessionAPI` class with mock module parameters.
+        The `invoke_request` method is called with a test path and a GET method.
+        The test asserts that the response status code is 200, the response JSON data is
+        {"value": "data"},
+        and the response success flag is True.
 
         Parameters:
-            - mock_response (MagicMock): A mocked response object.
-            - mocker (MockerFixture): A mocker object for patching functions.
+            - mock_response (MagicMock): A mock response object to be returned by the `open_url`
+            function.
+            - mocker (MockerFixture): A fixture provided by the pytest library for mocking
+            functions.
 
         Returns:
             None
@@ -137,9 +136,8 @@ class TestSessionRest(object):
         module_params = {'hostname': 'XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX:XXXX', 'username':
                          'username',
                          'password': 'password', "port": '443'}
-        req_session = False
-        with SessionAPI(module_params, req_session) as obj:
-            response = obj.invoke_request(TEST_PATH, "GET")
+        obj = SessionAPI(module_params)
+        response = obj.invoke_request(TEST_PATH, "GET")
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
         assert response.success is True
@@ -147,90 +145,70 @@ class TestSessionRest(object):
     def test_invoke_request_without_session_with_header(self, mock_response, mocker,
                                                         module_params):
         """
-        Test the invoke_request method without using a session and with a header.
+        Test the `invoke_request` method of the `SessionAPI` class when a session is not used and a
+        header is provided.
 
-        Args:
-            mock_response (MagicMock): The mocked response object.
-            mocker (MockerFixture): The mocker fixture for mocking objects.
-            module_params (dict): The parameters for the module.
+        This test method mocks the `open_url` function from the `module_utils` module to return a
+        mock response object. It then creates an instance of the `SessionAPI` class with the
+        provided `module_params`. The `invoke_request` method is called with a test path, a request
+        method of "POST", and a headers dictionary containing a single key-value pair.
+
+        The test asserts that the response status code is 200, the response JSON data is
+        `{"value": "data"}`, and the response success flag is `True`.
+
+        Parameters:
+            - `mock_response` (MagicMock): A mock response object to be returned by the `open_url`
+            function.
+            - `mocker` (MockerFixture): A fixture for patching and mocking objects.
+            - `module_params` (dict): A dictionary containing the module parameters.
 
         Returns:
             None
-
-        Asserts:
-            - response.status_code == 200
-            - response.json_data == {"value": "data"}
-            - response.success is True
         """
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      return_value=mock_response)
-        req_session = False
-        with SessionAPI(module_params, req_session) as obj:
-            response = obj.invoke_request(TEST_PATH, "POST", headers={
-                                          "application": "octstream"})
+        obj = SessionAPI(module_params)
+        response = obj.invoke_request(TEST_PATH, "POST", headers={"application": "octstream"})
         assert response.status_code == 200
         assert response.json_data == {"value": "data"}
         assert response.success is True
 
-    # def test_invoke_request_with_session_connection_error(self, mocker, mock_response,
-    #                                                       module_params):
-    #     mock_response.success = False
-    #     mock_response.status_code = 500
-    #     mock_response.json_data = {}
-    #     mocker.patch(MODULE_UTIL_PATH + INVOKE_REQUEST,
-    #                  return_value=mock_response)
-    #     req_session = True
-    #     with pytest.raises(ConnectionError):
-    #         with SessionAPI(module_params, req_session) as obj:
-    #             obj.invoke_request(TEST_PATH, "GET")
-
     @pytest.mark.parametrize("exc", [URLError, SSLValidationError, ConnectionError])
     def test_invoke_request_error_case_handling(self, exc, mocker, module_params):
         """
-        Test the error handling case for the `invoke_request` method of the `SessionAPI` class.
+        Test the error handling in the `invoke_request` method of the `SessionAPI` class.
 
-        This function tests the handling of different types of errors that can occur during the
-        execution of the `invoke_request` method. It uses the `pytest.mark.parametrize` decorator
-        to run the test with different types of exceptions (`URLError`, `SSLValidationError`,
-        `ConnectionError`).
+        This function tests the handling of different types of exceptions that can occur during an
+        HTTP request. It uses the `pytest.mark.parametrize` decorator to run the test multiple
+        times with different exception types. The test mocks the `open_url` method of the
+        `SessionAPI` class to raise the specified exception. It then asserts that the correct
+        exception is raised when calling the `invoke_request` method.
 
-        Parameters:
-            - `exc` (Exception): The type of exception to be raised during the test.
-            - `mocker` (MockerFixture): A fixture provided by `pytest` for mocking objects.
-            - `module_params` (dict): The module parameters to be passed to the `SessionAPI`
-            constructor.
+        Args:
+            exc (Exception): The exception type to test.
+            mocker (MockerFixture): The mocker fixture used for mocking dependencies.
+            module_params (dict): The parameters for the `SessionAPI` object.
 
         Raises:
-            - `exc`: The specified exception type is raised during the test.
-
-        Returns:
-            None
+            exc: The specified exception type if it is raised during the `invoke_request` call.
         """
         mocker.patch(MODULE_UTIL_PATH + OPEN_URL,
                      side_effect=exc("test"))
-        req_session = False
         with pytest.raises(exc):
-            with SessionAPI(module_params, req_session) as obj:
-                obj.invoke_request(TEST_PATH, "GET")
+            obj = SessionAPI(module_params)
+            obj.invoke_request(TEST_PATH, "GET")
 
     def test_invoke_request_http_error_handling(self, mock_response, mocker, module_params):
         """
-        Test the HTTP error handling in the invoke_request method of the SessionAPI class.
+        Test the HTTP error handling in the `invoke_request` method of the `SessionAPI` class.
 
-        This function tests the behavior of the invoke_request method when it encounters an HTTP
-        error. It mocks the response of the open_url function to simulate an HTTPError with a
-        status code of 400 and a message of 'Bad Request Error'. It then sets up a context manager
-        using the SessionAPI class and calls the invoke_request method with a test path and method
-        of "GET". The function expects the invoke_request method to raise an HTTPError.
-
-        Parameters:
-            - mock_response: A mock response object to be used in the test.
-            - mocker: A mocker object from the pytest library used for patching the open_url
-            function.
-            - module_params: The parameters to be passed to the SessionAPI class.
+        Args:
+            mock_response (Mock): A mock object representing the response from the HTTP request.
+            mocker (MockerFixture): A fixture for mocking objects.
+            module_params (dict): The parameters for the module.
 
         Raises:
-            - HTTPError: If the invoke_request method raises an HTTPError.
+            HTTPError: If an HTTP error occurs during the invocation of the request.
 
         Returns:
             None
@@ -239,10 +217,9 @@ class TestSessionRest(object):
                                      return_value=mock_response)
         open_url_mock.side_effect = HTTPError('https://testhost.com/', 400,
                                               'Bad Request Error', {}, None)
-        req_session = False
         with pytest.raises(HTTPError):
-            with SessionAPI(module_params, req_session) as obj:
-                obj.invoke_request(TEST_PATH, "GET")
+            obj = SessionAPI(module_params)
+            obj.invoke_request(TEST_PATH, "GET")
 
     @pytest.mark.parametrize("query_params", [
         {"inp": {"$filter": "UserName eq 'admin'"},

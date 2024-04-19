@@ -105,19 +105,30 @@ Examples
 
     
     ---
-    - name: Create a session
-      dellemc.openmanage.idrac_session:
-        hostname: 198.162.0.1
-        username: username
-        password: password
-        state: present
+    name: Perform Module operation
+    block:
+      - name: Create a session
+        dellemc.openmanage.idrac_session:
+          hostname: 198.162.0.1
+          username: username
+          password: password
+          state: present
+        register: authData
 
-    - name: Delete a session
-      dellemc.openmanage.idrac_session:
-        hostname: 198.162.0.1
-        state: absent
-        auth_token: aed4aa802b748d2f3b31deec00a6b28a
-        session_id: 2
+      - name: Call module 1
+        dellemc.openmanage.module1:
+          auth_token: "{{ authData.x_auth_token }}"
+
+      - name: Call module 2
+        dellemc.openmanage.module2:
+          auth_token: "{{ authData.x_auth_token }}"
+
+    always:
+      - name: Destroy a session
+        dellemc.openmanage.idrac_session:
+          state: absent
+          auth_token: "{{ authData.x_auth_token }}"
+          session_id: "{{ authData.session_data.Id }}"
 
 
 
@@ -130,6 +141,10 @@ msg (always, str, The session has been created successfully.)
 
 session_data (For session creation operation, dict, {'@Message.ExtendedInfo': [{'Message': 'The resource has been created successfully.', 'MessageArgs': [], 'MessageId': 'Base.1.12.Created', 'RelatedProperties': [], 'Resolution': 'None.', 'Severity': 'OK'}, {'Message': 'A new resource is successfully created.', 'MessageArgs': [], 'MessageId': 'IDRAC.2.9.SYS414', 'RelatedProperties': [], 'Resolution': 'No response action is required.', 'Severity': 'Informational'}], 'ClientOriginIPAddress': '100.96.37.58', 'CreatedTime': '2024-04-05T01:14:01-05:00', 'Description': 'User Session', 'Id': '74', 'Name': 'User Session', 'Password': None, 'SessionType': 'Redfish', 'UserName': 'root'})
   The session details.
+
+
+x_auth_token (For session creation operation, str, d15f17f01cd627c30173b1582642497d)
+  Authentication token.
 
 
 error_info (On HTTP error, dict, {'error': {'@Message.ExtendedInfo': [{'Message': 'Unable to complete the operation because an invalid username and/or password is entered, and therefore authentication failed.', 'MessageArgs': [], 'MessageId': 'IDRAC.2.9.SYS415', 'RelatedProperties': [], 'Resolution': 'Enter valid user name and password and retry the operation.', 'Severity': 'Warning'}], 'code': 'Base.1.12.GeneralError', 'message': 'A general error has occurred. See ExtendedInfo for more information'}})
