@@ -4,6 +4,41 @@ Dell OpenManage Ansible Modules Release Notes
 
 .. contents:: Topics
 
+
+v9.2.0
+======
+
+Release Summary
+---------------
+
+- idrac_session module is added to allows the creation and deletion of sessions on iDRAC.
+- idrac_reset is enhanced to reset the iDRAC to factory default settings.
+
+Major Changes
+-------------
+
+- idrac_session - This module is intoduced to allow the creation and deletion of sessions on iDRAC.
+
+Minor Changes
+-------------
+
+- idrac_reset - This module is enhanced to reset the iDRAC to factory default settings.
+
+Known Issues
+------------
+
+- idrac_diagnostics - Issue(285322) - This module doesn't support export of diagnostics file to HTTP and HTTPS share via SOCKS proxy.
+- idrac_firmware - Issue(279282) - This module does not support firmware update using HTTP, HTTPS, and FTP shares with authentication on iDRAC8.
+- idrac_storage_volume - Issue(290766) - The module will report success instead of showing failure for new virtual creation on the BOSS-N1 controller if a virtual disk is already present on the same controller.
+- ome_diagnostics - Issue(279193) - Export of SupportAssist collection logs to the share location fails on OME version 4.0.0.
+- ome_smart_fabric_uplink - Issue(186024) - The module supported by OpenManage Enterprise Modular, however it does not allow the creation of multiple uplinks of the same name. If an uplink is created using the same name as an existing uplink, then the existing uplink is modified.
+
+New Modules
+-----------
+
+- dellemc.openmanage.idrac_reset - Resets the iDRAC to factory default settings.
+- dellemc.openmanage.idrac_session - Allows the creation and deletion of sessions on iDRAC.
+
 v9.1.0
 ======
 
@@ -459,6 +494,7 @@ Release Summary
 - Role to support the Import server configuration profile, Manage iDRAC power states, Manage iDRAC certificate,
   Gather facts from iDRAC and Deploy operating system is added.
 - Plugin OME inventory is enhanced to support the environment variables for the input parameters.
+
 
 Known Issues
 ------------
