@@ -15,9 +15,9 @@
       ansible.builtin.include_tasks:
         file: ../__extract_firmware_version.yml
       vars:
-        idrac_ip: "{{ lookup('env', 'hostname') }}"
-        idrac_user: "{{ lookup('env', 'username') }}"
-        idrac_password: "{{ lookup('env', 'password') }}"
+        idrac_ip: "{{ lookup('env', 'IDRAC_IP') }}"
+        idrac_user: "{{ lookup('env', 'IDRAC_USER') }}"
+        idrac_password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
 
     - name: Set expected firmware version
       ansible.builtin.set_fact:
@@ -40,9 +40,9 @@
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_certificate
           vars:
-            hostname: "{{ lookup('env', 'hostname') }}"
-            username: "{{ lookup('env', 'username') }}"
-            password: "{{ lookup('env', 'password') }}"
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             validate_certs: false
             ca_path: "{{ ca_cert_path }}"
             command: "import"
@@ -97,9 +97,9 @@
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_certificate
           vars:
-            hostname: "{{ lookup('env', 'hostname') }}"
-            username: "{{ lookup('env', 'username') }}"
-            password: "{{ lookup('env', 'password') }}"
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             validate_certs: false
             ca_path: "{{ ca_cert_path }}"
             command: "export"
@@ -156,9 +156,9 @@
           ansible.builtin.import_role:
             name: dellemc.openmanage.idrac_certificate
           vars:
-            hostname: "{{ lookup('env', 'hostname') }}"
-            username: "{{ lookup('env', 'username') }}"
-            password: "{{ lookup('env', 'password') }}"
+            hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+            username: "{{ lookup('env', 'IDRAC_USER') }}"
+            password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
             validate_certs: false
             ca_path: "{{ ca_cert_path }}"
             command: "import"

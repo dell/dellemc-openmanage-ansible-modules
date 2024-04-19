@@ -4,15 +4,15 @@
   gather_facts: false
   vars:
     share_input: &share_input
-      share_name: "{{ lookup('env', 'HTTP_URL') }}"
-      share_user: "{{ lookup('env', 'HTTP_USERNAME') }}"
-      share_password: "{{ lookup('env', 'HTTP_PASSWORD') }}"
+      share_name: "{{ lookup('env', 'http_url') }}"
+      share_user: "{{ lookup('env', 'http_username') }}"
+      share_password: "{{ lookup('env', 'http_password') }}"
       scp_file: "{{ lookup('env', 'http_filename') }}"
       proxy_support: true
-      proxy_server: "{{ lookup('env', 'PROXY_SERVER') }}"
-      proxy_port: "{{ lookup('env', 'PROXY_PORT') }}"
-      proxy_username: "{{ lookup('env', 'PROXY_USER') }}"
-      proxy_password: "{{ lookup('env', 'PROXY_PASSWORD') }}"
+      proxy_server: "{{ lookup('env', 'proxy_server') }}"
+      proxy_username: "{{ lookup('env', 'proxy_username') }}"
+      proxy_port: "{{ lookup('env', 'proxy_port') }}"
+      proxy_password: "{{ lookup('env', 'proxy_password') }}"
       ignore_certificate_warning: showerror
   tasks:
     - name: "Pre-requisites"
@@ -27,9 +27,9 @@
       ansible.builtin.import_role:
         name: "idrac_import_server_config_profile"
       vars:
-        hostname: "{{ lookup('env', 'HOSTNAME') }}"
-        username: "{{ lookup('env', 'USERNAME') }}"
-        password: "{{ lookup('env', 'PASSWORD') }}"
+        hostname: "{{ lookup('env', 'IDRAC_IP') }}"
+        username: "{{ lookup('env', 'IDRAC_USER') }}"
+        password: "{{ lookup('env', 'IDRAC_PASSWORD') }}"
         validate_certs: false
         share_parameters:
           <<: *share_input
