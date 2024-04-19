@@ -61,6 +61,7 @@
         idrac_password: "user_password"
         ca_path: "/path/to/ca_cert.pem"
         reset_to_default: "CustomDefaults"
-        custom_defaults_buffer: "<SystemConfiguration><Component FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
-          Disabled</Attribute></Component></SystemConfiguration>"
+        custom_defaults_buffer: "<SystemConfiguration><Component
+           FQDD='iDRAC.Embedded.1'><Attribute Name='IPMILan.1#Enable'>
+           Disabled</Attribute></Component></SystemConfiguration>"
       delegate_to: localhost
