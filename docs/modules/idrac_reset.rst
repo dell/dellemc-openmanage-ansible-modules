@@ -36,7 +36,7 @@ Parameters
 
     \ :literal:`Default`\  Discards all settings, but preserves user and network settings.
 
-    \ :literal:`CustomDefaults`\  All configuration is set to custom defaults.This option is supported on firmware version 7.00.30.00 and newer versions.
+    \ :literal:`CustomDefaults`\  All configuration is set to custom defaults.This option is supported on firmware version 7.00.00.00 and newer versions.
 
 
   custom_defaults_file (optional, str, None)
