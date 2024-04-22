@@ -4,7 +4,7 @@
 #
 # Dell OpenManage Ansible Modules
 # Version 9.2.0
-# Copyright (C) 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
+# Copyright (C) 2018-2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
@@ -29,7 +29,7 @@ options:
         - C(All) Discards all settings and reset to default credentials.
         - C(ResetAllWithRootDefaults) Discards all settings and reset the default username to root and password to the shipping value.
         - C(Default) Discards all settings, but preserves user and network settings.
-        - C(CustomDefaults) All configuration is set to custom defaults.This option is supported on firmware version 7.00.30.00 and newer versions.
+        - C(CustomDefaults) All configuration is set to custom defaults.This option is supported on firmware version 7.00.00.00 and newer versions.
     choices: ['Default', 'All', 'ResetAllWithRootDefaults', 'CustomDefaults']
     version_added: 9.2.0
   custom_defaults_file:
@@ -200,6 +200,9 @@ IDRAC_RESET_RETRIES = 50
 LC_STATUS_CHECK_SLEEP = 30
 IDRAC_JOB_URI = "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs/{job_id}"
 RESET_TO_DEFAULT_ERROR = "{reset_to_default} is not supported. The supported values are {supported_values}. Enter the valid values and retry the operation."
+RESET_TO_DEFAULT_ERROR_MSG = "{reset_to_default} is not supported."
+CUSTOM_ERROR = "{reset_to_default} is not supported on this firmware version of iDRAC. The supported values are {supported_values}. \
+Enter the valid values and retry the operation."
 IDRAC_RESET_RESTART_SUCCESS_MSG = "iDRAC restart operation completed successfully."
 IDRAC_RESET_SUCCESS_MSG = "Successfully performed iDRAC reset."
 IDRAC_RESET_RESET_TRIGGER_MSG = "iDRAC reset operation triggered successfully."
@@ -212,7 +215,7 @@ INVALID_FILE_MSG = "File extension is invalid. Supported extension for 'custom_d
 LC_STATUS_MSG = "Lifecycle controller status check is {lc_status} after {retries} number of retries, Exiting.."
 INSUFFICIENT_DIRECTORY_PERMISSION_MSG = "Provided directory path '{path}' is not writable. Please check if the directory has appropriate permissions."
 UNSUPPORTED_LC_STATUS_MSG = "Lifecycle controller status check is not supported."
-MINIMUM_SUPPORTED_FIRMWARE_VERSION = "7.00.30"
+MINIMUM_SUPPORTED_FIRMWARE_VERSION = "7.00.00"
 CHANGES_NOT_FOUND = "No changes found to commit!"
 CHANGES_FOUND = "Changes found to commit!"
 ODATA_ID = "@odata.id"
@@ -244,14 +247,16 @@ class Validation():
         reset_to_default = self.module.params.get('reset_to_default')
         key_list = api_key.split(".", 1)
         is_valid = True
+        allowed_values = None
         if key_list[0] in res.json_data["Actions"] and key_list[1] in res.json_data["Actions"][key_list[0]]:
             reset_to_defaults_val = res.json_data["Actions"][key_list[0]][key_list[1]]
             reset_type_values = reset_to_defaults_val["ResetType@Redfish.AllowableValues"]
+            allowed_values = reset_type_values
             if reset_to_default not in reset_type_values:
                 is_valid = False
         else:
             is_valid = False
-        return is_valid
+        return allowed_values, is_valid
 
     def validate_graceful_restart_option(self, api_key):
         res = self.idrac.invoke_request(self.base_uri, "GET")
@@ -285,8 +290,10 @@ class Validation():
         if resp:
             url = resp.get(MANUFACTURER, {}).get('CustomDefaultsDownloadURI', {})
         try:
-            self.idrac.invoke_request(url, "GET")
-            return True
+            if url:
+                self.idrac.invoke_request(url, "GET")
+                return True
+            return False
         except HTTPError as err:
             if err.code in ERR_STATUS_CODE:
                 self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=reset_to_default, supported_values=allowed_choices), skipped=True)
@@ -309,11 +316,11 @@ class FactoryReset():
         self.validate_obj.validate_job_timeout()
         is_idrac9 = self.is_check_idrac_latest()
         if not is_idrac9 and self.reset_to_default:
-            is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
+            allowed_values, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
             if self.module.check_mode and not is_valid_option:
                 self.module.exit_json(msg=CHANGES_NOT_FOUND)
             if not is_valid_option:
-                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
+                self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR_MSG.format(reset_to_default=self.reset_to_default),
                                       skipped=True)
         if self.module.check_mode:
             self.check_mode_output(is_idrac9)
@@ -333,7 +340,7 @@ class FactoryReset():
         if is_idrac9 and self.reset_to_default == 'CustomDefaults' and LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
             self.module.exit_json(msg=CHANGES_NOT_FOUND)
         if self.reset_to_default:
-            is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
+            allowed_values, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
         else:
             is_valid_option = self.validate_obj.validate_graceful_restart_option(GRACEFUL_RESTART_KEY)
         custom_default_file = self.module.params.get('custom_defaults_file')
@@ -467,7 +474,7 @@ class FactoryReset():
 
     def reset_to_default_mapped(self):
         payload = {"ResetType": self.reset_to_default}
-        is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
+        self.allowed_choices, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
         if not is_valid_option:
             self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
                                   skipped=True)
@@ -479,9 +486,10 @@ class FactoryReset():
         return xml_content
 
     def reset_custom_defaults(self):
+        self.allowed_choices, is_valid_option = self.validate_obj.validate_reset_options(RESET_KEY)
         if LooseVersion(self.idrac_firmware_version) < MINIMUM_SUPPORTED_FIRMWARE_VERSION:
-            self.module.exit_json(msg=RESET_TO_DEFAULT_ERROR.format(reset_to_default=self.reset_to_default, supported_values=self.allowed_choices),
-                                  skipped=True)
+            self.module.exit_json(msg=CUSTOM_ERROR.format(reset_to_default=self.reset_to_default,
+                                                          supported_values=self.allowed_choices), skipped=True)
         custom_default_file = self.module.params.get('custom_defaults_file')
         custom_default_buffer = self.module.params.get('custom_defaults_buffer')
         upload_perfom = False
