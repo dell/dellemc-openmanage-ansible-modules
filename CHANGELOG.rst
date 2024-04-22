@@ -11,18 +11,18 @@ v9.2.0
 Release Summary
 ---------------
 
-- idrac_session module is added to allows the creation and deletion of sessions on iDRAC.
-- idrac_reset is enhanced to reset the iDRAC to factory default settings.
+- The idrac_session module is added to allow you to create and delete the sessions on iDRAC.
+- The idrac_reset module is enhanced to allow you to reset the iDRAC to factory default settings.
 
 Major Changes
 -------------
 
-- idrac_session - This module is intoduced to allow the creation and deletion of sessions on iDRAC.
+- idrac_session - This module allows you to create and delete the sessions on iDRAC.
 
 Minor Changes
 -------------
 
-- idrac_reset - This module is enhanced to reset the iDRAC to factory default settings.
+- idrac_reset - This module allows you to reset the iDRAC to factory default settings.
 
 Known Issues
 ------------
@@ -36,8 +36,7 @@ Known Issues
 New Modules
 -----------
 
-- dellemc.openmanage.idrac_reset - Resets the iDRAC to factory default settings.
-- dellemc.openmanage.idrac_session - Allows the creation and deletion of sessions on iDRAC.
+- dellemc.openmanage.idrac_session - Allows you to create and delete the sessions on iDRAC.
 
 v9.1.0
 ======

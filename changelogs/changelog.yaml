@@ -1807,13 +1807,13 @@ releases:
     release_date: '2024-03-29'
   9.2.0:
     changes:
-      release_summary: '- idrac_session module is added to allows the creation and deletion of sessions on iDRAC.
+      release_summary: '- The idrac_session module is added to allow you to create and delete the sessions on iDRAC.
 
-        - idrac_reset is enhanced to reset the iDRAC to factory default settings.'
+        - The idrac_reset module is enhanced to allow you to reset the iDRAC to factory default settings.'
       major_changes:
-        - idrac_session - This module is intoduced to allow the creation and deletion of sessions on iDRAC.
+        - idrac_session - This module allows you to create and delete the sessions on iDRAC.
       minor_changes:
-        - idrac_reset - This module is enhanced to reset the iDRAC to factory default settings.
+        - idrac_reset - This module allows you to reset the iDRAC to factory default settings.
       known_issues:
         - idrac_storage_volume - Issue(290766) - The module will report success instead of showing
           failure for new virtual creation on the BOSS-N1 controller if a virtual disk is already
@@ -1830,11 +1830,7 @@ releases:
           uplink, then the existing uplink is modified.
     modules:
       - description:
-          Allows the creation and deletion of sessions on iDRAC.
+          Allows you to create and delete the sessions on iDRAC.
         name: idrac_session
-        namespace: ''
-      - description:
-          Resets the iDRAC to factory default settings.
-        name: idrac_reset
         namespace: ''
     release_date: '2024-04-30'

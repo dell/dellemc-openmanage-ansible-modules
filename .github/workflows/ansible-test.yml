@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible-version: [stable-2.15, stable-2.16, devel]
+        ansible-version: [stable-2.15, stable-2.16, stable-2.17, devel]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -47,16 +47,12 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        python: ['3.9', '3.10', '3.11']
+        python: ['3.10', '3.11']
         ansible:
           - stable-2.15
           - stable-2.16
+          - stable-2.17
           - devel
-        exclude:
-          - ansible: stable-2.16
-            python: '3.9'
-          - ansible: devel
-            python: '3.9'
     runs-on: ubuntu-latest
 
     steps:
@@ -78,16 +74,12 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        python: ['3.9', '3.10', '3.11']
+        python: ['3.10', '3.11']
         ansible:
           - stable-2.15
           - stable-2.16
+          - stable-2.17
           - devel
-        exclude:
-          - ansible: stable-2.16
-            python: '3.9'
-          - ansible: devel
-            python: '3.9'
     runs-on: ubuntu-latest
     steps:
       - name: Perform sanity testing
@@ -106,13 +98,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
-        ansible-version: [stable-2.15, stable-2.16, devel]
-        exclude:
-          - ansible-version: stable-2.16
-            python-version: '3.9'
-          - ansible-version: devel
-            python-version: '3.9'
+        python-version: ['3.10', '3.11']
+        ansible-version: [stable-2.15, stable-2.16, stable-2.17, devel]
     steps:
       # Important: This sets up your GITHUB_WORKSPACE environment variable
       - name: Checkout the source code
