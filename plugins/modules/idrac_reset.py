@@ -225,6 +225,7 @@ SUCCESS_STATUS = "Success"
 FAILED_STATUS = "Failed"
 STATUS_SUCCESS = [200, 202, 204]
 ERR_STATUS_CODE = [400, 404]
+PASSWORD_CHANGE_OPTIONS = ['All', 'ResetAllWithRootDefaults']
 RESET_KEY = "Oem.#DellManager.ResetToDefaults"
 GRACEFUL_RESTART_KEY = "#Manager.Reset"
 
@@ -357,7 +358,7 @@ class FactoryReset():
             return True
 
     def check_lcstatus(self, post_op=True):
-        if self.reset_to_default == 'All' and post_op and self.staus_code_after_wait == 401:
+        if self.reset_to_default in PASSWORD_CHANGE_OPTIONS and post_op and self.staus_code_after_wait == 401:
             return
         lc_status_dict = {}
         lc_status_dict['LCStatus'] = ""
