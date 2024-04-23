@@ -225,7 +225,7 @@ SUCCESS_STATUS = "Success"
 FAILED_STATUS = "Failed"
 STATUS_SUCCESS = [200, 202, 204]
 ERR_STATUS_CODE = [400, 404]
-PASSWORD_CHANGE_OPTIONS = ['All','ResetAllWithRootDefaults']
+PASSWORD_CHANGE_OPTIONS = ['All', 'ResetAllWithRootDefaults']
 RESET_KEY = "Oem.#DellManager.ResetToDefaults"
 GRACEFUL_RESTART_KEY = "#Manager.Reset"
 
