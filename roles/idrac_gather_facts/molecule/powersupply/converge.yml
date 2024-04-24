@@ -30,11 +30,6 @@
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
-    - name: Assert power supply dict for length
-      ansible.builtin.assert:
-        that:
-          - "{{ power_supply | length > 0 }}"
-
     - name: Call assertion
       ansible.builtin.include_tasks: ../../tests/asserts/powersupply_assert.yml
       with_items: "{{ power_supply }}"

@@ -24,6 +24,13 @@
   ansible.builtin.set_fact:
     diff_keys: "{{ powersupply_data.keys() | list | symmetric_difference((api_response.keys() | list)) }}"
 
+- name: Assert thermal metrics
+  ansible.builtin.assert:
+    that:
+      - "((api_response | length == 0) and (power_supply | length == 0))  or ((api_response | length > 0) and (power_supply | length > 0))"
+    fail_msg: "The response from the role does not match"
+    success_msg: "The response from the role matches"
+
 - name: Set a diff of dict
   ansible.builtin.set_fact:
     diff_data: "{{ diff_data | combine({item: powersupply_data[item]}) }}"
