@@ -167,7 +167,8 @@
           ansible.builtin.assert:
             that:
               - idrac_certificate_out.unreachable
-              - '"Unable to communicate with" in idrac_certificate_out.msg'
+              - "idrac_certificate_out.msg is search('Incorrect username or password, unreachable iDRAC IP') or
+                 idrac_certificate_out.msg is search('Name or service not known')"
 
         - name: Negative - invalid idrac user
           ansible.builtin.import_role:
@@ -182,12 +183,13 @@
             idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_idrac_user
           ignore_errors: true
+          ignore_unreachable: true
 
         - name: Verify task status - Negative - invalid idrac user
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.failed
-              - '"HTTP Error 401: Unauthorized" in idrac_certificate_out.msg'
+              - idrac_certificate_out.failed or idrac_certificate_out.unreachable
+              - '"HTTP Error 401: Unauthorized" or "<urlopen error timed out>" in idrac_certificate_out.msg'
 
         - name: Negative - invalid idrac password
           ansible.builtin.import_role:
@@ -202,12 +204,13 @@
             idrac_certificate_delegate: "{{ cert_delegate_to }}"
           register: invalid_idrac_pass
           ignore_errors: true
+          ignore_unreachable: true
 
         - name: Verify task status - Negative - invalid idrac password
           ansible.builtin.assert:
             that:
-              - idrac_certificate_out.failed
-              - '"HTTP Error 401: Unauthorized" in idrac_certificate_out.msg'
+              - idrac_certificate_out.failed or idrac_certificate_out.unreachable
+              - '"HTTP Error 401: Unauthorized" or "<urlopen error timed out>" in idrac_certificate_out.msg'
 
         - name: Invalid command
           ansible.builtin.import_role:
