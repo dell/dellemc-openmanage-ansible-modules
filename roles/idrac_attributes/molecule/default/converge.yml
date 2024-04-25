@@ -20,9 +20,8 @@
     - name: Asserting after performing operation with wrong hostname
       ansible.builtin.assert:
         that:
-          - "'Incorrect username or password,
-             unreachable iDRAC IP' in '{{ idrac_attributes_out.msg }}' or
-            'Name or service not known' in '{{ idrac_attributes_out.msg }}'"
+          - "idrac_attributes_out.msg is search('Incorrect username or password, unreachable iDRAC IP') or
+            idrac_attributes_out.msg is search('Name or service not known')"
 
     - name: Perform update with wrong username
       ansible.builtin.import_role:
@@ -140,13 +139,12 @@
           SSH.1.Timeout: 1800
         manager_id: idrac.random.5
       ignore_errors: true
-      ignore_unreachable: true
       register: idrac_attributes_error_msg
 
     - name: Asserting after performing operation with wrong manager_id
       ansible.builtin.assert:
         that:
-          - '"HTTP Error 404" in idrac_attributes_out.msg'
+          - "idrac_attributes_out.msg is search('HTTP Error')"
 
     - name: Perform update with read only attributes
       ansible.builtin.import_role:
@@ -161,7 +159,6 @@
           SSH.1.MaxSessions: 5
         manager_id: "{{ null | default(omit) }}"
       ignore_errors: true
-      ignore_unreachable: true
       register: idrac_attributes_error_msg
 
     - name: Asserting after performing operation with read only attributes
