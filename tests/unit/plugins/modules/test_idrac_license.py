@@ -285,14 +285,14 @@ class TestExportLicense(FakeAnsibleModule):
             }
         }
         idr_obj = MagicMock()
-        idr_obj.json_data = {"license_id": "1234", "LicenseFile": "test_license_content"}
+        idr_obj.json_data = {"license_id": "1234", "LicenseFile": "dGVzdF9saWNlbnNlX2NvbnRlbnQK"}
         mocker.patch(MODULE_PATH + API_INVOKE_MOCKER,
                      return_value=idr_obj)
         idrac_default_args.update(export_params)
         f_module = self.get_module_mock(params=idrac_default_args, check_mode=False)
         export_license_obj = self.module.ExportLicense(idrac_connection_license_mock, f_module)
         result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
-        assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
+        assert result.json_data == {'LicenseFile': 'dGVzdF9saWNlbnNlX2NvbnRlbnQK', 'license_id': '1234'}
         assert os.path.exists(f"{tmp_path}/test_lic.xml")
         if os.path.exists(f"{tmp_path}/test_lic.xml"):
             os.remove(f"{tmp_path}/test_lic.xml")
@@ -305,7 +305,7 @@ class TestExportLicense(FakeAnsibleModule):
         }
         idrac_default_args.update(export_params)
         result = export_license_obj._ExportLicense__export_license_local(EXPORT_URL_MOCK)
-        assert result.json_data == {'LicenseFile': 'test_license_content', 'license_id': '1234'}
+        assert result.json_data == {'LicenseFile': 'dGVzdF9saWNlbnNlX2NvbnRlbnQK', 'license_id': '1234'}
         assert os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.xml")
         if os.path.exists(f"{tmp_path}/test_license_id_iDRAC_license.xml"):
             os.remove(f"{tmp_path}/test_license_id_iDRAC_license.xml")
