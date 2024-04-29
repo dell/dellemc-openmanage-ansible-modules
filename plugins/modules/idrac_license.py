@@ -634,7 +634,7 @@ class ExportLicense(License):
             self.module.exit_json(msg=INSUFFICIENT_DIRECTORY_PERMISSION_MSG.format(path=path), failed=True)
         license_name = self.module.params.get('share_parameters').get('file_name')
         if license_name:
-            license_file_name = f"{license_name}_iDRAC_license.txt"
+            license_file_name = f"{license_name}"
         else:
             license_file_name = f"{self.module.params['license_id']}_iDRAC_license.txt"
         license_status = self.idrac.invoke_request(export_license_url, "POST", data=payload)
@@ -737,7 +737,7 @@ class ExportLicense(License):
         """
         license_name = self.module.params.get('share_parameters').get('file_name')
         if license_name:
-            license_file_name = f"{license_name}_iDRAC_license.xml"
+            license_file_name = f"{license_name}"
         else:
             license_file_name = f"{self.module.params['license_id']}_iDRAC_license.xml"
         payload["FileName"] = license_file_name
