@@ -25,11 +25,12 @@
     diff_data: {}
     exclude_keys: []
     api_chassis: "/redfish/v1/Chassis/System.Embedded.1"
+    power_supply_api: "/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
 
   tasks:
     - name: Fetching Power Supply info
       ansible.builtin.uri:
-        url: "https://{{ hostname }}{{ api_chassis }}/PowerSubsystem/PowerSupplies?$expand=*($levels=1)"
+        url: "https://{{ hostname }}{{ api_chassis }}{{ power_supply_api }}"
         validate_certs: "{{ validate_certs }}"
         ca_path: "{{ ca_path | default(omit) }}"
         method: "{{ idrac_gather_facts_uri_method }}"
@@ -40,14 +41,15 @@
         status_code: "{{ idrac_gather_facts_uri_status_code }}"
         return_content: "{{ idrac_gather_facts_uri_return_content }}"
       register: powersupply_result
-      # no_log: true
+      no_log: true
 
     - name: Set powersupply facts
       ansible.builtin.set_fact:
         api_response:
-          "{{ powersupply_result.json.Members | ansible.utils.remove_keys(target=['@odata.context',
-          '@odata.id', '@odata.type', 'ActiveInputVoltage@Redfish.Deprecated', 'OperationalStatus@odata.count',
-          'RedTypeOfSet@odata.count']) }}"
+          "{{ powersupply_result.json.Members |
+            ansible.utils.remove_keys(target=['@odata.context', '@odata.id',
+            '@odata.type', 'ActiveInputVoltage@Redfish.Deprecated',
+            'OperationalStatus@odata.count', 'RedTypeOfSet@odata.count']) }}"
 
     - name: Gather Facts for the Power Supply component
       ansible.builtin.include_role:
