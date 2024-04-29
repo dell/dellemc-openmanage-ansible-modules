@@ -636,7 +636,7 @@ class ExportLicense(License):
         if license_name:
             license_file_name = f"{license_name}"
         else:
-            license_file_name = f"{self.module.params['license_id']}_iDRAC_license.txt"
+            license_file_name = f"{self.module.params['license_id']}_iDRAC_license.xml"
         license_status = self.idrac.invoke_request(export_license_url, "POST", data=payload)
         license_data = license_status.json_data
         license_file = license_data.get("LicenseFile")
