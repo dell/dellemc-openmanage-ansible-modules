@@ -57,16 +57,10 @@
       ansible.builtin.set_fact:
         drives_count: "{{ idrac_gather_facts_disk_result.results | map(attribute='json.drives') | list | length }}"
 
-    - name: Validate whether physical disk information exists
-      ansible.builtin.assert:
-        that:
-          - "{{ drives_count | int > 0 }}"
-        fail_msg: "Physical Disk information does not exist"
-
     - name: Set Physical Disk facts
       ansible.builtin.set_fact:
         api_response:
-          "{{ disk_result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Drives', 'defined') |
+          "{{ idrac_gather_facts_disk_result.results | selectattr('json', 'defined') | map(attribute='json') | selectattr('Drives', 'defined') |
           map(attribute='Drives') | flatten | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type',
           'Actions', 'Assembly', 'Links', 'DellDriveSMARTAttributes', 'DellNVMeSMARTAttributes', 'Operations@odata.count']) }}"
 
@@ -74,9 +68,18 @@
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
+    - name: Assert backplane data
+      ansible.builtin.assert:
+        that:
+          - "((drives_count | length == 0) and (physical_disk | length == 0))"
+        fail_msg: "The response from the role does not match"
+        success_msg: "The response from the role matches"
+      when: drives_count | length == 0
+
     - name: Check whether output differs
       ansible.builtin.set_fact:
         result_diff: "{{ physical_disk | symmetric_difference(api_response) }}"
+      when: drives_count | length > 0
 
     - name: Assert the differences in List
       ansible.builtin.assert:
@@ -84,3 +87,4 @@
         success_msg: "The response from the role matches"
         that:
           - "{{ (result_diff | length) == 0 }}"
+      when: drives_count | length > 0
