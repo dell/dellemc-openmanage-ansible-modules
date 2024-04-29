@@ -639,10 +639,10 @@ class ExportLicense(License):
             license_file_name = f"{self.module.params['license_id']}_iDRAC_license.xml"
         license_status = self.idrac.invoke_request(export_license_url, "POST", data=payload)
         license_data = license_status.json_data
-        license_file = license_data.get("LicenseFile")
+        license_file = base64.b64decode(license_data.get("LicenseFile")).decode('utf-8')
         file_name = os.path.join(path, license_file_name)
         with open(file_name, "w") as fp:
-            fp.writelines(license_file)
+            fp.write(license_file)
         return license_status
 
     def __export_license_http(self, export_license_url):
