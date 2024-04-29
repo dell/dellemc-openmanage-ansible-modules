@@ -1,19 +1,42 @@
-- name: Set the keys diff
+---
+- name: Get Thermal Metrics information.
+  ansible.builtin.uri:
+    url: "https://{{ hostname }}{{ api_chassis }}/ThermalSubsystem/ThermalMetrics"
+    validate_certs: "{{ validate_certs }}"
+    method: "{{ idrac_gather_facts_uri_method }}"
+    user: "{{ username }}"
+    password: "{{ password }}"
+    headers: "{{ idrac_gather_facts_uri_headers }}"
+    body_format: "{{ idrac_gather_facts_uri_body_format }}"
+    status_code: "{{ idrac_gather_facts_uri_status_code }}"
+    return_content: "{{ idrac_gather_facts_uri_return_content }}"
+  register: response_thermal_metrics
+  no_log: true
+
+- name: Set Thermal Metrics facts
   ansible.builtin.set_fact:
-    diff_keys: "{{ thermal_metrics.keys() | list | symmetric_difference((api_thermal_metrics.keys() | list)) }}"
+    api_thermal_metrics: "{{ response_thermal_metrics.json |
+      ansible.utils.remove_keys(target=['@odata.context', '@odata.type', '@odata.id', 'DataSourceUri', 'TemperatureReadingsCelsius@odata.count']) }}"
 
 - name: Assert thermal metrics
   ansible.builtin.assert:
     that:
-      - "((api_thermal_metrics | length == 0) and (thermal_metrics | length == 0))  or ((api_thermal_metrics | length > 0) and (thermal_metrics | length > 0))"
+      - "((api_thermal_metrics | length == 0) and (thermal_metrics | length == 0))"
     fail_msg: "The response from the role does not match"
     success_msg: "The response from the role matches"
+  when: api_thermal_metrics| length == 0
+
+- name: Set the keys diff
+  ansible.builtin.set_fact:
+    diff_keys: "{{ thermal_metrics.keys() | list | symmetric_difference((api_thermal_metrics.keys() | list)) }}"
+  when: api_thermal_metrics| length > 0
 
 - name: Set a diff of dict
   ansible.builtin.set_fact:
     diff_data: "{{ diff_data | combine({item: thermal_metrics[item]}) }}"
   loop: "{{ thermal_metrics.keys() }}"
   when:
+    - api_thermal_metrics| length > 0
     - diff_keys | length == 0
     - thermal_metrics[item] != api_thermal_metrics[item]
     - item not in exclude_keys
@@ -25,3 +48,4 @@
       - "{{ (diff_data | length) == 0 }}"
     fail_msg: "The response from the role does not match | Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
     success_msg: "The response from the role matches |  Diff Keys : {{ diff_keys }} Diff Data : {{ diff_data }}"
+  when: api_thermal_metrics| length > 0

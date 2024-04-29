@@ -44,7 +44,8 @@
 
     - name: Set presence and status sensor facts
       ansible.builtin.set_fact:
-        api_response: "{{ passensor_result.json.Members | ansible.utils.remove_keys(target=['@odata.context', '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
+        api_response: "{{ passensor_result.json.Members | ansible.utils.remove_keys(target=['@odata.context',
+         '@odata.id', '@odata.type', 'Assembly', 'Links']) }}"
 
     - name: Gather Facts for the Presence and Status Sensor
       ansible.builtin.include_role:

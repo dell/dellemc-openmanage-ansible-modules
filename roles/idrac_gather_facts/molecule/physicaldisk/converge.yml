@@ -68,7 +68,7 @@
       ansible.builtin.include_role:
         name: "idrac_gather_facts"
 
-    - name: Assert backplane data
+    - name: Assert Physical Disk data
       ansible.builtin.assert:
         that:
           - "((drives_count | length == 0) and (physical_disk | length == 0))"
